@@ -3,6 +3,7 @@ using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using System;
 
 namespace BossMod
@@ -11,7 +12,7 @@ namespace BossMod
     {
         public string Name => "Boss Mod";
 
-        private CommandManager _commandManager { get; init; }
+        private ICommandManager _commandManager { get; init; }
 
         private Network _network;
         private WorldStateGame _ws;
@@ -30,21 +31,16 @@ namespace BossMod
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
-            [RequiredVersion("1.0")] CommandManager commandManager)
+            [RequiredVersion("1.0")] ICommandManager commandManager)
         {
             dalamud.Create<Service>();
-#if DEBUG
-            Service.LogHandler = (string msg) => PluginLog.Log(msg);
-#else
-            Service.LogHandler = (string msg) => PluginLog.Debug(msg);
-#endif
+            Service.LogHandler = (string msg) => Service.Logger.Debug(msg);
             Service.LuminaGameData = Service.DataManager.GameData;
             Service.WindowSystem = new("vbm");
             //Service.Device = pluginInterface.UiBuilder.Device;
             Service.Condition.ConditionChange += OnConditionChanged;
             MultiboxUnlock.Exec();
             Camera.Instance = new();
-            Mouseover.Instance = new();
 
             Service.Config.Initialize();
             Service.Config.LoadFromFile(dalamud.ConfigFile);
@@ -88,7 +84,6 @@ namespace BossMod
             _network.Dispose();
             _ai.Dispose();
             _autorotation.Dispose();
-            Mouseover.Instance?.Dispose();
             ActionManagerEx.Instance?.Dispose();
             _commandManager.RemoveHandler("/vbm");
         }

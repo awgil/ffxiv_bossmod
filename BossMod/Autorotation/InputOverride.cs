@@ -32,15 +32,13 @@ namespace BossMod
 
         public unsafe InputOverride()
         {
-            var kbprocAddress = Service.SigScanner.ScanText("48 89 5C 24 08 55 56 57 41 56 41 57 48 8D 6C 24 B0 48 81 EC 50 01 00 00 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 40 4D 8B F9 49 8B D8 81 FA 00 01 00 00"); // note: look for callers of GetKeyboardState
-            Service.Log($"[InputOverride] kbproc addess: 0x{kbprocAddress:X}");
-            _kbprocHook = Hook<KbprocDelegate>.FromAddress(kbprocAddress, KbprocDetour);
+            _kbprocHook = Service.Hook.HookFromSignature<KbprocDelegate>("48 89 5C 24 08 55 56 57 41 56 41 57 48 8D 6C 24 B0 48 81 EC 50 01 00 00 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 40 4D 8B F9 49 8B D8 81 FA 00 01 00 00", KbprocDetour); // note: look for callers of GetKeyboardState
             _kbprocHook.Enable();
+            Service.Log($"[InputOverride] kbproc addess: 0x{_kbprocHook.Address:X}");
 
-            var getGamepadAxisAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 0F BE 0D ?? ?? ?? ?? BA 04 00 00 00 66 0F 6E F8 66 0F 6E C1 48 8B CE 0F 5B C0 0F 5B FF F3 0F 5E F8");
-            Service.Log($"[InputOverride] GetGamepadAxis address: 0x{getGamepadAxisAddress:X}");
-            _getGamepadAxisHook = Hook<GetGamepadAxisDelegate>.FromAddress(getGamepadAxisAddress, GetGamepadAxisDetour);
+            _getGamepadAxisHook = Service.Hook.HookFromSignature<GetGamepadAxisDelegate>("E8 ?? ?? ?? ?? 0F BE 0D ?? ?? ?? ?? BA 04 00 00 00 66 0F 6E F8 66 0F 6E C1 48 8B CE 0F 5B C0 0F 5B FF F3 0F 5E F8", GetGamepadAxisDetour);
             _getGamepadAxisHook.Enable();
+            Service.Log($"[InputOverride] GetGamepadAxis address: 0x{_getGamepadAxisHook.Address:X}");
 
             _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
         }

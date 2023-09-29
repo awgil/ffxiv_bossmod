@@ -128,17 +128,14 @@ namespace BossMod
             _playerController = (PlayerController*)Service.SigScanner.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 3C 01 75 1E 48 8D 0D");
             Service.Log($"[DebugInput] playerController addess: 0x{(nint)_playerController:X}");
 
-            var rmiWalkAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D");
-            Service.Log($"[DebugInput] rmiwalk addess: 0x{rmiWalkAddress:X}");
-            _rmiWalkHook = Hook<RMIWalkDelegate>.FromAddress(rmiWalkAddress, RMIWalkDetour);
+            _rmiWalkHook = Service.Hook.HookFromSignature<RMIWalkDelegate>("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
+            Service.Log($"[DebugInput] rmiwalk addess: 0x{_rmiWalkHook.Address:X}");
 
-            var rmiFlyAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8");
-            Service.Log($"[DebugInput] rmifly addess: 0x{rmiFlyAddress:X}");
-            _rmiFlyHook = Hook<RMIFlyDelegate>.FromAddress(rmiFlyAddress, RMIFlyDetour);
+            _rmiFlyHook = Service.Hook.HookFromSignature<RMIFlyDelegate>("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
+            Service.Log($"[DebugInput] rmifly addess: 0x{_rmiFlyHook.Address:X}");
 
-            var rmiCamera = Service.SigScanner.ScanText("40 53 48 83 EC 70 44 0F 29 44 24 ?? 48 8B D9");
-            Service.Log($"[DebugInput] rmicamera addess: 0x{rmiCamera:X}");
-            _rmiCameraHook = Hook<RMICameraDelegate>.FromAddress(rmiCamera, RMICameraDetour);
+            _rmiCameraHook = Service.Hook.HookFromSignature<RMICameraDelegate>("40 53 48 83 EC 70 44 0F 29 44 24 ?? 48 8B D9", RMICameraDetour);
+            Service.Log($"[DebugInput] rmicamera addess: 0x{_rmiCameraHook.Address:X}");
         }
 
         public void Dispose()

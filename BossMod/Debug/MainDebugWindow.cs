@@ -218,7 +218,7 @@ namespace BossMod
             DrawTarget("GPose target", ts->GPoseTarget, selfPos, angle);
             DrawTarget("Mouseover", ts->MouseOverTarget, selfPos, angle);
             DrawTarget("Focus", ts->FocusTarget, selfPos, angle);
-            ImGui.TextUnformatted($"UI Mouseover: {(Mouseover.Instance?.Object != null ? Utils.ObjectString(Mouseover.Instance.Object) : "<null>")}");
+            ImGui.TextUnformatted($"UI Mouseover: {Utils.ObjectString(Utils.MouseoverID())}");
 
             if (ImGui.Button("Target closest enemy"))
             {

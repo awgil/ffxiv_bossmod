@@ -114,27 +114,10 @@ namespace BossMod
             }
             ImGui.EndTable();
 
-            Vector2 playerPos;
-            if (Service.GameGui.WorldToScreen(Service.ClientState.LocalPlayer!.Position, out playerPos))
+            foreach (var v in _watchedRenderObjects)
             {
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
-                ImGuiHelpers.ForceNextWindowMainViewport();
-                ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0));
-                ImGui.Begin("arrow_overlay", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground);
-                ImGui.SetWindowSize(ImGui.GetIO().DisplaySize);
-
-                foreach (var v in _watchedRenderObjects)
-                {
-                    var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
-                    Vector2 objScreenPos;
-                    if (!Service.GameGui.WorldToScreen(obj->Position, out objScreenPos))
-                        continue;
-
-                    ImGui.GetWindowDrawList().AddLine(playerPos, objScreenPos, 0xff0000ff);
-                }
-
-                ImGui.End();
-                ImGui.PopStyleVar();
+                var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
+                Camera.Instance?.DrawWorldLine(Service.ClientState.LocalPlayer!.Position, obj->Position, 0xff0000ff);
             }
         }
 
