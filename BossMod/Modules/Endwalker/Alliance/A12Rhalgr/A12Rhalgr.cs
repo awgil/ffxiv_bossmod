@@ -10,53 +10,9 @@
         public StrikingMeteor() : base(ActionID.MakeSpell(AID.StrikingMeteor), 6) { }
     }
 
-    class LightningStorm : Components.SpreadFromCastTargets
-    {
-        public LightningStorm() : base(ActionID.MakeSpell(AID.LightningStorm), 5) { }
-    }
-
-    class HandOfTheDestroyerWrath : Components.SelfTargetedLegacyRotationAOEs
-    {
-        public HandOfTheDestroyerWrath() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerWrathAOE), new AOEShapeRect(90, 20)) { }
-    }
-
-    class HandOfTheDestroyerJudgment : Components.SelfTargetedLegacyRotationAOEs
-    {
-        public HandOfTheDestroyerJudgment() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerJudgmentAOE), new AOEShapeRect(90, 20)) { }
-    }
-
-    class BrokenWorld : Components.SelfTargetedAOEs
-    {
-        public BrokenWorld() : base(ActionID.MakeSpell(AID.BrokenWorldAOE), new AOEShapeCircle(30)) { } // TODO: determine falloff
-    }
-
-    class BronzeLightning : Components.SelfTargetedLegacyRotationAOEs
+    class BronzeLightning : Components.SelfTargetedAOEs
     {
         public BronzeLightning() : base(ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, 22.5f.Degrees()), 4) { }
-    }
-
-    // TODO: show knockback hints, lightning hints, etc... need to draw complex arena shape though
-    class RhalgrBeacon : Components.SelfTargetedAOEs
-    {
-        public RhalgrBeacon() : base(ActionID.MakeSpell(AID.RhalgrsBeaconAOE), new AOEShapeCircle(10)) { }
-    }
-
-    public class A12RhalgrStates : StateMachineBuilder
-    {
-        public A12RhalgrStates(BossModule module) : base(module)
-        {
-            // TODO: reconsider
-            TrivialPhase()
-                .ActivateOnEnter<DestructiveBolt>()
-                .ActivateOnEnter<StrikingMeteor>()
-                .ActivateOnEnter<LightningStorm>()
-                .ActivateOnEnter<HandOfTheDestroyerWrath>()
-                .ActivateOnEnter<HandOfTheDestroyerJudgment>()
-                .ActivateOnEnter<BrokenWorld>()
-                .ActivateOnEnter<BrokenShards>()
-                .ActivateOnEnter<BronzeLightning>()
-                .ActivateOnEnter<RhalgrBeacon>();
-        }
     }
 
     public class A12Rhalgr : BossModule

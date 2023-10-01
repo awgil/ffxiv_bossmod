@@ -10,22 +10,12 @@
         public StygianTenet() : base(ActionID.MakeSpell(AID.StygianTenetAOE), 6) { }
     }
 
-    class FlamesOfTheDead : Components.SelfTargetedAOEs
-    {
-        public FlamesOfTheDead() : base(ActionID.MakeSpell(AID.FlamesOfTheDeadReal), new AOEShapeDonut(8, 30)) { }
-    }
-
-    class LivingHeat : Components.SelfTargetedAOEs
-    {
-        public LivingHeat() : base(ActionID.MakeSpell(AID.LivingHeatReal), new AOEShapeCircle(8)) { }
-    }
-
-    class HellOfFireFront : Components.SelfTargetedLegacyRotationAOEs
+    class HellOfFireFront : Components.SelfTargetedAOEs
     {
         public HellOfFireFront() : base(ActionID.MakeSpell(AID.HellOfFireFrontAOE), new AOEShapeCone(60, 90.Degrees())) { }
     }
 
-    class HellOfFireBack : Components.SelfTargetedLegacyRotationAOEs
+    class HellOfFireBack : Components.SelfTargetedAOEs
     {
         public HellOfFireBack() : base(ActionID.MakeSpell(AID.HellOfFireBackAOE), new AOEShapeCone(60, 90.Degrees())) { }
     }
@@ -35,35 +25,29 @@
         public WaywardSoul() : base(ActionID.MakeSpell(AID.WaywardSoulAOE), new AOEShapeCircle(18), 3) { }
     }
 
-    class Twingaze : Components.SelfTargetedLegacyRotationAOEs
+    class SoulVessel : Components.Adds
+    {
+        public SoulVessel() : base((uint)OID.SoulVesselReal) { }
+    }
+
+    class Twingaze : Components.SelfTargetedAOEs
     {
         public Twingaze() : base(ActionID.MakeSpell(AID.Twingaze), new AOEShapeCone(60, 15.Degrees())) { }
     }
 
-    public class A14NaldthalStates : StateMachineBuilder
+    class MagmaticSpell : Components.StackWithCastTargets
     {
-        public A14NaldthalStates(BossModule module) : base(module)
-        {
-            // TODO: reconsider
-            TrivialPhase()
-                .ActivateOnEnter<GoldenTenet>()
-                .ActivateOnEnter<StygianTenet>()
-                .ActivateOnEnter<FlamesOfTheDead>()
-                .ActivateOnEnter<LivingHeat>()
-                .ActivateOnEnter<HeavensTrial>()
-                .ActivateOnEnter<DeepestPit>()
-                .ActivateOnEnter<OnceAboveEverBelow>()
-                .ActivateOnEnter<HellOfFireFront>()
-                .ActivateOnEnter<HellOfFireBack>()
-                .ActivateOnEnter<WaywardSoul>()
-                .ActivateOnEnter<FortuneFlux>()
-                .ActivateOnEnter<Twingaze>();
-        }
+        public MagmaticSpell() : base(ActionID.MakeSpell(AID.MagmaticSpellAOE), 6, 8) { }
     }
 
-    // TODO: balancing counter, magmatic spell raid stack
+    class TippedScales : Components.CastCounter
+    {
+        public TippedScales() : base(ActionID.MakeSpell(AID.TippedScalesAOE)) { }
+    }
+
+    // TODO: balancing counter
     public class A14Naldthal : BossModule
     {
-        public A14Naldthal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 25)) { }
+        public A14Naldthal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 30)) { }
     }
 }

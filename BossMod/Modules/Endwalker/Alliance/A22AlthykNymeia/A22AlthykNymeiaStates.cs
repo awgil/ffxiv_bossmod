@@ -1,7 +1,5 @@
-﻿using BossMod.Endwalker.Extreme.Ex2Hydaelyn;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
-using System.Net;
 
 namespace BossMod.Endwalker.Alliance.A22AlthykNymeia
 {

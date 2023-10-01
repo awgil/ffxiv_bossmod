@@ -1,60 +1,39 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Alliance.A11Byregot
 {
-    class Hammers : BossComponent
+    class HammersCells : Components.GenericAOEs
     {
-        private enum State { Inactive, SidesAboutToBeDestroyed, Active }
-
-        private State _curState;
+        public bool Active { get; private set; }
+        public bool MovementPending { get; private set; }
         private int[] _lineOffset = new int[5];
         private int[] _lineMovement = new int[5];
-        private Actor? _levinforge;
-        private Actor? _spire;
 
-        private static AOEShapeRect _aoeLevinforge = new(50, 5);
-        private static AOEShapeRect _aoeSpire = new(50, 15);
+        private static AOEShapeRect _shape = new(5, 5, 5);
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public HammersCells() : base(ActionID.MakeSpell(AID.DestroySideTiles), "GTFO from dangerous cell!") { }
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_curState == State.Inactive)
-                return;
+            if (!Active)
+                yield break;
 
-            var off = (actor.Position - module.Bounds.Center) / 10;
-            int x = Math.Clamp((int)MathF.Round(off.X), -2, 2);
-            int z = Math.Clamp((int)MathF.Round(off.Z), -2, 2);
-            if (CellDangerous(x, z, true))
-                hints.Add("GTFO from dangerous cell!");
-
-            if (_aoeLevinforge.Check(actor.Position, _levinforge) || _aoeSpire.Check(actor.Position, _spire))
-                hints.Add("GTFO from aoe!");
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (_curState == State.Inactive)
-                return;
-
-            float cellHalfSize = 5;
             for (int z = -2; z <= 2; ++z)
             {
                 for (int x = -2; x <= 2; ++x)
                 {
-                    var cellCenter = module.Bounds.Center + new WDir(x, z) * 10;
                     if (CellDangerous(x, z, true))
-                        arena.ZoneRect(cellCenter, new WDir(1, 0), cellHalfSize, cellHalfSize, cellHalfSize, ArenaColor.AOE);
+                        yield return new(_shape, CellCenter(module, x, z), color: ArenaColor.AOE);
                     else if (CellDangerous(x, z, false))
-                        arena.ZoneRect(cellCenter, new WDir(1, 0), cellHalfSize, cellHalfSize, cellHalfSize, ArenaColor.SafeFromAOE);
+                        yield return new(_shape, CellCenter(module, x, z), color: ArenaColor.SafeFromAOE);
                 }
             }
-
-            _aoeLevinforge.Draw(arena, _levinforge);
-            _aoeSpire.Draw(arena, _spire);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (_curState == State.Inactive)
+            if (!Active)
                 return;
 
             arena.AddLine(module.Bounds.Center + new WDir(-15, -25), module.Bounds.Center + new WDir(-15, +25), ArenaColor.Border);
@@ -69,34 +48,8 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.DestroySideTiles:
-                    _curState = State.SidesAboutToBeDestroyed;
-                    break;
-                case AID.Levinforge:
-                    _levinforge = caster;
-                    break;
-                case AID.ByregotSpire:
-                    _spire = caster;
-                    break;
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.DestroySideTiles:
-                    _curState = State.Active;
-                    break;
-                case AID.Levinforge:
-                    _levinforge = null;
-                    break;
-                case AID.ByregotSpire:
-                    _spire = null;
-                    break;
-            }
+            if (spell.Action == WatchedAction)
+                Active = true;
         }
 
         public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
@@ -114,11 +67,13 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
                     0x80004000 => (+1, -1),
                     _ => (_lineOffset[i], 0),
                 };
+                MovementPending = true;
                 if (_lineMovement[i] == 0)
                     module.ReportError(this, $"Unexpected env-control {i}={state:X}, offset={_lineOffset[i]}");
             }
             else if (index == 26)
             {
+                MovementPending = false;
                 for (int i = 0; i < 5; ++i)
                 {
                     _lineOffset[i] += _lineMovement[i];
@@ -127,18 +82,30 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
             }
             else if (index == 79 && state == 0x00080004)
             {
-                _curState = State.Inactive;
+                Active = false;
                 Array.Fill(_lineOffset, 0);
                 Array.Fill(_lineMovement, 0);
             }
         }
+
+        private WPos CellCenter(BossModule module, int x, int z) => module.Bounds.Center + 10 * new WDir(x, z);
 
         private bool CellDangerous(int x, int z, bool future)
         {
             int off = _lineOffset[z + 2];
             if (future)
                 off += _lineMovement[z + 2];
-            return (future || _curState == State.Active) && Math.Abs(x - off) > 1;
+            return Math.Abs(x - off) > 1;
         }
+    }
+
+    class HammersLevinforge : Components.SelfTargetedAOEs
+    {
+        public HammersLevinforge() : base(ActionID.MakeSpell(AID.Levinforge), new AOEShapeRect(50, 5)) { }
+    }
+
+    class HammersSpire : Components.SelfTargetedAOEs
+    {
+        public HammersSpire() : base(ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15)) { }
     }
 }

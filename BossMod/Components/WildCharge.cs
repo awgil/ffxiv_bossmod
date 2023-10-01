@@ -16,6 +16,7 @@ namespace BossMod.Components
         }
 
         public float HalfWidth;
+        public float FixedLength; // if == 0, length is up to target
         public Actor? Source; // if null, mechanic is not active
         public PlayerRole[] PlayerRoles = new PlayerRole[PartyState.MaxAllianceSize];
 
@@ -34,19 +35,21 @@ namespace BossMod.Components
                 return;
 
             var toTarget = target.Position - Source.Position;
-            bool inAOE = actor.Position.InRect(Source.Position, toTarget, HalfWidth);
+            var length = FixedLength > 0 ? FixedLength : toTarget.Length();
+            var dir = toTarget.Normalized();
+            bool inAOE = actor.Position.InRect(Source.Position, dir, length, 0, HalfWidth);
             switch (PlayerRoles[slot])
             {
                 case PlayerRole.Share:
                     if (!inAOE)
                         hints.Add("Stay inside charge!");
-                    else if (AnyRoleCloser(module, Source.Position, toTarget, PlayerRole.ShareNotFirst, (actor.Position - Source.Position).LengthSq()))
+                    else if (AnyRoleCloser(module, Source.Position, dir, length, PlayerRole.ShareNotFirst, (actor.Position - Source.Position).LengthSq()))
                         hints.Add("Move closer to charge source!");
                     break;
                 case PlayerRole.ShareNotFirst:
                     if (!inAOE)
                         hints.Add("Stay inside charge!");
-                    else if (!AnyRoleCloser(module, Source.Position, toTarget, PlayerRole.Share, (actor.Position - Source.Position).LengthSq()))
+                    else if (!AnyRoleCloser(module, Source.Position, dir, length, PlayerRole.Share, (actor.Position - Source.Position).LengthSq()))
                         hints.Add("Hide behind tank!");
                     break;
                 case PlayerRole.Avoid:
@@ -68,10 +71,15 @@ namespace BossMod.Components
 
             var target = module.Raid[Array.IndexOf(PlayerRoles, PlayerRole.Target)];
             if (target != null)
-                arena.ZoneRect(Source.Position, target.Position, HalfWidth, PlayerRoles[pcSlot] == PlayerRole.Avoid ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+            {
+                var dir = target.Position - Source.Position;
+                var length = FixedLength > 0 ? FixedLength : dir.Length();
+                dir = dir.Normalized();
+                arena.ZoneRect(Source.Position, dir, length, 0, HalfWidth, PlayerRoles[pcSlot] == PlayerRole.Avoid ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+            }
         }
 
-        private bool AnyRoleCloser(BossModule module, WPos sourcePos, WDir sourceToTarget, PlayerRole role, float thresholdSq)
-            => module.Raid.WithSlot().Any(ia => PlayerRoles[ia.Item1] == role && ia.Item2.Position.InRect(sourcePos, sourceToTarget, HalfWidth) && (ia.Item2.Position - sourcePos).LengthSq() < thresholdSq);
+        private bool AnyRoleCloser(BossModule module, WPos sourcePos, WDir direction, float length, PlayerRole role, float thresholdSq)
+            => module.Raid.WithSlot().Any(ia => PlayerRoles[ia.Item1] == role && ia.Item2.Position.InRect(sourcePos, direction, length, 0, HalfWidth) && (ia.Item2.Position - sourcePos).LengthSq() < thresholdSq);
     }
 }

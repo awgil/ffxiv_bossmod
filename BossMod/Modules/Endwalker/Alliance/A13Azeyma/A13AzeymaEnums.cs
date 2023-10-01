@@ -18,18 +18,17 @@
 
         WardensWarmth = 28830, // Boss->self, 5.0s cast, tankbuster visual
         WardensWarmthAOE = 28831, // Helper->players, 5.0s cast, range 6 aoe on 3 tanks
-
         WardensProminence = 28832, // Boss->self, 6.0s cast, raidwide visual
         WardensProminenceAOE = 28833, // Helper->self, 6.0s cast, raidwide
 
         SolarWings = 28801, // Boss->self, 4.0s cast
-        SolarWingsL = 28802, // Helper->self, 4.0s cast, range 30 135-degree +90 rotated cone
-        SolarWingsR = 28803, // Helper->self, 4.0s cast, range 30 135-degree -90 rotated cone
+        SolarWingsL = 28802, // Helper->self, 4.0s cast, range 30 150-degree +90 rotated cone
+        SolarWingsR = 28803, // Helper->self, 4.0s cast, range 30 150-degree -90 rotated cone
         SolarFlair = 28804, // Sunstorm->self, 1.0s cast, range 15 aoe
         SunShine = 28805, // Boss->self, 3.0s cast, visual (shows AzeymasHeat adds)
         TeleportHeat = 29461, // AzeymasHeat->location, no cast
         HauteAirWings = 28806, // AzeymasHeat->self, 5.0s cast (moves Sunstorm by 18)
-        MoveSunstorm = 28807, // Helper->Sunstorm, no cast
+        MoveSunstorm = 28807, // Helper->Sunstorm, no cast, attract
 
         SolarFans = 28813, // Boss->self, 4.0s cast, visual
         SolarFansAOE = 29374, // Helper->location, 4.0s cast, 5 half-width rect between source and target ?
@@ -61,19 +60,4 @@
         SublimeSunset = 28824, // Boss->self, 9.0s cast
         SublimeSunsetAOE = 28825, // ProdigalSun->location, 9.5s cast, range 60 aoe with ? falloff
     };
-
-    public enum SID : uint
-    {
-        None = 0,
-    }
-
-    public enum TetherID : uint
-    {
-        None = 0,
-    }
-
-    public enum IconID : uint
-    {
-        None = 0,
-    }
 }

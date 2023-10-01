@@ -10,7 +10,8 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
         {
             if ((AID)spell.Action.ID is AID.CloudToGroundFast or AID.CloudToGroundSlow)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = new(-8.5f, 0), ExplosionsLeft = 6, MaxShownExplosions = (AID)spell.Action.ID == AID.CloudToGroundFast ? 5 : 2 });
+                var fast = (AID)spell.Action.ID == AID.CloudToGroundFast;
+                Lines.Add(new() { Next = caster.Position, Advance = new(-8.5f, 0), NextExplosion = spell.FinishAt, TimeToMove = fast ? 0.6f : 1.4f, ExplosionsLeft = 6, MaxShownExplosions = fast ? 5 : 2 });
             }
         }
 
@@ -18,6 +19,8 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
         {
             if ((AID)spell.Action.ID is AID.CloudToGroundFast or AID.CloudToGroundSlow or AID.CloudToGroundFastAOE or AID.CloudToGroundSlowAOE)
             {
+                ++NumCasts;
+
                 int index = Lines.FindIndex(item => MathF.Abs(item.Next.Z - caster.Position.Z) < 1);
                 if (index == -1)
                 {

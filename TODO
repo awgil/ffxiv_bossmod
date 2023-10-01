@@ -12,7 +12,6 @@ general:
 
 boss modules:
 - wipe should not fast forward all phases
-- aglaia revise, implement phases
 - fail log
 - boss module config presets/profiles
 

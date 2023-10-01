@@ -1,94 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A14Naldthal
+﻿namespace BossMod.Endwalker.Alliance.A14Naldthal
 {
-    // TODO: refactor, it's quite hacky...
-    class OnceAboveEverBelow : BossComponent
+    class OnceAboveEverBelow : Components.Exaflare
     {
-        private class Instance
-        {
-            public WPos Start;
-            public WDir Dir;
-            public int Casts;
-
-            public Instance(WPos start, WDir dir)
-            {
-                Start = start;
-                Dir = dir;
-            }
-        }
-
-        private List<Instance> _active = new();
-        private int _restCount;
-
-        private static float _advance = 6;
-        private static AOEShapeCircle _aoe = new(6);
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (ActiveAOEs().Any(c => _aoe.Check(actor.Position, c)))
-                hints.Add("GTFO from aoe!");
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var c in ActiveAOEs())
-                _aoe.Draw(arena, c);
-        }
+        public OnceAboveEverBelow() : base(6) { }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.EverfireFirst or AID.OnceBurnedFirst)
             {
-                WDir dir = MathF.Abs(caster.Position.X - module.Bounds.Center.X) < 1 ? new(1, 0) : new(0, 1);
-                _active.Add(new(caster.Position, dir));
-                _active.Add(new(caster.Position, -dir));
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.EverfireFirst or AID.OnceBurnedFirst)
-            {
-                foreach (var inst in _active.Where(i => i.Start == caster.Position))
-                {
-                    ++inst.Casts;
-                }
+                var advance = 6 * spell.Rotation.ToDirection();
+                // lines are offset by 6/18/30; outer have 1 explosion only, mid have 4 or 5, inner 5
+                var numExplosions = (caster.Position - module.Bounds.Center).LengthSq() > 500 ? 1 : 5;
+                Lines.Add(new() { Next = caster.Position, Advance = advance, NextExplosion = spell.FinishAt, TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
+                Lines.Add(new() { Next = caster.Position, Advance = -advance, NextExplosion = spell.FinishAt, TimeToMove = 1.5f, ExplosionsLeft = numExplosions, MaxShownExplosions = 5 });
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if (_active.Count > 0 && (AID)spell.Action.ID == AID.EverfireRest || (AID)spell.Action.ID == AID.OnceBurnedRest)
+            switch ((AID)spell.Action.ID)
             {
-                if (++_restCount > 24)
-                {
-                    _active.Clear();
-                    _restCount = 0;
-                    return;
-                }
-
-                var dir = caster.Rotation.ToDirection();
-                var normal = dir.OrthoL();
-                var inst = _active.Find(i => WDir.Dot(i.Dir, dir) > 0.9f && MathF.Abs(WDir.Dot(caster.Position - i.Start, normal)) < 1);
-                if (inst != null)
-                {
-                    ++inst.Casts;
-                }
+                case AID.EverfireFirst:
+                case AID.OnceBurnedFirst:
+                    var dir = caster.Rotation.ToDirection();
+                    Advance(module, caster.Position, dir);
+                    Advance(module, caster.Position, -dir);
+                    ++NumCasts;
+                    break;
+                case AID.EverfireRest:
+                case AID.OnceBurnedRest:
+                    Advance(module, caster.Position, caster.Rotation.ToDirection());
+                    ++NumCasts;
+                    break;
             }
         }
 
-        private IEnumerable<WPos> ActiveAOEs()
+        private void Advance(BossModule module, WPos position, WDir dir)
         {
-            foreach (var inst in _active)
+            int index = Lines.FindIndex(item => item.Next.AlmostEqual(position, 1) && item.Advance.Dot(dir) > 5);
+            if (index == -1)
             {
-                for (int i = inst.Casts; i <= 4; ++i)
-                {
-                    yield return inst.Start + i * _advance * inst.Dir;
-                }
+                module.ReportError(this, $"Failed to find entry for {position} / {dir}");
+                return;
             }
+
+            AdvanceLine(module, Lines[index], position);
+            if (Lines[index].ExplosionsLeft == 0)
+                Lines.RemoveAt(index);
         }
     }
 }

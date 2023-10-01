@@ -11,6 +11,7 @@ namespace BossMod.Components
         {
             AwayFromOrigin, // standard knockback - specific distance along ray from origin to target
             DirForward, // directional knockback - forward along source's direction
+            DirLeft, // directional knockback - forward along source's direction + 90 degrees
         }
 
         public struct Source
@@ -135,6 +136,7 @@ namespace BossMod.Components
                 {
                     Kind.AwayFromOrigin => from != s.Origin ? (from - s.Origin).Normalized() : new(),
                     Kind.DirForward => s.Direction.ToDirection(),
+                    Kind.DirLeft => s.Direction.ToDirection().OrthoL(),
                     _ => new()
                 };
                 if (dir == default)
