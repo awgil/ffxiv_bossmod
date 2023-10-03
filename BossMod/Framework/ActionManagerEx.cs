@@ -121,21 +121,6 @@ namespace BossMod
         private unsafe delegate void ProcessActionEffectPacketDelegate(uint casterID, void* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets);
         private Hook<ProcessActionEffectPacketDelegate> _processActionEffectPacketHook;
 
-        private IntPtr _gtQueuePatch; // instruction inside UseAction: conditional jump that disallows queueing for ground-targeted actions
-        private bool _gtQueuePatchEnabled;
-        public bool AllowGTQueueing
-        {
-            get => _gtQueuePatchEnabled;
-            set
-            {
-                if (_gtQueuePatchEnabled != value)
-                {
-                    SafeMemory.WriteBytes(_gtQueuePatch, new byte[] { value ? (byte)0xEB : (byte)0x74 });
-                    _gtQueuePatchEnabled = value;
-                }
-            }
-        }
-
         public unsafe ActionManagerEx()
         {
             InputOverride = new();
@@ -163,15 +148,10 @@ namespace BossMod
             _processActionEffectPacketHook = Service.Hook.HookFromSignature<ProcessActionEffectPacketDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessActionEffectPacketDetour);
             _processActionEffectPacketHook.Enable();
             Service.Log($"[AMEx] ProcessActionEffectPacket address = 0x{_processActionEffectPacketHook.Address:X}");
-
-            _gtQueuePatch = Service.SigScanner.ScanModule("74 20 81 FD F5 0D 00 00");
-            Service.Log($"[AMEx] GT queue check address = 0x{_gtQueuePatch:X}");
-            AllowGTQueueing = true;
         }
 
         public void Dispose()
         {
-            AllowGTQueueing = false;
             _processActionEffectPacketHook.Dispose();
             _useActionLocationHook.Dispose();
             _updateHook.Dispose();
