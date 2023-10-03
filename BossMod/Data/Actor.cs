@@ -119,7 +119,7 @@ namespace BossMod
         public ulong TargetID;
         public ActorCastInfo? CastInfo;
         public ActorTetherInfo Tether = new();
-        public ActorStatus[] Statuses = new ActorStatus[30]; // empty slots have ID=0
+        public ActorStatus[] Statuses = new ActorStatus[60]; // empty slots have ID=0
 
         public Role Role => Class.GetRole();
         public WPos Position => new(PosRot.X, PosRot.Z);
