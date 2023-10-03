@@ -1,5 +1,4 @@
 ﻿using Dalamud.Hooking;
-using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using System;
@@ -51,9 +50,9 @@ namespace BossMod
                     {
                         var name = _newHook;
                         Hook<ReceiveEventDelegate> hook = null!;
-                        _rcvHooks[address] = hook = Hook<ReceiveEventDelegate>.FromAddress(address, (eventListener, evt, which, eventData, inputData) =>
+                        _rcvHooks[address] = hook = Service.Hook.HookFromAddress<ReceiveEventDelegate>(address, (eventListener, evt, which, eventData, inputData) =>
                         {
-                            PluginLog.Log($"RCV: listener={name} {(nint)eventListener:X}, evt={evt}, which={which}, input={inputData[0]:X16} {inputData[1]:X16} {inputData[2]:X16}");
+                            Service.Log($"RCV: listener={name} {(nint)eventListener:X}, evt={evt}, which={which}, input={inputData[0]:X16} {inputData[1]:X16} {inputData[2]:X16}");
                             return hook.Original(eventListener, evt, which, eventData, inputData);
                         });
                         hook.Enable();

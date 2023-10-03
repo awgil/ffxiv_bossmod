@@ -64,8 +64,7 @@ namespace BossMod
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
             WorldState.Actors.CastEvent += OnCastEvent;
 
-            var useActionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 64 B1 01");
-            _useActionHook = Hook<UseActionDelegate>.FromAddress(useActionAddress, UseActionDetour);
+            _useActionHook = Service.Hook.HookFromSignature<UseActionDelegate>("E8 ?? ?? ?? ?? EB 64 B1 01", UseActionDetour);
             _useActionHook.Enable();
         }
 
@@ -84,7 +83,7 @@ namespace BossMod
         {
             var player = WorldState.Party.Player();
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
-            SecondaryTarget = WorldState.Actors.Find(Mouseover.Instance?.Object?.ObjectId ?? 0);
+            SecondaryTarget = WorldState.Actors.Find(Utils.MouseoverID());
 
             Hints.Clear();
             if (player != null)
