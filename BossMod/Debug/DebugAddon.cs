@@ -8,7 +8,7 @@ namespace BossMod
 {
     public unsafe class DebugAddon : IDisposable
     {
-        delegate nint ReceiveEventDelegate(AtkEventListener* eventListener, ushort evt, uint which, void* eventData, ulong* inputData);
+        delegate nint ReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, ulong* inputData);
 
         private Dictionary<nint, Hook<ReceiveEventDelegate>> _rcvHooks = new();
         private Dictionary<string, nint> _addonRcvs = new();
@@ -50,10 +50,10 @@ namespace BossMod
                     {
                         var name = _newHook;
                         Hook<ReceiveEventDelegate> hook = null!;
-                        _rcvHooks[address] = hook = Service.Hook.HookFromAddress<ReceiveEventDelegate>(address, (eventListener, evt, which, eventData, inputData) =>
+                        _rcvHooks[address] = hook = Service.Hook.HookFromAddress<ReceiveEventDelegate>(address, (self, eventType, eventParam, eventData, inputData) =>
                         {
-                            Service.Log($"RCV: listener={name} {(nint)eventListener:X}, evt={evt}, which={which}, input={inputData[0]:X16} {inputData[1]:X16} {inputData[2]:X16}");
-                            return hook.Original(eventListener, evt, which, eventData, inputData);
+                            Service.Log($"RCV: listener={name} {(nint)self:X}, type={eventType}, param={eventParam}, input={inputData[0]:X16} {inputData[1]:X16} {inputData[2]:X16}");
+                            return hook.Original(self, eventType, eventParam, eventData, inputData);
                         });
                         hook.Enable();
                     }
