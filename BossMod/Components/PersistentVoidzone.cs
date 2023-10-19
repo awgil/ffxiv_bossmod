@@ -55,7 +55,7 @@ namespace BossMod.Components
         {
             if (_predictedByEvent.Count > 0)
                 foreach (var s in Sources(module))
-                    _predictedByEvent.RemoveAll(p => p.pos.InCircle(s.Position, 2));
+                    _predictedByEvent.RemoveAll(p => p.pos.InCircle(s.Position, 3));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
