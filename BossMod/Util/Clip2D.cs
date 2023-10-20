@@ -102,6 +102,17 @@ namespace BossMod
             return solution;
         }
 
+        public List<(WPos, WPos, WPos)> ClipAndTriangulate(PolyTree poly)
+        {
+            _clipper.Clear();
+            _clipper.AddPath(_clipPoly, PolyType.ptClip, true);
+            _clipper.AddPaths(Clipper.PolyTreeToPaths(poly), PolyType.ptSubject, true);
+
+            PolyTree solution = new();
+            _clipper.Execute(ClipType.ctIntersection, solution, PolyFillType.pftEvenOdd);
+            return Triangulate(solution);
+        }
+
         public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> pts)
         {
             _clipper.Clear();

@@ -16,6 +16,7 @@ namespace BossMod
 
         private Clip2D _clipper = new();
         public IEnumerable<WPos> ClipPoly => _clipper.ClipPoly;
+        public List<(WPos, WPos, WPos)> ClipAndTriangulate(ClipperLib.PolyTree poly) => _clipper.ClipAndTriangulate(poly);
         public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> poly) => _clipper.ClipAndTriangulate(poly);
 
         private float _screenHalfSize;

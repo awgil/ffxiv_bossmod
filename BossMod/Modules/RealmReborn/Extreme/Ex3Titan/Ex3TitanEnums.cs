@@ -8,7 +8,7 @@
         BombBoulder = 0x5E0, // R1.300, spawn during fight
         GraniteGaol = 0x5E2, // R1.800, spawn during fight
         GraniteGaoler = 0x8F2, // R1.900, spawn during fight
-        TitansHeart = 0x5E5, // R5.250, Unknown type, spawn during fight
+        TitansHeart = 0x5E5, // R5.250, Part type, spawn during fight
         GaolerVoidzone = 0x1E8F8F, // R0.500, EventObj type, spawn during fight (voidzone left by killed gaolers)
     };
 

@@ -9,7 +9,7 @@ namespace BossMod
     {
         None = 0,
         Player = 0x104,
-        Unknown = 0x201,
+        Part = 0x201,
         Pet = 0x202,
         Chocobo = 0x203,
         Enemy = 0x205,

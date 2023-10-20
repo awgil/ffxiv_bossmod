@@ -10,7 +10,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
         Helper = 0x1B2, // x5
         GraniteGaol = 0x5E1, // spawn during fight
         BombBoulder = 0x5A3, // spawn during fight
-        TitansHeart = 0x5E4, // Unknown type, spawn during fight
+        TitansHeart = 0x5E4, // Part type, spawn during fight
     };
 
     public enum AID : uint

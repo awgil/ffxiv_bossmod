@@ -8,7 +8,7 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
     {
         Boss = 0xF6, // x1
         Helper = 0x1B2, // x4
-        TitansHeart = 0x5E3, // Unknown type, spawn during fight
+        TitansHeart = 0x5E3, // Part type, spawn during fight
         GraniteGaol = 0x5A4, // spawn during fight
     };
 
