@@ -51,7 +51,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
 
         private static AOEShapeCircle _shape = new(2); // TODO: verify explosion radius
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _bubbles.Select(b => new AOEInstance(_shape, b.Position));
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _bubbles.Where(actor => !actor.IsDead).Select(b => new AOEInstance(_shape, b.Position));
 
         public override void Init(BossModule module)
         {

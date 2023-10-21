@@ -191,7 +191,7 @@
             CastMulti(id + 0x1000, new[] { AID.ArcaneRevelationSpheresLight, AID.ArcaneRevelationSpheresDark }, 8.2f, 5)
                 .ActivateOnEnter<ArcaneRevelation>(); // PATE happens 1s after cast end, actual cast starts ~3s after PATE
             ComponentCondition<ArcaneRevelation>(id + 0x1010, 9.7f, comp => comp.NumCasts > 0, "Spheres")
-                .OnEnter(() => Module.FindComponent<DarkAndLight>()!.ShowSafespots = false) // TODO: reconsider?
+                .ExecOnEnter<DarkAndLight>(comp => comp.ShowSafespots = false) // TODO: reconsider?
                 .DeactivateOnExit<ArcaneRevelation>();
             JuryOverruling(id + 0x2000, 0.5f);
             DivisiveOverruling(id + 0x3000, 6.2f);

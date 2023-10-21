@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             switch ((AID)spell.Action.ID)
             {
                 case AID.FlareAOE:
-                    _aoes.Add(new(_shape, spell.TargetXZ, default, module.WorldState.CurrentTime.AddSeconds(2.1f)));
+                    _aoes.Add(new(_shape, caster.Position, default, module.WorldState.CurrentTime.AddSeconds(2.1f)));
                     break;
                 case AID.FlareScald:
                 case AID.FlareKill:

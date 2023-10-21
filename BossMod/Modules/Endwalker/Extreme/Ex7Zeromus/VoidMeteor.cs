@@ -84,7 +84,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
 
             // circle showing approximate min stretch distance; for second order, we might be forced to drop meteor there and die to avoid wipe
             if (SourceIfActive(pcSlot) is var pcSource && pcSource != null)
-                arena.AddCircle(pcSource.Position, 25, ArenaColor.Danger);
+                arena.AddCircle(pcSource.Position, 26, ArenaColor.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

@@ -225,7 +225,7 @@
 
             // overlap of pandaemoniac ray and daemoniac bonds resolve
             CastStartMulti(id + 0x4000, new[] { AID.PandaemoniacRayL, AID.PandaemoniacRayR }, 2.0f)
-                .OnEnter(() => Module.FindComponent<DaemoniacBonds>()?.Show());
+                .ExecOnEnter<DaemoniacBonds>(comp => comp.Show());
             ComponentCondition<DaemoniacBonds>(id + 0x4010, 4.4f, comp => comp.NumMechanics >= 1, "Stack/spread")
                 .ActivateOnEnter<PandaemoniacRay>();
             CastEnd(id + 0x4020, 0.6f);
@@ -327,7 +327,7 @@
 
             HarrowingHell(id + 0x300, 4.6f, false)
                 .DeactivateOnExit<SteelWebTethers>() // TODO: this can be deactivated much earlier?
-                .OnExit(() => Module.FindComponent<DaemoniacBonds>()?.Show());
+                .ExecOnExit<DaemoniacBonds>(comp => comp.Show());
 
             DaemoniacBondsResolve(id + 0x400, 5.4f);
         }
@@ -336,7 +336,7 @@
         {
             DaemoniacBondsCast(id, delay);
             PandaemoniacMeltdown(id + 0x100, 4.2f)
-                .OnExit(() => Module.FindComponent<DaemoniacBonds>()?.Show());
+                .ExecOnExit<DaemoniacBonds>(comp => comp.Show());
             Touchdown(id + 0x200, 3.6f);
             DaemoniacBondsResolve(id + 0x300, 0.5f);
         }
@@ -351,7 +351,7 @@
             ComponentCondition<Turrets>(id + 0x202, 4.5f, comp => comp.NumCasts > 4, "Knockback 3");
             ComponentCondition<Turrets>(id + 0x203, 4.5f, comp => comp.NumCasts > 6, "Knockback 4")
                 .DeactivateOnExit<Turrets>()
-                .OnExit(() => Module.FindComponent<DaemoniacBonds>()?.Show());
+                .ExecOnExit<DaemoniacBonds>(comp => comp.Show());
             DaemoniacBondsResolve(id + 0x300, 4.3f);
             PandaemoniacRay(id + 0x400, 1.8f);
         }

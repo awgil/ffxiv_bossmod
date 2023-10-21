@@ -103,7 +103,7 @@
                 .ActivateOnEnter<PortalsWave>(); // portal statuses appear right at cast end, eobjanims on portals happen ~0.8s after cast end
             Cast(id + 0x30, AID.InfernWard, 4.2f, 4);
             ComponentCondition<PortalsWave>(id + 0x40, 2.9f, comp => comp.Done, "Portals")
-                .OnExit(() => Module.FindComponent<InfernWave>()!.ShowHints = true)
+                .ExecOnExit<InfernWave>(comp => comp.ShowHints = true)
                 .DeactivateOnExit<PortalsWave>();
             ComponentCondition<InfernWave>(id + 0x50, 4.8f, comp => comp.NumCasts > 0, "Wave 1");
             // +0.9s: stun

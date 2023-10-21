@@ -46,11 +46,14 @@
 
         private void AbyssalNoxEchoesSableThread(uint id, float delay, bool second)
         {
-            Cast(id, AID.AbyssalNox, delay, 5, "1 hp");
+            Cast(id, AID.AbyssalNox, delay, 5);
             ComponentCondition<AbyssalEchoes>(id + 0x1000, 0.1f, comp => comp.Casters.Count > 0)
-                .ActivateOnEnter<AbyssalEchoes>();
-            ComponentCondition<AbyssalEchoes>(id + 0x1010, 16, comp => comp.NumCasts > 0, "Circles 1");
-            ComponentCondition<AbyssalEchoes>(id + 0x1020, 5, comp => comp.Casters.Count == 0, "Circles 2")
+                .ActivateOnEnter<AbyssalEchoes>()
+                .ExecOnEnter<AbyssalEchoes>(comp => comp.MaxCasts = 0); // don't show aoes before doom, this is misleading
+            ComponentCondition<AbyssalEchoes>(id + 0x1010, 5, comp => comp.Casters.Count > 5, "1 hp"); // dooms are slightly staggered apply around here
+            ComponentCondition<AbyssalEchoes>(id + 0x1020, 11, comp => comp.NumCasts > 0, "Circles 1")
+                .ExecOnEnter<AbyssalEchoes>(comp => comp.MaxCasts = 5);
+            ComponentCondition<AbyssalEchoes>(id + 0x1030, 5, comp => comp.Casters.Count == 0, "Circles 2")
                 .ActivateOnEnter<SableThread>() // second can very slightly overlap
                 .DeactivateOnExit<AbyssalEchoes>();
 

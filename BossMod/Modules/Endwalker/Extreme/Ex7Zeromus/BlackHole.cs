@@ -9,8 +9,12 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
     {
         public Actor? Baiter;
         public Actor? Voidzone;
+        private DateTime _growthStart;
 
-        private static float _startingRadius = 5; // TODO: verify...
+        // TODO: verify...
+        private static float _startingRadius = 5;
+        private static float _maxRadius = 35;
+        private static float _growthPerSecond = 3.3f;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -34,7 +38,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (Voidzone != null)
-                arena.ZoneCircle(Voidzone.Position, _startingRadius, ArenaColor.AOE); // TODO: increasing radius...
+                arena.ZoneCircle(Voidzone.Position, _growthStart == default ? _startingRadius : Math.Min(_maxRadius, _startingRadius + _growthPerSecond * (float)(module.WorldState.CurrentTime - _growthStart).TotalSeconds), ArenaColor.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -56,11 +60,16 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
         {
             if (actor == Voidzone)
             {
-                // 00010002 - appear
-                // 00100008 - eat someone?
-                // 00040020 - disappear
-                if (state == 0x00040020)
-                    Voidzone = null;
+                switch (state)
+                {
+                    // 00010002 - appear
+                    case 0x00100008:
+                        _growthStart = module.WorldState.CurrentTime;
+                        break;
+                    case 0x00040020:
+                        Voidzone = null;
+                        break;
+                }
             }
         }
 

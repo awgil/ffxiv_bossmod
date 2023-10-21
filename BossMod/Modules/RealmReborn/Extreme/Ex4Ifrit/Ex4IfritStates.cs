@@ -41,7 +41,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
                 .ActivateOnEnter<Eruption>()
                 .ActivateOnEnter<InfernalFetters>(withFetters)
                 .ActivateOnEnter<Ex4IfritAINormal>()
-                .OnEnter(() => Module.FindComponent<Ex4IfritAINormal>()!.BossTankRole = startWithOT ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT)
+                .ExecOnEnter<Ex4IfritAINormal>(comp => comp.BossTankRole = startWithOT ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT)
                 .DeactivateOnExit<Incinerate>() // we want to reset cast counter
                 .DeactivateOnExit<Ex4IfritAINormal>();
             Condition(id + 1, nailEnrage, () => !Module.PrimaryActor.IsTargetable, "Nails enrage", 1000) // note: not using invincibility as a condition here, since boss can become invincible early during nails if brought below 10%

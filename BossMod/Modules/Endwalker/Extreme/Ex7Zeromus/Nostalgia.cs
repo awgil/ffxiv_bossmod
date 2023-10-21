@@ -2,7 +2,7 @@
 {
     class NostalgiaDimensionalSurge : Components.LocationTargetedAOEs
     {
-        public NostalgiaDimensionalSurge() : base(ActionID.MakeSpell(AID.NostalgiaDimensionalSurge), 4) { }
+        public NostalgiaDimensionalSurge() : base(ActionID.MakeSpell(AID.NostalgiaDimensionalSurge), 5) { }
     }
 
     class Nostalgia : Components.CastCounter

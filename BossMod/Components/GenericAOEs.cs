@@ -62,7 +62,7 @@ namespace BossMod.Components
     public class SelfTargetedAOEs : GenericAOEs
     {
         public AOEShape Shape { get; private init; }
-        public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
+        public int MaxCasts; // used for staggered aoes, when showing all active would be pointless
         public uint Color = ArenaColor.AOE; // can be customized if needed
         public bool Risky = true; // can be customized if needed
         private List<Actor> _casters = new();

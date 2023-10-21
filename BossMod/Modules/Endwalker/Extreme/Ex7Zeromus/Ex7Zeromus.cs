@@ -25,6 +25,12 @@
         public BigCrunchSpread() : base(ActionID.MakeSpell(AID.BigCrunchSpread), 5) { }
     }
 
+    [ConfigDisplay(Order = 0x070, Parent = typeof(EndwalkerConfig))]
+    public class Ex7ZeromusConfig : CooldownPlanningConfigNode
+    {
+        public Ex7ZeromusConfig() : base(90) { }
+    }
+
     public class Ex7Zeromus : BossModule
     {
         public Ex7Zeromus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

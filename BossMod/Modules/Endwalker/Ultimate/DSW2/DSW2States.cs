@@ -406,7 +406,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P5WrathOfTheHeavensAscalonsMercyRevealed>()
                 .DeactivateOnExit<P5WrathOfTheHeavensTwister>(); // twisters disappear together with protean hits
             ComponentCondition<P5Cauterize1>(id + 0x210, 0.9f, comp => comp.Casters.Count > 0, "Green marker bait")
-                .OnEnter(() => Module.FindComponent<P5WrathOfTheHeavensChainLightning>()?.ShowSpreads(Module, 5.2f))
+                .ExecOnEnter<P5WrathOfTheHeavensChainLightning>(comp => comp.ShowSpreads(Module, 5.2f))
                 .ActivateOnEnter<P5Cauterize1>()
                 .ActivateOnEnter<P5Cauterize2>()
                 .ActivateOnEnter<P5WrathOfTheHeavensAltarFlare>() // first cast starts right as proteans resolve
@@ -467,7 +467,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             // +1.9s: wings of salvation aoes end
             // +2.6s: wings of salvation voidzones appear
             ActorCastEnd(id + 0x201, _module.BossP5, 4, true) // chains appear just as cast ends
-                .OnEnter(() => _module.FindComponent<P5DeathOfTheHeavensGaze>()!.EnableHints = true);
+                .ExecOnEnter<P5DeathOfTheHeavensGaze>(comp => comp.EnableHints = true);
             ComponentCondition<P5DeathOfTheHeavensHeavensflame>(id + 0x210, 1.1f, comp => comp.KnockbackDone, "Knockback");
             ComponentCondition<P5DeathOfTheHeavensGaze>(id + 0x220, 0.1f, comp => comp.NumCasts > 0, "Gaze")
                 .DeactivateOnExit<P5DeathOfTheHeavensGaze>();
@@ -554,7 +554,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .SetHint(StateMachine.StateHint.Tankbuster);
 
             ComponentCondition<P6MortalVow>(id + 0x100, 8.7f, comp => comp.Progress > 1, "Mortal vow pass 1")
-                .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
+                .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass(_module));
         }
 
         private void P6HallowedWingsPlume2(uint id, float delay)
@@ -569,7 +569,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P6HallowedPlume2>(); // tankbusters happen at the same time as wings
 
             ComponentCondition<P6MortalVow>(id + 0x100, 8.7f, comp => comp.Progress > 3, "Mortal vow pass 3")
-                .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
+                .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass(_module));
         }
 
         private void P6WrothFlames(uint id, float delay)
@@ -603,7 +603,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P6HotWingTail>();
 
             ComponentCondition<P6MortalVow>(id + 0x100, 4.0f, comp => comp.Progress > 2, "Mortal vow pass 2")
-                .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
+                .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass(_module));
             // note: voidzones disappear slightly later...
         }
 
@@ -619,7 +619,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 .DeactivateOnExit<P6Touchdown>();
 
             ActorCastStart(id + 0x100, _module.NidhoggP6, AID.RevengeOfTheHordeP6, 1.2f, true)
-                .OnEnter(() => _module.FindComponent<P6MortalVow>()?.ShowNextPass(_module));
+                .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass(_module));
             ComponentCondition<P6MortalVow>(id + 0x101, 2.3f, comp => comp.Progress > 4, "Mortal vow pass 4")
                 .DeactivateOnExit<P6MortalVow>();
             ActorCastEnd(id + 0x102, _module.NidhoggP6, 22.7f, true, "Enrage");

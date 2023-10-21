@@ -269,8 +269,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             ComponentCondition<P2HawkBlasterOpticalSight>(id + 0x11, 1.1f, comp => comp.NumCasts > 0, "Puddles")
                 .DeactivateOnExit<P2HawkBlasterOpticalSight>();
             ActorCastEnd(id + 0x12, _module.CruiseChaser, 1.9f)
-                .OnEnter(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 1) // first nisi pass should happen around photon cast end
-                .OnExit(() => Module.FindComponent<P2CompressedWaterLightning>()!.ResolveImminent = true); // should start moving to debuff stacks after nisi pass
+                .ExecOnEnter<P2Nisi>(comp => comp.ShowPassHint = 1) // first nisi pass should happen around photon cast end
+                .ExecOnExit<P2CompressedWaterLightning>(comp => comp.ResolveImminent = true); // should start moving to debuff stacks after nisi pass
             ComponentCondition<P2Photon>(id + 0x13, 0.3f, comp => comp.NumCasts > 0, "Photon")
                 .ActivateOnEnter<P2Photon>()
                 .DeactivateOnExit<P2Photon>()
@@ -312,8 +312,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             // +6.8s: smaller ice voidzone disappears (eventstate 7)
             // +7.7s: fire voidzones disappear (eventstate 7)
             ComponentCondition<P2EarthMissileIce>(id + 0x80, 9.8f, comp => !comp.Sources(Module).Any(), "Voidzones disappear")
-                .OnEnter(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 2) // second nisi pass should happen after enumerations are resolved
-                .OnEnter(() => Module.FindComponent<P2CompressedWaterLightning>()!.ResolveImminent = true) // should start moving to debuff stacks after nisi pass
+                .ExecOnEnter<P2Nisi>(comp => comp.ShowPassHint = 2) // second nisi pass should happen after enumerations are resolved
+                .ExecOnEnter<P2CompressedWaterLightning>(comp => comp.ResolveImminent = true) // should start moving to debuff stacks after nisi pass
                 .DeactivateOnExit<P2Drainage>()
                 .DeactivateOnExit<P2EarthMissileBaited>()
                 .DeactivateOnExit<P2HiddenMinefield>()
@@ -333,15 +333,15 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                 .ActivateOnEnter<P2PlasmaShield>();
             ComponentCondition<P2Flarethrower>(id + 0x103, 0.3f, comp => comp.NumCasts > 0, "Baited flamethrower")
                 .DeactivateOnExit<P2Flarethrower>() // note: tornado is normally destroyed by a flarethrower, failing to do that will cause tornado to wipe the raid later
-                .OnExit(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 3) // third nisi pass should happen after flarethrower bait
-                .OnExit(() => Module.FindComponent<P2CompressedWaterLightning>()!.ResolveImminent = true); // resolve stacks after nisi pass
+                .ExecOnExit<P2Nisi>(comp => comp.ShowPassHint = 3) // third nisi pass should happen after flarethrower bait
+                .ExecOnExit<P2CompressedWaterLightning>(comp => comp.ResolveImminent = true); // resolve stacks after nisi pass
             ActorCast(id + 0x110, _module.CruiseChaser, AID.Whirlwind, 8.0f, 4, false, "Raidwide")
                 .DeactivateOnExit<P2PlasmaShield>() // it's a wipe if shield is not dealth with in time
                 .SetHint(StateMachine.StateHint.Raidwide);
 
             ComponentCondition<P2CompressedWaterLightning>(id + 0x200, 8.7f, comp => !comp.ResolveImminent, "Water/lightning 3")
                 .DeactivateOnExit<P2CompressedWaterLightning>()
-                .OnExit(() => Module.FindComponent<P2Nisi>()!.ShowPassHint = 4); // fourth nisi pass should happen after last stacks, while resolving propeller wind
+                .ExecOnExit<P2Nisi>(comp => comp.ShowPassHint = 4); // fourth nisi pass should happen after last stacks, while resolving propeller wind
 
             ActorCastStart(id + 0x300, _module.CruiseChaser, AID.PropellerWind, 12.5f);
             ActorCastStart(id + 0x301, _module.BruteJustice, AID.Gavel, 3)
@@ -644,7 +644,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             ActorTargetable(id + 0x100, _module.PerfectAlex, false, 3, "Fate calibration alpha")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
             ComponentCondition<P4FateCalibrationAlphaStillnessMotion>(id + 0x110, 4.1f, comp => comp.NumCasts >= 1, "Stay/move")
-                .OnEnter(() => Module.FindComponent<P4FateCalibrationAlphaStillnessMotion>()?.ApplyNextRequirement());
+                .ExecOnEnter<P4FateCalibrationAlphaStillnessMotion>(comp => comp.ApplyNextRequirement());
             // +3.0s: defamation
             // +3.5s: shared sentence
             ComponentCondition<P4FateCalibrationAlphaStillnessMotion>(id + 0x140, 4.1f, comp => comp.NumCasts >= 2, "Stay/move") // also aggravated resolve & sacrament 1
@@ -681,14 +681,14 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                 .SetHint(StateMachine.StateHint.DowntimeStart);
             ComponentCondition<P4FateCalibrationBetaDebuffs>(id + 0x110, 2, comp => comp.Done); // forced march apply
             ComponentCondition<P4FateCalibrationBetaJJump>(id + 0x120, 8.1f, comp => comp.NumCasts > 0, "Jumps")
-                .OnEnter(() => Module.FindComponent<P4FateCalibrationBetaJJump>()?.Show())
+                .ExecOnEnter<P4FateCalibrationBetaJJump>(comp => comp.Show())
                 .DeactivateOnExit<P4FateCalibrationBetaDebuffs>() // tethers & shared sentence resolve ~1s before jumps
                 .DeactivateOnExit<P4FateCalibrationBetaJJump>();
             ComponentCondition<P4FateCalibrationBetaOpticalSight>(id + 0x130, 6, comp => comp.Done, "Stack/spread")
-                .OnEnter(() => Module.FindComponent<P4FateCalibrationBetaOpticalSight>()?.Show(Module))
+                .ExecOnEnter<P4FateCalibrationBetaOpticalSight>(comp => comp.Show(Module))
                 .DeactivateOnExit<P4FateCalibrationBetaOpticalSight>();
             ComponentCondition<P4FateCalibrationBetaRadiantSacrament>(id + 0x140, 5, comp => comp.NumCasts > 0, "Donut")
-                .OnEnter(() => Module.FindComponent<P4FateCalibrationBetaRadiantSacrament>()?.Show())
+                .ExecOnEnter<P4FateCalibrationBetaRadiantSacrament>(comp => comp.Show())
                 .DeactivateOnExit<P4FateCalibrationBetaRadiantSacrament>()
                 .DeactivateOnExit<P4FateProjection>();
 

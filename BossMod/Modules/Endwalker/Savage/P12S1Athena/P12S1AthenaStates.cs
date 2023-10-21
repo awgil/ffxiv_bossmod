@@ -82,7 +82,7 @@
         {
             Cast(id, AID.Paradeigma, delay, 3)
                 .ActivateOnEnter<WhiteFlame>()
-                .OnEnter(() => Module.FindComponent<WhiteFlame>()?.Enable()); // enable asap
+                .ExecOnEnter<WhiteFlame>(comp => comp.Enable()); // enable asap
             TrinityOfSoulsCast(id + 0x10, 5.6f);
             ComponentCondition<WhiteFlame>(id + 0x20, 0.8f, comp => comp.NumCasts > 0, "Baits 1");
             TrinityOfSoulsResolve(id + 0x30, 1.8f);
@@ -150,7 +150,7 @@
                 .ActivateOnEnter<TheosCross>()
                 .ActivateOnEnter<TheosSaltire>();
             ComponentCondition<TheosCross>(id + 0x41, 3.0f, comp => comp.NumCasts > 0, "Cross/plus resolve") // TODO: don't show name?
-                .OnEnter(() => Module.FindComponent<WhiteFlame>()?.Enable())
+                .ExecOnEnter<WhiteFlame>(comp => comp.Enable())
                 .DeactivateOnExit<TheosCross>()
                 .DeactivateOnExit<TheosSaltire>();
             ComponentCondition<EngravementOfSouls3Spread>(id + 0x42, 0.3f, comp => !comp.Active, "Tower baits")

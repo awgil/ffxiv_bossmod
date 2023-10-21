@@ -228,10 +228,10 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
             // odd pattern: 8 bombs on one side, landslide begins ~3.8s cast into burst and resolves after => we show all bombs asap and dodge them + landslides normally
             // even pattern: 8 staggered bombs in clockwise order followed by bomb in center, ~0.4s between successive explosions, landslide begins right after second explosion and ends around 8th explosion => we show next 5 bombs
             MountainBuster(id, delay)
-                .OnEnter(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 0) // don't show anything until TB resolves
-                .OnExit(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = even ? 5 : 8);
+                .ExecOnEnter<LandslideBurst>(comp => comp.MaxBombs = 0) // don't show anything until TB resolves
+                .ExecOnExit<LandslideBurst>(comp => comp.MaxBombs = even ? 5 : 8);
             Cast(id + 0x100, AID.LandslideBoss, 8.1f, 2.2f, "Bombs & Landslide")
-                .OnExit(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 9); // reset to default, show any remaining bombs
+                .ExecOnExit<LandslideBurst>(comp => comp.MaxBombs = 9); // reset to default, show any remaining bombs
         }
 
         private void BombsLandslidePhase3(uint id, float delay)
@@ -239,8 +239,8 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
             // note: first bomb is created ~5.5s before landslide start; first burst starts ~0.6s before landslide start
             // pattern: 6 staggered bombs in clockwise order followed by bomb in center, ~0.4s between successive explosions, landslide begins after second burst start and resolves ~2.2s before first burst => we show next 5 bombs
             CastStart(id + 0x100, AID.LandslideBoss, delay)
-                .OnEnter(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 0) // don't show anything until landslide cast starts
-                .OnExit(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 5); // show next 5 bombs
+                .ExecOnEnter<LandslideBurst>(comp => comp.MaxBombs = 0) // don't show anything until landslide cast starts
+                .ExecOnExit<LandslideBurst>(comp => comp.MaxBombs = 5); // show next 5 bombs
             CastEnd(id + 0x101, 2.2f, "Landslide + Bombs");
         }
 
@@ -249,11 +249,11 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
             // note: first set of bombs are created ~5.3s before landslide start; first burst starts ~0.6s before landslide start
             // pattern: 4 bombs on cardinals, ~2.5s later 5 bombs on intercardinals and in center; we show first set when landslide starts, then second set after first is done
             CastStart(id + 0x100, AID.LandslideBoss, delay)
-                .OnEnter(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 0) // don't show anything until landslide cast starts
-                .OnExit(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 4); // show first set
+                .ExecOnEnter<LandslideBurst>(comp => comp.MaxBombs = 0) // don't show anything until landslide cast starts
+                .ExecOnExit<LandslideBurst>(comp => comp.MaxBombs = 4); // show first set
             CastEnd(id + 0x101, 2.2f, "Landslide");
             ComponentCondition<LandslideBurst>(id + 0x200, 2.2f, comp => comp.NumActiveBursts <= 5, "First bombs")
-                .OnExit(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 9); // reset to default, show any remaining bombs
+                .ExecOnExit<LandslideBurst>(comp => comp.MaxBombs = 9); // reset to default, show any remaining bombs
         }
 
         private void BombsLandslidePhase4Pattern2(uint id, float delay)
@@ -261,18 +261,18 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
             // note: first set of bombs are created ~5.3s before landslide start; first burst starts ~0.6s before landslide start
             // pattern: 3 staggered lines of 3 bombs, ~1.5s between explosions; we show next two sets after landslide is done
             CastStart(id + 0x100, AID.LandslideBoss, delay)
-                .OnEnter(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 0); // don't show anything until landslide cast ends
+                .ExecOnEnter<LandslideBurst>(comp => comp.MaxBombs = 0); // don't show anything until landslide cast ends
             CastEnd(id + 0x101, 2.2f, "Landslide")
-                .OnExit(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 6); // show two sets
+                .ExecOnExit<LandslideBurst>(comp => comp.MaxBombs = 6); // show two sets
             ComponentCondition<LandslideBurst>(id + 0x200, 0.2f, comp => comp.NumActiveBursts > 6);
             ComponentCondition<LandslideBurst>(id + 0x201, 2.0f, comp => comp.NumActiveBursts <= 6, "First bombs")
-                .OnExit(() => Module.FindComponent<LandslideBurst>()!.MaxBombs = 9); // reset to default, show any remaining bombs
+                .ExecOnExit<LandslideBurst>(comp => comp.MaxBombs = 9); // reset to default, show any remaining bombs
         }
 
         private void BombsTumultWeightOfTheLand(uint id, float delay)
         {
             Condition(id, delay, () => _module.Bombs.Any(a => a.IsTargetable), "Bombs to kill")
-                .OnExit(() => Module.FindComponent<Ex3TitanAI>()!.KillNextBomb = true);
+                .ExecOnExit<Ex3TitanAI>(comp => comp.KillNextBomb = true);
             Tumult(id + 0x100, 4.2f);
             WeightOfTheLand(id + 0x200, 3.1f);
             // +4.3s: explosions start

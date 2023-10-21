@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.Extreme.Ex7Zeromus
 {
@@ -67,8 +68,8 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_angles.Count > 1)
-                yield return new(_shape, module.PrimaryActor.Position, _angles[1].rot, _angles[1].activation);
+            foreach (var a in _angles.Skip(1).Take(2))
+                yield return new(_shape, module.PrimaryActor.Position, a.rot, a.activation);
             if (_angles.Count > 0)
                 yield return new(_shape, module.PrimaryActor.Position, _angles[0].rot, _angles[0].activation, ArenaColor.Danger);
         }

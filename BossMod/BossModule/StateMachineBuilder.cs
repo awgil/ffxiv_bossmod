@@ -73,6 +73,8 @@ namespace BossMod
 
             public State ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.ActivateComponent<C>, condition);
             public State DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(_module.DeactivateComponent<C>, condition);
+            public State ExecOnEnter<C>(Action<C> fn, bool condition = true) where C : BossComponent => OnEnter(() => { var c = _module.FindComponent<C>(); if (c != null) fn(c); }, condition);
+            public State ExecOnExit<C>(Action<C> fn, bool condition = true) where C : BossComponent => OnExit(() => { var c = _module.FindComponent<C>(); if (c != null) fn(c); }, condition);
 
             public State SetHint(StateMachine.StateHint h, bool condition = true)
             {
