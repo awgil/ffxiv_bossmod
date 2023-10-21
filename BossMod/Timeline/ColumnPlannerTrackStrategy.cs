@@ -11,10 +11,11 @@ namespace BossMod
             public uint Value;
             public string Comment;
 
-            public OverrideElement(Entry window, uint value, string comment) : base(window)
+            public OverrideElement(Entry window, uint value, string comment, float cooldown) : base(window)
             {
                 Value = value;
                 Comment = comment;
+                CooldownLength = cooldown;
             }
         }
 
@@ -37,7 +38,7 @@ namespace BossMod
 
         protected override Element CreateElement(Entry window)
         {
-            return SetElementValue(new OverrideElement(window, 0, ""), 1);
+            return SetElementValue(new OverrideElement(window, 0, "", TrackDef.Cooldown), 1);
         }
 
         protected override List<string> DescribeElement(Element e)

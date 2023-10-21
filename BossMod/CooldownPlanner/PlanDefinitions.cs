@@ -27,11 +27,13 @@ namespace BossMod
         {
             public string Name;
             public Type? Values;
+            public float Cooldown;
 
-            public StrategyTrack(string name, Type? values = null)
+            public StrategyTrack(string name, Type? values = null, float cooldown = 0)
             {
                 Name = name;
                 Values = values;
+                Cooldown = cooldown;
             }
         }
 
@@ -80,7 +82,7 @@ namespace BossMod
             c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
             c.StrategyTracks.Add(new("Gauge", typeof(WAR.Rotation.Strategy.GaugeUse)));
             c.StrategyTracks.Add(new("Infuriate", typeof(WAR.Rotation.Strategy.InfuriateUse)));
-            c.StrategyTracks.Add(new("Potion", typeof(WAR.Rotation.Strategy.PotionUse)));
+            c.StrategyTracks.Add(new("Potion", typeof(WAR.Rotation.Strategy.PotionUse), 270));
             c.StrategyTracks.Add(new("IR", typeof(WAR.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("Upheaval", typeof(WAR.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("PR", typeof(WAR.Rotation.Strategy.OffensiveAbilityUse)));
@@ -133,7 +135,7 @@ namespace BossMod
             c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(BRD.AID.ArmsLength), 32));
             c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
             c.StrategyTracks.Add(new("Songs", typeof(BRD.Rotation.Strategy.SongUse)));
-            c.StrategyTracks.Add(new("Potion", typeof(BRD.Rotation.Strategy.PotionUse)));
+            c.StrategyTracks.Add(new("Potion", typeof(BRD.Rotation.Strategy.PotionUse), 270));
             c.StrategyTracks.Add(new("DOTs", typeof(BRD.Rotation.Strategy.DotUse)));
             c.StrategyTracks.Add(new("Apex", typeof(BRD.Rotation.Strategy.ApexArrowUse)));
             c.StrategyTracks.Add(new("Blast", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
