@@ -153,10 +153,6 @@ namespace BossMod
             {
                 _debugVfx.Draw();
             }
-            if (ImGui.CollapsingHeader("AFK"))
-            {
-                DrawAFK();
-            }
         }
 
         private void DrawStatuses()
@@ -280,30 +276,6 @@ namespace BossMod
             {
                 ImGui.TextUnformatted($"{w.WindowName}: focus={w.IsFocused}");
             }
-        }
-
-        private unsafe void DrawAFK()
-        {
-            var uiModule = FFXIVClientStructs.FFXIV.Client.UI.UIModule.Instance();
-            var getAfkModule = (delegate* unmanaged[Stdcall]<FFXIVClientStructs.FFXIV.Client.UI.UIModule*, void*>)Utils.ReadField<nint>(uiModule->VTable, 0x1B8);
-            var afkModule = getAfkModule(uiModule);
-            ImGui.TextUnformatted($"Module: {(nint)afkModule:X}");
-            ImGui.TextUnformatted($"Timer 1: {Utils.ReadField<float>(afkModule, 0x10):f3} / {Utils.ReadField<float>(afkModule, 0x20):f3}");
-            ImGui.TextUnformatted($"Timer 2: {Utils.ReadField<float>(afkModule, 0x14):f3} / {Utils.ReadField<float>(afkModule, 0x28):f3} or {Utils.ReadField<float>(afkModule, 0x2C):f3}");
-            ImGui.TextUnformatted($"Timer 3: {Utils.ReadField<float>(afkModule, 0x18):f3} / {Utils.ReadField<float>(afkModule, 0x44):f3}");
-            ImGui.TextUnformatted($"Timer 4: {Utils.ReadField<float>(afkModule, 0x1C):f3} / {Utils.ReadField<float>(afkModule, 0x38):f3}");
-            ImGui.TextUnformatted($"Mode: {Utils.ReadField<int>(afkModule, 0x3C)}");
-            ImGui.TextUnformatted($"Territory: {Utils.ReadField<ushort>(afkModule, 0x42)} / {Utils.ReadField<byte>(afkModule, 0x41)}");
-            ImGui.TextUnformatted($"Unks: {Utils.ReadField<byte>(afkModule, 0x24)} / {Utils.ReadField<byte>(afkModule, 0x25)} / {Utils.ReadField<byte>(afkModule, 0x34)} / {Utils.ReadField<byte>(afkModule, 0x48)}");
-
-            if (ImGui.Button("Bump timer 1"))
-                Utils.WriteField(afkModule, 0x10, 2000.0f);
-            if (ImGui.Button("Bump timer 2"))
-                Utils.WriteField(afkModule, 0x14, 1000.0f);
-            if (ImGui.Button("Bump timer 3"))
-                Utils.WriteField(afkModule, 0x18, 2000.0f);
-            if (ImGui.Button("Bump timer 4"))
-                Utils.WriteField(afkModule, 0x1C, 2000.0f);
         }
     }
 }
