@@ -6,7 +6,7 @@
         {
             SimplePhase(0, Phase1, "P1")
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.RendTheRift) ?? false);
-            DeathPhase(1, Phase2);
+            DeathPhase(1, Phase2); // starts at around 25%
         }
 
         private void Phase1(uint id)
@@ -26,6 +26,7 @@
             SparklingBrandingFlare(id + 0xC0000, 7.5f);
             VoidBioVisceralWhirl(id + 0xD0000, 3.9f);
             DarkMatter(id + 0xE0000, 7.1f);
+            SparklingBrandingFlare(id + 0xF0000, 5.2f);
 
             SimpleState(id + 0xFF0000, 10, "???");
         }
