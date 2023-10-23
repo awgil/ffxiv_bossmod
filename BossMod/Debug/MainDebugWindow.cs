@@ -133,7 +133,7 @@ namespace BossMod
             {
                 DrawCountdown();
             }
-            if (ImGui.CollapsingHeader("Addon"))
+            if (ImGui.CollapsingHeader("Addon / agent"))
             {
                 _debugAddon.Draw();
             }
