@@ -131,14 +131,14 @@ namespace UIDev.Analysis
             private UIPlot _plot = new();
             private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Range, int Damage)> _points = new();
 
-            public DamageFalloffAnalysis(List<(Replay, Replay.Action)> infos, bool useMaxComp)
+            public DamageFalloffAnalysis(List<(Replay, Replay.Action)> infos, bool useMaxComp, bool fromSource)
             {
                 _plot.DataMin = new(0, 0);
                 _plot.DataMax = new(100, 200000);
                 _plot.TickAdvance = new(5, 10000);
                 foreach (var (r, a) in infos)
                 {
-                    var origin = a.TargetPos;
+                    var origin = fromSource ? a.Source?.PosRotAt(a.Timestamp).XYZ() ?? new() : a.TargetPos;
                     foreach (var target in a.Targets)
                     {
                         if (target.Target == null)
@@ -249,6 +249,7 @@ namespace UIDev.Analysis
             public ConeAnalysis? ConeAnalysisSourcePosDirToTarget;
             public RectAnalysis? RectAnalysis;
             public DamageFalloffAnalysis? DamageFalloffAnalysisDist;
+            public DamageFalloffAnalysis? DamageFalloffAnalysisDistFromSource;
             public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
             public GazeAnalysis? GazeAnalysis;
             public CasterLinkAnalysis? CasterLinkAnalysis;
@@ -364,13 +365,19 @@ namespace UIDev.Analysis
                 foreach (var an in tree.Node("Damage falloff analysis (by distance)"))
                 {
                     if (data.DamageFalloffAnalysisDist == null)
-                        data.DamageFalloffAnalysisDist = new(data.Instances, false);
+                        data.DamageFalloffAnalysisDist = new(data.Instances, false, false);
                     data.DamageFalloffAnalysisDist.Draw();
+                }
+                foreach (var an in tree.Node("Damage falloff analysis (by distance from source)"))
+                {
+                    if (data.DamageFalloffAnalysisDistFromSource == null)
+                        data.DamageFalloffAnalysisDistFromSource = new(data.Instances, false, true);
+                    data.DamageFalloffAnalysisDistFromSource.Draw();
                 }
                 foreach (var an in tree.Node("Damage falloff analysis (by max coord)"))
                 {
                     if (data.DamageFalloffAnalysisMinCoord == null)
-                        data.DamageFalloffAnalysisMinCoord = new(data.Instances, true);
+                        data.DamageFalloffAnalysisMinCoord = new(data.Instances, true, false);
                     data.DamageFalloffAnalysisMinCoord.Draw();
                 }
                 foreach (var an in tree.Node("Gaze analysis"))
