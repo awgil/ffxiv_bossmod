@@ -137,7 +137,7 @@ namespace BossMod
             _faceTargetFunc = Marshal.GetDelegateForFunctionPointer<FaceTargetDelegate>(faceTargetAddress);
             Service.Log($"[AMEx] FaceTarget address = 0x{faceTargetAddress:X}");
 
-            _updateHook = Service.Hook.HookFromSignature<UpdateDelegate>("48 8B C4 48 89 58 20 57 48 81 EC 90 00 00 00 48 8B 3D ?? ?? ?? ?? 48 8B D9 48 85 FF 0F 84 ?? ?? ?? ?? 48 89 68 08 48 8B CF 48 89 70 10 4C 89 70 18 0F 29 70 E8 44 0F 29 48 B8 44 0F 29 50 A8", UpdateDetour);
+            _updateHook = Service.Hook.HookFromSignature<UpdateDelegate>("48 8B C4 48 89 58 20 57 48 81 EC", UpdateDetour);
             _updateHook.Enable();
             Service.Log($"[AMEx] Update address = 0x{_updateHook.Address:X}");
 
