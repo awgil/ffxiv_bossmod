@@ -108,7 +108,7 @@ namespace BossMod
 
                 if (obj != null && (obj.ObjectId & 0xFF000000) == 0xFF000000)
                 {
-                    Service.Log($"[WorldState] Skipping bad object #{i} with id {obj.ObjectId:X}");
+                    //Service.Log($"[WorldState] Skipping bad object #{i} with id {obj.ObjectId:X}");
                     obj = null;
                 }
 
