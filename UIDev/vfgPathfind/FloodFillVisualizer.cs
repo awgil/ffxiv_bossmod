@@ -15,7 +15,6 @@ public class FloodFillVisualizer
     public int CurrT;
     public List<(int x, int z, int t)> Path = new();
     public int ScrollY;
-    public int MaxLines = 500;
     //public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = new();
     //public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = new();
     //public List<(WPos origin, WPos dest)> Lines = new();
@@ -32,7 +31,7 @@ public class FloodFillVisualizer
 
     public void Draw()
     {
-        var h = Math.Min(Map.Height, MaxLines);
+        var h = Math.Min(Map.Height, (int)(ImGui.GetWindowHeight() * 0.5f / ScreenPixelSize));
         var tl = ImGui.GetCursorScreenPos();
         var br = tl + new Vector2(Map.Width, h) * ScreenPixelSize;
         var tr = new Vector2(br.X, tl.Y);
@@ -45,7 +44,7 @@ public class FloodFillVisualizer
         // blocked squares / goal
         int nodeIndex = 0;
         var goalZ = Map.WorldToGrid(new(0, 0, EndZ)).z;
-        for (int y = ScrollY, ymax = Math.Min(Map.Height, ScrollY + MaxLines); y < ymax; ++y)
+        for (int y = ScrollY, ymax = Math.Min(Map.Height, ScrollY + h); y < ymax; ++y)
         {
             for (int x = 0; x < Map.Width; ++x, ++nodeIndex)
             {
@@ -143,23 +142,26 @@ public class FloodFillVisualizer
         ImGui.SliderInt("Time step", ref CurrT, 0, _pathfind.NextT - 1);
         ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
         ImGui.SetNextItemWidth(500);
-        ImGui.SliderInt("Scroll", ref ScrollY, 0, Map.Height - MaxLines);
+        ImGui.SliderInt("Scroll", ref ScrollY, 0, Map.Height - h);
+        ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
+        ImGui.SetNextItemWidth(500);
+        ImGui.SliderFloat("Cell size", ref ScreenPixelSize, 1, 20);
 
         if (Path.Count > 0)
         {
             var fromY = Path[0].z - ScrollY;
             var from = tl + new Vector2(Path[0].x + 0.5f, fromY + 0.5f) * ScreenPixelSize;
-            if (Path[0].t == CurrT && fromY >= 0 && fromY <= MaxLines)
+            if (Path[0].t == CurrT && fromY >= 0 && fromY <= h)
                 dl.AddCircle(from, ScreenPixelSize / 2, 0xffff0000);
             for (int i = 1; i < Path.Count; ++i)
             {
                 var toY = Path[i].z - ScrollY;
                 var to = tl + new Vector2(Path[i].x + 0.5f, toY + 0.5f) * ScreenPixelSize;
-                if (fromY >= 0 && fromY <= MaxLines && toY >= 0 && toY <= MaxLines)
+                if (fromY >= 0 && fromY <= h && toY >= 0 && toY <= h)
                     dl.AddLine(from, to, Path[i].t > CurrT ? 0x80800080 : 0xffff00ff, 2);
                 fromY = toY;
                 from = to;
-                if (Path[i].t == CurrT && fromY >= 0 && fromY <= MaxLines)
+                if (Path[i].t == CurrT && fromY >= 0 && fromY <= h)
                     dl.AddCircle(from, ScreenPixelSize / 2, 0xffff0000);
             }
         }

@@ -62,14 +62,14 @@ public class Map
     }
 
     // block all the voxels for which the shape function returns true for specified time intervals
-    public void BlockPixelsInside(Vector3 boundsMin, Vector3 boundsMax, Func<Vector3, bool> shape, float tStart, float tDuration, float tRepeat)
+    public void BlockPixelsInside(Vector3 boundsMin, Vector3 boundsMax, Func<Vector3, bool> shape, float tStart, float tDuration, float tRepeat, float tLeeway)
     {
         List<(int begin, int end)> intTime = new();
         var tMax = Duration * TimeResolution;
         for (var t = tStart; t < tMax; t += tRepeat)
         {
-            var ib = ClampT((int)MathF.Floor(t * InvResolution.Z) - 1);
-            var ie = ClampT((int)MathF.Floor((t + tDuration) * InvResolution.Z) + 1);
+            var ib = ClampT((int)MathF.Floor((t - tLeeway) * InvResolution.Z));
+            var ie = ClampT((int)MathF.Floor((t + tDuration + tLeeway) * InvResolution.Z));
             intTime.Add((ib, ie));
         }
         //foreach (var (b, e) in time)

@@ -10,6 +10,7 @@ class FloodFillTest : TestWindow
     private FloodFillVisualizer _visu;
     private float _spaceRes = 0.5f;
     private float _timeRes = 0.25f;
+    private float _aoeLeeway = 0.1f;
     private float _timeToBuild;
 
     public FloodFillTest() : base("vfg floodfill test", new(400, 400), ImGuiWindowFlags.None)
@@ -27,6 +28,7 @@ class FloodFillTest : TestWindow
         {
             rebuild |= ImGui.DragFloat("Space Resolution", ref _spaceRes, 0.1f, 0.1f, 10, "%.3f", ImGuiSliderFlags.Logarithmic);
             rebuild |= ImGui.DragFloat("Time Resolution", ref _timeRes, 0.1f, 0.1f, 10, "%.3f", ImGuiSliderFlags.Logarithmic);
+            rebuild |= ImGui.DragFloat("AOE leeway", ref _aoeLeeway, 0.01f, 0, 0.5f, "%.3f");
         }
 
         if (rebuild)
@@ -38,22 +40,22 @@ class FloodFillTest : TestWindow
         var map = new Map(_spaceRes, _timeRes, new(0, 0, 223), 14, 101, 60);
 
         // columns at entrance
-        BlockCircle(map, -4, 292, 1.5f, 0, 60, 100);
-        BlockCircle(map, +4, 292, 1.5f, 0, 60, 100);
-        BlockRect(map, -10, -3.3f, 285.5f, 293, 0, 60, 100);
-        BlockRect(map, +3.3f, +10, 285.5f, 293, 0, 60, 100);
+        BlockCircle(map, -4, 292, 1.5f, 0, 60, 100, 0);
+        BlockCircle(map, +4, 292, 1.5f, 0, 60, 100, 0);
+        BlockRect(map, -10, -3.3f, 285.5f, 293, 0, 60, 100, 0);
+        BlockRect(map, +3.3f, +10, 285.5f, 293, 0, 60, 100, 0);
 
         // central column
-        BlockRect(map, -2, 2, 271, 278, 0, 60, 100);
-        BlockRect(map, -5.5f, 5.5f, 262.5f, 271, 0, 60, 100);
+        BlockRect(map, -2, 2, 271, 278, 0, 60, 100, 0);
+        BlockRect(map, -5.5f, 5.5f, 262.5f, 271, 0, 60, 100, 0);
 
         // exaflare lane columns
-        BlockRect(map, -9.5f, -5.5f, 247.5f, 256, 0, 60, 100);
-        BlockRect(map, -2.0f, +2.0f, 247.5f, 256, 0, 60, 100);
-        BlockRect(map, +5.5f, +9.5f, 247.5f, 256, 0, 60, 100);
-        BlockRect(map, -9.5f, -5.5f, 238.5f, 246.5f, 0, 60, 100);
-        BlockRect(map, -2.0f, +2.0f, 238.5f, 246.5f, 0, 60, 100);
-        BlockRect(map, +5.5f, +9.5f, 238.5f, 246.5f, 0, 60, 100);
+        BlockRect(map, -9.5f, -5.5f, 247.5f, 256, 0, 60, 100, 0);
+        BlockRect(map, -2.0f, +2.0f, 247.5f, 256, 0, 60, 100, 0);
+        BlockRect(map, +5.5f, +9.5f, 247.5f, 256, 0, 60, 100, 0);
+        BlockRect(map, -9.5f, -5.5f, 238.5f, 246.5f, 0, 60, 100, 0);
+        BlockRect(map, -2.0f, +2.0f, 238.5f, 246.5f, 0, 60, 100, 0);
+        BlockRect(map, +5.5f, +9.5f, 238.5f, 246.5f, 0, 60, 100, 0);
 
         // rect lane prisms
         BlockPrism(map, -9, 211, 4, 0, 60, 100);
@@ -96,31 +98,31 @@ class FloodFillTest : TestWindow
         return visu;
     }
 
-    private void BlockCircle(Map m, float cx, float cz, float radius, float tStart, float tDuration, float tRepeat)
+    private void BlockCircle(Map m, float cx, float cz, float radius, float tStart, float tDuration, float tRepeat, float tLeeway)
     {
         var center = new Vector3(cx, 0, cz);
         var vr = new Vector3(radius, 0, radius);
         var rsq = radius * radius;
-        m.BlockPixelsInside(center - vr, center + vr, v => new Vector2(v.X - center.X, v.Z - center.Z).LengthSquared() <= rsq, tStart, tDuration, tRepeat);
+        m.BlockPixelsInside(center - vr, center + vr, v => new Vector2(v.X - center.X, v.Z - center.Z).LengthSquared() <= rsq, tStart, tDuration, tRepeat, tLeeway);
     }
 
-    private void BlockRect(Map m, float xmin, float xmax, float zmin, float zmax, float tStart, float tDuration, float tRepeat)
+    private void BlockRect(Map m, float xmin, float xmax, float zmin, float zmax, float tStart, float tDuration, float tRepeat, float tLeeway)
     {
-        m.BlockPixelsInside(new(xmin, 0, zmin), new(xmax, 0, zmax), _ => true, tStart, tDuration, tRepeat);
+        m.BlockPixelsInside(new(xmin, 0, zmin), new(xmax, 0, zmax), _ => true, tStart, tDuration, tRepeat, tLeeway);
     }
 
     private void BlockPrism(Map m, float cx, float cz, float s, float tStart, float tDuration, float tRepeat)
     {
         var center = new Vector3(cx, 0, cz);
         var vs = new Vector3(s, 0, s);
-        m.BlockPixelsInside(center - vs, center + vs, v => Math.Abs(v.X - cx) + Math.Abs(v.Z - cz) <= s, tStart, tDuration, tRepeat);
+        m.BlockPixelsInside(center - vs, center + vs, v => Math.Abs(v.X - cx) + Math.Abs(v.Z - cz) <= s, tStart, tDuration, tRepeat, 0);
     }
 
     private void BlockTrapezium(Map m, float dx1, float z1, float dx2, float z2, float tStart, float tDuration, float tRepeat)
     {
         float coeff = (dx2 - dx1) / (z2 - z1);
         float cons = dx1 - z1 * coeff;
-        m.BlockPixelsInside(new(-dx2, 0, z2), new(dx2, 0, z1), v => Math.Abs(v.X) < cons + coeff * v.Z, tStart, tDuration, tRepeat);
+        m.BlockPixelsInside(new(-dx2, 0, z2), new(dx2, 0, z1), v => Math.Abs(v.X) < cons + coeff * v.Z, tStart, tDuration, tRepeat, 0);
     }
 
     private void BlockCorners(Map m, float x1, float z1, float x2, float z2, float x3, float z3, float tStart, float tDuration, float tRepeat)
@@ -132,7 +134,7 @@ class FloodFillTest : TestWindow
         var bc = c - b;
         var n1 = new Vector2(ab.Y, -ab.X);
         var n2 = new Vector2(bc.Y, -bc.X);
-        m.BlockPixelsInside(new(-x1, 0, z3), new(x1, 0, z1), v => Vector2.Dot(n1, new(Math.Abs(v.X) - x1, v.Z - z1)) < 0 && Vector2.Dot(n2, new(Math.Abs(v.X) - x2, v.Z - z2)) < 0, tStart, tDuration, tRepeat);
+        m.BlockPixelsInside(new(-x1, 0, z3), new(x1, 0, z1), v => Vector2.Dot(n1, new(Math.Abs(v.X) - x1, v.Z - z1)) < 0 && Vector2.Dot(n2, new(Math.Abs(v.X) - x2, v.Z - z2)) < 0, tStart, tDuration, tRepeat, 0);
     }
 
     private void BlockRotating(Map m, float repeat, float y, float z, params float[] x)
@@ -141,7 +143,7 @@ class FloodFillTest : TestWindow
         float seqRepeat = repeat * x.Length;
         foreach (var vx in x)
         {
-            BlockCircle(m, vx, z, 5, t, 0.1f, seqRepeat);
+            BlockCircle(m, vx, z, 5, t, 0.1f, seqRepeat, _aoeLeeway);
             t += repeat;
         }
     }
@@ -152,7 +154,7 @@ class FloodFillTest : TestWindow
         float seqRepeat = 1.4f * x.Length + 0.5f;
         foreach (var vx in x)
         {
-            BlockCircle(m, vx, z, 6, t, 0.1f, seqRepeat);
+            BlockCircle(m, vx, z, 6, t, 0.1f, seqRepeat, _aoeLeeway);
             t += vx == x.Last() ? 1.9f : 1.4f;
         }
     }
@@ -164,12 +166,12 @@ class FloodFillTest : TestWindow
         float seqRepeat = 1.4f * 8;
         foreach (var vx in x)
         {
-            BlockCircle(m, vx, z1, 6, t, 0.1f, seqRepeat);
+            BlockCircle(m, vx, z1, 6, t, 0.1f, seqRepeat, _aoeLeeway);
             t += 1.4f;
         }
         foreach (var vx in x)
         {
-            BlockCircle(m, vx, z2, 6, t, 0.1f, seqRepeat);
+            BlockCircle(m, vx, z2, 6, t, 0.1f, seqRepeat, _aoeLeeway);
             t += 1.4f;
         }
     }
@@ -181,19 +183,19 @@ class FloodFillTest : TestWindow
         float seqRepeat = 3.1f * 2;
         foreach (var e in l)
         {
-            BlockRect(m, x1 - 3, x1 + 3, e.z - 3, e.z + 3, t, 0.1f, seqRepeat);
+            BlockRect(m, x1 - 3, x1 + 3, e.z - 3, e.z + 3, t, 0.1f, seqRepeat, _aoeLeeway);
             t += e.d;
         }
         foreach (var e in l)
         {
-            BlockRect(m, x2 - 3, x2 + 3, e.z - 3, e.z + 3, t, 0.1f, seqRepeat);
+            BlockRect(m, x2 - 3, x2 + 3, e.z - 3, e.z + 3, t, 0.1f, seqRepeat, _aoeLeeway);
             t += e.d;
         }
     }
 
     private void BlockPairsSequence(Map m, float r, Vector3 p1, Vector3 p2)
     {
-        BlockCircle(m, p1.X, p1.Z, r, 0.0f, 0.1f, 5);
-        BlockCircle(m, p2.X, p2.Z, r, 2.5f, 0.1f, 5);
+        BlockCircle(m, p1.X, p1.Z, r, 0.0f, 0.1f, 5, _aoeLeeway);
+        BlockCircle(m, p2.X, p2.Z, r, 2.5f, 0.1f, 5, _aoeLeeway);
     }
 }
