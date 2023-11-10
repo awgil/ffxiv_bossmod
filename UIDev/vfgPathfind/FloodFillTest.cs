@@ -27,7 +27,7 @@ class FloodFillTest : TestWindow
         if (ImGui.CollapsingHeader("Map setup"))
         {
             rebuild |= ImGui.DragFloat("Space Resolution", ref _spaceRes, 0.1f, 0.1f, 10, "%.3f", ImGuiSliderFlags.Logarithmic);
-            rebuild |= ImGui.DragFloat("Time Resolution", ref _timeRes, 0.1f, 0.1f, 10, "%.3f", ImGuiSliderFlags.Logarithmic);
+            rebuild |= ImGui.DragFloat("Time Resolution", ref _timeRes, 0.01f, 0.1f, 10, "%.3f", ImGuiSliderFlags.Logarithmic);
             rebuild |= ImGui.DragFloat("AOE leeway", ref _aoeLeeway, 0.01f, 0, 0.5f, "%.3f");
         }
 
@@ -100,29 +100,29 @@ class FloodFillTest : TestWindow
 
     private void BlockCircle(Map m, float cx, float cz, float radius, float tStart, float tDuration, float tRepeat, float tLeeway)
     {
-        var center = new Vector3(cx, 0, cz);
-        var vr = new Vector3(radius, 0, radius);
+        var center = new Vector2(cx, cz);
+        var vr = new Vector2(radius);
         var rsq = radius * radius;
-        m.BlockPixelsInside(center - vr, center + vr, v => new Vector2(v.X - center.X, v.Z - center.Z).LengthSquared() <= rsq, tStart, tDuration, tRepeat, tLeeway);
+        m.BlockPixelsInside(center - vr, center + vr, v => (v - center).LengthSquared() <= rsq, tStart, tDuration, tRepeat, tLeeway);
     }
 
     private void BlockRect(Map m, float xmin, float xmax, float zmin, float zmax, float tStart, float tDuration, float tRepeat, float tLeeway)
     {
-        m.BlockPixelsInside(new(xmin, 0, zmin), new(xmax, 0, zmax), _ => true, tStart, tDuration, tRepeat, tLeeway);
+        m.BlockPixelsInside(new(xmin, zmin), new(xmax, zmax), _ => true, tStart, tDuration, tRepeat, tLeeway);
     }
 
     private void BlockPrism(Map m, float cx, float cz, float s, float tStart, float tDuration, float tRepeat)
     {
-        var center = new Vector3(cx, 0, cz);
-        var vs = new Vector3(s, 0, s);
-        m.BlockPixelsInside(center - vs, center + vs, v => Math.Abs(v.X - cx) + Math.Abs(v.Z - cz) <= s, tStart, tDuration, tRepeat, 0);
+        var center = new Vector2(cx, cz);
+        var vs = new Vector2(s);
+        m.BlockPixelsInside(center - vs, center + vs, v => Math.Abs(v.X - cx) + Math.Abs(v.Y - cz) <= s, tStart, tDuration, tRepeat, 0);
     }
 
     private void BlockTrapezium(Map m, float dx1, float z1, float dx2, float z2, float tStart, float tDuration, float tRepeat)
     {
         float coeff = (dx2 - dx1) / (z2 - z1);
         float cons = dx1 - z1 * coeff;
-        m.BlockPixelsInside(new(-dx2, 0, z2), new(dx2, 0, z1), v => Math.Abs(v.X) < cons + coeff * v.Z, tStart, tDuration, tRepeat, 0);
+        m.BlockPixelsInside(new(-dx2, z2), new(dx2, z1), v => Math.Abs(v.X) < cons + coeff * v.Y, tStart, tDuration, tRepeat, 0);
     }
 
     private void BlockCorners(Map m, float x1, float z1, float x2, float z2, float x3, float z3, float tStart, float tDuration, float tRepeat)
@@ -134,7 +134,7 @@ class FloodFillTest : TestWindow
         var bc = c - b;
         var n1 = new Vector2(ab.Y, -ab.X);
         var n2 = new Vector2(bc.Y, -bc.X);
-        m.BlockPixelsInside(new(-x1, 0, z3), new(x1, 0, z1), v => Vector2.Dot(n1, new(Math.Abs(v.X) - x1, v.Z - z1)) < 0 && Vector2.Dot(n2, new(Math.Abs(v.X) - x2, v.Z - z2)) < 0, tStart, tDuration, tRepeat, 0);
+        m.BlockPixelsInside(new(-x1, z3), new(x1, z1), v => Vector2.Dot(n1, new(Math.Abs(v.X) - x1, v.Y - z1)) < 0 && Vector2.Dot(n2, new(Math.Abs(v.X) - x2, v.Y - z2)) < 0, tStart, tDuration, tRepeat, 0);
     }
 
     private void BlockRotating(Map m, float repeat, float y, float z, params float[] x)

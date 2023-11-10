@@ -15,9 +15,6 @@ public class FloodFillVisualizer
     public int CurrT;
     public List<(int x, int z, int t)> Path = new();
     public int ScrollY;
-    //public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = new();
-    //public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = new();
-    //public List<(WPos origin, WPos dest)> Lines = new();
 
     private FloodFill _pathfind;
 
@@ -43,7 +40,7 @@ public class FloodFillVisualizer
 
         // blocked squares / goal
         int nodeIndex = 0;
-        var goalZ = Map.WorldToGrid(new(0, 0, EndZ)).z;
+        var goalY = Map.WorldToGrid(new(0, 0, EndZ)).y;
         for (int y = ScrollY, ymax = Math.Min(Map.Height, ScrollY + h); y < ymax; ++y)
         {
             for (int x = 0; x < Map.Width; ++x, ++nodeIndex)
@@ -60,7 +57,7 @@ public class FloodFillVisualizer
                     c = c | (c << 8) | 0xff000000;
                     dl.AddRectFilled(corner, cornerEnd, c);
                 }
-                else if (y == goalZ)
+                else if (y == goalY)
                 {
                     var alpha = 1;// pix.Priority / Map.MaxPriority;
                     uint c = 128 + (uint)(alpha * 127);
@@ -71,37 +68,6 @@ public class FloodFillVisualizer
                 {
                     dl.AddRectFilled(corner, cornerEnd, 0x80808080);
                 }
-
-                //ref var pfNode = ref _pathfind.NodeByIndex(nodeIndex);
-                //if (pfNode.OpenHeapIndex != 0)
-                //{
-                //    dl.AddCircle((corner + cornerEnd) / 2, 3, pfNode.OpenHeapIndex < 0 ? 0xff0000ff : 0xffff0080, 0, pfNode.OpenHeapIndex == 1 ? 2 : 1);
-                //}
-
-                //if (ImGui.IsMouseHoveringRect(corner, cornerEnd))
-                //{
-                //    ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-                //    if (pix.MaxG < float.MaxValue)
-                //    {
-                //        ImGui.TextUnformatted($"Pixel at {x}x{y}: blocked, g={pix.MaxG:f3}");
-                //    }
-                //    else if (pix.Priority != 0)
-                //    {
-                //        ImGui.TextUnformatted($"Pixel at {x}x{y}: goal, prio={pix.Priority}");
-                //    }
-                //    else
-                //    {
-                //        ImGui.TextUnformatted($"Pixel at {x}x{y}: normal");
-                //    }
-
-                //    if (pfNode.OpenHeapIndex != 0)
-                //    {
-                //        ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-                //        ImGui.TextUnformatted($"PF: g={pfNode.GScore:f3}, h={pfNode.HScore:f3}, g+h={pfNode.GScore + pfNode.HScore:f3}, parent={pfNode.ParentX}x{pfNode.ParentY}, index={pfNode.OpenHeapIndex}, leeway={pfNode.PathLeeway:f3}");
-
-                //        pfPathNode = nodeIndex;
-                //    }
-                //}
             }
         }
 
@@ -166,36 +132,6 @@ public class FloodFillVisualizer
             }
         }
 
-        //var pfRes = _pathfind.CurrentResult();
-        //if (pfRes >= 0)
-        //{
-        //    ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-        //    ImGui.TextUnformatted($"Path length: {_pathfind.NodeByIndex(pfRes).GScore:f3}");
-        //}
-
-        //if (pfPathNode == -1)
-        //    pfPathNode = _pathfind.CurrentResult();
-        //if (pfPathNode >= 0)
-        //    DrawPath(dl, tl, pfPathNode);
-
-        // shapes
-        //foreach (var c in Sectors)
-        //{
-        //    DrawSector(dl, tl, c.center, c.ir, c.or, c.dir, c.halfWidth);
-        //}
-        //foreach (var r in Rects)
-        //{
-        //    var direction = r.dir.ToDirection();
-        //    var side = r.halfWidth * direction.OrthoR();
-        //    var front = r.origin + r.lenF * direction;
-        //    var back = r.origin - r.lenB * direction;
-        //    dl.AddQuad(tl + Map.WorldToGridFrac(front + side) * ScreenPixelSize, tl + Map.WorldToGridFrac(front - side) * ScreenPixelSize, tl + Map.WorldToGridFrac(back - side) * ScreenPixelSize, tl + Map.WorldToGridFrac(back + side) * ScreenPixelSize, 0xff0000ff);
-        //}
-        //foreach (var l in Lines)
-        //{
-        //    dl.AddLine(tl + Map.WorldToGridFrac(l.origin) * ScreenPixelSize, tl + Map.WorldToGridFrac(l.dest) * ScreenPixelSize, 0xff0000ff);
-        //}
-
         ImGui.SetCursorPos(cursorEnd);
     }
 
@@ -207,16 +143,8 @@ public class FloodFillVisualizer
 
     public void RunPathfind()
     {
-        var gz = Map.WorldToGrid(new(0, 0, EndZ)).z;
-        while (_pathfind.ExecuteStep() is var res && res.t >= 0)
-        {
-            if (res.minZ <= gz)
-            {
-                var minX = Enumerable.Range(0, Map.Width).First(x => _pathfind[x, res.minZ, res.t]);
-                BuildSolution(minX, res.minZ, res.t);
-                break;
-            }
-        }
+        Path.Clear();
+        Path.AddRange(_pathfind.SolveUntilZ(EndZ));
         CurrT = _pathfind.NextT - 1;
     }
 
@@ -226,62 +154,5 @@ public class FloodFillVisualizer
         CurrT = _pathfind.NextT - 1;
     }
 
-    //private void DrawSector(ImDrawListPtr dl, Vector2 tl, WPos center, float ir, float or, Angle dir, Angle halfWidth)
-    //{
-    //    if (halfWidth.Rad <= 0 || or <= 0 || ir >= or)
-    //        return;
-
-    //    var sCenter = tl + Map.WorldToGridFrac(center) * ScreenPixelSize;
-    //    if (halfWidth.Rad >= MathF.PI)
-    //    {
-    //        dl.AddCircle(sCenter, or / Map.Resolution * ScreenPixelSize, 0xff0000ff);
-    //        if (ir > 0)
-    //            dl.AddCircle(sCenter, ir / Map.Resolution * ScreenPixelSize, 0xff0000ff);
-    //    }
-    //    else
-    //    {
-    //        float sDir = MathF.PI / 2 - dir.Rad;
-    //        dl.PathArcTo(sCenter, ir / Map.Resolution * ScreenPixelSize, sDir + halfWidth.Rad, sDir - halfWidth.Rad);
-    //        dl.PathArcTo(sCenter, or / Map.Resolution * ScreenPixelSize, sDir - halfWidth.Rad, sDir + halfWidth.Rad);
-    //        dl.PathStroke(0xff0000ff, ImDrawFlags.Closed, 1);
-    //    }
-    //}
-
-    //private void DrawPath(ImDrawListPtr dl, Vector2 tl, int startingIndex)
-    //{
-    //    if (startingIndex < 0)
-    //        return;
-
-    //    int from = startingIndex;
-    //    int x1 = startingIndex % Map.Width;
-    //    int y1 = startingIndex / Map.Width;
-    //    int x2 = _pathfind.NodeByIndex(from).ParentX;
-    //    int y2 = _pathfind.NodeByIndex(from).ParentY;
-    //    while (x1 != x2 || y1 != y2)
-    //    {
-    //        dl.AddLine(tl + new Vector2(x1 + 0.5f, y1 + 0.5f) * ScreenPixelSize, tl + new Vector2(x2 + 0.5f, y2 + 0.5f) * ScreenPixelSize, 0xffff00ff, 2);
-    //        x1 = x2;
-    //        y1 = y2;
-    //        from = y1 * Map.Width + x1;
-    //        x2 = _pathfind.NodeByIndex(from).ParentX;
-    //        y2 = _pathfind.NodeByIndex(from).ParentY;
-    //    }
-    //}
-
     private FloodFill BuildPathfind() => new(Map, 6, StartPos);
-
-    private void BuildSolution(int x, int z, int t)
-    {
-        Path.Clear();
-        while (true)
-        {
-            Path.Add((x, z, t));
-            var move = _pathfind.FindMove(x, z, t);
-            if (move == null)
-                break;
-            x = move.Value.x;
-            z = move.Value.z;
-            --t;
-        }
-    }
 }

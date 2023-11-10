@@ -10,14 +10,15 @@ public class Map
     public float SpaceResolution { get; private init; } // voxel size, in world units
     public float TimeResolution { get; private init; } // voxel size, in seconds
     public int Width { get; private init; } // in voxels, x coord
-    public int Height { get; private init; } // in voxels, z coord
+    public int Height { get; private init; } // in voxels, y coord
     public int Duration { get; private init; } // in voxels, t coord
     public BitArray Voxels { get; private set; } // true if voxel is blocked
 
-    public Vector3 Center { get; private init; }
-    public Vector3 InvResolution { get; private init; }
+    public Vector2 Center { get; private init; }
+    public float InvSpaceResolution { get; private init; }
+    public float InvTimeResolution { get; private init; }
 
-    public bool this[int x, int z, int t] => InBounds(x, z, t) ? Voxels[t * Width * Height + z * Width + x] : false;
+    public bool this[int x, int y, int t] => InBounds(x, y, t) ? Voxels[t * Width * Height + y * Width + x] : false;
 
     public Map(float spaceResolution, float timeResolution, Vector3 center, float worldHalfWidth, float worldHalfHeight, float maxDuration)
     {
@@ -28,9 +29,9 @@ public class Map
         Duration = (int)MathF.Ceiling(maxDuration / timeResolution);
         Voxels = new(Width * Height * Duration);
 
-        Center = center;
-        var invSpaceRes = 1.0f / SpaceResolution;
-        InvResolution = new(invSpaceRes, invSpaceRes, 1.0f / TimeResolution);
+        Center = new(center.X, center.Z);
+        InvSpaceResolution = 1.0f / SpaceResolution;
+        InvTimeResolution = 1.0f / TimeResolution;
     }
 
     public Map Clone()
@@ -40,36 +41,31 @@ public class Map
         return res;
     }
 
-    public Vector2 WorldToGridFrac(Vector3 world)
-    {
-        var offset = world - Center;
-        return new Vector2(Width / 2 + offset.X * InvResolution.X, Height / 2 + offset.Z * InvResolution.Y);
-    }
-
     public int ClampX(int x) => Math.Clamp(x, 0, Width - 1);
-    public int ClampZ(int z) => Math.Clamp(z, 0, Height - 1);
+    public int ClampY(int y) => Math.Clamp(y, 0, Height - 1);
     public int ClampT(int t) => Math.Clamp(t, 0, Duration - 1);
 
-    public (int x, int z) FracToGrid(Vector2 frac) => ((int)MathF.Floor(frac.X), (int)MathF.Floor(frac.Y));
-    public (int x, int z) WorldToGrid(Vector3 world) => FracToGrid(WorldToGridFrac(world));
-    //public (int x, int z, int t) ClampToGrid((int x, int z, int t) pos) => (ClampX(pos.x), ClampZ(pos.z), ClampT(pos.t));
-    public bool InBounds(int x, int z, int t) => x >= 0 && x < Width && z >= 0 && z < Height && t >= 0 && t < Duration;
+    public Vector2 WorldToGridFrac(Vector3 world) => new Vector2(Width / 2, Height / 2) + (new Vector2(world.X, world.Z) - Center) * InvSpaceResolution;
+    public (int x, int y) FracToGrid(Vector2 frac) => ((int)MathF.Floor(frac.X), (int)MathF.Floor(frac.Y));
+    public (int x, int y) WorldToGrid(Vector3 world) => FracToGrid(WorldToGridFrac(world));
+    public bool InBounds(int x, int y, int t) => x >= 0 && x < Width && y >= 0 && y < Height && t >= 0 && t < Duration;
 
-    public Vector3 GridToWorld(int gx, int gz, float fx, float fz)
+    public Vector3 GridToWorld(int gx, int gy, float fx, float fy)
     {
+        var p = Center + new Vector2(gx - Width / 2 + fx, gy - Height / 2 + fy) * SpaceResolution;
         // TODO: reconstruct Y from height profile
-        return Center + new Vector3(gx - Width / 2 + fx, 0, gz - Height / 2 + fz) * SpaceResolution;
+        return new(p.X, 0, p.Y);
     }
 
     // block all the voxels for which the shape function returns true for specified time intervals
-    public void BlockPixelsInside(Vector3 boundsMin, Vector3 boundsMax, Func<Vector3, bool> shape, float tStart, float tDuration, float tRepeat, float tLeeway)
+    public bool BlockPixelsInside(Vector2 boundsMin, Vector2 boundsMax, Func<Vector2, bool> shape, float tStart, float tDuration, float tRepeat, float tLeeway)
     {
         List<(int begin, int end)> intTime = new();
         var tMax = Duration * TimeResolution;
         for (var t = tStart; t < tMax; t += tRepeat)
         {
-            var ib = ClampT((int)MathF.Floor((t - tLeeway) * InvResolution.Z));
-            var ie = ClampT((int)MathF.Floor((t + tDuration + tLeeway) * InvResolution.Z));
+            var ib = ClampT((int)MathF.Floor((t - tLeeway) * InvTimeResolution));
+            var ie = ClampT((int)MathF.Floor((t + tDuration + tLeeway) * InvTimeResolution));
             intTime.Add((ib, ie));
         }
         //foreach (var (b, e) in time)
@@ -80,7 +76,7 @@ public class Map
         //        intTime.Add((ib, ie));
         //}
         if (intTime.Count == 0)
-            return;
+            return false;
 
         //intTime.SortBy(e => e.Item1);
         //int mergeTo = 0;
@@ -100,32 +96,112 @@ public class Map
 
         var relMin = boundsMin - Center;
         var relMax = boundsMax - Center;
-        var xmin = ClampX(Width / 2 + (int)MathF.Floor(relMin.X * InvResolution.X));
-        var xmax = ClampX(Width / 2 + (int)MathF.Ceiling(relMax.X * InvResolution.X));
-        var zmin = ClampZ(Height / 2 + (int)MathF.Floor(relMin.Z * InvResolution.Y));
-        var zmax = ClampZ(Height / 2 + (int)MathF.Ceiling(relMax.Z * InvResolution.Y));
+        var xmin = ClampX(Width / 2 + (int)MathF.Floor(relMin.X * InvSpaceResolution));
+        var xmax = ClampX(Width / 2 + (int)MathF.Ceiling(relMax.X * InvSpaceResolution));
+        var ymin = ClampY(Height / 2 + (int)MathF.Floor(relMin.Y * InvSpaceResolution));
+        var ymax = ClampY(Height / 2 + (int)MathF.Ceiling(relMax.Y * InvSpaceResolution));
 
         var tOff = Width * Height;
-        var cz = Center + new Vector3(xmin - Width / 2 + 0.5f, 0, zmin - Height / 2 + 0.5f) * SpaceResolution;
-        for (int z = zmin; z <= zmax; ++z)
+        var cy = Center + new Vector2(xmin - Width / 2 + 0.5f, ymin - Height / 2 + 0.5f) * SpaceResolution;
+        for (int y = ymin; y <= ymax; ++y)
         {
-            var cx = cz;
+            var cx = cy;
             for (int x = xmin; x <= xmax; ++x)
             {
                 if (shape(cx))
                 {
-                    var xz = z * Width + x;
+                    var xy = y * Width + x;
                     foreach (var (t0, t1) in intTime)
                     {
                         for (int t = t0; t <= t1; ++t)
                         {
-                            Voxels[t * tOff + xz] = true;
+                            Voxels[t * tOff + xy] = true;
                         }
                     }
                 }
                 cx.X += SpaceResolution;
             }
-            cz.Z += SpaceResolution;
+            cy.Y += SpaceResolution;
         }
+        return true;
+    }
+
+    public bool BlockPixelsInsideCircle(Vector2 center, float radius, float tStart, float tDuration, float tRepeat, float tLeeway)
+    {
+        var vr = new Vector2(radius);
+        var rsq = radius * radius;
+        return BlockPixelsInside(center - vr, center + vr, v => (v - center).LengthSquared() <= rsq, tStart, tDuration, tRepeat, tLeeway);
+    }
+
+    public bool BlockPixelsInsideAlignedRect(float xmin, float xmax, float ymin, float ymax, float tStart, float tDuration, float tRepeat, float tLeeway)
+    {
+        return BlockPixelsInside(new(xmin, ymin), new(xmax, ymax), _ => true, tStart, tDuration, tRepeat, tLeeway);
+    }
+
+    public bool BlockPixelsInsideSquare(Vector2 center, float halfSide, float tStart, float tDuration, float tRepeat, float tLeeway)
+    {
+        return BlockPixelsInsideAlignedRect(center.X - halfSide, center.X + halfSide, center.Y - halfSide, center.Y + halfSide, tStart, tDuration, tRepeat, tLeeway);
+    }
+
+    // enumerate pixels along line starting from (x1, y1) to (x2, y2); first is not returned, last is returned
+    public IEnumerable<(int x, int y)> EnumeratePixelsInLine(int x1, int y1, int x2, int y2)
+    {
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+        int sx = dx > 0 ? 1 : -1;
+        int sy = dy > 0 ? 1 : -1;
+        dx = Math.Abs(dx);
+        dy = Math.Abs(dy);
+        if (dx >= dy)
+        {
+            int err = 2 * dy - dx;
+            do
+            {
+                x1 += sx;
+                yield return (x1, y1);
+                if (err > 0)
+                {
+                    y1 += sy;
+                    yield return (x1, y1);
+                    err -= 2 * dx;
+                }
+                err += 2 * dy;
+            }
+            while (x1 != x2);
+        }
+        else
+        {
+            int err = 2 * dx - dy;
+            do
+            {
+                y1 += sy;
+                yield return (x1, y1);
+                if (err > 0)
+                {
+                    x1 += sx;
+                    yield return (x1, y1);
+                    err -= 2 * dy;
+                }
+                err += 2 * dx;
+            }
+            while (y1 != y2);
+        }
+    }
+
+    public bool StraightLineAllowed(int x0, int y0, int t0, int x1, int y1, float invSpeed)
+    {
+        if (x0 == x1 && y0 == y1)
+            return true;
+        foreach (var (x, y) in EnumeratePixelsInLine(x0, y0, x1, y1))
+        {
+            var dx = x - x0;
+            var dy = y - y0;
+            var dist = Math.Sqrt(dx * dx + dy * dy) * SpaceResolution;
+            var dt = dist * invSpeed * InvTimeResolution;
+            var t = (int)(t0 + dt);
+            if (this[x, y, t] || this[x, y, t + 1])
+                return false;
+        }
+        return true;
     }
 }
