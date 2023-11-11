@@ -94,13 +94,14 @@
                 .SetHint(StateMachine.StateHint.DowntimeStart);
 
             ComponentCondition<P2PartySynergyDoubleAOEs>(id + 0x20, 2.2f, comp => comp.AOEs.Count > 0)
-                .ActivateOnEnter<P2PartySynergyDoubleAOEs>();
+                .ActivateOnEnter<P2PartySynergyDoubleAOEs>()
+                .ActivateOnEnter<P2PartySynergyOpticalLaser>();
             ComponentCondition<P2PartySynergyDoubleAOEs>(id + 0x21, 5.1f, comp => comp.NumCasts > 0, "Double AOEs")
                 .DeactivateOnExit<P2PartySynergyDoubleAOEs>();
 
             ComponentCondition<P2PartySynergyOptimizedFire>(id + 0x30, 6.4f, comp => !comp.Active, "Spreads")
                 .ActivateOnEnter<P2PartySynergyOptimizedFire>()
-                .ActivateOnEnter<P2PartySynergyOpticalLaser>()
+                .ExecOnEnter<P2PartySynergyOpticalLaser>(comp => comp.Show(_module))
                 .ActivateOnEnter<P2PartySynergyEfficientBladework>() // PATEs happen 0.8s after double aoes
                 .DeactivateOnExit<P2PartySynergyOptimizedFire>();
             ComponentCondition<P2PartySynergyOpticalLaser>(id + 0x31, 0.4f, comp => comp.NumCasts > 0)
