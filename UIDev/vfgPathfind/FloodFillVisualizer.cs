@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using BossMod;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,18 +13,49 @@ public class FloodFillVisualizer
     public Vector3 StartPos;
     public float EndZ;
     public float ScreenPixelSize = 2.0f;
-    public int CurrT;
-    public List<(int x, int z, int t)> Path = new();
+    public float CurrT;
+    public float MaxT;
+    public List<Vector4> Path = new(); // x/y/z/t
     public int ScrollY;
 
-    private FloodFill _pathfind;
-
-    public FloodFillVisualizer(Map map, Vector3 startPos, float endZ)
+    public FloodFillVisualizer(Map map, Vector3 startPos, float endZ, int maxDeltaZ)
     {
         Map = map;
         StartPos = startPos;
         EndZ = endZ;
-        _pathfind = BuildPathfind();
+
+        Path.Add(new(startPos, 0));
+        var p = map.WorldToGrid(StartPos);
+        var t = 0;
+        var ey = map.WorldToGrid(new(0, 0, endZ)).y;
+        var invSpeed = 1.0f / 6;
+        while (p.y > ey)
+        {
+            var pathfind = new FloodFill(map, 6, p.x, p.y, t);
+            var path = pathfind.SolveUntilY(Math.Max(ey, p.y - maxDeltaZ)).ToList();
+            path.Reverse();
+            var firstMoveIndex = path.FindIndex(v => (v.x, v.y) != p);
+            if (firstMoveIndex <= 0)
+                break;
+
+            var firstStep = path[firstMoveIndex];
+            while (map[firstStep.x, firstStep.y, t])
+                ++t;
+
+            var firstUnreachable = firstMoveIndex + 1 < path.Count ? path.FindIndex(firstMoveIndex + 1, v => !map.StraightLineAllowed(p.x, p.y, t, v.x, v.y, invSpeed)) : -1;
+            var next = path[firstUnreachable > 0 ? firstUnreachable - 1 : path.Count - 1];
+            var dx = next.x - p.x;
+            var dy = next.y - p.y;
+            if (dx == 0 && dy == 0)
+                break;
+            Path.Add(new(map.GridToWorld(next.x, next.y, 0, 0), t * map.TimeResolution));
+
+            var dist = MathF.Sqrt(dx * dx + dy * dy) * map.SpaceResolution;
+            var dt = dist * invSpeed * map.InvTimeResolution;
+            p = (next.x, next.y);
+            t += (int)MathF.Ceiling(dt);
+        }
+        CurrT = MaxT = t * map.TimeResolution;
     }
 
     public void Draw()
@@ -48,8 +80,8 @@ public class FloodFillVisualizer
                 var corner = tl + new Vector2(x, y - ScrollY) * ScreenPixelSize;
                 var cornerEnd = corner + new Vector2(ScreenPixelSize, ScreenPixelSize);
 
-                var blocker = Map[x, y, CurrT];
-                var reachable = _pathfind[x, y, CurrT];
+                var blocker = Map[x, y, (int)(CurrT * Map.InvTimeResolution)];
+                var reachable = false;// _pathfind[x, y, CurrT];
                 if (reachable)
                 {
                     var alpha = 0.5f; // 1 - (pix.MaxG > 0 ? pix.MaxG / Map.MaxG : 0);
@@ -94,18 +126,18 @@ public class FloodFillVisualizer
 
         // pathfinding
         ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
-        if (ImGui.Button("Reset pf"))
-            ResetPathfind();
-        ImGui.SameLine();
-        if (ImGui.Button("Step pf"))
-            StepPathfind();
-        ImGui.SameLine();
-        if (ImGui.Button("Run pf"))
-            RunPathfind();
+        //if (ImGui.Button("Reset pf"))
+        //    ResetPathfind();
+        //ImGui.SameLine();
+        //if (ImGui.Button("Step pf"))
+        //    StepPathfind();
+        //ImGui.SameLine();
+        //if (ImGui.Button("Run pf"))
+        //    RunPathfind();
 
         ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
         ImGui.SetNextItemWidth(500);
-        ImGui.SliderInt("Time step", ref CurrT, 0, _pathfind.NextT - 1);
+        ImGui.SliderFloat("Time step", ref CurrT, 0, MaxT);
         ImGui.SetCursorPosX(cursorEnd.X + Map.Width * ScreenPixelSize + 10);
         ImGui.SetNextItemWidth(500);
         ImGui.SliderInt("Scroll", ref ScrollY, 0, Map.Height - h);
@@ -115,44 +147,26 @@ public class FloodFillVisualizer
 
         if (Path.Count > 0)
         {
-            var fromY = Path[0].z - ScrollY;
-            var from = tl + new Vector2(Path[0].x + 0.5f, fromY + 0.5f) * ScreenPixelSize;
-            if (Path[0].t == CurrT && fromY >= 0 && fromY <= h)
-                dl.AddCircle(from, ScreenPixelSize / 2, 0xffff0000);
+            var from = Map.WorldToGrid(Path[0].XYZ());
+            var fromY = from.y - ScrollY;
+            var fromS = tl + new Vector2(from.x + 0.5f, fromY + 0.5f) * ScreenPixelSize;
+            //if (CurrT == 0 && fromY >= 0 && fromY <= h)
+            //    dl.AddCircle(fromS, ScreenPixelSize / 2, 0xffff0000);
             for (int i = 1; i < Path.Count; ++i)
             {
-                var toY = Path[i].z - ScrollY;
-                var to = tl + new Vector2(Path[i].x + 0.5f, toY + 0.5f) * ScreenPixelSize;
+                var to = Map.WorldToGrid(Path[i].XYZ());
+                var toY = to.y - ScrollY;
+                var toS = tl + new Vector2(to.x + 0.5f, toY + 0.5f) * ScreenPixelSize;
                 if (fromY >= 0 && fromY <= h && toY >= 0 && toY <= h)
-                    dl.AddLine(from, to, Path[i].t > CurrT ? 0x80800080 : 0xffff00ff, 2);
-                fromY = toY;
+                    dl.AddLine(fromS, toS, Path[i].W <= CurrT ? 0x80800080 : 0xffff00ff, 2);
                 from = to;
-                if (Path[i].t == CurrT && fromY >= 0 && fromY <= h)
-                    dl.AddCircle(from, ScreenPixelSize / 2, 0xffff0000);
+                fromY = toY;
+                fromS = toS;
+                //if (CurrT == i && fromY >= 0 && fromY <= h)
+                //    dl.AddCircle(fromS, ScreenPixelSize / 2, 0xffff0000);
             }
         }
 
         ImGui.SetCursorPos(cursorEnd);
     }
-
-    public void StepPathfind()
-    {
-        _pathfind.ExecuteStep();
-        CurrT = _pathfind.NextT - 1;
-    }
-
-    public void RunPathfind()
-    {
-        Path.Clear();
-        Path.AddRange(_pathfind.SolveUntilZ(EndZ));
-        CurrT = _pathfind.NextT - 1;
-    }
-
-    public void ResetPathfind()
-    {
-        _pathfind = BuildPathfind();
-        CurrT = _pathfind.NextT - 1;
-    }
-
-    private FloodFill BuildPathfind() => new(Map, 6, StartPos);
 }

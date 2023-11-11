@@ -1,5 +1,4 @@
-﻿using BossMod;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +16,7 @@ public class FloodFill
     public bool Solution(int x, int y, int t) => _map.InBounds(x, y, t) ? _solutions[t * _map.Width * _map.Height + y * _map.Width + x] : false;
     public bool this[int x, int y, int t] => Solution(x, y, t);
 
-    public FloodFill(Map map, float speed, Vector3 start)
+    public FloodFill(Map map, float speed, int startX, int startY, int startT)
     {
         _map = map;
         _solutions = new(map.Voxels.Length);
@@ -48,10 +47,9 @@ public class FloodFill
             }
         }
 
-        var g = _map.WorldToGrid(start);
-        if (_map.InBounds(g.x, g.y, 0))
-            _solutions[g.y * _map.Width + g.x] = true;
-        NextT = 1;
+        if (_map.InBounds(startX, startY, startT))
+            _solutions[startT * _map.Width * _map.Height + startY * _map.Width + startX] = true;
+        NextT = startT + 1;
     }
 
     public (int t, int minY) ExecuteStep()
@@ -70,11 +68,11 @@ public class FloodFill
                 if (_map.Voxels[tNext + xy])
                     continue;
 
-                foreach (var (dx, dz) in _moves)
+                foreach (var (dx, dy) in _moves)
                 {
                     var x1 = x + dx;
-                    var z1 = y + dz;
-                    if (x1 >= 0 && x1 < _map.Width && z1 >= 0 && z1 < _map.Height && _solutions[tPrev + z1 * _map.Width + x1])
+                    var y1 = y + dy;
+                    if (x1 >= 0 && x1 < _map.Width && y1 >= 0 && y1 < _map.Height && _solutions[tPrev + y1 * _map.Width + x1])
                     {
                         _solutions[tNext + xy] = true;
                         minY = Math.Min(minY, y);
@@ -128,13 +126,12 @@ public class FloodFill
         }
     }
 
-    public IEnumerable<(int x, int y, int t)> SolveUntilZ(float minZ)
+    public IEnumerable<(int x, int y, int t)> SolveUntilY(int minY)
     {
         var t = DateTime.Now;
-        var gy = _map.WorldToGrid(new(0, 0, minZ)).y;
         while (ExecuteStep() is var res && res.t >= 0)
         {
-            if (res.minY <= gy)
+            if (res.minY <= minY)
             {
                 var minX = Enumerable.Range(0, _map.Width).First(x => this[x, res.minY, res.t]);
                 return FindSolution(minX, res.minY, res.t);

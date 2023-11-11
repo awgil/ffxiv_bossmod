@@ -10,7 +10,8 @@ class FloodFillTest : TestWindow
     private FloodFillVisualizer _visu;
     private float _spaceRes = 0.5f;
     private float _timeRes = 0.25f;
-    private float _aoeLeeway = 0.1f;
+    private float _aoeLeeway = 0.5f;
+    private int _maxDeltaZ = 500;
     private float _timeToBuild;
 
     public FloodFillTest() : base("vfg floodfill test", new(400, 400), ImGuiWindowFlags.None)
@@ -29,6 +30,7 @@ class FloodFillTest : TestWindow
             rebuild |= ImGui.DragFloat("Space Resolution", ref _spaceRes, 0.1f, 0.1f, 10, "%.3f", ImGuiSliderFlags.Logarithmic);
             rebuild |= ImGui.DragFloat("Time Resolution", ref _timeRes, 0.01f, 0.1f, 10, "%.3f", ImGuiSliderFlags.Logarithmic);
             rebuild |= ImGui.DragFloat("AOE leeway", ref _aoeLeeway, 0.01f, 0, 0.5f, "%.3f");
+            rebuild |= ImGui.DragInt("Max delta-z", ref _maxDeltaZ, 1, 10, 500);
         }
 
         if (rebuild)
@@ -80,6 +82,7 @@ class FloodFillTest : TestWindow
         BlockDoubleExaflareSequence(map, 14.54f, 229.3f, 14.97f, 221.3f);
         BlockRectsSequence(map, -12, -6);
         BlockRectsSequence(map, 12, 6);
+        BlockCentralRectsSequence(map);
         BlockSingleExaflareSequence(map, 22.52f, 198.7f, [-12, -4, 4, 12]);
         BlockPairsSequence(map, 5, new(-10, 29.95f, 170), new(-2, 29.95f, 170));
         BlockPairsSequence(map, 5, new(-10, 31.39f, 156), new(-4.34f, 30.81f, 161.66f));
@@ -89,10 +92,8 @@ class FloodFillTest : TestWindow
         BlockPairsSequence(map, 3, new(-6.78f, 35.91f, 136.91f), new(-3.22f, 36.30f, 135.09f));
         BlockPairsSequence(map, 3, new(6.78f, 35.91f, 136.91f), new(3.22f, 36.30f, 135.09f));
 
-        var visu = new FloodFillVisualizer(map, new(0, 0, 323), 130);
-
         var now = DateTime.Now;
-        visu.RunPathfind();
+        var visu = new FloodFillVisualizer(map, new(0, 0, 323), 130, _maxDeltaZ);
         _timeToBuild = (float)(DateTime.Now - now).TotalSeconds;
 
         return visu;
@@ -189,6 +190,18 @@ class FloodFillTest : TestWindow
         foreach (var e in l)
         {
             BlockRect(m, x2 - 3, x2 + 3, e.z - 3, e.z + 3, t, 0.1f, seqRepeat, _aoeLeeway);
+            t += e.d;
+        }
+    }
+
+    private void BlockCentralRectsSequence(Map m)
+    {
+        (float y, float z, float d)[] l = [(25.59f, 190.4f, 0.5f), (23.37f, 196.4f, 0.5f), (21.15f, 202.4f, 0.5f), (18.94f, 208.4f, 0.5f), (16.73f, 214.4f, 4.2f)];
+        float t = 0;
+        float seqRepeat = 3.1f * 2;
+        foreach (var e in l)
+        {
+            BlockRect(m, -3, +3, e.z - 3, e.z + 3, t, 0.1f, seqRepeat, _aoeLeeway);
             t += e.d;
         }
     }

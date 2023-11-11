@@ -199,7 +199,7 @@ public class Map
             var dist = Math.Sqrt(dx * dx + dy * dy) * SpaceResolution;
             var dt = dist * invSpeed * InvTimeResolution;
             var t = (int)(t0 + dt);
-            if (this[x, y, t] || this[x, y, t + 1])
+            if (this[x, y, t] && this[x, y, t + 1])
                 return false;
         }
         return true;
