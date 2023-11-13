@@ -11,12 +11,19 @@
         OmegaF = 0x3D61, // R3.000-5.010, spawn during fight (starts as F, turns into M)
         OmegaMHelper = 0x3D62, // R5.010, spawn during fight (never targetable)
         OmegaFHelper = 0x3D63, // R5.010, spawn during fight (never targetable)
+
+        //_Gen_RightArmUnit = 0x3D67, // R1.680, spawn during fight
+        //_Gen_LeftArmUnit = 0x3D66, // R1.680, spawn during fight
+        //_Gen_Omega = 0x3D65, // R12.502, spawn during fight
+        //_Gen_Actor1eb821 = 0x1EB821, // R0.500, EventObj type, spawn during fight
+
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
     };
 
     public enum AID : uint
     {
+        // p1
         AutoAttackP1 = 31741, // Boss->player, no cast, single-target
         ProgramLoop = 31491, // Boss->self, 4.0s cast, single-target, visual (first mechanic start)
         StorageViolation = 31492, // Helper->self, no cast, range 3 circle tower
@@ -35,6 +42,7 @@
         WaveCannonKyrios = 31505, // Helper->self, no cast, range 50 width 6 rect aoe
         AtomicRay = 31480, // Boss->self, 5.0s cast, range 100 circle, enrage
 
+        // p2
         AutoAttackM = 31742, // OmegaM->player, no cast, single-target
         AutoAttackF = 31743, // OmegaF->player, no cast, single-target
         FirewallM = 31552, // OmegaM->self, 3.0s cast, range 100 circle, visual (filter preventing damage from furthest 4 players)
@@ -63,6 +71,41 @@
         AnimationSwapMF = 31518, // OmegaM->self, no cast, single-target, visual (M becomes F)
         AnimationReappearM = 31519, // OmegaF->self, no cast, single-target, visual (reappear from ground, model state 11)
         AnimationReappearF = 31520, // OmegaM->self, no cast, single-target, visual (reappear from ground, model state 11)
+        SyntheticShield = 32369, // OmegaF/OmegaMHelper->self, 1.0s cast, single-target, visual (equip shield)
+        LimitlessSynergyM = 31544, // OmegaF->self, 5.0s cast, single-target, visual (?)
+        LimitlessSynergyF = 31545, // OmegaM->self, 5.0s cast, single-target, visual (?)
+        TeleportM = 31554, // OmegaF->location, no cast, ???
+        TeleportF = 31555, // OmegaM->location, no cast, ???
+        OptimizedPassageOfArms = 31556, // OmegaF->self, no cast, single-target, visual (invincibility)
+        OptimizedSagittariusArrow = 31539, // OmegaMHelper->self, 8.0s cast, range 100 width 10 rect
+        OptimizedBladedanceM = 31540, // OmegaMHelper->self, 7.9s cast, single-target, visual (tethered cone tankbuster)
+        OptimizedBladedanceF = 31541, // OmegaFHelper->self, 7.9s cast, single-target, visual (tethered cone tankbuster)
+        OptimizedBladedanceMVisual = 31542, // OmegaMHelper->self, no cast, range 100 ?-degree cone, visual
+        OptimizedBladedanceFVisual = 31543, // OmegaFHelper->self, no cast, range 100 ?-degree cone, visual
+        OptimizedBladedanceAOE = 32629, // Helper->self, no cast, range 100 90?-degree cone
+        BeyondDefense = 31527, // OmegaMHelper->self, 4.9s cast, single-target, visual (jump on one of two closest)
+        BeyondDefenseAOE = 31528, // OmegaMHelper->player, no cast, range 5 circle
+        PilePitch = 31529, // OmegaMHelper->players, no cast, range 6 circle stack
+        OptimizedMeteor = 31537, // OmegaFHelper->self, 8.0s cast, single-target, visual (flares)
+        OptimizedMeteorAOE = 31538, // Helper->players, no cast, range 100 circle raidwide with ? falloff
+        CosmoMemoryM = 31522, // OmegaMHelper->self, 5.0s cast, single-target, visual (raidwide)
+        CosmoMemoryF = 31523, // OmegaFHelper->self, 5.0s cast, single-target, visual (raidwide)
+        CosmoMemoryAOE = 31524, // OpticalUnit->self, 1.5s cast, range 100 circle, raidwide
+        LaserShower = 31557, // OmegaM->self, 60.0s cast, range 100 circle, enrage
+        DieM = 31506, // OmegaF->self, no cast, single-target, visual (death)
+        DieF = 31507, // OmegaM->self, no cast, single-target, visual (death)
+
+        //_Ability_ = 31561, // OmegaM->location, no cast, ???
+        //_Ability_ = 31562, // OmegaF->location, no cast, single-target
+        //_Ability_ = 31563, // OmegaM->self, no cast, single-target
+        //_Ability_WaveRepeater = 31567, // Helper->location, 5.0s cast, range 6 circle
+        //_Ability_ = 31564, // 3D65->self, no cast, single-target
+        //_Ability_WaveRepeater = 31568, // Helper->self, no cast, range ?-12 donut
+        //_Ability_HighPoweredSniperCannon = 31572, // Helper->players, no cast, range 6 circle
+        //_Ability_SniperCannon = 31571, // Helper->players, no cast, range 6 circle
+        //_Ability_WaveRepeater = 31569, // Helper->self, no cast, range ?-18 donut
+        //_Ability_WaveRepeater = 31570, // Helper->self, no cast, range ?-24 donut
+        //_Ability_ColossalBlow = 31566, // 3D67/3D66->self, 2.0s cast, range 11 circle
     };
 
     public enum SID : uint
@@ -99,16 +142,18 @@
     {
         WaveCannonKyrios = 23, // player
         SolarRay = 343, // player
-        PartySynergyCircle = 416, // player (TODO: verify)
-        PartySynergyTriangle = 417, // player (TODO: verify)
-        PartySynergySquare = 418, // player (TODO: verify)
-        PartySynergyCross = 419, // player (TODO: verify)
+        PartySynergyCircle = 416, // player
+        PartySynergyTriangle = 417, // player
+        PartySynergySquare = 418, // player
+        PartySynergyCross = 419, // player
         Spotlight = 100, // player
+        OptimizedMeteor = 346, // player
     };
 
     public enum TetherID : uint
     {
         Blaster = 89, // player->Boss
         PartySynergy = 222, // player->player
+        OptimizedBladedance = 84, // OmegaFHelper/OmegaMHelper->player
     };
 }

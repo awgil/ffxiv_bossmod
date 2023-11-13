@@ -4,13 +4,17 @@
     {
         private TOP _module;
 
+        private bool IsEffectivelyDead(Actor? actor) => actor != null && !actor.IsTargetable && actor.HP.Cur <= 1;
+
         public TOPStates(TOP module) : base(module)
         {
             _module = module;
-            SimplePhase(0, Phase1, "P1")
+            SimplePhase(0, Phase1, "P1: Beetle")
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
-            SimplePhase(1, Phase2, "P2")
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.OpticalUnit()?.IsDestroyed ?? true); // TODO: reconsider condition...
+            SimplePhase(1, Phase2, "P2: M/F")
+                .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || IsEffectivelyDead(_module.BossP2M()) && IsEffectivelyDead(_module.BossP2F());
+            SimplePhase(2, Phase3, "P3")
+                .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true); // TODO: reconsider condition...
         }
 
         private void Phase1(uint id)
@@ -25,6 +29,11 @@
         {
             P2FirewallSolarRay(id, 3.4f);
             P2PartySynergy(id + 0x10000, 13.4f);
+            P2LimitlessSynergy(id + 0x20000, 9.2f);
+        }
+
+        private void Phase3(uint id)
+        {
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -118,6 +127,31 @@
 
             ActorTargetable(id + 0x50, _module.BossP2M, true, 3.0f, "M/F reappear")
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P2LimitlessSynergy(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP2F, AID.SyntheticShield, delay, 1, true);
+            ActorCast(id + 0x10, _module.BossP2F, AID.LimitlessSynergyM, 5.3f, 5, true, "Remove debuffs");
+            ActorCastStart(id + 0x20, _module.BossP2M, AID.LaserShower, 5.0f, false, "F invincible");
+            ComponentCondition<P2OptimizedBladedance>(id + 0x30, 8.5f, comp => comp.NumCasts > 0, "Baited rect + Tankbusters")
+                .ActivateOnEnter<P2OptimizedBladedance>()
+                .ActivateOnEnter<P2OptimizedSagittariusArrow>()
+                .ActivateOnEnter<P2BeyondDefense>()
+                .DeactivateOnExit<P2OptimizedBladedance>()
+                .DeactivateOnExit<P2OptimizedSagittariusArrow>() // resolves right before tethers
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P2BeyondDefense>(id + 0x40, 6.0f, comp => comp.CurMechanic == P2BeyondDefense.Mechanic.Spread);
+            ComponentCondition<P2BeyondDefense>(id + 0x50, 5.1f, comp => comp.CurMechanic == P2BeyondDefense.Mechanic.Stack, "Jump bait");
+            // +2.8s: flares resolve, we typically don't care?..
+            ComponentCondition<P2BeyondDefense>(id + 0x60, 3.2f, comp => comp.CurMechanic == P2BeyondDefense.Mechanic.None, "Flares + Stack")
+                .DeactivateOnExit<P2BeyondDefense>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<P2CosmoMemory>(id + 0x70, 10.2f, comp => comp.NumCasts > 0, "Raidwide")
+                .ActivateOnEnter<P2CosmoMemory>()
+                .DeactivateOnExit<P2CosmoMemory>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ActorCastEnd(id + 0x80, _module.BossP2M, 27, false, "Enrage");
         }
     }
 }
