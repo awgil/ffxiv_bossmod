@@ -76,19 +76,19 @@ class FloodFillTest : TestWindow
         BlockCorners(map, 14, 139, 7, 136, 13, 123, 0, 60, 100);
 
         // aoes
-        BlockRotating(map, 1.2f, 6, 267.5f, [-10, 10]);
+        BlockRotating(map, 1.2f, 6, 267.5f, new float[] {-10, 10});
         BlockDoubleExaflareSequence(map, 9.39f, 251, 11.75f, 243);
-        BlockRotating(map, 1.0f, 14.76f, 225.3f, [-10, 0, 10]);
+        BlockRotating(map, 1.0f, 14.76f, 225.3f, new float[]{-10, 0, 10});
         BlockDoubleExaflareSequence(map, 14.54f, 229.3f, 14.97f, 221.3f);
         BlockRectsSequence(map, -12, -6);
         BlockRectsSequence(map, 12, 6);
         BlockCentralRectsSequence(map);
-        BlockSingleExaflareSequence(map, 22.52f, 198.7f, [-12, -4, 4, 12]);
+        BlockSingleExaflareSequence(map, 22.52f, 198.7f, new float[] {-12, -4, 4, 12});
         BlockPairsSequence(map, 5, new(-10, 29.95f, 170), new(-2, 29.95f, 170));
         BlockPairsSequence(map, 5, new(-10, 31.39f, 156), new(-4.34f, 30.81f, 161.66f));
         BlockPairsSequence(map, 5, new(10, 29.95f, 170), new(4.34f, 29.37f, 175.66f));
         BlockPairsSequence(map, 5, new(10, 31.39f, 156), new(2, 31.39f, 156));
-        BlockSingleExaflareSequence(map, 33.47f, 145.7f, [-4, 4, 12, -12]);
+        BlockSingleExaflareSequence(map, 33.47f, 145.7f,new float[] {-4, 4, 12, -12});
         BlockPairsSequence(map, 3, new(-6.78f, 35.91f, 136.91f), new(-3.22f, 36.30f, 135.09f));
         BlockPairsSequence(map, 3, new(6.78f, 35.91f, 136.91f), new(3.22f, 36.30f, 135.09f));
 
@@ -162,7 +162,7 @@ class FloodFillTest : TestWindow
 
     private void BlockDoubleExaflareSequence(Map m, float y1, float z1, float y2, float z2)
     {
-        float[] x = [-12, -4, 4, 12];
+        float[] x = {-12, -4, 4, 12};
         float t = 0;
         float seqRepeat = 1.4f * 8;
         foreach (var vx in x)
@@ -179,7 +179,7 @@ class FloodFillTest : TestWindow
 
     private void BlockRectsSequence(Map m, float x1, float x2)
     {
-        (float y, float z, float d)[] l = [(25.59f, 190.4f, 0.5f), (23.37f, 196.4f, 0.5f), (21.15f, 202.4f, 0.5f), (18.94f, 208.4f, 0.5f), (16.73f, 214.4f, 1.1f)];
+        (float y, float z, float d)[] l = {(25.59f, 190.4f, 0.5f), (23.37f, 196.4f, 0.5f), (21.15f, 202.4f, 0.5f), (18.94f, 208.4f, 0.5f), (16.73f, 214.4f, 1.1f)};
         float t = 0;
         float seqRepeat = 3.1f * 2;
         foreach (var e in l)
@@ -196,7 +196,7 @@ class FloodFillTest : TestWindow
 
     private void BlockCentralRectsSequence(Map m)
     {
-        (float y, float z, float d)[] l = [(25.59f, 190.4f, 0.5f), (23.37f, 196.4f, 0.5f), (21.15f, 202.4f, 0.5f), (18.94f, 208.4f, 0.5f), (16.73f, 214.4f, 4.2f)];
+        (float y, float z, float d)[] l = {(25.59f, 190.4f, 0.5f), (23.37f, 196.4f, 0.5f), (21.15f, 202.4f, 0.5f), (18.94f, 208.4f, 0.5f), (16.73f, 214.4f, 4.2f)};
         float t = 0;
         float seqRepeat = 3.1f * 2;
         foreach (var e in l)
