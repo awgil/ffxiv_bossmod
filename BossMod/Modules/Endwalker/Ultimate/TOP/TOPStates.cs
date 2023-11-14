@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Ultimate.TOP
+﻿using static BossMod.Shadowbringers.Ultimate.TEA.TEAConfig;
+
+namespace BossMod.Endwalker.Ultimate.TOP
 {
     class TOPStates : StateMachineBuilder
     {
@@ -34,6 +36,7 @@
 
         private void Phase3(uint id)
         {
+            P3Intermission(id, 9.4f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -152,6 +155,34 @@
                 .DeactivateOnExit<P2CosmoMemory>()
                 .SetHint(StateMachine.StateHint.Raidwide);
             ActorCastEnd(id + 0x80, _module.BossP2M, 27, false, "Enrage");
+        }
+
+        private void P3Intermission(uint id, float delay)
+        {
+            ComponentCondition<P3SniperCannon>(id, delay, comp => comp.Active)
+                .ActivateOnEnter<P3SniperCannon>();
+            ComponentCondition<P3WaveRepeater>(id + 1, 0.1f, comp => comp.Sequences.Count > 0)
+                .ActivateOnEnter<P3WaveRepeater>();
+            ComponentCondition<P3ColossalBlow>(id + 0x10, 3.1f, comp => comp.AOEs.Count > 0)
+                .ActivateOnEnter<P3ColossalBlow>();
+            ComponentCondition<P3WaveRepeater>(id + 0x11, 1.9f, comp => comp.NumCasts > 0, "Ring 1");
+            ComponentCondition<P3ColossalBlow>(id + 0x12, 1.1f, comp => comp.AOEs.Count > 3);
+            ComponentCondition<P3WaveRepeater>(id + 0x13, 1.0f, comp => comp.NumCasts > 1, "Ring 2");
+            ComponentCondition<P3WaveRepeater>(id + 0x20, 1.1f, comp => comp.Sequences.Count > 1);
+            ComponentCondition<P3WaveRepeater>(id + 0x21, 1.0f, comp => comp.NumCasts > 2, "Ring 3");
+            ComponentCondition<P3WaveRepeater>(id + 0x22, 2.1f, comp => comp.NumCasts > 3, "Ring 4");
+            ComponentCondition<P3WaveRepeater>(id + 0x30, 1.9f, comp => comp.NumCasts > 4, "Ring 5");
+            ComponentCondition<P3WaveRepeater>(id + 0x31, 2.1f, comp => comp.NumCasts > 5, "Ring 6");
+            ComponentCondition<P3ColossalBlow>(id + 0x40, 1.8f, comp => comp.NumCasts > 0, "Arms 1");
+            ComponentCondition<P3WaveRepeater>(id + 0x41, 0.3f, comp => comp.NumCasts > 6, "Ring 7");
+            ComponentCondition<P3SniperCannon>(id + 0x50, 1.8f, comp => !comp.Active, "Stack/spread")
+                .DeactivateOnExit<P3SniperCannon>();
+            ComponentCondition<P3WaveRepeater>(id + 0x51, 0.3f, comp => comp.NumCasts > 7)
+                .DeactivateOnExit<P3WaveRepeater>();
+            ComponentCondition<P3ColossalBlow>(id + 0x52, 0.2f, comp => comp.NumCasts > 3, "Arms 2")
+                .DeactivateOnExit<P3ColossalBlow>();
+
+            ActorTargetable(id + 0x100, _module.BossP3, true, 3.5f, "Boss reappears");
         }
     }
 }

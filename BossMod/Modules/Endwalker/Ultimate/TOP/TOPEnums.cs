@@ -11,10 +11,9 @@
         OmegaF = 0x3D61, // R3.000-5.010, spawn during fight (starts as F, turns into M)
         OmegaMHelper = 0x3D62, // R5.010, spawn during fight (never targetable)
         OmegaFHelper = 0x3D63, // R5.010, spawn during fight (never targetable)
-
-        //_Gen_RightArmUnit = 0x3D67, // R1.680, spawn during fight
-        //_Gen_LeftArmUnit = 0x3D66, // R1.680, spawn during fight
-        //_Gen_Omega = 0x3D65, // R12.502, spawn during fight
+        BossP3 = 0x3D65, // R12.502, spawn during fight
+        LeftArmUnit = 0x3D66, // R1.680, spawn during fight
+        RightArmUnit = 0x3D67, // R1.680, spawn during fight
         //_Gen_Actor1eb821 = 0x1EB821, // R0.500, EventObj type, spawn during fight
 
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
@@ -94,18 +93,18 @@
         LaserShower = 31557, // OmegaM->self, 60.0s cast, range 100 circle, enrage
         DieM = 31506, // OmegaF->self, no cast, single-target, visual (death)
         DieF = 31507, // OmegaM->self, no cast, single-target, visual (death)
+        IntermissionTeleportM = 31561, // OmegaM->location, no cast, ???, visual
+        IntermissionTeleportF = 31562, // OmegaF->location, no cast, single-target, visual
+        IntermissionMergeStart = 31563, // OmegaM->self, no cast, single-target, visual
+        IntermissionMergeEnd = 31564, // BossP3->self, no cast, single-target
 
-        //_Ability_ = 31561, // OmegaM->location, no cast, ???
-        //_Ability_ = 31562, // OmegaF->location, no cast, single-target
-        //_Ability_ = 31563, // OmegaM->self, no cast, single-target
-        //_Ability_WaveRepeater = 31567, // Helper->location, 5.0s cast, range 6 circle
-        //_Ability_ = 31564, // 3D65->self, no cast, single-target
-        //_Ability_WaveRepeater = 31568, // Helper->self, no cast, range ?-12 donut
-        //_Ability_HighPoweredSniperCannon = 31572, // Helper->players, no cast, range 6 circle
-        //_Ability_SniperCannon = 31571, // Helper->players, no cast, range 6 circle
-        //_Ability_WaveRepeater = 31569, // Helper->self, no cast, range ?-18 donut
-        //_Ability_WaveRepeater = 31570, // Helper->self, no cast, range ?-24 donut
-        //_Ability_ColossalBlow = 31566, // 3D67/3D66->self, 2.0s cast, range 11 circle
+        WaveRepeater1 = 31567, // Helper->location, 5.0s cast, range 6 circle
+        WaveRepeater2 = 31568, // Helper->self, no cast, range 6-12 donut
+        WaveRepeater3 = 31569, // Helper->self, no cast, range 12-18 donut
+        WaveRepeater4 = 31570, // Helper->self, no cast, range 18-24 donut
+        SniperCannon = 31571, // Helper->players, no cast, range 6 circle spread
+        HighPoweredSniperCannon = 31572, // Helper->players, no cast, range 6 circle 2-man stack
+        ColossalBlow = 31566, // LeftArmUnit/RightArmUnit->self, 2.0s cast, range 11 circle
     };
 
     public enum SID : uint
@@ -116,26 +115,8 @@
         InLine4 = 3451, // none->player, extra=0x0
         MidGlitch = 3427, // none->player, extra=0x0
         RemoteGlitch = 3428, // none->player, extra=0x0
-        //_Gen_Looper = 3456, // none->player, extra=0x0
-        //_Gen_TwiceComeRuin = 2534, // Helper->player, extra=0x1
-        //_Gen_HPPenalty = 3401, // Helper->player, extra=0x0
-        //_Gen_Doom = 2519, // Helper->player, extra=0x0
-        //_Gen_MemoryLoss = 1626, // none->player, extra=0x0
-        //_Gen_GuidedMissileKyriosIncoming = 3497, // none->player, extra=0x0
-        //_Gen_CondensedWaveCannonKyrios = 3508, // none->player, extra=0x0
-        //_Gen_GuidedMissileKyriosIncoming = 3495, // none->player, extra=0x0
-        //_Gen_CondensedWaveCannonKyrios = 3510, // none->player, extra=0x0
-        //_Gen_GuidedMissileKyriosIncoming = 3424, // none->player, extra=0x0
-        //_Gen_CondensedWaveCannonKyrios = 3509, // none->player, extra=0x0
-        //_Gen_GuidedMissileKyriosIncoming = 3496, // none->player, extra=0x0
-        //_Gen_CondensedWaveCannonKyrios = 3507, // none->player, extra=0x0
-        //_Gen_OmegaM = 3454, // OmegaF->OmegaM/OmegaF, extra=0x1EA
-        //_Gen_OmegaF = 1675, // OmegaM->OmegaF/OmegaM, extra=0x1EB
-        //_Gen_PacketFilterF = 3500, // none->player, extra=0x0
-        //_Gen_PacketFilterM = 3499, // none->player, extra=0x0
-        //_Gen_VulnerabilityUp = 3366, // none->player, extra=0x0
-        //_Gen_Superfluid = 1676, // OmegaM/OmegaF->OmegaM/OmegaF, extra=0x1ED
-        //_Gen_RadiantAegis = 2702, // none->player, extra=0x0
+        SniperCannonFodder = 3425, // none->player, extra=0x0
+        HighPoweredSniperCannonFodder = 3426, // none->player, extra=0x0
     };
 
     public enum IconID : uint
