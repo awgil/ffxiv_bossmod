@@ -98,6 +98,8 @@
         IntermissionMergeStart = 31563, // OmegaM->self, no cast, single-target, visual
         IntermissionMergeEnd = 31564, // BossP3->self, no cast, single-target
 
+        // p3
+        AutoAttackP3 = 31744, // BossP3->player, no cast, single-target
         WaveRepeater1 = 31567, // Helper->location, 5.0s cast, range 6 circle
         WaveRepeater2 = 31568, // Helper->self, no cast, range 6-12 donut
         WaveRepeater3 = 31569, // Helper->self, no cast, range 12-18 donut
@@ -105,6 +107,19 @@
         SniperCannon = 31571, // Helper->players, no cast, range 6 circle spread
         HighPoweredSniperCannon = 31572, // Helper->players, no cast, range 6 circle 2-man stack
         ColossalBlow = 31566, // LeftArmUnit/RightArmUnit->self, 2.0s cast, range 11 circle
+
+        HelloWorld = 31573, // BossP3->self, 5.0s cast, range 100 circle, raidwide + mechanic start
+        LatentDefect = 31599, // BossP3->self, 9.0s cast, single-target, visual (towers)
+        HWRedTower = 31583, // Helper->self, 10.0s cast, range 6 circle - 'cascading latent defect', red tower
+        HWBlueTower = 31584, // Helper->self, 10.0s cast, range 6 circle - 'latent performance defect', blue tower
+        HWStack = 31574, // Helper->players, no cast, range 5 circle - 'critical synchronization bug', 2-man stack
+        HWDefamation = 31575, // Helper->players, no cast, range 20 circle - 'critical overflow bug', defamation
+        HWDefamationExpireFail = 31577, // Helper->player, no cast, single-target - damage-down if defamation was not soaked in time
+        HWRedRot = 31578, // Helper->players, no cast, range 5 circle - 'critical underflow bug' - aoe on red rot expiration
+        HWBlueRot = 31579, // Helper->player, no cast, range 5 circle - 'critical performance bug' - aoe on blue rot expiration
+        //_Ability_CascadingLatentDefect = 31581, // Helper->self, no cast, range 100 circle, wipe on some fail?
+        HWTetherBreak = 31587, // Helper->self, no cast, range 100 circle - 'patch' - raidwide on tether break (remote or any?)
+        HWTetherFail = 32505, // Helper->self, no cast, range 100 circle - 'patch' - wipe if tether wasn't broken
     };
 
     public enum SID : uint
@@ -117,6 +132,33 @@
         RemoteGlitch = 3428, // none->player, extra=0x0
         SniperCannonFodder = 3425, // none->player, extra=0x0
         HighPoweredSniperCannonFodder = 3426, // none->player, extra=0x0
+
+        // hello world: all 'prep' statuses are replaced with actual statuses on expiration
+        HWPrepStack = 3436, // none->player, extra=0x0 - 'synchronization code smell', stack preparation
+        HWPrepDefamation = 3437, // none->player, extra=0x0 - 'overflow code smell', defamation preparation
+        HWPrepRedRot = 3438, // none->player, extra=0x0 - 'underflow code smell', red rot preparation
+        HWPrepBlueRot = 3439, // none->player, extra=0x0 - 'performance code smell', blue rot preparation
+        HWPrepLocalTether = 3503, // none->player, extra=0x0 - 'local code smell', tether broken by moving close preparation
+        HWPrepRemoteTether = 3441, // none->player, extra=0x0 - 'remote code smell', tether broken by moving away preparation
+        HWStack = 3524, // none->player, extra=0x0 - 'critical synchronization bug', stack
+        HWDefamation = 3525, // none->player, extra=0x0 - 'critical overflow bug', defamation
+        HWRedRot = 3526, // none->player, extra=0x0 - 'critical underflow bug', red rot
+        HWBlueRot = 3429, // none->player, extra=0x0 - 'critical performance bug', blue rot
+        HWLocalTether = 3529, // none->player, extra=0x0 - 'local regression', tether broken by moving close
+        HWRemoteTether = 3530, // none->player, extra=0x0 - 'remote regression', tether broken by moving away
+        HWNeedDefamation = 3527, // none->player, extra=0x0 - 'latent defect', applied to first pair with 'local' tether, kills on expire, cleansed by defamation
+        HWNeedStack = 3434, // none->player, extra=0x0 - 'latent synchronization bug', applied to everyone, cleansed (converted to stack) by sharing a stack, kills on expire
+        HWRedTower = 3528, // Helper->player, extra=0x0 - 'cascading latent defect', applied by soaking red tower, prevents death by red rot expiration
+        HWBlueTower = 3435, // Helper->player, extra=0x0 - 'latent performance defect', applied by soaking blue tower, prevents death by blue rot expiration
+        HWImmuneStack = 3430, // none->player, extra=0x0 - 'synchronization debugger', replaces stack after resolve
+        HWImmuneDefamation = 3431, // none->player, extra=0x0 - 'overflow debugger', replaces defamation after resolve
+        HWImmuneRedRot = 3432, // none->player, extra=0x0 - 'underflow debugger', replaces red rot after resolve
+        HWImmuneBlueRot = 3433, // none->player, extra=0x0 - 'performance debugger', replaces blue rot after resolve
+
+        //_Gen_DamageDown = 2911, // Helper->player, extra=0x0
+        //_Gen_MagicVulnerabilityUp = 3516, // Helper->player, extra=0x2
+        //_Gen_ThriceComeRuin = 2530, // Helper->player, extra=0x2
+        //_Gen_MemoryLoss = 1626, // none->player, extra=0x0
     };
 
     public enum IconID : uint
@@ -136,5 +178,9 @@
         Blaster = 89, // player->Boss
         PartySynergy = 222, // player->player
         OptimizedBladedance = 84, // OmegaFHelper/OmegaMHelper->player
+        HWPrepLocalTether = 200, // player->player - tether broken by moving close (preparation)
+        HWPrepRemoteTether = 201, // player->player - tether broken by moving away (preparation)
+        HWLocalTether = 224, // player->player - tether broken by moving close
+        HWRemoteTether = 225, // player->player - tether broken by moving away
     };
 }

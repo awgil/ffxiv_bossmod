@@ -27,6 +27,15 @@
         [PropertyDisplay("P2 Party Synergy: use global priority instead - consider G1 lower-numbered than G2 (so G1 more likely to flex)")]
         public bool P2PartySynergyGlobalPriority = false;
 
+        [PropertyDisplay("P3 Intermission: spread/stack spot assignments, from West to East")]
+        [GroupDetails(new string[] { "1", "2", "3", "4", "5", "6", "7", "8" })]
+        [GroupPreset("LPDU (RMTH HTMR)", new[] { 2, 5, 3, 4, 1, 6, 0, 7 })]
+        public GroupAssignmentUnique P3IntermissionAssignments = new() { Assignments = new[] { 2, 5, 3, 4, 1, 6, 0, 7 } };
+
+        [PropertyDisplay("P3 Intermission: spread/stack position")]
+        [PropertyCombo("Stacks S, spreads N", "Stacks N, spreads S")]
+        public bool P3IntermissionStacksNorth = true;
+
         public TOPConfig() : base(90) { }
     }
 }

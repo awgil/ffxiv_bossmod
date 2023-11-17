@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System;
+using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Ultimate.TOP
 {
@@ -8,14 +9,66 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public P1BallisticImpact() : base(ActionID.MakeSpell(AID.BallisticImpact), 5) { }
     }
 
-    class P1FlameThrowerFirst : Components.SelfTargetedAOEs
+    class P1FlameThrower : Components.GenericAOEs
     {
-        public P1FlameThrowerFirst() : base(ActionID.MakeSpell(AID.FlameThrowerFirst), new AOEShapeCone(65, 30.Degrees())) { }
-    }
+        public List<Actor> Casters = new();
+        private P1Pantokrator? _pantokrator;
 
-    class P1FlameThrowerRest : Components.SelfTargetedAOEs
-    {
-        public P1FlameThrowerRest() : base(ActionID.MakeSpell(AID.FlameThrowerRest), new AOEShapeCone(65, 30.Degrees())) { }
+        private static AOEShapeCone _shape = new(65, 30.Degrees());
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            foreach (var c in Casters.Skip(2))
+                yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, ArenaColor.AOE, false);
+            foreach (var c in Casters.Take(2))
+                yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, ArenaColor.Danger, true);
+        }
+
+        public override void Init(BossModule module)
+        {
+            _pantokrator = module.FindComponent<P1Pantokrator>();
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            if (Casters.Count == 0 || NumCasts > 0)
+                return;
+
+            var group = _pantokrator != null ? _pantokrator.PlayerStates[pcSlot].Group : 0;
+            if (group > 0)
+            {
+                var dir = (Casters.First().CastInfo!.Rotation - module.PrimaryActor.Rotation).Normalized().Deg switch
+                {
+                    (> 15 and < 45) or (> -165 and < -135) => -60.Degrees(),
+                    (> 45 and < 75) or (> -135 and < -105) => -30.Degrees(),
+                    (> 75 and < 105) or (> -105 and < -75) => 0.Degrees(),
+                    (> 105 and < 135) or (> -75 and < -45) => 30.Degrees(),
+                    (> 135 and < 165) or (> -45 and < -15) => 60.Degrees(),
+                    _ => -90.Degrees(), // assume groups go CW
+                };
+                var offset = 12 * (module.PrimaryActor.Rotation + dir).ToDirection();
+                var pos = group == 1 ? module.Bounds.Center + offset : module.Bounds.Center - offset;
+                arena.AddCircle(pos, 1, ArenaColor.Safe);
+            }
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.FlameThrowerFirst or AID.FlameThrowerRest)
+                Casters.Add(caster);
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.FlameThrowerFirst or AID.FlameThrowerRest)
+                Casters.Remove(caster);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID is AID.FlameThrowerFirst or AID.FlameThrowerRest)
+                ++NumCasts;
+        }
     }
 
     class P1Pantokrator : P1CommonAssignments

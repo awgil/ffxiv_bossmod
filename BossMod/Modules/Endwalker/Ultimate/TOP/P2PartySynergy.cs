@@ -9,6 +9,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public enum Glitch { Unknown, Mid, Remote }
 
         public Glitch ActiveGlitch;
+        public bool EnableDistanceHints;
 
         protected override (GroupAssignmentUnique assignment, bool global) Assignments()
         {
@@ -20,6 +21,31 @@ namespace BossMod.Endwalker.Ultimate.TOP
         {
             if (ActiveGlitch != Glitch.Unknown)
                 hints.Add($"Glitch: {ActiveGlitch}");
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (EnableDistanceHints && FindPartner(module, slot) is var partner && partner != null)
+            {
+                var distSq = (partner.Position - actor.Position).LengthSq();
+                var range = DistanceRange;
+                if (distSq < range.min * range.min)
+                    hints.Add("Move away from partner!");
+                else if (distSq > range.max * range.max)
+                    hints.Add("Move closer to partner!");
+            }
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            var partner = FindPartner(module, pcSlot);
+            if (partner != null)
+            {
+                var distSq = (partner.Position - pc.Position).LengthSq();
+                var range = DistanceRange;
+                arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ArenaColor.Danger : ArenaColor.Safe);
+            }
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -48,6 +74,20 @@ namespace BossMod.Endwalker.Ultimate.TOP
             };
             Assign(module, actor, order);
         }
+
+        private Actor? FindPartner(BossModule module, int slot)
+        {
+            var ps = PlayerStates[slot];
+            var partnerSlot = ps.Order > 0 ? Array.FindIndex(PlayerStates, s => s.Order == ps.Order && s.Group != ps.Group) : -1;
+            return module.Raid[partnerSlot];
+        }
+
+        private (float min, float max) DistanceRange => ActiveGlitch switch
+        {
+            Glitch.Mid => (20, 26),
+            Glitch.Remote => (34, 50),
+            _ => (0, 50)
+        };
     }
 
     class P2PartySynergyDoubleAOEs : Components.GenericAOEs
@@ -155,7 +195,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
             {
                 case P2PartySynergy.Glitch.Mid:
                     var toRelNorth = eyeOffset.Normalized();
-                    return 10 * (2.5f - ps.Order) * toRelNorth + 9 * (ps.Group == 1 ? toRelNorth.OrthoL() : toRelNorth.OrthoR());
+                    return 10 * (2.5f - ps.Order) * toRelNorth + 11 * (ps.Group == 1 ? toRelNorth.OrthoL() : toRelNorth.OrthoR());
                 case P2PartySynergy.Glitch.Remote:
                     return 19 * (Angle.FromDirection(eyeOffset) + ps.Order * 40.Degrees() - 10.Degrees() + (ps.Group == 1 ? 0.Degrees() : 180.Degrees())).ToDirection();
                 default:

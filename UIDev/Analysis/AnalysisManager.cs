@@ -77,6 +77,7 @@ namespace UIDev
             private Lazy<Analysis.TetherInfo> _tetherInfo;
             private Lazy<Analysis.ArenaBounds> _arenaBounds;
             private Lazy<Analysis.TEASpecific>? _teaSpecific;
+            private Lazy<Analysis.TOPSpecific>? _topSpecific;
 
             public PerEncounter(List<Replay> replays, uint oid)
             {
@@ -89,6 +90,8 @@ namespace UIDev
                 _arenaBounds = new(() => new(replays, oid));
                 if (oid == (uint)BossMod.Shadowbringers.Ultimate.TEA.OID.BossP1)
                     _teaSpecific = new(() => new(replays, oid));
+                if (oid == (uint)BossMod.Endwalker.Ultimate.TOP.OID.Boss)
+                    _topSpecific = new(() => new(replays, oid));
             }
 
             public void Draw(UITree tree)
@@ -117,6 +120,10 @@ namespace UIDev
                 if (_teaSpecific != null)
                     foreach (var n in tree.Node("TEA-specific analysis"))
                         _teaSpecific.Get().Draw(tree);
+
+                if (_topSpecific != null)
+                    foreach (var n in tree.Node("TOP-specific analysis"))
+                        _topSpecific.Get().Draw(tree);
             }
         }
 

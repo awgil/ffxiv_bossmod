@@ -1,11 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.TOP
 {
     class P3SniperCannon : Components.UniformStackSpread
     {
-        public P3SniperCannon() : base(6, 6) { }
+        enum PlayerRole { None, Stack, Spread }
+
+        struct PlayerState
+        {
+            public PlayerRole Role;
+            public int Order;
+        }
+
+        private TOPConfig _config = Service.Config.Get<TOPConfig>();
+        private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+        private bool _haveSafeSpots;
+
+        public P3SniperCannon() : base(6, 6, alwaysShowSpreads: true) { }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            foreach (var s in EnumerateSafeSpots(module, pcSlot))
+                arena.AddCircle(s, 1, ArenaColor.Safe);
+        }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -13,22 +33,77 @@ namespace BossMod.Endwalker.Ultimate.TOP
             {
                 case SID.SniperCannonFodder:
                     AddSpread(actor, status.ExpireAt);
-                    InitAssignments(module);
+                    Assign(module, module.Raid.FindSlot(actor.InstanceID), PlayerRole.Spread);
                     break;
                 case SID.HighPoweredSniperCannonFodder:
                     AddStack(actor, status.ExpireAt);
-                    InitAssignments(module);
+                    Assign(module, module.Raid.FindSlot(actor.InstanceID), PlayerRole.Stack);
                     break;
             }
         }
 
-        private void InitAssignments(BossModule module)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.SniperCannon:
+                    Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+                    break;
+                case AID.HighPoweredSniperCannon:
+                    Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+                    break;
+            }
+        }
+
+        private void Assign(BossModule module, int slot, PlayerRole role)
+        {
+            if (slot < 0)
+                return;
+            _playerStates[slot].Role = role;
+
             if (Spreads.Count < 4 || Stacks.Count < 2)
-                return; // too early
+                return; // too early to build assignments
+
+            _haveSafeSpots = true;
 
             // TODO: implement
+            int[] slotsInPriorityOrder = new int[PartyState.MaxPartySize];
+            Array.Fill(slotsInPriorityOrder, -1);
+            foreach (var a in _config.P3IntermissionAssignments.Resolve(module.Raid))
+                slotsInPriorityOrder[a.group] = a.slot;
+
+            int[] assignedRoles = { 0, 0, 0 };
+            foreach (var s in slotsInPriorityOrder.Where(s => s >= 0))
+                _playerStates[s].Order = ++assignedRoles[(int)_playerStates[s].Role];
         }
+
+        private IEnumerable<WPos> EnumerateSafeSpots(BossModule module, int slot)
+        {
+            if (!_haveSafeSpots)
+                yield break;
+
+            var ps = _playerStates[slot];
+            if (ps.Role == PlayerRole.Spread)
+            {
+                if (ps.Order is 0 or 1)
+                    yield return SafeSpotAt(module, -90.Degrees());
+                if (ps.Order is 0 or 2)
+                    yield return SafeSpotAt(module, -45.Degrees());
+                if (ps.Order is 0 or 3)
+                    yield return SafeSpotAt(module, 45.Degrees());
+                if (ps.Order is 0 or 4)
+                    yield return SafeSpotAt(module, 90.Degrees());
+            }
+            else
+            {
+                if (ps.Order is 0 or 1)
+                    yield return SafeSpotAt(module, -135.Degrees());
+                if (ps.Order is 0 or 2)
+                    yield return SafeSpotAt(module, 135.Degrees());
+            }
+        }
+
+        private WPos SafeSpotAt(BossModule module, Angle dirIfStacksNorth) => module.Bounds.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
     }
 
     class P3WaveRepeater : Components.ConcentricAOEs

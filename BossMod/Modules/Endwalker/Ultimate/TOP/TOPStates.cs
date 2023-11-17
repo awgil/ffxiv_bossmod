@@ -1,6 +1,4 @@
-﻿using static BossMod.Shadowbringers.Ultimate.TEA.TEAConfig;
-
-namespace BossMod.Endwalker.Ultimate.TOP
+﻿namespace BossMod.Endwalker.Ultimate.TOP
 {
     class TOPStates : StateMachineBuilder
     {
@@ -37,6 +35,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private void Phase3(uint id)
         {
             P3Intermission(id, 9.4f);
+            P3HelloWorld(id + 0x10000, 4.1f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -59,16 +58,14 @@ namespace BossMod.Endwalker.Ultimate.TOP
             ComponentCondition<P1Pantokrator>(id + 0x10, 12.1f, comp => comp.NumSpreadsDone >= 2, "Spread 1/stack 3")
                 .ActivateOnEnter<P1Pantokrator>()
                 .ActivateOnEnter<P1BallisticImpact>()
-                .ActivateOnEnter<P1FlameThrowerFirst>()
-                .ActivateOnEnter<P1FlameThrowerRest>()
-                .DeactivateOnExit<P1FlameThrowerFirst>();
+                .ActivateOnEnter<P1FlameThrower>();
             ComponentCondition<P1Pantokrator>(id + 0x20, 6.0f, comp => comp.NumSpreadsDone >= 4, "Spread 2/stack 4");
             ComponentCondition<P1Pantokrator>(id + 0x30, 6.0f, comp => comp.NumSpreadsDone >= 6, "Spread 3/stack 1");
             ComponentCondition<P1Pantokrator>(id + 0x40, 6.0f, comp => comp.NumSpreadsDone >= 8, "Spread 4/stack 2")
                 .DeactivateOnExit<P1Pantokrator>();
-            ComponentCondition<P1FlameThrowerRest>(id + 0x50, 2.1f, comp => comp.Casters.Count == 0, "Last flamethrower")
+            ComponentCondition<P1FlameThrower>(id + 0x50, 2.1f, comp => comp.Casters.Count == 0, "Last flamethrower")
                 .DeactivateOnExit<P1BallisticImpact>()
-                .DeactivateOnExit<P1FlameThrowerRest>();
+                .DeactivateOnExit<P1FlameThrower>();
         }
 
         private void P1WaveCannons(uint id, float delay)
@@ -114,16 +111,19 @@ namespace BossMod.Endwalker.Ultimate.TOP
             ComponentCondition<P2PartySynergyOptimizedFire>(id + 0x30, 6.4f, comp => !comp.Active, "Spreads")
                 .ActivateOnEnter<P2PartySynergyOptimizedFire>()
                 .ExecOnEnter<P2PartySynergyOpticalLaser>(comp => comp.Show(_module))
+                .ExecOnEnter<P2PartySynergy>(comp => comp.EnableDistanceHints = true)
                 .ActivateOnEnter<P2PartySynergyEfficientBladework>() // PATEs happen 0.8s after double aoes
                 .DeactivateOnExit<P2PartySynergyOptimizedFire>();
             ComponentCondition<P2PartySynergyOpticalLaser>(id + 0x31, 0.4f, comp => comp.NumCasts > 0)
-                .DeactivateOnExit<P2PartySynergyOpticalLaser>();
+                .DeactivateOnExit<P2PartySynergyOpticalLaser>()
+                .ExecOnExit<P2PartySynergy>(comp => comp.EnableDistanceHints = false);
 
             ComponentCondition<P2PartySynergyDischarger>(id + 0x40, 6.9f, comp => comp.NumCasts > 0, "Knockback")
                 .ActivateOnEnter<P2PartySynergyDischarger>()
                 .ActivateOnEnter<P2PartySynergySpotlight>() // TODO: reconsider (icons appear ~0.6s after laser end, but do we even care about this?)
                 .DeactivateOnExit<P2PartySynergyDischarger>();
             ComponentCondition<P2PartySynergyEfficientBladework>(id + 0x41, 4.4f, comp => comp.NumCasts > 0, "Stacks")
+                .ExecOnEnter<P2PartySynergy>(comp => comp.EnableDistanceHints = true)
                 .DeactivateOnExit<P2PartySynergySpotlight>() // TODO: reconsider (happens right before aoes, but do we even care?)
                 .DeactivateOnExit<P2PartySynergyEfficientBladework>()
                 .DeactivateOnExit<P2PartySynergy>();
@@ -183,6 +183,31 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .DeactivateOnExit<P3ColossalBlow>();
 
             ActorTargetable(id + 0x100, _module.BossP3, true, 3.5f, "Boss reappears");
+        }
+
+        private void P3HelloWorld(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP3, AID.HelloWorld, delay, 5, true, "Hello World start + Raidwide")
+                .ActivateOnEnter<P3HelloWorld>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+            // +3.0s: initial smells -> bugs
+
+            ActorCast(id + 0x10, _module.BossP3, AID.LatentDefect, 14.2f, 9, true); // ~0.1s before this cast ends first tethers are activated
+            ComponentCondition<P3HelloWorld>(id + 0x12, 1, comp => comp.NumCasts > 0, "Towers 1");
+            ComponentCondition<P3HelloWorld>(id + 0x13, 6, comp => comp.NumRotExplodes > 0, "Rots 1");
+            // +3.0s: tether break deadline
+
+            ActorCast(id + 0x20, _module.BossP3, AID.LatentDefect, 5.1f, 9, true);
+            ComponentCondition<P3HelloWorld>(id + 0x22, 1, comp => comp.NumCasts > 4, "Towers 2");
+            ComponentCondition<P3HelloWorld>(id + 0x23, 6, comp => comp.NumRotExplodes > 4, "Rots 2");
+
+            ActorCast(id + 0x30, _module.BossP3, AID.LatentDefect, 5.1f, 9, true);
+            ComponentCondition<P3HelloWorld>(id + 0x32, 1, comp => comp.NumCasts > 8, "Towers 3");
+            ComponentCondition<P3HelloWorld>(id + 0x33, 6, comp => comp.NumRotExplodes > 8, "Rots 3");
+
+            ActorCast(id + 0x40, _module.BossP3, AID.LatentDefect, 5.1f, 9, true);
+            ComponentCondition<P3HelloWorld>(id + 0x42, 1, comp => comp.NumCasts > 12, "Towers 4");
+            ComponentCondition<P3HelloWorld>(id + 0x43, 6, comp => comp.NumRotExplodes > 12, "Rots 4");
         }
     }
 }

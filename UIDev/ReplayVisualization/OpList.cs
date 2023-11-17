@@ -94,9 +94,8 @@ namespace UIDev
             return true;
         }
 
-        private bool FilterInterestingStatus(ulong instanceID, int index, DateTime timestamp, bool gain)
+        private bool FilterInterestingStatus(Replay.Status s)
         {
-            var s = FindStatus(instanceID, index, timestamp, gain)!;
             if (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
                 return false; // don't care about statuses applied by players
             if (s.Target?.Type is ActorType.Pet)
@@ -109,6 +108,7 @@ namespace UIDev
                 return false; // don't care about filtered out statuses
             return true;
         }
+        private bool FilterInterestingStatuses(ulong instanceID, int index, DateTime timestamp) => FindStatuses(instanceID, index, timestamp).Any(FilterInterestingStatus);
 
         private bool FilterOp(WorldState.Operation o)
         {
@@ -129,7 +129,7 @@ namespace UIDev
                 ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)?.ID ?? new()),
                 ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
                 ActorState.OpEffectResult => false,
-                ActorState.OpStatus op => FilterInterestingStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0),
+                ActorState.OpStatus op => FilterInterestingStatuses(op.InstanceID, op.Index, op.Timestamp),
                 ClientState.OpActionRequest => false,
                 //ClientState.OpActionReject => false,
                 _ => true
@@ -166,7 +166,7 @@ namespace UIDev
                 ActorState.OpTether op => $"Tether: {ActorString(op.InstanceID, op.Timestamp)} {op.Value.ID} ({_moduleInfo?.TetherIDType?.GetEnumName(op.Value.ID)}) @ {ActorString(op.Value.Target, op.Timestamp)}",
                 ActorState.OpCastInfo op => $"Cast {(op.Value != null ? "started" : "ended")}: {CastString(op.InstanceID, op.Timestamp, op.Value != null)}",
                 ActorState.OpCastEvent op => $"Cast event: {ActorString(op.InstanceID, op.Timestamp)}: {op.Value.Action} ({_moduleInfo?.ActionIDType?.GetEnumName(op.Value.Action.ID)}) @ {CastEventTargetString(op.Value, op.Timestamp)} ({op.Value.Targets.Count} targets affected) #{op.Value.GlobalSequence}",
-                ActorState.OpStatus op => $"Status {(op.Value.ID != 0 ? "gain" : "lose")}: {StatusString(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)}",
+                ActorState.OpStatus op => $"Status change: {ActorString(op.InstanceID, op.Timestamp)} #{op.Index}: {StatusesString(op.InstanceID, op.Index, op.Timestamp)}",
                 ActorState.OpIcon op => $"Icon: {ActorString(op.InstanceID, op.Timestamp)} -> {op.IconID} ({_moduleInfo?.IconIDType?.GetEnumName(op.IconID)})",
                 ActorState.OpEventObjectStateChange op => $"EObjState: {ActorString(op.InstanceID, op.Timestamp)} = {op.State:X4}",
                 ActorState.OpEventObjectAnimation op => $"EObjAnim: {ActorString(op.InstanceID, op.Timestamp)} = {((uint)op.Param1 << 16) | op.Param2:X8}",
@@ -238,11 +238,13 @@ namespace UIDev
         private void ContextMenuActorStatus(ActorState.OpStatus op)
         {
             ContextMenuActor(op);
-            var s = FindStatus(op.InstanceID, op.Index, op.Timestamp, op.Value.ID != 0)!;
-            if (ImGui.MenuItem($"Filter out {Utils.StatusString(s.ID)}"))
+            foreach (var s in FindStatuses(op.InstanceID, op.Index, op.Timestamp))
             {
-                _filteredStatuses.Add(s.ID);
-                _nodesUpToDate = false;
+                if (ImGui.MenuItem($"Filter out {Utils.StatusString(s.ID)}"))
+                {
+                    _filteredStatuses.Add(s.ID);
+                    _nodesUpToDate = false;
+                }
             }
         }
 
@@ -268,7 +270,7 @@ namespace UIDev
         }
 
         private Replay.Participant? FindParticipant(ulong instanceID, DateTime timestamp) => _replay.Participants.Find(p => p.InstanceID == instanceID && p.Existence.Contains(timestamp));
-        private Replay.Status? FindStatus(ulong instanceID, int index, DateTime timestamp, bool gain) => _replay.Statuses.Find(s => s.Target?.InstanceID == instanceID && s.Index == index && (gain ? s.Time.Start : s.Time.End) == timestamp);
+        private IEnumerable<Replay.Status> FindStatuses(ulong instanceID, int index, DateTime timestamp) => _replay.Statuses.Where(s => s.Target?.InstanceID == instanceID && s.Index == index && (s.Time.Start == timestamp || s.Time.End == timestamp));
         private Replay.Cast? FindCast(Replay.Participant? participant, DateTime timestamp, bool start) => participant?.Casts.Find(c => (start ? c.Time.Start : c.Time.End) == timestamp);
 
         private string ActorString(Replay.Participant? p, DateTime timestamp)
@@ -299,10 +301,16 @@ namespace UIDev
             return $"{ActorString(p, timestamp)}: {c.ID} ({_moduleInfo?.ActionIDType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual){(c.Interruptible ? " (interruptible)" : "")} @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
         }
 
-        private string StatusString(ulong instanceID, int index, DateTime timestamp, bool gain)
+        private string StatusesString(ulong instanceID, int index, DateTime timestamp)
         {
-            var s = FindStatus(instanceID, index, timestamp, gain)!;
-            return $"{ActorString(s.Target, timestamp)}: {Utils.StatusString(s!.ID)} ({_moduleInfo?.StatusIDType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}), {s.InitialDuration:f2}s / {s.Time}, from {ActorString(s.Source, timestamp)}";
+            IEnumerable<string> Classify(Replay.Status s)
+            {
+                if (s.Time.Start == timestamp)
+                    yield return "gain";
+                if (s.Time.End == timestamp)
+                    yield return "lose";
+            }
+            return string.Join("; ", FindStatuses(instanceID, index, timestamp).Select(s => $"{string.Join("/", Classify(s))} {Utils.StatusString(s.ID)} ({_moduleInfo?.StatusIDType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}), {s.InitialDuration:f2}s / {s.Time}, from {ActorString(s.Source, timestamp)}"));
         }
     }
 }
