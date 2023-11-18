@@ -42,15 +42,16 @@ namespace BossMod.Endwalker.Ultimate.TOP
             }
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        // note: if player dies, stack/spread immediately hits random target, so we use status loss to end stack/spread
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
-            switch ((AID)spell.Action.ID)
+            switch ((SID)status.ID)
             {
-                case AID.SniperCannon:
-                    Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+                case SID.SniperCannonFodder:
+                    Spreads.RemoveAll(s => s.Target == actor);
                     break;
-                case AID.HighPoweredSniperCannon:
-                    Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+                case SID.HighPoweredSniperCannonFodder:
+                    Stacks.RemoveAll(s => s.Target == actor);
                     break;
             }
         }

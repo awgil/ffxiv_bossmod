@@ -47,8 +47,17 @@ namespace BossMod.Endwalker.Ultimate.TOP
                             hints.Add("Stay near one tether!");
                         break;
                     case PlayerRole.LocalTether:
-                        if (module.Raid.WithSlot().InRadiusExcluding(actor, 20).WhereSlot(s => RoleForNextTowers(s) == PlayerRole.Defamation).Count() != 1)
-                            hints.Add("Stay inside one defamation!");
+                        if (NumCasts < 12)
+                        {
+                            if (module.Raid.WithSlot().InRadiusExcluding(actor, 20).WhereSlot(s => RoleForNextTowers(s) == PlayerRole.Defamation).Count() != 1)
+                                hints.Add("Stay inside one defamation!");
+                        }
+                        else
+                        {
+                            if (module.Raid.WithSlot().InRadiusExcluding(actor, 20).WhereSlot(s => RoleForNextTowers(s) == PlayerRole.Defamation).Any())
+                                hints.Add("GTFO from defamation!");
+                            // TODO: they don't have to share the stack, right?
+                        }
                         break;
                 }
             }
@@ -94,7 +103,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 {
                     var (radius, share) = RoleForNextTowers(i) switch
                     {
-                        PlayerRole.Defamation => (20, PlayerRole.LocalTether),
+                        PlayerRole.Defamation => (20, NumCasts < 12 ? PlayerRole.LocalTether : PlayerRole.None),
                         PlayerRole.Stack => (5, PlayerRole.RemoteTether),
                         _ => (0, PlayerRole.None)
                     };
@@ -299,9 +308,18 @@ namespace BossMod.Endwalker.Ultimate.TOP
                     yield return module.Bounds.Center - 12.5f * (defamationMidDir + 25.Degrees()).ToDirection();
                     break;
                 case PlayerRole.LocalTether:
-                    // max melee outside defamation towers (assuming 15.5f for both defamation and target and distance 7 between, angle between them is 2*asin(3.5/15.5) = 26 degrees
-                    yield return module.Bounds.Center + 15.5f * (defamationMidDir - 75.Degrees()).ToDirection();
-                    yield return module.Bounds.Center + 15.5f * (defamationMidDir + 75.Degrees()).ToDirection();
+                    if (NumCasts < 12)
+                    {
+                        // max melee outside defamation towers (assuming 15.5f for both defamation and target and distance 7 between, angle between them is 2*asin(3.5/15.5) = 26 degrees
+                        yield return module.Bounds.Center + 15.5f * (defamationMidDir - 75.Degrees()).ToDirection();
+                        yield return module.Bounds.Center + 15.5f * (defamationMidDir + 75.Degrees()).ToDirection();
+                    }
+                    else
+                    {
+                        // same as tethers sharing stack
+                        yield return module.Bounds.Center - 12.5f * (defamationMidDir - 12.Degrees()).ToDirection();
+                        yield return module.Bounds.Center - 12.5f * (defamationMidDir + 12.Degrees()).ToDirection();
+                    }
                     break;
             }
         }

@@ -110,16 +110,20 @@
 
         HelloWorld = 31573, // BossP3->self, 5.0s cast, range 100 circle, raidwide + mechanic start
         LatentDefect = 31599, // BossP3->self, 9.0s cast, single-target, visual (towers)
+        HWRedTowerExpireWipe = 31581, // Helper->self, no cast, range 100 circle - 'cascading latent defect', wipe if HWRedTower debuff expires without being cleansed by rot explosion
+        HWBlueTowerExpireWipe = 31582, // Helper->self, no cast, range 100 circle - 'latent performance defect', wipe if HWBlueTower debuff expires without being cleansed by rot explosion
         HWRedTower = 31583, // Helper->self, 10.0s cast, range 6 circle - 'cascading latent defect', red tower
         HWBlueTower = 31584, // Helper->self, 10.0s cast, range 6 circle - 'latent performance defect', blue tower
+        HWRedTowerUnsoakedWipe = 31585, // Helper->self, no cast, range 100 circle - 'cascading latent defect', wipe if red tower was not soaked
+        HWBlueTowerUnsoakedWipe = 31586, // Helper->self, no cast, range 100 circle - 'latent performance defect', wipe if blue tower was not soaked
         HWStack = 31574, // Helper->players, no cast, range 5 circle - 'critical synchronization bug', 2-man stack
         HWDefamation = 31575, // Helper->players, no cast, range 20 circle - 'critical overflow bug', defamation
         HWDefamationExpireFail = 31577, // Helper->player, no cast, single-target - damage-down if defamation was not soaked in time
         HWRedRot = 31578, // Helper->players, no cast, range 5 circle - 'critical underflow bug' - aoe on red rot expiration
         HWBlueRot = 31579, // Helper->player, no cast, range 5 circle - 'critical performance bug' - aoe on blue rot expiration
-        //_Ability_CascadingLatentDefect = 31581, // Helper->self, no cast, range 100 circle, wipe on some fail?
         HWTetherBreak = 31587, // Helper->self, no cast, range 100 circle - 'patch' - raidwide on tether break (remote or any?)
         HWTetherFail = 32505, // Helper->self, no cast, range 100 circle - 'patch' - wipe if tether wasn't broken
+        CriticalError = 31588, // BossP3->self, 8.0s cast, range 100 circle, raidwide
     };
 
     public enum SID : uint

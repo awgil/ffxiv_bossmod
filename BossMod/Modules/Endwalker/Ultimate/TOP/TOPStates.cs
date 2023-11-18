@@ -175,9 +175,9 @@
             ComponentCondition<P3WaveRepeater>(id + 0x31, 2.1f, comp => comp.NumCasts > 5, "Ring 6");
             ComponentCondition<P3ColossalBlow>(id + 0x40, 1.8f, comp => comp.NumCasts > 0, "Arms 1");
             ComponentCondition<P3WaveRepeater>(id + 0x41, 0.3f, comp => comp.NumCasts > 6, "Ring 7");
-            ComponentCondition<P3SniperCannon>(id + 0x50, 1.8f, comp => !comp.Active, "Stack/spread")
+            ComponentCondition<P3SniperCannon>(id + 0x50, 1.7f, comp => !comp.Active, "Stack/spread")
                 .DeactivateOnExit<P3SniperCannon>();
-            ComponentCondition<P3WaveRepeater>(id + 0x51, 0.3f, comp => comp.NumCasts > 7)
+            ComponentCondition<P3WaveRepeater>(id + 0x51, 0.4f, comp => comp.NumCasts > 7)
                 .DeactivateOnExit<P3WaveRepeater>();
             ComponentCondition<P3ColossalBlow>(id + 0x52, 0.2f, comp => comp.NumCasts > 3, "Arms 2")
                 .DeactivateOnExit<P3ColossalBlow>();
@@ -194,20 +194,24 @@
 
             ActorCast(id + 0x10, _module.BossP3, AID.LatentDefect, 14.2f, 9, true); // ~0.1s before this cast ends first tethers are activated
             ComponentCondition<P3HelloWorld>(id + 0x12, 1, comp => comp.NumCasts > 0, "Towers 1");
-            ComponentCondition<P3HelloWorld>(id + 0x13, 6, comp => comp.NumRotExplodes > 0, "Rots 1");
+            ComponentCondition<P3HelloWorld>(id + 0x13, 6, comp => comp.NumRotExplodes > 0);
             // +3.0s: tether break deadline
 
             ActorCast(id + 0x20, _module.BossP3, AID.LatentDefect, 5.1f, 9, true);
             ComponentCondition<P3HelloWorld>(id + 0x22, 1, comp => comp.NumCasts > 4, "Towers 2");
-            ComponentCondition<P3HelloWorld>(id + 0x23, 6, comp => comp.NumRotExplodes > 4, "Rots 2");
+            //ComponentCondition<P3HelloWorld>(id + 0x23, 6, comp => comp.NumRotExplodes > 4, "Rots 2"); // note: rot 2+ explosion depends on how fast people pick it up
 
-            ActorCast(id + 0x30, _module.BossP3, AID.LatentDefect, 5.1f, 9, true);
+            ActorCast(id + 0x30, _module.BossP3, AID.LatentDefect, 11.1f, 9, true);
             ComponentCondition<P3HelloWorld>(id + 0x32, 1, comp => comp.NumCasts > 8, "Towers 3");
-            ComponentCondition<P3HelloWorld>(id + 0x33, 6, comp => comp.NumRotExplodes > 8, "Rots 3");
+            //ComponentCondition<P3HelloWorld>(id + 0x33, 6, comp => comp.NumRotExplodes > 8, "Rots 3");
 
-            ActorCast(id + 0x40, _module.BossP3, AID.LatentDefect, 5.1f, 9, true);
+            ActorCast(id + 0x40, _module.BossP3, AID.LatentDefect, 11.1f, 9, true);
             ComponentCondition<P3HelloWorld>(id + 0x42, 1, comp => comp.NumCasts > 12, "Towers 4");
-            ComponentCondition<P3HelloWorld>(id + 0x43, 6, comp => comp.NumRotExplodes > 12, "Rots 4");
+            //ComponentCondition<P3HelloWorld>(id + 0x43, 6, comp => comp.NumRotExplodes > 12, "Rots 4");
+
+            ActorCast(id + 0x50, _module.BossP3, AID.CriticalError, 13.1f, 8, true, "Hello World resolve + Raidwide")
+                .DeactivateOnExit<P3HelloWorld>()
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
     }
 }
