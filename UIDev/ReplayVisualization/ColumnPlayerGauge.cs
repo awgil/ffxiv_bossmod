@@ -63,7 +63,7 @@ namespace UIDev
                     _gauge.AddHistoryEntryRange(enc.Time.Start, prevTime, a.Timestamp, $"{prevGauge} gauge", 0x80808080, prevGauge * 0.01f);
 
                 var newGauge = Math.Clamp(prevGauge + delta, 0, 100);
-                var actionName = $"{delta} gauge: {a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}";
+                var actionName = $"{delta} gauge: {a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
                 _gauge.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, delta == 0 ? 0xffc0c0c0 : newGauge == prevGauge + delta ? 0xffffffff : 0xff0000ff).AddActionTooltip(a);
 
                 prevGauge = newGauge;

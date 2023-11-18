@@ -40,7 +40,7 @@ namespace UIDev
             foreach (var a in replay.Actions.SkipWhile(a => a.Timestamp < minTime).TakeWhile(a => a.Timestamp <= enc.Time.End).Where(a => a.Source == player))
             {
                 // note: we assume autoattacks are never casted... in fact, I think only GCDs can be casted
-                var actionName = $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}";
+                var actionName = $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
                 if (a.ID == CommonDefinitions.IDAutoAttack || a.ID == CommonDefinitions.IDAutoShot)
                 {
                     AddAnimationLock(_autoAttacks, a, enc.Time.Start, a.Timestamp, actionName);
@@ -60,7 +60,7 @@ namespace UIDev
                 {
                     // casted action
                     var cast = player.Casts[iCast++];
-                    var castName = $"{cast.ID} -> {ReplayUtils.ParticipantString(cast.Target)}";
+                    var castName = $"{cast.ID} -> {ReplayUtils.ParticipantString(cast.Target, cast.Time.Start)}";
                     _animLocks.AddHistoryEntryRange(enc.Time.Start, cast.Time, castName, 0x80ffffff).AddCastTooltip(cast);
                     if (actionDef != null)
                     {
@@ -178,7 +178,7 @@ namespace UIDev
 
         private void AddUnfinishedCast(Replay.Cast cast, DateTime encStart, PlanDefinitions.ClassData? classDef)
         {
-            var name = $"[unfinished] {cast.ID} -> {ReplayUtils.ParticipantString(cast.Target)}";
+            var name = $"[unfinished] {cast.ID} -> {ReplayUtils.ParticipantString(cast.Target, cast.Time.Start)}";
             _animLocks.AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
 
             var castActionDef = classDef?.Abilities.GetValueOrDefault(cast.ID);

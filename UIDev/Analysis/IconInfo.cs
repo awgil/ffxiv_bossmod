@@ -29,8 +29,7 @@ namespace UIDev.Analysis
                     foreach (var icon in replay.EncounterIcons(enc))
                     {
                         var data = _data.GetOrAdd(icon.ID);
-                        if (icon.Target != null)
-                            data.TargetOIDs.Add(icon.Target.OID);
+                        data.TargetOIDs.Add(icon.Target.OID);
                     }
                 }
             }

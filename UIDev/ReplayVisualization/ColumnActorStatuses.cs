@@ -38,8 +38,8 @@ namespace UIDev
             foreach (var (s, col) in _columns)
             {
                 bool visible = col?.Width > 0;
-                var source = s.source != 0 ? _replay.Participants.Find(p => p.InstanceID == s.source) : null; // TODO: what if there are multiple?..
-                if (ImGui.Checkbox($"{Utils.StatusString(s.sid)} from {ReplayUtils.ParticipantString(source)}", ref visible))
+                var source = s.source != 0 ? _replay.Participants.GetValueOrDefault(s.source) : null; // TODO: what if there are multiple?..
+                if (ImGui.Checkbox($"{Utils.StatusString(s.sid)} from {ReplayUtils.ParticipantString(source, source?.Existence.FirstOrDefault().Start ?? default)}", ref visible))
                 {
                     var actualCol = col ?? BuildColumn(s.sid, s.source);
                     actualCol.Width = visible ? ColumnGenericHistory.DefaultWidth : 0;
@@ -56,7 +56,7 @@ namespace UIDev
             DateTime prevEnd = default;
             foreach (var s in _replay.EncounterStatuses(_enc).Where(s => s.ID == statusID && (s.Source?.InstanceID ?? 0) == sourceID && s.Target == _target))
             {
-                var e = res.AddHistoryEntryRange(_enc.Time.Start, s.Time, $"{Utils.StatusString(statusID)} ({s.StartingExtra:X}) on {ReplayUtils.ParticipantString(_target)} from {ReplayUtils.ParticipantString(s.Source)}", 0x80808080);
+                var e = res.AddHistoryEntryRange(_enc.Time.Start, s.Time, $"{Utils.StatusString(statusID)} ({s.StartingExtra:X}) on {ReplayUtils.ParticipantString(_target, s.Time.Start)} from {ReplayUtils.ParticipantString(s.Source, s.Time.Start)}", 0x80808080);
                 e.TooltipExtra.Add($"- initial duration: {s.InitialDuration:f3}");
                 e.TooltipExtra.Add($"- final duration: {s.InitialDuration - s.Time.Duration:f3}");
                 if (s.Time.Start == prevEnd)
@@ -73,9 +73,9 @@ namespace UIDev
                         {
                             var src = e.FromTarget ? t.Target : a.Source;
                             var tgt = e.AtSource ? a.Source : t.Target;
-                            if ((src?.InstanceID ?? 0) == sourceID && tgt == _target)
+                            if (src.InstanceID == sourceID && tgt == _target)
                             {
-                                var actionName = $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}";
+                                var actionName = $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
                                 res.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a);
                             }
                         }

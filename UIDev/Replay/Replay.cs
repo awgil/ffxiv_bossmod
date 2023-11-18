@@ -8,71 +8,56 @@ namespace UIDev
 {
     public class Replay
     {
-        public class TimeRange
+        public record struct TimeRange(DateTime Start = default, DateTime End = default)
         {
-            public DateTime Start;
-            public DateTime End;
-
             public float Duration => (float)(End - Start).TotalSeconds;
 
-            public TimeRange(DateTime start = new(), DateTime end = new()) { Start = start; End = end; }
             public override string ToString() => $"{Duration:f2}";
             public bool Contains(DateTime t) => t >= Start && t <= End;
         }
 
-        public class Cast
+        // note: if target is non-null, Location corresponds to target's position at cast start
+        public record class Cast(ActionID ID, float ExpectedCastTime, Participant? Target, Vector3 Location, Angle Rotation, bool Interruptible)
         {
-            public ActionID ID;
-            public float ExpectedCastTime;
-            public TimeRange Time = new();
-            public Participant? Target;
-            public Vector3 Location; // if target is non-null, corresponds to target's position at cast start
-            public Angle Rotation;
-            public bool Interruptible;
+            public TimeRange Time;
             public ClientAction? ClientAction;
         }
 
-        public class ActionTarget
+        public record class ActionTarget(Participant Target, ActionEffects Effects)
         {
-            public Participant? Target;
-            public ulong TargetID; // TODO: this is a hack for the fact that sometimes we get action events before target is spawned on client...
-            public ActionEffects Effects;
             public DateTime ConfirmationSource;
             public DateTime ConfirmationTarget;
         }
 
-        public class Action
+        // note: if main target is non-null, TargetPos corresponds to main target's position at cast event
+        public record class Action(ActionID ID, DateTime Timestamp, Participant Source, Participant? MainTarget, Vector3 TargetPos, float AnimationLock, uint GlobalSequence)
         {
-            public ActionID ID;
-            public DateTime Timestamp;
-            public Participant? Source;
-            public Participant? MainTarget;
-            public Vector3 TargetPos;
-            public float AnimationLock;
-            public uint GlobalSequence;
             public List<ActionTarget> Targets = new();
             public ClientAction? ClientAction;
         }
 
-        public class Participant
+        // note: actors are sometimes destroyed and recreated (e.g. due to object size limits); we combine them into single participant structure with multiple 'instances'
+        // sometimes we could even have participants that never exist as actors (but are referenced by other actions/events/etc.)
+        public record class Participant(ulong InstanceID)
         {
-            public ulong InstanceID;
             public uint OID;
             public ActorType Type;
             public ulong OwnerID;
-            public string Name = "";
-            public TimeRange Existence = new();
+            public List<TimeRange> Existence = new(); // sorted by time, non-overlapping ranges
+            public SortedList<DateTime, string> NameHistory = new();
             public SortedList<DateTime, bool> TargetableHistory = new();
             public SortedList<DateTime, bool> DeadHistory = new();
             public SortedList<DateTime, Vector4> PosRotHistory = new();
             public SortedList<DateTime, (ActorHP hp, uint curMP)> HPMPHistory = new();
             public List<Cast> Casts = new();
-            public float MinRadius;
-            public float MaxRadius;
+            public float MinRadius = float.MaxValue;
+            public float MaxRadius = float.MinValue;
             public bool HasAnyActions;
             public bool HasAnyStatuses;
             public bool IsTargetOfAnyActions;
 
+            public bool ExistsAt(DateTime t) => Existence.Any(r => r.Contains(t));
+            public string NameAt(DateTime t) => HistoryEntryAt(NameHistory, t) ?? "";
             public bool TargetableAt(DateTime t) => HistoryEntryAt(TargetableHistory, t);
             public bool DeadAt(DateTime t) => HistoryEntryAt(DeadHistory, t);
             public Vector4 PosRotAt(DateTime t) => HistoryEntryAt(PosRotHistory, t);
@@ -87,99 +72,46 @@ namespace UIDev
             }
         }
 
-        public class Status
+        public record class Status(uint ID, int Index, Participant Target, Participant? Source, float InitialDuration, ushort StartingExtra)
         {
-            public uint ID;
-            public int Index;
-            public Participant? Target;
-            public Participant? Source;
-            public float InitialDuration;
-            public TimeRange Time = new();
-            public ushort StartingExtra;
+            public TimeRange Time;
         }
 
-        public class Tether
+        public record class Tether(uint ID, Participant Source, Participant Target)
         {
-            public uint ID;
-            public Participant? Source;
-            public Participant? Target;
-            public TimeRange Time = new();
+            public TimeRange Time;
         }
 
-        public class Icon
-        {
-            public uint ID;
-            public Participant? Target;
-            public DateTime Timestamp;
-        }
+        public record class Icon(uint ID, Participant Target, DateTime Timestamp);
 
-        public class DirectorUpdate
-        {
-            public uint DirectorID;
-            public uint UpdateID;
-            public uint Param1;
-            public uint Param2;
-            public uint Param3;
-            public uint Param4;
-            public DateTime Timestamp;
-        }
+        public record class DirectorUpdate(uint DirectorID, uint UpdateID, uint Param1, uint Param2, uint Param3, uint Param4, DateTime Timestamp);
 
-        public class EnvControl
-        {
-            public uint DirectorID;
-            public byte Index;
-            public uint State;
-            public DateTime Timestamp;
-        }
+        public record class EnvControl(uint DirectorID, byte Index, uint State, DateTime Timestamp);
 
-        public class ClientAction
+        public record class ClientAction(ActionID ID, uint SourceSequence, Participant? Target, Vector3 TargetPos, DateTime Requested)
         {
-            public ActionID ID;
-            public uint SourceSequence;
-            public Participant? Target;
-            public Vector3 TargetPos;
-            public DateTime Requested;
             public DateTime Rejected;
             public Cast? Cast;
             public Action? Action;
         }
 
-        public class EncounterPhase
-        {
-            public int ID;
-            public uint LastStateID;
-            public DateTime Exit;
-        }
+        public record class EncounterPhase(int ID, uint LastStateID, DateTime Exit);
 
-        public class EncounterState
+        public record class EncounterState(uint ID, string Name, string Comment, float ExpectedDuration, DateTime Exit)
         {
-            public uint ID;
-            public string Name = "";
-            public string Comment = "";
-            public float ExpectedDuration;
-            public DateTime Exit;
-
             public string FullName => $"{ID:X} '{Name}' ({Comment})";
         }
 
-        public class EncounterError
-        {
-            public DateTime Timestamp;
-            public Type? CompType;
-            public string Message = "";
-        }
+        public record class EncounterError(DateTime Timestamp, Type? CompType, string Message);
 
-        public class Encounter
+        public record class Encounter(ulong InstanceID, uint OID, ushort Zone)
         {
-            public ulong InstanceID;
-            public uint OID;
-            public ushort Zone;
             public float CountdownOnPull = 10000;
             public TimeRange Time = new(); // pull to deactivation
             public List<EncounterPhase> Phases = new();
             public List<EncounterState> States = new();
             public List<EncounterError> Errors = new();
-            public Dictionary<uint, List<Participant>> Participants = new(); // key = oid
+            public Dictionary<uint, List<Participant>> ParticipantsByOID = new(); // key = oid
             public List<(Participant, Class)> PartyMembers = new();
             public int FirstAction;
             public int FirstStatus;
@@ -192,7 +124,7 @@ namespace UIDev
         public string Path = "";
         public ulong QPF = TimeSpan.TicksPerSecond;
         public List<WorldState.Operation> Ops = new();
-        public List<Participant> Participants = new();
+        public Dictionary<ulong, Participant> Participants = new(); // key = instance id
         public List<Action> Actions = new();
         public List<Status> Statuses = new();
         public List<Tether> Tethers = new();

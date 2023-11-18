@@ -1,6 +1,7 @@
 ﻿using BossMod;
 using ImGuiNET;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UIDev
 {
@@ -28,7 +29,7 @@ namespace UIDev
 
         public void DrawConfig(UITree tree)
         {
-            foreach (var n in tree.Node(ReplayUtils.ParticipantString(_enemy)))
+            foreach (var n in tree.Node(ReplayUtils.ParticipantString(_enemy, _enemy.Existence.FirstOrDefault().Start)))
             {
                 DrawColumnToggle(_casts, "Casts");
                 DrawColumnToggle(_hp, "HP");

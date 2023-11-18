@@ -26,9 +26,9 @@ namespace UIDev
             _replay = replay;
             _encounter = enc;
             _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
-            _actions = replay.EncounterActions(enc).Where(a => !(a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
+            _actions = replay.EncounterActions(enc).Where(a => !(a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
             foreach (var a in _actions)
-                _filters.GetOrAdd(a.ID)[a.Source?.InstanceID ?? 0] = new(1);
+                _filters.GetOrAdd(a.ID)[a.Source.InstanceID] = new(1);
             AddColumn();
             RebuildEvents();
         }
@@ -44,8 +44,8 @@ namespace UIDev
                 foreach (var src in na.Value)
                 {
                     var mask = src.Value;
-                    var p = src.Key != 0 ? _replay.Participants.Find(p => p.InstanceID == src.Key) : null; // TODO: what if there are multiple?..
-                    if (DrawConfigColumns(ref mask, $"{ReplayUtils.ParticipantString(p)} ({_moduleInfo?.ObjectIDType?.GetEnumName(p?.OID ?? 0)})"))
+                    var p = src.Key != 0 ? _replay.Participants.GetValueOrDefault(src.Key) : null; // TODO: what if there are multiple?..
+                    if (DrawConfigColumns(ref mask, $"{ReplayUtils.ParticipantString(p, p?.Existence.FirstOrDefault().Start ?? default)} ({_moduleInfo?.ObjectIDType?.GetEnumName(p?.OID ?? 0)})"))
                     {
                         _filters[na.Key][src.Key] = mask;
                         needRebuild = true;
@@ -86,11 +86,11 @@ namespace UIDev
 
             foreach (var a in _actions)
             {
-                var cols = _filters[a.ID][a.Source?.InstanceID ?? 0];
+                var cols = _filters[a.ID][a.Source.InstanceID];
                 if (cols.None())
                     continue;
 
-                var name = $"{a.ID} ({_moduleInfo?.ActionIDType?.GetEnumName(a.ID.ID)}) {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}";
+                var name = $"{a.ID} ({_moduleInfo?.ActionIDType?.GetEnumName(a.ID.ID)}) {ReplayUtils.ParticipantString(a.Source, a.Timestamp)} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
                 var color = EventColor(a);
                 foreach (var c in cols.SetBits())
                 {
@@ -104,7 +104,7 @@ namespace UIDev
         {
             bool phys = false;
             bool magic = false;
-            foreach (var t in action.Targets.Where(t => t.Target?.Type == ActorType.Player))
+            foreach (var t in action.Targets.Where(t => t.Target.Type == ActorType.Player))
             {
                 foreach (var e in t.Effects.Where(e => e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage))
                 {

@@ -30,10 +30,8 @@ namespace UIDev.Analysis
                     foreach (var tether in replay.EncounterTethers(enc))
                     {
                         var data = _data.GetOrAdd(tether.ID);
-                        if (tether.Source != null)
-                            data.SourceOIDs.Add(tether.Source.OID);
-                        if (tether.Target != null)
-                            data.TargetOIDs.Add(tether.Target.OID);
+                        data.SourceOIDs.Add(tether.Source.OID);
+                        data.TargetOIDs.Add(tether.Target.OID);
                     }
                 }
             }

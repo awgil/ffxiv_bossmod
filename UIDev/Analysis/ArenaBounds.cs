@@ -22,7 +22,7 @@ namespace UIDev.Analysis
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 {
-                    foreach (var ps in enc.Participants.Values)
+                    foreach (var ps in enc.ParticipantsByOID.Values)
                     {
                         foreach (var p in ps)
                         {
@@ -55,7 +55,7 @@ namespace UIDev.Analysis
         {
             _plot.Begin();
             foreach (var (replay, participant, time, pos, color) in _points)
-                _plot.Point(new(pos.X, pos.Z), color, () => $"{ReplayUtils.ParticipantString(participant)} {replay.Path} @ {time:O}");
+                _plot.Point(new(pos.X, pos.Z), color, () => $"{ReplayUtils.ParticipantString(participant, time)} {replay.Path} @ {time:O}");
             _plot.End();
         }
     }

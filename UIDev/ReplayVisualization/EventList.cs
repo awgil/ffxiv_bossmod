@@ -69,18 +69,18 @@ namespace UIDev
             {
                 if (filter == null)
                 {
-                    DrawParticipants(_replay.Participants, actions, statuses, tp, reference, filter, aidType, sidType);
+                    DrawParticipants(_replay.Participants.Values, actions, statuses, tp, reference, filter, aidType, sidType);
                 }
                 else
                 {
-                    foreach (var (oid, list) in _tree.Nodes(filter.Participants, kv => new($"{kv.Key:X} '{oidType?.GetEnumName(kv.Key)}' ({kv.Value.Count} objects)")))
+                    foreach (var (oid, list) in _tree.Nodes(filter.ParticipantsByOID, kv => new($"{kv.Key:X} '{oidType?.GetEnumName(kv.Key)}' ({kv.Value.Count} objects)")))
                     {
                         DrawParticipants(list, actions, statuses, tp, reference, filter, aidType, sidType);
                     }
                 }
             }
 
-            var boss = filter?.Participants[filter.OID].Find(p => p.InstanceID == filter.InstanceID);
+            var boss = filter?.ParticipantsByOID[filter.OID].Find(p => p.InstanceID == filter.InstanceID);
             if (boss != null)
             {
                 foreach (var n in _tree.Node("Boss casts", boss.Casts.Count == 0))
@@ -90,7 +90,7 @@ namespace UIDev
             }
 
             bool haveActions = actions.Any();
-            Func<Replay.Action, bool> actionIsCrap = a => a.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
+            Func<Replay.Action, bool> actionIsCrap = a => a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
             foreach (var n in _tree.Node("Interesting actions", !haveActions))
             {
                 DrawActions(actions.Where(a => !actionIsCrap(a)), tp, aidType);
@@ -101,7 +101,7 @@ namespace UIDev
             }
 
             bool haveStatuses = statuses.Any();
-            Func<Replay.Status, bool> statusIsCrap = s => (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) || (s.Target?.Type is ActorType.Pet or ActorType.Chocobo);
+            Func<Replay.Status, bool> statusIsCrap = s => (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) || (s.Target.Type is ActorType.Pet or ActorType.Chocobo);
             foreach (var n in _tree.Node("Interesting statuses", !haveStatuses))
             {
                 DrawStatuses(statuses.Where(s => !statusIsCrap(s)), tp, sidType);
@@ -113,12 +113,12 @@ namespace UIDev
 
             foreach (var n in _tree.Node("Tethers", !tethers.Any()))
             {
-                _tree.LeafNodes(tethers, t => $"{tp(t.Time.Start)} + {t.Time}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ReplayUtils.ParticipantString(t.Source)} -> {ReplayUtils.ParticipantString(t.Target)}");
+                _tree.LeafNodes(tethers, t => $"{tp(t.Time.Start)} + {t.Time}: {t.ID} ({tidType?.GetEnumName(t.ID)}) @ {ReplayUtils.ParticipantString(t.Source, t.Time.Start)} -> {ReplayUtils.ParticipantString(t.Target, t.Time.Start)}");
             }
 
             foreach (var n in _tree.Node("Icons", !icons.Any()))
             {
-                _tree.LeafNodes(icons, i => $"{tp(i.Timestamp)}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Target)}");
+                _tree.LeafNodes(icons, i => $"{tp(i.Timestamp)}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Target, i.Timestamp)}");
             }
 
             foreach (var n in _tree.Node("EnvControls", !envControls.Any()))
@@ -129,8 +129,12 @@ namespace UIDev
 
         private void DrawParticipants(IEnumerable<Replay.Participant> list, IEnumerable<Replay.Action> actions, IEnumerable<Replay.Status> statuses, Func<DateTime, string> tp, DateTime reference, Replay.Encounter? filter, Type? aidType, Type? sidType)
         {
-            foreach (var p in _tree.Nodes(list, p => new($"{ReplayUtils.ParticipantString(p)}: spawn at {tp(p.Existence.Start)}, despawn at {tp(p.Existence.End)}", p.Casts.Count == 0 && !p.HasAnyActions && !p.HasAnyStatuses && !p.IsTargetOfAnyActions && p.TargetableHistory.Count == 0)))
+            foreach (var p in _tree.Nodes(list, p => new($"{ReplayUtils.ParticipantString(p, p.Existence.FirstOrDefault().Start)}: spawn at {tp(p.Existence.FirstOrDefault().Start)}, despawn at {tp(p.Existence.LastOrDefault().End)}", p.Casts.Count == 0 && !p.HasAnyActions && !p.HasAnyStatuses && !p.IsTargetOfAnyActions && p.TargetableHistory.Count == 0)))
             {
+                foreach (var n in _tree.Node("Existence", p.Existence.Count == 0))
+                {
+                    _tree.LeafNodes(p.Existence, r => r.ToString());
+                }
                 if (p.Casts.Count > 0)
                 {
                     foreach (var n in _tree.Node("Casts"))
@@ -171,7 +175,7 @@ namespace UIDev
 
         private string CastString(Replay.Cast c, DateTime reference, DateTime prev, Type? aidType)
         {
-            return $"{new Replay.TimeRange(reference, c.Time.Start)} ({new Replay.TimeRange(prev, c.Time.Start)}) + {c.ExpectedCastTime + 0.3f:f2} ({c.Time}): {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
+            return $"{new Replay.TimeRange(reference, c.Time.Start)} ({new Replay.TimeRange(prev, c.Time.Start)}) + {c.ExpectedCastTime + 0.3f:f2} ({c.Time}): {c.ID} ({aidType?.GetEnumName(c.ID.ID)}) @ {ReplayUtils.ParticipantString(c.Target, c.Time.Start)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
         }
 
         private void DrawCasts(IEnumerable<Replay.Cast> list, DateTime reference, Type? aidType)
@@ -185,7 +189,7 @@ namespace UIDev
 
         private string ActionString(Replay.Action a, Func<DateTime, string> tp, Type? aidType)
         {
-            return $"{tp(a.Timestamp)}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ReplayUtils.ParticipantPosRotString(a.Source, a.Timestamp)} -> {ReplayUtils.ParticipantString(a.MainTarget)} {Utils.Vec3String(a.TargetPos)} ({a.Targets.Count} affected) #{a.GlobalSequence}";
+            return $"{tp(a.Timestamp)}: {a.ID} ({aidType?.GetEnumName(a.ID.ID)}): {ReplayUtils.ParticipantPosRotString(a.Source, a.Timestamp)} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} {Utils.Vec3String(a.TargetPos)} ({a.Targets.Count} affected) #{a.GlobalSequence}";
         }
 
         private void DrawActions(IEnumerable<Replay.Action> list, Func<DateTime, string> tp, Type? aidType)
@@ -201,7 +205,7 @@ namespace UIDev
 
         private string StatusString(Replay.Status s, Func<DateTime, string> tp, Type? sidType)
         {
-            return $"{tp(s.Time.Start)} + {s.InitialDuration:f2} / {s.Time}: {Utils.StatusString(s.ID)} ({sidType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}) @ {ReplayUtils.ParticipantString(s.Target)} from {ReplayUtils.ParticipantString(s.Source)}";
+            return $"{tp(s.Time.Start)} + {s.InitialDuration:f2} / {s.Time}: {Utils.StatusString(s.ID)} ({sidType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}) @ {ReplayUtils.ParticipantString(s.Target, s.Time.Start)} from {ReplayUtils.ParticipantString(s.Source, s.Time.Start)}";
         }
 
         private void DrawStatuses(IEnumerable<Replay.Status> statuses, Func<DateTime, string> tp, Type? sidType)
@@ -250,7 +254,7 @@ namespace UIDev
             for (int i = 0; i < enc.PartyMembers.Count; i++)
             {
                 var (p, c) = enc.PartyMembers[i];
-                if (ImGui.Button($"{c} {p.Name}"))
+                if (ImGui.Button($"{c} {p.NameHistory.FirstOrDefault().Value}"))
                     OpenTimeline(enc, new(1u << i));
                 ImGui.SameLine();
             }

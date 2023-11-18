@@ -57,7 +57,7 @@ namespace UIDev
 
                 if (damage != 0 || heal != 0)
                 {
-                    var name = $"-{damage} +{heal}: {a.ID} {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}";
+                    var name = $"-{damage} +{heal}: {a.ID} {ReplayUtils.ParticipantString(a.Source, a.Timestamp)} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
                     var color = damage == 0 ? 0xff00ff00 : heal == 0 ? 0xff00ffff : 0xffff00ff;
                     _hpBase.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, name, color).AddActionTooltip(a);
                 }

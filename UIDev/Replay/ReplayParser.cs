@@ -29,12 +29,7 @@ namespace UIDev
 
             protected override void OnModuleLoaded(BossModule module)
             {
-                var enc = new Replay.Encounter()
-                {
-                    InstanceID = module.PrimaryActor.InstanceID,
-                    OID = module.PrimaryActor.OID,
-                    Zone = _self._ws.CurrentZone
-                };
+                var enc = new Replay.Encounter(module.PrimaryActor.InstanceID, module.PrimaryActor.OID, _self._ws.CurrentZone);
                 _self._modules[module.PrimaryActor.InstanceID] = new(module, enc);
                 module.Error += OnError;
             }
@@ -44,8 +39,8 @@ namespace UIDev
                 var data = _self._modules[module.PrimaryActor.InstanceID];
                 if (data.ActiveState != null)
                 {
-                    data.Encounter.Phases.Add(new() { ID = data.ActivePhaseIndex, LastStateID = data.ActiveState.ID, Exit = _self._ws.CurrentTime });
-                    data.Encounter.States.Add(new() { ID = data.ActiveState.ID, Name = data.ActiveState.Name, Comment = data.ActiveState.Comment, ExpectedDuration = data.ActiveState.Duration, Exit = _self._ws.CurrentTime });
+                    data.Encounter.Phases.Add(new(data.ActivePhaseIndex, data.ActiveState.ID, _self._ws.CurrentTime));
+                    data.Encounter.States.Add(new(data.ActiveState.ID, data.ActiveState.Name, data.ActiveState.Comment, data.ActiveState.Duration, _self._ws.CurrentTime));
                 }
                 data.Encounter.Time.End = _self._ws.CurrentTime;
                 _self._modules.Remove(module.PrimaryActor.InstanceID);
@@ -55,7 +50,7 @@ namespace UIDev
             private void OnError(object? sender, (BossComponent? comp, string message) args)
             {
                 var module = (BossModule)sender!;
-                _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new() { Timestamp = _self._ws.CurrentTime, CompType = args.comp?.GetType(), Message = args.message });
+                _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new(_self._ws.CurrentTime, args.comp?.GetType(), args.message));
             }
         }
 
@@ -65,7 +60,6 @@ namespace UIDev
         private ReplayRecorder? _relogger;
         private BossModuleManagerWrapper _mgr;
         private Dictionary<ulong, LoadedModuleData> _modules = new();
-        private Dictionary<ulong, Replay.Participant> _participants = new();
         private Dictionary<(ulong, int), Replay.Status> _statuses = new();
         private Dictionary<ulong, Replay.Tether> _tethers = new();
         private List<Replay.ClientAction> _pendingClientActions = new();
@@ -76,6 +70,7 @@ namespace UIDev
             _mgr = new(this);
             _ws.Actors.Added += ActorAdded;
             _ws.Actors.Removed += ActorRemoved;
+            _ws.Actors.Renamed += ActorRenamed;
             _ws.Actors.IsTargetableChanged += ActorTargetable;
             _ws.Actors.IsDeadChanged += ActorDead;
             _ws.Actors.Moved += ActorMoved;
@@ -117,31 +112,18 @@ namespace UIDev
 
         protected Replay Finish(string path = "")
         {
-            //foreach (var a in _res.Actions)
-            //{
-            //    Service.Log($"{a.ID} {ReplayUtils.ParticipantString(a.Source)} -> {ReplayUtils.ParticipantString(a.MainTarget)}");
-            //    foreach (var t in a.Targets)
-            //    {
-            //        Service.Log($"- {ReplayUtils.ParticipantString(t.Target)}");
-            //        foreach (var e in t.Effects)
-            //        {
-            //            Service.Log($"-- {ReplayUtils.ActionEffectString(e)} ({ActionEffectParser.DescribeUnknown(e)})");
-            //        }
-            //    }
-            //}
-
             FinishFrame();
             _res.Path = path;
             foreach (var enc in _modules.Values)
             {
                 if (enc.ActiveState != null)
                 {
-                    enc.Encounter.Phases.Add(new() { ID = enc.ActivePhaseIndex, LastStateID = enc.ActiveState.ID, Exit = _ws.CurrentTime });
-                    enc.Encounter.States.Add(new() { ID = enc.ActiveState.ID, Name = enc.ActiveState.Name, Comment = enc.ActiveState.Comment, ExpectedDuration = enc.ActiveState.Duration, Exit = _ws.CurrentTime });
+                    enc.Encounter.Phases.Add(new(enc.ActivePhaseIndex, enc.ActiveState.ID, _ws.CurrentTime));
+                    enc.Encounter.States.Add(new(enc.ActiveState.ID, enc.ActiveState.Name, enc.ActiveState.Comment, enc.ActiveState.Duration, _ws.CurrentTime));
                 }
                 enc.Encounter.Time.End = _ws.CurrentTime;
             }
-            foreach (var p in _participants.Values)
+            foreach (var p in _res.Participants.Values)
             {
                 FinalizeParticipant(p);
             }
@@ -175,19 +157,19 @@ namespace UIDev
                         m.Encounter.FirstIcon = _res.Icons.Count;
                         m.Encounter.FirstDirectorUpdate = _res.DirectorUpdates.Count;
                         m.Encounter.FirstEnvControl = _res.EnvControls.Count;
-                        foreach (var p in _participants.Values)
-                            m.Encounter.Participants.GetOrAdd(p.OID).Add(p);
+                        foreach (var p in _res.Participants.Values.Where(p => p.Existence.Count > 0 && p.Existence.Last().End == default))
+                            m.Encounter.ParticipantsByOID.GetOrAdd(p.OID).Add(p);
                         foreach (var p in _ws.Party.WithoutSlot(true))
-                            m.Encounter.PartyMembers.Add((_participants[p.InstanceID], p.Class));
+                            m.Encounter.PartyMembers.Add((_res.Participants[p.InstanceID], p.Class));
                         _res.Encounters.Add(m.Encounter);
                     }
                     else
                     {
                         if (m.Module.StateMachine?.ActivePhaseIndex != m.ActivePhaseIndex)
                         {
-                            m.Encounter.Phases.Add(new() { ID = m.ActivePhaseIndex, LastStateID = m.ActiveState.ID, Exit = _ws.CurrentTime });
+                            m.Encounter.Phases.Add(new(m.ActivePhaseIndex, m.ActiveState.ID, _ws.CurrentTime));
                         }
-                        m.Encounter.States.Add(new() { ID = m.ActiveState.ID, Name = m.ActiveState.Name, Comment = m.ActiveState.Comment, ExpectedDuration = m.ActiveState.Duration, Exit = _ws.CurrentTime });
+                        m.Encounter.States.Add(new(m.ActiveState.ID, m.ActiveState.Name, m.ActiveState.Comment, m.ActiveState.Duration, _ws.CurrentTime));
                     }
                     m.ActivePhaseIndex = m.Module.StateMachine?.ActivePhaseIndex ?? -1;
                     m.ActiveState = m.Module.StateMachine?.ActiveState;
@@ -197,9 +179,12 @@ namespace UIDev
 
         private void FinalizeParticipant(Replay.Participant p)
         {
-            p.Existence.End = _ws.CurrentTime;
-            if (p.Casts.LastOrDefault()?.Time.End == new DateTime())
+            if (p.Existence.Count > 0 && p.Existence.Last().End == default)
+                p.Existence.AsSpan()[p.Existence.Count - 1].End = _ws.CurrentTime;
+
+            if (p.Casts.Count > 0 && p.Casts.Last().Time.End == default)
                 p.Casts.Last().Time.End = _ws.CurrentTime;
+
             if (p.TargetableHistory.LastOrDefault().Value)
             {
                 if (p.TargetableHistory.Last().Key < _ws.CurrentTime)
@@ -209,58 +194,102 @@ namespace UIDev
             }
         }
 
+        private Replay.Participant GetOrCreateParticipant(ulong instanceID)
+        {
+            if (instanceID is 0 or 0xE0000000)
+                throw new ArgumentException("Unexpected invalid instance-id");
+            if (_res.Participants.TryGetValue(instanceID, out var p))
+                return p;
+            // new participant
+            return _res.Participants[instanceID] = new(instanceID);
+        }
+        private Replay.Participant? GetOrCreateOptionalParticipant(ulong instanceID) => instanceID is 0 or 0xE0000000 ? null : GetOrCreateParticipant(instanceID);
+
         private void ActorAdded(object? sender, Actor actor)
         {
-            var p = _participants[actor.InstanceID] = new() { InstanceID = actor.InstanceID, OID = actor.OID, Type = actor.Type, OwnerID = actor.OwnerID, Name = actor.Name, Existence = new(_ws.CurrentTime), MinRadius = actor.HitboxRadius, MaxRadius = actor.HitboxRadius };
+            var p = GetOrCreateParticipant(actor.InstanceID);
+            if (p.Existence.Count == 0)
+            {
+                // first add
+                p.OID = actor.OID;
+                p.Type = actor.Type;
+                p.OwnerID = actor.OwnerID;
+            }
+            else
+            {
+                if (p.Existence.Last().End == default)
+                    throw new Exception($"Actor add after actor add: {actor}");
+                if (p.OID != actor.OID)
+                    throw new Exception($"Actor add {actor}, previous actor with same uuid had oid={p.OID}");
+                if (p.Type != actor.Type)
+                    throw new Exception($"Actor add {actor}, previous actor with same uuid had type={p.Type}");
+                if (p.OwnerID != actor.OwnerID)
+                    throw new Exception($"Actor add {actor}, previous actor with same uuid had ownerid={p.OwnerID:X}");
+            }
+
+            p.Existence.Add(new(_ws.CurrentTime));
+            if (p.NameHistory.Count == 0 || p.NameHistory.Values.Last() != actor.Name)
+                p.NameHistory.Add(_ws.CurrentTime, actor.Name);
             if (actor.IsTargetable)
                 p.TargetableHistory.Add(_ws.CurrentTime, true);
             p.PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
             p.HPMPHistory.Add(_ws.CurrentTime, (actor.HP, actor.CurMP));
-            _res.Participants.Add(p);
-            foreach (var e in _modules.Values)
-                if (e.ActiveState != null)
-                    e.Encounter.Participants.GetOrAdd(p.OID).Add(p);
+            p.MinRadius = Math.Min(p.MinRadius, actor.HitboxRadius);
+            p.MaxRadius = Math.Max(p.MaxRadius, actor.HitboxRadius);
+
+            foreach (var e in _modules.Values.Where(e => e.ActiveState != null))
+            {
+                var encParticipants = e.Encounter.ParticipantsByOID.GetOrAdd(actor.OID);
+                if (!encParticipants.Contains(p))
+                    encParticipants.Add(p);
+            }
         }
 
         private void ActorRemoved(object? sender, Actor actor)
         {
-            FinalizeParticipant(_participants[actor.InstanceID]);
-            _participants.Remove(actor.InstanceID);
+            FinalizeParticipant(_res.Participants[actor.InstanceID]);
+        }
+
+        private void ActorRenamed(object? sender, Actor actor)
+        {
+            _res.Participants[actor.InstanceID].NameHistory.Add(_ws.CurrentTime, actor.Name);
         }
 
         private void ActorTargetable(object? sender, Actor actor)
         {
-            _participants[actor.InstanceID].TargetableHistory.Add(_ws.CurrentTime, actor.IsTargetable);
+            _res.Participants[actor.InstanceID].TargetableHistory.Add(_ws.CurrentTime, actor.IsTargetable);
         }
 
         private void ActorDead(object? sender, Actor actor)
         {
-            _participants[actor.InstanceID].DeadHistory.Add(_ws.CurrentTime, actor.IsDead);
+            _res.Participants[actor.InstanceID].DeadHistory.Add(_ws.CurrentTime, actor.IsDead);
         }
 
         private void ActorMoved(object? sender, Actor actor)
         {
-            _participants[actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
+            _res.Participants[actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
         }
 
         private void ActorSize(object? sender, Actor actor)
         {
-            var p = _participants[actor.InstanceID];
+            var p = _res.Participants[actor.InstanceID];
             p.MinRadius = Math.Min(p.MinRadius, actor.HitboxRadius);
             p.MaxRadius = Math.Max(p.MaxRadius, actor.HitboxRadius);
         }
 
         private void ActorHPMP(object? sender, Actor actor)
         {
-            _participants[actor.InstanceID].HPMPHistory.Add(_ws.CurrentTime, (actor.HP, actor.CurMP));
+            _res.Participants[actor.InstanceID].HPMPHistory.Add(_ws.CurrentTime, (actor.HP, actor.CurMP));
         }
 
         private void CastStart(object? sender, Actor actor)
         {
             var c = actor.CastInfo!;
-            var target = _participants.GetValueOrDefault(c.TargetID);
-            var cast = new Replay.Cast() { ID = c.Action, ExpectedCastTime = c.TotalTime, Time = new(_ws.CurrentTime), Target = target, Location = c.TargetID == 0 ? c.Location : (_ws.Actors.Find(c.TargetID)?.PosRot.XYZ() ?? new()), Rotation = c.Rotation, Interruptible = c.Interruptible };
-            _participants[actor.InstanceID].Casts.Add(cast);
+            var target = GetOrCreateOptionalParticipant(c.TargetID);
+            var location = target?.PosRotAt(_ws.CurrentTime).XYZ() ?? c.Location;
+            var cast = new Replay.Cast(c.Action, c.TotalTime, target, location, c.Rotation, c.Interruptible);
+            cast.Time.Start = _ws.CurrentTime;
+            _res.Participants[actor.InstanceID].Casts.Add(cast);
             if (actor == _ws.Party.Player() && _pendingClientActions.Count > 0 && _pendingClientActions.Last().ID == c.Action)
             {
                 cast.ClientAction = _pendingClientActions.Last();
@@ -270,7 +299,7 @@ namespace UIDev
 
         private void CastFinish(object? sender, Actor actor)
         {
-            var cast = _participants[actor.InstanceID].Casts.Last();
+            var cast = _res.Participants[actor.InstanceID].Casts.Last();
             cast.Time.End = _ws.CurrentTime;
             if (actor == _ws.Party.Player() && _pendingClientActions.FindIndex(a => a.Cast == cast) is var index && index >= 0)
                 _pendingClientActions.RemoveAt(index);
@@ -278,7 +307,8 @@ namespace UIDev
 
         private void TetherAdd(object? sender, Actor actor)
         {
-            var t = _tethers[actor.InstanceID] = new() { ID = actor.Tether.ID, Source = _participants[actor.InstanceID], Target = _participants.GetValueOrDefault(actor.Tether.Target), Time = new(_ws.CurrentTime) };
+            var t = _tethers[actor.InstanceID] = new(actor.Tether.ID, _res.Participants[actor.InstanceID], GetOrCreateParticipant(actor.Tether.Target));
+            t.Time.Start = _ws.CurrentTime;
             _res.Tethers.Add(t);
         }
 
@@ -295,9 +325,10 @@ namespace UIDev
                 r.Time.End = _ws.CurrentTime;
 
             var s = args.actor.Statuses[args.index];
-            var tgt = _participants[args.actor.InstanceID];
-            var src = _participants.GetValueOrDefault(s.SourceID);
-            r = _statuses[(args.actor.InstanceID, args.index)] = new() { ID = s.ID, Index = args.index, Target = tgt, Source = src, InitialDuration = (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, Time = new(_ws.CurrentTime), StartingExtra = s.Extra };
+            var tgt = _res.Participants[args.actor.InstanceID];
+            var src = GetOrCreateOptionalParticipant(s.SourceID);
+            r = _statuses[(args.actor.InstanceID, args.index)] = new(s.ID, args.index, tgt, src, (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, s.Extra);
+            r.Time.Start = _ws.CurrentTime;
             tgt.HasAnyStatuses = true;
             _res.Statuses.Add(r);
         }
@@ -313,34 +344,19 @@ namespace UIDev
 
         private void EventIcon(object? sender, (Actor actor, uint iconID) args)
         {
-            _res.Icons.Add(new() { ID = args.iconID, Target = _participants.GetValueOrDefault(args.actor.InstanceID), Timestamp = _ws.CurrentTime });
+            _res.Icons.Add(new(args.iconID, GetOrCreateParticipant(args.actor.InstanceID), _ws.CurrentTime));
         }
 
         private void EventCast(object? sender, (Actor actor, ActorCastEvent cast) args)
         {
-            var p = _participants.GetValueOrDefault(args.actor.InstanceID);
-            if (p == null)
-            {
-                Service.Log($"Skipping {args.cast.Action} cast from unknown actor {args.actor.InstanceID:X}");
-                return;
-            }
-
-            var a = new Replay.Action()
-            {
-                ID = args.cast.Action,
-                Timestamp = _ws.CurrentTime,
-                Source = p,
-                MainTarget = _participants.GetValueOrDefault(args.cast.MainTargetID),
-                TargetPos = _ws.Actors.Find(args.cast.MainTargetID)?.PosRot.XYZ() ?? args.cast.TargetPos,
-                AnimationLock = args.cast.AnimationLockTime,
-                GlobalSequence = args.cast.GlobalSequence,
-            };
+            var p = GetOrCreateParticipant(args.actor.InstanceID);
+            var mt = GetOrCreateOptionalParticipant(args.cast.MainTargetID);
+            var a = new Replay.Action(args.cast.Action, _ws.CurrentTime, p, mt, mt?.PosRotAt(_ws.CurrentTime).XYZ() ?? args.cast.TargetPos, args.cast.AnimationLockTime, args.cast.GlobalSequence);
             foreach (var t in args.cast.Targets)
             {
-                var target = _participants.GetValueOrDefault(t.ID);
-                if (target != null)
-                    target.IsTargetOfAnyActions = true;
-                a.Targets.Add(new() { Target = target, TargetID = t.ID, Effects = t.Effects });
+                var target = GetOrCreateParticipant(t.ID);
+                target.IsTargetOfAnyActions = true;
+                a.Targets.Add(new(target, t.Effects));
             }
             p.HasAnyActions = true;
             _res.Actions.Add(a);
@@ -369,8 +385,8 @@ namespace UIDev
             }
 
             var t = a.Targets[args.TargetIndex];
-            var forSource = a.Source?.InstanceID == args.Source.InstanceID;
-            var forTarget = t.TargetID == args.Source.InstanceID;
+            var forSource = a.Source.InstanceID == args.Source.InstanceID;
+            var forTarget = t.Target.InstanceID == args.Source.InstanceID;
             if (forSource)
             {
                 if (t.ConfirmationSource == default)
@@ -387,7 +403,7 @@ namespace UIDev
             }
             if (!forSource && !forTarget)
             {
-                Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for unexpected target (src={a.Source?.InstanceID:X}, tgt={t.TargetID:X})");
+                Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for unexpected target (src={a.Source.InstanceID:X}, tgt={t.Target.InstanceID:X})");
             }
         }
 
@@ -398,18 +414,18 @@ namespace UIDev
 
         private void EventDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)
         {
-            _res.DirectorUpdates.Add(new() { DirectorID = op.DirectorID, UpdateID = op.UpdateID, Param1 = op.Param1, Param2 = op.Param2, Param3 = op.Param3, Param4 = op.Param4, Timestamp = _ws.CurrentTime });
+            _res.DirectorUpdates.Add(new(op.DirectorID, op.UpdateID, op.Param1, op.Param2, op.Param3, op.Param4, _ws.CurrentTime));
         }
 
         private void EventEnvControl(object? sender, WorldState.OpEnvControl op)
         {
-            _res.EnvControls.Add(new() { DirectorID = op.DirectorID, Index = op.Index, State = op.State, Timestamp = _ws.CurrentTime });
+            _res.EnvControls.Add(new(op.DirectorID, op.Index, op.State, _ws.CurrentTime));
         }
 
         private void ClientActionRequested(object? sender, ClientState.OpActionRequest op)
         {
             var past = op.Request.InitialCastTimeTotal > 0 ? op.Request.InitialCastTimeElapsed : op.Request.InitialAnimationLock is < 0.5f and >= 0.4f ? 0.5f - op.Request.InitialAnimationLock : 0; // TODO: consider logging explicitly
-            var a = new Replay.ClientAction() { ID = op.Request.Action, SourceSequence = op.Request.SourceSequence, Target = _participants.GetValueOrDefault(op.Request.TargetID), TargetPos = op.Request.TargetPos, Requested = _ws.CurrentTime.AddSeconds(-past) };
+            var a = new Replay.ClientAction(op.Request.Action, op.Request.SourceSequence, GetOrCreateOptionalParticipant(op.Request.TargetID), op.Request.TargetPos, _ws.CurrentTime.AddSeconds(-past));
             _res.ClientActions.Add(a);
             _pendingClientActions.Add(a);
         }

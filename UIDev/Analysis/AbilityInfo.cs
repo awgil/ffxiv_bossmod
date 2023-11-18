@@ -22,15 +22,12 @@ namespace UIDev.Analysis
                 _plot.TickAdvance = new(5, 5);
                 foreach (var (r, a) in infos)
                 {
-                    if (a.Source != null)
-                    {
-                        var pos = a.Source.PosRotAt(a.Timestamp).XZ();
-                        _plot.DataMin.X = Math.Min(_plot.DataMin.X, pos.X);
-                        _plot.DataMin.Y = Math.Min(_plot.DataMin.Y, pos.Y);
-                        _plot.DataMax.X = Math.Max(_plot.DataMax.X, pos.X);
-                        _plot.DataMax.Y = Math.Max(_plot.DataMax.Y, pos.Y);
-                        _points.Add((r, a, pos));
-                    }
+                    var pos = a.Source.PosRotAt(a.Timestamp).XZ();
+                    _plot.DataMin.X = Math.Min(_plot.DataMin.X, pos.X);
+                    _plot.DataMin.Y = Math.Min(_plot.DataMin.Y, pos.Y);
+                    _plot.DataMax.X = Math.Max(_plot.DataMax.X, pos.X);
+                    _plot.DataMax.Y = Math.Max(_plot.DataMax.Y, pos.Y);
+                    _points.Add((r, a, pos));
                 }
             }
 
@@ -57,11 +54,11 @@ namespace UIDev.Analysis
                 _plot.TickAdvance = new(45, 5);
                 foreach (var (r, a) in infos)
                 {
-                    var sourcePosRot = a.Source?.PosRotAt(a.Timestamp) ?? new();
+                    var sourcePosRot = a.Source.PosRotAt(a.Timestamp);
                     var sourcePos = new WPos(sourcePosRot.XZ());
                     var targetPos = new WPos(a.TargetPos.XZ());
-                    if (targetPos == sourcePos && a.Targets.Count > 0 && a.Targets[0].Target != null)
-                        targetPos = new(a.Targets[0].Target!.PosRotAt(a.Timestamp).XZ());
+                    if (targetPos == sourcePos && a.Targets.Count > 0)
+                        targetPos = new(a.Targets[0].Target.PosRotAt(a.Timestamp).XZ());
                     var origin = targeting != Targeting.TargetPosSourceRot ? sourcePos: targetPos;
                     var dir = targeting != Targeting.SourcePosDirToTarget ? sourcePosRot.W.Radians().ToDirection() : (targetPos - origin).Normalized();
                     var left = dir.OrthoL();
@@ -75,7 +72,7 @@ namespace UIDev.Analysis
                         var angle = MathF.Acos(toTarget.Dot(dir));
                         if (toTarget.Dot(left) < 0)
                             angle = -angle;
-                        bool hit = a.Targets.Any(t => t.Target?.InstanceID == target.InstanceID);
+                        bool hit = a.Targets.Any(t => t.Target.InstanceID == target.InstanceID);
                         _points.Add((r, a, target, angle / MathF.PI * 180, dist, hit));
                     }
                 }
@@ -85,7 +82,7 @@ namespace UIDev.Analysis
             {
                 _plot.Begin();
                 foreach (var i in _points)
-                    _plot.Point(new(i.Angle, i.Range), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                    _plot.Point(new(i.Angle, i.Range), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Action.Timestamp)} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
                 _plot.End();
             }
         }
@@ -102,7 +99,7 @@ namespace UIDev.Analysis
                 _plot.TickAdvance = new(5, 5);
                 foreach (var (r, a) in infos)
                 {
-                    var sourcePosRot = a.Source?.PosRotAt(a.Timestamp) ?? new();
+                    var sourcePosRot = a.Source.PosRotAt(a.Timestamp);
                     var origin = new WPos(sourcePosRot.XZ());
                     var dir = sourcePosRot.W.Radians().ToDirection();
                     var left = dir.OrthoL();
@@ -111,7 +108,7 @@ namespace UIDev.Analysis
                         // TODO: take target hitbox size into account...
                         var pos = new WPos(target.PosRotAt(a.Timestamp).XZ());
                         var toTarget = pos - origin;
-                        bool hit = a.Targets.Any(t => t.Target?.InstanceID == target.InstanceID);
+                        bool hit = a.Targets.Any(t => t.Target.InstanceID == target.InstanceID);
                         _points.Add((r, a, target, toTarget.Dot(left), toTarget.Dot(dir), hit));
                     }
                 }
@@ -121,7 +118,7 @@ namespace UIDev.Analysis
             {
                 _plot.Begin();
                 foreach (var i in _points)
-                    _plot.Point(new(i.Normal, i.Length), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                    _plot.Point(new(i.Normal, i.Length), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Action.Timestamp)} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
                 _plot.End();
             }
         }
@@ -138,12 +135,9 @@ namespace UIDev.Analysis
                 _plot.TickAdvance = new(5, 10000);
                 foreach (var (r, a) in infos)
                 {
-                    var origin = fromSource ? a.Source?.PosRotAt(a.Timestamp).XYZ() ?? new() : a.TargetPos;
+                    var origin = fromSource ? a.Source.PosRotAt(a.Timestamp).XYZ() : a.TargetPos;
                     foreach (var target in a.Targets)
                     {
-                        if (target.Target == null)
-                            continue;
-
                         var offset = target.Target.PosRotAt(a.Timestamp).XYZ() - origin;
                         var dist = useMaxComp ? MathF.Max(Math.Abs(offset.X), Math.Abs(offset.Z)) : offset.Length();
                         _points.Add((r, a, target.Target, dist, ReplayUtils.ActionDamage(target)));
@@ -155,7 +149,7 @@ namespace UIDev.Analysis
             {
                 _plot.Begin();
                 foreach (var i in _points)
-                    _plot.Point(new(i.Range, i.Damage), i.Damage > 0 ? 0xff00ffff : 0xff808080, () => $"{i.Damage} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                    _plot.Point(new(i.Range, i.Damage), i.Damage > 0 ? 0xff00ffff : 0xff808080, () => $"{i.Damage} {i.Target.NameAt(i.Action.Timestamp)} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
                 _plot.End();
             }
         }
@@ -172,13 +166,9 @@ namespace UIDev.Analysis
                 _plot.TickAdvance = new(45, 1);
                 foreach (var (r, a) in infos)
                 {
-                    if (a.Source == null)
-                        continue;
                     var src = new WPos(a.Source.PosRotAt(a.Timestamp).XZ());
                     foreach (var target in a.Targets)
                     {
-                        if (target.Target == null)
-                            continue;
                         var posRot = target.Target.PosRotAt(a.Timestamp);
                         var toSource = Angle.FromDirection(src - new WPos(posRot.XZ()));
                         var angle = toSource - posRot.W.Radians();
@@ -196,7 +186,7 @@ namespace UIDev.Analysis
             {
                 _plot.Begin();
                 foreach (var i in _points)
-                    _plot.Point(new(i.Angle.Deg, 1), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.Name} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
+                    _plot.Point(new(i.Angle.Deg, 1), i.Hit ? 0xff00ffff : 0xff808080, () => $"{(i.Hit ? "hit" : "miss")} {i.Target.NameAt(i.Action.Timestamp)} {i.Target.InstanceID:X} {i.Replay.Path} @ {i.Action.Timestamp:O}");
                 _plot.End();
             }
         }
@@ -209,12 +199,10 @@ namespace UIDev.Analysis
             {
                 foreach (var (r, a) in infos)
                 {
-                    if (a.Source == null)
-                        continue;
                     var pos = a.Source.PosRotAt(a.Timestamp).XYZ();
 
                     float minDistance = float.MaxValue;
-                    foreach (var other in r.Participants.Where(p => p != a.Source && p.OID == a.Source.OID && p.Existence.Contains(a.Timestamp)))
+                    foreach (var other in r.Participants.Values.Where(p => p != a.Source && p.OID == a.Source.OID && p.ExistsAt(a.Timestamp)))
                     {
                         var otherPos = other.PosRotAt(a.Timestamp).XYZ();
                         minDistance = MathF.Min(minDistance, (otherPos - pos).Length());
@@ -269,7 +257,7 @@ namespace UIDev.Analysis
                 {
                     foreach (var action in replay.EncounterActions(enc))
                         AddActionData(replay, action);
-                    foreach (var (_, participants) in enc.Participants)
+                    foreach (var (_, participants) in enc.ParticipantsByOID)
                         foreach (var p in participants)
                             foreach (var c in p.Casts.Where(c => enc.Time.Contains(c.Time.Start)))
                                 AddCastData(replay, p, c);
@@ -283,7 +271,7 @@ namespace UIDev.Analysis
             {
                 foreach (var action in replay.Actions)
                     AddActionData(replay, action);
-                foreach (var p in replay.Participants)
+                foreach (var p in replay.Participants.Values)
                     foreach (var c in p.Casts)
                         AddCastData(replay, p, c);
             }
@@ -320,7 +308,7 @@ namespace UIDev.Analysis
                 }
                 foreach (var n in tree.Node("Instances", data.Instances.Count == 0))
                 {
-                    foreach (var an in tree.Nodes(data.Instances, a => new($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))
+                    foreach (var an in tree.Nodes(data.Instances, a => new($"{a.Item1.Path} @ {a.Item2.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(a.Item2.Source, a.Item2.Timestamp)} -> {ReplayUtils.ParticipantString(a.Item2.MainTarget, a.Item2.Timestamp)} {Utils.Vec3String(a.Item2.TargetPos)} ({a.Item2.Targets.Count} affected)", a.Item2.Targets.Count == 0)))
                     {
                         foreach (var tn in tree.Nodes(an.Item2.Targets, t => new(ReplayUtils.ActionTargetString(t, an.Item2.Timestamp))))
                         {
@@ -330,7 +318,7 @@ namespace UIDev.Analysis
                 }
                 foreach (var n in tree.Node("Casts", data.Casts.Count == 0))
                 {
-                    tree.LeafNodes(data.Casts, c => $"{c.Item1.Path} @ {c.Item3.Time.Start:O} + {c.Item3.Time.Duration:f3}/{c.Item3.ExpectedCastTime:f3}: {ReplayUtils.ParticipantString(c.Item2)} / {c.Item3.Rotation} -> {ReplayUtils.ParticipantString(c.Item3.Target)} {Utils.Vec3String(c.Item3.Location)}");
+                    tree.LeafNodes(data.Casts, c => $"{c.Item1.Path} @ {c.Item3.Time.Start:O} + {c.Item3.Time.Duration:f3}/{c.Item3.ExpectedCastTime:f3}: {ReplayUtils.ParticipantString(c.Item2, c.Item3.Time.Start)} / {c.Item3.Rotation} -> {ReplayUtils.ParticipantString(c.Item3.Target, c.Item3.Time.Start)} {Utils.Vec3String(c.Item3.Location)}");
                 }
                 foreach (var an in tree.Node("Source position analysis"))
                 {
@@ -417,12 +405,11 @@ namespace UIDev.Analysis
 
         private void AddActionData(Replay replay, Replay.Action action)
         {
-            if (action.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
+            if (action.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
                 return;
 
             var data = _data.GetOrAdd(action.ID);
-            if (action.Source != null)
-                data.CasterOIDs.Add(action.Source.OID);
+            data.CasterOIDs.Add(action.Source.OID);
             if (action.MainTarget != null)
                 data.TargetOIDs.Add(action.MainTarget.OID);
             data.SeenTargetSelf |= action.Source == action.MainTarget;
@@ -431,7 +418,7 @@ namespace UIDev.Analysis
             data.SeenTargetLocation |= action.MainTarget == null;
             data.SeenAOE |= action.Targets.Count > 1;
 
-            var cast = action.Source?.Casts.Find(c => c.ID == action.ID && Math.Abs((c.Time.End - action.Timestamp).TotalSeconds) < 1);
+            var cast = action.Source.Casts.Find(c => c.ID == action.ID && Math.Abs((c.Time.End - action.Timestamp).TotalSeconds) < 1);
             data.CastTime = cast?.ExpectedCastTime + 0.3f ?? 0;
 
             data.Instances.Add((replay, action));
@@ -457,7 +444,7 @@ namespace UIDev.Analysis
 
         private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)
         {
-            return r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.Existence.Contains(t) && !p.DeadAt(t));
+            return r.Participants.Values.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.ExistsAt(t) && !p.DeadAt(t));
         }
 
         private IEnumerable<string> ActionTargetStrings(ActionData data)

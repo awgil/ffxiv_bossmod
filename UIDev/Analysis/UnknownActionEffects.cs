@@ -51,7 +51,7 @@ namespace UIDev.Analysis
             {
                 foreach (var (action, entries) in tree.Nodes(actions, kv => new($"{kv.Key} ({kv.Value.Count} entries)")))
                 {
-                    foreach (var entry in tree.Nodes(entries, entry => new($"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantString(entry.Action.Source)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget)} @ {ReplayUtils.ParticipantString(entry.Target.Target)}")))
+                    foreach (var entry in tree.Nodes(entries, entry => new($"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantString(entry.Action.Source, entry.Action.Timestamp)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget, entry.Action.Timestamp)} @ {ReplayUtils.ParticipantString(entry.Target.Target, entry.Action.Timestamp)}")))
                     {
                         foreach (var target in tree.Nodes(entry.Action.Targets, target => new(ReplayUtils.ActionTargetString(target, entry.Action.Timestamp))))
                         {

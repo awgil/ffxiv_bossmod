@@ -57,8 +57,8 @@ namespace UIDev.Analysis
             {
                 foreach (var op in replay.Ops.OfType<ActorState.OpModelState>().Where(op => op.Value.ModelState is 19 or 20))
                 {
-                    var hand = replay.Participants.Find(p => p.InstanceID == op.InstanceID);
-                    var boss = replay.Participants.Find(p => p.OID == oid && p.Existence.Contains(op.Timestamp));
+                    var hand = replay.Participants.GetValueOrDefault(op.InstanceID);
+                    var boss = replay.Participants.Values.First(p => p.OID == oid && p.ExistsAt(op.Timestamp));
                     if (hand != null && boss != null)
                     {
                         var handPos = new WPos(hand.PosRotAt(op.Timestamp).XZ());
@@ -71,8 +71,8 @@ namespace UIDev.Analysis
                 var aidPrayer = ActionID.MakeSpell(AID.HandOfPrayer);
                 foreach (var action in replay.Actions.Where(a => a.ID == aidParting || a.ID == aidPrayer))
                 {
-                    var hand = replay.Participants.Find(p => p.InstanceID == action.Source?.InstanceID);
-                    var boss = replay.Participants.Find(p => p.OID == oid && p.Existence.Contains(action.Timestamp));
+                    var hand = replay.Participants.GetValueOrDefault(action.Source.InstanceID);
+                    var boss = replay.Participants.Values.First(p => p.OID == oid && p.ExistsAt(action.Timestamp));
                     if (hand != null && boss != null)
                     {
                         var handPos = new WPos(hand.PosRotAt(action.Timestamp).XZ());
@@ -101,9 +101,6 @@ namespace UIDev.Analysis
                 {
                     var t1 = action.Targets[0].Target;
                     var t2 = action.Targets[1].Target;
-                    if (t1 == null || t2 == null)
-                        continue;
-
                     var adjTS = action.Timestamp.AddSeconds(-2);
                     var s = replay.Statuses.Find(s => s.Target == t1 && s.Time.Contains(adjTS) && (SID)s.ID is SID.HouseArrest or SID.RestrainingOrder);
                     if (s == null)

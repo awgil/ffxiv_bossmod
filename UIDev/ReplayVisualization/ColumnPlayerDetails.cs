@@ -41,7 +41,7 @@ namespace UIDev
             _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
 
             _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
-            _actions.Name = player.Name;
+            _actions.Name = player.NameHistory.FirstOrDefault().Value;
 
             _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, player));
 
@@ -173,7 +173,7 @@ namespace UIDev
                 {
                     var track = _planner.TrackForAction(a.ID);
                     if (track != null)
-                        track.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
+                        track.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
                 }
             }
         }

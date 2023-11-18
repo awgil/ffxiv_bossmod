@@ -84,7 +84,7 @@ namespace UIDev
 
         private bool FilterInterestingActor(ulong instanceID, DateTime timestamp, bool allowPlayers)
         {
-            var p = FindParticipant(instanceID, timestamp)!;
+            var p = _replay.Participants[instanceID];
             if ((p.OwnerID & 0xFF000000) == 0x10000000)
                 return false; // player's pet/area
             if (p.Type == ActorType.Player && !allowPlayers)
@@ -98,11 +98,11 @@ namespace UIDev
         {
             if (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)
                 return false; // don't care about statuses applied by players
-            if (s.Target?.Type is ActorType.Pet)
+            if (s.Target.Type is ActorType.Pet)
                 return false; // don't care about statuses applied to pets
             if (s.ID is 43 or 44 or 418)
                 return false; // don't care about resurrect-related statuses
-            if (s.Target != null && _filteredOIDs.Contains(s.Target.OID))
+            if (_filteredOIDs.Contains(s.Target.OID))
                 return false; // don't care about filtered out targets
             if (_filteredStatuses.Contains(s.ID))
                 return false; // don't care about filtered out statuses
@@ -126,7 +126,7 @@ namespace UIDev
                 ActorState.OpCombat => false,
                 ActorState.OpEventState op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpTarget op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
-                ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)?.ID ?? new()),
+                ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(_replay.Participants.GetValueOrDefault(op.InstanceID), op.Timestamp, op.Value != null)?.ID ?? new()),
                 ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
                 ActorState.OpEffectResult => false,
                 ActorState.OpStatus op => FilterInterestingStatuses(op.InstanceID, op.Index, op.Timestamp),
@@ -187,7 +187,7 @@ namespace UIDev
         private void DrawEventCast(UITree tree, ActorState.OpCastEvent op)
         {
             var action = _replay.Actions.Find(a => a.GlobalSequence == op.Value.GlobalSequence);
-            if (action != null && action.Timestamp == op.Timestamp && action.Source?.InstanceID == op.InstanceID)
+            if (action != null && action.Timestamp == op.Timestamp && action.Source.InstanceID == op.InstanceID)
             {
                 foreach (var t in tree.Nodes(action.Targets, t => new(ReplayUtils.ActionTargetString(t, op.Timestamp))))
                 {
@@ -227,7 +227,7 @@ namespace UIDev
 
         private void ContextMenuActor(ActorState.Operation op)
         {
-            var oid = FindParticipant(op.InstanceID, op.Timestamp)!.OID;
+            var oid = _replay.Participants[op.InstanceID].OID;
             if (ImGui.MenuItem($"Filter out OID {oid:X}"))
             {
                 _filteredOIDs.Add(oid);
@@ -251,7 +251,7 @@ namespace UIDev
         private void ContextMenuActorCast(ActorState.OpCastInfo op)
         {
             ContextMenuActor(op);
-            var cast = FindCast(FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null);
+            var cast = FindCast(_replay.Participants.GetValueOrDefault(op.InstanceID), op.Timestamp, op.Value != null);
             if (cast != null && ImGui.MenuItem($"Filter out {cast.ID}"))
             {
                 _filteredActions.Add(cast.ID);
@@ -269,18 +269,17 @@ namespace UIDev
             }
         }
 
-        private Replay.Participant? FindParticipant(ulong instanceID, DateTime timestamp) => _replay.Participants.Find(p => p.InstanceID == instanceID && p.Existence.Contains(timestamp));
-        private IEnumerable<Replay.Status> FindStatuses(ulong instanceID, int index, DateTime timestamp) => _replay.Statuses.Where(s => s.Target?.InstanceID == instanceID && s.Index == index && (s.Time.Start == timestamp || s.Time.End == timestamp));
+        private IEnumerable<Replay.Status> FindStatuses(ulong instanceID, int index, DateTime timestamp) => _replay.Statuses.Where(s => s.Target.InstanceID == instanceID && s.Index == index && (s.Time.Start == timestamp || s.Time.End == timestamp));
         private Replay.Cast? FindCast(Replay.Participant? participant, DateTime timestamp, bool start) => participant?.Casts.Find(c => (start ? c.Time.Start : c.Time.End) == timestamp);
 
         private string ActorString(Replay.Participant? p, DateTime timestamp)
         {
-            return p != null ? $"{ReplayUtils.ParticipantString(p)} ({_moduleInfo?.ObjectIDType?.GetEnumName(p.OID)}) {Utils.PosRotString(p.PosRotAt(timestamp))}" : "<none>";
+            return p != null ? $"{ReplayUtils.ParticipantString(p, timestamp)} ({_moduleInfo?.ObjectIDType?.GetEnumName(p.OID)}) {Utils.PosRotString(p.PosRotAt(timestamp))}" : "<none>";
         }
 
         private string ActorString(ulong instanceID, DateTime timestamp)
         {
-            var p = FindParticipant(instanceID, timestamp);
+            var p = _replay.Participants.GetValueOrDefault(instanceID);
             return p != null || instanceID == 0 ? ActorString(p, timestamp) : $"<unknown> {instanceID:X}";
         }
 
@@ -294,11 +293,11 @@ namespace UIDev
 
         private string CastString(ulong instanceID, DateTime timestamp, bool start)
         {
-            var p = FindParticipant(instanceID, timestamp);
+            var p = _replay.Participants.GetValueOrDefault(instanceID);
             var c = FindCast(p, timestamp, start);
             if (c == null)
                 return $"{ActorString(p, timestamp)}: <unknown cast>";
-            return $"{ActorString(p, timestamp)}: {c.ID} ({_moduleInfo?.ActionIDType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual){(c.Interruptible ? " (interruptible)" : "")} @ {ReplayUtils.ParticipantString(c.Target)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
+            return $"{ActorString(p, timestamp)}: {c.ID} ({_moduleInfo?.ActionIDType?.GetEnumName(c.ID.ID)}), {c.ExpectedCastTime:f2}s ({c.Time} actual){(c.Interruptible ? " (interruptible)" : "")} @ {ReplayUtils.ParticipantString(c.Target, timestamp)} {Utils.Vec3String(c.Location)} / {c.Rotation}";
         }
 
         private string StatusesString(ulong instanceID, int index, DateTime timestamp)

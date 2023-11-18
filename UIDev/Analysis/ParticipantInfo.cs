@@ -41,24 +41,24 @@ namespace UIDev.Analysis
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 {
-                    foreach (var (commonOID, participants) in enc.Participants)
+                    foreach (var (commonOID, participants) in enc.ParticipantsByOID)
                     {
                         ActorType? commonType = null;
                         string commonName = "";
                         int spawnedPreFight = 0, spawnedMidFight = 0;
                         float minRadius = float.MaxValue;
                         float maxRadius = float.MinValue;
-                        foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure) && (enc.Time.End - p.Existence.Start).TotalSeconds > 1))
+                        foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure) && p.ExistsAt(enc.Time.End.AddSeconds(-1))))
                         {
                             if (commonType == null)
                                 commonType = p.Type;
                             else if (commonType.Value != p.Type)
                                 commonType = ActorType.None;
 
-                            if (commonName.Length == 0)
-                                commonName = p.Name;
+                            if (commonName.Length == 0 && p.NameHistory.Count > 0)
+                                commonName = p.NameHistory.Values.First();
 
-                            if (p.Existence.Start <= enc.Time.Start)
+                            if (p.ExistsAt(enc.Time.Start))
                                 ++spawnedPreFight;
                             else
                                 ++spawnedMidFight;

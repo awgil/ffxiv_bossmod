@@ -28,13 +28,12 @@ namespace UIDev.Analysis
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 {
-                    foreach (var status in replay.EncounterStatuses(enc).Where(s => !(s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) && !(s.Target?.Type is ActorType.Pet or ActorType.Chocobo)))
+                    foreach (var status in replay.EncounterStatuses(enc).Where(s => !(s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) && !(s.Target.Type is ActorType.Pet or ActorType.Chocobo)))
                     {
                         var data = _data.GetOrAdd(status.ID);
                         if (status.Source != null)
                             data.SourceOIDs.Add(status.Source.OID);
-                        if (status.Target != null)
-                            data.TargetOIDs.Add(status.Target.OID);
+                        data.TargetOIDs.Add(status.Target.OID);
                         data.Extras.Add(status.StartingExtra);
                     }
                 }

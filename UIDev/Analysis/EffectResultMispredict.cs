@@ -55,7 +55,7 @@ namespace UIDev.Analysis
 
         public void Draw(UITree tree)
         {
-            foreach (var e in tree.Nodes(_unexpected, e => new($"{e.r.Path} @ {e.a.Timestamp:O}: #{e.a.GlobalSequence} {e.a.ID} {ReplayUtils.ParticipantString(e.a.Source)} -> {ReplayUtils.ParticipantString(e.a.MainTarget)}")))
+            foreach (var e in tree.Nodes(_unexpected, e => new($"{e.r.Path} @ {e.a.Timestamp:O}: #{e.a.GlobalSequence} {e.a.ID} {ReplayUtils.ParticipantString(e.a.Source, e.a.Timestamp)} -> {ReplayUtils.ParticipantString(e.a.MainTarget, e.a.Timestamp)}")))
             {
                 foreach (var t in tree.Nodes(e.a.Targets, t => new(ReplayUtils.ActionTargetString(t, e.a.Timestamp))))
                 {

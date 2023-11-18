@@ -6,14 +6,14 @@ namespace UIDev
 {
     public static class ReplayUtils
     {
-        public static string ParticipantString(Replay.Participant? p)
+        public static string ParticipantString(Replay.Participant? p, DateTime t)
         {
-            return p != null ? $"{p.Type} {p.InstanceID:X} ({p.OID:X}) '{p.Name}'" : "<none>";
+            return p != null ? $"{p.Type} {p.InstanceID:X} ({p.OID:X}) '{p.NameAt(t)}'" : "<none>";
         }
 
         public static string ParticipantPosRotString(Replay.Participant? p, DateTime t)
         {
-            return p != null ? $"{ParticipantString(p)} {Utils.PosRotString(p.PosRotAt(t))}" : "<none>";
+            return p != null ? $"{ParticipantString(p, t)} {Utils.PosRotString(p.PosRotAt(t))}" : "<none>";
         }
 
         public static string ActionEffectString(ActionEffect eff)
@@ -31,10 +31,9 @@ namespace UIDev
 
         public static string ActionTargetString(Replay.ActionTarget t, DateTime ts)
         {
-            var participant = t.Target != null ? ParticipantPosRotString(t.Target, ts) : t.TargetID != 0 ? $"<unknown {t.TargetID:X}>" : "<none>";
             var confirmTarget = t.ConfirmationTarget != default ? $"confirmed at +{(t.ConfirmationTarget - ts).TotalSeconds:f3}s" : "unconfirmed";
             var confirmSource = t.ConfirmationSource != default ? $"confirmed at +{(t.ConfirmationSource - ts).TotalSeconds:f3}s" : "unconfirmed";
-            return $"{participant}, target {confirmTarget}, source {confirmSource}";
+            return $"{ParticipantPosRotString(t.Target, ts)}, target {confirmTarget}, source {confirmSource}";
         }
 
         public static int ActionDamage(Replay.ActionTarget a)
