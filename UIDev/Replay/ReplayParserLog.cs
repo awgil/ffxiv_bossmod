@@ -241,7 +241,7 @@ namespace UIDev
                     input = new TextInput(stream);
                 }
 
-                ReplayParserLog parser = new(relogConfig, input);
+                using ReplayParserLog parser = new(relogConfig, input);
                 while (parser.ParseLine())
                     ;
                 return parser.Finish(path);
@@ -261,6 +261,12 @@ namespace UIDev
         private ReplayParserLog(ReplayRecorderConfig? relogConfig, Input input) : base(relogConfig)
         {
             _input = input;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _input.Dispose();
         }
 
         private bool ParseLine()

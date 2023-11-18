@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace UIDev
 {
-    public class ReplayParser
+    public class ReplayParser : IDisposable
     {
         class LoadedModuleData
         {
@@ -90,6 +90,34 @@ namespace UIDev
             _ws.EnvControl += EventEnvControl;
             _ws.Client.ActionRequested += ClientActionRequested;
             _ws.Client.ActionRejected += ClientActionRejected;
+        }
+
+        public virtual void Dispose()
+        {
+            _mgr.Dispose();
+            _relogger?.Dispose();
+            _ws.Actors.Added -= ActorAdded;
+            _ws.Actors.Removed -= ActorRemoved;
+            _ws.Actors.Renamed -= ActorRenamed;
+            _ws.Actors.IsTargetableChanged -= ActorTargetable;
+            _ws.Actors.IsDeadChanged -= ActorDead;
+            _ws.Actors.Moved -= ActorMoved;
+            _ws.Actors.SizeChanged -= ActorSize;
+            _ws.Actors.HPMPChanged -= ActorHPMP;
+            _ws.Actors.CastStarted -= CastStart;
+            _ws.Actors.CastFinished -= CastFinish;
+            _ws.Actors.Tethered -= TetherAdd;
+            _ws.Actors.Untethered -= TetherRemove;
+            _ws.Actors.StatusGain -= StatusGain;
+            _ws.Actors.StatusLose -= StatusLose;
+            _ws.Actors.IconAppeared -= EventIcon;
+            _ws.Actors.CastEvent -= EventCast;
+            _ws.Actors.EffectResult -= EventConfirm;
+            _ws.UserMarkerAdded -= EventUserMarker;
+            _ws.DirectorUpdate -= EventDirectorUpdate;
+            _ws.EnvControl -= EventEnvControl;
+            _ws.Client.ActionRequested -= ClientActionRequested;
+            _ws.Client.ActionRejected -= ClientActionRejected;
         }
 
         protected void Start(DateTime timestamp, ulong qpf)
