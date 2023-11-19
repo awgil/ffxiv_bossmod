@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         private List<Actor> _spheres = new();
         private DateTime _activation;
 
-        private static AOEShapeRect _shape = new(80, 1);
+        private static AOEShapeRect _shape = new(40, 1, 40);
 
         public JadePassage() : base(ActionID.MakeSpell(AID.JadePassage)) { }
 
