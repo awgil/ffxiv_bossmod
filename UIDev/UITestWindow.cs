@@ -124,6 +124,13 @@ namespace UIDev
             //    outStream.Dispose();
             //}
 
+            if (ImGui.Button("Force GC"))
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
+
             foreach (var t in _testTypes)
             {
                 if (ImGui.Button($"Show {t}"))

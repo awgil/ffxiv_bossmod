@@ -42,6 +42,11 @@ namespace UIDev
             _analysis = new(data);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            _mgr.Dispose();
+        }
+
         public override void Draw()
         {
             var curFrame = DateTime.Now;

@@ -109,6 +109,11 @@ namespace BossMod
                     foreach (var msg in output)
                         Service.ChatGui.Print(msg);
                     break;
+                case "gc":
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+                    break;
             }
         }
 
