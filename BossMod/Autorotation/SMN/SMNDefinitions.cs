@@ -153,10 +153,10 @@ namespace BossMod.SMN
         EnergyDrain = 7, // 60.0 max, shared by Energy Drain, Energy Siphon
         SearingLight = 19, // 120.0 max
         RadiantAegis = 20, // 60.0 max
-        Addle = 40, // 90.0 max
-        LucidDreaming = 41, // 60.0 max
-        Swiftcast = 42, // 60.0 max
-        Surecast = 43, // 120.0 max
+        Swiftcast = 44, // 60.0 max
+        LucidDreaming = 45, // 60.0 max
+        Addle = 46, // 90.0 max
+        Surecast = 48, // 120.0 max
     }
 
     public enum SID : uint

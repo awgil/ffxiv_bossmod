@@ -287,38 +287,47 @@ namespace BossMod
         {
             if (ImGui.MenuItem("Generate CDGroup enum"))
             {
-                var sb = new StringBuilder("public enum CDGroup : int\n{");
-                foreach (var (cg, actions) in cd.CooldownGroups)
-                {
-                    if (cg == CommonDefinitions.GCDGroup)
-                        continue;
-
-                    ushort? commonRecast = actions.First().Recast100ms;
-                    int? commonMaxCharges = MaxChargesAtCap(actions.First().RowId);
-                    foreach (var action in actions.Skip(1))
-                    {
-                        if (commonRecast != action.Recast100ms)
-                            commonRecast = null;
-                        if (commonMaxCharges != MaxChargesAtCap(action.RowId))
-                            commonMaxCharges = null;
-                    }
-
-                    var cdgName = cd.CDGType?.GetEnumName(cg) ?? Utils.StringToIdentifier(actions.First().Name);
-                    sb.Append($"\n    {cdgName} = {cg}, // ");
-
-                    if (commonRecast == null || commonMaxCharges == null)
-                        sb.Append("variable max");
-                    else if (commonMaxCharges.Value > 1)
-                        sb.Append($"{commonMaxCharges.Value}*{commonRecast.Value * 0.1f:f1} max");
-                    else
-                        sb.Append($"{commonRecast.Value * 0.1f:f1} max");
-
-                    if (actions.Count > 1)
-                        sb.Append($", shared by {string.Join(", ", actions.Select(a => a.Name))}");
-                }
-                sb.Append("\n}\n");
-                ImGui.SetClipboardText(sb.ToString());
+                GenerateCDGroup(cd, false);
             }
+            if (ImGui.MenuItem("Force regenerate CDGroup enum"))
+            {
+                GenerateCDGroup(cd, true);
+            }
+        }
+
+        private void GenerateCDGroup(ClassData cd, bool forceRegen)
+        {
+            var sb = new StringBuilder("public enum CDGroup : int\n{");
+            foreach (var (cg, actions) in cd.CooldownGroups)
+            {
+                if (cg == CommonDefinitions.GCDGroup)
+                    continue;
+
+                ushort? commonRecast = actions.First().Recast100ms;
+                int? commonMaxCharges = MaxChargesAtCap(actions.First().RowId);
+                foreach (var action in actions.Skip(1))
+                {
+                    if (commonRecast != action.Recast100ms)
+                        commonRecast = null;
+                    if (commonMaxCharges != MaxChargesAtCap(action.RowId))
+                        commonMaxCharges = null;
+                }
+
+                var cdgName = (forceRegen ? null : cd.CDGType?.GetEnumName(cg)) ?? Utils.StringToIdentifier(actions.First().Name);
+                sb.Append($"\n    {cdgName} = {cg}, // ");
+
+                if (commonRecast == null || commonMaxCharges == null)
+                    sb.Append("variable max");
+                else if (commonMaxCharges.Value > 1)
+                    sb.Append($"{commonMaxCharges.Value}*{commonRecast.Value * 0.1f:f1} max");
+                else
+                    sb.Append($"{commonRecast.Value * 0.1f:f1} max");
+
+                if (actions.Count > 1)
+                    sb.Append($", shared by {string.Join(", ", actions.Select(a => a.Name))}");
+            }
+            sb.Append("\n}\n");
+            ImGui.SetClipboardText(sb.ToString());
         }
 
         private void StatusesContextMenu(ClassData cd)

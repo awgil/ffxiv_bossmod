@@ -82,21 +82,21 @@ namespace BossMod.MNK
 
     public enum CDGroup : int
     {
-        SteelPeak = 0, // 1.0 max, shared by Steel Peak, Howling Fist, Forbidden Chakra, Enlightenment
+        SteelPeak = 0, // 1.0 max, shared by Steel Peak, Howling Fist, the Forbidden Chakra, Enlightenment
         Thunderclap = 9, // 2*30.0 max
         PerfectBalance = 10, // 2*40.0 max
         RiddleOfFire = 11, // 60.0 max
         Anatman = 12, // 60.0 max
-        RiddleOfEarth = 14, // 3*30.0 max
+        RiddleOfEarth = 14, // 120.0 max
         Mantra = 15, // 90.0 max
         RiddleOfWind = 16, // 90.0 max
         Brotherhood = 19, // 120.0 max
-        SecondWind = 40, // 120.0 max
         LegSweep = 41, // 40.0 max
-        Bloodbath = 42, // 90.0 max
-        Feint = 43, // 90.0 max
-        TrueNorth = 44, // 2*45.0 max
-        ArmsLength = 46, // 120.0 max
+        TrueNorth = 45, // 2*45.0 max
+        Bloodbath = 46, // 90.0 max
+        Feint = 47, // 90.0 max
+        ArmsLength = 48, // 120.0 max
+        SecondWind = 49, // 120.0 max
     }
 
     public enum SID : uint

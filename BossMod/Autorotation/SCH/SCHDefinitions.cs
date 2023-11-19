@@ -119,10 +119,10 @@ namespace BossMod.SCH
         SummonSeraph = 22, // 120.0 max
         Expedient = 23, // 120.0 max
         Dissipation = 24, // 180.0 max
-        LucidDreaming = 41, // 60.0 max
-        Swiftcast = 42, // 60.0 max
-        Surecast = 43, // 120.0 max
-        Rescue = 45, // 120.0 max
+        Swiftcast = 44, // 60.0 max
+        LucidDreaming = 45, // 60.0 max
+        Surecast = 48, // 120.0 max
+        Rescue = 49, // 120.0 max
         PetEmbrace = 76, // 3.0 max, shared by Embrace, Seraphic Veil
     }
 

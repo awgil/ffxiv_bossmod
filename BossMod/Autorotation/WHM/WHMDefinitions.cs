@@ -85,7 +85,7 @@ namespace BossMod.WHM
     public enum CDGroup : int
     {
         LiturgyOfTheBellEnd = 0, // 1.0 max
-        Assize = 5, // 45.0 max
+        Assize = 5, // 40.0 max
         DivineBenison = 9, // 2*30.0 max
         PlenaryIndulgence = 10, // 60.0 max
         Aquaveil = 11, // 60.0 max
@@ -96,10 +96,10 @@ namespace BossMod.WHM
         PresenceOfMind = 22, // 120.0 max
         Benediction = 23, // 180.0 max
         LiturgyOfTheBell = 24, // 180.0 max
-        LucidDreaming = 41, // 60.0 max
-        Swiftcast = 42, // 60.0 max
-        Surecast = 43, // 120.0 max
-        Rescue = 45, // 120.0 max
+        Swiftcast = 44, // 60.0 max
+        LucidDreaming = 45, // 60.0 max
+        Surecast = 48, // 120.0 max
+        Rescue = 49, // 120.0 max
     }
 
     public enum SID : uint

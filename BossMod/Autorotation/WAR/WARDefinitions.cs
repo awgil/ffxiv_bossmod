@@ -82,7 +82,7 @@ namespace BossMod.WAR
 
     public enum CDGroup : int
     {
-        Defiance = 2, // 3.0 max
+        Defiance = 2, // variable max, shared by Defiance, Release Defiance
         Bloodwhetting = 3, // 25.0 max, shared by Raw Intuition, Nascent Flash, Bloodwhetting
         Upheaval = 5, // 30.0 max, shared by Upheaval, Orogeny
         Onslaught = 9, // 3*30.0 max
@@ -94,13 +94,13 @@ namespace BossMod.WAR
         Infuriate = 19, // 2*60.0 max
         Vengeance = 21, // 120.0 max
         Holmgang = 23, // 240.0 max
-        Rampart = 40, // 90.0 max
         LowBlow = 41, // 25.0 max
         Provoke = 42, // 30.0 max
-        Reprisal = 43, // 60.0 max
-        Interject = 44, // 30.0 max
-        Shirk = 45, // 120.0 max
-        ArmsLength = 46, // 120.0 max
+        Reprisal = 43, // 30.0 max
+        Interject = 44, // 60.0 max
+        Rampart = 46, // 90.0 max
+        ArmsLength = 48, // 120.0 max
+        Shirk = 49, // 120.0 max
         LimitBreak = 71, // special/fake (TODO: remove need for it?)
     }
 

@@ -93,10 +93,10 @@ namespace BossMod.BLM
         Amplifier = 20, // 120.0 max
         Manaward = 21, // 120.0 max
         Manafont = 23, // 180.0 max
-        Addle = 40, // 90.0 max
-        LucidDreaming = 41, // 60.0 max
-        Swiftcast = 42, // 60.0 max
-        Surecast = 43, // 120.0 max
+        Swiftcast = 44, // 60.0 max
+        LucidDreaming = 45, // 60.0 max
+        Addle = 46, // 90.0 max
+        Surecast = 48, // 120.0 max
     }
 
     public enum SID : uint

@@ -82,17 +82,17 @@ namespace BossMod.DRG
         Geirskogul = 7, // 30.0 max
         HighJump = 8, // 30.0 max
         LanceCharge = 9, // 60.0 max
-        LifeSurge = 14, // 2*45.0 max
+        LifeSurge = 14, // 2*40.0 max
         SpineshatterDive = 19, // 2*60.0 max
         DragonfireDive = 20, // 120.0 max
         DragonSight = 21, // 120.0 max
         BattleLitany = 23, // 120.0 max
-        SecondWind = 40, // 120.0 max
         LegSweep = 41, // 40.0 max
-        Bloodbath = 42, // 90.0 max
-        Feint = 43, // 90.0 max
-        TrueNorth = 44, // 2*45.0 max
-        ArmsLength = 46, // 120.0 max
+        TrueNorth = 45, // 2*45.0 max
+        Bloodbath = 46, // 90.0 max
+        Feint = 47, // 90.0 max
+        ArmsLength = 48, // 120.0 max
+        SecondWind = 49, // 120.0 max
     }
 
     public enum SID : uint

@@ -86,7 +86,7 @@ namespace BossMod.BRD
         WardensPaean = 8, // 45.0 max
         Sidewinder = 12, // 60.0 max
         RagingStrikes = 13, // 120.0 max
-        NaturesMinne = 14, // 90.0 max
+        NaturesMinne = 14, // 120.0 max
         RadiantFinale = 15, // 110.0 max
         ArmysPaeon = 16, // 120.0 max
         WanderersMinuet = 17, // 120.0 max
@@ -94,12 +94,12 @@ namespace BossMod.BRD
         MagesBallad = 20, // 120.0 max
         BattleVoice = 22, // 120.0 max
         Troubadour = 23, // 120.0 max
-        SecondWind = 40, // 120.0 max
+        Peloton = 40, // 5.0 max
         FootGraze = 41, // 30.0 max
         LegGraze = 42, // 30.0 max
-        Peloton = 43, // 5.0 max
-        HeadGraze = 44, // 30.0 max
-        ArmsLength = 46, // 120.0 max
+        HeadGraze = 43, // 30.0 max
+        ArmsLength = 48, // 120.0 max
+        SecondWind = 49, // 120.0 max
     }
 
     public enum SID : uint
