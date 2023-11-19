@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.0.0.122</Version>
+    <Version>0.0.0.0</Version>
     <Description>Boss mod.</Description>
     <Copyright></Copyright>
     <PackageProjectUrl></PackageProjectUrl>
@@ -70,8 +70,4 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="DefaultDalamudPackagerRelease" Condition="'$(Configuration)' == 'Release'">
-    <Exec Command="robocopy $(TargetDir)$(ProjectName) ..\..\PluginDistribution\plugins\$(ProjectName) /mir" IgnoreExitCode="true"></Exec>
-  </Target>
 </Project>

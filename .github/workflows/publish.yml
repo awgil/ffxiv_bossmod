@@ -1,0 +1,49 @@
+name: Build & Publish to Dynamis
+
+on:
+  push:
+    tags:
+      - "v*.*.*.*"
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    env:
+        DALAMUD_HOME: /tmp/dalamud
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Get Tag Name
+        run: echo "tag=$(echo ${{ github.ref }} | sed 's/refs\/tags\/v//')" >> $GITHUB_ENV
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+          
+      - name: Download Dalamud Latest
+        run: |
+          wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
+          unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
+
+      - name: Restore Project
+        run: dotnet restore
+
+      - name: Build Project
+        run: dotnet build --configuration Release BossMod/BossMod.csproj -p:AssemblyVersion=${{ env.tag }}
+
+      - name: Publish Version
+        uses: PunishXIV/dynamis-action@v1
+        id: dynamis
+        with:
+          plugin_id: 30
+          internal_name: "BossMod"
+          version_number: ${{ env.tag }}
+          path: "BossMod/bin/Release/BossMod/latest.zip"
+          type: "latest"
+          dalamud_version: "9"
+        env:
+          PUBLISHER_KEY: ${{ secrets.PUBLISHER_KEY }}
