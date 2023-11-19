@@ -96,6 +96,7 @@ namespace UIDev
         {
             _mgr.Dispose();
             _relogger?.Dispose();
+            _modules.Clear();
             _ws.Actors.Added -= ActorAdded;
             _ws.Actors.Removed -= ActorRemoved;
             _ws.Actors.Renamed -= ActorRenamed;
