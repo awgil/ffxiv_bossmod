@@ -30,7 +30,7 @@ namespace UIDev
         private Positional _pfPositional = Positional.Any;
         private bool _pfTank = false;
 
-        public ReplayWindow(Replay data) : base($"Replay: {data.Path}", true, new(1500, 1000))
+        public ReplayWindow(Replay data) : base($"Replay: {data.Path}", false, new(1500, 1000))
         {
             _player = new(data);
             _mgr = new(_player.WorldState);
@@ -39,7 +39,7 @@ namespace UIDev
             _player.AdvanceTo(_first, _mgr.Update);
             _config = new(Service.Config, _player.WorldState);
             _events = new(data, MoveTo);
-            _analysis = new(data);
+            _analysis = new([data]);
         }
 
         protected override void Dispose(bool disposing)

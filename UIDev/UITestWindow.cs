@@ -3,7 +3,6 @@ using ImGuiScene;
 using BossMod;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Linq;
 
@@ -13,7 +12,7 @@ namespace UIDev
     {
         private SimpleImGuiScene _scene;
         private List<Type> _testTypes;
-        private string _path = "";
+        private ReplayManager _replayManager = new();
         private string _configPath;
 
         // don't allow closing window by esc while there are any config modifications
@@ -32,6 +31,11 @@ namespace UIDev
             Service.Config.Initialize();
             Service.Config.LoadFromFile(new(configPath));
             Service.Config.Modified += (_, _) => _configModified = true;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _replayManager.Dispose();
         }
 
         public override void OnClose()
@@ -56,17 +60,10 @@ namespace UIDev
             }
 
             ImGui.Separator();
+            _replayManager.Update();
+            _replayManager.Draw();
+            ImGui.Separator();
 
-            ImGui.InputText("Path", ref _path, 500);
-            if (ImGui.Button("Open native log..."))
-            {
-                var data = ReplayParserLog.Parse(_path);
-                if (data.Ops.Count > 0)
-                {
-                    new ReplayWindow(data);
-                }
-            }
-            //ImGui.SameLine();
             //if (ImGui.Button("Open ACT log..."))
             //{
             //    var data = ReplayParserAct.Parse(_path, 0);
@@ -76,32 +73,7 @@ namespace UIDev
             //        WindowManager.CreateWindow($"ACT log: {_path}", visu.Draw, visu.Dispose, () => true);
             //    }
             //}
-            ImGui.SameLine();
-            if (ImGui.Button("Analyze all logs..."))
-            {
-                new UISimpleWindow($"Multiple logs: {_path}", new AnalysisManager(_path).Draw, true, new(1200, 800));
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Convert to verbose"))
-            {
-                ConvertLog(_path, ReplayRecorderConfig.LogFormat.TextVerbose);
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Convert to short text"))
-            {
-                ConvertLog(_path, ReplayRecorderConfig.LogFormat.TextCondensed);
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Convert to uncompressed binary"))
-            {
-                ConvertLog(_path, ReplayRecorderConfig.LogFormat.BinaryUncompressed);
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Convert to compressed binary"))
-            {
-                ConvertLog(_path, ReplayRecorderConfig.LogFormat.BinaryCompressed);
-            }
-            //ImGui.SameLine();
+
             //if (ImGui.Button("Raw decompress"))
             //{
             //    Stream inStream = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -138,19 +110,6 @@ namespace UIDev
                     Activator.CreateInstance(t);
                 }
             }
-        }
-
-        private void ConvertLog(string input, ReplayRecorderConfig.LogFormat format)
-        {
-            var config = new ReplayRecorderConfig()
-            {
-                WorldLogFormat = format,
-                DumpServerPackets = true,
-                DumpClientPackets = true,
-                TargetDirectory = new DirectoryInfo(input).Parent,
-                LogPrefix = format.ToString(),
-            };
-            ReplayParserLog.Parse(_path, config);
         }
     }
 }

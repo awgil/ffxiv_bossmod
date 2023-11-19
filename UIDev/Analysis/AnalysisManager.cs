@@ -2,7 +2,6 @@
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace UIDev
 {
@@ -127,39 +126,14 @@ namespace UIDev
             }
         }
 
-        private List<Replay> _replays = new();
+        private List<Replay> _replays;
         private Global _global;
         private Dictionary<uint, PerEncounter> _perEncounter = new(); // key = encounter OID
         private UITree _tree = new();
 
-        public AnalysisManager(string rootPath)
+        public AnalysisManager(List<Replay> replays)
         {
-            try
-            {
-                var di = new DirectoryInfo(rootPath);
-                var pattern = "*.log";
-                if (!di.Exists && (di.Parent?.Exists ?? false))
-                {
-                    pattern = di.Name;
-                    di = di.Parent;
-                }
-                foreach (var fi in di.EnumerateFiles(pattern, new EnumerationOptions { RecurseSubdirectories = true }))
-                {
-                    Service.Log($"Parsing {fi.FullName}...");
-                    _replays.Add(ReplayParserLog.Parse(fi.FullName));
-                }
-            }
-            catch (Exception e)
-            {
-                Service.Log($"Failed to read {rootPath}: {e}");
-            }
-            _global = new(_replays);
-            InitEncounters();
-        }
-
-        public AnalysisManager(Replay replay)
-        {
-            _replays.Add(replay);
+            _replays = replays;
             _global = new(_replays);
             InitEncounters();
         }

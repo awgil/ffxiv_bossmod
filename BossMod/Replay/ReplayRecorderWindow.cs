@@ -36,7 +36,7 @@ namespace BossMod
                 {
                     try
                     {
-                        _recorder = new(_ws, _config);
+                        _recorder = new(_ws, _config, true);
                     }
                     catch (Exception ex)
                     {

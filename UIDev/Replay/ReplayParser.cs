@@ -56,17 +56,14 @@ namespace UIDev
 
         protected Replay _res = new();
         protected WorldState _ws = new(TimeSpan.TicksPerSecond);
-        private ReplayRecorderConfig? _relogConfig;
-        private ReplayRecorder? _relogger;
         private BossModuleManagerWrapper _mgr;
         private Dictionary<ulong, LoadedModuleData> _modules = new();
         private Dictionary<(ulong, int), Replay.Status> _statuses = new();
         private Dictionary<ulong, Replay.Tether> _tethers = new();
         private List<Replay.ClientAction> _pendingClientActions = new();
 
-        protected ReplayParser(ReplayRecorderConfig? relogConfig)
+        protected ReplayParser()
         {
-            _relogConfig = relogConfig;
             _mgr = new(this);
             _ws.Actors.Added += ActorAdded;
             _ws.Actors.Removed += ActorRemoved;
@@ -95,7 +92,6 @@ namespace UIDev
         public virtual void Dispose()
         {
             _mgr.Dispose();
-            _relogger?.Dispose();
             _modules.Clear();
             _ws.Actors.Added -= ActorAdded;
             _ws.Actors.Removed -= ActorRemoved;
@@ -124,11 +120,6 @@ namespace UIDev
         protected void Start(DateTime timestamp, ulong qpf)
         {
             _res.QPF = _ws.QPF = qpf;
-            if (_relogConfig?.TargetDirectory != null)
-            {
-                _ws.Frame.Timestamp = timestamp;
-                _relogger = new(_ws, _relogConfig);
-            }
         }
 
         protected void AddOp(WorldState.Operation op)
@@ -164,8 +155,6 @@ namespace UIDev
             {
                 t.Time.End = _ws.CurrentTime;
             }
-            _relogger?.Dispose();
-            _relogger = null;
             return _res;
         }
 

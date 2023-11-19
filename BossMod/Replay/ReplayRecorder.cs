@@ -177,7 +177,7 @@ namespace BossMod
 
         public const int Version = 10;
 
-        public ReplayRecorder(WorldState ws, ReplayRecorderConfig config)
+        public ReplayRecorder(WorldState ws, ReplayRecorderConfig config, bool logInitialState)
         {
             _ws = ws;
             if (config.TargetDirectory == null)
@@ -211,10 +211,13 @@ namespace BossMod
             if (_logger is BinaryOutput)
                 _logger.Emit(_ws.CurrentTime.Ticks);
             _logger.EndEntry();
-            foreach (var op in _ws.CompareToInitial())
+            if (logInitialState)
             {
-                op.Timestamp = _ws.CurrentTime;
-                Log(null, op);
+                foreach (var op in _ws.CompareToInitial())
+                {
+                    op.Timestamp = _ws.CurrentTime;
+                    Log(null, op);
+                }
             }
 
             // log changes

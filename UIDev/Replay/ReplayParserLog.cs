@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 
 namespace UIDev
 {
@@ -216,35 +217,44 @@ namespace UIDev
             public override ulong ReadActorID() => _input.ReadUInt64();
        }
 
-        public static Replay Parse(string path, ReplayRecorderConfig? relogConfig = null)
+        public static Replay Parse(string path, ref float progress, CancellationToken cancel)
         {
             try
             {
                 Input? input = null;
-                Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                Stream rawStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var header = new byte[4];
-                if (stream.Read(header, 0, header.Length) == header.Length)
+                if (rawStream.Read(header, 0, header.Length) == header.Length)
                 {
                     if (header[0] == 'B' && header[1] == 'L' && header[2] == 'C' && header[3] == 'B')
                     {
-                        stream = new BrotliStream(stream, CompressionMode.Decompress, false);
-                        input = new BinaryInput(stream);
+                        var decompressStream = new BrotliStream(rawStream, CompressionMode.Decompress, false);
+                        input = new BinaryInput(decompressStream);
                     }
                     else if (header[0] == 'B' && header[1] == 'L' && header[2] == 'O' && header[3] == 'G')
                     {
-                        input = new BinaryInput(stream);
+                        input = new BinaryInput(rawStream);
                     }
                 }
                 if (input == null)
                 {
-                    stream.Seek(0, SeekOrigin.Begin);
-                    input = new TextInput(stream);
+                    rawStream.Seek(0, SeekOrigin.Begin);
+                    input = new TextInput(rawStream);
                 }
 
-                using ReplayParserLog parser = new(relogConfig, input);
+                var streamInvLength = 1.0f / rawStream.Length;
+                int curOp = 0;
+                using ReplayParserLog parser = new(input);
                 while (parser.ParseLine())
-                    ;
-                return parser.Finish(path);
+                {
+                    if ((++curOp & 0x3ff) == 0)
+                    {
+                        progress = rawStream.Position * streamInvLength;
+                        if (cancel.IsCancellationRequested)
+                            break;
+                    }
+                }
+                return cancel.IsCancellationRequested ? new() : parser.Finish(path);
             }
             catch (Exception e)
             {
@@ -258,7 +268,7 @@ namespace UIDev
         private DateTime _tsStart;
         private ulong _qpcStart;
 
-        private ReplayParserLog(ReplayRecorderConfig? relogConfig, Input input) : base(relogConfig)
+        private ReplayParserLog(Input input)
         {
             _input = input;
         }
