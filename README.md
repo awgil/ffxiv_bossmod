@@ -1,3 +1,5 @@
+**Discord**: https://discord.gg/Zzrcc8kmvy
+
 This plugin consists of several interrelated parts which can be enabled or disabled independently.
 
 # Boss modules ("radar")
