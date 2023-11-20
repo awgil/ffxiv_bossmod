@@ -12,7 +12,7 @@ namespace UIDev
     {
         private SimpleImGuiScene _scene;
         private List<Type> _testTypes;
-        private ReplayManager _replayManager = new();
+        private ReplayManager _replayManager = new(".");
         private string _configPath;
 
         // don't allow closing window by esc while there are any config modifications

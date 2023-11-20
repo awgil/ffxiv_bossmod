@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using Dalamud.Interface.ImGuiFileDialog;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace BossMod
             public float Progress;
             public CancellationTokenSource Cancel = new();
             public Task<Replay> Replay;
-            public ReplayVisualization.ReplayWindow? Window;
+            public ReplayVisualization.ReplayDetailsWindow? Window;
             public bool AutoShowWindow;
             public bool Selected;
             public bool Disposed;
@@ -79,6 +80,13 @@ namespace BossMod
         private List<AnalysisEntry> _analysisEntries = new();
         private int _nextAnalysisId;
         private string _path = "";
+        private FileDialog? _fileDialog;
+        private string _fileDialogStartPath;
+
+        public ReplayManager(string startPath)
+        {
+            _fileDialogStartPath = startPath;
+        }
 
         public void Dispose()
         {
@@ -119,81 +127,18 @@ namespace BossMod
         public void Draw()
         {
             DrawEntries();
+            DrawEntriesOperations();
+            DrawNewEntry();
 
-            ImGui.InputText("Path", ref _path, 500);
-            using (ImRaii.Disabled(_path.Length == 0 || _replayEntries.Any(e => e.Path == _path)))
+            if (_fileDialog?.Draw() ?? false)
             {
-                if (ImGui.Button("Open native log"))
+                if (_fileDialog.GetIsOk())
                 {
-                    _replayEntries.Add(new(_path, true));
+                    _path = _fileDialog.GetResults().FirstOrDefault() ?? "";
+                    _fileDialogStartPath = _fileDialog.GetCurrentPath();
                 }
-            }
-            ImGui.SameLine();
-            using (ImRaii.Disabled(_path.Length == 0 || _analysisEntries.Any(e => e.Identifier == _path)))
-            {
-                if (ImGui.Button("Analyze all logs"))
-                {
-                    var analysis = new AnalysisEntry(_path);
-                    try
-                    {
-                        var di = new DirectoryInfo(_path);
-                        var pattern = "*.log";
-                        if (!di.Exists && (di.Parent?.Exists ?? false))
-                        {
-                            pattern = di.Name;
-                            di = di.Parent;
-                        }
-                        foreach (var fi in di.EnumerateFiles(pattern, new EnumerationOptions { RecurseSubdirectories = true }))
-                        {
-                            var r = new ReplayEntry(fi.FullName, false);
-                            _replayEntries.Add(r);
-                            analysis.Replays.Add(r);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Service.Log($"Failed to read {_path}: {e}");
-                    }
-                    if (analysis.Replays.Count > 0)
-                        _analysisEntries.Add(analysis);
-                }
-            }
-
-            using (ImRaii.Disabled(_replayEntries.Count == 0))
-            {
-                var numSelected = _replayEntries.Count(e => e.Selected);
-                bool shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
-                if (ImGui.Button(shouldSelectAll ? "Select all" : "Unselect all", new(80, 0)))
-                {
-                    foreach (var e in _replayEntries)
-                        e.Selected = shouldSelectAll;
-                }
-                using (ImRaii.Disabled(numSelected == 0))
-                {
-                    ImGui.SameLine();
-                    if (ImGui.Button("Analyze selected"))
-                    {
-                        var analysis = new AnalysisEntry((++_nextAnalysisId).ToString());
-                        analysis.Replays = _replayEntries.Where(e => e.Selected).ToList();
-                        _analysisEntries.Add(analysis);
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.Button("Unload selected"))
-                    {
-                        foreach (var e in _replayEntries.Where(e => e.Selected))
-                            e.Dispose();
-                        foreach (var e in _analysisEntries.Where(e => e.Replays.Any(r => r.Selected)))
-                            e.Dispose();
-                    }
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Unload all"))
-                {
-                    foreach (var e in _replayEntries)
-                        e.Dispose();
-                    foreach (var e in _analysisEntries)
-                        e.Dispose();
-                }
+                _fileDialog.Hide();
+                _fileDialog = null;
             }
         }
 
@@ -228,13 +173,13 @@ namespace BossMod
                         if (ImGui.MenuItem("Show"))
                             e.Show();
                         if (ImGui.MenuItem("Convert to verbose"))
-                            ConvertLog(e.Replay.Result, ReplayRecorderConfig.LogFormat.TextVerbose);
+                            ConvertLog(e.Replay.Result, ReplayLogFormat.TextVerbose);
                         if (ImGui.MenuItem("Convert to short text"))
-                            ConvertLog(e.Replay.Result, ReplayRecorderConfig.LogFormat.TextCondensed);
+                            ConvertLog(e.Replay.Result, ReplayLogFormat.TextCondensed);
                         if (ImGui.MenuItem("Convert to uncompressed binary"))
-                            ConvertLog(e.Replay.Result, ReplayRecorderConfig.LogFormat.BinaryUncompressed);
+                            ConvertLog(e.Replay.Result, ReplayLogFormat.BinaryUncompressed);
                         if (ImGui.MenuItem("Convert to compressed binary"))
-                            ConvertLog(e.Replay.Result, ReplayRecorderConfig.LogFormat.BinaryCompressed);
+                            ConvertLog(e.Replay.Result, ReplayLogFormat.BinaryCompressed);
                     }
                 }
 
@@ -251,22 +196,103 @@ namespace BossMod
             }
         }
 
-        private void ConvertLog(Replay r, ReplayRecorderConfig.LogFormat format)
+        private void DrawEntriesOperations()
+        {
+            if (_replayEntries.Count == 0)
+                return;
+
+            var numSelected = _replayEntries.Count(e => e.Selected);
+            bool shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
+            if (ImGui.Button(shouldSelectAll ? "Select all" : "Unselect all", new(80, 0)))
+            {
+                foreach (var e in _replayEntries)
+                    e.Selected = shouldSelectAll;
+            }
+            using (ImRaii.Disabled(numSelected == 0))
+            {
+                ImGui.SameLine();
+                if (ImGui.Button("Analyze selected"))
+                {
+                    var analysis = new AnalysisEntry((++_nextAnalysisId).ToString());
+                    analysis.Replays = _replayEntries.Where(e => e.Selected).ToList();
+                    _analysisEntries.Add(analysis);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Unload selected"))
+                {
+                    foreach (var e in _replayEntries.Where(e => e.Selected))
+                        e.Dispose();
+                    foreach (var e in _analysisEntries.Where(e => e.Replays.Any(r => r.Selected)))
+                        e.Dispose();
+                }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Unload all"))
+            {
+                foreach (var e in _replayEntries)
+                    e.Dispose();
+                foreach (var e in _analysisEntries)
+                    e.Dispose();
+            }
+        }
+
+        private void DrawNewEntry()
+        {
+            ImGui.InputText("###path", ref _path, 500);
+            ImGui.SameLine();
+            if (ImGui.Button("..."))
+            {
+                _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", _fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
+                _fileDialog.Show();
+            }
+            ImGui.SameLine();
+            using (ImRaii.Disabled(_path.Length == 0 || _replayEntries.Any(e => e.Path == _path)))
+            {
+                if (ImGui.Button("Open"))
+                {
+                    _replayEntries.Add(new(_path, true));
+                }
+            }
+            ImGui.SameLine();
+            using (ImRaii.Disabled(_path.Length == 0 || _analysisEntries.Any(e => e.Identifier == _path)))
+            {
+                if (ImGui.Button("Analyze all"))
+                {
+                    var analysis = new AnalysisEntry(_path);
+                    try
+                    {
+                        var di = new DirectoryInfo(_path);
+                        var pattern = "*.log";
+                        if (!di.Exists && (di.Parent?.Exists ?? false))
+                        {
+                            pattern = di.Name;
+                            di = di.Parent;
+                        }
+                        foreach (var fi in di.EnumerateFiles(pattern, new EnumerationOptions { RecurseSubdirectories = true }))
+                        {
+                            var r = new ReplayEntry(fi.FullName, false);
+                            _replayEntries.Add(r);
+                            analysis.Replays.Add(r);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Service.Log($"Failed to read {_path}: {e}");
+                    }
+                    if (analysis.Replays.Count > 0)
+                        _analysisEntries.Add(analysis);
+                }
+            }
+        }
+
+        private void ConvertLog(Replay r, ReplayLogFormat format)
         {
             if (r.Ops.Count == 0)
                 return;
 
-            var config = new ReplayRecorderConfig()
-            {
-                WorldLogFormat = format,
-                DumpServerPackets = true,
-                DumpClientPackets = true,
-                TargetDirectory = new DirectoryInfo(r.Path).Parent,
-                LogPrefix = format.ToString(),
-            };
             var player = new ReplayPlayer(r);
             player.WorldState.Frame.Timestamp = r.Ops.First().Timestamp; // so that we get correct name etc.
-            using var relogger = new ReplayRecorder(player.WorldState, config, false);
+            using var relogger = new ReplayRecorder(player.WorldState, format, false, new FileInfo(r.Path).Directory!, format.ToString());
             player.AdvanceTo(DateTime.MaxValue, () => { });
         }
     }

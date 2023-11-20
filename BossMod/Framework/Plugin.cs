@@ -52,7 +52,7 @@ namespace BossMod
         private BossModuleMainWindow _wndBossmod;
         private BossModulePlanWindow _wndBossmodPlan;
         private BossModuleHintsWindow _wndBossmodHints;
-        private ReplayRecorderWindow _wndReplayRecorder;
+        private ReplayManagementWindow _wndReplay;
         private MainDebugWindow _wndDebug;
 
         public Plugin(
@@ -89,9 +89,6 @@ namespace BossMod
                 _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
             }
 
-            var recorderSettings = Service.Config.Get<ReplayRecorderConfig>();
-            recorderSettings.TargetDirectory = dalamud.ConfigDirectory;
-
             _network = new(dalamud.ConfigDirectory);
             _ws = new(_network);
             _bossmod = new(_ws);
@@ -102,7 +99,7 @@ namespace BossMod
             _wndBossmod = new(_bossmod);
             _wndBossmodPlan = new(_bossmod);
             _wndBossmodHints = new(_bossmod);
-            _wndReplayRecorder = new(_ws, recorderSettings);
+            _wndReplay = new(_ws, dalamud.ConfigDirectory);
             _wndDebug = new(_ws, _autorotation);
 
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
@@ -114,7 +111,7 @@ namespace BossMod
         {
             Service.Condition.ConditionChange -= OnConditionChanged;
             _wndDebug.Dispose();
-            _wndReplayRecorder.Dispose();
+            _wndReplay.Dispose();
             _wndBossmodHints.Dispose();
             _wndBossmodPlan.Dispose();
             _wndBossmod.Dispose();
@@ -151,6 +148,9 @@ namespace BossMod
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                     GC.Collect();
+                    break;
+                case "r":
+                    _wndReplay.SetVisible(!_wndReplay.IsOpen);
                     break;
             }
         }

@@ -1,8 +1,12 @@
 general:
 - optionally log raw ipcs when recording, visualize in replay analysis
 - simulate autorotation in replay analysis
-- move replay analysis to plugin
-- replay manager class
+- live replay
+-- checkbox - record ops to temp struct
+-- start record == rundown + start listening to main worldstate events
+-- on bossmodule activation == mark as 'interesting'
+-- on bossmodule deactivation or zone change == if current is interesting, move it to last (discard prev last); clear and restart current
+-- button to 'keep' last (add as temp to replay manager) or to 'save' last (save into replay file)
 - proper lb support
 - bozja action support
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...

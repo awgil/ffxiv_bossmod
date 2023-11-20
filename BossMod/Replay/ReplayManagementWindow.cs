@@ -1,22 +1,27 @@
 ﻿using ImGuiNET;
 using System;
+using System.IO;
 
 namespace BossMod
 {
-    public class ReplayRecorderWindow : UIWindow
+    public class ReplayManagementWindow : UIWindow
     {
         private WorldState _ws;
-        private ReplayRecorderConfig _config;
+        private DirectoryInfo _logDir;
+        private ReplayManagementConfig _config;
+        private ReplayManager _manager;
         private ReplayRecorder? _recorder;
         private string _message = "";
 
         private static string _windowID = "###Replay recorder";
 
-        public ReplayRecorderWindow(WorldState ws, ReplayRecorderConfig config) : base(_windowID, false, new(300, 200))
+        public ReplayManagementWindow(WorldState ws, DirectoryInfo logDir) : base(_windowID, false, new(300, 200))
         {
             _ws = ws;
-            _config = config;
+            _logDir = logDir;
+            _config = Service.Config.Get<ReplayManagementConfig>();
             _config.Modified += ApplyConfig;
+            _manager = new(logDir.FullName);
             ApplyConfig(null, EventArgs.Empty);
             UpdateTitle();
             RespectCloseHotkey = false;
@@ -26,17 +31,32 @@ namespace BossMod
         {
             _config.Modified -= ApplyConfig;
             _recorder?.Dispose();
+            _manager.Dispose();
+        }
+
+        public void SetVisible(bool vis)
+        {
+            if (_config.ShowUI != vis)
+            {
+                _config.ShowUI = vis;
+                _config.NotifyModified();
+            }
+        }
+
+        public override void PreOpenCheck()
+        {
+            _manager.Update();
         }
 
         public override void Draw()
         {
-            if (ImGui.Button(_recorder == null ? "Start" : "Stop"))
+            if (ImGui.Button(_recorder == null ? "Start recording" : "Stop recording"))
             {
                 if (_recorder == null)
                 {
                     try
                     {
-                        _recorder = new(_ws, _config, true);
+                        _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, "World");
                     }
                     catch (Exception ex)
                     {
@@ -61,19 +81,17 @@ namespace BossMod
                     _message = "";
                 }
             }
+
+            ImGui.Separator();
+            _manager.Draw();
         }
 
         public override void OnClose()
         {
-            Service.Log($"Closing: {_config.ShowUI}");
-            if (_config.ShowUI)
-            {
-                _config.ShowUI = false;
-                _config.NotifyModified();
-            }
+            SetVisible(false);
         }
 
         private void ApplyConfig(object? sender, EventArgs args) => IsOpen = _config.ShowUI;
-        private void UpdateTitle() =>  WindowName = $"{(_recorder != null ? "Recording..." : "Idle")}{_windowID}";
+        private void UpdateTitle() =>  WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
     }
 }

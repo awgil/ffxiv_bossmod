@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace BossMod.ReplayVisualization
 {
-    class ReplayWindow : UIWindow
+    class ReplayDetailsWindow : UIWindow
     {
         private ReplayPlayer _player;
         private BossModuleManager _mgr;
@@ -29,7 +29,7 @@ namespace BossMod.ReplayVisualization
         private Positional _pfPositional = Positional.Any;
         private bool _pfTank = false;
 
-        public ReplayWindow(Replay data) : base($"Replay: {data.Path}", false, new(1500, 1000))
+        public ReplayDetailsWindow(Replay data) : base($"Replay: {data.Path}", false, new(1500, 1000))
         {
             _player = new(data);
             _mgr = new(_player.WorldState);
