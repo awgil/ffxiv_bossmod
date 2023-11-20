@@ -36,6 +36,12 @@
         {
             P3Intermission(id, 9.4f);
             P3HelloWorld(id + 0x10000, 4.1f);
+            P3OversampledWaveCannon(id + 0x20000, 11.6f);
+            ActorCast(id + 0x30000, _module.BossP3, AID.IonEfflux, 5.8f, 10, true, "Enrage");
+        }
+
+        private void Phase4(uint id)
+        {
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -166,7 +172,8 @@
             ComponentCondition<P3ColossalBlow>(id + 0x10, 3.1f, comp => comp.AOEs.Count > 0)
                 .ActivateOnEnter<P3ColossalBlow>();
             ComponentCondition<P3WaveRepeater>(id + 0x11, 1.9f, comp => comp.NumCasts > 0, "Ring 1");
-            ComponentCondition<P3ColossalBlow>(id + 0x12, 1.1f, comp => comp.AOEs.Count > 3);
+            ComponentCondition<P3ColossalBlow>(id + 0x12, 1.1f, comp => comp.AOEs.Count > 3)
+                .ActivateOnEnter<P3IntermissionVoidzone>(); // voidzone appears ~1s after first ring
             ComponentCondition<P3WaveRepeater>(id + 0x13, 1.0f, comp => comp.NumCasts > 1, "Ring 2");
             ComponentCondition<P3WaveRepeater>(id + 0x20, 1.1f, comp => comp.Sequences.Count > 1);
             ComponentCondition<P3WaveRepeater>(id + 0x21, 1.0f, comp => comp.NumCasts > 2, "Ring 3");
@@ -182,7 +189,8 @@
             ComponentCondition<P3ColossalBlow>(id + 0x52, 0.2f, comp => comp.NumCasts > 3, "Arms 2")
                 .DeactivateOnExit<P3ColossalBlow>();
 
-            ActorTargetable(id + 0x100, _module.BossP3, true, 3.5f, "Boss reappears");
+            ActorTargetable(id + 0x100, _module.BossP3, true, 3.5f, "Boss reappears")
+                .DeactivateOnExit<P3IntermissionVoidzone>(); // voidzone disappears ~1.6s before boss appears
         }
 
         private void P3HelloWorld(uint id, float delay)
@@ -212,6 +220,16 @@
             ActorCast(id + 0x50, _module.BossP3, AID.CriticalError, 13.1f, 8, true, "Hello World resolve + Raidwide")
                 .DeactivateOnExit<P3HelloWorld>()
                 .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P3OversampledWaveCannon(uint id, float delay)
+        {
+            ActorCastMulti(id, _module.BossP3, new[] { AID.OversampledWaveCannonR, AID.OversampledWaveCannonL }, delay, 10, true)
+                .ActivateOnEnter<P3OversampledWaveCannon>()
+                .ActivateOnEnter<P3OversampledWaveCannonSpread>()
+                .DeactivateOnExit<P3OversampledWaveCannon>();
+            ComponentCondition<P3OversampledWaveCannonSpread>(id + 2, 0.1f, comp => !comp.Active, "Monitors")
+                .DeactivateOnExit<P3OversampledWaveCannonSpread>();
         }
     }
 }

@@ -36,6 +36,11 @@
         [PropertyCombo("Stacks S, spreads N", "Stacks N, spreads S")]
         public bool P3IntermissionStacksNorth = true;
 
+        [PropertyDisplay("P3 Monitors: priority, from North to South")]
+        [GroupDetails(new string[] { "1", "2", "3", "4", "5", "6", "7", "8" })]
+        [GroupPreset("LPDU (HTMR)", new[] { 2, 3, 0, 1, 4, 5, 6, 7 })]
+        public GroupAssignmentUnique P3MonitorsAssignments = new() { Assignments = new[] { 2, 3, 0, 1, 4, 5, 6, 7 } };
+
         public TOPConfig() : base(90) { }
     }
 }

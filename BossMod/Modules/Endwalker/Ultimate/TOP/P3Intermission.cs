@@ -134,6 +134,11 @@ namespace BossMod.Endwalker.Ultimate.TOP
         }
     }
 
+    class P3IntermissionVoidzone : Components.PersistentVoidzone
+    {
+        public P3IntermissionVoidzone() : base(6, m => m.Enemies(OID.P3IntermissionVoidzone).Where(z => z.EventState != 7)) { }
+    }
+
     class P3ColossalBlow : Components.GenericAOEs
     {
         public List<AOEInstance> AOEs = new();

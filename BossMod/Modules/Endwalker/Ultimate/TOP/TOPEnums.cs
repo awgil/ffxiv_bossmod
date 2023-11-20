@@ -14,7 +14,7 @@
         BossP3 = 0x3D65, // R12.502, spawn during fight
         LeftArmUnit = 0x3D66, // R1.680, spawn during fight
         RightArmUnit = 0x3D67, // R1.680, spawn during fight
-        //_Gen_Actor1eb821 = 0x1EB821, // R0.500, EventObj type, spawn during fight
+        P3IntermissionVoidzone = 0x1EB821, // R0.500, EventObj type, spawn during fight
 
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
@@ -100,6 +100,7 @@
 
         // p3
         AutoAttackP3 = 31744, // BossP3->player, no cast, single-target
+        TeleportP3 = 31558, // BossP3->location, no cast, ???
         WaveRepeater1 = 31567, // Helper->location, 5.0s cast, range 6 circle
         WaveRepeater2 = 31568, // Helper->self, no cast, range 6-12 donut
         WaveRepeater3 = 31569, // Helper->self, no cast, range 12-18 donut
@@ -107,7 +108,6 @@
         SniperCannon = 31571, // Helper->players, no cast, range 6 circle spread
         HighPoweredSniperCannon = 31572, // Helper->players, no cast, range 6 circle 2-man stack
         ColossalBlow = 31566, // LeftArmUnit/RightArmUnit->self, 2.0s cast, range 11 circle
-
         HelloWorld = 31573, // BossP3->self, 5.0s cast, range 100 circle, raidwide + mechanic start
         LatentDefect = 31599, // BossP3->self, 9.0s cast, single-target, visual (towers)
         HWRedTowerExpireWipe = 31581, // Helper->self, no cast, range 100 circle - 'cascading latent defect', wipe if HWRedTower debuff expires without being cleansed by rot explosion
@@ -124,6 +124,10 @@
         HWTetherBreak = 31587, // Helper->self, no cast, range 100 circle - 'patch' - raidwide on tether break (remote or any?)
         HWTetherFail = 32505, // Helper->self, no cast, range 100 circle - 'patch' - wipe if tether wasn't broken
         CriticalError = 31588, // BossP3->self, 8.0s cast, range 100 circle, raidwide
+        OversampledWaveCannonR = 31595, // BossP3->self, 10.0s cast, single-target, visual (monitors cleaving right side)
+        OversampledWaveCannonL = 31596, // BossP3->self, 10.0s cast, single-target, visual (monitors cleaving left side)
+        OversampledWaveCannonAOE = 31597, // Helper->players, no cast, range 7 circle spread
+        IonEfflux = 31560, // BossP3->self, 10.0s cast, range 100 circle enrage
     };
 
     public enum SID : uint
@@ -158,11 +162,8 @@
         HWImmuneDefamation = 3431, // none->player, extra=0x0 - 'overflow debugger', replaces defamation after resolve
         HWImmuneRedRot = 3432, // none->player, extra=0x0 - 'underflow debugger', replaces red rot after resolve
         HWImmuneBlueRot = 3433, // none->player, extra=0x0 - 'performance debugger', replaces blue rot after resolve
-
-        //_Gen_DamageDown = 2911, // Helper->player, extra=0x0
-        //_Gen_MagicVulnerabilityUp = 3516, // Helper->player, extra=0x2
-        //_Gen_ThriceComeRuin = 2530, // Helper->player, extra=0x2
-        //_Gen_MemoryLoss = 1626, // none->player, extra=0x0
+        OversampledWaveCannonLoadingR = 3452, // none->player, extra=0x0, cleaves right side
+        OversampledWaveCannonLoadingL = 3453, // none->player, extra=0x0, cleaves left side
     };
 
     public enum IconID : uint
