@@ -47,7 +47,7 @@ namespace BossMod.ReplayAnalysis
                         int spawnedPreFight = 0, spawnedMidFight = 0;
                         float minRadius = float.MaxValue;
                         float maxRadius = float.MinValue;
-                        foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure) && p.ExistsAt(enc.Time.End.AddSeconds(-1))))
+                        foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure) && p.ExistsInWorldAt(enc.Time.End.AddSeconds(-1))))
                         {
                             if (commonType == null)
                                 commonType = p.Type;
@@ -57,7 +57,7 @@ namespace BossMod.ReplayAnalysis
                             if (commonName.Length == 0 && p.NameHistory.Count > 0)
                                 commonName = p.NameHistory.Values.First();
 
-                            if (p.ExistsAt(enc.Time.Start))
+                            if (p.ExistsInWorldAt(enc.Time.Start))
                                 ++spawnedPreFight;
                             else
                                 ++spawnedMidFight;

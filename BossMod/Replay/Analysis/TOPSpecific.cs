@@ -25,11 +25,11 @@ namespace BossMod.ReplayAnalysis
             foreach (var replay in replays)
             {
                 var aidFlamethrower = ActionID.MakeSpell(AID.FlameThrowerFirst);
-                foreach (var p in replay.Participants.Values)
+                foreach (var p in replay.Participants)
                 {
                     foreach (var cast in p.Casts.Where(c => c.ID == aidFlamethrower))
                     {
-                        var boss = replay.Participants.Values.First(p => (OID)p.OID == OID.Boss && p.ExistsAt(cast.Time.Start));
+                        var boss = replay.Participants.First(p => (OID)p.OID == OID.Boss && p.ExistsInWorldAt(cast.Time.Start));
                         if (boss != null)
                         {
                             _flamethrowers.Add(new() { Replay = replay, Timestamp = cast.Time.Start, Difference = (cast.Rotation - boss.PosRotAt(cast.Time.Start).W.Radians()).Normalized() });

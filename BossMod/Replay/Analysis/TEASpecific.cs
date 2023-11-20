@@ -56,8 +56,8 @@ namespace BossMod.ReplayAnalysis
             {
                 foreach (var op in replay.Ops.OfType<ActorState.OpModelState>().Where(op => op.Value.ModelState is 19 or 20))
                 {
-                    var hand = replay.Participants.GetValueOrDefault(op.InstanceID);
-                    var boss = replay.Participants.Values.First(p => p.OID == oid && p.ExistsAt(op.Timestamp));
+                    var hand = replay.FindParticipant(op.InstanceID, op.Timestamp);
+                    var boss = replay.Participants.First(p => p.OID == oid && p.ExistsInWorldAt(op.Timestamp));
                     if (hand != null && boss != null)
                     {
                         var handPos = new WPos(hand.PosRotAt(op.Timestamp).XZ());
@@ -70,8 +70,8 @@ namespace BossMod.ReplayAnalysis
                 var aidPrayer = ActionID.MakeSpell(AID.HandOfPrayer);
                 foreach (var action in replay.Actions.Where(a => a.ID == aidParting || a.ID == aidPrayer))
                 {
-                    var hand = replay.Participants.GetValueOrDefault(action.Source.InstanceID);
-                    var boss = replay.Participants.Values.First(p => p.OID == oid && p.ExistsAt(action.Timestamp));
+                    var hand = replay.FindParticipant(action.Source.InstanceID, action.Timestamp);
+                    var boss = replay.Participants.First(p => p.OID == oid && p.ExistsInWorldAt(action.Timestamp));
                     if (hand != null && boss != null)
                     {
                         var handPos = new WPos(hand.PosRotAt(action.Timestamp).XZ());

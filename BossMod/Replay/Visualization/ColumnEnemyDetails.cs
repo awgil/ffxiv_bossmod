@@ -28,7 +28,7 @@ namespace BossMod.ReplayVisualization
 
         public void DrawConfig(UITree tree)
         {
-            foreach (var n in tree.Node(ReplayUtils.ParticipantString(_enemy, _enemy.Existence.FirstOrDefault().Start)))
+            foreach (var n in tree.Node(ReplayUtils.ParticipantString(_enemy, _enemy.WorldExistence.FirstOrDefault().Start)))
             {
                 DrawColumnToggle(_casts, "Casts");
                 DrawColumnToggle(_hp, "HP");

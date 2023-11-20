@@ -83,7 +83,7 @@ namespace BossMod.ReplayVisualization
 
         private bool FilterInterestingActor(ulong instanceID, DateTime timestamp, bool allowPlayers)
         {
-            var p = _replay.Participants[instanceID];
+            var p = _replay.FindParticipant(instanceID, timestamp)!;
             if ((p.OwnerID & 0xFF000000) == 0x10000000)
                 return false; // player's pet/area
             if (p.Type == ActorType.Player && !allowPlayers)
@@ -125,7 +125,7 @@ namespace BossMod.ReplayVisualization
                 ActorState.OpCombat => false,
                 ActorState.OpEventState op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
                 ActorState.OpTarget op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
-                ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(_replay.Participants.GetValueOrDefault(op.InstanceID), op.Timestamp, op.Value != null)?.ID ?? new()),
+                ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(_replay.FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)?.ID ?? new()),
                 ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
                 ActorState.OpEffectResult => false,
                 ActorState.OpStatus op => FilterInterestingStatuses(op.InstanceID, op.Index, op.Timestamp),
@@ -226,7 +226,7 @@ namespace BossMod.ReplayVisualization
 
         private void ContextMenuActor(ActorState.Operation op)
         {
-            var oid = _replay.Participants[op.InstanceID].OID;
+            var oid = _replay.FindParticipant(op.InstanceID, op.Timestamp)!.OID;
             if (ImGui.MenuItem($"Filter out OID {oid:X}"))
             {
                 _filteredOIDs.Add(oid);
@@ -250,7 +250,7 @@ namespace BossMod.ReplayVisualization
         private void ContextMenuActorCast(ActorState.OpCastInfo op)
         {
             ContextMenuActor(op);
-            var cast = FindCast(_replay.Participants.GetValueOrDefault(op.InstanceID), op.Timestamp, op.Value != null);
+            var cast = FindCast(_replay.FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null);
             if (cast != null && ImGui.MenuItem($"Filter out {cast.ID}"))
             {
                 _filteredActions.Add(cast.ID);
@@ -278,7 +278,7 @@ namespace BossMod.ReplayVisualization
 
         private string ActorString(ulong instanceID, DateTime timestamp)
         {
-            var p = _replay.Participants.GetValueOrDefault(instanceID);
+            var p = _replay.FindParticipant(instanceID, timestamp);
             return p != null || instanceID == 0 ? ActorString(p, timestamp) : $"<unknown> {instanceID:X}";
         }
 
@@ -292,7 +292,7 @@ namespace BossMod.ReplayVisualization
 
         private string CastString(ulong instanceID, DateTime timestamp, bool start)
         {
-            var p = _replay.Participants.GetValueOrDefault(instanceID);
+            var p = _replay.FindParticipant(instanceID, timestamp);
             var c = FindCast(p, timestamp, start);
             if (c == null)
                 return $"{ActorString(p, timestamp)}: <unknown cast>";

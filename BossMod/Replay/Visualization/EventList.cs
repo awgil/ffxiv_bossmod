@@ -68,7 +68,7 @@ namespace BossMod.ReplayVisualization
             {
                 if (filter == null)
                 {
-                    DrawParticipants(_replay.Participants.Values, actions, statuses, tp, reference, filter, aidType, sidType);
+                    DrawParticipants(_replay.Participants, actions, statuses, tp, reference, filter, aidType, sidType);
                 }
                 else
                 {
@@ -128,46 +128,31 @@ namespace BossMod.ReplayVisualization
 
         private void DrawParticipants(IEnumerable<Replay.Participant> list, IEnumerable<Replay.Action> actions, IEnumerable<Replay.Status> statuses, Func<DateTime, string> tp, DateTime reference, Replay.Encounter? filter, Type? aidType, Type? sidType)
         {
-            foreach (var p in _tree.Nodes(list, p => new($"{ReplayUtils.ParticipantString(p, p.Existence.FirstOrDefault().Start)}: spawn at {tp(p.Existence.FirstOrDefault().Start)}, despawn at {tp(p.Existence.LastOrDefault().End)}", p.Casts.Count == 0 && !p.HasAnyActions && !p.HasAnyStatuses && !p.IsTargetOfAnyActions && p.TargetableHistory.Count == 0)))
+            foreach (var p in _tree.Nodes(list, p => new($"{ReplayUtils.ParticipantString(p, p.WorldExistence.FirstOrDefault().Start)}: first seen at {tp(p.EffectiveExistence.Start)}, last seen at {tp(p.EffectiveExistence.End)}")))
             {
-                foreach (var n in _tree.Node("Existence", p.Existence.Count == 0))
+                foreach (var n in _tree.Node("Existence", p.WorldExistence.Count == 0))
                 {
-                    _tree.LeafNodes(p.Existence, r => r.ToString());
+                    _tree.LeafNodes(p.WorldExistence, r => $"{tp(r.Start)}-{tp(r.End)} ({r})");
                 }
-                if (p.Casts.Count > 0)
+                foreach (var n in _tree.Node("Casts", p.Casts.Count == 0))
                 {
-                    foreach (var n in _tree.Node("Casts"))
-                    {
-                        DrawCasts(p.Casts, reference, aidType);
-                    }
+                    DrawCasts(p.Casts, reference, aidType);
                 }
-                if (p.HasAnyActions)
+                foreach (var an in _tree.Node("Actions", !p.HasAnyActions))
                 {
-                    foreach (var an in _tree.Node("Actions"))
-                    {
-                        DrawActions(actions.Where(a => a.Source == p), tp, aidType);
-                    }
+                    DrawActions(actions.Where(a => a.Source == p), tp, aidType);
                 }
-                if (p.IsTargetOfAnyActions)
+                foreach (var an in _tree.Node("Affected by actions", !p.IsTargetOfAnyActions))
                 {
-                    foreach (var an in _tree.Node("Affected by actions"))
-                    {
-                        DrawActions(actions.Where(a => a.Targets.Any(t => t.Target == p)), tp, aidType);
-                    }
+                    DrawActions(actions.Where(a => a.Targets.Any(t => t.Target == p)), tp, aidType);
                 }
-                if (p.HasAnyStatuses)
+                foreach (var an in _tree.Node("Statuses", !p.HasAnyStatuses))
                 {
-                    foreach (var an in _tree.Node("Statuses"))
-                    {
-                        DrawStatuses(statuses.Where(s => s.Target == p), tp, sidType);
-                    }
+                    DrawStatuses(statuses.Where(s => s.Target == p), tp, sidType);
                 }
-                if (p.TargetableHistory.Count > 0)
+                foreach (var an in _tree.Node("Targetable", p.TargetableHistory.Count == 0))
                 {
-                    foreach (var an in _tree.Node("Targetable"))
-                    {
-                        _tree.LeafNodes(p.TargetableHistory, r => $"{tp(r.Key)} = {r.Value}");
-                    }
+                    _tree.LeafNodes(p.TargetableHistory, r => $"{tp(r.Key)} = {r.Value}");
                 }
             }
         }

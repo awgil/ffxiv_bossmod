@@ -201,7 +201,7 @@ namespace BossMod.ReplayAnalysis
                     var pos = a.Source.PosRotAt(a.Timestamp).XYZ();
 
                     float minDistance = float.MaxValue;
-                    foreach (var other in r.Participants.Values.Where(p => p != a.Source && p.OID == a.Source.OID && p.ExistsAt(a.Timestamp)))
+                    foreach (var other in r.Participants.Where(p => p != a.Source && p.OID == a.Source.OID && p.ExistsInWorldAt(a.Timestamp)))
                     {
                         var otherPos = other.PosRotAt(a.Timestamp).XYZ();
                         minDistance = MathF.Min(minDistance, (otherPos - pos).Length());
@@ -270,7 +270,7 @@ namespace BossMod.ReplayAnalysis
             {
                 foreach (var action in replay.Actions)
                     AddActionData(replay, action);
-                foreach (var p in replay.Participants.Values)
+                foreach (var p in replay.Participants)
                     foreach (var c in p.Casts)
                         AddCastData(replay, p, c);
             }
@@ -443,7 +443,7 @@ namespace BossMod.ReplayAnalysis
 
         private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)
         {
-            return r.Participants.Values.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.ExistsAt(t) && !p.DeadAt(t));
+            return r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.ExistsInWorldAt(t) && !p.DeadAt(t));
         }
 
         private IEnumerable<string> ActionTargetStrings(ActionData data)

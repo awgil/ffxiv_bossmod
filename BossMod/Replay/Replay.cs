@@ -37,12 +37,15 @@ namespace BossMod
 
         // note: actors are sometimes destroyed and recreated (e.g. due to object size limits); we combine them into single participant structure with multiple 'instances'
         // sometimes we could even have participants that never exist as actors (but are referenced by other actions/events/etc.)
+        // on the other hand, sometimes instance ids are reused for clearly different actors (e.g. different OIDs) - we try to separate them into different participants
+        // we use a heuristic to distinguish actor destruction/recreation vs instance id reuse
         public record class Participant(ulong InstanceID)
         {
             public uint OID;
             public ActorType Type;
             public ulong OwnerID;
-            public List<TimeRange> Existence = new(); // sorted by time, non-overlapping ranges
+            public TimeRange EffectiveExistence;
+            public List<TimeRange> WorldExistence = new(); // sorted by time, non-overlapping ranges
             public SortedList<DateTime, string> NameHistory = new();
             public SortedList<DateTime, bool> TargetableHistory = new();
             public SortedList<DateTime, bool> DeadHistory = new();
@@ -55,7 +58,7 @@ namespace BossMod
             public bool HasAnyStatuses;
             public bool IsTargetOfAnyActions;
 
-            public bool ExistsAt(DateTime t) => Existence.Any(r => r.Contains(t));
+            public bool ExistsInWorldAt(DateTime t) => WorldExistence.Any(r => r.Contains(t));
             public string NameAt(DateTime t) => HistoryEntryAt(NameHistory, t) ?? "";
             public bool TargetableAt(DateTime t) => HistoryEntryAt(TargetableHistory, t);
             public bool DeadAt(DateTime t) => HistoryEntryAt(DeadHistory, t);
@@ -123,7 +126,7 @@ namespace BossMod
         public string Path = "";
         public ulong QPF = TimeSpan.TicksPerSecond;
         public List<WorldState.Operation> Ops = new();
-        public Dictionary<ulong, Participant> Participants = new(); // key = instance id
+        public List<Participant> Participants = new();
         public List<Action> Actions = new();
         public List<Status> Statuses = new();
         public List<Tether> Tethers = new();
@@ -140,5 +143,7 @@ namespace BossMod
         public IEnumerable<Icon> EncounterIcons(Encounter e) => Icons.Skip(e.FirstIcon).TakeWhile(i => i.Timestamp <= e.Time.End);
         public IEnumerable<DirectorUpdate> EncounterDirectorUpdates(Encounter e) => DirectorUpdates.Skip(e.FirstDirectorUpdate).TakeWhile(du => du.Timestamp <= e.Time.End);
         public IEnumerable<EnvControl> EncounterEnvControls(Encounter e) => EnvControls.Skip(e.FirstEnvControl).TakeWhile(ec => ec.Timestamp <= e.Time.End);
+
+        public Participant? FindParticipant(ulong instanceID, DateTime t) => Participants.FirstOrDefault(p => p.InstanceID == instanceID && p.EffectiveExistence.Contains(t));
     }
 }

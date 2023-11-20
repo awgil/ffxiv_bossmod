@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static BossMod.Replay;
 
 namespace BossMod.ReplayVisualization
 {
@@ -14,7 +15,7 @@ namespace BossMod.ReplayVisualization
         private Replay.Participant _target;
 
         private ColumnSeparator _sep;
-        private Dictionary<(uint sid, ulong source), ColumnGenericHistory?> _columns = new();
+        private List<(uint sid, Replay.Participant? source, ColumnGenericHistory? col)> _columns = new();
 
         public bool Visible => _sep.Width > 0;
 
@@ -28,32 +29,29 @@ namespace BossMod.ReplayVisualization
             _enc = enc;
             _target = actor;
             _sep = Add(new ColumnSeparator(timeline, width: 0));
-            foreach (var s in replay.EncounterStatuses(enc).Where(s => s.Target == actor))
-                _columns[(s.ID, s.Source?.InstanceID ?? 0)] = null;
+            foreach (var s in replay.EncounterStatuses(enc).Where(s => s.Target == actor && !_columns.Any(c => c.sid == s.ID && c.source == s.Source)))
+                _columns.Add((s.ID, s.Source, null));
         }
 
         public void DrawConfig(UITree tree)
         {
-            foreach (var (s, col) in _columns)
+            foreach (ref var c in _columns.AsSpan())
             {
-                bool visible = col?.Width > 0;
-                var source = s.source != 0 ? _replay.Participants.GetValueOrDefault(s.source) : null; // TODO: what if there are multiple?..
-                if (ImGui.Checkbox($"{Utils.StatusString(s.sid)} from {ReplayUtils.ParticipantString(source, source?.Existence.FirstOrDefault().Start ?? default)}", ref visible))
+                bool visible = c.col?.Width > 0;
+                if (ImGui.Checkbox($"{Utils.StatusString(c.sid)} from {ReplayUtils.ParticipantString(c.source, c.source?.WorldExistence.FirstOrDefault().Start ?? default)}", ref visible))
                 {
-                    var actualCol = col ?? BuildColumn(s.sid, s.source);
-                    actualCol.Width = visible ? ColumnGenericHistory.DefaultWidth : 0;
-                    if (col == null)
-                        _columns[s] = actualCol;
+                    c.col ??= BuildColumn(c.sid, c.source);
+                    c.col.Width = visible ? ColumnGenericHistory.DefaultWidth : 0;
                 }
             }
             _sep.Width = Columns.Any(c => c != _sep && c.Width > 0) ? 1 : 0;
         }
 
-        private ColumnGenericHistory BuildColumn(uint statusID, ulong sourceID)
+        private ColumnGenericHistory BuildColumn(uint statusID, Participant? source)
         {
             var res = AddBefore(new ColumnGenericHistory(Timeline, _tree, _phaseBranches), _sep);
             DateTime prevEnd = default;
-            foreach (var s in _replay.EncounterStatuses(_enc).Where(s => s.ID == statusID && (s.Source?.InstanceID ?? 0) == sourceID && s.Target == _target))
+            foreach (var s in _replay.EncounterStatuses(_enc).Where(s => s.ID == statusID && s.Source == source && s.Target == _target))
             {
                 var e = res.AddHistoryEntryRange(_enc.Time.Start, s.Time, $"{Utils.StatusString(statusID)} ({s.StartingExtra:X}) on {ReplayUtils.ParticipantString(_target, s.Time.Start)} from {ReplayUtils.ParticipantString(s.Source, s.Time.Start)}", 0x80808080);
                 e.TooltipExtra.Add($"- initial duration: {s.InitialDuration:f3}");
@@ -72,7 +70,7 @@ namespace BossMod.ReplayVisualization
                         {
                             var src = e.FromTarget ? t.Target : a.Source;
                             var tgt = e.AtSource ? a.Source : t.Target;
-                            if (src.InstanceID == sourceID && tgt == _target)
+                            if (src == source && tgt == _target)
                             {
                                 var actionName = $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
                                 res.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a);

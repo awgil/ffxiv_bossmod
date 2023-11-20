@@ -126,9 +126,9 @@ namespace BossMod
 
         public void Draw()
         {
+            DrawNewEntry();
             DrawEntries();
             DrawEntriesOperations();
-            DrawNewEntry();
 
             if (_fileDialog?.Draw() ?? false)
             {

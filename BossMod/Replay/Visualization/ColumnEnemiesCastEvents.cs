@@ -14,7 +14,7 @@ namespace BossMod.ReplayVisualization
         private Replay.Encounter _encounter;
         private ModuleRegistry.Info? _moduleInfo;
         private List<Replay.Action> _actions;
-        private Dictionary<ActionID, Dictionary<ulong, BitMask>> _filters = new(); // [action][sourceid]
+        private Dictionary<ActionID, List<(Replay.Participant source, BitMask cols)>> _filters = new(); // [action][sourceid]
 
         public ColumnEnemiesCastEvents(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
             : base(timeline)
@@ -27,7 +27,11 @@ namespace BossMod.ReplayVisualization
             _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
             _actions = replay.EncounterActions(enc).Where(a => !(a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
             foreach (var a in _actions)
-                _filters.GetOrAdd(a.ID)[a.Source.InstanceID] = new(1);
+            {
+                var f = _filters.GetOrAdd(a.ID);
+                if (!f.Any(e => e.source == a.Source))
+                    f.Add((a.Source, new(1)));
+            }
             AddColumn();
             RebuildEvents();
         }
@@ -40,15 +44,9 @@ namespace BossMod.ReplayVisualization
             bool needRebuild = false;
             foreach (var na in tree.Nodes(_filters, kv => new($"{kv.Key} ({_moduleInfo?.ActionIDType?.GetEnumName(kv.Key.ID)})")))
             {
-                foreach (var src in na.Value)
+                foreach (ref var v in na.Value.AsSpan())
                 {
-                    var mask = src.Value;
-                    var p = src.Key != 0 ? _replay.Participants.GetValueOrDefault(src.Key) : null; // TODO: what if there are multiple?..
-                    if (DrawConfigColumns(ref mask, $"{ReplayUtils.ParticipantString(p, p?.Existence.FirstOrDefault().Start ?? default)} ({_moduleInfo?.ObjectIDType?.GetEnumName(p?.OID ?? 0)})"))
-                    {
-                        _filters[na.Key][src.Key] = mask;
-                        needRebuild = true;
-                    }
+                    needRebuild |= DrawConfigColumns(ref v.cols, $"{ReplayUtils.ParticipantString(v.source, v.source.WorldExistence.FirstOrDefault().Start)} ({_moduleInfo?.ObjectIDType?.GetEnumName(v.source.OID)})");
                 }
             }
 
@@ -85,7 +83,7 @@ namespace BossMod.ReplayVisualization
 
             foreach (var a in _actions)
             {
-                var cols = _filters[a.ID][a.Source.InstanceID];
+                var cols = _filters[a.ID].Find(c => c.source == a.Source).cols;
                 if (cols.None())
                     continue;
 

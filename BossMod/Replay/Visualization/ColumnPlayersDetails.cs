@@ -34,7 +34,7 @@ namespace BossMod.ReplayVisualization
             for (int i = 0; i < _columns.Length; ++i)
             {
                 var (p, c) = _encounter.PartyMembers[i];
-                foreach (var n in tree.Node($"{c} {ReplayUtils.ParticipantString(p, p.Existence.FirstOrDefault().Start)}"))
+                foreach (var n in tree.Node($"{c} {ReplayUtils.ParticipantString(p, p.WorldExistence.FirstOrDefault().Start)}"))
                 {
                     var col = _columns[i];
                     if (col != null)

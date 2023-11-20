@@ -57,6 +57,7 @@ namespace BossMod
         protected WorldState _ws = new(TimeSpan.TicksPerSecond);
         private BossModuleManagerWrapper _mgr;
         private Dictionary<ulong, LoadedModuleData> _modules = new();
+        private Dictionary<ulong, Replay.Participant> _participants = new(); // these are either existing actors, destroyed actors that can still be recreated, or never-created-but-referenced actors
         private Dictionary<(ulong, int), Replay.Status> _statuses = new();
         private Dictionary<ulong, Replay.Tether> _tethers = new();
         private List<Replay.ClientAction> _pendingClientActions = new();
@@ -82,6 +83,7 @@ namespace BossMod
             _ws.Actors.CastEvent += EventCast;
             _ws.Actors.EffectResult += EventConfirm;
             _ws.UserMarkerAdded += EventUserMarker;
+            _ws.CurrentZoneChanged += EventZoneChange;
             _ws.DirectorUpdate += EventDirectorUpdate;
             _ws.EnvControl += EventEnvControl;
             _ws.Client.ActionRequested += ClientActionRequested;
@@ -110,6 +112,7 @@ namespace BossMod
             _ws.Actors.CastEvent -= EventCast;
             _ws.Actors.EffectResult -= EventConfirm;
             _ws.UserMarkerAdded -= EventUserMarker;
+            _ws.CurrentZoneChanged -= EventZoneChange;
             _ws.DirectorUpdate -= EventDirectorUpdate;
             _ws.EnvControl -= EventEnvControl;
             _ws.Client.ActionRequested -= ClientActionRequested;
@@ -142,7 +145,7 @@ namespace BossMod
                 }
                 enc.Encounter.Time.End = _ws.CurrentTime;
             }
-            foreach (var p in _res.Participants.Values)
+            foreach (var p in _participants.Values)
             {
                 FinalizeParticipant(p);
             }
@@ -174,10 +177,10 @@ namespace BossMod
                         m.Encounter.FirstIcon = _res.Icons.Count;
                         m.Encounter.FirstDirectorUpdate = _res.DirectorUpdates.Count;
                         m.Encounter.FirstEnvControl = _res.EnvControls.Count;
-                        foreach (var p in _res.Participants.Values.Where(p => p.Existence.Count > 0 && p.Existence.Last().End == default))
+                        foreach (var p in _participants.Values.Where(p => p.WorldExistence.Count > 0 && p.WorldExistence.Last().End == default)) // include only live actors
                             m.Encounter.ParticipantsByOID.GetOrAdd(p.OID).Add(p);
                         foreach (var p in _ws.Party.WithoutSlot(true))
-                            m.Encounter.PartyMembers.Add((_res.Participants[p.InstanceID], p.Class));
+                            m.Encounter.PartyMembers.Add((_participants[p.InstanceID], p.Class));
                         _res.Encounters.Add(m.Encounter);
                     }
                     else
@@ -196,8 +199,10 @@ namespace BossMod
 
         private void FinalizeParticipant(Replay.Participant p)
         {
-            if (p.Existence.Count > 0 && p.Existence.Last().End == default)
-                p.Existence.AsSpan()[p.Existence.Count - 1].End = _ws.CurrentTime;
+            if (p.EffectiveExistence.End > _ws.CurrentTime)
+                p.EffectiveExistence.End = _ws.CurrentTime; // note that this would be extended by any new references
+            if (p.WorldExistence.Count > 0 && p.WorldExistence.Last().End == default)
+                p.WorldExistence.AsSpan()[p.WorldExistence.Count - 1].End = _ws.CurrentTime;
 
             if (p.Casts.Count > 0 && p.Casts.Last().Time.End == default)
                 p.Casts.Last().Time.End = _ws.CurrentTime;
@@ -211,40 +216,54 @@ namespace BossMod
             }
         }
 
-        private Replay.Participant GetOrCreateParticipant(ulong instanceID)
+        private Replay.Participant GetOrCreateParticipant(ulong instanceID, bool extendEffectiveExistence = true)
         {
             if (instanceID is 0 or 0xE0000000)
                 throw new ArgumentException("Unexpected invalid instance-id");
-            if (_res.Participants.TryGetValue(instanceID, out var p))
+            if (_participants.TryGetValue(instanceID, out var p))
+            {
+                if (extendEffectiveExistence && p.EffectiveExistence.End < _ws.CurrentTime)
+                    p.EffectiveExistence.End = _ws.CurrentTime;
                 return p;
+            }
             // new participant
-            return _res.Participants[instanceID] = new(instanceID);
+            p = _participants[instanceID] = new(instanceID) { EffectiveExistence = new(_ws.CurrentTime, _ws.CurrentTime) };
+            _res.Participants.Add(p);
+            return p;
         }
         private Replay.Participant? GetOrCreateOptionalParticipant(ulong instanceID) => instanceID is 0 or 0xE0000000 ? null : GetOrCreateParticipant(instanceID);
 
         private void ActorAdded(object? sender, Actor actor)
         {
-            var p = GetOrCreateParticipant(actor.InstanceID);
-            if (p.Existence.Count == 0)
+            var p = GetOrCreateParticipant(actor.InstanceID, false);
+            if (p.EffectiveExistence.End > _ws.CurrentTime)
+            {
+                throw new Exception($"Unexpected actor add while participant still effectively exists: {actor}");
+            }
+            else if (p.WorldExistence.Count == 0)
             {
                 // first add
                 p.OID = actor.OID;
                 p.Type = actor.Type;
                 p.OwnerID = actor.OwnerID;
             }
+            else if (p.OID == actor.OID && p.Type == actor.Type && p.OwnerID == actor.OwnerID)
+            {
+                // recreate after destruction
+                if (p.WorldExistence.Last().End == default)
+                    throw new Exception($"Actor add after actor add: {actor}");
+            }
             else
             {
-                if (p.Existence.Last().End == default)
-                    throw new Exception($"Actor add after actor add: {actor}");
-                if (p.OID != actor.OID)
-                    throw new Exception($"Actor add {actor}, previous actor with same uuid had oid={p.OID}");
-                if (p.Type != actor.Type)
-                    throw new Exception($"Actor add {actor}, previous actor with same uuid had type={p.Type}");
-                if (p.OwnerID != actor.OwnerID)
-                    throw new Exception($"Actor add {actor}, previous actor with same uuid had ownerid={p.OwnerID:X}");
+                // looks like an instance-id reuse, finalize previous one and create new one
+                Service.Log($"Instance id reuse: {actor} @ {_ws.CurrentTime:O}");
+                FinalizeParticipant(p);
+                _participants.Remove(actor.InstanceID);
+                p = GetOrCreateParticipant(actor.InstanceID);
             }
 
-            p.Existence.Add(new(_ws.CurrentTime));
+            p.EffectiveExistence.End = DateTime.MaxValue; // until it is destroyed
+            p.WorldExistence.Add(new(_ws.CurrentTime));
             if (p.NameHistory.Count == 0 || p.NameHistory.Values.Last() != actor.Name)
                 p.NameHistory.Add(_ws.CurrentTime, actor.Name);
             if (actor.IsTargetable)
@@ -264,39 +283,40 @@ namespace BossMod
 
         private void ActorRemoved(object? sender, Actor actor)
         {
-            FinalizeParticipant(_res.Participants[actor.InstanceID]);
+            FinalizeParticipant(_participants[actor.InstanceID]);
+            // keep participant entry in case it is recreated later
         }
 
         private void ActorRenamed(object? sender, Actor actor)
         {
-            _res.Participants[actor.InstanceID].NameHistory.Add(_ws.CurrentTime, actor.Name);
+            _participants[actor.InstanceID].NameHistory.Add(_ws.CurrentTime, actor.Name);
         }
 
         private void ActorTargetable(object? sender, Actor actor)
         {
-            _res.Participants[actor.InstanceID].TargetableHistory.Add(_ws.CurrentTime, actor.IsTargetable);
+            _participants[actor.InstanceID].TargetableHistory.Add(_ws.CurrentTime, actor.IsTargetable);
         }
 
         private void ActorDead(object? sender, Actor actor)
         {
-            _res.Participants[actor.InstanceID].DeadHistory.Add(_ws.CurrentTime, actor.IsDead);
+            _participants[actor.InstanceID].DeadHistory.Add(_ws.CurrentTime, actor.IsDead);
         }
 
         private void ActorMoved(object? sender, Actor actor)
         {
-            _res.Participants[actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
+            _participants[actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
         }
 
         private void ActorSize(object? sender, Actor actor)
         {
-            var p = _res.Participants[actor.InstanceID];
+            var p = _participants[actor.InstanceID];
             p.MinRadius = Math.Min(p.MinRadius, actor.HitboxRadius);
             p.MaxRadius = Math.Max(p.MaxRadius, actor.HitboxRadius);
         }
 
         private void ActorHPMP(object? sender, Actor actor)
         {
-            _res.Participants[actor.InstanceID].HPMPHistory.Add(_ws.CurrentTime, (actor.HP, actor.CurMP));
+            _participants[actor.InstanceID].HPMPHistory.Add(_ws.CurrentTime, (actor.HP, actor.CurMP));
         }
 
         private void CastStart(object? sender, Actor actor)
@@ -306,7 +326,7 @@ namespace BossMod
             var location = target?.PosRotAt(_ws.CurrentTime).XYZ() ?? c.Location;
             var cast = new Replay.Cast(c.Action, c.TotalTime, target, location, c.Rotation, c.Interruptible);
             cast.Time.Start = _ws.CurrentTime;
-            _res.Participants[actor.InstanceID].Casts.Add(cast);
+            _participants[actor.InstanceID].Casts.Add(cast);
             if (actor == _ws.Party.Player() && _pendingClientActions.Count > 0 && _pendingClientActions.Last().ID == c.Action)
             {
                 cast.ClientAction = _pendingClientActions.Last();
@@ -316,7 +336,7 @@ namespace BossMod
 
         private void CastFinish(object? sender, Actor actor)
         {
-            var cast = _res.Participants[actor.InstanceID].Casts.Last();
+            var cast = _participants[actor.InstanceID].Casts.Last();
             cast.Time.End = _ws.CurrentTime;
             if (actor == _ws.Party.Player() && _pendingClientActions.FindIndex(a => a.Cast == cast) is var index && index >= 0)
                 _pendingClientActions.RemoveAt(index);
@@ -324,7 +344,7 @@ namespace BossMod
 
         private void TetherAdd(object? sender, Actor actor)
         {
-            var t = _tethers[actor.InstanceID] = new(actor.Tether.ID, _res.Participants[actor.InstanceID], GetOrCreateParticipant(actor.Tether.Target));
+            var t = _tethers[actor.InstanceID] = new(actor.Tether.ID, _participants[actor.InstanceID], GetOrCreateParticipant(actor.Tether.Target));
             t.Time.Start = _ws.CurrentTime;
             _res.Tethers.Add(t);
         }
@@ -342,7 +362,7 @@ namespace BossMod
                 r.Time.End = _ws.CurrentTime;
 
             var s = args.actor.Statuses[args.index];
-            var tgt = _res.Participants[args.actor.InstanceID];
+            var tgt = _participants[args.actor.InstanceID];
             var src = GetOrCreateOptionalParticipant(s.SourceID);
             r = _statuses[(args.actor.InstanceID, args.index)] = new(s.ID, args.index, tgt, src, (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, s.Extra);
             r.Time.Start = _ws.CurrentTime;
@@ -427,6 +447,14 @@ namespace BossMod
         private void EventUserMarker(object? sender, WorldState.OpUserMarker op)
         {
             _res.UserMarkers.Add(_ws.CurrentTime, op.Text);
+        }
+
+        private void EventZoneChange(object? sender, WorldState.OpZoneChange op)
+        {
+            // heuristic: assume any new actors after zone change are actually new, if they reuse same instance id
+            foreach (var (k, v) in _participants)
+                if (v.EffectiveExistence.End < _ws.CurrentTime)
+                    _participants.Remove(k);
         }
 
         private void EventDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)
