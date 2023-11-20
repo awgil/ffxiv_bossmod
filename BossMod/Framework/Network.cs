@@ -23,7 +23,6 @@ namespace BossMod
         public event EventHandler<ClientActionReject>? EventActorControlSelfActionRejected;
         public event EventHandler<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)>? EventActorControlSelfDirectorUpdate;
         public event EventHandler<(uint directorID, byte index, uint state)>? EventEnvControl;
-        public event EventHandler<(Waymark waymark, Vector3? pos)>? EventWaymark;
         public event EventHandler<(string key, string value)>? EventRSVData;
 
         private ReplayManagementConfig _config;
@@ -156,12 +155,6 @@ namespace BossMod
                         break;
                     case Protocol.Opcode.EnvControl:
                         HandleEnvControl((Protocol.Server_EnvControl*)dataPtr, targetActorId);
-                        break;
-                    case Protocol.Opcode.Waymark:
-                        HandleWaymark((Protocol.Server_Waymark*)dataPtr);
-                        break;
-                    case Protocol.Opcode.WaymarkPreset:
-                        HandleWaymarkPreset((Protocol.Server_WaymarkPreset*)dataPtr);
                         break;
                     case Protocol.Opcode.RSVData:
                         HandleRSVData(MemoryHelper.ReadStringNullTerminated(dataPtr + 4), MemoryHelper.ReadString(dataPtr + 0x34, *(int*)dataPtr));
@@ -307,22 +300,6 @@ namespace BossMod
         private unsafe void HandleEnvControl(Protocol.Server_EnvControl* p, uint actorID)
         {
             EventEnvControl?.Invoke(this, (p->FeatureID, p->Index, p->State));
-        }
-
-        private unsafe void HandleWaymark(Protocol.Server_Waymark* p)
-        {
-            if (p->Waymark < Waymark.Count)
-                EventWaymark?.Invoke(this, (p->Waymark, p->Active != 0 ? new Vector3(p->PosX / 1000.0f, p->PosY / 1000.0f, p->PosZ / 1000.0f) : null));
-        }
-
-        private unsafe void HandleWaymarkPreset(Protocol.Server_WaymarkPreset* p)
-        {
-            byte mask = 1;
-            for (var i = Waymark.A; i < Waymark.Count; ++i)
-            {
-                EventWaymark?.Invoke(this, (i, (p->WaymarkMask & mask) != 0 ? new Vector3(p->PosX[(byte)i] / 1000.0f, p->PosY[(byte)i] / 1000.0f, p->PosZ[(byte)i] / 1000.0f) : null));
-                mask <<= 1;
-            }
         }
 
         private unsafe void HandleRSVData(string key, string value)

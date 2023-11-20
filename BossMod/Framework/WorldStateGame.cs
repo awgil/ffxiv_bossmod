@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -38,7 +39,6 @@ namespace BossMod
             _network.EventActorControlSelfActionRejected += OnNetworkActorControlSelfActionRejected;
             _network.EventActorControlSelfDirectorUpdate += OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl += OnNetworkEnvControl;
-            _network.EventWaymark += OnNetworkWaymark;
             _network.EventRSVData += OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
         }
@@ -56,7 +56,6 @@ namespace BossMod
             _network.EventActorControlSelfActionRejected -= OnNetworkActorControlSelfActionRejected;
             _network.EventActorControlSelfDirectorUpdate -= OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl -= OnNetworkEnvControl;
-            _network.EventWaymark -= OnNetworkWaymark;
             _network.EventRSVData -= OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
         }
@@ -91,9 +90,22 @@ namespace BossMod
             }
             _globalOps.Clear();
 
+            UpdateWaymarks();
             UpdateActors();
             UpdateParty();
             UpdateClient();
+        }
+
+        private unsafe void UpdateWaymarks()
+        {
+            var wm = Waymark.A;
+            foreach (ref var marker in MarkingController.Instance()->FieldMarkerArraySpan)
+            {
+                Vector3? pos = marker.Active ? new(marker.X / 1000.0f, marker.Y / 1000.0f, marker.Z / 1000.0f) : null;
+                if (Waymarks[wm] != pos)
+                    Execute(new WaymarkState.OpWaymarkChange() { ID = wm, Pos = pos });
+                ++wm;
+            }
         }
 
         private void UpdateActors()
@@ -420,11 +432,6 @@ namespace BossMod
         private void OnNetworkEnvControl(object? sender, (uint directorID, byte index, uint state) args)
         {
             _globalOps.Add(new OpEnvControl() { DirectorID = args.directorID, Index = args.index, State = args.state });
-        }
-
-        private void OnNetworkWaymark(object? sender, (Waymark waymark, Vector3? pos) args)
-        {
-            _globalOps.Add(new WaymarkState.OpWaymarkChange() { ID = args.waymark, Pos = args.pos });
         }
 
         private void OnNetworkRSVData(object? sender, (string key, string value) args)
