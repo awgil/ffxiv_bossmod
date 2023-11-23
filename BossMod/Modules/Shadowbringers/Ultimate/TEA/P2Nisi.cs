@@ -10,13 +10,12 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public int ShowPassHint; // show hints for Nth pass
         public int NumActiveNisi { get; private set; }
         private int _numNisiApplications;
-        private int[] _partners = new int[PartyState.MaxPartySize];
+        private int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
         private Nisi[] _current = new Nisi[PartyState.MaxPartySize];
         private Nisi[] _judgments = new Nisi[PartyState.MaxPartySize];
 
         public override void Init(BossModule module)
         {
-            Array.Fill(_partners, -1);
             int[] firstMembersOfGroup = { -1, -1, -1, -1 };
             foreach (var p in Service.Config.Get<TEAConfig>().P2NisiPairs.Resolve(module.Raid))
             {

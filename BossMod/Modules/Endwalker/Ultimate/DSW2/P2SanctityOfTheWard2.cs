@@ -82,9 +82,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private bool _stormsDone;
         private bool _preyOnTH;
         private BitMask _preyTargets;
-        private int[] _towerIndices = new int[16];
-        private PlayerData[] _players = new PlayerData[PartyState.MaxPartySize];
-        private QuadrantData[] _quadrants = new QuadrantData[4];
+        private int[] _towerIndices = Utils.MakeArray(16, -1);
+        private PlayerData[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerData() { AssignedQuadrant = -1 });
+        private QuadrantData[] _quadrants = Utils.MakeArray(4, new QuadrantData() { PreySlot = -1, NonPreySlot = -1 });
         private BitMask _activeTowers;
         private string _preySwap = "";
         private string _preyHint = "";
@@ -94,12 +94,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public bool Active => Towers.Count == 8;
 
-        public P2SanctityOfTheWard2Towers1() : base(ActionID.MakeSpell(AID.Conviction2AOE), 3)
-        {
-            Array.Fill(_towerIndices, -1);
-            Array.Fill(_players, new() { AssignedQuadrant = -1 });
-            Array.Fill(_quadrants, new() { PreySlot = -1, NonPreySlot = -1 });
-        }
+        public P2SanctityOfTheWard2Towers1() : base(ActionID.MakeSpell(AID.Conviction2AOE), 3) { }
 
         // TODO: use some sort of a config update hook to simplify debugging...
         //public override void Update(BossModule module)
@@ -590,12 +585,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private bool _preyOnTH;
         private BitMask _preyTargets;
-        private int[] _playerTowers = new int[PartyState.MaxPartySize];
+        private int[] _playerTowers = Utils.MakeArray(PartyState.MaxPartySize, -1);
 
-        public P2SanctityOfTheWard2Towers2() : base(ActionID.MakeSpell(AID.Conviction3AOE), 3)
-        {
-            Array.Fill(_playerTowers, -1);
-        }
+        public P2SanctityOfTheWard2Towers2() : base(ActionID.MakeSpell(AID.Conviction3AOE), 3) { }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

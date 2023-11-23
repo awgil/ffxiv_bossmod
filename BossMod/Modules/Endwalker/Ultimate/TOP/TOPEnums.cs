@@ -128,6 +128,19 @@
         OversampledWaveCannonL = 31596, // BossP3->self, 10.0s cast, single-target, visual (monitors cleaving left side)
         OversampledWaveCannonAOE = 31597, // Helper->players, no cast, range 7 circle spread
         IonEfflux = 31560, // BossP3->self, 10.0s cast, range 100 circle enrage
+
+        // p4
+        P3End = 31559, // BossP3->self, no cast, single-target, visual (right after p3 end)
+        P4Begin = 31610, // BossP3->self, no cast, single-target, visual (right before p4 begin)
+        P4WaveCannonStackTarget = 22393, // Helper->player, no cast, single-target, visual (line stack marker)
+        P4WaveCannonProtean = 31614, // Helper->self, no cast, range 100 width 6 rect, first immediate protean
+        P4WaveCannonStack = 31615, // Helper->self, no cast, range 100 width 6 rect
+        P4WaveCannonProteanAOE = 31616, // Helper->self, 5.3s cast, range 100 width 6 rect, second baited protean
+        P4WaveCannonVisualStart = 31617, // BossP3->self, 5.0s cast, single-target, visual
+        P4WaveCannonVisual1 = 31618, // BossP3->self, no cast, single-target, visual
+        P4WaveCannonVisual2 = 32534, // BossP3->self, no cast, single-target, visual
+        P4WaveCannonVisual3 = 31619, // BossP3->self, no cast, single-target, visual
+        P4WaveCannonVisual4 = 31620, // BossP3->self, no cast, single-target, visual
     };
 
     public enum SID : uint

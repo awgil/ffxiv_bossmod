@@ -62,12 +62,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
     class BondsOfDarkness : BossComponent
     {
         public int NumTethers { get; private set; }
-        private int[] _partners = new int[PartyState.MaxPartySize];
-
-        public BondsOfDarkness()
-        {
-            Array.Fill(_partners, -1);
-        }
+        private int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

@@ -11,15 +11,10 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public int NumRotExplodes { get; private set; }
         public int NumTetherBreaks { get; private set; }
-        private PlayerRole[] _initialRoles = new PlayerRole[PartyState.MaxPartySize];
+        private PlayerRole[] _initialRoles = Utils.MakeArray(PartyState.MaxPartySize, PlayerRole.None);
         private TowerColor[] _initialRots = new TowerColor[PartyState.MaxPartySize];
         private TowerColor _defamationTowerColor;
         private BitMask _defamationTowers;
-
-        public P3HelloWorld()
-        {
-            Array.Fill(_initialRoles, PlayerRole.None);
-        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

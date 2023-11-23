@@ -32,13 +32,7 @@ namespace BossMod
     // typically you would use derived classes that provide validation
     public class GroupAssignment
     {
-        public int[] Assignments; // assignment -> group id
-
-        public GroupAssignment()
-        {
-            Assignments = new int[(int)PartyRolesConfig.Assignment.Unassigned];
-            Array.Fill(Assignments, -1);
-        }
+        public int[] Assignments = Utils.MakeArray((int)PartyRolesConfig.Assignment.Unassigned, -1); // assignment -> group id
 
         public int this[PartyRolesConfig.Assignment r]
         {

@@ -108,7 +108,7 @@ namespace BossMod
             {
                 Service.Log($"[RaidCooldowns] Clearing cooldowns ({_damageCooldowns.Count} damage entries)");
                 _damageCooldowns.Clear();
-                Array.Fill(_interruptCooldowns, new());
+                Array.Fill(_interruptCooldowns, default);
             }
         }
     }

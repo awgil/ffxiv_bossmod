@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P8S2
 {
@@ -16,7 +15,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         protected TowerColor SecondTowersHC1 { get; private set; } // if assigned - four towers of same color at (0, +-5/15)
         protected List<(WPos p, TowerColor c)> SecondTowersHC2 { get; private set; } = new();
         protected int NumAssignedRoles { get; private set; }
-        private int[] _roleSlots;
+        private int[] _roleSlots = Utils.MakeArray((int)PlayerRole.Count, -1);
         private PlayerRole[] _playerRoles = new PlayerRole[PartyState.MaxPartySize]; // for HC2, this doesn't have stack roles, since players also have long letters
 
         protected int SlotForRole(PlayerRole r) => _roleSlots[(int)r];
@@ -25,12 +24,6 @@ namespace BossMod.Endwalker.Savage.P8S2
         protected static float ShiftRadius = 20;
         protected static float SpliceRadius = 6;
         protected static float TowerRadius = 3;
-
-        public HighConceptCommon()
-        {
-            _roleSlots = new int[(int)PlayerRole.Count];
-            Array.Fill(_roleSlots, -1);
-        }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {

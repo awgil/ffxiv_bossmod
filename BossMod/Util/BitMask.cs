@@ -37,6 +37,8 @@ namespace BossMod
         public static BitMask operator &(BitMask a, BitMask b) => new(a.Raw & b.Raw);
         public static BitMask operator |(BitMask a, BitMask b) => new(a.Raw | b.Raw);
         public static BitMask operator ^(BitMask a, BitMask b) => new(a.Raw ^ b.Raw);
+        public static bool operator ==(BitMask a, BitMask b) => a.Raw == b.Raw;
+        public static bool operator !=(BitMask a, BitMask b) => a.Raw != b.Raw;
 
         public IEnumerable<int> SetBits()
         {
@@ -50,5 +52,9 @@ namespace BossMod
         }
 
         private ulong MaskForBit(int index) => (uint)index < 64 ? (1ul << index) : 0;
+
+        public override bool Equals(object? obj) => obj is BitMask other && this == other;
+        public override int GetHashCode() => Raw.GetHashCode();
+        public override string ToString() => $"{Raw:X}";
     }
 }

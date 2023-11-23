@@ -1,16 +1,11 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Unreal.Un5Thordan;
+﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
 // TODO: consider showing tethers only if distance is too small?..
 class BurningChains : Components.CastCounter
 {
-    private int[] _tetherPartners = new int[PartyState.MaxPartySize];
+    private int[] _tetherPartners = Utils.MakeArray(PartyState.MaxPartySize, -1);
 
-    public BurningChains() : base(ActionID.MakeSpell(AID.HolyChain))
-    {
-        Array.Fill(_tetherPartners, -1);
-    }
+    public BurningChains() : base(ActionID.MakeSpell(AID.HolyChain)) { }
 
     public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
     {

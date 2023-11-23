@@ -12,12 +12,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             public int AssignedSnake; // -1 if not assigned, otherwise index of assigned snake
         }
 
-        private PlayerState[] _players = new PlayerState[PartyState.MaxPartySize];
-
-        public Snake1()
-        {
-            Array.Fill(_players, new PlayerState() { Order = -1, AssignedSnake = -1 });
-        }
+        private PlayerState[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Order = -1, AssignedSnake = -1 });
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

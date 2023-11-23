@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P8S2
 {
@@ -10,21 +9,14 @@ namespace BossMod.Endwalker.Savage.P8S2
         public int NumBursts { get; private set; }
         private BitMask _waitingForTowers;
         private BitMask _activeTowers;
-        private int[] _towerAssignments; // [slot] = tower index
-        private int[] _towerSlots; // [tower index] = slot
-        private bool _thRight;
+        private int[] _towerAssignments = Utils.MakeArray(PartyState.MaxPartySize, -1); // [slot] = tower index
+        private int[] _towerSlots = Utils.MakeArray(_towerOffsets.Length, -1); // [tower index] = slot
+        private bool _thRight = Service.Config.Get<P8S2Config>().LimitlessDesolationTHRight;
 
         private static float _towerRadius = 4;
         private static WDir[] _towerOffsets = { new(-15, -15), new(-15, -5), new(-15, 5), new(-5, -15), new(-5, -5), new(-5, 5), new(5, -15), new(5, -5), new(5, 5), new(15, -15), new(15, -5), new(15, 5) };
 
-        public LimitlessDesolation() : base(0, 6, alwaysShowSpreads: true, raidwideOnResolve: false)
-        {
-            _towerAssignments = new int[PartyState.MaxPartySize];
-            Array.Fill(_towerAssignments, -1);
-            _towerSlots = new int[_towerOffsets.Length];
-            Array.Fill(_towerSlots, -1);
-            _thRight = Service.Config.Get<P8S2Config>().LimitlessDesolationTHRight;
-        }
+        public LimitlessDesolation() : base(0, 6, alwaysShowSpreads: true, raidwideOnResolve: false) { }
 
         public override void Init(BossModule module)
         {

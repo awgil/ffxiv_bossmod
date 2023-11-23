@@ -48,15 +48,10 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             public bool HasDebuff => HasCrown || HasBreath;
         }
 
-        private PlayerState[] _players = new PlayerState[PartyState.MaxPartySize];
+        private PlayerState[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { AssignedSnake = -1 });
         private int _gorgospitCounter;
 
         private const float _breathRadius = 6;
-
-        public Snake2()
-        {
-            Array.Fill(_players, new PlayerState() { AssignedSnake = -1 });
-        }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

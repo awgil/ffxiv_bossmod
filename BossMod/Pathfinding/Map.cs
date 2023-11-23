@@ -42,8 +42,7 @@ namespace BossMod.Pathfinding
             Resolution = resolution;
             Width = 2 * (int)MathF.Ceiling(worldHalfWidth / resolution);
             Height = 2 * (int)MathF.Ceiling(worldHalfHeight / resolution);
-            Pixels = new Pixel[Width * Height];
-            Array.Fill(Pixels, new Pixel() { MaxG = float.MaxValue, Priority = 0 });
+            Pixels = Utils.MakeArray(Width * Height, new Pixel() { MaxG = float.MaxValue, Priority = 0 });
 
             Center = center;
             Rotation = rotation;

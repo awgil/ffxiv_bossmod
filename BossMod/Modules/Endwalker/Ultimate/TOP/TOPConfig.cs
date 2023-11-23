@@ -41,6 +41,11 @@
         [GroupPreset("LPDU (HTMR)", new[] { 2, 3, 0, 1, 4, 5, 6, 7 })]
         public GroupAssignmentUnique P3MonitorsAssignments = new() { Assignments = new[] { 2, 3, 0, 1, 4, 5, 6, 7 } };
 
+        [PropertyDisplay("P4 Wave Cannon: priority, from North to South (assuming south flex)")]
+        [GroupDetails(new string[] { "W1", "E1", "W2", "E2", "W3", "E3", "W4", "E4" })]
+        [GroupPreset("LPDU (TRHM)", new[] { 0, 1, 4, 5, 6, 7, 2, 3 })]
+        public GroupAssignmentUnique P4WaveCannonAssignments = new() { Assignments = new[] { 0, 1, 4, 5, 6, 7, 2, 3 } };
+
         public TOPConfig() : base(90) { }
     }
 }

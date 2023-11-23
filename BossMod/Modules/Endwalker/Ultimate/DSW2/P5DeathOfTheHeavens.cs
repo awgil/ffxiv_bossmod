@@ -1,5 +1,4 @@
-﻿using BossMod.Endwalker.Ultimate.DSW1;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.DSW2

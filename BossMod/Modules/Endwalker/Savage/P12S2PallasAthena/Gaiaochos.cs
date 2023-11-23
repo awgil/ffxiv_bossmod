@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Savage.P12S2PallasAthena
@@ -18,12 +17,9 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
     class MissingLink : Components.CastCounter
     {
         public bool TethersAssigned { get; private set; }
-        private int[] _partner = new int[PartyState.MaxPartySize];
+        private int[] _partner = Utils.MakeArray(PartyState.MaxPartySize, -1);
 
-        public MissingLink() : base(ActionID.MakeSpell(AID.MissingLink))
-        {
-            Array.Fill(_partner, -1);
-        }
+        public MissingLink() : base(ActionID.MakeSpell(AID.MissingLink)) { }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

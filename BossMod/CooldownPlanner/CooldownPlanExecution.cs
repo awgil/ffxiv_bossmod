@@ -153,8 +153,7 @@ namespace BossMod
         public uint[] ActiveStrategyOverrides(StateMachine sm)
         {
             var res = new uint[_numStrategyTracks];
-            var max = new float[_numStrategyTracks];
-            Array.Fill(max, float.MinValue);
+            var max = Utils.MakeArray(_numStrategyTracks, float.MinValue);
             var s = FindStateData(sm.ActiveState);
             var t = s != Pull ? s.EnterTime + Math.Min(sm.TimeSinceTransition, s.Duration) : -sm.PrepullTimer;
             foreach (var st in Strategies.Where(st => st.IsActive(t, s) && st.WindowStart >= max[st.Index]))

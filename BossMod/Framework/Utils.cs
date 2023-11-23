@@ -261,6 +261,14 @@ namespace BossMod
         // linear interpolation
         public static float Lerp(float a, float b, float t) => a + (b - a) * t;
 
+        // build an array with N copies of same element
+        public static T[] MakeArray<T>(int count, T value)
+        {
+            var res = new T[count];
+            Array.Fill(res, value);
+            return res;
+        }
+
         // get all types defined in specified assembly
         public static IEnumerable<Type?> GetAllTypes(Assembly asm)
         {

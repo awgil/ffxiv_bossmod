@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
         private List<Actor> _tri = new();
         private List<Actor> _sq = new();
         private (WPos hexa, WPos tri, WPos sq)[] _resolvedShapes = new(WPos, WPos, WPos)[4];
-        private PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
+        private PlayerState[] _states = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Column = -1, PartnerSlot = -1 });
         private bool _invert;
         private bool _showShapes = true;
         private bool _showTethers = true;
@@ -35,7 +35,6 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
 
         public override void Init(BossModule module)
         {
-            Array.Fill(_states, new() { Column = -1, PartnerSlot = -1 });
             _hexa = module.Enemies(OID.ConceptOfWater);
             _tri = module.Enemies(OID.ConceptOfFire);
             _sq = module.Enemies(OID.ConceptOfEarth);

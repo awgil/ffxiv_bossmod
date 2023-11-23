@@ -18,8 +18,7 @@ namespace BossMod
         public Assignment[] AssignmentsPerSlot(PartyState party)
         {
             int[] counts = new int[(int)Assignment.Unassigned];
-            Assignment[] res = new Assignment[PartyState.MaxPartySize];
-            Array.Fill(res, Assignment.Unassigned);
+            Assignment[] res = Utils.MakeArray(PartyState.MaxPartySize, Assignment.Unassigned);
             for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
                 var r = this[party.ContentIDs[i]];
@@ -35,8 +34,7 @@ namespace BossMod
         // return either array of party slots per assigned role (if each role is assigned exactly once) or empty array (if assignments are invalid)
         public int[] SlotsPerAssignment(PartyState party)
         {
-            int[] res = new int[(int)Assignment.Unassigned];
-            Array.Fill(res, PartyState.MaxPartySize);
+            int[] res = Utils.MakeArray((int)Assignment.Unassigned, PartyState.MaxPartySize);
             for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
                 var r = this[party.ContentIDs[i]];

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.TOP
@@ -67,9 +66,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
             _haveSafeSpots = true;
 
-            // TODO: implement
-            int[] slotsInPriorityOrder = new int[PartyState.MaxPartySize];
-            Array.Fill(slotsInPriorityOrder, -1);
+            int[] slotsInPriorityOrder = Utils.MakeArray(PartyState.MaxPartySize, -1);
             foreach (var a in _config.P3IntermissionAssignments.Resolve(module.Raid))
                 slotsInPriorityOrder[a.group] = a.slot;
 

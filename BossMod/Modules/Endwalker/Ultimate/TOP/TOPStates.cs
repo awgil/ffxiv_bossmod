@@ -14,6 +14,8 @@
             SimplePhase(1, Phase2, "P2: M/F")
                 .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || IsEffectivelyDead(_module.BossP2M()) && IsEffectivelyDead(_module.BossP2F());
             SimplePhase(2, Phase3, "P3")
+                .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || IsEffectivelyDead(_module.BossP3());
+            SimplePhase(3, Phase4, "P4")
                 .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true); // TODO: reconsider condition...
         }
 
@@ -42,6 +44,7 @@
 
         private void Phase4(uint id)
         {
+            P4WaveCannon(id, 7.2f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -141,7 +144,7 @@
         private void P2LimitlessSynergy(uint id, float delay)
         {
             ActorCast(id, _module.BossP2F, AID.SyntheticShield, delay, 1, true);
-            ActorCast(id + 0x10, _module.BossP2F, AID.LimitlessSynergyM, 5.3f, 5, true, "Remove debuffs");
+            ActorCast(id + 0x10, _module.BossP2M, AID.LimitlessSynergyF, 5.3f, 5, true, "Remove debuffs");
             ActorCastStart(id + 0x20, _module.BossP2M, AID.LaserShower, 5.0f, false, "F invincible");
             ComponentCondition<P2OptimizedBladedance>(id + 0x30, 8.5f, comp => comp.NumCasts > 0, "Baited rect + Tankbusters")
                 .ActivateOnEnter<P2OptimizedBladedance>()
@@ -230,6 +233,49 @@
                 .DeactivateOnExit<P3OversampledWaveCannon>();
             ComponentCondition<P3OversampledWaveCannonSpread>(id + 2, 0.1f, comp => !comp.Active, "Monitors")
                 .DeactivateOnExit<P3OversampledWaveCannonSpread>();
+        }
+
+        private void P4WaveCannon(uint id, float delay)
+        {
+            ActorTargetable(id, _module.BossP3, true, delay, "Boss reappear");
+            ActorCast(id + 0x10, _module.BossP3, AID.P4WaveCannonVisualStart, 9.3f, 5, true)
+                .ActivateOnEnter<P4WaveCannonProtean>()
+                .ActivateOnEnter<P4WaveCannonStack>(); // ~2.5s into cast: targets for stacks 1
+            // +0.1s: baits
+            ComponentCondition<P4WaveCannonProtean>(id + 0x20, 0.6f, comp => comp.NumCasts > 0, "Proteans 1");
+            ComponentCondition<P4WaveCannonProteanAOE>(id + 0x30, 4.7f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P3WaveRepeater>() // first cast starts ~2.4s after baits
+                .ActivateOnEnter<P4WaveCannonProteanAOE>()
+                .ExecOnEnter<P4WaveCannonStack>(comp => comp.Imminent = true)
+                .DeactivateOnExit<P4WaveCannonProteanAOE>();
+            ComponentCondition<P4WaveCannonStack>(id + 0x40, 0.2f, comp => !comp.Active, "Stacks 1");
+            // +2.1s: targets for stacks 2
+            ComponentCondition<P3WaveRepeater>(id + 0x50, 2.4f, comp => comp.NumCasts > 0)
+                .ExecOnEnter<P4WaveCannonProtean>(comp => comp.Show(Module));
+            ComponentCondition<P3WaveRepeater>(id + 0x51, 2.1f, comp => comp.NumCasts > 1);
+            ComponentCondition<P4WaveCannonProtean>(id + 0x52, 0.7f, comp => comp.NumCasts > 0, "Proteans 2");
+            ComponentCondition<P3WaveRepeater>(id + 0x53, 1.4f, comp => comp.NumCasts > 2)
+                .ActivateOnEnter<P4WaveCannonProteanAOE>()
+                .ExecOnEnter<P4WaveCannonStack>(comp => comp.Imminent = true);
+            ComponentCondition<P3WaveRepeater>(id + 0x54, 2.1f, comp => comp.NumCasts > 3);
+            ComponentCondition<P4WaveCannonProteanAOE>(id + 0x55, 1.2f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P4WaveCannonProteanAOE>();
+            ComponentCondition<P4WaveCannonStack>(id + 0x56, 0.2f, comp => !comp.Active, "Stack 2");
+            // +2.2s: targets for stacks 3
+            ComponentCondition<P4WaveCannonProtean>(id + 0x60, 5.3f, comp => comp.NumCasts > 0, "Proteans 3")
+                .ExecOnEnter<P4WaveCannonProtean>(comp => comp.Show(Module))
+                .DeactivateOnExit<P4WaveCannonProtean>();
+            ComponentCondition<P3WaveRepeater>(id + 0x61, 4.5f, comp => comp.NumCasts > 4)
+                .ActivateOnEnter<P4WaveCannonProteanAOE>()
+                .ExecOnEnter<P4WaveCannonStack>(comp => comp.Imminent = true);
+            ComponentCondition<P4WaveCannonProteanAOE>(id + 0x62, 0.3f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P4WaveCannonProteanAOE>();
+            ComponentCondition<P4WaveCannonStack>(id + 0x63, 0.2f, comp => !comp.Active, "Stack 3")
+                .DeactivateOnExit<P4WaveCannonStack>();
+            ComponentCondition<P3WaveRepeater>(id + 0x64, 1.7f, comp => comp.NumCasts > 5);
+            ComponentCondition<P3WaveRepeater>(id + 0x65, 2.1f, comp => comp.NumCasts > 6);
+            ComponentCondition<P3WaveRepeater>(id + 0x66, 2.1f, comp => comp.NumCasts > 7, "Ring 8")
+                .DeactivateOnExit<P3WaveRepeater>();
         }
     }
 }
