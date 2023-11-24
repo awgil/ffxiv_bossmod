@@ -27,9 +27,9 @@ namespace BossMod.Endwalker.Alliance.A23Halone
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID == 0x800375AD && state == 0x00200010)
+            if (state == 0x00200010)
             {
                 (WDir offset, Angle dir) = index switch
                 {

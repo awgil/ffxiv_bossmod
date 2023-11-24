@@ -83,13 +83,13 @@
             arena.PathStroke(true, ArenaColor.Border);
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
             // 800375A2: we typically get two events for index=0 (global) and index=N (corner)
             // state 00200010 - "prepare" (show aoe that is still harmless)
             // state 00020001 - "active" (dot in center/borders, oneshot in corner)
             // state 00080004 - "finish" (reset)
-            if (directorID == 0x800375A2 && index > 0 && index < 5)
+            if (index > 0 && index < 5)
             {
                 if (state == 0x00200010)
                     _blockedCorner = (Corner)index;

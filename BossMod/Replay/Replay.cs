@@ -88,7 +88,7 @@ namespace BossMod
 
         public record class DirectorUpdate(uint DirectorID, uint UpdateID, uint Param1, uint Param2, uint Param3, uint Param4, DateTime Timestamp);
 
-        public record class EnvControl(uint DirectorID, byte Index, uint State, DateTime Timestamp);
+        public record class EnvControl(byte Index, uint State, DateTime Timestamp);
 
         public record class ClientAction(ActionID ID, uint SourceSequence, Participant? Target, Vector3 TargetPos, DateTime Requested)
         {

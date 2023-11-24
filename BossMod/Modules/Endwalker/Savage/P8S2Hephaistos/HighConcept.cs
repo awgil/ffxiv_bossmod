@@ -73,9 +73,9 @@ namespace BossMod.Endwalker.Savage.P8S2
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID != 0x800375AB || state != 0x00020001)
+            if (state != 0x00020001)
                 return;
 
             var firstColor = index switch

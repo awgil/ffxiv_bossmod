@@ -469,7 +469,7 @@ namespace BossMod
         private void OnEnvControl(object? sender, WorldState.OpEnvControl op)
         {
             foreach (var comp in _components)
-                comp.OnEventEnvControl(this, op.DirectorID, op.Index, op.State);
+                comp.OnEventEnvControl(this, op.Index, op.State);
         }
     }
 }

@@ -50,11 +50,8 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                 arena.AddLine(module.Bounds.Center + _fireLine[0], module.Bounds.Center + _fireLine[1], ArenaColor.Danger);
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID != 0x80034E71)
-                return;
-
             // notable env controls that we don't care too much about:
             // 1: common for all flows, 00020001 = activate, 00080004 = deactivate
             // 3: common for all flows, happens a bit after cast start, always 00010001

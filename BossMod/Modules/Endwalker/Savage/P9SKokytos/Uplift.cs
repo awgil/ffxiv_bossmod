@@ -19,10 +19,10 @@
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
             // state 00080004 => remove walls
-            if (directorID == 0x800375AF && index is 2 or 3 && state == 0x00020001)
+            if (index is 2 or 3 && state == 0x00020001)
                 WallDirection = (index == 2 ? 0 : 45).Degrees();
         }
     }

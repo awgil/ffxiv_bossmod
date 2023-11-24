@@ -415,9 +415,12 @@ namespace BossMod
 
         private void ParseEnvControl()
         {
+            // director id field is removed in v11
+            if (_version < 11)
+                _input.ReadUInt(true);
+
             AddOp(new WorldState.OpEnvControl()
             {
-                DirectorID = _input.ReadUInt(true),
                 Index = _input.ReadByte(true),
                 State = _input.ReadUInt(true),
             });

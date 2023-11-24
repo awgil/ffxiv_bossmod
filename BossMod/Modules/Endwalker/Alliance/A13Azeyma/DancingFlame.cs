@@ -18,9 +18,9 @@ namespace BossMod.Endwalker.Alliance.A13Azeyma
                 AOEs.Add(new(_shape, caster.Position + 40 * caster.Rotation.ToDirection(), default, spell.FinishAt.AddSeconds(1)));
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID == 0x800375A3 && index == 27 && state == 0x00080004)
+            if (index == 27 && state == 0x00080004)
                 AOEs.Clear();
         }
     }

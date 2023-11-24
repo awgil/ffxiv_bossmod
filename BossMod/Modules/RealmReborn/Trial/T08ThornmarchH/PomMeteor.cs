@@ -71,9 +71,9 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID == 0x80034E2B && index is >= 8 and < 16)
+            if (index is >= 8 and < 16)
             {
                 var towerIndex = index - 8;
                 switch (state)

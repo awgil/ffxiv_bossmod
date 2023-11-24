@@ -55,7 +55,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
             // 8003759C, state=00020001
             // what I've seen so far:
@@ -82,7 +82,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             // 18 => SE water?
             // 19 => SW water?
             // 20 => NW water
-            if (directorID == 0x8003759C && state == 0x00020001 && index >= 5 && index <= 20)
+            if (state == 0x00020001 && index >= 5 && index <= 20)
             {
                 int i = index - 5;
                 _assignments[i >> 2] = (Corner)(1 + (i & 3));

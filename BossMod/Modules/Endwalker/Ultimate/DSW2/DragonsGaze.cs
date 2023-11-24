@@ -28,10 +28,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
             // seen indices: 2 = E, 5 = SW, 6 = W => inferring 0=N, 1=NE, ... cw order
-            if (directorID == 0x8003759A && state == 0x00020001 && index <= 7)
+            if (state == 0x00020001 && index <= 7)
             {
                 _boss = module.Enemies(_bossOID).FirstOrDefault();
                 _eyePosition = module.Bounds.Center + 40 * (180 - index * 45).Degrees().ToDirection();

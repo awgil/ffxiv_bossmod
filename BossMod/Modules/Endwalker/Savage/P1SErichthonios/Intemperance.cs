@@ -143,7 +143,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
             // we get the following env-control messages:
             // 1. ~2.8s after 26142 cast, we get 25 EnvControl messages with directorID 800375A0
@@ -154,7 +154,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             //    and symmetrical pattern is: RPR BRB RPR RPB RPR BBB RPR RPB
             // 3. on each explosion, we get 8 191s, with type 00080004 for exploded red, 04000004 for exploded blue, 08000004 for exploded purple
             // 4. 3 sec before second & third explosion, we get 8 191s, with type 00200020 for preparing red, 02000200 for preparing blue, 80008000 for preparing purple
-            if (directorID == 0x800375A0 && index < 24)
+            if (index < 24)
             {
                 var cube = state switch
                 {

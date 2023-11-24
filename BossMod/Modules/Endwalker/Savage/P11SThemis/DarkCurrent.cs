@@ -29,9 +29,9 @@ namespace BossMod.Endwalker.Savage.P11SThemis
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID == 0x800375B3 && index is 1 or 2 && state is 0x00020001 or 0x00200010)
+            if (index is 1 or 2 && state is 0x00020001 or 0x00200010)
             {
                 // index 01 => start from N/S, 02 => start from E/W
                 // state 00020001 => CW => 00080004 end, 00200010 => CCW => 00800004 end

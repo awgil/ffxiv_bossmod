@@ -10,7 +10,6 @@ namespace BossMod
 {
     class Network : IDisposable
     {
-        public event EventHandler<(uint directorID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(string key, string value)>? EventRSVData;
 
         private ReplayManagementConfig _config;
@@ -82,9 +81,6 @@ namespace BossMod
 
                 switch ((Protocol.Opcode)opCode)
                 {
-                    case Protocol.Opcode.EnvControl:
-                        HandleEnvControl((Protocol.Server_EnvControl*)dataPtr, targetActorId);
-                        break;
                     case Protocol.Opcode.RSVData:
                         HandleRSVData(MemoryHelper.ReadStringNullTerminated(dataPtr + 4), MemoryHelper.ReadString(dataPtr + 0x34, *(int*)dataPtr));
                         break;
@@ -98,11 +94,6 @@ namespace BossMod
                     DumpClientMessage(dataPtr, opCode, packetLength);
                 }
             }
-        }
-
-        private unsafe void HandleEnvControl(Protocol.Server_EnvControl* p, uint actorID)
-        {
-            EventEnvControl?.Invoke(this, (p->FeatureID, p->Index, p->State));
         }
 
         private unsafe void HandleRSVData(string key, string value)

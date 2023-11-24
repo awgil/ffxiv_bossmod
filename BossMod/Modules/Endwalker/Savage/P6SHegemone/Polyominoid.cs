@@ -80,11 +80,8 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         //    }
         //}
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID != 0x800375A9)
-                return;
-
             int square = index switch
             {
                 1 => 0x0,

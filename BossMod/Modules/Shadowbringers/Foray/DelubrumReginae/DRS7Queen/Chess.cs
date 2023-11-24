@@ -125,9 +125,9 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
                 --NumStuns;
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID == 0x8004001F && index is 0x1C or 0x1D && state == 0x00020001)
+            if (index is 0x1C or 0x1D && state == 0x00020001)
                 _safespotZOffset = index == 0x1D ? 2 : -2;
         }
 

@@ -10,9 +10,9 @@ namespace BossMod.Endwalker.Alliance.A10RhalgrEmissary
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID != 0x800375A3 || index != 0x25)
+            if (index != 0x25)
                 return;
             // 00020001 = anim start
             // 00080004 = -45/+135

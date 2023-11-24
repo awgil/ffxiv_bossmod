@@ -25,13 +25,15 @@ namespace BossMod
         private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
         private Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
 
-        public WorldStateGame(Network network) : base(Utils.FrameQPF())
+        private unsafe delegate void ProcessEnvControlDelegate(void* self, uint index, ushort s1, ushort s2);
+        private Hook<ProcessEnvControlDelegate> _processEnvControlHook;
+
+        public unsafe WorldStateGame(Network network) : base(Utils.FrameQPF())
         {
             _startTime = DateTime.Now;
             _startQPC = Utils.FrameQPC();
 
             _network = network;
-            _network.EventEnvControl += OnNetworkEnvControl;
             _network.EventRSVData += OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
             ActionManagerEx.Instance!.ActionEffectReceived += OnActionEffect;
@@ -40,16 +42,20 @@ namespace BossMod
             _processPacketActorControlHook = Service.Hook.HookFromSignature<ProcessPacketActorControlDelegate>("E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64", ProcessPacketActorControlDetour);
             _processPacketActorControlHook.Enable();
             Service.Log($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
+
+            _processEnvControlHook = Service.Hook.HookFromSignature<ProcessEnvControlDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessEnvControlDetour);
+            _processEnvControlHook.Enable();
+            Service.Log($"[WSG] ProcessEnvControl address = 0x{_processEnvControlHook.Address:X}");
         }
 
         public void Dispose()
         {
-            _network.EventEnvControl -= OnNetworkEnvControl;
             _network.EventRSVData -= OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
             ActionManagerEx.Instance!.ActionEffectReceived -= OnActionEffect;
             ActionManagerEx.Instance!.EffectResultReceived -= OnEffectResult;
             _processPacketActorControlHook.Dispose();
+            _processEnvControlHook.Dispose();
         }
 
         public void Update(TimeSpan prevFramePerf)
@@ -420,9 +426,11 @@ namespace BossMod
             }
         }
 
-        private void OnNetworkEnvControl(object? sender, (uint directorID, byte index, uint state) args)
+        private unsafe void ProcessEnvControlDetour(void* self, uint index, ushort s1, ushort s2)
         {
-            _globalOps.Add(new OpEnvControl() { DirectorID = args.directorID, Index = args.index, State = args.state });
+            // note: this function is only executed for incoming packets that pass some checks (validation that currently active director is what is expected) - don't think it's a big deal?
+            _processEnvControlHook.Original(self, index, s1, s2);
+            _globalOps.Add(new OpEnvControl() { Index = (byte)index, State = s1 | ((uint)s2 << 16) });
         }
 
         private void OnNetworkRSVData(object? sender, (string key, string value) args)

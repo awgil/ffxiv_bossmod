@@ -57,10 +57,8 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID != 0x800375A7)
-                return;
             switch (index)
             {
                 case 0: // small platforms

@@ -464,7 +464,7 @@ namespace BossMod
 
         private void EventEnvControl(object? sender, WorldState.OpEnvControl op)
         {
-            _res.EnvControls.Add(new(op.DirectorID, op.Index, op.State, _ws.CurrentTime));
+            _res.EnvControls.Add(new(op.Index, op.State, _ws.CurrentTime));
         }
 
         private void ClientActionRequested(object? sender, ClientState.OpActionRequest op)

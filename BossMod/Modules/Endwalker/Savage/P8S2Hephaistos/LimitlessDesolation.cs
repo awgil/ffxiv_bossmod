@@ -56,10 +56,8 @@ namespace BossMod.Endwalker.Savage.P8S2
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID != 0x800375AB)
-                return;
             var towerIndex = index switch
             {
                 0x4C => 0,

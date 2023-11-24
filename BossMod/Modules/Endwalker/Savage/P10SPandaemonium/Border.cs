@@ -25,9 +25,9 @@
                 DrawBridge(arena, +1);
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID == 0x800375B1 && state is 0x00020001 or 0x00080004)
+            if (state is 0x00020001 or 0x00080004)
             {
                 switch (index)
                 {

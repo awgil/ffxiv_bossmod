@@ -102,9 +102,9 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID == 0x80034E77 && index == 4)
+            if (index == 4)
             {
                 switch (state)
                 {

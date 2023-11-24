@@ -122,7 +122,7 @@ namespace BossMod.ReplayVisualization
 
             foreach (var n in _tree.Node("EnvControls", !envControls.Any()))
             {
-                _tree.LeafNodes(envControls, ec => $"{tp(ec.Timestamp)}: {ec.DirectorID:X8}.{ec.Index:X2} = {ec.State:X8}");
+                _tree.LeafNodes(envControls, ec => $"{tp(ec.Timestamp)}: {ec.Index:X2} = {ec.State:X8}");
             }
         }
 

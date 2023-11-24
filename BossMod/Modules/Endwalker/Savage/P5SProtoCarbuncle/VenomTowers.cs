@@ -22,11 +22,8 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             }
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID != 0x800375A5)
-                return;
-
             WDir offset = index switch
             {
                 3 => new(-_rangedOffset, -_rangedOffset),

@@ -43,9 +43,9 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                 arena.AddLine(from, to, ArenaColor.Safe);
         }
 
-        public override void OnEventEnvControl(BossModule module, uint directorID, byte index, uint state)
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (directorID != 0x80034E71 || index < 6 || index > 8)
+            if (index < 6 || index > 8)
                 return;
             var seq = index - 6;
             _patterns[seq] = state switch

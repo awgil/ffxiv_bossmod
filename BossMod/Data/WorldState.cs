@@ -161,7 +161,6 @@ namespace BossMod
         public event EventHandler<OpEnvControl>? EnvControl;
         public class OpEnvControl : Operation
         {
-            public uint DirectorID;
             public byte Index;
             public uint State;
 
@@ -170,7 +169,7 @@ namespace BossMod
                 ws.EnvControl?.Invoke(ws, this);
             }
 
-            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ENVC").Emit(DirectorID, "X8").Emit(Index, "X2").Emit(State, "X8");
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ENVC").Emit(Index, "X2").Emit(State, "X8");
         }
     }
 }
