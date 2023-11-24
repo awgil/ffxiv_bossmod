@@ -10,7 +10,6 @@ namespace BossMod
 {
     class Network : IDisposable
     {
-        public event EventHandler<(ulong actorID, uint seq, int targetIndex)>? EventEffectResult;
         public event EventHandler<(ulong actorID, ActionID action, float castTime, ulong targetID)>? EventActorCast;
         public event EventHandler<(ulong actorID, uint actionID)>? EventActorControlCancelCast;
         public event EventHandler<(ulong actorID, uint iconID)>? EventActorControlTargetIcon;
@@ -93,36 +92,6 @@ namespace BossMod
 
                 switch ((Protocol.Opcode)opCode)
                 {
-                    case Protocol.Opcode.EffectResultBasic1:
-                        HandleEffectResultBasic(Math.Min((byte)1, *(byte*)dataPtr), (Protocol.Server_EffectResultBasicEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResultBasic4:
-                        HandleEffectResultBasic(Math.Min((byte)4, *(byte*)dataPtr), (Protocol.Server_EffectResultBasicEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResultBasic8:
-                        HandleEffectResultBasic(Math.Min((byte)8, *(byte*)dataPtr), (Protocol.Server_EffectResultBasicEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResultBasic16:
-                        HandleEffectResultBasic(Math.Min((byte)16, *(byte*)dataPtr), (Protocol.Server_EffectResultBasicEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResultBasic32:
-                        HandleEffectResultBasic(Math.Min((byte)32, *(byte*)dataPtr), (Protocol.Server_EffectResultBasicEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResultBasic64:
-                        HandleEffectResultBasic(Math.Min((byte)64, *(byte*)dataPtr), (Protocol.Server_EffectResultBasicEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResult1:
-                        HandleEffectResult(Math.Min((byte)1, *(byte*)dataPtr), (Protocol.Server_EffectResultEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResult4:
-                        HandleEffectResult(Math.Min((byte)4, *(byte*)dataPtr), (Protocol.Server_EffectResultEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResult8:
-                        HandleEffectResult(Math.Min((byte)8, *(byte*)dataPtr), (Protocol.Server_EffectResultEntry*)(dataPtr + 4), targetActorId);
-                        break;
-                    case Protocol.Opcode.EffectResult16:
-                        HandleEffectResult(Math.Min((byte)16, *(byte*)dataPtr), (Protocol.Server_EffectResultEntry*)(dataPtr + 4), targetActorId);
-                        break;
                     case Protocol.Opcode.ActorCast:
                         HandleActorCast((Protocol.Server_ActorCast*)dataPtr, targetActorId);
                         break;
@@ -147,24 +116,6 @@ namespace BossMod
                 {
                     DumpClientMessage(dataPtr, opCode, packetLength);
                 }
-            }
-        }
-
-        private unsafe void HandleEffectResultBasic(int count, Protocol.Server_EffectResultBasicEntry* p, uint actorID)
-        {
-            for (int i = 0; i < count; ++i)
-            {
-                EventEffectResult?.Invoke(this, (actorID, p->RelatedActionSequence, p->RelatedTargetIndex));
-                ++p;
-            }
-        }
-
-        private unsafe void HandleEffectResult(int count, Protocol.Server_EffectResultEntry* p, uint actorID)
-        {
-            for (int i = 0; i < count; ++i)
-            {
-                EventEffectResult?.Invoke(this, (actorID, p->RelatedActionSequence, p->RelatedTargetIndex));
-                ++p;
             }
         }
 

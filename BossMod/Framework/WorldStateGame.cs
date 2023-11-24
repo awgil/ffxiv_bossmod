@@ -28,7 +28,6 @@ namespace BossMod
 
             _actorsByIndex = new Actor?[Service.ObjectTable.Length];
             _network = network;
-            _network.EventEffectResult += OnNetworkEffectResult;
             _network.EventActorControlTargetIcon += OnNetworkActorControlTargetIcon;
             _network.EventActorControlTether += OnNetworkActorControlTether;
             _network.EventActorControlTetherCancel += OnNetworkActorControlTetherCancel;
@@ -41,11 +40,11 @@ namespace BossMod
             _network.EventRSVData += OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
             ActionManagerEx.Instance!.ActionEffectReceived += OnActionEffect;
+            ActionManagerEx.Instance!.EffectResultReceived += OnEffectResult;
         }
 
         public void Dispose()
         {
-            _network.EventEffectResult -= OnNetworkEffectResult;
             _network.EventActorControlTargetIcon -= OnNetworkActorControlTargetIcon;
             _network.EventActorControlTether -= OnNetworkActorControlTether;
             _network.EventActorControlTetherCancel -= OnNetworkActorControlTetherCancel;
@@ -58,6 +57,7 @@ namespace BossMod
             _network.EventRSVData -= OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
             ActionManagerEx.Instance!.ActionEffectReceived -= OnActionEffect;
+            ActionManagerEx.Instance!.EffectResultReceived -= OnEffectResult;
         }
 
         public void Update(TimeSpan prevFramePerf)
@@ -388,10 +388,10 @@ namespace BossMod
             _castEvents.Add((casterID, info));
         }
 
-        private void OnNetworkEffectResult(object? sender, (ulong actorID, uint seq, int targetIndex) args)
+        private void OnEffectResult(ulong targetID, uint seq, int targetIndex)
         {
-            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpEffectResult() { InstanceID = args.actorID, Seq = args.seq, TargetIndex = args.targetIndex });
-            _confirms.Add((args.seq, args.actorID, args.targetIndex));
+            _actorOps.GetOrAdd(targetID).Add(new ActorState.OpEffectResult() { InstanceID = targetID, Seq = seq, TargetIndex = targetIndex });
+            _confirms.Add((seq, targetID, targetIndex));
         }
 
         private void OnNetworkActorControlTargetIcon(object? sender, (ulong actorID, uint iconID) args)

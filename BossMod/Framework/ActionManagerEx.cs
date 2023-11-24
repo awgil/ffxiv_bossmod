@@ -44,7 +44,7 @@ namespace BossMod
     // 6. ground-targeted action queueing
     //    ground-targeted actions can't be queued, making using them efficiently tricky
     //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
-    class ActionManagerEx : IDisposable
+    unsafe class ActionManagerEx : IDisposable
     {
         public static ActionManagerEx? Instance;
         public const int NumCooldownGroups = 80;
@@ -52,42 +52,42 @@ namespace BossMod
         public float AnimationLockDelaySmoothing = 0.8f; // TODO tweak
         public float AnimationLockDelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
         public float AnimationLockDelayMax => Config.RemoveAnimationLockDelay ? 0 : float.MaxValue; // this caps max delay a-la xivalexander (TODO: make tweakable?)
-        public unsafe float AnimationLock => Utils.ReadField<float>(_inst, 8);
+        public float AnimationLock => Utils.ReadField<float>(_inst, 8);
 
-        public unsafe uint CastSpellID => Utils.ReadField<uint>(_inst, 0x24);
+        public uint CastSpellID => Utils.ReadField<uint>(_inst, 0x24);
         public ActionID CastSpell => new(ActionType.Spell, CastActionID);
-        public unsafe ActionType CastActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x28);
-        public unsafe uint CastActionID => Utils.ReadField<uint>(_inst, 0x2C);
+        public ActionType CastActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x28);
+        public uint CastActionID => Utils.ReadField<uint>(_inst, 0x2C);
         public ActionID CastAction => new(CastActionType, CastActionID);
-        public unsafe float CastTimeElapsed => Utils.ReadField<float>(_inst, 0x30);
-        public unsafe float CastTimeTotal => Utils.ReadField<float>(_inst, 0x34);
+        public float CastTimeElapsed => Utils.ReadField<float>(_inst, 0x30);
+        public float CastTimeTotal => Utils.ReadField<float>(_inst, 0x34);
         public float CastTimeRemaining => CastSpellID != 0 ? CastTimeTotal - CastTimeElapsed : 0;
-        public unsafe ulong CastTargetID => Utils.ReadField<ulong>(_inst, 0x38);
-        public unsafe Vector3 CastTargetPos => Utils.ReadField<Vector3>(_inst, 0x40);
+        public ulong CastTargetID => Utils.ReadField<ulong>(_inst, 0x38);
+        public Vector3 CastTargetPos => Utils.ReadField<Vector3>(_inst, 0x40);
 
-        public unsafe float ComboTimeLeft => Utils.ReadField<float>(_inst, 0x60);
-        public unsafe uint ComboLastMove => Utils.ReadField<uint>(_inst, 0x64);
+        public float ComboTimeLeft => Utils.ReadField<float>(_inst, 0x60);
+        public uint ComboLastMove => Utils.ReadField<uint>(_inst, 0x64);
 
-        public unsafe bool QueueActive => Utils.ReadField<bool>(_inst, 0x68);
-        public unsafe ActionType QueueActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x6C);
-        public unsafe uint QueueActionID => Utils.ReadField<uint>(_inst, 0x70);
+        public bool QueueActive => Utils.ReadField<bool>(_inst, 0x68);
+        public ActionType QueueActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x6C);
+        public uint QueueActionID => Utils.ReadField<uint>(_inst, 0x70);
         public ActionID QueueAction => new(QueueActionType, QueueActionID);
-        public unsafe ulong QueueTargetID => Utils.ReadField<ulong>(_inst, 0x78);
-        public unsafe uint QueueCallType => Utils.ReadField<uint>(_inst, 0x80);
-        public unsafe uint QueueComboRouteID => Utils.ReadField<uint>(_inst, 0x84);
+        public ulong QueueTargetID => Utils.ReadField<ulong>(_inst, 0x78);
+        public uint QueueCallType => Utils.ReadField<uint>(_inst, 0x80);
+        public uint QueueComboRouteID => Utils.ReadField<uint>(_inst, 0x84);
 
-        public unsafe uint GTActionID => Utils.ReadField<uint>(_inst, 0x88);
-        public unsafe ActionType GTActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x8C);
+        public uint GTActionID => Utils.ReadField<uint>(_inst, 0x88);
+        public ActionType GTActionType => (ActionType)Utils.ReadField<uint>(_inst, 0x8C);
         public ActionID GTAction => new(GTActionType, GTActionID);
-        public unsafe uint GTSpellID => Utils.ReadField<uint>(_inst, 0x90);
+        public uint GTSpellID => Utils.ReadField<uint>(_inst, 0x90);
         public ActionID GTSpell => new(ActionType.Spell, GTSpellID);
-        public unsafe uint GTUnkArg => Utils.ReadField<uint>(_inst, 0x94);
-        public unsafe ulong GTUnkObj => Utils.ReadField<ulong>(_inst, 0x98);
-        public unsafe byte GT_uA0 => Utils.ReadField<byte>(_inst, 0xA0);
-        public unsafe byte GT_uB8 => Utils.ReadField<byte>(_inst, 0xB8);
-        public unsafe uint GT_uBC => Utils.ReadField<byte>(_inst, 0xBC);
+        public uint GTUnkArg => Utils.ReadField<uint>(_inst, 0x94);
+        public ulong GTUnkObj => Utils.ReadField<ulong>(_inst, 0x98);
+        public byte GT_uA0 => Utils.ReadField<byte>(_inst, 0xA0);
+        public byte GT_uB8 => Utils.ReadField<byte>(_inst, 0xB8);
+        public uint GT_uBC => Utils.ReadField<byte>(_inst, 0xBC);
 
-        public unsafe ushort LastUsedActionSequence => Utils.ReadField<ushort>(_inst, 0x110);
+        public ushort LastUsedActionSequence => Utils.ReadField<ushort>(_inst, 0x110);
 
         public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
         public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
@@ -97,33 +97,40 @@ namespace BossMod
         public delegate void ActionEffectReceivedDelegate(ulong sourceID, ActorCastEvent info);
         public event ActionEffectReceivedDelegate? ActionEffectReceived;
 
+        public delegate void EffectResultReceivedDelegate(ulong targetID, uint seq, int targetIndex);
+        public event EffectResultReceivedDelegate? EffectResultReceived;
+
         public InputOverride InputOverride;
         public ActionManagerConfig Config;
         public CommonActions.NextAction AutoQueue; // TODO: consider using native 'queue' fields for this?
         public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
-        private unsafe ActionManager* _inst;
+        private ActionManager* _inst;
         private float _lastReqInitialAnimLock;
         private ushort _lastReqSequence;
         private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
         private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
         private int _restoreCntr;
 
-        private unsafe delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
+        private delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
         private GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
 
-        private unsafe delegate void FaceTargetDelegate(ActionManager* self, Vector3* position, ulong targetID);
+        private delegate void FaceTargetDelegate(ActionManager* self, Vector3* position, ulong targetID);
         private FaceTargetDelegate _faceTargetFunc;
 
-        private unsafe delegate void UpdateDelegate(ActionManager* self);
+        private delegate void UpdateDelegate(ActionManager* self);
         private Hook<UpdateDelegate> _updateHook;
 
-        private unsafe delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
+        private delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
         private Hook<UseActionLocationDelegate> _useActionLocationHook;
 
-        private unsafe delegate void ProcessActionEffectPacketDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets);
-        private Hook<ProcessActionEffectPacketDelegate> _processActionEffectPacketHook;
+        private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets);
+        private Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
 
-        public unsafe ActionManagerEx()
+        private delegate void ProcessPacketEffectResultDelegate(uint targetID, byte* packet, byte replaying);
+        private Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
+        private Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
+
+        public ActionManagerEx()
         {
             InputOverride = new();
             Config = Service.Config.Get<ActionManagerConfig>();
@@ -147,26 +154,36 @@ namespace BossMod
             _useActionLocationHook.Enable();
             Service.Log($"[AMEx] UseActionLocation address = 0x{_useActionLocationHook.Address:X}");
 
-            _processActionEffectPacketHook = Service.Hook.HookFromSignature<ProcessActionEffectPacketDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessActionEffectPacketDetour);
-            _processActionEffectPacketHook.Enable();
-            Service.Log($"[AMEx] ProcessActionEffectPacket address = 0x{_processActionEffectPacketHook.Address:X}");
+            _processPacketActionEffectHook = Service.Hook.HookFromSignature<ProcessPacketActionEffectDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessPacketActionEffectDetour);
+            _processPacketActionEffectHook.Enable();
+            Service.Log($"[AMEx] ProcessPacketActionEffect address = 0x{_processPacketActionEffectHook.Address:X}");
+
+            _processPacketEffectResultHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("48 8B C4 44 88 40 18 89 48 08", ProcessPacketEffectResultDetour);
+            _processPacketEffectResultHook.Enable();
+            Service.Log($"[AMEx] ProcessPacketEffectResult address = 0x{_processPacketEffectResultHook.Address:X}");
+
+            _processPacketEffectResultBasicHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("40 53 41 54 41 55 48 83 EC 40", ProcessPacketEffectResultBasicDetour);
+            _processPacketEffectResultBasicHook.Enable();
+            Service.Log($"[AMEx] ProcessPacketEffectResultBasic address = 0x{_processPacketEffectResultBasicHook.Address:X}");
         }
 
         public void Dispose()
         {
-            _processActionEffectPacketHook.Dispose();
+            _processPacketEffectResultBasicHook.Dispose();
+            _processPacketEffectResultHook.Dispose();
+            _processPacketActionEffectHook.Dispose();
             _useActionLocationHook.Dispose();
             _updateHook.Dispose();
             InputOverride.Dispose();
         }
 
-        public unsafe Vector3? GetWorldPosUnderCursor()
+        public Vector3? GetWorldPosUnderCursor()
         {
             Vector3 res = new();
             return _getGroundTargetPositionFunc(_inst, &res) ? res : null;
         }
 
-        public unsafe void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId)
+        public void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId)
         {
             _faceTargetFunc(_inst, &position, unkObjID);
         }
@@ -177,7 +194,7 @@ namespace BossMod
                 FaceTarget(player.Position + new Vector3(direction.X, 0, direction.Z));
         }
 
-        public unsafe void GetCooldowns(float[] cooldowns)
+        public void GetCooldowns(float[] cooldowns)
         {
             var rg = _inst->GetRecastGroupDetail(0);
             for (int i = 0; i < NumCooldownGroups; ++i)
@@ -187,41 +204,41 @@ namespace BossMod
             }
         }
 
-        public unsafe float GCD()
+        public float GCD()
         {
             var gcd = _inst->GetRecastGroupDetail(CommonDefinitions.GCDGroup);
             return gcd->Total - gcd->Elapsed;
         }
 
-        public unsafe uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
+        public uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
 
-        public unsafe uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
+        public uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
         {
             return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
         }
 
         // returns time in ms
-        public unsafe int GetAdjustedCastTime(ActionID action, bool skipHasteAdjustment = true, byte* outOptProcState = null)
+        public int GetAdjustedCastTime(ActionID action, bool skipHasteAdjustment = true, byte* outOptProcState = null)
             => ActionManager.GetAdjustedCastTime((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, (byte)(skipHasteAdjustment ? 1 : 0), outOptProcState);
 
-        public unsafe bool IsRecastTimerActive(ActionID action)
+        public bool IsRecastTimerActive(ActionID action)
             => _inst->IsRecastTimerActive((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID);
 
-        public unsafe int GetRecastGroup(ActionID action)
+        public int GetRecastGroup(ActionID action)
             => _inst->GetRecastGroup((int)action.Type, action.ID);
 
-        public unsafe bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
+        public bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
         {
             return _inst->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
         }
 
         // skips queueing etc
-        public unsafe bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0)
+        public bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0)
         {
             return UseActionLocationDetour(_inst, action.Type, action.ID, targetID, &targetPos, itemLocation);
         }
 
-        private unsafe void UpdateDetour(ActionManager* self)
+        private void UpdateDetour(ActionManager* self)
         {
             var dt = Framework.Instance()->FrameDeltaTime;
             var imminentAction = QueueActive ? QueueAction : AutoQueue.Action;
@@ -291,7 +308,7 @@ namespace BossMod
                 InputOverride.UnblockMovement();
         }
 
-        private unsafe bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)
+        private bool UseActionLocationDetour(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation)
         {
             var pc = Service.ClientState.LocalPlayer;
             var prevSeq = LastUsedActionSequence;
@@ -340,7 +357,7 @@ namespace BossMod
             return ret;
         }
 
-        private unsafe void ProcessActionEffectPacketDetour(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets)
+        private void ProcessPacketActionEffectDetour(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets)
         {
             if (ActionEffectReceived != null)
             {
@@ -370,7 +387,7 @@ namespace BossMod
             }
 
             var prevAnimLock = AnimationLock;
-            _processActionEffectPacketHook.Original(casterID, casterObj, targetPos, header, effects, targets);
+            _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
             var currAnimLock = AnimationLock;
 
             if (header->SourceSequence == 0 || casterID != Service.ClientState.LocalPlayer?.ObjectId)
@@ -408,6 +425,36 @@ namespace BossMod
             }
 
             Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+        }
+
+        private void ProcessPacketEffectResultDetour(uint targetID, byte* packet, byte replaying)
+        {
+            if (EffectResultReceived != null)
+            {
+                var count = packet[0];
+                var p = (Protocol.Server_EffectResultEntry*)(packet + 4);
+                for (int i = 0; i < count; ++i)
+                {
+                    EffectResultReceived.Invoke(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
+                    ++p;
+                }
+            }
+            _processPacketEffectResultHook.Original(targetID, packet, replaying);
+        }
+
+        private void ProcessPacketEffectResultBasicDetour(uint targetID, byte* packet, byte replaying)
+        {
+            if (EffectResultReceived != null)
+            {
+                var count = packet[0];
+                var p = (Protocol.Server_EffectResultBasicEntry*)(packet + 4);
+                for (int i = 0; i < count; ++i)
+                {
+                    EffectResultReceived.Invoke(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
+                    ++p;
+                }
+            }
+            _processPacketEffectResultBasicHook.Original(targetID, packet, replaying);
         }
     }
 }
