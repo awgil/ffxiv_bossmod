@@ -34,11 +34,6 @@ namespace BossMod
         private unsafe delegate byte ProcessZonePacketUpDelegate(void* a1, void* dataPtr, void* a3, byte a4);
         private Hook<ProcessZonePacketUpDelegate> _processZonePacketUpHook;
 
-        // this is a mega weird thing - apparently some IDs sent over network have some extra delta added to them (e.g. action ids, icon ids, etc.)
-        // they change on relogs or zone changes or something...
-        // we have one simple way of detecting them - by looking at casts, since they contain both offset id and real ('animation') id
-        private int _unkDelta = 0;
-
         public unsafe Network(DirectoryInfo logDir)
         {
             _config = Service.Config.Get<ReplayManagementConfig>();
@@ -200,17 +195,16 @@ namespace BossMod
         {
             if (header->actionType == ActionType.Spell)
             {
-                int newDelta = (int)header->actionId - (int)header->actionAnimationId;
-                if (_unkDelta != newDelta)
+                var actualDelta = header->actionId - header->actionAnimationId;
+                if (actualDelta != NetworkIDScramble.NetScrambleDelta)
                 {
-                    Service.Log($"Updating network delta: {_unkDelta} -> {newDelta}");
-                    _unkDelta = newDelta;
+                    Service.Log($"Unexpected network delta: {actualDelta} vs {NetworkIDScramble.NetScrambleDelta}");
                 }
             }
 
             var info = new ActorCastEvent
             {
-                Action = new(header->actionType, (uint)(header->actionId - _unkDelta)), // note: see _unkDelta comment
+                Action = new(header->actionType, header->actionId - NetworkIDScramble.NetScrambleDelta),
                 MainTargetID = header->animationTargetId,
                 AnimationLockTime = header->animationLockTime,
                 MaxTargets = maxTargets,
@@ -252,7 +246,7 @@ namespace BossMod
 
         private unsafe void HandleActorCast(Protocol.Server_ActorCast* p, uint actorID)
         {
-            EventActorCast?.Invoke(this, (actorID, new(p->ActionType, p->SpellID), p->CastTime, p->TargetID));
+            EventActorCast?.Invoke(this, (actorID, new(p->ActionType, p->ActionID - NetworkIDScramble.NetScrambleDelta), p->CastTime, p->TargetID));
         }
 
         private unsafe void HandleActorControl(Protocol.Server_ActorControl* p, uint actorID)
@@ -263,7 +257,7 @@ namespace BossMod
                     EventActorControlCancelCast?.Invoke(this, (actorID, p->param3));
                     break;
                 case Protocol.Server_ActorControlCategory.TargetIcon:
-                    EventActorControlTargetIcon?.Invoke(this, (actorID, (uint)(p->param1 - _unkDelta)));
+                    EventActorControlTargetIcon?.Invoke(this, (actorID, p->param1 - NetworkIDScramble.NetScrambleDelta));
                     break;
                 case Protocol.Server_ActorControlCategory.Tether:
                     EventActorControlTether?.Invoke(this, (actorID, p->param3, p->param2));
@@ -369,7 +363,7 @@ namespace BossMod
                 case Protocol.Opcode.ActorCast:
                     {
                         var p = (Protocol.Server_ActorCast*)dataPtr;
-                        uint aid = (uint)(p->ActionID - _unkDelta);
+                        uint aid = p->ActionID - NetworkIDScramble.NetScrambleDelta;
                         Service.Log($"[Network] - AID={new ActionID(p->ActionType, aid)} ({new ActionID(ActionType.Spell, p->SpellID)}), target={Utils.ObjectString(p->TargetID)}, time={p->CastTime:f2} ({p->BaseCastTime100ms * 0.1f:f1}), rot={IntToFloatAngle(p->Rotation)}, targetpos={Utils.Vec3String(IntToFloatCoords(p->PosX, p->PosY, p->PosZ))}, interruptible={p->Interruptible}, u1={p->u1:X2}, u2={Utils.ObjectString(p->u2_objID)}, u3={p->u3:X4}");
                         break;
                     }
@@ -523,7 +517,7 @@ namespace BossMod
         {
             // rotation: 0 -> -180, 65535 -> +180
             var rot = IntToFloatAngle(data->rotation);
-            uint aid = (uint)(data->actionId - _unkDelta);
+            uint aid = data->actionId - NetworkIDScramble.NetScrambleDelta;
             Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown20:X2} {data->padding21:X4}");
             var targets = Math.Min(data->NumTargets, maxTargets);
             for (int i = 0; i < targets; ++i)

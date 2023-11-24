@@ -66,6 +66,7 @@ namespace BossMod
             //Service.Device = pluginInterface.UiBuilder.Device;
             Service.Condition.ConditionChange += OnConditionChanged;
             MultiboxUnlock.Exec();
+            NetworkIDScramble.Initialize();
             Camera.Instance = new();
 
             Service.Config.Initialize();
