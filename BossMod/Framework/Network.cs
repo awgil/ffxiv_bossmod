@@ -10,8 +10,6 @@ namespace BossMod
 {
     class Network : IDisposable
     {
-        public event EventHandler<(ulong actorID, ActionID action, float castTime, ulong targetID)>? EventActorCast;
-        public event EventHandler<(ulong actorID, uint actionID)>? EventActorControlCancelCast;
         public event EventHandler<(ulong actorID, uint iconID)>? EventActorControlTargetIcon;
         public event EventHandler<(ulong actorID, ulong targetID, uint tetherID)>? EventActorControlTether;
         public event EventHandler<ulong>? EventActorControlTetherCancel;
@@ -92,9 +90,6 @@ namespace BossMod
 
                 switch ((Protocol.Opcode)opCode)
                 {
-                    case Protocol.Opcode.ActorCast:
-                        HandleActorCast((Protocol.Server_ActorCast*)dataPtr, targetActorId);
-                        break;
                     case Protocol.Opcode.ActorControl:
                         HandleActorControl((Protocol.Server_ActorControl*)dataPtr, targetActorId);
                         break;
@@ -119,18 +114,10 @@ namespace BossMod
             }
         }
 
-        private unsafe void HandleActorCast(Protocol.Server_ActorCast* p, uint actorID)
-        {
-            EventActorCast?.Invoke(this, (actorID, new(p->ActionType, p->ActionID - NetworkIDScramble.NetScrambleDelta), p->CastTime, p->TargetID));
-        }
-
         private unsafe void HandleActorControl(Protocol.Server_ActorControl* p, uint actorID)
         {
             switch (p->category)
             {
-                case Protocol.Server_ActorControlCategory.CancelCast:
-                    EventActorControlCancelCast?.Invoke(this, (actorID, p->param3));
-                    break;
                 case Protocol.Server_ActorControlCategory.TargetIcon:
                     EventActorControlTargetIcon?.Invoke(this, (actorID, p->param1 - NetworkIDScramble.NetScrambleDelta));
                     break;
