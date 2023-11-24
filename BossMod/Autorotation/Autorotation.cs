@@ -169,7 +169,7 @@ namespace BossMod
             ImGui.TextUnformatted($"GCD={Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}, Combo={state.ComboTimeLeft:f3}");
         }
 
-        private void OnActionRequested(object? sender, ClientActionRequest request)
+        private void OnActionRequested(ClientActionRequest request)
         {
             _classActions?.NotifyActionExecuted(request);
         }

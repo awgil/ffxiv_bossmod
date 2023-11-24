@@ -10,7 +10,6 @@ namespace BossMod
 {
     class Network : IDisposable
     {
-        public event EventHandler<(ulong actorID, ActorCastEvent cast)>? EventActionEffect;
         public event EventHandler<(ulong actorID, uint seq, int targetIndex)>? EventEffectResult;
         public event EventHandler<(ulong actorID, ActionID action, float castTime, ulong targetID)>? EventActorCast;
         public event EventHandler<(ulong actorID, uint actionID)>? EventActorControlCancelCast;
@@ -94,21 +93,6 @@ namespace BossMod
 
                 switch ((Protocol.Opcode)opCode)
                 {
-                    case Protocol.Opcode.ActionEffect1:
-                        HandleActionEffect1((Protocol.Server_ActionEffect1*)dataPtr, targetActorId);
-                        break;
-                    case Protocol.Opcode.ActionEffect8:
-                        HandleActionEffect8((Protocol.Server_ActionEffect8*)dataPtr, targetActorId);
-                        break;
-                    case Protocol.Opcode.ActionEffect16:
-                        HandleActionEffect16((Protocol.Server_ActionEffect16*)dataPtr, targetActorId);
-                        break;
-                    case Protocol.Opcode.ActionEffect24:
-                        HandleActionEffect24((Protocol.Server_ActionEffect24*)dataPtr, targetActorId);
-                        break;
-                    case Protocol.Opcode.ActionEffect32:
-                        HandleActionEffect32((Protocol.Server_ActionEffect32*)dataPtr, targetActorId);
-                        break;
                     case Protocol.Opcode.EffectResultBasic1:
                         HandleEffectResultBasic(Math.Min((byte)1, *(byte*)dataPtr), (Protocol.Server_EffectResultBasicEntry*)(dataPtr + 4), targetActorId);
                         break;
@@ -164,66 +148,6 @@ namespace BossMod
                     DumpClientMessage(dataPtr, opCode, packetLength);
                 }
             }
-        }
-
-        private unsafe void HandleActionEffect1(Protocol.Server_ActionEffect1* p, uint actorID)
-        {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 1, new());
-        }
-
-        private unsafe void HandleActionEffect8(Protocol.Server_ActionEffect8* p, uint actorID)
-        {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 8, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
-        }
-
-        private unsafe void HandleActionEffect16(Protocol.Server_ActionEffect16* p, uint actorID)
-        {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 16, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
-        }
-
-        private unsafe void HandleActionEffect24(Protocol.Server_ActionEffect24* p, uint actorID)
-        {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 24, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
-        }
-
-        private unsafe void HandleActionEffect32(Protocol.Server_ActionEffect32* p, uint actorID)
-        {
-            HandleActionEffect(actorID, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 32, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ));
-        }
-
-        private unsafe void HandleActionEffect(uint casterID, Protocol.Server_ActionEffectHeader* header, ActionEffect* effects, ulong* targetIDs, uint maxTargets, Vector3 targetPos)
-        {
-            if (header->actionType == ActionType.Spell)
-            {
-                var actualDelta = header->actionId - header->actionAnimationId;
-                if (actualDelta != NetworkIDScramble.NetScrambleDelta)
-                {
-                    Service.Log($"Unexpected network delta: {actualDelta} vs {NetworkIDScramble.NetScrambleDelta}");
-                }
-            }
-
-            var info = new ActorCastEvent
-            {
-                Action = new(header->actionType, header->actionId - NetworkIDScramble.NetScrambleDelta),
-                MainTargetID = header->animationTargetId,
-                AnimationLockTime = header->animationLockTime,
-                MaxTargets = maxTargets,
-                TargetPos = targetPos,
-                SourceSequence = header->SourceSequence,
-                GlobalSequence = header->globalEffectCounter,
-            };
-
-            var targets = Math.Min(header->NumTargets, maxTargets);
-            for (int i = 0; i < targets; ++i)
-            {
-                var target = new ActorCastEvent.Target();
-                target.ID = targetIDs[i];
-                for (int j = 0; j < 8; ++j)
-                    target.Effects[j] = *(ulong*)(effects + (i * 8) + j);
-                info.Targets.Add(target);
-            }
-
-            EventActionEffect?.Invoke(this, (casterID, info));
         }
 
         private unsafe void HandleEffectResultBasic(int count, Protocol.Server_EffectResultBasicEntry* p, uint actorID)
@@ -518,7 +442,7 @@ namespace BossMod
             // rotation: 0 -> -180, 65535 -> +180
             var rot = IntToFloatAngle(data->rotation);
             uint aid = data->actionId - NetworkIDScramble.NetScrambleDelta;
-            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, u={data->unknown20:X2} {data->padding21:X4}");
+            Service.Log($"[Network] - AID={new ActionID(data->actionType, aid)} (real={data->actionId}, anim={data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f2}, seq={data->SourceSequence}, cntr={data->globalEffectCounter}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, flags={data->Flags:X2} pad={data->padding21:X4}");
             var targets = Math.Min(data->NumTargets, maxTargets);
             for (int i = 0; i < targets; ++i)
             {

@@ -1,5 +1,4 @@
-﻿using Dalamud;
-using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
@@ -93,7 +92,10 @@ namespace BossMod
         public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
         public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
 
-        public event EventHandler<ClientActionRequest>? ActionRequested;
+        public event Action<ClientActionRequest>? ActionRequested;
+
+        public delegate void ActionEffectReceivedDelegate(ulong sourceID, ActorCastEvent info);
+        public event ActionEffectReceivedDelegate? ActionEffectReceived;
 
         public InputOverride InputOverride;
         public ActionManagerConfig Config;
@@ -118,7 +120,7 @@ namespace BossMod
         private unsafe delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
         private Hook<UseActionLocationDelegate> _useActionLocationHook;
 
-        private unsafe delegate void ProcessActionEffectPacketDelegate(uint casterID, void* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets);
+        private unsafe delegate void ProcessActionEffectPacketDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets);
         private Hook<ProcessActionEffectPacketDelegate> _processActionEffectPacketHook;
 
         public unsafe ActionManagerEx()
@@ -323,7 +325,7 @@ namespace BossMod
                 var recastElapsed = recast != null ? recast->Elapsed : 0;
                 var recastTotal = recast != null ? recast->Total : 0;
                 Service.Log($"[AMEx] UAL #{currSeq} ({action} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, ALock={AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
-                ActionRequested?.Invoke(this, new() {
+                ActionRequested?.Invoke(new() {
                     Action = action,
                     TargetID = targetID,
                     TargetPos = *targetPos,
@@ -338,8 +340,35 @@ namespace BossMod
             return ret;
         }
 
-        private unsafe void ProcessActionEffectPacketDetour(uint casterID, void* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets)
+        private unsafe void ProcessActionEffectPacketDetour(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets)
         {
+            if (ActionEffectReceived != null)
+            {
+                // note: there's a slight difference with dispatching event from here rather than from packet processing (ActionEffectN) functions
+                // 1. action id is already unscrambled
+                // 2. this function won't be called if caster object doesn't exist
+                // the last point is deemed to be minor enough for us to not care, as it simplifies things (no need to hook 5 functions)
+                var info = new ActorCastEvent
+                {
+                    Action = new(header->actionType, header->actionId),
+                    MainTargetID = header->animationTargetId,
+                    AnimationLockTime = header->animationLockTime,
+                    MaxTargets = header->NumTargets,
+                    TargetPos = *targetPos,
+                    SourceSequence = header->SourceSequence,
+                    GlobalSequence = header->globalEffectCounter,
+                };
+                for (int i = 0; i < header->NumTargets; ++i)
+                {
+                    var target = new ActorCastEvent.Target();
+                    target.ID = targets[i];
+                    for (int j = 0; j < 8; ++j)
+                        target.Effects[j] = effects[i * 8 + j];
+                    info.Targets.Add(target);
+                }
+                ActionEffectReceived.Invoke(casterID, info);
+            }
+
             var prevAnimLock = AnimationLock;
             _processActionEffectPacketHook.Original(casterID, casterObj, targetPos, header, effects, targets);
             var currAnimLock = AnimationLock;

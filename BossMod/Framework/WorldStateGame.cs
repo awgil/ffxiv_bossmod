@@ -28,7 +28,6 @@ namespace BossMod
 
             _actorsByIndex = new Actor?[Service.ObjectTable.Length];
             _network = network;
-            _network.EventActionEffect += OnNetworkActionEffect;
             _network.EventEffectResult += OnNetworkEffectResult;
             _network.EventActorControlTargetIcon += OnNetworkActorControlTargetIcon;
             _network.EventActorControlTether += OnNetworkActorControlTether;
@@ -41,11 +40,11 @@ namespace BossMod
             _network.EventEnvControl += OnNetworkEnvControl;
             _network.EventRSVData += OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
+            ActionManagerEx.Instance!.ActionEffectReceived += OnActionEffect;
         }
 
         public void Dispose()
         {
-            _network.EventActionEffect -= OnNetworkActionEffect;
             _network.EventEffectResult -= OnNetworkEffectResult;
             _network.EventActorControlTargetIcon -= OnNetworkActorControlTargetIcon;
             _network.EventActorControlTether -= OnNetworkActorControlTether;
@@ -58,6 +57,7 @@ namespace BossMod
             _network.EventEnvControl -= OnNetworkEnvControl;
             _network.EventRSVData -= OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
+            ActionManagerEx.Instance!.ActionEffectReceived -= OnActionEffect;
         }
 
         public void Update(TimeSpan prevFramePerf)
@@ -377,10 +377,15 @@ namespace BossMod
             return curGauge != null ? Utils.ReadField<ulong>(curGauge, 8) : 0;
         }
 
-        private void OnNetworkActionEffect(object? sender, (ulong actorID, ActorCastEvent cast) args)
+        private void OnActionRequested(ClientActionRequest arg)
         {
-            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpCastEvent() { InstanceID = args.actorID, Value = args.cast });
-            _castEvents.Add((args.actorID, args.cast));
+            _globalOps.Add(new ClientState.OpActionRequest() { Request = arg });
+        }
+
+        private void OnActionEffect(ulong casterID, ActorCastEvent info)
+        {
+            _actorOps.GetOrAdd(casterID).Add(new ActorState.OpCastEvent() { InstanceID = casterID, Value = info });
+            _castEvents.Add((casterID, info));
         }
 
         private void OnNetworkEffectResult(object? sender, (ulong actorID, uint seq, int targetIndex) args)
@@ -437,11 +442,6 @@ namespace BossMod
         private void OnNetworkRSVData(object? sender, (string key, string value) args)
         {
             _globalOps.Add(new OpRSVData() { Key = args.key, Value = args.value });
-        }
-
-        private void OnActionRequested(object? sender, ClientActionRequest arg)
-        {
-            _globalOps.Add(new ClientState.OpActionRequest() { Request = arg });
         }
     }
 }

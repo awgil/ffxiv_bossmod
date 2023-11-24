@@ -254,7 +254,7 @@ namespace BossMod
             public ushort actionAnimationId;
             public byte variation; // animation
             public ActionType actionType;
-            public byte unknown20;
+            public byte Flags;
             public byte NumTargets; // machina calls it 'effectCount', but it is misleading imo
             public ushort padding21;
             public ushort padding22;
