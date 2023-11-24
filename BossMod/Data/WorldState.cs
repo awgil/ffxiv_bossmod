@@ -10,6 +10,7 @@ namespace BossMod
     {
         // state access
         public ulong QPF;
+        public string GameVersion;
         public FrameState Frame;
         public ushort CurrentZone { get; private set; }
         public Dictionary<string, string> RSVEntries { get; init; } = new();
@@ -21,9 +22,10 @@ namespace BossMod
 
         public DateTime CurrentTime => Frame.Timestamp;
 
-        public WorldState(ulong qpf)
+        public WorldState(ulong qpf, string gameVersion)
         {
             QPF = qpf;
+            GameVersion = gameVersion;
             Party = new(Actors);
         }
 

@@ -125,6 +125,7 @@ namespace BossMod
 
         public string Path = "";
         public ulong QPF = TimeSpan.TicksPerSecond;
+        public string GameVersion = "";
         public List<WorldState.Operation> Ops = new();
         public List<Participant> Participants = new();
         public List<Action> Actions = new();

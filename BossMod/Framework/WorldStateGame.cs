@@ -31,7 +31,7 @@ namespace BossMod
         private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
         private Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
 
-        public unsafe WorldStateGame() : base(Utils.FrameQPF())
+        public unsafe WorldStateGame(string gameVersion) : base(Utils.FrameQPF(), gameVersion)
         {
             _startTime = DateTime.Now;
             _startQPC = Utils.FrameQPC();

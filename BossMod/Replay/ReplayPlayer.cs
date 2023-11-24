@@ -12,13 +12,13 @@ namespace BossMod
         public ReplayPlayer(Replay r)
         {
             Replay = r;
-            WorldState = new(r.QPF);
+            WorldState = new(r.QPF, r.GameVersion);
         }
 
         // reset to empty state; note that world state is recreated
         public void Reset()
         {
-            WorldState = new(Replay.QPF);
+            WorldState = new(Replay.QPF, Replay.GameVersion);
             _nextOp = 0;
         }
 

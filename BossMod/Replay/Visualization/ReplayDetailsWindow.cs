@@ -89,7 +89,7 @@ namespace BossMod.ReplayVisualization
             DrawAllActorsTable();
             DrawAI();
 
-            if (ImGui.CollapsingHeader("Events"))
+            if (ImGui.CollapsingHeader($"Events (version: {_player.Replay.GameVersion})"))
                 _events.Draw();
             if (ImGui.CollapsingHeader("Analysis"))
                 _analysis.Draw();

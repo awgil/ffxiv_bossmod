@@ -348,8 +348,9 @@ namespace BossMod
             if (_version < 2)
                 throw new Exception($"Version {_version} is too old and is no longer supported, sorry");
             var qpf = _version >= 10 ? _input.ReadULong(false) : TimeSpan.TicksPerSecond; // newer windows versions have 10mhz qpc frequency
+            var gameVersion = _version >= 11 ? _input.ReadString() : "old";
             _tsStart = _input is TextInput ti ? ti.Timestamp : new(_input.ReadLong());
-            Start(_tsStart, qpf);
+            Start(_tsStart, qpf, gameVersion);
         }
 
         private void ParseFrameStart()

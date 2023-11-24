@@ -132,14 +132,14 @@ namespace BossMod
         {
             foreach (var i in _modules.Values)
                 if (i.ConfigType == cfg)
-                    return CreateModule(i.ModuleType, new(TimeSpan.TicksPerSecond), new(0, i.PrimaryActorOID, -1, "", ActorType.None, Class.None, new()));
+                    return CreateModule(i.ModuleType, new(TimeSpan.TicksPerSecond, "fake"), new(0, i.PrimaryActorOID, -1, "", ActorType.None, Class.None, new()));
             return null;
         }
 
         // TODO: this is a hack...
         public static BossModule? CreateModuleForTimeline(uint oid)
         {
-            return CreateModule(FindByOID(oid)?.ModuleType, new(TimeSpan.TicksPerSecond), new(0, oid, -1, "", ActorType.None, Class.None, new()));
+            return CreateModule(FindByOID(oid)?.ModuleType, new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, "", ActorType.None, Class.None, new()));
         }
     }
 }

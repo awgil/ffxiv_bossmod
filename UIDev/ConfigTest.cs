@@ -11,7 +11,7 @@ namespace UIDev
 
         public ConfigTest() : base("Config", new(400, 400), ImGuiWindowFlags.None)
         {
-            _ui = new(Service.Config, new(TimeSpan.TicksPerSecond));
+            _ui = new(Service.Config, new(TimeSpan.TicksPerSecond, "fake"));
         }
 
         public override void Draw()

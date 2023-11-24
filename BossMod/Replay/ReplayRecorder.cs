@@ -204,7 +204,7 @@ namespace BossMod
             }
 
             // log initial state
-            _logger.Entry("VER ", _ws.CurrentTime).Emit(Version).Emit(_ws.QPF);
+            _logger.Entry("VER ", _ws.CurrentTime).Emit(Version).Emit(_ws.QPF).Emit(_ws.GameVersion);
             if (_logger is BinaryOutput)
                 _logger.Emit(_ws.CurrentTime.Ticks);
             _logger.EndEntry();

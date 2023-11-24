@@ -54,7 +54,7 @@ namespace BossMod
         }
 
         protected Replay _res = new();
-        protected WorldState _ws = new(TimeSpan.TicksPerSecond);
+        protected WorldState _ws = new(TimeSpan.TicksPerSecond, "pending");
         private BossModuleManagerWrapper _mgr;
         private Dictionary<ulong, LoadedModuleData> _modules = new();
         private Dictionary<ulong, Replay.Participant> _participants = new(); // these are either existing actors, destroyed actors that can still be recreated, or never-created-but-referenced actors
@@ -119,9 +119,10 @@ namespace BossMod
             _ws.Client.ActionRejected -= ClientActionRejected;
         }
 
-        protected void Start(DateTime timestamp, ulong qpf)
+        protected void Start(DateTime timestamp, ulong qpf, string gameVersion)
         {
             _res.QPF = _ws.QPF = qpf;
+            _res.GameVersion = _ws.GameVersion = gameVersion;
         }
 
         protected void AddOp(WorldState.Operation op)

@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using Dalamud.Common;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
@@ -6,6 +7,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using System;
+using System.Reflection;
 
 namespace BossMod
 {
@@ -59,6 +61,11 @@ namespace BossMod
             [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
             [RequiredVersion("1.0")] ICommandManager commandManager)
         {
+            var dalamudRoot = dalamud.GetType().Assembly.
+                    GetType("Dalamud.Service`1", true)!.MakeGenericType(dalamud.GetType().Assembly.GetType("Dalamud.Dalamud", true)!).
+                    GetMethod("Get")!.Invoke(null, BindingFlags.Default, null, Array.Empty<object>(), null);
+            var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
+
             dalamud.Create<Service>();
             Service.LogHandler = (string msg) => Service.Logger.Debug(msg);
             Service.LuminaGameData = Service.DataManager.GameData;
@@ -91,7 +98,7 @@ namespace BossMod
             }
 
             _network = new(dalamud.ConfigDirectory);
-            _ws = new();
+            _ws = new(dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
             _bossmod = new(_ws);
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);
@@ -120,6 +127,7 @@ namespace BossMod
             _network.Dispose();
             _ai.Dispose();
             _autorotation.Dispose();
+            _ws.Dispose();
             ActionManagerEx.Instance?.Dispose();
             _commandManager.RemoveHandler("/vbm");
         }
