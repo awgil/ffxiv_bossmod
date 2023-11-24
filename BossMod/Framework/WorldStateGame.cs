@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
+using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,6 @@ namespace BossMod
         private DateTime _startTime;
         private ulong _startQPC;
 
-        private Network _network;
         private PartyAlliance _alliance = new();
         private List<Operation> _globalOps = new();
         private Dictionary<ulong, List<Operation>> _actorOps = new();
@@ -28,13 +28,14 @@ namespace BossMod
         private unsafe delegate void ProcessEnvControlDelegate(void* self, uint index, ushort s1, ushort s2);
         private Hook<ProcessEnvControlDelegate> _processEnvControlHook;
 
-        public unsafe WorldStateGame(Network network) : base(Utils.FrameQPF())
+        private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
+        private Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
+
+        public unsafe WorldStateGame() : base(Utils.FrameQPF())
         {
             _startTime = DateTime.Now;
             _startQPC = Utils.FrameQPC();
 
-            _network = network;
-            _network.EventRSVData += OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
             ActionManagerEx.Instance!.ActionEffectReceived += OnActionEffect;
             ActionManagerEx.Instance!.EffectResultReceived += OnEffectResult;
@@ -46,16 +47,20 @@ namespace BossMod
             _processEnvControlHook = Service.Hook.HookFromSignature<ProcessEnvControlDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessEnvControlDetour);
             _processEnvControlHook.Enable();
             Service.Log($"[WSG] ProcessEnvControl address = 0x{_processEnvControlHook.Address:X}");
+
+            _processPacketRSVDataHook = Service.Hook.HookFromSignature<ProcessPacketRSVDataDelegate>("44 8B 09 4C 8D 41 34", ProcessPacketRSVDataDetour);
+            _processPacketRSVDataHook.Enable();
+            Service.Log($"[WSG] ProcessPacketRSVData address = 0x{_processPacketRSVDataHook.Address:X}");
         }
 
         public void Dispose()
         {
-            _network.EventRSVData -= OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
             ActionManagerEx.Instance!.ActionEffectReceived -= OnActionEffect;
             ActionManagerEx.Instance!.EffectResultReceived -= OnEffectResult;
             _processPacketActorControlHook.Dispose();
             _processEnvControlHook.Dispose();
+            _processPacketRSVDataHook.Dispose();
         }
 
         public void Update(TimeSpan prevFramePerf)
@@ -433,9 +438,10 @@ namespace BossMod
             _globalOps.Add(new OpEnvControl() { Index = (byte)index, State = s1 | ((uint)s2 << 16) });
         }
 
-        private void OnNetworkRSVData(object? sender, (string key, string value) args)
+        private unsafe void ProcessPacketRSVDataDetour(byte* packet)
         {
-            _globalOps.Add(new OpRSVData() { Key = args.key, Value = args.value });
+            _processPacketRSVDataHook.Original(packet);
+            _globalOps.Add(new OpRSVData() { Key = MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), Value = MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet) });
         }
     }
 }

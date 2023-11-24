@@ -91,7 +91,7 @@ namespace BossMod
             }
 
             _network = new(dalamud.ConfigDirectory);
-            _ws = new(_network);
+            _ws = new();
             _bossmod = new(_ws);
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);

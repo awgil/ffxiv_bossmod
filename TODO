@@ -1,5 +1,4 @@
 network rework:
-- get rid of network parsing for events
 - build opcode mapping
 - better intercept function (know size)
 - intermediate solution: log to file, like now
