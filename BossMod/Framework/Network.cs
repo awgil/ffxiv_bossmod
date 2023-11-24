@@ -10,14 +10,6 @@ namespace BossMod
 {
     class Network : IDisposable
     {
-        public event EventHandler<(ulong actorID, uint iconID)>? EventActorControlTargetIcon;
-        public event EventHandler<(ulong actorID, ulong targetID, uint tetherID)>? EventActorControlTether;
-        public event EventHandler<ulong>? EventActorControlTetherCancel;
-        public event EventHandler<(ulong actorID, ushort state)>? EventActorControlEObjSetState;
-        public event EventHandler<(ulong actorID, ushort p1, ushort p2)>? EventActorControlEObjAnimation;
-        public event EventHandler<(ulong actorID, ushort actionTimelineID)>? EventActorControlPlayActionTimeline;
-        public event EventHandler<ClientActionReject>? EventActorControlSelfActionRejected;
-        public event EventHandler<(uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4)>? EventActorControlSelfDirectorUpdate;
         public event EventHandler<(uint directorID, byte index, uint state)>? EventEnvControl;
         public event EventHandler<(string key, string value)>? EventRSVData;
 
@@ -90,12 +82,6 @@ namespace BossMod
 
                 switch ((Protocol.Opcode)opCode)
                 {
-                    case Protocol.Opcode.ActorControl:
-                        HandleActorControl((Protocol.Server_ActorControl*)dataPtr, targetActorId);
-                        break;
-                    case Protocol.Opcode.ActorControlSelf:
-                        HandleActorControlSelf((Protocol.Server_ActorControlSelf*)dataPtr, targetActorId);
-                        break;
                     case Protocol.Opcode.EnvControl:
                         HandleEnvControl((Protocol.Server_EnvControl*)dataPtr, targetActorId);
                         break;
@@ -111,45 +97,6 @@ namespace BossMod
                 {
                     DumpClientMessage(dataPtr, opCode, packetLength);
                 }
-            }
-        }
-
-        private unsafe void HandleActorControl(Protocol.Server_ActorControl* p, uint actorID)
-        {
-            switch (p->category)
-            {
-                case Protocol.Server_ActorControlCategory.TargetIcon:
-                    EventActorControlTargetIcon?.Invoke(this, (actorID, p->param1 - NetworkIDScramble.NetScrambleDelta));
-                    break;
-                case Protocol.Server_ActorControlCategory.Tether:
-                    EventActorControlTether?.Invoke(this, (actorID, p->param3, p->param2));
-                    break;
-                case Protocol.Server_ActorControlCategory.TetherCancel:
-                    EventActorControlTetherCancel?.Invoke(this, actorID);
-                    break;
-                case Protocol.Server_ActorControlCategory.EObjSetState:
-                    // p2 is unused (seems to be director id?), p3==1 means housing (?) item instead of event obj, p4 is housing item id
-                    EventActorControlEObjSetState?.Invoke(this, (actorID, (ushort)p->param1));
-                    break;
-                case Protocol.Server_ActorControlCategory.EObjAnimation:
-                    EventActorControlEObjAnimation?.Invoke(this, (actorID, (ushort)p->param1, (ushort)p->param2));
-                    break;
-                case Protocol.Server_ActorControlCategory.PlayActionTimeline:
-                    EventActorControlPlayActionTimeline?.Invoke(this, (actorID, (ushort)p->param1));
-                    break;
-            }
-        }
-
-        private unsafe void HandleActorControlSelf(Protocol.Server_ActorControlSelf* p, uint actorID)
-        {
-            switch (p->category)
-            {
-                case Protocol.Server_ActorControlCategory.ActionRejected:
-                    EventActorControlSelfActionRejected?.Invoke(this, new ClientActionReject() { Action = new((ActionType)p->param2, p->param3), SourceSequence = p->param6, RecastElapsed = p->param4 * 0.01f, RecastTotal = p->param5 * 0.01f, LogMessageID = p->param1 });
-                    break;
-                case Protocol.Server_ActorControlCategory.DirectorUpdate:
-                    EventActorControlSelfDirectorUpdate?.Invoke(this, (p->param1, p->param2, p->param3, p->param4, p->param5, p->param6));
-                    break;
             }
         }
 

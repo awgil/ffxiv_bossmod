@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using System;
 using System.Collections.Generic;
@@ -16,48 +17,39 @@ namespace BossMod
         private PartyAlliance _alliance = new();
         private List<Operation> _globalOps = new();
         private Dictionary<ulong, List<Operation>> _actorOps = new();
-        private Actor?[] _actorsByIndex;
+        private Actor?[] _actorsByIndex = new Actor?[Service.ObjectTable.Length];
 
         private List<(ulong Caster, ActorCastEvent Event)> _castEvents = new();
         private List<(uint Seq, ulong Target, int TargetIndex)> _confirms = new();
+
+        private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
+        private Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
 
         public WorldStateGame(Network network) : base(Utils.FrameQPF())
         {
             _startTime = DateTime.Now;
             _startQPC = Utils.FrameQPC();
 
-            _actorsByIndex = new Actor?[Service.ObjectTable.Length];
             _network = network;
-            _network.EventActorControlTargetIcon += OnNetworkActorControlTargetIcon;
-            _network.EventActorControlTether += OnNetworkActorControlTether;
-            _network.EventActorControlTetherCancel += OnNetworkActorControlTetherCancel;
-            _network.EventActorControlEObjSetState += OnNetworkActorControlEObjSetState;
-            _network.EventActorControlEObjAnimation += OnNetworkActorControlEObjAnimation;
-            _network.EventActorControlPlayActionTimeline += OnNetworkActorControlPlayActionTimeline;
-            _network.EventActorControlSelfActionRejected += OnNetworkActorControlSelfActionRejected;
-            _network.EventActorControlSelfDirectorUpdate += OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl += OnNetworkEnvControl;
             _network.EventRSVData += OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
             ActionManagerEx.Instance!.ActionEffectReceived += OnActionEffect;
             ActionManagerEx.Instance!.EffectResultReceived += OnEffectResult;
+
+            _processPacketActorControlHook = Service.Hook.HookFromSignature<ProcessPacketActorControlDelegate>("E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64", ProcessPacketActorControlDetour);
+            _processPacketActorControlHook.Enable();
+            Service.Log($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
         }
 
         public void Dispose()
         {
-            _network.EventActorControlTargetIcon -= OnNetworkActorControlTargetIcon;
-            _network.EventActorControlTether -= OnNetworkActorControlTether;
-            _network.EventActorControlTetherCancel -= OnNetworkActorControlTetherCancel;
-            _network.EventActorControlEObjSetState -= OnNetworkActorControlEObjSetState;
-            _network.EventActorControlEObjAnimation -= OnNetworkActorControlEObjAnimation;
-            _network.EventActorControlPlayActionTimeline -= OnNetworkActorControlPlayActionTimeline;
-            _network.EventActorControlSelfActionRejected -= OnNetworkActorControlSelfActionRejected;
-            _network.EventActorControlSelfDirectorUpdate -= OnNetworkActorControlSelfDirectorUpdate;
             _network.EventEnvControl -= OnNetworkEnvControl;
             _network.EventRSVData -= OnNetworkRSVData;
             ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
             ActionManagerEx.Instance!.ActionEffectReceived -= OnActionEffect;
             ActionManagerEx.Instance!.EffectResultReceived -= OnEffectResult;
+            _processPacketActorControlHook.Dispose();
         }
 
         public void Update(TimeSpan prevFramePerf)
@@ -394,44 +386,38 @@ namespace BossMod
             _confirms.Add((seq, targetID, targetIndex));
         }
 
-        private void OnNetworkActorControlTargetIcon(object? sender, (ulong actorID, uint iconID) args)
+        private void ProcessPacketActorControlDetour(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying)
         {
-            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpIcon() { InstanceID = args.actorID, IconID = args.iconID });
-        }
-
-        private void OnNetworkActorControlTether(object? sender, (ulong actorID, ulong targetID, uint tetherID) args)
-        {
-            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpTether() { InstanceID = args.actorID, Value = new() { ID = args.tetherID, Target = args.targetID } });
-        }
-
-        private void OnNetworkActorControlTetherCancel(object? sender, ulong actorID)
-        {
-            _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether() { InstanceID = actorID, Value = new() });
-        }
-
-        private void OnNetworkActorControlEObjSetState(object? sender, (ulong actorID, ushort state) args)
-        {
-            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpEventObjectStateChange() { InstanceID = args.actorID, State = args.state });
-        }
-
-        private void OnNetworkActorControlEObjAnimation(object? sender, (ulong actorID, ushort p1, ushort p2) args)
-        {
-            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpEventObjectAnimation() { InstanceID = args.actorID, Param1 = args.p1, Param2 = args.p2 });
-        }
-
-        private void OnNetworkActorControlPlayActionTimeline(object? sender, (ulong actorID, ushort actionTimelineID) args)
-        {
-            _actorOps.GetOrAdd(args.actorID).Add(new ActorState.OpPlayActionTimelineEvent() { InstanceID = args.actorID, ActionTimelineID = args.actionTimelineID });
-        }
-
-        private void OnNetworkActorControlSelfActionRejected(object? sender, ClientActionReject arg)
-        {
-            _globalOps.Add(new ClientState.OpActionReject() { Value = arg });
-        }
-
-        private void OnNetworkActorControlSelfDirectorUpdate(object? sender, (uint directorID, uint updateID, uint p1, uint p2, uint p3, uint p4) args)
-        {
-            _globalOps.Add(new OpDirectorUpdate() { DirectorID = args.directorID, UpdateID = args.updateID, Param1 = args.p1, Param2 = args.p2, Param3 = args.p3, Param4 = args.p4 });
+            _processPacketActorControlHook.Original(actorID, category, p1, p2, p3, p4, p5, p6, targetID, replaying);
+            switch ((Protocol.Server_ActorControlCategory)category)
+            {
+                case Protocol.Server_ActorControlCategory.TargetIcon:
+                    _actorOps.GetOrAdd(actorID).Add(new ActorState.OpIcon() { InstanceID = actorID, IconID = p1 - NetworkIDScramble.NetScrambleDelta });
+                    break;
+                case Protocol.Server_ActorControlCategory.Tether:
+                    _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether() { InstanceID = actorID, Value = new() { ID = p2, Target = p3 } });
+                    break;
+                case Protocol.Server_ActorControlCategory.TetherCancel:
+                    // note: this seems to clear tether only if existing matches p2
+                    _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether() { InstanceID = actorID, Value = new() });
+                    break;
+                case Protocol.Server_ActorControlCategory.EObjSetState:
+                    // p2 is unused (seems to be director id?), p3==1 means housing (?) item instead of event obj, p4 is housing item id
+                    _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventObjectStateChange() { InstanceID = actorID, State = (ushort)p1 });
+                    break;
+                case Protocol.Server_ActorControlCategory.EObjAnimation:
+                    _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventObjectAnimation() { InstanceID = actorID, Param1 = (ushort)p1, Param2 = (ushort)p2 });
+                    break;
+                case Protocol.Server_ActorControlCategory.PlayActionTimeline:
+                    _actorOps.GetOrAdd(actorID).Add(new ActorState.OpPlayActionTimelineEvent() { InstanceID = actorID, ActionTimelineID = (ushort)p1 });
+                    break;
+                case Protocol.Server_ActorControlCategory.ActionRejected:
+                    _globalOps.Add(new ClientState.OpActionReject() { Value = new() { Action = new((ActionType)p2, p3), SourceSequence = p6, RecastElapsed = p4 * 0.01f, RecastTotal = p5 * 0.01f, LogMessageID = p1 } });
+                    break;
+                case Protocol.Server_ActorControlCategory.DirectorUpdate:
+                    _globalOps.Add(new OpDirectorUpdate() { DirectorID = p1, UpdateID = p2, Param1 = p3, Param2 = p4, Param3 = p5, Param4 = p6 });
+                    break;
+            }
         }
 
         private void OnNetworkEnvControl(object? sender, (uint directorID, byte index, uint state) args)
