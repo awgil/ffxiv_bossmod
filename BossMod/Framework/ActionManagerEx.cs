@@ -123,7 +123,7 @@ namespace BossMod
         private delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
         private Hook<UseActionLocationDelegate> _useActionLocationHook;
 
-        private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets);
+        private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets);
         private Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
 
         private delegate void ProcessPacketEffectResultDelegate(uint targetID, byte* packet, byte replaying);
@@ -357,7 +357,7 @@ namespace BossMod
             return ret;
         }
 
-        private void ProcessPacketActionEffectDetour(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Protocol.Server_ActionEffectHeader* header, ulong* effects, ulong* targets)
+        private void ProcessPacketActionEffectDetour(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets)
         {
             if (ActionEffectReceived != null)
             {
@@ -432,7 +432,7 @@ namespace BossMod
             if (EffectResultReceived != null)
             {
                 var count = packet[0];
-                var p = (Protocol.Server_EffectResultEntry*)(packet + 4);
+                var p = (Network.ServerIPC.EffectResultEntry*)(packet + 4);
                 for (int i = 0; i < count; ++i)
                 {
                     EffectResultReceived.Invoke(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
@@ -447,7 +447,7 @@ namespace BossMod
             if (EffectResultReceived != null)
             {
                 var count = packet[0];
-                var p = (Protocol.Server_EffectResultBasicEntry*)(packet + 4);
+                var p = (Network.ServerIPC.EffectResultBasicEntry*)(packet + 4);
                 for (int i = 0; i < count; ++i)
                 {
                     EffectResultReceived.Invoke(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);

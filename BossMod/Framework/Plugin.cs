@@ -42,7 +42,7 @@ namespace BossMod
 
         private ICommandManager _commandManager { get; init; }
 
-        private Network _network;
+        private Network.Logger _network;
         private WorldStateGame _ws;
         private BossModuleManager _bossmod;
         private Autorotation _autorotation;
@@ -73,7 +73,7 @@ namespace BossMod
             //Service.Device = pluginInterface.UiBuilder.Device;
             Service.Condition.ConditionChange += OnConditionChanged;
             MultiboxUnlock.Exec();
-            NetworkIDScramble.Initialize();
+            Network.IDScramble.Initialize();
             Camera.Instance = new();
 
             Service.Config.Initialize();

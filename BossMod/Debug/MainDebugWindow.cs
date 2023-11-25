@@ -46,7 +46,7 @@ namespace BossMod
         {
             var player = Service.ClientState.LocalPlayer;
             ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={Service.ClientState.LocalContentId:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
-            ImGui.TextUnformatted($"ID scramble: {NetworkIDScramble.NetScrambleDelta} = {*NetworkIDScramble.NetOffsetAdjusted} - {*NetworkIDScramble.NetOffsetBaseFixed} - {*NetworkIDScramble.NetOffsetBaseChanging}");
+            ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
 
             var eventFwk = FFXIVClientStructs.FFXIV.Client.Game.Event.EventFramework.Instance();
             var instanceDirector = eventFwk != null ? eventFwk->GetInstanceContentDirector() : null;

@@ -1,7 +1,4 @@
 network rework:
-- build opcode mapping
-- better intercept function (know size)
-- intermediate solution: log to file, like now
 - optionally log raw ipcs to replay
 - visualize in replay analysis, dump to file
 - utility to inject custom ipcs to the stream for debugging?

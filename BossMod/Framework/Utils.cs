@@ -84,6 +84,8 @@ namespace BossMod
             return CastTimeString((float)(cast.FinishAt - now).TotalSeconds, cast.TotalTime);
         }
 
+        public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.LogMessage>(id)?.Text}'";
+
         public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged
         {
             return *(T*)((IntPtr)address + offset);
