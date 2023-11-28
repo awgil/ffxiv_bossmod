@@ -13,9 +13,11 @@
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
             SimplePhase(1, Phase2, "P2: M/F")
                 .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || IsEffectivelyDead(_module.BossP2M()) && IsEffectivelyDead(_module.BossP2F());
-            SimplePhase(2, Phase3, "P3")
+            SimplePhase(2, Phase3, "P3: Final")
                 .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || IsEffectivelyDead(_module.BossP3());
-            SimplePhase(3, Phase4, "P4")
+            SimplePhase(3, Phase4, "P4: Blue Screen")
+                .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || _module.FindComponent<P4BlueScreen>()?.NumCasts > 0;
+            SimplePhase(4, Phase5, "P5")
                 .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true); // TODO: reconsider condition...
         }
 
@@ -45,6 +47,13 @@
         private void Phase4(uint id)
         {
             P4WaveCannon(id, 7.2f);
+            P4BlueScreen(id + 0x10000, 1.1f);
+        }
+
+        private void Phase5(uint id)
+        {
+            P5SolarRay(id, 15.5f);
+            P5RunMiDelta(id + 0x10000, 8.4f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -276,6 +285,33 @@
             ComponentCondition<P3WaveRepeater>(id + 0x65, 2.1f, comp => comp.NumCasts > 6);
             ComponentCondition<P3WaveRepeater>(id + 0x66, 2.1f, comp => comp.NumCasts > 7, "Ring 8")
                 .DeactivateOnExit<P3WaveRepeater>();
+        }
+
+        private void P4BlueScreen(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP3, AID.BlueScreen, delay, 8, true);
+            ComponentCondition<P4BlueScreen>(id + 2, 1, comp => comp.NumCasts > 0, "Enrage", 100)
+                .ActivateOnEnter<P4BlueScreen>()
+                .DeactivateOnExit<P4BlueScreen>();
+        }
+
+        private void P5SolarRay(uint id, float delay)
+        {
+            ActorTargetable(id, _module.BossP5M, true, delay, "Boss appears");
+            ActorCast(id + 0x10, _module.BossP5M, AID.P5SolarRay, 3.1f, 5, true, "Tankbuster 1")
+                .ActivateOnEnter<P5SolarRay>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P5SolarRay>(id + 0x12, 3.2f, comp => comp.NumCasts > 1, "Tankbuster 2")
+                .DeactivateOnExit<P5SolarRay>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P5RunMiDelta(uint id, float delay)
+        {
+            // TODO: ...
+            ActorCast(id, _module.BossP5M, AID.RunMiDeltaVersion, delay, 5, true, "Trio 1 raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ActorTargetable(id + 0x10, _module.BossP5M, false, 3.1f, "Boss disappears");
         }
     }
 }

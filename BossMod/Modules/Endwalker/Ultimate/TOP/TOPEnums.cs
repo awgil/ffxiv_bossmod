@@ -15,9 +15,15 @@
         LeftArmUnit = 0x3D66, // R1.680, spawn during fight
         RightArmUnit = 0x3D67, // R1.680, spawn during fight
         P3IntermissionVoidzone = 0x1EB821, // R0.500, EventObj type, spawn during fight
+        OmegaMP5 = 0x3D68, // R5.010, spawn during fight
+        OmegaFP5 = 0x3D6A, // R5.010, spawn during fight
+        //_Gen_RearPowerUnit = 0x3D6B, // R6.720, spawn during fight
+        //_Gen_Omega = 0x3D6C, // R12.006, spawn during fight
+        //_Gen_Omega = 0x394D, // R12.502, spawn during fight
 
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
+
     };
 
     public enum AID : uint
@@ -141,6 +147,25 @@
         P4WaveCannonVisual2 = 32534, // BossP3->self, no cast, single-target, visual
         P4WaveCannonVisual3 = 31619, // BossP3->self, no cast, single-target, visual
         P4WaveCannonVisual4 = 31620, // BossP3->self, no cast, single-target, visual
+        BlueScreen = 31611, // BossP3->self, 8.0s cast, single-target, visual (enrage)
+        BlueScreenAOE = 31612, // Helper->self, 1.0s cast, range 100 circle, raidwide
+        BlueScreenFail = 31613, // Helper->self, 1.0s cast, range 100 circle, wipe if hp is high enough
+
+        // p5
+        AutoAttackP5 = 31745, // OmegaMP5->player, no cast, single-target
+        P5AppearM = 31621, // OmegaMP5->self, no cast, single-target, visual (appear)
+        P5AppearF = 31622, // OmegaFP5->self, no cast, single-target, visual (appear)
+        P5SolarRay = 33196, // OmegaMP5->player, 5.0s cast, range 5 circle tankbuster
+        P5SolarRaySecond = 31489, // OmegaMP5->player, no cast, range 5 circle tankbuster second hit
+        RunMiDeltaVersion = 31624, // OmegaMP5->self, 5.0s cast, range 100 circle, raidwide
+        //_Ability_PeripheralSynthesis = 31628, // 3D6C->self, no cast, single-target
+        //_Ability_ArchivePeripheral = 32630, // 394D->self, no cast, single-target
+        //_Ability_Explosion = 31482, // 3D5D/3D5E->location, 3.0s cast, range 3 circle
+        //_Ability_UnmitigatedExplosion = 31483, // 3D5E/3D5D->location, 3.0s cast, range 100 circle
+        //_Ability_HyperPulse = 31600, // RightArmUnit/LeftArmUnit->self, 2.5s cast, range 100 width 8 rect
+        //_Ability_HyperPulse = 31601, // RightArmUnit/LeftArmUnit->self, no cast, range 100 width 8 rect
+        //_Ability_Hello, World = 31627, // Helper->self, no cast, range 100 circle
+        //_Ability_OversampledWaveCannon = 31639, // 394D->self, 10.0s cast, single-target
     };
 
     public enum SID : uint
