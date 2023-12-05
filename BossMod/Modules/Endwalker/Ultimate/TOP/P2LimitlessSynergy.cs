@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private DateTime _activation;
         private BitMask _forbiddenStack;
 
-        public P2BeyondDefense() : base(6, 5, 6, alwaysShowSpreads: true) { }
+        public P2BeyondDefense() : base(6, 5, 3, alwaysShowSpreads: true) { }
 
         public override void Update(BossModule module)
         {

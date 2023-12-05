@@ -40,6 +40,7 @@ namespace BossMod.ReplayAnalysis
             {
                 foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 {
+                    var minExistence = enc.Time.End.AddSeconds(-1); // we don't want to add actors that spawned right before wipe, they could belong to reset
                     foreach (var (commonOID, participants) in enc.ParticipantsByOID)
                     {
                         ActorType? commonType = null;
@@ -47,7 +48,7 @@ namespace BossMod.ReplayAnalysis
                         int spawnedPreFight = 0, spawnedMidFight = 0;
                         float minRadius = float.MaxValue;
                         float maxRadius = float.MinValue;
-                        foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure) && p.ExistsInWorldAt(enc.Time.End.AddSeconds(-1))))
+                        foreach (var p in participants.Where(p => !(p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure) && p.EffectiveExistence.Start <= minExistence))
                         {
                             if (commonType == null)
                                 commonType = p.Type;

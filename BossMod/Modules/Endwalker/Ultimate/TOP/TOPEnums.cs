@@ -7,6 +7,7 @@
         OpticalUnit = 0x3D64, // R0.500, x1
         Tower1 = 0x1EB83C, // R0.500, EventObj type, spawn during fight (unlike Tower2, doesn't get eobjstate events on enter/exit)
         Tower2 = 0x1EB83D, // R0.500, EventObj type, spawn during fight
+        //Tower3 = 0x1EB83E, // R0.500, EventObj type, spawn during fight (p5)
         OmegaM = 0x3D60, // R3.000-5.010, spawn during fight (starts as M, turns into F)
         OmegaF = 0x3D61, // R3.000-5.010, spawn during fight (starts as F, turns into M)
         OmegaMHelper = 0x3D62, // R5.010, spawn during fight (never targetable)
@@ -18,8 +19,10 @@
         OmegaMP5 = 0x3D68, // R5.010, spawn during fight
         OmegaFP5 = 0x3D6A, // R5.010, spawn during fight
         //_Gen_RearPowerUnit = 0x3D6B, // R6.720, spawn during fight
-        //_Gen_Omega = 0x3D6C, // R12.006, spawn during fight
-        //_Gen_Omega = 0x394D, // R12.502, spawn during fight
+        BeetleHelper = 0x3D6C, // R12.006, spawn during fight (never targetable)
+        FinalHelper = 0x394D, // R12.502, spawn during fight (never targetable)
+        RocketPunch1 = 0x3D5D, // R1.500, spawn during fight (not sure which one is blue or yellow)
+        RocketPunch2 = 0x3D5E, // R1.500, spawn during fight
 
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
@@ -157,15 +160,30 @@
         P5AppearF = 31622, // OmegaFP5->self, no cast, single-target, visual (appear)
         P5SolarRay = 33196, // OmegaMP5->player, 5.0s cast, range 5 circle tankbuster
         P5SolarRaySecond = 31489, // OmegaMP5->player, no cast, range 5 circle tankbuster second hit
+
         RunMiDeltaVersion = 31624, // OmegaMP5->self, 5.0s cast, range 100 circle, raidwide
-        //_Ability_PeripheralSynthesis = 31628, // 3D6C->self, no cast, single-target
-        //_Ability_ArchivePeripheral = 32630, // 394D->self, no cast, single-target
-        //_Ability_Explosion = 31482, // 3D5D/3D5E->location, 3.0s cast, range 3 circle
-        //_Ability_UnmitigatedExplosion = 31483, // 3D5E/3D5D->location, 3.0s cast, range 100 circle
-        //_Ability_HyperPulse = 31600, // RightArmUnit/LeftArmUnit->self, 2.5s cast, range 100 width 8 rect
-        //_Ability_HyperPulse = 31601, // RightArmUnit/LeftArmUnit->self, no cast, range 100 width 8 rect
+        PeripheralSynthesis = 31628, // BeetleHelper->self, no cast, single-target, visual (spawn rocket punches)
+        ArchivePeripheral = 32630, // FinalHelper->self, no cast, single-target, visual (show rotating units)
+        DeltaExplosion = 31482, // RocketPunch1/RocketPunch2->location, 3.0s cast, range 3 circle puddle
+        DeltaUnmitigatedExplosion = 31483, // RocketPunch1/RocketPunch2->location, 3.0s cast, range 100 circle wipe if puddles are not overlapped correctly
+        DeltaHyperPulseFirst = 31600, // RightArmUnit/LeftArmUnit->self, 2.5s cast, range 100 width 8 rect, rotating aoe baited on closest target
+        DeltaHyperPulseRest = 31601, // RightArmUnit/LeftArmUnit->self, no cast, range 100 width 8 rect
+        DeltaOversampledWaveCannonR = 31638, // FinalHelper->self, 10.0s cast, single-target, visual (monitors cleaving right side)
+        DeltaOversampledWaveCannonL = 31639, // FinalHelper->self, 10.0s cast, single-target, visual (monitors cleaving left side)
+        SwivelCannon = 31636, // BeetleHelper->self, 10.0s cast, range 60 210-degree cone
         //_Ability_Hello, World = 31627, // Helper->self, no cast, range 100 circle
-        //_Ability_OversampledWaveCannon = 31639, // 394D->self, 10.0s cast, single-target
+        HelloNearWorld = 31625, // Helper->player, no cast, range 8 circle, initial hit
+        HelloNearWorldJump = 31626, // Helper->player, no cast, range 4 circle, jump to closest
+        HelloDistantWorld = 33040, // Helper->player, no cast, range 8 circle, initial hit
+        HelloDistantWorldJump = 33041, // Helper->player, no cast, range 4 circle, jump to farthest
+
+        RunMiSigmaVersion = 32788, // OmegaMP5->self, 5.0s cast, range 100 circle, raidwide
+        //_Ability_SubjectSimulationF = 32559, // OmegaMP5->self, no cast, single-target
+        //_Ability_ProgramLoop = 31640, // BeetleHelper->self, no cast, single-target
+        //_Ability_WaveCannon = 31603, // FinalHelper->self, 8.0s cast, single-target
+        //_Ability_HyperPulse = 31602, // RightArmUnit->self, no cast, range 100 width 6 rect
+        //_Ability_WaveCannon = 31604, // Helper->self, no cast, range 100 ?-degree cone
+        //_Ability_ = 32560, // OmegaMP5->self, no cast, single-target
     };
 
     public enum SID : uint
@@ -202,6 +220,14 @@
         HWImmuneBlueRot = 3433, // none->player, extra=0x0 - 'performance debugger', replaces blue rot after resolve
         OversampledWaveCannonLoadingR = 3452, // none->player, extra=0x0, cleaves right side
         OversampledWaveCannonLoadingL = 3453, // none->player, extra=0x0, cleaves left side
+
+        //_Gen_RemoteCodeSmell = 3504, // none->player, extra=0x0
+        //_Gen_LocalCodeSmell = 3440, // none->player, extra=0x0
+        HelloNearWorld = 3442, // none->player, extra=0x0
+        HelloDistantWorld = 3443, // none->player, extra=0x0
+        //_Gen_RemoteRegression = 1673, // none->player, extra=0x0
+        //_Gen_LocalRegression = 1672, // none->player, extra=0x0
+        //_Gen_QuickeningDynamis = 3444, // Helper->player, extra=0x1
     };
 
     public enum IconID : uint
@@ -214,6 +240,9 @@
         PartySynergyCross = 419, // player
         Spotlight = 100, // player
         OptimizedMeteor = 346, // player
+        RotateCW = 156, // LeftArmUnit/RightArmUnit
+        RotateCCW = 157, // LeftArmUnit/RightArmUnit
+        //_Gen_Icon_244 = 244, // player
     };
 
     public enum TetherID : uint

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Ultimate.TOP
 {
+    // TODO: stop showing rot spreads for people who were hit
     class P3HelloWorld : Components.GenericTowers
     {
         public enum PlayerRole { None = -1, Defamation, RemoteTether, Stack, LocalTether }

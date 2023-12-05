@@ -52,8 +52,11 @@
 
         private void Phase5(uint id)
         {
-            P5SolarRay(id, 15.5f);
-            P5RunMiDelta(id + 0x10000, 8.4f);
+            ActorTargetable(id, _module.BossP5M, true, 15.5f, "Boss appears");
+            P5SolarRay(id + 0x10000, 3.1f);
+            P5RunMiDelta(id + 0x20000, 8.4f);
+            P5SolarRay(id + 0x30000, 9.1f);
+            P5RunMiSigma(id + 0x40000, 8.4f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -297,21 +300,67 @@
 
         private void P5SolarRay(uint id, float delay)
         {
-            ActorTargetable(id, _module.BossP5M, true, delay, "Boss appears");
-            ActorCast(id + 0x10, _module.BossP5M, AID.P5SolarRay, 3.1f, 5, true, "Tankbuster 1")
+            ActorCast(id, _module.BossP5M, AID.P5SolarRay, delay, 5, true, "Tankbuster 1")
                 .ActivateOnEnter<P5SolarRay>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
-            ComponentCondition<P5SolarRay>(id + 0x12, 3.2f, comp => comp.NumCasts > 1, "Tankbuster 2")
+            ComponentCondition<P5SolarRay>(id + 2, 3.2f, comp => comp.NumCasts > 1, "Tankbuster 2")
                 .DeactivateOnExit<P5SolarRay>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
         private void P5RunMiDelta(uint id, float delay)
         {
-            // TODO: ...
             ActorCast(id, _module.BossP5M, AID.RunMiDeltaVersion, delay, 5, true, "Trio 1 raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ActorTargetable(id + 0x10, _module.BossP5M, false, 3.1f, "Boss disappears");
+            ActorTargetable(id + 0x10, _module.BossP5M, false, 3.1f, "Boss disappears")
+                .ActivateOnEnter<P5DeltaOpticalLaser>()
+                .ActivateOnEnter<P5Delta>();
+            ComponentCondition<P5DeltaOpticalLaser>(id + 0x11, 0.1f, comp => comp.Source != null);
+            ComponentCondition<P5Delta>(id + 0x20, 8.1f, comp => comp.NumPunchesSpawned > 0, "Fists spawn");
+            ComponentCondition<P5Delta>(id + 0x30, 7.2f, comp => comp.Arms.Count > 0);
+            ComponentCondition<P5Delta>(id + 0x40, 2.6f, comp => comp.TethersActive, "Tethers active"); // first tether should be broken immediately (inner blue)
+
+            ComponentCondition<P5DeltaOpticalLaser>(id + 0x50, 2.1f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P5DeltaExplosion>()
+                .DeactivateOnExit<P5DeltaOpticalLaser>();
+            ComponentCondition<P5DeltaExplosion>(id + 0x51, 0.1f, comp => comp.Casters.Count > 0, "Puddles bait");
+
+            ActorCastStart(id + 0x60, _module.BossP5M, AID.BeyondDefense, 0.3f, true) // note: monitors status + cast start happen right before, but we don't care yet...
+                .ActivateOnEnter<P5DeltaHyperPulse>();
+            // second tether break happens somewhere here (outer blue)
+            ComponentCondition<P5DeltaExplosion>(id + 0x61, 2.7f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P2BeyondDefense>()
+                .DeactivateOnExit<P5DeltaExplosion>();
+            ActorCastEnd(id + 0x62, _module.BossP5M, 2.2f, true);
+            ComponentCondition<P2BeyondDefense>(id + 0x63, 0.3f, comp => comp.CurMechanic == P2BeyondDefense.Mechanic.Stack, "Bait rotates & jump");
+
+            ComponentCondition<P5DeltaOversampledWaveCannon>(id + 0x70, 4.8f, comp => !comp.Active, "Monitors")
+                .ActivateOnEnter<P5DeltaOversampledWaveCannon>()
+                .DeactivateOnExit<P5DeltaOversampledWaveCannon>();
+            ComponentCondition<P2BeyondDefense>(id + 0x71, 0.5f, comp => comp.CurMechanic == P2BeyondDefense.Mechanic.None)
+                .DeactivateOnExit<P2BeyondDefense>();
+            ComponentCondition<P5DeltaHyperPulse>(id + 0x72, 0.1f, comp => comp.NumCasts >= 36)
+                .DeactivateOnExit<P5DeltaHyperPulse>();
+
+            ComponentCondition<P5DeltaSwivelCannon>(id + 0x80, 2.4f, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<P5DeltaSwivelCannon>();
+            // third tether break happens somewhere here (inner green)
+            ComponentCondition<P5DeltaSwivelCannon>(id + 0x82, 10, comp => comp.NumCasts > 0, "Cleave")
+                .ActivateOnEnter<P5DeltaNearDistantWorld>()
+                .DeactivateOnExit<P5DeltaSwivelCannon>();
+            ComponentCondition<P5DeltaNearDistantWorld>(id + 0x83, 0.7f, comp => comp.NumNearJumpsDone > 0, "Near/far 1");
+            ComponentCondition<P5DeltaNearDistantWorld>(id + 0x84, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 2");
+            ComponentCondition<P5DeltaNearDistantWorld>(id + 0x85, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 3")
+                .DeactivateOnExit<P5DeltaNearDistantWorld>();
+            ActorTargetable(id + 0x90, _module.BossP5M, true, 2.3f, "Boss reappears")
+                .DeactivateOnExit<P5Delta>();
+            // fourth tether break happens somewhere here, after mechanic ends
+        }
+
+        private void P5RunMiSigma(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP5M, AID.RunMiSigmaVersion, delay, 5, true, "Trio 2 raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
         }
     }
 }
