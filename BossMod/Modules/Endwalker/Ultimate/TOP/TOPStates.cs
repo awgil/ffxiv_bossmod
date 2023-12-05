@@ -361,6 +361,20 @@
         {
             ActorCast(id, _module.BossP5M, AID.RunMiSigmaVersion, delay, 5, true, "Trio 2 raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
+            ActorTargetable(id + 0x10, _module.BossP5M, false, 3.0f, "Boss disappears")
+                .ActivateOnEnter<P5Sigma>(); // icons/tethers/statuses appear right as boss disappears
+
+            ComponentCondition<P5SigmaWaveCannon>(id + 0x20, 10.3f, comp => comp.CurrentBaits.Count > 0)
+                .ActivateOnEnter<P5SigmaWaveCannon>();
+            ComponentCondition<P5SigmaHyperPulse>(id + 0x22, 8.9f, comp => comp.NumCasts > 0, "Proteans")
+                .ActivateOnEnter<P5SigmaHyperPulse>()
+                .DeactivateOnExit<P5SigmaHyperPulse>();
+            ComponentCondition<P5SigmaWaveCannon>(id + 0x23, 0.2f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P5SigmaWaveCannon>();
+
+            ComponentCondition<P5SigmaTowers>(id + 0x40, 2.8f, comp => comp.Towers.Count > 0, "???")
+                .ActivateOnEnter<P5SigmaTowers>();
+            // TODO: ...
         }
     }
 }

@@ -7,7 +7,7 @@
         OpticalUnit = 0x3D64, // R0.500, x1
         Tower1 = 0x1EB83C, // R0.500, EventObj type, spawn during fight (unlike Tower2, doesn't get eobjstate events on enter/exit)
         Tower2 = 0x1EB83D, // R0.500, EventObj type, spawn during fight
-        //Tower3 = 0x1EB83E, // R0.500, EventObj type, spawn during fight (p5)
+        Tower3 = 0x1EB83E, // R0.500, EventObj type, spawn during fight (p5 sigma, requires two soakers)
         OmegaM = 0x3D60, // R3.000-5.010, spawn during fight (starts as M, turns into F)
         OmegaF = 0x3D61, // R3.000-5.010, spawn during fight (starts as F, turns into M)
         OmegaMHelper = 0x3D62, // R5.010, spawn during fight (never targetable)
@@ -171,19 +171,19 @@
         DeltaOversampledWaveCannonR = 31638, // FinalHelper->self, 10.0s cast, single-target, visual (monitors cleaving right side)
         DeltaOversampledWaveCannonL = 31639, // FinalHelper->self, 10.0s cast, single-target, visual (monitors cleaving left side)
         SwivelCannon = 31636, // BeetleHelper->self, 10.0s cast, range 60 210-degree cone
-        //_Ability_Hello, World = 31627, // Helper->self, no cast, range 100 circle
+        HelloWorldWipe = 31627, // Helper->self, no cast, range 100 circle, wipe when near/distant fail
         HelloNearWorld = 31625, // Helper->player, no cast, range 8 circle, initial hit
         HelloNearWorldJump = 31626, // Helper->player, no cast, range 4 circle, jump to closest
         HelloDistantWorld = 33040, // Helper->player, no cast, range 8 circle, initial hit
         HelloDistantWorldJump = 33041, // Helper->player, no cast, range 4 circle, jump to farthest
 
         RunMiSigmaVersion = 32788, // OmegaMP5->self, 5.0s cast, range 100 circle, raidwide
-        //_Ability_SubjectSimulationF = 32559, // OmegaMP5->self, no cast, single-target
-        //_Ability_ProgramLoop = 31640, // BeetleHelper->self, no cast, single-target
-        //_Ability_WaveCannon = 31603, // FinalHelper->self, 8.0s cast, single-target
-        //_Ability_HyperPulse = 31602, // RightArmUnit->self, no cast, range 100 width 6 rect
-        //_Ability_WaveCannon = 31604, // Helper->self, no cast, range 100 ?-degree cone
-        //_Ability_ = 32560, // OmegaMP5->self, no cast, single-target
+        SigmaSubjectSimulationF = 32559, // OmegaMP5->self, no cast, single-target, visual (prepare to change model to F)
+        SigmaProgramLoop = 31640, // BeetleHelper->self, no cast, single-target, visual (apply looper debuffs)
+        SigmaHyperPulse = 31602, // RightArmUnit->self, no cast, range 100 width 6 rect
+        SigmaWaveCannon = 31603, // FinalHelper->self, 8.0s cast, single-target, visual (proteans)
+        SigmaWaveCannonAOE = 31604, // Helper->self, no cast, range 100 ?-degree cone
+        SigmaAnimationSwap = 32560, // OmegaMP5->self, no cast, single-target, visual (M->F)
     };
 
     public enum SID : uint
@@ -218,16 +218,11 @@
         HWImmuneDefamation = 3431, // none->player, extra=0x0 - 'overflow debugger', replaces defamation after resolve
         HWImmuneRedRot = 3432, // none->player, extra=0x0 - 'underflow debugger', replaces red rot after resolve
         HWImmuneBlueRot = 3433, // none->player, extra=0x0 - 'performance debugger', replaces blue rot after resolve
+
         OversampledWaveCannonLoadingR = 3452, // none->player, extra=0x0, cleaves right side
         OversampledWaveCannonLoadingL = 3453, // none->player, extra=0x0, cleaves left side
-
-        //_Gen_RemoteCodeSmell = 3504, // none->player, extra=0x0
-        //_Gen_LocalCodeSmell = 3440, // none->player, extra=0x0
         HelloNearWorld = 3442, // none->player, extra=0x0
         HelloDistantWorld = 3443, // none->player, extra=0x0
-        //_Gen_RemoteRegression = 1673, // none->player, extra=0x0
-        //_Gen_LocalRegression = 1672, // none->player, extra=0x0
-        //_Gen_QuickeningDynamis = 3444, // Helper->player, extra=0x1
     };
 
     public enum IconID : uint
@@ -242,7 +237,7 @@
         OptimizedMeteor = 346, // player
         RotateCW = 156, // LeftArmUnit/RightArmUnit
         RotateCCW = 157, // LeftArmUnit/RightArmUnit
-        //_Gen_Icon_244 = 244, // player
+        SigmaWaveCannon = 244, // player
     };
 
     public enum TetherID : uint
@@ -254,5 +249,6 @@
         HWPrepRemoteTether = 201, // player->player - tether broken by moving away (preparation)
         HWLocalTether = 224, // player->player - tether broken by moving close
         HWRemoteTether = 225, // player->player - tether broken by moving away
+        SigmaHyperPulse = 17, // RightArmUnit->player
     };
 }
