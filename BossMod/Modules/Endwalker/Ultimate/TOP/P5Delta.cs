@@ -24,16 +24,15 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public int NumTethersBroken { get; private set; }
         public bool TethersActive { get; private set; }
         public bool ExplosionsBaited { get; private set; }
-        public List<(Actor arm, Angle rotation)> Arms = new();
+        public Angle[] ArmRotations = new Angle[6]; // [0] = at rel north, then CCW
         public PlayerState[] Players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { PartnerSlot = -1 });
         private Actor? _nearWorld;
         private Actor? _distantWorld;
-        private Actor? _beetle;
-        private Actor? _final;
         private Actor? _monitorTarget;
         private Actor? _beyondDefenceTarget;
-        private float _monitorSafeDirZ;
-        private float _swivelCannonSafeDirZ;
+        private WDir _eyeDir; // relative north; beetle is rel west, final is rel east
+        private WDir _monitorSafeDir;
+        private WDir _swivelCannonSafeDir;
         private List<(int, int)> _localTethers = new();
         private List<(int, int)> _remoteTethers = new();
 
@@ -139,13 +138,14 @@ namespace BossMod.Endwalker.Ultimate.TOP
                     ExplosionsBaited = true;
                     break;
                 case AID.DeltaOversampledWaveCannonR:
-                    _monitorSafeDirZ = -(spell.Rotation - 90.Degrees()).ToDirection().Z;
+                    _monitorSafeDir = -(spell.Rotation - 90.Degrees()).ToDirection();
                     break;
                 case AID.DeltaOversampledWaveCannonL:
-                    _monitorSafeDirZ = -(spell.Rotation + 90.Degrees()).ToDirection().Z;
+                    _monitorSafeDir = -(spell.Rotation + 90.Degrees()).ToDirection();
                     break;
-                case AID.SwivelCannon:
-                    _swivelCannonSafeDirZ = -spell.Rotation.ToDirection().Z;
+                case AID.SwivelCannonR:
+                case AID.SwivelCannonL:
+                    _swivelCannonSafeDir = -spell.Rotation.ToDirection();
                     break;
             }
         }
@@ -163,10 +163,10 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 switch ((OID)actor.OID)
                 {
                     case OID.BeetleHelper:
-                        _beetle = actor;
+                        _eyeDir = (actor.Position - module.Bounds.Center).Normalized().OrthoR();
                         break;
                     case OID.FinalHelper:
-                        _final = actor;
+                        _eyeDir = (actor.Position - module.Bounds.Center).Normalized().OrthoL();
                         break;
                 }
             }
@@ -182,15 +182,24 @@ namespace BossMod.Endwalker.Ultimate.TOP
                     _ => default
                 };
                 if (rotation != default)
-                    Arms.Add((actor, rotation));
+                    ArmRotations[ArmIndex(actor.Position - module.Bounds.Center)] = rotation;
             }
         }
+
+        public WDir ArmOffset(int index) => 20 * (Angle.FromDirection(_eyeDir) + index * 60.Degrees()).ToDirection();
+        public int ArmIndex(WDir offset) => _eyeDir.Dot(offset) switch
+        {
+            > 19 => 0,
+            < -19 => 3,
+            > 0 => _eyeDir.OrthoL().Dot(offset) > 0 ? 1 : 5,
+            _ => _eyeDir.OrthoL().Dot(offset) > 0 ? 2 : 4,
+        };
 
         private void InitAssignments(BossModule module)
         {
             // 1. assign initial inner/outer
-            WDir slotToOffset(int slot) => (module.Raid[slot]?.Position ?? module.Bounds.Center) - module.Bounds.Center;
-            float pairToOffsetX((int s1, int s2) slots) => MathF.Abs(slotToOffset(slots.s1).X + slotToOffset(slots.s2).X);
+            float slotToOffsetX(int slot) => _eyeDir.OrthoR().Dot((module.Raid[slot]?.Position ?? module.Bounds.Center) - module.Bounds.Center);
+            float pairToOffsetX((int s1, int s2) slots) => MathF.Abs(slotToOffsetX(slots.s1) + slotToOffsetX(slots.s2));
             var outerLocal = _localTethers.MaxBy(pairToOffsetX);
             var outerRemote = _remoteTethers.MaxBy(pairToOffsetX);
             foreach (ref var p in Players.AsSpan())
@@ -205,8 +214,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 var p2 = module.Raid[s2];
                 if (p1 != null && p2 != null)
                 {
-                    Players[s1].SideAssignment = p1.Position.Z < p2.Position.Z ? SideAssignment.North : SideAssignment.South;
-                    Players[s2].SideAssignment = p1.Position.Z < p2.Position.Z ? SideAssignment.South : SideAssignment.North;
+                    var p12n = _eyeDir.Dot(p1.Position - p2.Position) > 0;
+                    Players[s1].SideAssignment = p12n ? SideAssignment.North : SideAssignment.South;
+                    Players[s2].SideAssignment = p12n ? SideAssignment.South : SideAssignment.North;
                 }
             }
             // 3. swap inner north/south if needed
@@ -228,29 +238,27 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private IEnumerable<WDir> SafeSpotOffsets(BossModule module, int slot)
         {
             var p = Players[slot];
-            if (p.PartnerSlot < 0 || _beetle == null || _final == null)
+            if (p.PartnerSlot < 0 || _eyeDir == default)
                 yield break; // no safe spots yet
 
-            var dirXFinal = _final.Position.X > module.Bounds.Center.X ? 1 : -1;
-            var dirXBeetle = _beetle.Position.X > module.Bounds.Center.X ? 1 : -1;
             if (p.RocketPunch == null)
             {
                 // no punches yet, show all 4 possible spots
                 if (p.IsLocal)
                 {
                     // green tethers go to final side
-                    yield return new(dirXFinal * 9, -11);
-                    yield return new(dirXFinal * 9, +11);
-                    yield return new(dirXFinal * 13, -11);
-                    yield return new(dirXFinal * 13, +11);
+                    yield return TransformRelNorth(9, -11);
+                    yield return TransformRelNorth(9, +11);
+                    yield return TransformRelNorth(13, -11);
+                    yield return TransformRelNorth(13, +11);
                 }
                 else
                 {
                     // blue tethers go to beetle side
-                    yield return new(dirXBeetle * 9, -8);
-                    yield return new(dirXBeetle * 9, +8);
-                    yield return new(dirXBeetle * 13, -4);
-                    yield return new(dirXBeetle * 13, +4);
+                    yield return TransformRelNorth(-9, -8);
+                    yield return TransformRelNorth(-9, +8);
+                    yield return TransformRelNorth(-13, -4);
+                    yield return TransformRelNorth(-13, +4);
                 }
                 yield break;
             }
@@ -263,9 +271,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
             {
                 // now we should have correct assignments
                 if (p.IsLocal)
-                    yield return new(11 * dirXFinal, 11 * dirZ);
+                    yield return TransformRelNorth(11, 11 * dirZ);
                 else
-                    yield return new(13 * dirXBeetle, (p.PairAssignment == PairAssignment.Inner && NumTethersBroken == 0 ? 8 : 4) * dirZ);
+                    yield return TransformRelNorth(-13, (p.PairAssignment == PairAssignment.Inner && NumTethersBroken == 0 ? 8 : 4) * dirZ);
                 yield break;
             }
 
@@ -275,71 +283,75 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 if (p.IsLocal)
                 {
                     if (p.PairAssignment == PairAssignment.Inner)
-                        yield return BaitOffset(module, (dirZ > 0 ? 0 : 180).Degrees());
+                        yield return BaitOffset(dirZ > 0 ? 3 : 0);
                     else
-                        yield return SideBaitOffset(module, dirXFinal, dirZ);
+                        yield return BaitOffset(dirZ > 0 ? 4 : 5);
                 }
                 else
                 {
                     if (p.PairAssignment == PairAssignment.Inner)
-                        yield return new(0, 5 * dirZ);
+                        yield return TransformRelNorth(0, 5 * dirZ);
                     else
-                        yield return SideBaitOffset(module, dirXBeetle, dirZ);
+                        yield return BaitOffset(dirZ > 0 ? 2 : 1);
                 }
                 yield break;
             }
 
-            if (_swivelCannonSafeDirZ == 0)
+            if (_swivelCannonSafeDir == default)
             {
                 if (p.IsLocal)
                 {
                     // monitor soak spots
-                    var dirX = p.PairAssignment == PairAssignment.Inner ? dirXBeetle : dirXFinal;
-                    yield return new(11 * dirX, 11 * dirZ);
+                    var dirX = p.PairAssignment == PairAssignment.Inner ? -1 : +1;
+                    yield return TransformRelNorth(11 * dirX, 11 * dirZ);
+                }
+                else if (module.Raid[slot] != _beyondDefenceTarget)
+                {
+                    // central stack
+                    yield return (module.Raid[slot] == _monitorTarget ? 5 : 2.5f) * _monitorSafeDir;
                 }
                 else
                 {
-                    var offX = module.Raid[slot] != _beyondDefenceTarget ? 0 : 8 * dirXFinal; // assume it's slightly safer for a blue that baited jump to run forward to final
-                    var offZ = module.Raid[slot] == _monitorTarget ? 5 : 2.5f;
-                    yield return new(offX, offZ * _monitorSafeDirZ);
+                    // beyond defense target wants to run outside stack (TODO: select direction that is convenient for monitor target)
+                    var stackPos = (module.Raid[slot] == _monitorTarget ? 5 : 2.5f) * _monitorSafeDir;
+                    var horizOffset = TransformRelNorth(15, 0);
+                    yield return stackPos + horizOffset;
+                    yield return stackPos - horizOffset;
                 }
                 yield break;
             }
 
             {
+                var relNorthSafe = _swivelCannonSafeDir.Dot(_eyeDir) > 0;
+                var safeDirZ = relNorthSafe ? -1 : 1;
                 if (p.IsLocal)
                 {
-                    var startingFromSafe = p.SideAssignment == (_swivelCannonSafeDirZ > 0 ? SideAssignment.South : SideAssignment.North);
+                    var startingFromSafe = (p.SideAssignment == SideAssignment.North) == relNorthSafe;
                     if (p.PairAssignment == PairAssignment.Inner)
-                        yield return new(11 * dirXBeetle, (startingFromSafe ? 15 : 7) * _swivelCannonSafeDirZ);
+                        yield return TransformRelNorth(-10, (startingFromSafe ? 12 : 6) * safeDirZ);
                     else if (startingFromSafe)
-                        yield return new(18 * dirXBeetle, 2 * _swivelCannonSafeDirZ);
+                        yield return TransformRelNorth(15, 11 * safeDirZ);
                     else
-                        yield return new(-16 * dirXBeetle, 10 * _swivelCannonSafeDirZ);
+                        yield return TransformRelNorth(-18, 2 * safeDirZ);
                 }
                 else if (_distantWorld == module.Raid[slot])
                 {
-                    yield return new(0, 19 * _swivelCannonSafeDirZ);
+                    yield return TransformRelNorth(0, 19 * safeDirZ);
                 }
                 else if (_nearWorld == module.Raid[slot])
                 {
-                    yield return new(0, 6 * _swivelCannonSafeDirZ);
+                    yield return TransformRelNorth(0, 6 * safeDirZ);
                 }
                 else
                 {
-                    yield return new(-12 * dirXBeetle, 15 * _swivelCannonSafeDirZ);
+                    yield return TransformRelNorth(9, 15 * safeDirZ);
                 }
             }
         }
 
-        private WDir BaitOffset(BossModule module, Angle rot)
-        {
-            var pos = module.Bounds.Center + 20 * rot.ToDirection();
-            var arm = Arms.FirstOrDefault(arm => arm.arm.Position.AlmostEqual(pos, 1));
-            return arm.arm != null ? 19 * (rot + (arm.rotation.Rad > 0 ? -3 : +3).Degrees()).ToDirection() : default;
-        }
-
-        private WDir SideBaitOffset(BossModule module, float offX, float offZ) => BaitOffset(module, (offX > 0 ? +1 : -1) * (offZ > 0 ? 60 : 120).Degrees());
+        // x positive is east (final side), z positive is south
+        private WDir TransformRelNorth(float x, float z) => x * _eyeDir.OrthoR() - z * _eyeDir;
+        private WDir BaitOffset(int index) => 19 * (Angle.FromDirection(_eyeDir) + index * 60.Degrees() - 0.15f * ArmRotations[index]).ToDirection(); // 5 degrees offset in correct direction
     }
 
     class P5DeltaOpticalLaser : Components.GenericAOEs
@@ -406,12 +418,16 @@ namespace BossMod.Endwalker.Ultimate.TOP
             }
             else if (_delta != null)
             {
-                foreach (var arm in _delta.Arms.Where(arm => module.Raid.WithoutSlot().Closest(arm.arm.Position) == actor))
+                for (int i = 0; i < _delta.ArmRotations.Length; ++i)
                 {
-                    var angle = Angle.FromDirection(actor.Position - arm.arm.Position);
-                    for (int i = 0; i < _numRepeats; ++i)
+                    var pos = module.Bounds.Center + _delta.ArmOffset(i);
+                    if (module.Raid.WithoutSlot().Closest(pos) == actor)
                     {
-                        yield return new(_shape, arm.arm.Position, angle + i * arm.rotation, risky: false);
+                        var angle = Angle.FromDirection(actor.Position - pos);
+                        for (int j = 0; j < _numRepeats; ++j)
+                        {
+                            yield return new(_shape, pos, angle + j * _delta.ArmRotations[i], risky: false);
+                        }
                     }
                 }
             }
@@ -421,9 +437,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.DeltaHyperPulseFirst)
+            if ((AID)spell.Action.ID == AID.DeltaHyperPulseFirst && _delta != null)
             {
-                var rot = _delta?.Arms.FirstOrDefault(arm => arm.arm.Position.AlmostEqual(caster.Position, 1)).rotation ?? default;
+                var rot = _delta.ArmRotations[_delta.ArmIndex(caster.Position - module.Bounds.Center)];
                 for (int i = 0; i < _numRepeats; ++i)
                 {
                     _aoes.Add(new(_shape, caster.Position, spell.Rotation + i * rot, spell.FinishAt.AddSeconds(i * 0.6)));
@@ -466,7 +482,13 @@ namespace BossMod.Endwalker.Ultimate.TOP
             if (_player == actor)
             {
                 // ensure we hit only two intended targets
-                hints.Add("Aim monitor!", module.Raid.WithSlot().Where(ip => _shape.Check(ip.Item2.Position, actor.Position, actor.Rotation + _playerAngle) != _playerIntendedTargets[ip.Item1]).Any());
+                hints.Add("Aim monitor!", module.Raid.WithSlot().Exclude(actor).Where(ip => _shape.Check(ip.Item2.Position, actor.Position, actor.Rotation + _playerAngle) != _playerIntendedTargets[ip.Item1]).Any());
+            }
+            else if (_player != null)
+            {
+                var hit = _shape.Check(actor.Position, _player.Position, _player.Rotation + _playerAngle);
+                if (hit != _playerIntendedTargets[slot])
+                    hints.Add(hit ? "GTFO from player monitor!" : "Soak player monitor!");
             }
 
             if (_boss != null)
@@ -474,13 +496,6 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 var hit = _shape.Check(actor.Position, _boss.Position, _boss.Rotation + _bossAngle);
                 if (hit != _bossIntendedTargets[slot])
                     hints.Add(hit ? "GTFO from boss monitor!" : "Soak boss monitor!");
-            }
-
-            if (_player != null)
-            {
-                var hit = _shape.Check(actor.Position, _player.Position, _player.Rotation + _playerAngle);
-                if (hit != _playerIntendedTargets[slot])
-                    hints.Add(hit ? "GTFO from player monitor!" : "Soak player monitor!");
             }
         }
 
@@ -543,9 +558,29 @@ namespace BossMod.Endwalker.Ultimate.TOP
         }
     }
 
-    class P5DeltaSwivelCannon : Components.SelfTargetedAOEs
+    class P5DeltaSwivelCannon : Components.GenericAOEs
     {
-        public P5DeltaSwivelCannon() : base(ActionID.MakeSpell(AID.SwivelCannon), new AOEShapeCone(60, 105.Degrees())) { }
+        public AOEInstance? AOE;
+
+        private static AOEShapeCone _shape = new(60, 105.Degrees());
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (AOE != null)
+                yield return AOE.Value;
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.SwivelCannonR or AID.SwivelCannonL)
+                AOE = new(_shape, caster.Position, spell.Rotation, spell.FinishAt);
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.SwivelCannonR or AID.SwivelCannonL)
+                AOE = null;
+        }
     }
 
     class P5DeltaNearDistantWorld : Components.GenericStackSpread

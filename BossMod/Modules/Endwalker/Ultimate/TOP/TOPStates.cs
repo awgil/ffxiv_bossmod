@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Ultimate.TOP
+﻿using System.Linq;
+
+namespace BossMod.Endwalker.Ultimate.TOP
 {
     class TOPStates : StateMachineBuilder
     {
@@ -317,7 +319,7 @@
                 .ActivateOnEnter<P5Delta>();
             ComponentCondition<P5DeltaOpticalLaser>(id + 0x11, 0.1f, comp => comp.Source != null);
             ComponentCondition<P5Delta>(id + 0x20, 8.1f, comp => comp.NumPunchesSpawned > 0, "Fists spawn");
-            ComponentCondition<P5Delta>(id + 0x30, 7.2f, comp => comp.Arms.Count > 0);
+            ComponentCondition<P5Delta>(id + 0x30, 7.2f, comp => comp.ArmRotations.Any(r => r != default));
             ComponentCondition<P5Delta>(id + 0x40, 2.6f, comp => comp.TethersActive, "Tethers active"); // first tether should be broken immediately (inner blue)
 
             ComponentCondition<P5DeltaOpticalLaser>(id + 0x50, 2.1f, comp => comp.NumCasts > 0)
@@ -342,10 +344,10 @@
             ComponentCondition<P5DeltaHyperPulse>(id + 0x72, 0.1f, comp => comp.NumCasts >= 36)
                 .DeactivateOnExit<P5DeltaHyperPulse>();
 
-            ComponentCondition<P5DeltaSwivelCannon>(id + 0x80, 2.4f, comp => comp.Casters.Count > 0)
+            ComponentCondition<P5DeltaSwivelCannon>(id + 0x80, 2.4f, comp => comp.AOE != null)
                 .ActivateOnEnter<P5DeltaSwivelCannon>();
             // third tether break happens somewhere here (inner green)
-            ComponentCondition<P5DeltaSwivelCannon>(id + 0x82, 10, comp => comp.NumCasts > 0, "Cleave")
+            ComponentCondition<P5DeltaSwivelCannon>(id + 0x82, 10, comp => comp.AOE == null, "Cleave")
                 .ActivateOnEnter<P5DeltaNearDistantWorld>()
                 .DeactivateOnExit<P5DeltaSwivelCannon>();
             ComponentCondition<P5DeltaNearDistantWorld>(id + 0x83, 0.7f, comp => comp.NumNearJumpsDone > 0, "Near/far 1");
@@ -372,9 +374,17 @@
             ComponentCondition<P5SigmaWaveCannon>(id + 0x23, 0.2f, comp => comp.NumCasts > 0)
                 .DeactivateOnExit<P5SigmaWaveCannon>();
 
-            ComponentCondition<P5SigmaTowers>(id + 0x40, 2.8f, comp => comp.Towers.Count > 0, "???")
+            ComponentCondition<P5SigmaTowers>(id + 0x40, 2.8f, comp => comp.Towers.Count > 0)
                 .ActivateOnEnter<P5SigmaTowers>();
-            // TODO: ...
+            ComponentCondition<P2PartySynergyDischarger>(id + 0x41, 5.9f, comp => comp.NumCasts > 0, "Knockback")
+                .ActivateOnEnter<P2PartySynergyDischarger>()
+                .DeactivateOnExit<P2PartySynergyDischarger>();
+            ComponentCondition<P5SigmaTowers>(id + 0x42, 3.9f, comp => comp.NumCasts > 0, "Towers")
+                .DeactivateOnExit<P5SigmaTowers>();
+
+            // +2.4s: PATE 1E43 on two right arm units, rear poser unit & omega-m => orientation for last mech
+            // +4.3s: rotate icon on RPU
+            // TODO: ..
         }
     }
 }

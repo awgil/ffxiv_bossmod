@@ -204,8 +204,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
             if (_numWaveCannonTargets < 6)
             {
                 var dir = _waveCannonNorthDir.Normalized();
-                yield return (20 - 2 * p.Order) * dir + 2 * dir.OrthoL();
-                yield return (20 - 2 * p.Order) * dir + 2 * dir.OrthoR();
+                yield return (20 - 2.5f * p.Order) * dir + 2 * dir.OrthoL();
+                yield return (20 - 2.5f * p.Order) * dir + 2 * dir.OrthoR();
                 yield break;
             }
 
@@ -270,6 +270,15 @@ namespace BossMod.Endwalker.Ultimate.TOP
             _soakerSum += numSoakers;
             if (_soakerSum == PartyState.MaxPartySize)
                 InitAssignments(module);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID is AID.StorageViolation1 or AID.StorageViolation2 or AID.StorageViolationObliteration)
+            {
+                ++NumCasts;
+                Towers.Clear();
+            }
         }
 
         private void InitAssignments(BossModule module)

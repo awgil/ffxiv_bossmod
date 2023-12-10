@@ -18,7 +18,7 @@
         P3IntermissionVoidzone = 0x1EB821, // R0.500, EventObj type, spawn during fight
         OmegaMP5 = 0x3D68, // R5.010, spawn during fight
         OmegaFP5 = 0x3D6A, // R5.010, spawn during fight
-        //_Gen_RearPowerUnit = 0x3D6B, // R6.720, spawn during fight
+        RearPowerUnit = 0x3D6B, // R6.720, spawn during fight (never targetable, does rotating aoe)
         BeetleHelper = 0x3D6C, // R12.006, spawn during fight (never targetable)
         FinalHelper = 0x394D, // R12.502, spawn during fight (never targetable)
         RocketPunch1 = 0x3D5D, // R1.500, spawn during fight (not sure which one is blue or yellow)
@@ -34,7 +34,7 @@
         // p1
         AutoAttackP1 = 31741, // Boss->player, no cast, single-target
         ProgramLoop = 31491, // Boss->self, 4.0s cast, single-target, visual (first mechanic start)
-        StorageViolation = 31492, // Helper->self, no cast, range 3 circle tower
+        StorageViolation1 = 31492, // Helper->self, no cast, range 3 circle tower (1-man)
         StorageViolationObliteration = 31494, // Helper->self, no cast, range 100 circle if tower is unsoaked
         Blaster = 31495, // Boss->self, 7.9s cast, single-target, visual (first tethers explosion)
         BlasterRepeat = 31496, // Boss->self, no cast, single-target, visual (1-3 tether explosion)
@@ -170,7 +170,8 @@
         DeltaHyperPulseRest = 31601, // RightArmUnit/LeftArmUnit->self, no cast, range 100 width 8 rect
         DeltaOversampledWaveCannonR = 31638, // FinalHelper->self, 10.0s cast, single-target, visual (monitors cleaving right side)
         DeltaOversampledWaveCannonL = 31639, // FinalHelper->self, 10.0s cast, single-target, visual (monitors cleaving left side)
-        SwivelCannon = 31636, // BeetleHelper->self, 10.0s cast, range 60 210-degree cone
+        SwivelCannonR = 31636, // BeetleHelper->self, 10.0s cast, range 60 210-degree cone
+        SwivelCannonL = 31637, // BeetleHelper->self, 10.0s cast, range 60 210-degree cone
         HelloWorldWipe = 31627, // Helper->self, no cast, range 100 circle, wipe when near/distant fail
         HelloNearWorld = 31625, // Helper->player, no cast, range 8 circle, initial hit
         HelloNearWorldJump = 31626, // Helper->player, no cast, range 4 circle, jump to closest
@@ -184,6 +185,7 @@
         SigmaWaveCannon = 31603, // FinalHelper->self, 8.0s cast, single-target, visual (proteans)
         SigmaWaveCannonAOE = 31604, // Helper->self, no cast, range 100 ?-degree cone
         SigmaAnimationSwap = 32560, // OmegaMP5->self, no cast, single-target, visual (M->F)
+        StorageViolation2 = 31493, // Helper->self, no cast, range 3 circle tower (2-man)
     };
 
     public enum SID : uint

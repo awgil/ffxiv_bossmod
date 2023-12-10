@@ -221,6 +221,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private List<Actor> _sources = new();
         private int _firstStackSlot = -1;
         private BitMask _firstGroup;
+        private string _swaps = "";
 
         private static AOEShapeCircle _shape = new(10);
 
@@ -238,6 +239,12 @@ namespace BossMod.Endwalker.Ultimate.TOP
             // by default, use same group as for synergy
             if (_synergy != null)
                 _firstGroup = module.Raid.WithSlot(true).WhereSlot(s => _synergy.PlayerStates[s].Group == 1).Mask();
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (_swaps.Length > 0)
+                hints.Add($"Swaps: {_swaps}");
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -284,8 +291,19 @@ namespace BossMod.Endwalker.Ultimate.TOP
                         // ok, we need adjusts - assume whoever is more S adjusts - that is higher order in G1 or G2 with mid glitch, or lower order in G2 with remote glitch
                         var adjustOrder = s1.Group == 2 && _synergy.ActiveGlitch == P2PartySynergy.Glitch.Remote ? Math.Min(s1.Order, s2.Order): Math.Max(s1.Order, s2.Order);
                         for (int s = 0; s < _synergy.PlayerStates.Length; ++s)
+                        {
                             if (_synergy.PlayerStates[s].Order == adjustOrder)
+                            {
                                 _firstGroup.Toggle(s);
+                                if (_swaps.Length > 0)
+                                    _swaps += ", ";
+                                _swaps += module.Raid[s]?.Name ?? "";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _swaps = "None";
                     }
                 }
             }
