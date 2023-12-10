@@ -303,7 +303,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 {
                     // monitor soak spots
                     var dirX = p.PairAssignment == PairAssignment.Inner ? -1 : +1;
-                    yield return TransformRelNorth(11 * dirX, 11 * dirZ);
+                    yield return TransformRelNorth(7 * dirX, 13 * dirZ);
                 }
                 else if (module.Raid[slot] != _beyondDefenceTarget)
                 {
@@ -536,7 +536,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
             _bossAngle = angle;
             if (_delta == null)
                 return;
-            var bossSide = (caster.Rotation + angle).AlmostEqual(default, 1) ? P5Delta.SideAssignment.South : P5Delta.SideAssignment.North;
+            var bossSide = angle.Rad > 0 ? P5Delta.SideAssignment.South : P5Delta.SideAssignment.North;
             foreach (var (i, p) in module.Raid.WithSlot(true))
             {
                 var ps = _delta.Players[i];
