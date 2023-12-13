@@ -327,4 +327,78 @@ namespace BossMod.Endwalker.Ultimate.TOP
                     tower.ForbiddenSoakers.Set(i);
         }
     }
+
+    class P5SigmaRearLasers : Components.GenericAOEs
+    {
+        private Angle _startingDir;
+        private Angle _rotation;
+        private DateTime _activation;
+
+        private static AOEShapeRect _shape = new(25, 6, 25);
+
+        public bool Active => _rotation != default;
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (!Active)
+                yield break;
+            for (int i = NumCasts + 1; i < 14; ++i)
+                yield return new(_shape, module.Bounds.Center, _startingDir + i * _rotation, _activation.AddSeconds(0.6 * i), risky: false);
+            if (NumCasts < 14)
+                yield return new(_shape, module.Bounds.Center, _startingDir + NumCasts * _rotation, _activation.AddSeconds(0.6 * NumCasts), ArenaColor.Danger);
+        }
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if ((OID)actor.OID != OID.RearPowerUnit)
+                return;
+            var rot = (IconID)iconID switch
+            {
+                IconID.RotateCW => -9.Degrees(),
+                IconID.RotateCCW => 9.Degrees(),
+                _ => default
+            };
+            if (rot == default)
+                return;
+            _startingDir = actor.Rotation;
+            _rotation = rot;
+            _activation = module.WorldState.CurrentTime.AddSeconds(10.1f);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID is AID.RearLasersFirst or AID.RearLasersRest)
+                ++NumCasts;
+        }
+    }
+
+    class P5SigmaDoubleAOEs : Components.GenericAOEs
+    {
+        public bool Show;
+        public List<AOEInstance> AOEs = new();
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Show ? AOEs : Enumerable.Empty<AOEInstance>();
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID is AID.SuperliminalSteel or AID.OptimizedBlizzard)
+                ++NumCasts;
+        }
+
+        public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+        {
+            if (id != 0x1E43 || (OID)actor.OID != OID.OmegaMP5)
+                return;
+            if (actor.ModelState.ModelState == 4)
+            {
+                AOEs.Add(new(new AOEShapeRect(40, 40, -4), actor.Position, actor.Rotation + 90.Degrees(), module.WorldState.CurrentTime.AddSeconds(15.1f)));
+                AOEs.Add(new(new AOEShapeRect(40, 40, -4), actor.Position, actor.Rotation - 90.Degrees(), module.WorldState.CurrentTime.AddSeconds(15.1f)));
+            }
+            else
+            {
+                AOEs.Add(new(new AOEShapeCross(100, 5), actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(15.1f)));
+                Show = true; // cross can be shown from the start
+            }
+        }
+    }
 }

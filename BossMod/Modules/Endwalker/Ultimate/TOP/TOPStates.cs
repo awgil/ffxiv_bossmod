@@ -316,7 +316,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .SetHint(StateMachine.StateHint.Raidwide);
             ActorTargetable(id + 0x10, _module.BossP5M, false, 3.1f, "Boss disappears")
                 .ActivateOnEnter<P5DeltaOpticalLaser>()
-                .ActivateOnEnter<P5Delta>();
+                .ActivateOnEnter<P5Delta>()
+                .SetHint(StateMachine.StateHint.DowntimeStart);
             ComponentCondition<P5DeltaOpticalLaser>(id + 0x11, 0.1f, comp => comp.Source != null);
             ComponentCondition<P5Delta>(id + 0x20, 8.1f, comp => comp.NumPunchesSpawned > 0, "Fists spawn");
             ComponentCondition<P5Delta>(id + 0x30, 7.2f, comp => comp.ArmRotations.Any(r => r != default));
@@ -355,7 +356,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
             ComponentCondition<P5DeltaNearDistantWorld>(id + 0x85, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 3")
                 .DeactivateOnExit<P5DeltaNearDistantWorld>();
             ActorTargetable(id + 0x90, _module.BossP5M, true, 2.3f, "Boss reappears")
-                .DeactivateOnExit<P5Delta>();
+                .DeactivateOnExit<P5Delta>()
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
             // fourth tether break happens somewhere here, after mechanic ends
         }
 
@@ -380,11 +382,20 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .ActivateOnEnter<P2PartySynergyDischarger>()
                 .DeactivateOnExit<P2PartySynergyDischarger>();
             ComponentCondition<P5SigmaTowers>(id + 0x42, 3.9f, comp => comp.NumCasts > 0, "Towers")
-                .DeactivateOnExit<P5SigmaTowers>();
+                .DeactivateOnExit<P5SigmaTowers>()
+                .DeactivateOnExit<P5Sigma>();
 
-            // +2.4s: PATE 1E43 on two right arm units, rear poser unit & omega-m => orientation for last mech
-            // +4.3s: rotate icon on RPU
-            // TODO: ..
+            ComponentCondition<P5SigmaRearLasers>(id + 0x100, 4.3f, comp => comp.Active)
+                .ActivateOnEnter<P5SigmaDoubleAOEs>()
+                //.ActivateOnEnter<P5SigmaHyperPulse>() // note: PATE happens ~1.9s earlier, first tethers appear ~0.6s after that
+                .ActivateOnEnter<P5SigmaRearLasers>();
+            ComponentCondition<P5SigmaRearLasers>(id + 0x110, 10.1f, comp => comp.NumCasts > 0, "Lasers start"); // note: cast starts 3s before
+            ComponentCondition<P5SigmaDoubleAOEs>(id + 0x120, 3.2f, comp => comp.NumCasts > 0, "Cross/sides") // note: cast starts ~1.5s before
+                .ExecOnEnter<P5SigmaDoubleAOEs>(comp => comp.Show = true)
+                .DeactivateOnExit<P5SigmaDoubleAOEs>();
+            ComponentCondition<P5SigmaRearLasers>(id + 0x130, 4.4f, comp => comp.NumCasts >= 14, "Lasers end")
+                .DeactivateOnExit<P5SigmaRearLasers>();
+            // TODO: baited aoes + near/distant jumps
         }
     }
 }

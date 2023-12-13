@@ -61,6 +61,9 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Use combo, unless it can't be finished before downtime and unless gauge and/or ST would overcap", 0x80c0c000)]
                 ComboFitBeforeDowntime = 7, // useful on late phases before downtime
+
+                [PropertyDisplay("Use combo until second-last step, then spend gauge", 0x80400080)]
+                PenultimateComboThenSpend = 8, // useful for ensuring ST extension is used right before long downtime
             }
 
             public enum InfuriateUse : uint
@@ -234,6 +237,7 @@ namespace BossMod.WAR
             Strategy.GaugeUse.ForceExtendST => false,
             Strategy.GaugeUse.ForceSPCombo => false,
             Strategy.GaugeUse.ComboFitBeforeDowntime => state.SurgingTempestLeft > state.GCD && strategy.FightEndIn <= state.GCD + 2.5f * ((aoe ? GetAOEComboLength(state.ComboLastMove) : GetSTComboLength(state.ComboLastMove)) - 1),
+            Strategy.GaugeUse.PenultimateComboThenSpend => state.ComboLastMove is AID.Maim or AID.Overpower,
             _ => true
         };
 
@@ -427,6 +431,9 @@ namespace BossMod.WAR
             // forced SP combo
             if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceSPCombo)
                 return GetNextSTComboAction(state.ComboLastMove, AID.StormPath);
+            // forced combo until penultimate step
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.PenultimateComboThenSpend && state.ComboLastMove != AID.Maim && state.ComboLastMove != AID.Overpower && (state.ComboLastMove != AID.HeavySwing || state.Gauge <= 90))
+                return aoe ? AID.Overpower : state.ComboLastMove == AID.HeavySwing ? AID.Maim : AID.HeavySwing;
 
             // forbid automatic PR when out of melee range, to avoid fucking up player positioning when avoiding mechanics
             float primalRendWindow = (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay || state.RangeToTarget > 3) ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);

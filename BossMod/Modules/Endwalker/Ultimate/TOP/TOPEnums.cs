@@ -186,6 +186,8 @@
         SigmaWaveCannonAOE = 31604, // Helper->self, no cast, range 100 ?-degree cone
         SigmaAnimationSwap = 32560, // OmegaMP5->self, no cast, single-target, visual (M->F)
         StorageViolation2 = 31493, // Helper->self, no cast, range 3 circle tower (2-man)
+        RearLasersFirst = 31631, // RearPowerUnit->self, 3.0s cast, range 50 width 12 rect
+        RearLasersRest = 31632, // RearPowerUnit->self, no cast, range 50 width 12 rect
     };
 
     public enum SID : uint
