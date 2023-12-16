@@ -16,8 +16,9 @@
         LeftArmUnit = 0x3D66, // R1.680, spawn during fight
         RightArmUnit = 0x3D67, // R1.680, spawn during fight
         P3IntermissionVoidzone = 0x1EB821, // R0.500, EventObj type, spawn during fight
-        OmegaMP5 = 0x3D68, // R5.010, spawn during fight
-        OmegaFP5 = 0x3D6A, // R5.010, spawn during fight
+        BossP5 = 0x3D68, // R5.010, spawn during fight (starts as M, changes model to F)
+        OmegaMP5 = 0x3D69, // R5.010, spawn during fight (never targetable)
+        OmegaFP5 = 0x3D6A, // R5.010, spawn during fight (never targetable)
         RearPowerUnit = 0x3D6B, // R6.720, spawn during fight (never targetable, does rotating aoe)
         BeetleHelper = 0x3D6C, // R12.006, spawn during fight (never targetable)
         FinalHelper = 0x394D, // R12.502, spawn during fight (never targetable)
@@ -26,7 +27,6 @@
 
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
-
     };
 
     public enum AID : uint
@@ -155,13 +155,16 @@
         BlueScreenFail = 31613, // Helper->self, 1.0s cast, range 100 circle, wipe if hp is high enough
 
         // p5
-        AutoAttackP5 = 31745, // OmegaMP5->player, no cast, single-target
-        P5AppearM = 31621, // OmegaMP5->self, no cast, single-target, visual (appear)
+        AutoAttackP5M = 31745, // BossP5->player, no cast, single-target
+        AutoAttackP5F = 31746, // BossP5->player, no cast, single-target (after changing model)
+        P5AppearM = 31621, // BossP5->self, no cast, single-target, visual (appear)
         P5AppearF = 31622, // OmegaFP5->self, no cast, single-target, visual (appear)
-        P5SolarRay = 33196, // OmegaMP5->player, 5.0s cast, range 5 circle tankbuster
-        P5SolarRaySecond = 31489, // OmegaMP5->player, no cast, range 5 circle tankbuster second hit
+        P5SolarRayM = 33196, // BossP5->player, 5.0s cast, range 5 circle tankbuster
+        P5SolarRayF = 33197, // BossP5->player, 5.0s cast, range 5 circle tankbuster (after changing model)
+        P5SolarRayMSecond = 31489, // BossP5->player, no cast, range 5 circle tankbuster second hit
+        P5SolarRayFSecond = 31490, // BossP5->player, no cast, range 5 circle tankbuster second hit (after changing model)
 
-        RunMiDeltaVersion = 31624, // OmegaMP5->self, 5.0s cast, range 100 circle, raidwide
+        RunMiDeltaVersion = 31624, // BossP5->self, 5.0s cast, range 100 circle, raidwide
         PeripheralSynthesis = 31628, // BeetleHelper->self, no cast, single-target, visual (spawn rocket punches)
         ArchivePeripheral = 32630, // FinalHelper->self, no cast, single-target, visual (show rotating units)
         DeltaExplosion = 31482, // RocketPunch1/RocketPunch2->location, 3.0s cast, range 3 circle puddle
@@ -178,16 +181,24 @@
         HelloDistantWorld = 33040, // Helper->player, no cast, range 8 circle, initial hit
         HelloDistantWorldJump = 33041, // Helper->player, no cast, range 4 circle, jump to farthest
 
-        RunMiSigmaVersion = 32788, // OmegaMP5->self, 5.0s cast, range 100 circle, raidwide
-        SigmaSubjectSimulationF = 32559, // OmegaMP5->self, no cast, single-target, visual (prepare to change model to F)
+        RunMiSigmaVersion = 32788, // BossP5->self, 5.0s cast, range 100 circle, raidwide
+        SigmaSubjectSimulationF = 32559, // BossP5->self, no cast, single-target, visual (prepare to change model to F)
         SigmaProgramLoop = 31640, // BeetleHelper->self, no cast, single-target, visual (apply looper debuffs)
         SigmaHyperPulse = 31602, // RightArmUnit->self, no cast, range 100 width 6 rect
         SigmaWaveCannon = 31603, // FinalHelper->self, 8.0s cast, single-target, visual (proteans)
         SigmaWaveCannonAOE = 31604, // Helper->self, no cast, range 100 ?-degree cone
-        SigmaAnimationSwap = 32560, // OmegaMP5->self, no cast, single-target, visual (M->F)
+        SigmaAnimationSwap = 32560, // BossP5->self, no cast, single-target, visual (M->F)
         StorageViolation2 = 31493, // Helper->self, no cast, range 3 circle tower (2-man)
         RearLasersFirst = 31631, // RearPowerUnit->self, 3.0s cast, range 50 width 12 rect
         RearLasersRest = 31632, // RearPowerUnit->self, no cast, range 50 width 12 rect
+
+        RunMiOmegaVersion = 32789, // BossP5->self, 5.0s cast, range 100 circle, raidwide
+        OmegaDiffuseWaveCannon = 31643, // FinalHelper->self, 8.0s cast, single-target, visual (first set of cones)
+        OmegaDiffuseWaveCannonAOE = 31609, // Helper->self, 1.0s cast, range 100 120-degree cone
+        OmegaDiffuseWaveCannonRepeat = 31608, // FinalHelper->self, no cast, single-target, visual (second set of cones)
+        OmegaBlaster = 32374, // BeetleHelper->self, 11.9s cast, single-target, visual (tethers)
+        OmegaBlasterVisual = 31641, // BeetleHelper->self, no cast, single-target, ???
+        OmegaBlasterAOE = 32373, // Helper->player, no cast, range 15 circle aoe
     };
 
     public enum SID : uint
@@ -227,6 +238,7 @@
         OversampledWaveCannonLoadingL = 3453, // none->player, extra=0x0, cleaves left side
         HelloNearWorld = 3442, // none->player, extra=0x0
         HelloDistantWorld = 3443, // none->player, extra=0x0
+        QuickeningDynamis = 3444, // Helper->player, extra=0x1/0x2/0x3
     };
 
     public enum IconID : uint

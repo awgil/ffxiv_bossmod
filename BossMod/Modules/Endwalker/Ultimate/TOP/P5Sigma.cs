@@ -74,14 +74,6 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 case SID.RemoteGlitch:
                     ActiveGlitch = Glitch.Remote;
                     break;
-                //case SID.HelloNearWorld:
-                //    _nearWorld = actor;
-                //    _firstActivation = status.ExpireAt;
-                //    break;
-                //case SID.HelloDistantWorld:
-                //    _distantWorld = actor;
-                //    _firstActivation = status.ExpireAt;
-                //    break;
             }
         }
 
@@ -126,7 +118,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                     if (id == 0x1E43)
                         _waveCannonNorthDir -= actor.Position - module.Bounds.Center;
                     break;
-                case OID.OmegaMP5:
+                case OID.BossP5:
                     if (id == 0x1E43)
                         _waveCannonNorthDir = actor.Position - module.Bounds.Center; // just in case...
                     break;
@@ -330,22 +322,22 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
     class P5SigmaRearLasers : Components.GenericAOEs
     {
-        private Angle _startingDir;
-        private Angle _rotation;
+        public Angle StartingDir { get; private set; }
+        public Angle Rotation { get; private set; }
         private DateTime _activation;
 
         private static AOEShapeRect _shape = new(25, 6, 25);
 
-        public bool Active => _rotation != default;
+        public bool Active => Rotation != default;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (!Active)
                 yield break;
             for (int i = NumCasts + 1; i < 14; ++i)
-                yield return new(_shape, module.Bounds.Center, _startingDir + i * _rotation, _activation.AddSeconds(0.6 * i), risky: false);
+                yield return new(_shape, module.Bounds.Center, StartingDir + i * Rotation, _activation.AddSeconds(0.6 * i), risky: false);
             if (NumCasts < 14)
-                yield return new(_shape, module.Bounds.Center, _startingDir + NumCasts * _rotation, _activation.AddSeconds(0.6 * NumCasts), ArenaColor.Danger);
+                yield return new(_shape, module.Bounds.Center, StartingDir + NumCasts * Rotation, _activation.AddSeconds(0.6 * NumCasts), ArenaColor.Danger);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -360,8 +352,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
             };
             if (rot == default)
                 return;
-            _startingDir = actor.Rotation;
-            _rotation = rot;
+            StartingDir = actor.Rotation;
+            Rotation = rot;
             _activation = module.WorldState.CurrentTime.AddSeconds(10.1f);
         }
 
@@ -387,7 +379,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
         {
-            if (id != 0x1E43 || (OID)actor.OID != OID.OmegaMP5)
+            if (id != 0x1E43 || (OID)actor.OID != OID.BossP5)
                 return;
             if (actor.ModelState.ModelState == 4)
             {
@@ -398,6 +390,56 @@ namespace BossMod.Endwalker.Ultimate.TOP
             {
                 AOEs.Add(new(new AOEShapeCross(100, 5), actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(15.1f)));
                 Show = true; // cross can be shown from the start
+            }
+        }
+    }
+
+    class P5SigmaNearDistantWorld : P5NearDistantWorld
+    {
+        private P5SigmaRearLasers? _lasers;
+        private BitMask _dynamisStacks;
+
+        public override void Init(BossModule module) => _lasers = module.FindComponent<P5SigmaRearLasers>();
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaForeground(module, pcSlot, pc, arena);
+            foreach (var p in SafeSpots(module, pcSlot, pc))
+                arena.AddCircle(p, 1, ArenaColor.Safe);
+        }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            base.OnStatusGain(module, actor, status);
+            if ((SID)status.ID == SID.QuickeningDynamis)
+                _dynamisStacks.Set(module.Raid.FindSlot(actor.InstanceID));
+        }
+
+        private IEnumerable<WPos> SafeSpots(BossModule module, int slot, Actor actor)
+        {
+            if (_lasers == null) // note: we assume StartingDir is relative south, Rotation is +- 9 degrees
+                yield break;
+
+            if (actor == NearWorld)
+            {
+                yield return module.Bounds.Center + 10 * (_lasers.StartingDir + 10 * _lasers.Rotation).ToDirection();
+            }
+            else if (actor == DistantWorld)
+            {
+                yield return module.Bounds.Center + 10 * _lasers.StartingDir.ToDirection();
+            }
+            else
+            {
+                // TODO: figure out a way to assign safespots - for now, assume no-dynamis always go south (and so can be second far baiters or any near baiters), dynamis can go anywhere
+                yield return module.Bounds.Center + 19 * _lasers.StartingDir.ToDirection(); // '4' - second far bait spot
+                yield return module.Bounds.Center + 19 * (_lasers.StartingDir + 9 * _lasers.Rotation).ToDirection(); // '2' - first near bait spot
+                yield return module.Bounds.Center + 19 * (_lasers.StartingDir + 11 * _lasers.Rotation).ToDirection(); // '3' - second near bait spot
+                if (_dynamisStacks[slot])
+                {
+                    yield return module.Bounds.Center - 19 * _lasers.StartingDir.ToDirection(); // '1' - first far bait spot
+                    yield return module.Bounds.Center - 19 * (_lasers.StartingDir + 5 * _lasers.Rotation).ToDirection(); // first (far) laser bait spot
+                    yield return module.Bounds.Center - 19 * (_lasers.StartingDir - 5 * _lasers.Rotation).ToDirection(); // second (stay) laser bait spot
+                }
             }
         }
     }

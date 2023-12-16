@@ -54,11 +54,13 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         private void Phase5(uint id)
         {
-            ActorTargetable(id, _module.BossP5M, true, 15.5f, "Boss appears");
-            P5SolarRay(id + 0x10000, 3.1f);
+            ActorTargetable(id, _module.BossP5, true, 15.5f, "Boss appears");
+            P5SolarRay(id + 0x10000, 3.1f, false);
             P5RunMiDelta(id + 0x20000, 8.4f);
-            P5SolarRay(id + 0x30000, 9.1f);
+            P5SolarRay(id + 0x30000, 9.1f, false);
             P5RunMiSigma(id + 0x40000, 8.4f);
+            P5SolarRay(id + 0x50000, 4.1f, true);
+            P5RunMiOmega(id + 0x60000, 8.5f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -300,9 +302,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .DeactivateOnExit<P4BlueScreen>();
         }
 
-        private void P5SolarRay(uint id, float delay)
+        private void P5SolarRay(uint id, float delay, bool afterModelChange)
         {
-            ActorCast(id, _module.BossP5M, AID.P5SolarRay, delay, 5, true, "Tankbuster 1")
+            ActorCast(id, _module.BossP5, afterModelChange ? AID.P5SolarRayF : AID.P5SolarRayM, delay, 5, true, "Tankbuster 1")
                 .ActivateOnEnter<P5SolarRay>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
             ComponentCondition<P5SolarRay>(id + 2, 3.2f, comp => comp.NumCasts > 1, "Tankbuster 2")
@@ -312,9 +314,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         private void P5RunMiDelta(uint id, float delay)
         {
-            ActorCast(id, _module.BossP5M, AID.RunMiDeltaVersion, delay, 5, true, "Trio 1 raidwide")
+            ActorCast(id, _module.BossP5, AID.RunMiDeltaVersion, delay, 5, true, "Trio 1 raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ActorTargetable(id + 0x10, _module.BossP5M, false, 3.1f, "Boss disappears")
+            ActorTargetable(id + 0x10, _module.BossP5, false, 3.1f, "Boss disappears")
                 .ActivateOnEnter<P5DeltaOpticalLaser>()
                 .ActivateOnEnter<P5Delta>()
                 .SetHint(StateMachine.StateHint.DowntimeStart);
@@ -328,13 +330,13 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .DeactivateOnExit<P5DeltaOpticalLaser>();
             ComponentCondition<P5DeltaExplosion>(id + 0x51, 0.1f, comp => comp.Casters.Count > 0, "Puddles bait");
 
-            ActorCastStart(id + 0x60, _module.BossP5M, AID.BeyondDefense, 0.3f, true) // note: monitors status + cast start happen right before, but we don't care yet...
+            ActorCastStart(id + 0x60, _module.BossP5, AID.BeyondDefense, 0.3f, true) // note: monitors status + cast start happen right before, but we don't care yet...
                 .ActivateOnEnter<P5DeltaHyperPulse>();
             // second tether break happens somewhere here (outer blue)
             ComponentCondition<P5DeltaExplosion>(id + 0x61, 2.7f, comp => comp.NumCasts > 0)
                 .ActivateOnEnter<P2BeyondDefense>()
                 .DeactivateOnExit<P5DeltaExplosion>();
-            ActorCastEnd(id + 0x62, _module.BossP5M, 2.2f, true);
+            ActorCastEnd(id + 0x62, _module.BossP5, 2.2f, true);
             ComponentCondition<P2BeyondDefense>(id + 0x63, 0.3f, comp => comp.CurMechanic == P2BeyondDefense.Mechanic.Stack, "Bait rotates & jump");
 
             ComponentCondition<P5DeltaOversampledWaveCannon>(id + 0x70, 4.8f, comp => !comp.Active, "Monitors")
@@ -349,13 +351,13 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .ActivateOnEnter<P5DeltaSwivelCannon>();
             // third tether break happens somewhere here (inner green)
             ComponentCondition<P5DeltaSwivelCannon>(id + 0x82, 10, comp => comp.AOE == null, "Cleave")
-                .ActivateOnEnter<P5DeltaNearDistantWorld>()
+                .ActivateOnEnter<P5NearDistantWorld>()
                 .DeactivateOnExit<P5DeltaSwivelCannon>();
-            ComponentCondition<P5DeltaNearDistantWorld>(id + 0x83, 0.7f, comp => comp.NumNearJumpsDone > 0, "Near/far 1");
-            ComponentCondition<P5DeltaNearDistantWorld>(id + 0x84, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 2");
-            ComponentCondition<P5DeltaNearDistantWorld>(id + 0x85, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 3")
-                .DeactivateOnExit<P5DeltaNearDistantWorld>();
-            ActorTargetable(id + 0x90, _module.BossP5M, true, 2.3f, "Boss reappears")
+            ComponentCondition<P5NearDistantWorld>(id + 0x83, 0.7f, comp => comp.NumNearJumpsDone > 0, "Near/far 1");
+            ComponentCondition<P5NearDistantWorld>(id + 0x84, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 2");
+            ComponentCondition<P5NearDistantWorld>(id + 0x85, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 3")
+                .DeactivateOnExit<P5NearDistantWorld>();
+            ActorTargetable(id + 0x90, _module.BossP5, true, 2.3f, "Boss reappears")
                 .DeactivateOnExit<P5Delta>()
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
             // fourth tether break happens somewhere here, after mechanic ends
@@ -363,10 +365,11 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         private void P5RunMiSigma(uint id, float delay)
         {
-            ActorCast(id, _module.BossP5M, AID.RunMiSigmaVersion, delay, 5, true, "Trio 2 raidwide")
+            ActorCast(id, _module.BossP5, AID.RunMiSigmaVersion, delay, 5, true, "Trio 2 raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ActorTargetable(id + 0x10, _module.BossP5M, false, 3.0f, "Boss disappears")
-                .ActivateOnEnter<P5Sigma>(); // icons/tethers/statuses appear right as boss disappears
+            ActorTargetable(id + 0x10, _module.BossP5, false, 3.0f, "Boss disappears")
+                .ActivateOnEnter<P5Sigma>() // icons/tethers/statuses appear right as boss disappears
+                .SetHint(StateMachine.StateHint.DowntimeStart);
 
             ComponentCondition<P5SigmaWaveCannon>(id + 0x20, 10.3f, comp => comp.CurrentBaits.Count > 0)
                 .ActivateOnEnter<P5SigmaWaveCannon>();
@@ -387,15 +390,56 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
             ComponentCondition<P5SigmaRearLasers>(id + 0x100, 4.3f, comp => comp.Active)
                 .ActivateOnEnter<P5SigmaDoubleAOEs>()
-                //.ActivateOnEnter<P5SigmaHyperPulse>() // note: PATE happens ~1.9s earlier, first tethers appear ~0.6s after that
                 .ActivateOnEnter<P5SigmaRearLasers>();
             ComponentCondition<P5SigmaRearLasers>(id + 0x110, 10.1f, comp => comp.NumCasts > 0, "Lasers start"); // note: cast starts 3s before
             ComponentCondition<P5SigmaDoubleAOEs>(id + 0x120, 3.2f, comp => comp.NumCasts > 0, "Cross/sides") // note: cast starts ~1.5s before
                 .ExecOnEnter<P5SigmaDoubleAOEs>(comp => comp.Show = true)
                 .DeactivateOnExit<P5SigmaDoubleAOEs>();
             ComponentCondition<P5SigmaRearLasers>(id + 0x130, 4.4f, comp => comp.NumCasts >= 14, "Lasers end")
+                .ActivateOnEnter<P5SigmaHyperPulse>() // note: this starts way earlier, but there's no point showing hints before cross/sides are done
+                .ActivateOnEnter<P5SigmaNearDistantWorld>()
                 .DeactivateOnExit<P5SigmaRearLasers>();
-            // TODO: baited aoes + near/distant jumps
+            ComponentCondition<P5SigmaNearDistantWorld>(id + 0x140, 2.3f, comp => comp.NumNearJumpsDone > 0, "Near/far 1");
+            ComponentCondition<P5SigmaNearDistantWorld>(id + 0x142, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 2");
+            ComponentCondition<P5SigmaNearDistantWorld>(id + 0x143, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 3")
+                .DeactivateOnExit<P5SigmaNearDistantWorld>()
+                .DeactivateOnExit<P5SigmaHyperPulse>(); // note: this resolves soon after first near/far
+
+            ActorTargetable(id + 0x150, _module.BossP5, true, 2.5f, "Boss reappears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P5RunMiOmega(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP5, AID.RunMiOmegaVersion, delay, 5, true, "Trio 3 raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+            ComponentCondition<P5OmegaNearDistantWorld>(id + 0x10, 3.1f, comp => comp.HaveDebuffs)
+                .ActivateOnEnter<P5OmegaNearDistantWorld>();
+            ComponentCondition<P5OmegaDoubleAOEs>(id + 0x20, 2, comp => comp.AOEs.Count > 0)
+                .ActivateOnEnter<P5OmegaDoubleAOEs>()
+                .ActivateOnEnter<P5OmegaDiffuseWaveCannon>();
+            ComponentCondition<P5OmegaDoubleAOEs>(id + 0x21, 4, comp => comp.AOEs.Count > 3); // each set is 2 or 3 aoes
+            ComponentCondition<P5OmegaDoubleAOEs>(id + 0x30, 9.1f, comp => comp.NumCasts > 0, "AOEs 1"); // diffuse wave cannon 1 happens right after that
+            ComponentCondition<P5OmegaDoubleAOEs>(id + 0x40, 4, comp => comp.NumCasts > 3, "AOEs 2")
+                .DeactivateOnExit<P5OmegaDoubleAOEs>()
+                .DeactivateOnExit<P5OmegaDiffuseWaveCannon>(); // this resolves right after
+            ActorTargetable(id + 0x50, _module.BossP5, false, 3.1f, "Boss disappears")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+
+            ComponentCondition<P5OmegaOversampledWaveCannon>(id + 0x100, 0.2f, comp => comp.IsActive)
+                .ExecOnEnter<P5OmegaNearDistantWorld>(comp => comp.ShowFirst(_module))
+                .ActivateOnEnter<P5OmegaOversampledWaveCannon>();
+            ComponentCondition<P5OmegaNearDistantWorld>(id + 0x110, 9.6f, comp => comp.NumNearJumpsDone > 0, "Near/far 1");
+            ComponentCondition<P5OmegaNearDistantWorld>(id + 0x112, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 2");
+            ComponentCondition<P5OmegaNearDistantWorld>(id + 0x113, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 3")
+                .DeactivateOnExit<P5OmegaOversampledWaveCannon>(); // note: resolves between first and second jumps
+
+            ComponentCondition<P5OmegaBlaster>(id + 0x200, 2.1f, comp => comp.CurrentBaits.Count > 0)
+                .ExecOnEnter<P5OmegaNearDistantWorld>(comp => comp.ShowSecond(_module))
+                .ActivateOnEnter<P5OmegaBlaster>();
+            ComponentCondition<P5OmegaBlaster>(id + 0x210, 12.1f, comp => comp.NumCasts > 0, "???")
+                .DeactivateOnExit<P5OmegaBlaster>();
+            // TODO: near/distant worlds...
         }
     }
 }

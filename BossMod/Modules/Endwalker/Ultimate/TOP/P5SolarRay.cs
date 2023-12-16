@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.P5SolarRay)
+            if ((AID)spell.Action.ID is AID.P5SolarRayM or AID.P5SolarRayF)
             {
                 var target = module.WorldState.Actors.Find(spell.TargetID);
                 if (target != null)
@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID is AID.P5SolarRay or AID.P5SolarRaySecond)
+            if ((AID)spell.Action.ID is AID.P5SolarRayM or AID.P5SolarRayMSecond or AID.P5SolarRayF or AID.P5SolarRayFSecond)
             {
                 CurrentBaits.Clear();
                 if (++NumCasts < 2 && module.WorldState.Actors.Find(spell.MainTargetID) is var target && target != null)

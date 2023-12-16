@@ -442,7 +442,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 var rot = _delta.ArmRotations[_delta.ArmIndex(caster.Position - module.Bounds.Center)];
                 for (int i = 0; i < _numRepeats; ++i)
                 {
-                    _aoes.Add(new(_shape, caster.Position, spell.Rotation + i * rot, spell.FinishAt.AddSeconds(i * 0.6)));
+                    _aoes.Add(new(_shape, caster.Position, (spell.Rotation + i * rot).Normalized(), spell.FinishAt.AddSeconds(i * 0.6)));
                 }
             }
         }
@@ -580,106 +580,6 @@ namespace BossMod.Endwalker.Ultimate.TOP
         {
             if ((AID)spell.Action.ID is AID.SwivelCannonR or AID.SwivelCannonL)
                 AOE = null;
-        }
-    }
-
-    class P5DeltaNearDistantWorld : Components.GenericStackSpread
-    {
-        public int NumNearJumpsDone { get; private set; }
-        public int NumDistantJumpsDone { get; private set; }
-        private Actor? _nearWorld;
-        private Actor? _distantWorld;
-        private BitMask _completedJumps;
-        private BitMask _targets;
-        private BitMask _risky;
-        private DateTime _firstActivation;
-
-        public P5DeltaNearDistantWorld() : base(true) { }
-
-        public override void Update(BossModule module)
-        {
-            Spreads.Clear();
-            _risky.Reset();
-            _targets = _completedJumps;
-            AddChain(module, _nearWorld, NumNearJumpsDone, true);
-            AddChain(module, _distantWorld, NumDistantJumpsDone, false);
-
-            base.Update(module);
-        }
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            base.AddHints(module, slot, actor, hints, movementHints);
-
-            if (_risky[slot])
-                hints.Add("Avoid baiting jump!");
-        }
-
-        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
-        {
-            switch ((SID)status.ID)
-            {
-                case SID.HelloNearWorld:
-                    _nearWorld = actor;
-                    _firstActivation = status.ExpireAt;
-                    break;
-                case SID.HelloDistantWorld:
-                    _distantWorld = actor;
-                    _firstActivation = status.ExpireAt;
-                    break;
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.HelloNearWorld:
-                case AID.HelloNearWorldJump:
-                    ++NumNearJumpsDone;
-                    var nearSlot = module.Raid.FindSlot(spell.MainTargetID);
-                    _completedJumps.Set(nearSlot);
-                    _nearWorld = module.Raid[nearSlot];
-                    break;
-                case AID.HelloDistantWorld:
-                case AID.HelloDistantWorldJump:
-                    ++NumDistantJumpsDone;
-                    var distantSlot = module.Raid.FindSlot(spell.MainTargetID);
-                    _completedJumps.Set(distantSlot);
-                    _distantWorld = module.Raid[distantSlot];
-                    break;
-            }
-        }
-
-        private void AddChain(BossModule module, Actor? start, int numDone, bool close)
-        {
-            if (numDone == 0)
-            {
-                if (start != null)
-                    AddSpread(module, start, 8, 0);
-            }
-            if (numDone <= 1 && start != null)
-            {
-                start = close ? module.Raid.WithoutSlot().Exclude(start).Closest(start.Position) : module.Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
-                if (start != null)
-                    AddSpread(module, start, 4, 1);
-            }
-            if (numDone <= 2 && start != null)
-            {
-                start = close ? module.Raid.WithoutSlot().Exclude(start).Closest(start.Position) : module.Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
-                if (start != null)
-                    AddSpread(module, start, 4, 2);
-            }
-        }
-
-        private void AddSpread(BossModule module, Actor target, float radius, int order)
-        {
-            Spreads.Add(new(target, radius, _firstActivation.AddSeconds(order * 1.0)));
-            var slot = module.Raid.FindSlot(target.InstanceID);
-            if (_targets[slot])
-                _risky.Set(slot);
-            else
-                _targets.Set(slot);
         }
     }
 }
