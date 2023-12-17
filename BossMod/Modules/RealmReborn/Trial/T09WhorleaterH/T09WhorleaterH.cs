@@ -1,4 +1,5 @@
 ﻿using BossMod.Endwalker.Extreme.Ex7Zeromus;
+using BossMod.ReplayVisualization;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         Tail = 0xA86, // Tail
         Spume = 0xA85, // Adds for the converter
         Sahagin = 0xA84, // Hostile adds
+        DangerousSahagins = 0xA83,
         Converter = 0x1E922A, // Elemental converter
         HydroshotZone = 0x1E9230 // Hydroshot AoE puddle
     };
@@ -38,14 +40,22 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                 hints.Add($"Activate the {converter.Name} or wipe!");
             }
 
+            if (module.Enemies(OID.DangerousSahagins).Any(x => x.IsTargetable && !x.IsDead))
+            {
+                hints.Add($"Kill Sahagins or lose control!");
+            }
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
             var tail = module.Enemies(OID.Tail).Where(x => x.IsTargetable && x.FindStatus(775) == null && x.FindStatus(477) != null).FirstOrDefault();
             if (tail != null)
             {
-                if (module.WorldState.Party.Player()?.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer)
+                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer)
                 {
                     hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
                 }
-                if (module.WorldState.Party.Player()?.Class.GetClassCategory() is ClassCategory.PhysRanged)
+                if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged)
                 {
                     hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
                 }
@@ -59,11 +69,6 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
     class Hydroshot : Components.PersistentVoidzoneAtCastTarget
     {
         public Hydroshot() : base(5, ActionID.MakeSpell(AID.Hydroshot), m => m.Enemies(OID.HydroshotZone), 0) { }
-    }
-
-    class Sahagins : Components.Adds
-    {
-        public Sahagins() : base((uint)OID.Sahagin) { }
     }
 
     class BodySlam : Components.Knockback
@@ -117,7 +122,6 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
             TrivialPhase()
                 .ActivateOnEnter<GrandFall>()
                 .ActivateOnEnter<Hydroshot>()
-                .ActivateOnEnter<Sahagins>()
                 .ActivateOnEnter<BodySlam>()
                 .ActivateOnEnter<Hints>();
         }
@@ -138,6 +142,10 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                 Arena.Actor(s, ArenaColor.PlayerInteresting, false);
             foreach (var e in Enemies(OID.Tail))
                 Arena.Actor(e, ArenaColor.Enemy, false);
+            foreach (var e in Enemies(OID.Sahagin))
+                Arena.Actor(e, ArenaColor.Enemy, false);
+            foreach (var e in Enemies(OID.DangerousSahagins))
+                Arena.Actor(e, ArenaColor.Enemy, false);
             foreach (var c in Enemies(OID.Converter))
                 Arena.Actor(c, ArenaColor.Object, false);
         }
@@ -151,7 +159,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                 {
                     OID.Spume => 3,
                     OID.Sahagin => 2,
-                    OID.Boss => 1,
+                    OID.Boss or OID.Tail => 1,
                     _ => 0
                 };
             }
