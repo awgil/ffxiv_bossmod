@@ -90,4 +90,33 @@ namespace BossMod.Endwalker.Ultimate.TOP
     {
         public P2CosmoMemory() : base(ActionID.MakeSpell(AID.CosmoMemoryAOE)) { }
     }
+
+    class P2OptimizedPassageOfArms : BossComponent
+    {
+        public Actor? _invincible;
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (_invincible != null)
+            {
+                var e = hints.PotentialTargets.FirstOrDefault(e => e.Actor == _invincible);
+                if (e != null)
+                {
+                    e.Priority = AIHints.Enemy.PriorityForbidFully;
+                }
+            }
+        }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.Invincibility && (OID)actor.OID == OID.OmegaM)
+                _invincible = actor;
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.Invincibility && _invincible == actor)
+                _invincible = null;
+        }
+    }
 }

@@ -114,12 +114,53 @@ namespace BossMod
             }
         }
 
+        public class TargetOverride
+        {
+            public uint OID;
+            public uint StateID;
+            public float TimeSinceActivation;
+            public float WindowLength;
+            public string Comment;
+
+            public TargetOverride(uint oid, uint stateID, float timeSinceActivation, float windowLength, string comment)
+            {
+                OID = oid;
+                StateID = stateID;
+                TimeSinceActivation = timeSinceActivation;
+                WindowLength = windowLength;
+                Comment = comment;
+            }
+
+            public TargetOverride Clone() => new(OID, StateID, TimeSinceActivation, WindowLength, Comment);
+
+            public static TargetOverride? FromJSON(JObject? j, JsonSerializer ser)
+            {
+                var oid = ser.DeserializeHex(j?["OID"]) ?? 0;
+                var stateID = ser.DeserializeHex(j?["StateID"]);
+                if (stateID == null)
+                    return null;
+                return new TargetOverride(oid, stateID.Value, j?["TimeSinceActivation"]?.Value<float>() ?? 0, j?["WindowLength"]?.Value<float>() ?? 0, j?["Comment"]?.Value<string>() ?? "");
+            }
+
+            public JObject ToJSON(JsonSerializer ser)
+            {
+                JObject res = new();
+                res["OID"] = $"0x{OID:X}";
+                res["StateID"] = $"0x{StateID:X8}";
+                res["TimeSinceActivation"] = TimeSinceActivation;
+                res["WindowLength"] = WindowLength;
+                res["Comment"] = Comment;
+                return res;
+            }
+        }
+
         public Class Class;
         public int Level;
         public string Name;
         public StateMachineTimings Timings = new();
         public List<ActionUse> Actions = new();
         public List<List<StrategyOverride>> StrategyOverrides = new();
+        public List<TargetOverride> TargetOverrides = new();
 
         public CooldownPlan(Class cls, int level, string name)
         {
@@ -138,6 +179,7 @@ namespace BossMod
             res.Actions.AddRange(Actions.Select(a => a.Clone()));
             for (int i = 0; i < StrategyOverrides.Count; ++i)
                 res.StrategyOverrides[i].AddRange(StrategyOverrides[i].Select(s => s.Clone()));
+            res.TargetOverrides.AddRange(TargetOverrides.Select(t => t.Clone()));
             return res;
         }
 
@@ -180,6 +222,19 @@ namespace BossMod
                 }
             }
 
+            var jtargets = j?["Targets"] as JArray;
+            if (jtargets != null)
+            {
+                foreach (var jt in jtargets)
+                {
+                    var t = TargetOverride.FromJSON(jt as JObject, ser);
+                    if (t != null)
+                    {
+                        res.TargetOverrides.Add(t);
+                    }
+                }
+            }
+
             return res;
         }
 
@@ -206,6 +261,11 @@ namespace BossMod
                     overrides.Add(o.ToJSON(trackData.Values, ser));
                 }
             }
+
+            var targets = new JArray();
+            res["Targets"] = targets;
+            foreach (var t in TargetOverrides)
+                targets.Add(t.ToJSON(ser));
 
             return res;
         }

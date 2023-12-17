@@ -9,6 +9,10 @@ namespace BossMod
     {
         public class Enemy
         {
+            // TODO: split 'pointless to attack' (eg invulnerable, but fine to hit by aoes) vs 'actually bad to hit' (eg can lead to wipe)
+            public const int PriorityForbidAI = -1; // ai is forbidden from attacking this enemy, but player explicitly targeting it is not (e.g. out of combat enemies that we might not want to pull)
+            public const int PriorityForbidFully = -2; // attacking this enemy is forbidden both by ai or player (e.g. invulnerable, or attacking/killing might lead to a wipe)
+
             public Actor Actor;
             public int Priority; // <0 means damaging is actually forbidden, 0 is default
             //public float TimeToKill;
@@ -21,11 +25,12 @@ namespace BossMod
             public bool ForbidDOTs; // if true, dots on target are forbidden
             public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
             public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
+            //public bool PointlessToAttack; // if set, we prefer waiting and doing nothing rather than attacking the enemy (e.g. temporarily invincible)
 
             public Enemy(Actor actor, bool shouldBeTanked)
             {
                 Actor = actor;
-                Priority = actor.InCombat ? 0 : -1;
+                Priority = actor.InCombat ? 0 : PriorityForbidAI;
                 AttackStrength = 0.05f;
                 ShouldBeTanked = shouldBeTanked;
                 DesiredPosition = actor.Position;
@@ -41,6 +46,9 @@ namespace BossMod
         // list of potential targets
         public List<Enemy> PotentialTargets = new();
         public int HighestPotentialTargetPriority = 0;
+
+        // forced target
+        public Actor? ForcedTarget;
 
         // positioning: list of shapes that are either forbidden to stand in now or will be in near future
         // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
@@ -66,6 +74,7 @@ namespace BossMod
         {
             Bounds = DefaultBounds;
             PotentialTargets.Clear();
+            ForcedTarget = null;
             ForbiddenZones.Clear();
             ForbiddenDirections.Clear();
             PredictedDamage.Clear();
@@ -78,6 +87,21 @@ namespace BossMod
             foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead))
             {
                 PotentialTargets.Add(new(actor, playerIsDefaultTank));
+            }
+        }
+
+        // fill forced target, if any
+        public void FillForcedTarget(BossModule? module, WorldState ws, Actor player)
+        {
+            if (module?.PlanExecution != null)
+            {
+                var oid = module.PlanExecution.ActiveForcedTarget(module.StateMachine);
+                if (oid != null)
+                {
+                    var targets = oid.Value != 0 ? PotentialTargets.Where(e => e.Actor.OID == oid.Value) : PotentialTargets;
+                    var maxPrio = targets.MaxBy(t => t.Priority)?.Priority ?? -1;
+                    ForcedTarget = maxPrio >= 0 ? targets.Where(e => e.Priority == maxPrio).MinBy(e => (e.Actor.Position - player.Position).LengthSq())?.Actor : null;
+                }
             }
         }
 

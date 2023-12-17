@@ -1,4 +1,5 @@
 ﻿using Dalamud.Hooking;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using ImGuiNET;
 using System;
 using System.Linq;
@@ -79,7 +80,7 @@ namespace BossMod
             _autoHints.Dispose();
         }
 
-        public void Update()
+        public unsafe void Update()
         {
             var player = WorldState.Party.Player();
             PrimaryTarget = WorldState.Actors.Find(player?.TargetID ?? 0);
@@ -91,6 +92,7 @@ namespace BossMod
                 var playerAssignment = Service.Config.Get<PartyRolesConfig>()[WorldState.Party.ContentIDs[PartyState.PlayerSlot]];
                 var activeModule = Bossmods.ActiveModule?.StateMachine.ActivePhase != null ? Bossmods.ActiveModule : null;
                 Hints.FillPotentialTargets(WorldState, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !WorldState.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank));
+                Hints.FillForcedTarget(Bossmods.ActiveModule, WorldState, player);
                 Hints.FillPlannedActions(Bossmods.ActiveModule, PartyState.PlayerSlot, player); // note that we might fill some actions even if module is not active yet (prepull)
                 if (activeModule != null)
                     activeModule.CalculateAIHints(PartyState.PlayerSlot, player, playerAssignment, Hints);
@@ -98,6 +100,11 @@ namespace BossMod
                     _autoHints.CalculateAIHints(Hints, player.Position);
             }
             Hints.Normalize();
+            if (Hints.ForcedTarget != null && PrimaryTarget != Hints.ForcedTarget)
+            {
+                PrimaryTarget = Hints.ForcedTarget;
+                TargetSystem.Instance()->Target = Utils.GameObjectInternal(Service.ObjectTable.FirstOrDefault(go => go.ObjectId == Hints.ForcedTarget.InstanceID));
+            }
 
             // TODO: this should be part of worldstate update for player
             ActionManagerEx.Instance!.GetCooldowns(Cooldowns);
@@ -127,7 +134,10 @@ namespace BossMod
             }
 
             _classActions?.Update();
-            ActionManagerEx.Instance!.AutoQueue = _classActions?.CalculateNextAction() ?? default;
+            var nextAction = _classActions?.CalculateNextAction() ?? default;
+            if (nextAction.Target != null && Hints.ForbiddenTargets.FirstOrDefault(e => e.Actor == nextAction.Target)?.Priority == AIHints.Enemy.PriorityForbidFully)
+                nextAction = default;
+            ActionManagerEx.Instance!.AutoQueue = nextAction; // TODO: this delays action for 1 frame after downtime, reconsider...
 
             _ui.IsOpen = _classActions != null && _config.ShowUI;
 

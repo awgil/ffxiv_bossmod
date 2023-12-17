@@ -211,6 +211,7 @@
         RemoteGlitch = 3428, // none->player, extra=0x0
         SniperCannonFodder = 3425, // none->player, extra=0x0
         HighPoweredSniperCannonFodder = 3426, // none->player, extra=0x0
+        Invincibility = 671, // none->OmegaM, extra=0x0
 
         // hello world: all 'prep' statuses are replaced with actual statuses on expiration
         HWPrepStack = 3436, // none->player, extra=0x0 - 'synchronization code smell', stack preparation

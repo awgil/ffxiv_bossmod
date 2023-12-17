@@ -161,7 +161,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
         {
             ActorCast(id, _module.BossP2F, AID.SyntheticShield, delay, 1, true);
             ActorCast(id + 0x10, _module.BossP2M, AID.LimitlessSynergyF, 5.3f, 5, true, "Remove debuffs");
-            ActorCastStart(id + 0x20, _module.BossP2M, AID.LaserShower, 5.0f, false, "F invincible");
+            ActorCastStart(id + 0x20, _module.BossP2M, AID.LaserShower, 5.0f, false, "F invincible")
+                .ActivateOnEnter<P2OptimizedPassageOfArms>();
             ComponentCondition<P2OptimizedBladedance>(id + 0x30, 8.5f, comp => comp.NumCasts > 0, "Baited rect + Tankbusters")
                 .ActivateOnEnter<P2OptimizedBladedance>()
                 .ActivateOnEnter<P2OptimizedSagittariusArrow>()
@@ -179,7 +180,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .ActivateOnEnter<P2CosmoMemory>()
                 .DeactivateOnExit<P2CosmoMemory>()
                 .SetHint(StateMachine.StateHint.Raidwide);
-            ActorCastEnd(id + 0x80, _module.BossP2M, 27, false, "Enrage");
+            ActorCastEnd(id + 0x80, _module.BossP2M, 27, false, "Enrage")
+                .DeactivateOnExit<P2OptimizedPassageOfArms>();
         }
 
         private void P3Intermission(uint id, float delay)

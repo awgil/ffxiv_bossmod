@@ -75,6 +75,9 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Force unless NC active", 0x8000ff00)]
                 ForceIfNoNC = 2, // force use (if NC is not already active), even if gauge is overcapped
+
+                [PropertyDisplay("Use normally, but not during IR", 0x8000ffff)]
+                AutoUnlessIR = 3, // avoid overcap etc, but do not use if IR is active - useful before downtimes
             }
 
             public enum PotionUse : uint
@@ -264,6 +267,9 @@ namespace BossMod.WAR
                     // different logic before IR and after IR
                     if (state.Unlocked(AID.InnerRelease))
                     {
+                        if (strategy.InfuriateStrategy == Strategy.InfuriateUse.AutoUnlessIR && state.InnerReleaseLeft > state.GCD)
+                            return false;
+
                         // with IR, main purpose of infuriate is to generate gauge to burn in spend mode
                         if (ShouldSpendGauge(state, strategy, aoe))
                             return true;

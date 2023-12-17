@@ -19,6 +19,7 @@ namespace BossMod
         private StateMachineTimings _timings = new();
         private List<ColumnPlannerTrackCooldown> _colCooldowns = new();
         private List<ColumnPlannerTrackStrategy> _colStrategy = new();
+        private ColumnPlannerTrackTarget _colTarget;
         private Dictionary<ActionID, int> _aidToColCooldown = new();
 
         private float _trackWidth = 50;
@@ -60,6 +61,10 @@ namespace BossMod
                 col.NotifyModified = onModified;
                 _colStrategy.Add(col);
             }
+
+            _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, moduleInfo));
+            _colTarget.Width = _trackWidth;
+            _colTarget.NotifyModified = onModified;
 
             ExtractPlanData(plan);
         }
@@ -129,6 +134,7 @@ namespace BossMod
             _plan.Timings = plan.Timings;
             _plan.Actions = plan.Actions;
             _plan.StrategyOverrides = plan.StrategyOverrides;
+            _plan.TargetOverrides = plan.TargetOverrides;
         }
 
         public void ExportToClipboard()
@@ -217,6 +223,17 @@ namespace BossMod
                     }
                 }
             }
+
+            while (_colTarget.Elements.Count > 0)
+                _colTarget.RemoveElement(0);
+            foreach (var o in plan.TargetOverrides)
+            {
+                var state = _tree.Nodes.GetValueOrDefault(o.StateID);
+                if (state != null)
+                {
+                    _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.OID, o.Comment);
+                }
+            }
         }
 
         private CooldownPlan BuildPlan()
@@ -238,6 +255,11 @@ namespace BossMod
                     var cast = (ColumnPlannerTrackStrategy.OverrideElement)e;
                     overrides.Add(new(cast.Value, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.Comment));
                 }
+            }
+            foreach (var e in _colTarget.Elements)
+            {
+                var cast = (ColumnPlannerTrackTarget.OverrideElement)e;
+                res.TargetOverrides.Add(new(cast.OID, e.Window.AttachNode.State.ID, e.Window.Delay, e.Window.Duration, cast.Comment));
             }
             return res;
         }

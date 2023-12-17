@@ -351,6 +351,7 @@ namespace BossMod.ReplayVisualization
             {
                 _hints.Clear();
                 _hints.FillPotentialTargets(_mgr.WorldState, _pfTank);
+                _hints.FillForcedTarget(_mgr.ActiveModule, _mgr.WorldState, player);
                 _hints.FillPlannedActions(_mgr.ActiveModule, _povSlot, player);
                 _mgr.ActiveModule.CalculateAIHints(_povSlot, player, Service.Config.Get<PartyRolesConfig>()[_mgr.WorldState.Party.ContentIDs[_povSlot]], _hints);
                 _hints.Normalize();

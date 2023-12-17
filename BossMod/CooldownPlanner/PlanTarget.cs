@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImGuiNET;
+using System;
 using System.Linq;
 
 namespace BossMod.PlanTarget
@@ -50,5 +51,15 @@ namespace BossMod.PlanTarget
             OID = (uint)(object)v;
             return true;
         }
+    }
+
+    // useful for heals?
+    public class LowestHPPartyMember : ISelector
+    {
+        public bool AllowSelf;
+
+        public override Actor? Select(BossModule module, int playerSlot, Actor player) => module.Raid.WithoutSlot().Exclude(AllowSelf ? null : player).MinBy(a => a.HP.Cur);
+        public override string Describe(ModuleRegistry.Info? moduleInfo) => $"Allow self: {AllowSelf}";
+        public override bool Edit(ModuleRegistry.Info? moduleInfo) => ImGui.Checkbox("Allow self", ref AllowSelf);
     }
 }

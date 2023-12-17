@@ -2,7 +2,7 @@
 
 namespace BossMod.Endwalker.Ultimate.TOP
 {
-    // TODO: not sure how exactly second target is selected, I think it is snapshotted to the current target when first cast happens? I can definitely taunt between casts without dying...
+    // TODO: not sure how exactly second target is selected, I think it is snapshotted to the current target when first cast happens?
     // TODO: consider generalizing - same as P12S1 Glaukopis and others...
     class P5SolarRay : Components.GenericBaitAway
     {
@@ -12,8 +12,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (CurrentBaits.Any(b => b.Source.TargetID == b.Target.InstanceID) && actor.Role == Role.Tank)
-                hints.Add(module.PrimaryActor.TargetID != actor.InstanceID ? "Taunt!" : "Pass aggro!");
+            if (NumCasts == 0 && CurrentBaits.FirstOrDefault(b => b.Source.TargetID == b.Target.InstanceID) is var b && b.Source != null && actor.Role == Role.Tank)
+                hints.Add(b.Source.TargetID != actor.InstanceID ? "Taunt!" : "Pass aggro!");
             base.AddHints(module, slot, actor, hints, movementHints);
         }
 
@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
             if ((AID)spell.Action.ID is AID.P5SolarRayM or AID.P5SolarRayMSecond or AID.P5SolarRayF or AID.P5SolarRayFSecond)
             {
                 CurrentBaits.Clear();
-                if (++NumCasts < 2 && module.WorldState.Actors.Find(spell.MainTargetID) is var target && target != null)
+                if (++NumCasts < 2 && module.WorldState.Actors.Find(caster.TargetID) is var target && target != null)
                     CurrentBaits.Add(new(caster, target, _shape));
             }
         }

@@ -1,5 +1,4 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+﻿using ImGuiNET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;

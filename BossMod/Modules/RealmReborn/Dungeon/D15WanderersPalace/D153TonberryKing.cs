@@ -44,7 +44,7 @@
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
-                    //OID.Tonberry => a.HP.Cur > 1 && rancorStacks < 3 ? 0 : -1, // note: we don't bother with them - let tank aoe them when they reach center and invuln high stacks...
+                    //OID.Tonberry => a.HP.Cur > 1 && rancorStacks < 3 ? 0 : AIHints.Enemy.PriorityForbidAI, // note: we don't bother with them - let tank aoe them when they reach center and invuln high stacks...
                     OID.Boss => 1,
                     _ => 0
                 };

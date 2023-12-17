@@ -56,7 +56,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
                         e.ShouldBeTanked = false;
                         break;
                     case OID.SpinyPlume:
-                        e.Priority = module.PrimaryActor.IsTargetable ? -1 : 6;
+                        e.Priority = module.PrimaryActor.IsTargetable ? AIHints.Enemy.PriorityForbidAI : 6;
                         e.AttackStrength = 0;
                         e.ShouldBeTanked = false;
                         if (actor.Role == Role.Tank && e.Actor.TargetID != actor.InstanceID && (module.WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.ThermalLow)?.Extra ?? 0) >= 2)

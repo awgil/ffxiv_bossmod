@@ -32,6 +32,7 @@ namespace BossMod
             {
                 tree.LeafNodes(_hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - _player.Position).Length():f2}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}");
             }
+            tree.LeafNode($"Forced target: {_hints.ForcedTarget}");
             foreach (var n in tree.Node("Forbidden zones", _hints.ForbiddenZones.Count == 0))
             {
                 for (int i = 0; i < _hints.ForbiddenZones.Count; i++)
