@@ -22,6 +22,8 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
     {
         AutoAttack = 870,
         GrandFall = 1873, // Big AoE, normally during elemental converter activation
+        Splash = 1871,
+        BodySlamStart = 1938,
         BodySlam = 1860,
         Hydroshot = 1864
     }
@@ -63,6 +65,51 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
     {
         public Sahagins() : base((uint)OID.Sahagin) { }
     }
+
+    class BodySlam : Components.Knockback
+    {
+        public float Distance;
+        public Angle Direction;
+        public DateTime Activation;
+
+        public float LeviathanZ;
+
+        public BodySlam() : base(ActionID.MakeSpell(AID.BodySlamStart)) { }
+
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            if (Distance > 0)
+                yield return new(new(), Distance, Activation, null, Direction, Kind.DirForward);
+        }
+
+        public override void Update(BossModule module)
+        {
+            base.Update(module);
+            var boss = module.Enemies(OID.Boss).FirstOrDefault();
+
+            if (boss != null)
+            {
+                if (LeviathanZ == default)
+                    LeviathanZ = module.Enemies(OID.Boss).First().Position.Z;
+
+                if (boss.Position.Z != LeviathanZ && boss.Position.Z != 0)
+                {
+                    LeviathanZ = boss.Position.Z;
+                    Distance = 25;
+                    Direction = boss.Position.Z <= 0 ? 180.Degrees() : 0.Degrees();
+                }
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.BodySlamStart)
+            {
+                Distance = 0;
+            }
+        }
+    }
     class T09WhorleaterHStates : StateMachineBuilder
     {
         public T09WhorleaterHStates(BossModule module) : base(module)
@@ -71,6 +118,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                 .ActivateOnEnter<GrandFall>()
                 .ActivateOnEnter<Hydroshot>()
                 .ActivateOnEnter<Sahagins>()
+                .ActivateOnEnter<BodySlam>()
                 .ActivateOnEnter<Hints>();
         }
     }
@@ -85,7 +133,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in _spumes)
                 Arena.Actor(s, ArenaColor.PlayerInteresting, false);
             foreach (var e in Enemies(OID.Tail))
