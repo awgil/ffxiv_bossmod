@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using ImGuiNET;
 using System;
 using System.Linq;
@@ -47,6 +48,7 @@ namespace BossMod
             var player = Service.ClientState.LocalPlayer;
             ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={Service.ClientState.LocalContentId:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
             ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
+            ImGui.TextUnformatted($"Player mode: {Utils.CharacterInternal(player)->Mode}");
 
             var eventFwk = FFXIVClientStructs.FFXIV.Client.Game.Event.EventFramework.Instance();
             var instanceDirector = eventFwk != null ? eventFwk->GetInstanceContentDirector() : null;

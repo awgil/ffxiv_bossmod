@@ -44,6 +44,7 @@ namespace BossMod
                     _tree.LeafNode($"Targetable: {obj.IsTargetable}");
                     _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(obj)}");
                     _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
+                    _tree.LeafNode($"Event state: {Utils.GameObjectEventState(obj)}");
                     if (character != null)
                     {
                         _tree.LeafNode($"Class: {(Class)character.ClassJob.Id} ({character.ClassJob.Id})");
