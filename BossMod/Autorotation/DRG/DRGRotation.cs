@@ -1,4 +1,8 @@
-﻿namespace BossMod.DRG
+﻿using BossMod.Endwalker.Savage.P1SErichthonios;
+using BossMod.Network.ServerIPC;
+using System;
+
+namespace BossMod.DRG
 {
     public static class Rotation
     {
@@ -15,6 +19,7 @@
             public float PowerSurgeLeft; // 30 max
             public float LanceChargeLeft; // 20 max
             public float RightEyeLeft; // 20 max
+            public float LifeSurgeLeft; // 5 max
             public float TrueNorthLeft; // 10 max
             public float TargetChaosThrustLeft; // 24 max
 
@@ -104,6 +109,20 @@
 
         public static bool UseLifeSurge(State state, Strategy strategy)
         {
+            if (state.LifeSurgeLeft > state.GCD)
+                return false;
+
+            if (state.Unlocked(TraitID.EnhancedLifeSurge))
+            {
+                float chargeCapIn = state.CD(CDGroup.LifeSurge) - (state.Unlocked(TraitID.EnhancedLifeSurge) ? 0 : 40);
+                if (state.RightEyeLeft > state.GCD
+                    && state.LanceChargeLeft > state.GCD
+                    && ((state.WheelInMotionLeft > state.GCD) || (state.FangAndClawBaredLeft > state.GCD))
+                    && chargeCapIn < state.GCD + 2.5
+                    && state.CD(CDGroup.BattleLitany) > 0)
+                    return true;
+            }
+
             if (strategy.UseAOERotation)
             {
                 // for aoe rotation, just use LS on last unlocked combo action
@@ -160,6 +179,10 @@
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
+            // prepull
+            if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
+                return AID.None;
+
             if (strategy.UseAOERotation)
             {
                 return state.ComboLastMove switch
@@ -187,35 +210,41 @@
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
-            // life surge on most damaging gcd
-            if (state.Unlocked(AID.LifeSurge) && state.CanWeave(state.CD(CDGroup.LifeSurge) - 45, 0.6f, deadline) && UseLifeSurge(state, strategy))
-                return ActionID.MakeSpell(AID.LifeSurge);
-
-            // TODO: better buff conditions, reconsider priorities
-            if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.LanceCharge);
-            if (state.Unlocked(AID.DragonSight) && state.CanWeave(CDGroup.DragonSight, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.DragonSight);
-            if (state.Unlocked(AID.BattleLitany) && state.CanWeave(CDGroup.BattleLitany, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.BattleLitany);
-            if (state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Nastrond, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.Nastrond);
-            if (state.Unlocked(AID.Geirskogul) && state.CanWeave(CDGroup.Geirskogul, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.Geirskogul);
-            if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.MirageDive);
-            if (state.FirstmindFocusCount >= 2 && state.CanWeave(CDGroup.WyrmwindThrust, 0.6f, deadline))
-                return ActionID.MakeSpell(AID.WyrmwindThrust);
-
             bool canJump = strategy.PositionLockIn > state.AnimationLock;
-            if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
-                return ActionID.MakeSpell(state.BestJump);
-            //if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
-            //    return ActionID.MakeSpell(AID.DragonfireDive);
-            //if (canJump && state.Unlocked(AID.SpineshatterDive) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
-            //    return ActionID.MakeSpell(AID.SpineshatterDive);
-            if (canJump && state.Unlocked(AID.Stardiver) && state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Stardiver, 1.5f, deadline))
-                return ActionID.MakeSpell(AID.Stardiver);
+
+            if (state.PowerSurgeLeft > state.GCD)
+            {
+                // life surge on most damaging gcd
+                if (state.Unlocked(AID.LifeSurge) && state.CanWeave(state.CD(CDGroup.LifeSurge) - 45, 0.6f, deadline) && UseLifeSurge(state, strategy))
+                    return ActionID.MakeSpell(AID.LifeSurge);
+
+                // TODO: better buff conditions, reconsider priorities
+                if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.LanceCharge);
+                if (state.Unlocked(AID.DragonSight) && state.CanWeave(CDGroup.DragonSight, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.DragonSight);
+                if (state.Unlocked(AID.BattleLitany) && state.CanWeave(CDGroup.BattleLitany, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.BattleLitany);
+                if (state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Nastrond, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.Nastrond);
+                if (state.Unlocked(AID.Geirskogul) && state.CanWeave(CDGroup.Geirskogul, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.Geirskogul);
+                if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
+                    return ActionID.MakeSpell(state.BestJump);
+                if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && state.EyeCount != 2)
+                    return ActionID.MakeSpell(AID.MirageDive);
+                if (state.FirstmindFocusCount >= 2 && state.CanWeave(CDGroup.WyrmwindThrust, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.WyrmwindThrust);
+                if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
+                    return ActionID.MakeSpell(AID.DragonfireDive);
+                if (canJump && state.Unlocked(TraitID.EnhancedSpineshatterDive) && state.Unlocked(AID.SpineshatterDive) && state.RightEyeLeft > MathF.Max(state.CD(CDGroup.SpineshatterDive + 60), state.AnimationLock) && state.CanWeave(state.CD(CDGroup.SpineshatterDive) - 60, 0.8f, deadline))
+                    return ActionID.MakeSpell(AID.SpineshatterDive);
+                if (canJump && !state.Unlocked(TraitID.EnhancedSpineshatterDive) && state.Unlocked(AID.SpineshatterDive) && state.LanceChargeLeft > MathF.Max(state.CD(CDGroup.SpineshatterDive), state.AnimationLock) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
+                    return ActionID.MakeSpell(AID.SpineshatterDive);
+                if (canJump && state.Unlocked(AID.Stardiver) && state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Stardiver, 1.5f, deadline))
+                    return ActionID.MakeSpell(AID.Stardiver);
+            }
+
 
             // no suitable oGCDs...
             return new();
