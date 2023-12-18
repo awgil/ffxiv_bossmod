@@ -118,6 +118,8 @@ namespace BossMod
         private static ClassData DefineDRG()
         {
             var c = new ClassData(typeof(DRG.AID), DRG.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(DRG.AID.Feint), 22));
+            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(DRG.AID.ArmsLength), 32));
             return c;
         }
 
