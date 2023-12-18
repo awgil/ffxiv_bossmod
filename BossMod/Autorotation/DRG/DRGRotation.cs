@@ -1,6 +1,4 @@
-﻿using BossMod.Endwalker.Savage.P1SErichthonios;
-using BossMod.Network.ServerIPC;
-using System;
+﻿using System;
 
 namespace BossMod.DRG
 {
