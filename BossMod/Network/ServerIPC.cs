@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace BossMod.Network.ServerIPC;
@@ -853,6 +855,109 @@ public struct UpdateClassInfoBozja
     public byte pad1;
     public ushort pad2;
     public UpdateClassInfo Data;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct EventPlayN
+{
+    [StructLayout(LayoutKind.Explicit, Pack = 1)]
+    public struct PayloadCrafting // for EventHandler == 0x000A0001
+    {
+        public enum OperationId
+        {
+            StartPrepare = 1,
+            StartInfo = 2,
+            StartReady = 3,
+            Finish = 4,
+            Abort = 6,
+            ReturnedReagents = 8,
+            AdvanceCraftAction = 9,
+            AdvanceNormalAction = 10,
+            QuickSynthStart = 12,
+            QuickSynthProgress = 13,
+        }
+
+        [Flags]
+        public enum StepFlags : uint
+        {
+            u1 = 0x00000002, // always set?
+            CompleteSuccess = 0x00000004, // set even if craft fails due to durability
+            CompleteFail = 0x00000008,
+            LastActionSucceeded = 0x00000010,
+            ComboBasicTouch = 0x08000000,
+            ComboStandardTouch = 0x10000000,
+            ComboObserve = 0x20000000,
+            NoCarefulsLeft = 0x40000000,
+            NoHSLeft = 0x80000000,
+        }
+
+        [StructLayout(LayoutKind.Explicit, Size = 12)]
+        public struct StartInfo // op id == StartInfo
+        {
+            [FieldOffset(0)] public ushort RecipeId;
+            [FieldOffset(4)] public int StartingQuality;
+            [FieldOffset(8)] public byte u8;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct ReturnedReagents // op id == ReturnedReagents
+        {
+            public int u0;
+            public int u4;
+            public int u8;
+            public fixed uint ItemIds[8];
+            public fixed int NumNQ[8];
+            public fixed int NumHQ[8];
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct AdvanceStep // op id == Advance*Action
+        {
+            public int u0;
+            public int u4;
+            public int u8;
+            public int LastActionId;
+            public int DeltaCP;
+            public int StepIndex;
+            public int CurProgress;
+            public int DeltaProgress;
+            public int CurQuality;
+            public int DeltaQuality;
+            public int HQChance;
+            public int CurDurability;
+            public int DeltaDurability;
+            public int Condition; // 1 = normal, ...
+            public int u38; // usually 1, sometimes 2? related to quality
+            public int ConditionParam; // used for good, related to splendorous?
+            public StepFlags Flags;
+            public int u44;
+            public fixed int RemoveStatusIds[7];
+            public fixed int RemoveStatusParams[7];
+        }
+
+        [StructLayout(LayoutKind.Explicit, Size = 12)]
+        public struct QuickSynthStart // op id == QuickSynthStart
+        {
+            [FieldOffset(0)] public ushort RecipeId;
+            [FieldOffset(4)] public byte MaxCount;
+        }
+
+        [FieldOffset(0)] public OperationId OpId;
+        [FieldOffset(4)] public StartInfo OpStartInfo;
+        [FieldOffset(4)] public ReturnedReagents OpReturnedReagents;
+        [FieldOffset(4)] public AdvanceStep OpAdvanceStep;
+        [FieldOffset(4)] public QuickSynthStart OpQuickSynthStart;
+    }
+
+    public ulong TargetID;
+    public uint EventHandler;
+    public ushort uC;
+    public ushort pad1;
+    public ulong u10;
+    public byte PayloadLength; // in dwords
+    public byte pad2;
+    public ushort pad3;
+    public fixed uint Payload[1]; // N = 1/4/8/16/32/64/128/255
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

@@ -125,6 +125,14 @@ namespace BossMod.Network
             PacketID.UpdateClassInfo when (UpdateClassInfo*)payload is var p => DecodeUpdateClassInfo(p),
             PacketID.UpdateClassInfoEureka when (UpdateClassInfoEureka*)payload is var p => DecodeUpdateClassInfo(&p->Data, $", rank={p->Rank}/{p->Element}/{p->u2}, pad={p->pad3:X2}"),
             PacketID.UpdateClassInfoBozja when (UpdateClassInfoBozja*)payload is var p => DecodeUpdateClassInfo(&p->Data, $", rank={p->Rank}, pad={p->pad1:X2}{p->pad2:X4}"),
+            PacketID.EventPlay when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 1)),
+            PacketID.EventPlay4 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 4)),
+            PacketID.EventPlay8 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 8)),
+            PacketID.EventPlay16 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 16)),
+            PacketID.EventPlay32 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 32)),
+            PacketID.EventPlay64 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 64)),
+            PacketID.EventPlay128 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 128)),
+            PacketID.EventPlay255 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 255)),
             PacketID.EnvControl when (EnvControl*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
             PacketID.WaymarkPreset when (WaymarkPreset*)payload is var p => DecodeWaymarkPreset(p),
             PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),
@@ -285,6 +293,55 @@ namespace BossMod.Network
         }
 
         private unsafe TextNode DecodeUpdateClassInfo(UpdateClassInfo* p, string extra = "") => new($"L{p->CurLevel}/{p->ClassLevel}/{p->SyncedLevel} {p->ClassID}, exp={p->CurExp}+{p->RestedExp}{extra}");
+
+        private unsafe TextNode DecodeEventPlay(EventPlayN* p, int payloadLength)
+        {
+            var sb = new StringBuilder($"target={Utils.ObjectString(p->TargetID)}, handler={p->EventHandler:X8}, fC={p->uC:X4}, f10={p->u10:X16}, pad={p->pad1:X4} {p->pad2:X2} {p->pad3:X4}, payload=[{payloadLength}]");
+            for (int i = 0; i < payloadLength; ++i)
+                sb.Append($" {p->Payload[i]:X8}");
+            var res = new TextNode(sb.ToString());
+            switch (p->EventHandler)
+            {
+                case 0x000A0001:
+                    // crafting
+                    var cp = (EventPlayN.PayloadCrafting*)p->Payload;
+                    var craftingNode = res.AddChild($"Crafting op {cp->OpId}");
+                    switch (cp->OpId)
+                    {
+                        case EventPlayN.PayloadCrafting.OperationId.StartInfo:
+                            craftingNode.AddChild($"Recipe #{cp->OpStartInfo.RecipeId}, quality={cp->OpStartInfo.StartingQuality}, u8={cp->OpStartInfo.u8}");
+                            break;
+                        case EventPlayN.PayloadCrafting.OperationId.ReturnedReagents:
+                            if (cp->OpReturnedReagents.u0 != 0 || cp->OpReturnedReagents.u4 != 0 || cp->OpReturnedReagents.u8 != 0)
+                                craftingNode.AddChild($"Unks: {cp->OpReturnedReagents.u0} {cp->OpReturnedReagents.u4} {cp->OpReturnedReagents.u8}");
+                            for (int i = 0; i < 8; ++i)
+                                if (cp->OpReturnedReagents.ItemIds[i] != 0)
+                                    craftingNode.AddChild($"{i}: {cp->OpReturnedReagents.ItemIds[i]} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(cp->OpReturnedReagents.ItemIds[i])?.Name}' {cp->OpReturnedReagents.NumNQ[i]}nq/{cp->OpReturnedReagents.NumHQ[i]}hq");
+                            break;
+                        case EventPlayN.PayloadCrafting.OperationId.AdvanceCraftAction:
+                        case EventPlayN.PayloadCrafting.OperationId.AdvanceNormalAction:
+                            var actionName = cp->OpId == EventPlayN.PayloadCrafting.OperationId.AdvanceCraftAction
+                                ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.CraftAction>((uint)cp->OpAdvanceStep.LastActionId)?.Name
+                                : Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>((uint)cp->OpAdvanceStep.LastActionId)?.Name;
+                            craftingNode.AddChild($"Step #{cp->OpAdvanceStep.StepIndex}, condition={cp->OpAdvanceStep.Condition} ({cp->OpAdvanceStep.ConditionParam}), delta-cp={cp->OpAdvanceStep.DeltaCP}");
+                            craftingNode.AddChild($"Action: {cp->OpAdvanceStep.LastActionId} '{actionName}' ({(cp->OpAdvanceStep.Flags.HasFlag(EventPlayN.PayloadCrafting.StepFlags.LastActionSucceeded) ? "succeeded" : "failed")})");
+                            craftingNode.AddChild($"Progress: {cp->OpAdvanceStep.CurProgress} (delta={cp->OpAdvanceStep.DeltaProgress})");
+                            craftingNode.AddChild($"Quality: {cp->OpAdvanceStep.CurQuality} (delta={cp->OpAdvanceStep.DeltaQuality}, hq={cp->OpAdvanceStep.HQChance}, u38={cp->OpAdvanceStep.u38})");
+                            craftingNode.AddChild($"Durability: {cp->OpAdvanceStep.CurDurability} (delta={cp->OpAdvanceStep.DeltaDurability})");
+                            craftingNode.AddChild($"Flags: {cp->OpAdvanceStep.Flags}");
+                            craftingNode.AddChild($"u44: {cp->OpAdvanceStep.u44}");
+                            for (int i = 0; i < 7; ++i)
+                                if (cp->OpAdvanceStep.RemoveStatusIds[i] != 0)
+                                    craftingNode.AddChild($"Removed status {i}: {Utils.StatusString((uint)cp->OpAdvanceStep.RemoveStatusIds[i])} param={cp->OpAdvanceStep.RemoveStatusParams[i]}");
+                            break;
+                        case EventPlayN.PayloadCrafting.OperationId.QuickSynthStart:
+                            craftingNode.AddChild($"Recipe #{cp->OpQuickSynthStart.RecipeId}, max={cp->OpQuickSynthStart.MaxCount}");
+                            break;
+                    }
+                    break;
+            }
+            return res;
+        }
 
         private unsafe TextNode DecodeWaymarkPreset(WaymarkPreset* p)
         {
