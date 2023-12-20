@@ -193,9 +193,11 @@
         RearLasersRest = 31632, // RearPowerUnit->self, no cast, range 50 width 12 rect
 
         RunMiOmegaVersion = 32789, // BossP5->self, 5.0s cast, range 100 circle, raidwide
-        OmegaDiffuseWaveCannon = 31643, // FinalHelper->self, 8.0s cast, single-target, visual (first set of cones)
+        OmegaDiffuseWaveCannonFront = 31643, // FinalHelper->self, 8.0s cast, single-target, visual (first set of cones, front/back)
+        OmegaDiffuseWaveCannonSides = 31644, // FinalHelper->self, 8.0s cast, single-target, visual (first set of cones, left/right)
+        OmegaDiffuseWaveCannonRepeatFront = 31607, // FinalHelper->self, no cast, single-target, visual (second set of cones, front/back)
+        OmegaDiffuseWaveCannonRepeatSides = 31608, // FinalHelper->self, no cast, single-target, visual (second set of cones, left/right)
         OmegaDiffuseWaveCannonAOE = 31609, // Helper->self, 1.0s cast, range 100 120-degree cone
-        OmegaDiffuseWaveCannonRepeat = 31608, // FinalHelper->self, no cast, single-target, visual (second set of cones)
         OmegaBlaster = 32374, // BeetleHelper->self, 11.9s cast, single-target, visual (tethers)
         OmegaBlasterVisual = 31641, // BeetleHelper->self, no cast, single-target, ???
         OmegaBlasterAOE = 32373, // Helper->player, no cast, range 15 circle aoe

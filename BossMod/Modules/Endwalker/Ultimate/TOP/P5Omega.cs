@@ -61,12 +61,13 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.OmegaDiffuseWaveCannon)
+            if ((AID)spell.Action.ID is AID.OmegaDiffuseWaveCannonFront or AID.OmegaDiffuseWaveCannonSides)
             {
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt.AddSeconds(1.1f)));
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation + 180.Degrees(), spell.FinishAt.AddSeconds(1.1f)));
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation + 90.Degrees(), spell.FinishAt.AddSeconds(5.2f)));
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation - 90.Degrees(), spell.FinishAt.AddSeconds(5.2f)));
+                var first = spell.Rotation + ((AID)spell.Action.ID == AID.OmegaDiffuseWaveCannonFront ? 0 : 90).Degrees();
+                _aoes.Add(new(_shape, caster.Position, first, spell.FinishAt.AddSeconds(1.1f)));
+                _aoes.Add(new(_shape, caster.Position, first + 180.Degrees(), spell.FinishAt.AddSeconds(1.1f)));
+                _aoes.Add(new(_shape, caster.Position, first + 90.Degrees(), spell.FinishAt.AddSeconds(5.2f)));
+                _aoes.Add(new(_shape, caster.Position, first - 90.Degrees(), spell.FinishAt.AddSeconds(5.2f)));
             }
         }
 
@@ -197,8 +198,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 yield return module.Bounds.Center + 19 * (_boss.Rotation - 0.95f * _bossAngle).ToDirection(); // '2' - first near
                 yield return module.Bounds.Center + 19 * (_boss.Rotation - 1.05f * _bossAngle).ToDirection(); // '3' - second near
                 yield return module.Bounds.Center + 19 * (_boss.Rotation - 1.95f * _bossAngle).ToDirection(); // '4' - second distant
-                yield return module.Bounds.Center + 10 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(); // first soaker
-                yield return module.Bounds.Center + 10 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(); // second soaker
+                yield return module.Bounds.Center + 15 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(); // first soaker
+                yield return module.Bounds.Center + 15 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(); // second soaker
             }
         }
     }

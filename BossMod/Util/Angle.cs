@@ -40,11 +40,7 @@ namespace BossMod
             return new(r);
         }
 
-        public bool AlmostEqual(Angle other, float epsRad)
-        {
-            var delta = Math.Abs(Rad - other.Rad);
-            return delta <= epsRad || delta >= 2 * MathF.PI - epsRad;
-        }
+        public bool AlmostEqual(Angle other, float epsRad) => Math.Abs((this - other).Normalized().Rad) <= epsRad;
 
         public static bool operator ==(Angle l, Angle r) => l.Rad == r.Rad;
         public static bool operator !=(Angle l, Angle r) => l.Rad != r.Rad;

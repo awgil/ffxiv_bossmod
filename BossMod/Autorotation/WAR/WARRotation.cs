@@ -493,12 +493,12 @@ namespace BossMod.WAR
             // TODO: what if we have really high gauge and low ST? is it worth it to delay ST application to avoid overcapping gauge?
             if (!aoe)
             {
-                if (state.Unlocked(AID.StormEye) && state.SurgingTempestLeft <= state.GCD + 2.5f * (GetSTComboLength(state.ComboLastMove) - 1))
+                if (state.Unlocked(AID.StormEye) && state.SurgingTempestLeft <= state.GCD + 2.5f * GetSTComboLength(state.ComboLastMove))
                     return GetNextSTComboAction(state.ComboLastMove, AID.StormEye);
             }
             else
             {
-                if (state.Unlocked(TraitID.MasteringTheBeast) && state.SurgingTempestLeft <= state.GCD + (state.ComboLastMove != AID.Overpower ? 2.5f : 0))
+                if (state.Unlocked(TraitID.MasteringTheBeast) && state.SurgingTempestLeft <= state.GCD + 2.5f * (state.ComboLastMove != AID.Overpower ? 2 : 1))
                     return GetNextAOEComboAction(state.ComboLastMove);
             }
 
