@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 
 namespace BossMod.DRG
 {
@@ -42,19 +42,49 @@ namespace BossMod.DRG
 
             public override string ToString()
             {
-                return $"FF={FirstmindFocusCount}, LotD={EyeCount}/{LifeOfTheDragonLeft:f3}, ComboEx={FangAndClawBaredLeft:f3}/{WheelInMotionLeft:f3}, DFire={DraconianFireLeft:f3}, Dive={DiveReadyLeft:f3}, RB={RaidBuffsLeft:f3}, PS={PowerSurgeLeft:f3}, LC={LanceChargeLeft:f3}, Eye={RightEyeLeft:f3}, TN={TrueNorthLeft:f3}, CT={TargetChaosThrustLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"FF={FirstmindFocusCount}, LotD={EyeCount}/{LifeOfTheDragonLeft:f3}, ComboEx={FangAndClawBaredLeft:f3}/{WheelInMotionLeft:f3}, DFire={DraconianFireLeft:f3}, Dive={DiveReadyLeft:f3}, RB={RaidBuffsLeft:f3}, PS={PowerSurgeLeft:f3}, LC={LanceChargeLeft:f3}, Eye={RightEyeLeft:f3}, TN={TrueNorthLeft:f3}, CT={TargetChaosThrustLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}, SCD={CD(CDGroup.Stardiver)}";
             }
         }
 
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
+            public enum SpineShatteruse : uint
+            {
+                Automatic = 0, // always keep one charge reserved, use other charges under raidbuffs or prevent overcapping
+
+                [PropertyDisplay("Forbid automatic use", 0x800000ff)]
+                Forbid = 1, // forbid until window end
+
+                [PropertyDisplay("Use all charges ASAP", 0x8000ff00)]
+                Force = 2, // use all charges immediately, don't wait for raidbuffs
+
+                [PropertyDisplay("Use all charges except one ASAP", 0x80ff0000)]
+                ForceReserve = 3, // if 2+ charges, use immediately
+
+                [PropertyDisplay("Use as gapcloser if outside melee range", 0x80ff00ff)]
+                UseOutsideMelee = 4, // use immediately if outside melee range
+            }
+
+            public SpineShatteruse SpineShatterStrategy; // how are we supposed to use spineshatter dive
             public int NumAOEGCDTargets; // range 10 width 4 rect
             public bool UseAOERotation;
 
             public override string ToString()
             {
-                return $"AOE={NumAOEGCDTargets}, no-dots={ForbidDOTs}";
+                return $"";
+            }
+
+            public void ApplyStrategyOverrides(uint[] overrides)
+            {
+                if (overrides.Length >= 8)
+                {
+                    SpineShatterStrategy = (SpineShatteruse)overrides[0];
+                }
+                else
+                {
+                    SpineShatterStrategy = SpineShatteruse.Automatic;
+                }
             }
         }
 
@@ -117,7 +147,16 @@ namespace BossMod.DRG
                     && state.LanceChargeLeft > state.GCD
                     && ((state.WheelInMotionLeft > state.GCD) || (state.FangAndClawBaredLeft > state.GCD))
                     && chargeCapIn < state.GCD + 2.5
-                    && state.CD(CDGroup.BattleLitany) > 0)
+                    && state.CD(CDGroup.BattleLitany) > 0
+                    && state.CD(CDGroup.Geirskogul) > 0)
+                    return true;
+
+                if (state.ComboLastMove == AID.VorpalThrust
+                    && chargeCapIn < state.GCD + 2.5
+                    && state.CD(CDGroup.BattleLitany) < 100
+                    && state.CD(CDGroup.DragonSight) < 100
+                    && state.CD(CDGroup.LanceCharge) < 40
+                    && state.CD(CDGroup.Geirskogul) > 0)
                     return true;
             }
 
@@ -129,8 +168,14 @@ namespace BossMod.DRG
                     : true;
             }
 
+            if (state.Unlocked(AID.FullThrust) && state.Unlocked(TraitID.EnhancedLifeSurge) && state.LanceChargeLeft > state.GCD)
+            {
+                // L26+: our most damaging action is FT, which is the third action in damaging combo
+                return state.ComboLastMove == AID.VorpalThrust;
+            }
+
             // TODO: L64+
-            if (state.Unlocked(AID.FullThrust))
+            if (state.Unlocked(AID.FullThrust) && !state.Unlocked(TraitID.EnhancedLifeSurge))
             {
                 // L26+: our most damaging action is FT, which is the third action in damaging combo
                 return state.ComboLastMove == AID.VorpalThrust;
@@ -139,6 +184,39 @@ namespace BossMod.DRG
             {
                 // L6+: our most damaging action is VT, which is the second action in damaging combo (which is the only combo we have before L18)
                 return state.ComboLastMove == AID.TrueThrust && !UseBuffingCombo(state, strategy, false);
+            }
+        }
+
+        public static bool UseSpineShatterDive(State state, Strategy strategy)
+        {
+            switch (strategy.SpineShatterStrategy)
+            {
+                case Strategy.SpineShatteruse.Forbid:
+                    return false;
+                case Strategy.SpineShatteruse.Force:
+                    return true;
+                case Strategy.SpineShatteruse.ForceReserve:
+                    return state.CD(CDGroup.SpineshatterDive) <= 60 + state.AnimationLock;
+                case Strategy.SpineShatteruse.UseOutsideMelee:
+                    return state.RangeToTarget > 3;
+                default:
+                    if (strategy.CombatTimer < 0 || strategy.PositionLockIn <= state.AnimationLock)
+                        return false; // Combat or Position restrictions
+
+                    if (state.Unlocked(TraitID.EnhancedSpineshatterDive))
+                    {
+                        // Enhanced Spineshatter Dive logic
+                        if (state.RightEyeLeft > state.AnimationLock)
+                            return true; // Use all charges under RightEyeLeft buff
+                    }
+                    else
+                    {
+                        // Regular Spineshatter Dive logic
+                        if (state.LanceChargeLeft > state.AnimationLock)
+                            return true; // Use when there is Lance Charge left
+                    }
+
+                    return false; // Default: Don't use in other cases
             }
         }
 
@@ -209,38 +287,53 @@ namespace BossMod.DRG
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
             bool canJump = strategy.PositionLockIn > state.AnimationLock;
+            bool wantSpineShatter = state.Unlocked(AID.SpineshatterDive) && state.TargetingEnemy && UseSpineShatterDive(state, strategy);
 
             if (state.PowerSurgeLeft > state.GCD)
             {
+                if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline) && ((state.CD(CDGroup.DragonSight) < state.GCD) || (state.CD(CDGroup.DragonSight) < 65) && (state.CD(CDGroup.DragonSight) > 55)))
+                    return ActionID.MakeSpell(AID.LanceCharge);
+                if (state.Unlocked(AID.DragonSight) && state.CanWeave(CDGroup.DragonSight, 0.6f, deadline) && state.CD(CDGroup.BattleLitany) < state.GCD + 2.5)
+                    return ActionID.MakeSpell(AID.DragonSight);
+                if (state.Unlocked(AID.BattleLitany) && state.CanWeave(CDGroup.BattleLitany, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.BattleLitany);
                 // life surge on most damaging gcd
                 if (state.Unlocked(AID.LifeSurge) && state.CanWeave(state.CD(CDGroup.LifeSurge) - 45, 0.6f, deadline) && UseLifeSurge(state, strategy))
                     return ActionID.MakeSpell(AID.LifeSurge);
 
                 // TODO: better buff conditions, reconsider priorities
-                if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline))
-                    return ActionID.MakeSpell(AID.LanceCharge);
-                if (state.Unlocked(AID.DragonSight) && state.CanWeave(CDGroup.DragonSight, 0.6f, deadline))
-                    return ActionID.MakeSpell(AID.DragonSight);
-                if (state.Unlocked(AID.BattleLitany) && state.CanWeave(CDGroup.BattleLitany, 0.6f, deadline))
-                    return ActionID.MakeSpell(AID.BattleLitany);
                 if (state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Nastrond, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.Nastrond);
-                if (state.Unlocked(AID.Geirskogul) && state.CanWeave(CDGroup.Geirskogul, 0.6f, deadline))
-                    return ActionID.MakeSpell(AID.Geirskogul);
-                if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
-                    return ActionID.MakeSpell(state.BestJump);
-                if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && state.EyeCount != 2)
-                    return ActionID.MakeSpell(AID.MirageDive);
-                if (state.FirstmindFocusCount >= 2 && state.CanWeave(CDGroup.WyrmwindThrust, 0.6f, deadline))
-                    return ActionID.MakeSpell(AID.WyrmwindThrust);
-                if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
-                    return ActionID.MakeSpell(AID.DragonfireDive);
-                if (canJump && state.Unlocked(TraitID.EnhancedSpineshatterDive) && state.Unlocked(AID.SpineshatterDive) && state.RightEyeLeft > MathF.Max(state.CD(CDGroup.SpineshatterDive + 60), state.AnimationLock) && state.CanWeave(state.CD(CDGroup.SpineshatterDive) - 60, 0.8f, deadline))
-                    return ActionID.MakeSpell(AID.SpineshatterDive);
-                if (canJump && !state.Unlocked(TraitID.EnhancedSpineshatterDive) && state.Unlocked(AID.SpineshatterDive) && state.LanceChargeLeft > MathF.Max(state.CD(CDGroup.SpineshatterDive), state.AnimationLock) && state.CanWeave(CDGroup.SpineshatterDive, 0.8f, deadline))
-                    return ActionID.MakeSpell(AID.SpineshatterDive);
-                if (canJump && state.Unlocked(AID.Stardiver) && state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Stardiver, 1.5f, deadline))
-                    return ActionID.MakeSpell(AID.Stardiver);
+
+                if (state.CD(CDGroup.LanceCharge) > 5 && state.CD(CDGroup.DragonSight) > 5 && state.CD(CDGroup.BattleLitany) > 5)
+                {
+                    if (state.Unlocked(AID.Geirskogul) && state.CanWeave(CDGroup.Geirskogul, 0.6f, deadline))
+                        return ActionID.MakeSpell(AID.Geirskogul);
+                    if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
+                        return ActionID.MakeSpell(state.BestJump);
+                    if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
+                        return ActionID.MakeSpell(AID.DragonfireDive);
+                    if (wantSpineShatter && state.CanWeave(state.CD(CDGroup.SpineshatterDive), 0.8f, deadline))
+                        return ActionID.MakeSpell(AID.SpineshatterDive);
+                    if (canJump && state.Unlocked(AID.Stardiver) && state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Stardiver, 1.5f, deadline))
+                        return ActionID.MakeSpell(AID.Stardiver);
+                    if (state.FirstmindFocusCount >= 2 && state.CanWeave(CDGroup.WyrmwindThrust, 0.6f, deadline))
+                        return ActionID.MakeSpell(AID.WyrmwindThrust);
+                    if (wantSpineShatter && state.RangeToTarget > 3)
+                        return ActionID.MakeSpell(AID.SpineshatterDive);
+                    //if (wantSpineShatter && state.LifeOfTheDragonLeft < state.AnimationLock && state.CanWeave(state.CD(CDGroup.SpineshatterDive) - 60, 0.8f, deadline))
+                    //    return ActionID.MakeSpell(AID.SpineshatterDive);
+                    //if (wantSpineShatter && state.LifeOfTheDragonLeft > state.AnimationLock && state.CD(CDGroup.Stardiver) > 0 && state.CanWeave(state.CD(CDGroup.SpineshatterDive) - 60, 0.8f, deadline))
+                    //    return ActionID.MakeSpell(AID.SpineshatterDive);
+                    if (wantSpineShatter && state.CanWeave(state.CD(CDGroup.SpineshatterDive) - 60, 0.8f, deadline))
+                        return ActionID.MakeSpell(AID.SpineshatterDive);
+                    //if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && state.EyeCount != 2 && state.LifeOfTheDragonLeft > state.AnimationLock && state.CD(CDGroup.Stardiver) > 0)
+                    //    return ActionID.MakeSpell(AID.MirageDive);
+                    //if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && state.EyeCount != 2 && state.LifeOfTheDragonLeft < state.AnimationLock)
+                    //    return ActionID.MakeSpell(AID.MirageDive);
+                    if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && state.EyeCount != 2)
+                        return ActionID.MakeSpell(AID.MirageDive);
+                }
             }
 
 
