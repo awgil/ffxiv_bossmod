@@ -526,6 +526,8 @@ namespace BossMod.RPR
             var (positional, shouldUsePositional) = GetNextPositional(state, strategy);
             //if (strategy.ArcaneCircleStrategy == Strategy.ArcaneCircleUse.Delay)
             //    return ActionID.MakeSpell(AID.Enshroud);
+            if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
+                return CommonDefinitions.IDPotionStr;
             if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(CDGroup.TrueNorth - 45, 0.6f, deadline) && !aoe)
                 return ActionID.MakeSpell(AID.TrueNorth);
             if (ShouldUseEnshroud(state, strategy) && state.CanWeave(CDGroup.Enshroud, 0.6f, deadline))
@@ -543,8 +545,6 @@ namespace BossMod.RPR
             if (ShouldUseGrimSwathe(state, strategy, aoe) && state.CanWeave(CDGroup.BloodStalk, 0.6f, deadline) && !enshrouded && state.TargetDeathDesignLeft > state.GCD + 2.5)
                 return ActionID.MakeSpell(AID.GrimSwathe);
 
-            if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
-                return CommonDefinitions.IDPotionStr;
 
             return new();
         }
