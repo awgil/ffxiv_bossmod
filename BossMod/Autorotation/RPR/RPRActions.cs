@@ -27,6 +27,7 @@ namespace BossMod.RPR
             SupportedSpell(AID.Gallows).TransformAction = SupportedSpell(AID.CrossReaping).TransformAction = () => ActionID.MakeSpell(_state.BestGallow);
 
             SupportedSpell(AID.Harpe).Condition = _ => !_config.ForbidEarlyHarpe || _strategy.CombatTimer == float.MinValue || _strategy.CombatTimer >= -1.7f;
+            SupportedSpell(AID.LegSweep).Condition = target => target?.CastInfo?.Interruptible ?? false;
 
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
@@ -91,6 +92,11 @@ namespace BossMod.RPR
 
         protected override void QueueAIActions()
         {
+            if (_state.Unlocked(AID.LegSweep))
+            {
+                var interruptibleEnemy = Autorot.Hints.PotentialTargets.Find(e => e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false) && e.Actor.Position.InCircle(Player.Position, 25 + e.Actor.HitboxRadius + Player.HitboxRadius));
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.LegSweep), interruptibleEnemy?.Actor, interruptibleEnemy != null);
+            }
             if (_state.Unlocked(AID.SecondWind))
                 SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
             if (_state.Unlocked(AID.Bloodbath))

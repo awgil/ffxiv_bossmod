@@ -392,7 +392,7 @@ namespace BossMod.RPR
                     if (soulReaver)
                         return false;
 
-                    if (state.CD(CDGroup.ArcaneCircle) < state.GCD && enshrouded && state.TargetDeathDesignLeft > 30)
+                    if (state.CD(CDGroup.ArcaneCircle) < state.GCD && state.EnshroudedLeft < 25.5 && state.TargetDeathDesignLeft > 30)
                         return true;
                     if (state.CD(CDGroup.ArcaneCircle) < state.GCD && state.ShroudGauge < 50 && !enshrouded)
                         return true;
@@ -403,7 +403,7 @@ namespace BossMod.RPR
         public static bool ShouldUsePotion(State state, Strategy strategy) => strategy.PotionStrategy switch
         {
             Strategy.PotionUse.Manual => false,
-            Strategy.PotionUse.Immediate => (state.CD(CDGroup.ArcaneCircle) < state.GCD && state.EnshroudedLeft > state.AnimationLock && state.TargetDeathDesignLeft > 30) || (state.CD(CDGroup.ArcaneCircle) > state.GCD && state.CD(CDGroup.SoulSlice) > state.GCD && strategy.CombatTimer < 10),
+            Strategy.PotionUse.Immediate => (state.CD(CDGroup.ArcaneCircle) < state.GCD && state.EnshroudedLeft > 25 && state.TargetDeathDesignLeft > 28) || (state.CD(CDGroup.ArcaneCircle) > state.GCD && state.CD(CDGroup.SoulSlice) > state.GCD && strategy.CombatTimer < 10),
             Strategy.PotionUse.DelayUntilRaidBuffs => state.ArcaneCircleLeft > 0 && state.RaidBuffsLeft > 0,
             Strategy.PotionUse.Force => true,
             _ => false
