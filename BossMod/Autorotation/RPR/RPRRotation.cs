@@ -89,6 +89,14 @@ namespace BossMod.RPR
                 Delay = 1,
             }
 
+            public enum TrueNorthUse : uint
+            {
+                Automatic = 0,
+
+                [PropertyDisplay("Delay", 0x800000ff)]
+                Delay = 1,
+            }
+
             public enum EnshroudUse : uint
             {
                 Automatic = 0,
@@ -149,6 +157,7 @@ namespace BossMod.RPR
             public ArcaneCircleUse ArcaneCircleStrategy;
             public OffensiveAbilityUse CommunioUse;
             public SpecialAction SpecialActionUse;
+            public TrueNorthUse TrueNorthStrategy;
             public bool Aggressive;
 
             public void ApplyStrategyOverrides(uint[] overrides)
@@ -163,6 +172,7 @@ namespace BossMod.RPR
                     EnshroudStrategy = (EnshroudUse)overrides[6];
                     CommunioUse = (OffensiveAbilityUse)overrides[5];
                     SpecialActionUse = (SpecialAction)overrides[7];
+                    TrueNorthStrategy = (TrueNorthUse)overrides[8];
                 }
                 else
                 {
@@ -174,6 +184,7 @@ namespace BossMod.RPR
                     GluttonyStrategy = GluttonyUse.Automatic;
                     CommunioUse = OffensiveAbilityUse.Automatic;
                     SpecialActionUse = SpecialAction.None;
+                    TrueNorthStrategy = TrueNorthUse.Automatic;
                 }
             }
         }
@@ -391,6 +402,22 @@ namespace BossMod.RPR
             }
         }
 
+        public static bool ShouldUseTrueNorth(State state, Strategy strategy)
+        {
+            switch (strategy.TrueNorthStrategy)
+            {
+                case Strategy.TrueNorthUse.Delay:
+                    return false;
+
+                default:
+                    if (state.TrueNorthLeft > state.AnimationLock)
+                        return false;
+                    if (GetNextPositional(state, strategy).Item2)
+                        return true;
+                    return false;
+            }
+        }
+
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
             bool plentifulReady = state.Unlocked(AID.PlentifulHarvest) && state.ImmortalSacrificeLeft > state.AnimationLock;
@@ -457,8 +484,11 @@ namespace BossMod.RPR
         {
             bool soulReaver = state.Unlocked(AID.BloodStalk) && state.SoulReaverLeft > state.AnimationLock;
             bool enshrouded = state.Unlocked(AID.Enshroud) && state.EnshroudedLeft > state.AnimationLock;
+            var (positional, shouldUsePositional) = GetNextPositional(state, strategy);
             //if (strategy.ArcaneCircleStrategy == Strategy.ArcaneCircleUse.Delay)
             //    return ActionID.MakeSpell(AID.Enshroud);
+            if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(CDGroup.TrueNorth - 45, 0.6f, deadline))
+                return ActionID.MakeSpell(AID.TrueNorth);
             if (ShouldUseEnshroud(state, strategy) && state.CanWeave(CDGroup.Enshroud, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Enshroud);
             if (ShouldUseArcaneCircle(state, strategy) && state.CanWeave(CDGroup.ArcaneCircle, 0.6f, deadline))
@@ -468,7 +498,7 @@ namespace BossMod.RPR
             if (ShouldUseGluttony(state, strategy) && state.CanWeave(CDGroup.Gluttony, 0.6f, deadline) && !enshrouded && state.TargetDeathDesignLeft > state.GCD + 5)
                 return ActionID.MakeSpell(AID.Gluttony);
             if (ShouldUseBloodstalk(state, strategy) && state.CanWeave(CDGroup.BloodStalk, 0.6f, deadline) && !enshrouded && state.TargetDeathDesignLeft > state.GCD + 2.5)
-                return ActionID.MakeSpell(AID.BloodStalk);
+                return ActionID.MakeSpell(state.Beststalk);
 
             if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
                 return CommonDefinitions.IDPotionStr;
