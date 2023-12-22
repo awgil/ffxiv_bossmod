@@ -26,6 +26,8 @@ namespace BossMod.RPR
             SupportedSpell(AID.Gibbet).TransformAction = SupportedSpell(AID.VoidReaping).TransformAction = () => ActionID.MakeSpell(_state.BestGibbet);
             SupportedSpell(AID.Gallows).TransformAction = SupportedSpell(AID.CrossReaping).TransformAction = () => ActionID.MakeSpell(_state.BestGallow);
 
+            SupportedSpell(AID.Harpe).Condition = _ => !_config.ForbidEarlyHarpe || _strategy.CombatTimer == float.MinValue || _strategy.CombatTimer >= -1.7f;
+
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
         }

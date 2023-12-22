@@ -40,7 +40,7 @@ namespace BossMod.RPR
 
             public override string ToString()
             {
-                return $"shg={ShroudGauge}, sog={SoulGauge}, RB={RaidBuffsLeft:f1}, DD={TargetDeathDesignLeft:f1}, EGI={EnhancedGibbetLeft:f1}, EGA={EnhancedGallowsLeft:f1}, AC={ArcaneCircleLeft:f1}, ACCD={CD(CDGroup.ArcaneCircle):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"shg={ShroudGauge}, Bloodsown={BloodsownCircleLeft} sog={SoulGauge}, RB={RaidBuffsLeft:f1}, DD={TargetDeathDesignLeft:f1}, EGI={EnhancedGibbetLeft:f1}, EGA={EnhancedGallowsLeft:f1}, AC={ArcaneCircleLeft:f1}, ACCD={CD(CDGroup.ArcaneCircle):f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -261,7 +261,7 @@ namespace BossMod.RPR
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD;
 
 
-        public static bool ShouldUseBloodstalk(State state, Strategy strategy)
+        public static bool ShouldUseBloodstalk(State state, Strategy strategy, bool aoe)
         {
             bool soulReaver = state.Unlocked(AID.BloodStalk) && state.SoulReaverLeft > state.AnimationLock;
             bool enshrouded = state.Unlocked(AID.Enshroud) && state.EnshroudedLeft > state.AnimationLock;
@@ -279,11 +279,38 @@ namespace BossMod.RPR
                     if (enshrouded)
                         return false;
 
-                        if (state.SoulGauge >= 50 && state.CD(CDGroup.Gluttony) > 25)
+                        if (state.SoulGauge >= 50 && state.CD(CDGroup.Gluttony) > 25 && !aoe)
                             return true;
-                        if (state.SoulGauge == 100 && state.CD(CDGroup.Gluttony) > state.AnimationLock)
+                        if (state.SoulGauge == 100 && state.CD(CDGroup.Gluttony) > state.AnimationLock && !aoe)
                             return true;
                   
+                    return false;
+            }
+        }
+
+        public static bool ShouldUseGrimSwathe(State state, Strategy strategy, bool aoe)
+        {
+            bool soulReaver = state.Unlocked(AID.BloodStalk) && state.SoulReaverLeft > state.AnimationLock;
+            bool enshrouded = state.Unlocked(AID.Enshroud) && state.EnshroudedLeft > state.AnimationLock;
+            switch (strategy.BloodstalkStrategy)
+            {
+                case Strategy.BloodstalkUse.Delay:
+                    return false;
+
+                default:
+                    if (!state.TargetingEnemy)
+                        return false;
+                    if (soulReaver)
+                        return false;
+
+                    if (enshrouded)
+                        return false;
+
+                    if (state.SoulGauge >= 50 && state.CD(CDGroup.Gluttony) > 25 && aoe)
+                        return true;
+                    if (state.SoulGauge == 100 && state.CD(CDGroup.Gluttony) > state.AnimationLock && aoe)
+                        return true;
+
                     return false;
             }
         }
@@ -326,7 +353,7 @@ namespace BossMod.RPR
                     return false;
 
                 case Strategy.EnshroudUse.Force:
-                    if (state.ShroudGauge >= 50)
+                    if (state.ShroudGauge >= 50 && state.CD(CDGroup.Enshroud) < state.GCD)
                          return true;
                     return false;
 
@@ -338,9 +365,9 @@ namespace BossMod.RPR
 
                     if (enshrouded)
                         return false;
-                    if (state.ArcaneCircleLeft > state.AnimationLock && state.ShroudGauge >= 50)
+                    if (state.ArcaneCircleLeft > state.AnimationLock && state.ShroudGauge >= 50 && state.CD(CDGroup.Enshroud) < state.GCD)
                         return true;
-                    if ((state.CD(CDGroup.ArcaneCircle) < 6 || state.CD(CDGroup.ArcaneCircle) > 60) && state.ShroudGauge >= 50)
+                    if ((state.CD(CDGroup.ArcaneCircle) < 6 || state.CD(CDGroup.ArcaneCircle) > 60) && state.ShroudGauge >= 50 && state.CD(CDGroup.Enshroud) < state.GCD)
                         return true;
 
                     return false;
@@ -387,7 +414,7 @@ namespace BossMod.RPR
             if (strategy.UseAOERotation)
                 return default;
 
-            if (state.Unlocked(AID.Gibbet) && state.SoulReaverLeft > state.GCD)
+            if (state.Unlocked(AID.Gibbet) && state.SoulReaverLeft > state.GCD && !strategy.UseAOERotation)
             {
                 if (state.EnhancedGibbetLeft > state.GCD)
                     return (Positional.Flank, true);
@@ -449,10 +476,10 @@ namespace BossMod.RPR
                     return AID.WhorlofDeath;
             }
 
-            if ((ShouldUseGluttony(state, strategy) && !enshrouded && state.TargetDeathDesignLeft < state.GCD + 5) || (ShouldUseBloodstalk(state, strategy) && !enshrouded && state.TargetDeathDesignLeft < state.GCD + 2.5))
+            if ((ShouldUseGluttony(state, strategy) && !enshrouded && state.TargetDeathDesignLeft < state.GCD + 5) || (ShouldUseBloodstalk(state, strategy, aoe) && !enshrouded && state.TargetDeathDesignLeft < state.GCD + 2.5))
                 return AID.ShadowofDeath;
 
-            if (enshrouded)
+            if (enshrouded && !aoe)
             {
                 if (state.CD(CDGroup.ArcaneCircle) < state.GCD + 10)
                     return AID.ShadowofDeath;
@@ -467,13 +494,25 @@ namespace BossMod.RPR
 
                     return AID.CrossReaping;
             }
-            if (plentifulReady && state.BloodsownCircleLeft < 1 && !soulReaver && !enshrouded)
+            if (enshrouded && aoe)
+            {
+                if (state.CD(CDGroup.ArcaneCircle) < state.GCD + 10)
+                    return AID.WhorlofDeath;
+                if (state.Unlocked(AID.Communio) && state.LemureShroudCount is 1 && state.VoidShroudCount is 0)
+                    return AID.Communio;
+
+                return AID.CrossReaping;
+            }
+            if (plentifulReady && state.BloodsownCircleLeft < state.GCD && !soulReaver && !enshrouded)
                 return AID.PlentifulHarvest;
             
             if (state.SoulReaverLeft > state.GCD)
                 return GetNextBSAction(state, aoe);
 
-            if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && !enshrouded && !soulReaver)
+            if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && !enshrouded && !soulReaver && aoe)
+                return AID.SoulScythe;
+
+            if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && !enshrouded && !soulReaver && !aoe)
                 return AID.SoulSlice;
 
 
@@ -487,18 +526,22 @@ namespace BossMod.RPR
             var (positional, shouldUsePositional) = GetNextPositional(state, strategy);
             //if (strategy.ArcaneCircleStrategy == Strategy.ArcaneCircleUse.Delay)
             //    return ActionID.MakeSpell(AID.Enshroud);
-            if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(CDGroup.TrueNorth - 45, 0.6f, deadline))
+            if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(CDGroup.TrueNorth - 45, 0.6f, deadline) && !aoe)
                 return ActionID.MakeSpell(AID.TrueNorth);
             if (ShouldUseEnshroud(state, strategy) && state.CanWeave(CDGroup.Enshroud, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Enshroud);
             if (ShouldUseArcaneCircle(state, strategy) && state.CanWeave(CDGroup.ArcaneCircle, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.ArcaneCircle);
-            if (state.VoidShroudCount >= 2 && state.CanWeave(CDGroup.LemuresSlice, 0.6f, deadline))
+            if (state.VoidShroudCount >= 2 && state.CanWeave(CDGroup.LemuresSlice, 0.6f, deadline) && !aoe)
                 return ActionID.MakeSpell(AID.LemuresSlice);
+            if (state.VoidShroudCount >= 2 && state.CanWeave(CDGroup.LemuresSlice, 0.6f, deadline) && aoe)
+                return ActionID.MakeSpell(AID.LemuresScythe);
             if (ShouldUseGluttony(state, strategy) && state.CanWeave(CDGroup.Gluttony, 0.6f, deadline) && !enshrouded && state.TargetDeathDesignLeft > state.GCD + 5)
                 return ActionID.MakeSpell(AID.Gluttony);
-            if (ShouldUseBloodstalk(state, strategy) && state.CanWeave(CDGroup.BloodStalk, 0.6f, deadline) && !enshrouded && state.TargetDeathDesignLeft > state.GCD + 2.5)
+            if (ShouldUseBloodstalk(state, strategy, aoe) && state.CanWeave(CDGroup.BloodStalk, 0.6f, deadline) && !enshrouded && state.TargetDeathDesignLeft > state.GCD + 2.5)
                 return ActionID.MakeSpell(state.Beststalk);
+            if (ShouldUseGrimSwathe(state, strategy, aoe) && state.CanWeave(CDGroup.BloodStalk, 0.6f, deadline) && !enshrouded && state.TargetDeathDesignLeft > state.GCD + 2.5)
+                return ActionID.MakeSpell(AID.GrimSwathe);
 
             if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
                 return CommonDefinitions.IDPotionStr;
