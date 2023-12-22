@@ -161,8 +161,8 @@ namespace BossMod
         {
             var c = new ClassData(typeof(RPR.AID), RPR.Definitions.SupportedActions);
             c.CooldownTracks.Add(new("ACrest", ActionID.MakeSpell(RPR.AID.ArcaneCrest), 40));
+            c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(RPR.AID.Feint), 22));
             c.StrategyTracks.Add(new("Glut", typeof(RPR.Rotation.Strategy.GluttonyUse), 60));
-            c.StrategyTracks.Add(new("AC", typeof(RPR.Rotation.Strategy.ArcaneCircleUse), 120));
             c.StrategyTracks.Add(new("ENSH", typeof(RPR.Rotation.Strategy.EnshroudUse)));
             c.StrategyTracks.Add(new("SOUL", typeof(RPR.Rotation.Strategy.BloodstalkUse)));
             c.StrategyTracks.Add(new("Potion", typeof(RPR.Rotation.Strategy.PotionUse), 270));
