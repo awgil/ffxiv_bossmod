@@ -403,7 +403,7 @@ namespace BossMod.RPR
         public static bool ShouldUsePotion(State state, Strategy strategy) => strategy.PotionStrategy switch
         {
             Strategy.PotionUse.Manual => false,
-            Strategy.PotionUse.Immediate => (state.ComboLastMove == AID.ShadowofDeath && state.EnshroudedLeft >25 && state.CD(CDGroup.ArcaneCircle) < 6.5)|| (state.ComboLastMove == AID.SoulSlice && state.CD(CDGroup.ArcaneCircle) < 6),
+            Strategy.PotionUse.Immediate => (state.CD(CDGroup.ArcaneCircle) < state.GCD && state.EnshroudedLeft > state.AnimationLock && state.TargetDeathDesignLeft > 30) || (state.CD(CDGroup.ArcaneCircle) > state.GCD && state.CD(CDGroup.SoulSlice) > state.GCD && strategy.CombatTimer < 10),
             Strategy.PotionUse.DelayUntilRaidBuffs => state.ArcaneCircleLeft > 0 && state.RaidBuffsLeft > 0,
             Strategy.PotionUse.Force => true,
             _ => false
@@ -481,7 +481,7 @@ namespace BossMod.RPR
 
             if (enshrouded && !aoe)
             {
-                if (state.CD(CDGroup.ArcaneCircle) < state.GCD + 10)
+                if (state.CD(CDGroup.ArcaneCircle) < 6.5 && state.EnshroudedLeft > 25)
                     return AID.ShadowofDeath;
                 if (state.Unlocked(AID.Communio) && state.LemureShroudCount is 1 && state.VoidShroudCount is 0)
                     return AID.Communio;
