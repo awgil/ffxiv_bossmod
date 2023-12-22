@@ -63,6 +63,7 @@ namespace BossMod
             Classes[Class.MNK] = DefineMNK();
             Classes[Class.BRD] = DefineBRD();
             Classes[Class.BLM] = DefineBLM();
+            Classes[Class.RPR] = DefineRPR();
         }
 
         private static ClassData DefineWAR()
@@ -118,6 +119,7 @@ namespace BossMod
         private static ClassData DefineDRG()
         {
             var c = new ClassData(typeof(DRG.AID), DRG.Definitions.SupportedActions);
+            c.StrategyTracks.Add(new("SpineShatter", typeof(DRG.Rotation.Strategy.SpineShatteruse)));
             c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(DRG.AID.Feint), 22));
             c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(DRG.AID.ArmsLength), 32));
             return c;
@@ -152,6 +154,18 @@ namespace BossMod
         private static ClassData DefineBLM()
         {
             var c = new ClassData(typeof(BLM.AID), BLM.Definitions.SupportedActions);
+            return c;
+        }
+
+        private static ClassData DefineRPR()
+        {
+            var c = new ClassData(typeof(RPR.AID), RPR.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("ACrest", ActionID.MakeSpell(RPR.AID.ArcaneCrest), 40));
+            c.StrategyTracks.Add(new("Glut", typeof(RPR.Rotation.Strategy.GluttonyUse), 60));
+            c.StrategyTracks.Add(new("AC", typeof(RPR.Rotation.Strategy.ArcaneCircleUse), 120));
+            c.StrategyTracks.Add(new("ENSH", typeof(RPR.Rotation.Strategy.EnshroudUse)));
+            c.StrategyTracks.Add(new("SOUL", typeof(RPR.Rotation.Strategy.BloodstalkUse)));
+            c.StrategyTracks.Add(new("Potion", typeof(RPR.Rotation.Strategy.PotionUse), 270));
             return c;
         }
     }

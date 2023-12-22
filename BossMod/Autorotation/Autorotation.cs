@@ -123,6 +123,7 @@ namespace BossMod
                     Class.SMN => Service.ClientState.LocalPlayer?.Level <= 30 ? typeof(SMN.Actions) : null,
                     Class.WHM => typeof(WHM.Actions),
                     Class.SCH => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(SCH.Actions) : null,
+                    Class.RPR => typeof(RPR.Actions),
                     _ => null
                 };
             }

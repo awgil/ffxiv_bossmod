@@ -111,17 +111,11 @@ namespace BossMod.DRG
             if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
                 return new();
 
-            var res = Rotation.GetNextBestOGCD(_state, _strategy, deadline);
-            if (res && SupportedActions.TryGetValue(res, out var def))
-            {
-                var resCD = _state.Cooldowns[def.Definition.CooldownGroup];
-                if (resCD > _state.AnimationLock)
-                {
-                    var nextBest = Rotation.GetNextBestOGCD(_state, _strategy, resCD);
-                    if (nextBest != default)
-                        res = nextBest;
-                }
-            }
+            ActionID res = new();
+            //if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
+            //res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength);
+            if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline);
 
             var target = res == ActionID.MakeSpell(AID.DragonSight) ? FindBestDragonSightTarget() : Autorot.PrimaryTarget;
             return MakeResult(res, target);
