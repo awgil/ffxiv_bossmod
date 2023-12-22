@@ -203,21 +203,21 @@ namespace BossMod.RPR
             SupportedActions.GCD(AID.PlentifulHarvest, 15);
             SupportedActions.GCD(AID.HarvestMoon, 25);
             SupportedActions.GCDCast(AID.Communio, 25, 1.3f);
-            SupportedActions.OGCD(AID.ArcaneCrest, 0, CDGroup.ArcaneCrest, 30.0f);
+            SupportedActions.OGCD(AID.ArcaneCrest, 0, CDGroup.ArcaneCrest, 30.0f).EffectDuration = 5;
             SupportedActions.OGCD(AID.BloodStalk, 3, CDGroup.BloodStalk, 1.0f);
             SupportedActions.OGCD(AID.UnveiledGallows, 3, CDGroup.UnveiledGallows, 1.0f);
             SupportedActions.OGCD(AID.UnveiledGibbet, 3, CDGroup.UnveiledGibbet, 1.0f);
             SupportedActions.OGCD(AID.GrimSwathe, 8, CDGroup.GrimSwathe, 1.0f);
-            SupportedActions.OGCD(AID.ArcaneCircle, 0, CDGroup.ArcaneCircle, 120.0f);
+            SupportedActions.OGCD(AID.ArcaneCircle, 0, CDGroup.ArcaneCircle, 120.0f).EffectDuration = 20;
             SupportedActions.OGCD(AID.Gluttony, 25, CDGroup.Gluttony, 60.0f);
             SupportedActions.OGCD(AID.Enshroud, 0, CDGroup.Enshroud, 15.0f);
             SupportedActions.OGCD(AID.LemuresSlice, 3, CDGroup.LemuresSlice, 1.0f);
             SupportedActions.OGCD(AID.LemuresScythe, 5, CDGroup.LemuresScythe, 1.0f);
             SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
-            SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
+            SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f).EffectDuration = 20;
             SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
             SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-            SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
+            SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2).EffectDuration = 10;
             SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
         }
     }

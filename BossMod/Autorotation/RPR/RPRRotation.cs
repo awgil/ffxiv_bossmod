@@ -315,7 +315,9 @@ namespace BossMod.RPR
                     return false;
 
                 case Strategy.EnshroudUse.Force:
-                    return true;
+                    if (state.ShroudGauge >= 50)
+                         return true;
+                    return false;
 
                 default:
                     if (!state.TargetingEnemy)
@@ -352,7 +354,9 @@ namespace BossMod.RPR
                     if (soulReaver)
                         return false;
 
-                    if (state.CD(CDGroup.ArcaneCircle) < state.GCD)
+                    if (state.CD(CDGroup.ArcaneCircle) < state.GCD && enshrouded && state.TargetDeathDesignLeft > 30)
+                        return true;
+                    if (state.CD(CDGroup.ArcaneCircle) < state.GCD && state.ShroudGauge < 50 && !enshrouded)
                         return true;
                     return false;
             }
@@ -418,9 +422,12 @@ namespace BossMod.RPR
                     return AID.WhorlofDeath;
             }
 
+            if ((ShouldUseGluttony(state, strategy) && !enshrouded && state.TargetDeathDesignLeft < state.GCD + 5) || (ShouldUseBloodstalk(state, strategy) && !enshrouded && state.TargetDeathDesignLeft < state.GCD + 2.5))
+                return AID.ShadowofDeath;
+
             if (enshrouded)
             {
-                if (state.CD(CDGroup.ArcaneCircle) < 6 && state.EnshroudedLeft > 25)
+                if (state.CD(CDGroup.ArcaneCircle) < state.GCD + 10)
                     return AID.ShadowofDeath;
                 if (state.Unlocked(AID.Communio) && state.LemureShroudCount is 1 && state.VoidShroudCount is 0)
                     return AID.Communio;
@@ -435,7 +442,7 @@ namespace BossMod.RPR
             }
             if (plentifulReady && state.BloodsownCircleLeft < 1 && !soulReaver && !enshrouded)
                 return AID.PlentifulHarvest;
-
+            
             if (state.SoulReaverLeft > state.GCD)
                 return GetNextBSAction(state, aoe);
 
