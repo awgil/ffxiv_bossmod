@@ -108,6 +108,7 @@ namespace BossMod.RPR
         Enshrouded = 2593,
         Soulsow = 2594,
         Threshold = 2595,
+        CircleofSacrifice = 2600,
         BloodsownCircle = 2972,
         TrueNorth = 1250,
         Bloodbath = 84, 

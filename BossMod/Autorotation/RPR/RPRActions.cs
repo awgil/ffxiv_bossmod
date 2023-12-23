@@ -147,6 +147,7 @@ namespace BossMod.RPR
             _state.HasSoulsow = StatusDetails(Player, SID.Soulsow, Player.InstanceID).Left;
             _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
             _state.BloodsownCircleLeft = StatusDetails(Player, SID.BloodsownCircle, Player.InstanceID).Left;
+            _state.CircleofSacrificeLeft = StatusDetails(Player, SID.CircleofSacrifice, Player.InstanceID).Left;
 
             _state.TargetDeathDesignLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedShadowofDeath, Player.InstanceID).Left;
         }
