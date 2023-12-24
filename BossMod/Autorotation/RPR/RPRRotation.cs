@@ -273,7 +273,7 @@ namespace BossMod.RPR
                     if (ShouldUseEnshroud(state, strategy))
                         return false;
 
-                    if (state.SoulGauge >= 50 && state.CD(CDGroup.Gluttony) > 25 && !aoe && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0))
+                    if (state.SoulGauge >= 50 && state.CD(CDGroup.Gluttony) > 28 && !aoe && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0))
                         return true;
 
                     if (state.SoulGauge == 100 && state.CD(CDGroup.Gluttony) > state.AnimationLock && !aoe && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0))
@@ -301,7 +301,7 @@ namespace BossMod.RPR
                     if (enshrouded)
                         return false;
 
-                    if (state.SoulGauge >= 50 && state.CD(CDGroup.Gluttony) > 25 && aoe)
+                    if (state.SoulGauge >= 50 && state.CD(CDGroup.Gluttony) > 28 && aoe)
                         return true;
 
                     if (state.SoulGauge == 100 && state.CD(CDGroup.Gluttony) > state.AnimationLock && aoe)
@@ -364,7 +364,7 @@ namespace BossMod.RPR
                         return false;
                     if (state.ArcaneCircleLeft > state.AnimationLock && state.ShroudGauge >= 50 && (state.ComboTimeLeft > 11 || state.ComboTimeLeft == 0))
                         return true;
-                    if ((state.CD(CDGroup.ArcaneCircle) < 6 || state.CD(CDGroup.ArcaneCircle) > 60) && state.ShroudGauge >= 50 && (state.ComboTimeLeft > 11 || state.ComboTimeLeft == 0))
+                    if ((state.CD(CDGroup.ArcaneCircle) < 6.5 || state.CD(CDGroup.ArcaneCircle) > 60) && state.ShroudGauge >= 50 && (state.ComboTimeLeft > 11 || state.ComboTimeLeft == 0))
                         return true;
 
                     return false;
@@ -383,13 +383,14 @@ namespace BossMod.RPR
                 case Strategy.ArcaneCircleUse.Force:
                     return true;
 
+
                 default:
                     if (!state.TargetingEnemy)
                         return false;
                     if (soulReaver)
                         return false;
 
-                    if (state.EnshroudedLeft < 25.5 && state.TargetDeathDesignLeft > 30)
+                    if (state.EnshroudedLeft < 25 && state.TargetDeathDesignLeft > 30 && state.GCD < 0.8)
                         return true;
                     if (state.ShroudGauge < 50 && !enshrouded)
                         return true;
@@ -401,7 +402,7 @@ namespace BossMod.RPR
         {
             Strategy.PotionUse.Manual => false,
             Strategy.PotionUse.Opener => state.CD(CDGroup.ArcaneCircle) > state.GCD && state.CD(CDGroup.SoulSlice) > 0,
-            Strategy.PotionUse.Burst => state.CD(CDGroup.ArcaneCircle) < 5 && state.EnshroudedLeft > 25 && state.TargetDeathDesignLeft > 28,
+            Strategy.PotionUse.Burst => state.CD(CDGroup.ArcaneCircle) < 6 && state.EnshroudedLeft > 25 && state.EnshroudedLeft < 29 && state.TargetDeathDesignLeft > 28,
             Strategy.PotionUse.Force => true,
             _ => false
         };
@@ -411,7 +412,7 @@ namespace BossMod.RPR
             if (strategy.UseAOERotation)
                 return default;
 
-            if (state.Unlocked(AID.Gibbet) && state.SoulReaverLeft > state.GCD && !strategy.UseAOERotation)
+            if (state.Unlocked(AID.Gibbet) && !strategy.UseAOERotation)
             {
                 if (state.EnhancedGibbetLeft > state.GCD)
                     return (Positional.Flank, true);
@@ -434,13 +435,15 @@ namespace BossMod.RPR
                     return false;
 
                 default:
+                    if (!state.TargetingEnemy)
+                        return false; 
                     if (state.TrueNorthLeft > state.AnimationLock)
                         return false;
-                    if (GetNextPositional(state, strategy).Item2 && strategy.NextPositionalCorrect)
+                    if (GetNextPositional(state, strategy).Item2 && strategy.NextPositionalCorrect && state.SoulReaverLeft > state.AnimationLock)
                         return false;
-                    if (GetNextPositional(state, strategy).Item2 && !strategy.NextPositionalCorrect)
+                    if (GetNextPositional(state, strategy).Item2 && !strategy.NextPositionalCorrect && state.SoulReaverLeft > state.AnimationLock)
                         return true;
-                    if (GetNextPositional(state, strategy).Item2 && !strategy.NextPositionalCorrect && ShouldUseGluttony(state, strategy))
+                    if (GetNextPositional(state, strategy).Item2 && !strategy.NextPositionalCorrect && ShouldUseGluttony(state, strategy) && state.CD(CDGroup.Gluttony) < 2.5)
                         return true;
                     return false;
             }
