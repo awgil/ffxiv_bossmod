@@ -128,12 +128,14 @@ namespace BossMod.RPR
         private void UpdatePlayerState()
         {
             FillCommonPlayerState(_state);
+            _state.HasSoulsow = Player.FindStatus(SID.Soulsow) != null;
 
             var gauge = Service.JobGauges.Get<RPRGauge>();
             _state.LemureShroudCount = gauge.LemureShroud;
             _state.VoidShroudCount = gauge.VoidShroud;
             _state.ShroudGauge = gauge.Shroud;
             _state.SoulGauge = gauge.Soul;
+
 
             _state.SoulReaverLeft = StatusDetails(Player, SID.SoulReaver, Player.InstanceID).Left;
             _state.ImmortalSacrificeLeft = StatusDetails(Player, SID.ImmortalSacrifice, Player.InstanceID).Left;
@@ -144,7 +146,6 @@ namespace BossMod.RPR
             _state.EnhancedCrossReapingLeft = StatusDetails(Player, SID.EnhancedCrossReaping, Player.InstanceID).Left;
             _state.EnhancedHarpeLeft = StatusDetails(Player, SID.EnhancedHarpe, Player.InstanceID).Left;
             _state.EnshroudedLeft = StatusDetails(Player, SID.Enshrouded, Player.InstanceID).Left;
-            _state.HasSoulsow = StatusDetails(Player, SID.Soulsow, Player.InstanceID).Left;
             _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
             _state.BloodsownCircleLeft = StatusDetails(Player, SID.BloodsownCircle, Player.InstanceID).Left;
             _state.CircleofSacrificeLeft = StatusDetails(Player, SID.CircleofSacrifice, Player.InstanceID).Left;
