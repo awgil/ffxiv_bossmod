@@ -124,6 +124,7 @@ namespace BossMod
                     Class.WHM => typeof(WHM.Actions),
                     Class.SCH => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(SCH.Actions) : null,
                     Class.RPR => typeof(RPR.Actions),
+                    Class.GNB => typeof(GNB.Actions),
                     _ => null
                 };
             }

@@ -54,6 +54,9 @@ namespace BossMod.RPR
         Communio = 24398,
         TrueNorth = 7546,
         LegSweep = 7863, 
+
+        //LB3
+        TheEnd = 24858,
     }
 
     public enum TraitID : uint
@@ -91,6 +94,7 @@ namespace BossMod.RPR
         Feint = 47, 
         ArmsLength = 48,
         SecondWind = 49,
+        LimitBreak = 71,
     }
 
     public enum SID : uint
@@ -220,6 +224,7 @@ namespace BossMod.RPR
             SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
             SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2).EffectDuration = 10;
             SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
+            SupportedActions.OGCD(AID.TheEnd, 0, CDGroup.LimitBreak, 0, 3.86f);
         }
     }
 }
