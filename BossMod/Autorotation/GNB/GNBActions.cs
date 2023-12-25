@@ -110,11 +110,11 @@ namespace BossMod.GNB
             _state.GunComboStep = Service.JobGauges.Get<GNBGauge>().AmmoComboStep;
             _state.MaxCartridges = _state.Level >= 88 ? 3 : 2;
 
-        _state.NoMercyLeft = StatusDetails(Player, SID.NoMercy, Player.InstanceID).Left;
-            _state.ReadyToRipLeft = StatusDetails(Player, SID.ReadyToRip, Player.InstanceID).Left;
-            _state.ReadyToTearLeft = StatusDetails(Player, SID.ReadyToTear, Player.InstanceID).Left;
-            _state.ReadyToGougeLeft = StatusDetails(Player, SID.ReadyToGouge, Player.InstanceID).Left;
-            _state.ReadyToBlastLeft = StatusDetails(Player, SID.ReadyToBlast, Player.InstanceID).Left;
+            _state.NoMercyLeft = StatusDetails(Player, SID.NoMercy, Player.InstanceID).Left;
+            _state.ReadyToRip = Player.FindStatus(SID.ReadyToRip) != null;
+            _state.ReadyToTear = Player.FindStatus(SID.ReadyToTear) != null;
+            _state.ReadyToGouge = Player.FindStatus(SID.ReadyToGouge) != null;
+            _state.ReadyToBlast = Player.FindStatus(SID.ReadyToBlast) != null;
         }
 
         private void OnConfigModified(object? sender, EventArgs args)

@@ -9,16 +9,16 @@ namespace BossMod.GNB
             public int Ammo; // 0 to 100
             public int GunComboStep; // 0 to 2
             public float NoMercyLeft; // 0 if buff not up, max 20
-            public float ReadyToRipLeft; // 0 if buff not up, max 10
-            public float ReadyToTearLeft; // 0 if buff not up, max 10
-            public float ReadyToGougeLeft; // 0 if buff not up, max 10
-            public float ReadyToBlastLeft; // 0 if buff not up, max 10
+            public bool ReadyToRip; // 0 if buff not up, max 10
+            public bool ReadyToTear; // 0 if buff not up, max 10
+            public bool ReadyToGouge; // 0 if buff not up, max 10
+            public bool ReadyToBlast; // 0 if buff not up, max 10
 
             public int MaxCartridges;
             // upgrade paths
             public AID BestZone => Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
             public AID BestHeart => Unlocked(AID.HeartOfCorundum) ? AID.HeartOfCorundum : AID.HeartOfStone;
-            public AID BestContinuation => ReadyToRipLeft > GCD ? AID.JugularRip : ReadyToTearLeft > GCD ? AID.AbdomenTear : ReadyToGougeLeft > GCD ? AID.EyeGouge : ReadyToBlastLeft > GCD ? AID.Hypervelocity : AID.Continuation;
+            public AID BestContinuation => ReadyToRip ? AID.JugularRip : ReadyToTear? AID.AbdomenTear : ReadyToGouge ? AID.EyeGouge : ReadyToBlast ? AID.Hypervelocity : AID.Continuation;
             public AID ComboLastMove => (AID)ComboLastAction;
 
             public State(float[] cooldowns) : base(cooldowns) { }
@@ -28,7 +28,7 @@ namespace BossMod.GNB
 
             public override string ToString()
             {
-                return $"ammo={Ammo}, roughdivide={CD(CDGroup.RoughDivide):f1}, RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"ammo={Ammo}, ReadytoBlast={ReadyToBlast}, ReadytoGouge={ReadyToGouge}, ReadytoRip={ReadyToRip}, ReadytoTear={ReadyToTear}, roughdivide={CD(CDGroup.RoughDivide):f1}, RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -183,8 +183,6 @@ namespace BossMod.GNB
 
             if (state.NoMercyLeft > state.AnimationLock)
             {
-                if (state.ComboLastMove == AID.BrutalShell && state.Ammo == 2 && state.CD(CDGroup.Bloodfest) > 15 && state.GunComboStep == 0)
-                    return AID.SolidBarrel;
                 if (state.CD(CDGroup.SonicBreak) < state.GCD && state.CD(CDGroup.GnashingFang) > state.GCD && state.Unlocked(AID.SonicBreak))
                     return AID.SonicBreak;
                 if (state.CD(CDGroup.DoubleDown) < state.GCD && state.CD(CDGroup.GnashingFang) > state.GCD && state.Unlocked(AID.DoubleDown) && state.Ammo >= 2)
@@ -252,7 +250,7 @@ namespace BossMod.GNB
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => strategy.CombatTimer >= 0 && ((state.TargetingEnemy && state.ComboLastMove == AID.BrutalShell) || state.Ammo == 3 || state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 3 || state.CD(CDGroup.Bloodfest) > 15 && state.Ammo >= 2 || state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1)
+            _ => strategy.CombatTimer >= 0 && ((state.TargetingEnemy && state.ComboLastMove == AID.BrutalShell && state.Ammo == 0) || state.Ammo == 3 || state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1)
         };
 
         public static bool ShouldUseZone(State state, Strategy strategy) => strategy.ZoneUse switch
@@ -366,13 +364,13 @@ namespace BossMod.GNB
             if (state.Unlocked(AID.BowShock) && ShouldUseBow(state, strategy) && state.CanWeave(state.CD(CDGroup.BowShock), 0.6f, deadline))
                 return ActionID.MakeSpell(AID.BowShock);
 
-            if ((state.ReadyToBlastLeft > state.AnimationLock) && state.CanWeave(CDGroup.Hypervelocity, 0.6f, deadline))
+            if ((state.ReadyToBlast) && state.CanWeave(CDGroup.Hypervelocity, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Hypervelocity);
-            if (state.ReadyToGougeLeft > state.AnimationLock && state.CanWeave(CDGroup.EyeGouge, 0.6f, deadline))
+            if (state.ReadyToGouge && state.CanWeave(CDGroup.EyeGouge, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.EyeGouge);
-            if (state.ReadyToTearLeft > state.AnimationLock && state.CanWeave(CDGroup.AbdomenTear, 0.6f, deadline))
+            if (state.ReadyToTear && state.CanWeave(CDGroup.AbdomenTear, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.AbdomenTear);
-            if (state.ReadyToRipLeft > state.AnimationLock && state.CanWeave(CDGroup.JugularRip, 0.6f, deadline))
+            if (state.ReadyToRip && state.CanWeave(CDGroup.JugularRip, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.JugularRip);
 
             if (wantOnslaught && state.CanWeave(state.CD(CDGroup.RoughDivide) - 30, 0.8f, deadline) && state.NoMercyLeft > state.AnimationLock && state.CD(CDGroup.GnashingFang) > 10 && state.CD(CDGroup.SonicBreak) > 10 && state.CD(CDGroup.DoubleDown) > 10)
