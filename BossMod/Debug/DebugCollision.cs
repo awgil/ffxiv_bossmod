@@ -376,7 +376,9 @@ namespace BossMod
                     case CollisionObjectType.Multi:
                         {
                             var castObj = (CollisionObjectMulti*)obj;
-                            _tree.LeafNode($"Path: {MemoryHelper.ReadStringNullTerminated((nint)castObj->PathBase)}");
+                            var path = MemoryHelper.ReadStringNullTerminated((nint)castObj->PathBase);
+                            _tree.LeafNode($"Path: {path}");
+                            _tree.LeafNode($"Filename: {MemoryHelper.ReadStringNullTerminated((nint)castObj->PathBase + path.Length + 1)}");
                             _tree.LeafNode($"Streamed: [{castObj->StreamedMinX:f3}x{castObj->StreamedMinZ:f3}] - [{castObj->StreamedMaxX:f3}x{castObj->StreamedMaxZ:f3}]");
                             if (castObj->Elements != null)
                             {

@@ -24,6 +24,9 @@
         FinalHelper = 0x394D, // R12.502, spawn during fight (never targetable)
         RocketPunch1 = 0x3D5D, // R1.500, spawn during fight (not sure which one is blue or yellow)
         RocketPunch2 = 0x3D5E, // R1.500, spawn during fight
+        IntermissionAlpha = 0x3E75, // R0.900, spawn during fight (purely visual during pre-p6 intermission)
+        IntermissionOmegaF = 0x3E76, // R0.500, spawn during fight (purely visual during pre-p6 intermission)
+        BossP6 = 0x3D6D, // R13.000, spawn during fight
 
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
@@ -201,6 +204,31 @@
         OmegaBlaster = 32374, // BeetleHelper->self, 11.9s cast, single-target, visual (tethers)
         OmegaBlasterVisual = 31641, // BeetleHelper->self, no cast, single-target, ???
         OmegaBlasterAOE = 32373, // Helper->player, no cast, range 15 circle aoe
+
+        BlindFaith = 31623, // BossP5->self, 10.0s cast, single-target, visual (enrage)
+        BlindFaithSuccess = 32626, // Helper->self, 1.2s cast, range 100 circle, raidwide with knockback
+        BlindFaithFail = 32627, // Helper->self, 1.2s cast, range 100 circle, enrage
+
+        // p6
+        P6CosmoMemory = 31649, // BossP6->self, 6.0s cast, range 100 circle, raidwide requiring lb3
+        AutoAttackP6 = 31747, // BossP6->self, no cast, single-target, visual (auto attacks at main target and farthest target)
+        FlashGale = 32223, // Helper->players, no cast, range 5 circle
+        CosmoArrow = 31650, // BossP6->self, 6.0s cast, single-target, visual (exasquares)
+        CosmoArrowFirst = 31651, // Helper->self, 8.0s cast, range 40 width 10 rect
+        CosmoArrowRest = 31652, // Helper->self, no cast, range 100 width 5 rect
+        CosmoArrowInhale = 32337, // Helper->self, 5.5s cast, single-target, visual (exasquare advance?)
+        CosmoDive = 31654, // BossP6->self, 5.6s cast, single-target, visual (2 tankbusters on closest + stack on furthest)
+        CosmoDiveTankbuster = 31655, // Helper->players, no cast, range 8 circle (tankbuster)
+        CosmoDiveStack = 31656, // Helper->players, no cast, range 6 circle 6-man stack
+        UnlimitedWaveCannon = 31660, // BossP6->self, 5.0s cast, single-target, visual (exaflares + puddles)
+        P6WaveCannonExaflareFirst = 31661, // Helper->self, 12.0s cast, range 8 circle
+        P6WaveCannonExaflareRest = 31662, // Helper->self, no cast, range 8 circle
+        P6WaveCannonPuddle = 31663, // Helper->self, 3.0s cast, range 6 circle baited puddle
+        P6WaveCannonProtean = 31657, // BossP6->self, 10.9s cast, single-target, visual (proteans + wild charge)
+        P6WaveCannonWildCharge = 31658, // BossP6->self, no cast, range 100 width 8 rect wild charge
+        P6WaveCannonProteanAOE = 31659, // Helper->self, no cast, range 100 width 8 rect
+
+        //_Ability_LatentSynchronizationDefect = 31576, // Helper->player, no cast, single-target
     };
 
     public enum SID : uint

@@ -41,8 +41,8 @@ namespace BossMod.WAR
             {
                 Automatic = 0, // spend gauge either under raid buffs or if next downtime is soon (so that next raid buff window won't cover at least 4 GCDs)
 
-                [PropertyDisplay("Spend all gauge ASAP", 0x8000ff00)]
-                Spend = 1, // spend all gauge asap, don't bother conserving
+                [PropertyDisplay("Spend gauge freely", 0x8000ff00)]
+                Spend = 1, // spend all gauge, don't bother conserving - but still ensure that ST is properly maintained
 
                 [PropertyDisplay("Conserve unless under raid buffs", 0x8000ffff)]
                 ConserveIfNoBuffs = 2, // spend under raid buffs, conserve otherwise (even if downtime is imminent)
@@ -64,6 +64,9 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Use combo until second-last step, then spend gauge", 0x80400080)]
                 PenultimateComboThenSpend = 8, // useful for ensuring ST extension is used right before long downtime
+
+                [PropertyDisplay("Force gauge spender if possible, even if ST is not up/running out soon", 0x8000ffc0)]
+                ForceSpend = 9, // useful right after downtime
             }
 
             public enum InfuriateUse : uint
@@ -78,6 +81,9 @@ namespace BossMod.WAR
 
                 [PropertyDisplay("Use normally, but not during IR", 0x8000ffff)]
                 AutoUnlessIR = 3, // avoid overcap etc, but do not use if IR is active - useful before downtimes
+
+                [PropertyDisplay("Force use if charges are about to overcap (unless NC is already active), even if it would overcap gauge", 0x8000ff80)]
+                ForceIfChargesCapping = 4, // force use if at full charges
             }
 
             public enum PotionUse : uint
@@ -234,7 +240,7 @@ namespace BossMod.WAR
         public static bool ShouldSpendGauge(State state, Strategy strategy, bool aoe) => strategy.GaugeStrategy switch
         {
             Strategy.GaugeUse.Automatic or Strategy.GaugeUse.TomahawkIfNotInMelee => (state.RaidBuffsLeft > state.GCD || strategy.FightEndIn <= strategy.RaidBuffsIn + 10) && state.SurgingTempestLeft > state.GCD,
-            Strategy.GaugeUse.Spend => true,
+            Strategy.GaugeUse.Spend or Strategy.GaugeUse.ForceSpend => true,
             Strategy.GaugeUse.ConserveIfNoBuffs => state.RaidBuffsLeft > state.GCD,
             Strategy.GaugeUse.Conserve => false,
             Strategy.GaugeUse.ForceExtendST => false,
@@ -253,6 +259,9 @@ namespace BossMod.WAR
 
                 case Strategy.InfuriateUse.ForceIfNoNC:
                     return state.NascentChaosLeft <= state.GCD;
+
+                case Strategy.InfuriateUse.ForceIfChargesCapping:
+                    return state.NascentChaosLeft <= state.GCD && state.CD(CDGroup.Infuriate) <= state.AnimationLock;
 
                 default:
                     if (!state.TargetingEnemy)
@@ -440,6 +449,10 @@ namespace BossMod.WAR
             // forced combo until penultimate step
             if (strategy.GaugeStrategy == Strategy.GaugeUse.PenultimateComboThenSpend && state.ComboLastMove != AID.Maim && state.ComboLastMove != AID.Overpower && (state.ComboLastMove != AID.HeavySwing || state.Gauge <= 90))
                 return aoe ? AID.Overpower : state.ComboLastMove == AID.HeavySwing ? AID.Maim : AID.HeavySwing;
+            // forced gauge spender
+            bool canUseFC = state.Gauge >= 50 || state.InnerReleaseStacks > 0 && state.Unlocked(AID.InnerRelease);
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceSpend && canUseFC)
+                return GetNextFCAction(state, aoe);
 
             // forbid automatic PR when out of melee range, to avoid fucking up player positioning when avoiding mechanics
             float primalRendWindow = (strategy.PrimalRendUse == Strategy.OffensiveAbilityUse.Delay || state.RangeToTarget > 3) ? 0 : MathF.Min(state.PrimalRendLeft, strategy.PositionLockIn);
@@ -528,7 +541,7 @@ namespace BossMod.WAR
             // ok at this point, we just want to spend gauge - either because we're using greedy strategy, or something prevented us from casting combo
             if (primalRendWindow > state.GCD)
                 return AID.PrimalRend;
-            if (state.Gauge >= 50 || state.InnerReleaseStacks > 0 && state.Unlocked(AID.InnerRelease))
+            if (canUseFC)
                 return GetNextFCAction(state, aoe);
 
             // TODO: reconsider min time left...

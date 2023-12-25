@@ -19,8 +19,10 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || IsEffectivelyDead(_module.BossP3());
             SimplePhase(3, Phase4, "P4: Blue Screen")
                 .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || _module.FindComponent<P4BlueScreen>()?.NumCasts > 0;
-            SimplePhase(4, Phase5, "P5")
-                .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true); // TODO: reconsider condition...
+            SimplePhase(4, Phase5, "P5: M/F Repeat")
+                .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || (_module.FindComponent<P5BlindFaith>()?.Active ?? false);
+            SimplePhase(5, Phase6, "P6: Alpha")
+                .Raw.Update = () => _module.OpticalUnit()?.IsDestroyed ?? true;
         }
 
         private void Phase1(uint id)
@@ -61,6 +63,25 @@ namespace BossMod.Endwalker.Ultimate.TOP
             P5RunMiSigma(id + 0x40000, 8.4f);
             P5SolarRay(id + 0x50000, 4.1f, true);
             P5RunMiOmega(id + 0x60000, 8.5f);
+            P5SolarRay(id + 0x70000, 4.1f, true);
+            ActorCast(id + 0x80000, _module.BossP5, AID.BlindFaith, 9.0f, 10, true, "Enrage")
+                .ActivateOnEnter<P5BlindFaith>();
+        }
+
+        private void Phase6(uint id)
+        {
+            P6CosmoMemory(id, 55.8f);
+            P6FlashGales(id + 0x10000, 5.0f);
+            P6CosmoArrowCosmoDive(id + 0x20000, 0.3f);
+            P6FlashGales(id + 0x30000, 7.5f);
+            P6UnlimitedWaveCannon(id + 0x40000, 0.3f);
+            P6FlashGales(id + 0x50000, 4.9f);
+            // not sure about timings below...
+            P6CosmoArrowWaveCannon(id + 0x60000, 0.3f);
+            P6FlashGales(id + 0x70000, 20);
+            P6UnlimitedWaveCannonCosmoDive(id + 0x80000, 0.3f);
+            P6FlashGales(id + 0x90000, 20);
+            // meteors, flares, magic numbers, enrage
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -439,9 +460,111 @@ namespace BossMod.Endwalker.Ultimate.TOP
             ComponentCondition<P5OmegaBlaster>(id + 0x200, 2.1f, comp => comp.CurrentBaits.Count > 0)
                 .ExecOnEnter<P5OmegaNearDistantWorld>(comp => comp.ShowSecond(_module))
                 .ActivateOnEnter<P5OmegaBlaster>();
-            ComponentCondition<P5OmegaBlaster>(id + 0x210, 12.1f, comp => comp.NumCasts > 0, "???")
+            ComponentCondition<P5OmegaBlaster>(id + 0x210, 12.1f, comp => comp.NumCasts > 0, "Tethers")
                 .DeactivateOnExit<P5OmegaBlaster>();
-            // TODO: near/distant worlds...
+            ComponentCondition<P5OmegaNearDistantWorld>(id + 0x220, 1.8f, comp => comp.NumNearJumpsDone > 0, "Near/far 4");
+            ComponentCondition<P5OmegaNearDistantWorld>(id + 0x221, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 5");
+            ComponentCondition<P5OmegaNearDistantWorld>(id + 0x222, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 6")
+                .DeactivateOnExit<P5OmegaNearDistantWorld>();
+
+            ActorTargetable(id + 0x300, _module.BossP5, true, 2.3f, "Boss reappears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P6FlashGales(uint id, float delay)
+        {
+            ComponentCondition<P6FlashGale>(id, delay, comp => comp.NumCasts >= 2, "Auto 1")
+                .ActivateOnEnter<P6FlashGale>();
+            ComponentCondition<P6FlashGale>(id + 0x10, 3.2f, comp => comp.NumCasts >= 4, "Auto 2")
+                .DeactivateOnExit<P6FlashGale>();
+        }
+
+        private void P6CosmoMemory(uint id, float delay)
+        {
+            ActorTargetable(id, _module.BossP6, true, delay, "Boss appears");
+            ActorCast(id + 0x1000, _module.BossP6, AID.P6CosmoMemory, 7.2f, 6, true, "Raidwide (tank LB3)")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P6CosmoArrowCosmoDive(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP6, AID.CosmoArrow, delay, 6, true)
+                .ActivateOnEnter<P6CosmoArrow>();
+            ComponentCondition<P6CosmoArrow>(id + 0x10, 2, comp => comp.NumCasts > 0, "Exasquare 1");
+            ComponentCondition<P6CosmoArrow>(id + 0x11, 2, comp => comp.NumCasts >= 10, "Exasquare 2");
+            ComponentCondition<P6CosmoArrow>(id + 0x12, 2, comp => comp.NumCasts >= 18, "Exasquare 3");
+            ComponentCondition<P6CosmoArrow>(id + 0x13, 2, comp => comp.NumCasts >= 26, "Exasquare 4");
+
+            ActorCastStart(id + 0x20, _module.BossP6, AID.CosmoDive, 1.1f, true);
+            ComponentCondition<P6CosmoArrow>(id + 0x21, 0.9f, comp => comp.NumCasts >= (comp.CurPattern == Ultimate.TOP.P6CosmoArrow.Pattern.OutIn ? 34 : 30), "Exasquare 5") // depending on pattern, lines expanding outwards could have finished
+                .ActivateOnEnter<P6CosmoDive>();
+            ComponentCondition<P6CosmoArrow>(id + 0x22, 2, comp => comp.NumCasts >= (comp.CurPattern == Ultimate.TOP.P6CosmoArrow.Pattern.OutIn ? 38 : 34), "Exasquare 6");
+            ComponentCondition<P6CosmoArrow>(id + 0x23, 2, comp => comp.NumCasts >= (comp.CurPattern == Ultimate.TOP.P6CosmoArrow.Pattern.OutIn ? 42 : 38), "Exasquare 7"); // will get one more for in-out pattern
+            ActorCastEnd(id + 0x24, _module.BossP6, 0.7f, true);
+
+            ComponentCondition<P6CosmoDive>(id + 0x30, 2.5f, comp => !comp.Active, "Tankbusters + Stack")
+                .DeactivateOnExit<P6CosmoDive>()
+                .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P6UnlimitedWaveCannon(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP6, AID.UnlimitedWaveCannon, delay, 5, true)
+                .ActivateOnEnter<P6WaveCannonExaflare>();
+            ComponentCondition<P6WaveCannonPuddle>(id + 0x10, 5.1f, comp => comp.Casters.Count > 0, "Puddles bait")
+                .ActivateOnEnter<P6WaveCannonPuddle>();
+            ComponentCondition<P6WaveCannonExaflare>(id + 0x11, 1.9f, comp => comp.NumCasts > 0, "Exaflares start");
+            // new puddles are baited every 2s, exaflares have 1s delay between lines
+
+            ActorCastStart(id + 0x100, _module.BossP6, AID.P6WaveCannonProtean, 11.2f, true)
+                .DeactivateOnExit<P6WaveCannonPuddle>()
+                .DeactivateOnExit<P6WaveCannonExaflare>(); // these resolve just before cast start
+            ComponentCondition<P6WaveCannonProteans>(id + 0x101, 3, comp => comp.NumCasts > 0, "Proteans 1")
+                .ActivateOnEnter<P6WaveCannonProteans>();
+            ComponentCondition<P6WaveCannonProteans>(id + 0x102, 2, comp => comp.NumCasts > 4, "Proteans 2")
+                .DeactivateOnExit<P6WaveCannonProteans>();
+            ActorCastEnd(id + 0x103, _module.BossP6, 5.9f, true)
+                .ActivateOnEnter<P6WaveCannonWildCharge>();
+            ComponentCondition<P6WaveCannonWildCharge>(id + 0x104, 0.4f, comp => comp.NumCasts > 0, "Wild charge")
+                .DeactivateOnExit<P6WaveCannonWildCharge>()
+                .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
+        }
+
+        // TODO: timings..
+        private void P6CosmoArrowWaveCannon(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP6, AID.CosmoArrow, delay, 6, true)
+                .ActivateOnEnter<P6CosmoArrow>();
+            ComponentCondition<P6CosmoArrow>(id + 0x10, 2, comp => comp.NumCasts > 0, "Exasquare 1");
+
+            ActorCastStart(id + 0x100, _module.BossP6, AID.P6WaveCannonProtean, 11.2f, true);
+            ComponentCondition<P6WaveCannonProteans>(id + 0x101, 3, comp => comp.NumCasts > 0, "Proteans 1")
+                .ActivateOnEnter<P6WaveCannonProteans>();
+            ComponentCondition<P6WaveCannonProteans>(id + 0x102, 2, comp => comp.NumCasts > 4, "Proteans 2")
+                .DeactivateOnExit<P6WaveCannonProteans>();
+            ActorCastEnd(id + 0x103, _module.BossP6, 5.9f, true)
+                .ActivateOnEnter<P6WaveCannonWildCharge>();
+            ComponentCondition<P6WaveCannonWildCharge>(id + 0x104, 0.4f, comp => comp.NumCasts > 0, "Wild charge")
+                .DeactivateOnExit<P6WaveCannonWildCharge>()
+                .DeactivateOnExit<P6CosmoArrow>()
+                .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P6UnlimitedWaveCannonCosmoDive(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP6, AID.UnlimitedWaveCannon, delay, 5, true)
+                .ActivateOnEnter<P6WaveCannonExaflare>();
+            ComponentCondition<P6WaveCannonPuddle>(id + 0x10, 5.1f, comp => comp.Casters.Count > 0, "Puddles bait")
+                .ActivateOnEnter<P6WaveCannonPuddle>();
+            ComponentCondition<P6WaveCannonExaflare>(id + 0x11, 1.9f, comp => comp.NumCasts > 0, "Exaflares start");
+
+            ActorCast(id + 0x20, _module.BossP6, AID.CosmoDive, 10, 5.6f, true)
+                .ActivateOnEnter<P6CosmoDive>();
+            ComponentCondition<P6CosmoDive>(id + 0x30, 2.5f, comp => !comp.Active, "Tankbusters + Stack")
+                .DeactivateOnExit<P6CosmoDive>()
+                .DeactivateOnExit<P6WaveCannonExaflare>()
+                .DeactivateOnExit<P6WaveCannonPuddle>()
+                .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
         }
     }
 }
