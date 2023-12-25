@@ -160,7 +160,7 @@ namespace BossMod.BRD
             // TODO: these bindings should be done by the framework...
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 5)
+                if (overrides.Length >= 10)
                 {
                     SongStrategy = (SongUse)overrides[0];
                     PotionStrategy = (PotionUse)overrides[1];

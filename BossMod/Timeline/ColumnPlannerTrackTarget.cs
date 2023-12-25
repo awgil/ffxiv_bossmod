@@ -80,13 +80,7 @@ namespace BossMod
             }
         }
 
-        private string OIDString(uint oid)
-        {
-            if (oid == 0)
-                return "Automatic";
-            var name = ModuleInfo?.ObjectIDType?.GetEnumName(oid);
-            return name ?? $"0x{oid}";
-        }
+        private string OIDString(uint oid) => oid == 0 ? "Automatic" : $"{ModuleInfo?.ObjectIDType?.GetEnumName(oid)} (0x{oid})";
 
         private OverrideElement SetElementValue(OverrideElement e, uint oid)
         {
