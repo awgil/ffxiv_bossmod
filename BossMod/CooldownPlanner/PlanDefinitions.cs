@@ -64,6 +64,7 @@ namespace BossMod
             Classes[Class.BRD] = DefineBRD();
             Classes[Class.BLM] = DefineBLM();
             Classes[Class.RPR] = DefineRPR();
+            Classes[Class.GNB] = DefineGNB();
         }
 
         private static ClassData DefineWAR()
@@ -91,6 +92,7 @@ namespace BossMod
             c.StrategyTracks.Add(new("Special", typeof(WAR.Rotation.Strategy.SpecialAction)));
             return c;
         }
+
 
         private static ClassData DefinePLD()
         {
@@ -168,10 +170,33 @@ namespace BossMod
             c.StrategyTracks.Add(new("SOUL", typeof(RPR.Rotation.Strategy.BloodstalkUse)));
             c.StrategyTracks.Add(new("TrN", typeof(RPR.Rotation.Strategy.TrueNorthUse)));
             c.StrategyTracks.Add(new("ENSH", typeof(RPR.Rotation.Strategy.EnshroudUse)));
-            c.StrategyTracks.Add(new("ARC", typeof(RPR.Rotation.Strategy.ArcaneCircleUse), 120));
             c.StrategyTracks.Add(new("Glut", typeof(RPR.Rotation.Strategy.GluttonyUse), 60));
             c.StrategyTracks.Add(new("Potion", typeof(RPR.Rotation.Strategy.PotionUse), 270));
             c.StrategyTracks.Add(new("spec", typeof(RPR.Rotation.Strategy.SpecialAction)));
+            return c;
+        }
+        private static ClassData DefineGNB()
+        {
+            var c = new ClassData(typeof(GNB.AID), GNB.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("Nebula", ActionID.MakeSpell(GNB.AID.Nebula), 38));
+            c.CooldownTracks.Add(new("Rampart", ActionID.MakeSpell(GNB.AID.Rampart), 8));
+            c.CooldownTracks.Add(new("Thrill", ActionID.MakeSpell(GNB.AID.Camouflage), 6));
+            c.CooldownTracks.Add(new("Holmgang", ActionID.MakeSpell(GNB.AID.Superbolide), 50));
+            c.CooldownTracks.Add(new("HOC", new[] { (ActionID.MakeSpell(GNB.AID.HeartOfCorundum), 82), (ActionID.MakeSpell(GNB.AID.HeartOfStone), 68) }));
+            c.CooldownTracks.Add(new("Aurora", ActionID.MakeSpell(GNB.AID.Aurora), 45));
+            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(GNB.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("Reprisal", ActionID.MakeSpell(GNB.AID.Reprisal), 22));
+            c.CooldownTracks.Add(new("HoL", ActionID.MakeSpell(GNB.AID.HeartOfLight), 64));
+            c.CooldownTracks.Add(new("Taunt", ActionID.MakeSpell(GNB.AID.Provoke), 15));
+            c.CooldownTracks.Add(new("Shirk", ActionID.MakeSpell(GNB.AID.Shirk), 48));
+            c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+            c.StrategyTracks.Add(new("Gauge", typeof(GNB.Rotation.Strategy.GaugeUse)));
+            c.StrategyTracks.Add(new("Potion", typeof(GNB.Rotation.Strategy.PotionUse), 270));
+            c.StrategyTracks.Add(new("NoM", typeof(GNB.Rotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("Zone", typeof(GNB.Rotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("BowS", typeof(GNB.Rotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("RoughDivide", typeof(GNB.Rotation.Strategy.RoughDivideUse)));
+            c.StrategyTracks.Add(new("Special", typeof(GNB.Rotation.Strategy.SpecialAction)));
             return c;
         }
     }
