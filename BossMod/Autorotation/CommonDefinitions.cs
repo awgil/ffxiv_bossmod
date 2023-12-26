@@ -79,6 +79,7 @@ namespace BossMod
             {
                 Class.WAR => (uint)WAR.SID.Defiance,
                 Class.PLD => (uint)PLD.SID.IronWill,
+                Class.GNB => (uint)GNB.SID.RoyalGuard,
                 _ => 0u
             };
             return stanceSID != 0 && a.FindStatus(stanceSID) != null;
