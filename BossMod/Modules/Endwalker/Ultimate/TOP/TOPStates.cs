@@ -78,9 +78,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
             P6FlashGales(id + 0x50000, 4.9f);
             // not sure about timings below...
             P6CosmoArrowWaveCannon(id + 0x60000, 0.3f);
-            P6FlashGales(id + 0x70000, 20);
+            P6FlashGales(id + 0x70000, 4.9f);
             P6UnlimitedWaveCannonCosmoDive(id + 0x80000, 0.3f);
-            P6FlashGales(id + 0x90000, 20);
+            P6FlashGales(id + 0x90000, 7.5f);
             // meteors, flares, magic numbers, enrage
             SimpleState(id + 0xFF0000, 100, "???");
         }
@@ -558,7 +558,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .ActivateOnEnter<P6WaveCannonPuddle>();
             ComponentCondition<P6WaveCannonExaflare>(id + 0x11, 1.9f, comp => comp.NumCasts > 0, "Exaflares start");
 
-            ActorCast(id + 0x20, _module.BossP6, AID.CosmoDive, 10, 5.6f, true)
+            ActorCast(id + 0x20, _module.BossP6, AID.CosmoDive, 6, 5.6f, true)
                 .ActivateOnEnter<P6CosmoDive>();
             ComponentCondition<P6CosmoDive>(id + 0x30, 2.5f, comp => !comp.Active, "Tankbusters + Stack")
                 .DeactivateOnExit<P6CosmoDive>()
