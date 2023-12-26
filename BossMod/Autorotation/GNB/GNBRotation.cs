@@ -106,6 +106,7 @@ namespace BossMod.GNB
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
             public PotionUse PotionStrategy; // how are we supposed to use potions
             public OffensiveAbilityUse NoMercyUse; // how are we supposed to use IR
+            public OffensiveAbilityUse GnashUse; // how are we supposed to use upheaval
             public OffensiveAbilityUse ZoneUse; // how are we supposed to use upheaval
             public OffensiveAbilityUse BowUse; // how are we supposed to use PR
             public RoughDivideUse RoughDivideStrategy; // how are we supposed to use onslaught
@@ -125,16 +126,18 @@ namespace BossMod.GNB
                     GaugeStrategy = (GaugeUse)overrides[0];
                     PotionStrategy = (PotionUse)overrides[1];
                     NoMercyUse = (OffensiveAbilityUse)overrides[2];
-                    ZoneUse = (OffensiveAbilityUse)overrides[3];
-                    BowUse = (OffensiveAbilityUse)overrides[4];
-                    RoughDivideStrategy = (RoughDivideUse)overrides[5];
-                    SpecialActionUse = (SpecialAction)overrides[6];
+                    GnashUse = (OffensiveAbilityUse)overrides[3];
+                    ZoneUse = (OffensiveAbilityUse)overrides[4];
+                    BowUse = (OffensiveAbilityUse)overrides[5];
+                    RoughDivideStrategy = (RoughDivideUse)overrides[6];
+                    SpecialActionUse = (SpecialAction)overrides[7];
                 }
                 else
                 {
                     GaugeStrategy = GaugeUse.Automatic;
                     PotionStrategy = PotionUse.Manual;
                     NoMercyUse = OffensiveAbilityUse.Automatic;
+                    GnashUse = OffensiveAbilityUse.Automatic;
                     ZoneUse = OffensiveAbilityUse.Automatic;
                     BowUse = OffensiveAbilityUse.Automatic;
                     RoughDivideStrategy = RoughDivideUse.Automatic;
@@ -173,11 +176,11 @@ namespace BossMod.GNB
             }
         }
 
-        public static AID GetNextAmmoAction(State state, bool aoe)
+        public static AID GetNextAmmoAction(State state,Strategy strategy, bool aoe)
         {
             if (state.CD(CDGroup.NoMercy) > 26)
             {
-                if (state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1)
+                if (state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1 && ShouldUseGnash(state, strategy))
                     return AID.GnashingFang;
             }
 
@@ -241,7 +244,7 @@ namespace BossMod.GNB
         public static bool ShouldUsePotion(State state, Strategy strategy) => strategy.PotionStrategy switch
         {
             Strategy.PotionUse.Manual => false,
-            Strategy.PotionUse.Immediate => (state.ComboLastMove == AID.KeenEdge && state.Ammo == 0) || (state.CD(CDGroup.NoMercy) < 5.5 && strategy.CombatTimer > 30), // TODO: reconsider potion use during opener (delayed IR prefers after maim, early IR prefers after storm eye, to cover third IC on 13th GCD)
+            Strategy.PotionUse.Immediate => (state.ComboLastMove == AID.KeenEdge && state.Ammo == 0) || (state.CD(CDGroup.NoMercy) < 5.5 && state.CD(CDGroup.Bloodfest) < 15 && strategy.CombatTimer > 30), // TODO: reconsider potion use during opener (delayed IR prefers after maim, early IR prefers after storm eye, to cover third IC on 13th GCD)
             Strategy.PotionUse.Force => true,
             _ => false
         };
@@ -250,7 +253,14 @@ namespace BossMod.GNB
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => strategy.CombatTimer >= 0 && ((state.TargetingEnemy && state.ComboLastMove == AID.BrutalShell && state.Ammo == 0) || state.Ammo == 3 || state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1)
+            _ => strategy.CombatTimer >= 0 && state.CD(CDGroup.GnashingFang) < 2.5 && ((state.TargetingEnemy && state.ComboLastMove == AID.BrutalShell && state.Ammo == 0) || state.Ammo == state.MaxCartridges || state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1)
+        };
+
+        public static bool ShouldUseGnash(State state, Strategy strategy) => strategy.GnashUse switch
+        {
+            Strategy.OffensiveAbilityUse.Delay => false,
+            Strategy.OffensiveAbilityUse.Force => true,
+            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1
         };
 
         public static bool ShouldUseZone(State state, Strategy strategy) => strategy.ZoneUse switch
@@ -315,13 +325,13 @@ namespace BossMod.GNB
                 return aoe ? AID.DemonSlice : state.ComboLastMove == AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
 
             if (state.Ammo >= state.MaxCartridges && state.ComboLastMove == AID.BrutalShell)
-                return GetNextAmmoAction(state, aoe);
+                return GetNextAmmoAction(state, strategy, aoe);
 
             if (state.NoMercyLeft > state.AnimationLock)
-                return GetNextAmmoAction(state, aoe);
+                return GetNextAmmoAction(state, strategy, aoe);
 
             if (state.CD(CDGroup.GnashingFang) < 0.6)
-                return GetNextAmmoAction(state, aoe);
+                return GetNextAmmoAction(state, strategy, aoe);
 
             if (state.GunComboStep > 0)
             {
@@ -355,8 +365,6 @@ namespace BossMod.GNB
                     return ActionID.MakeSpell(AID.NoMercy);
             }
 
-            if (state.Unlocked(AID.Bloodfest) && state.CanWeave(CDGroup.Bloodfest, 0.6f, deadline) && state.Ammo == 0 && state.NoMercyLeft > state.AnimationLock)
-                return ActionID.MakeSpell(AID.Bloodfest);
 
             if (state.Unlocked(AID.DangerZone) && ShouldUseZone(state, strategy) && state.CanWeave(CDGroup.DangerZone, 0.6f, deadline))
                 return ActionID.MakeSpell(state.BestZone);
@@ -364,7 +372,10 @@ namespace BossMod.GNB
             if (state.Unlocked(AID.BowShock) && ShouldUseBow(state, strategy) && state.CanWeave(state.CD(CDGroup.BowShock), 0.6f, deadline))
                 return ActionID.MakeSpell(AID.BowShock);
 
-            if ((state.ReadyToBlast) && state.CanWeave(CDGroup.Hypervelocity, 0.6f, deadline))
+            if (state.Unlocked(AID.Bloodfest) && state.CanWeave(CDGroup.Bloodfest, 0.6f, deadline) && state.Ammo == 0 && state.NoMercyLeft > state.AnimationLock)
+                return ActionID.MakeSpell(AID.Bloodfest);
+
+            if (state.ReadyToBlast && state.CanWeave(CDGroup.Hypervelocity, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Hypervelocity);
             if (state.ReadyToGouge && state.CanWeave(CDGroup.EyeGouge, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.EyeGouge);
@@ -373,7 +384,7 @@ namespace BossMod.GNB
             if (state.ReadyToRip && state.CanWeave(CDGroup.JugularRip, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.JugularRip);
 
-            if (wantOnslaught && state.CanWeave(state.CD(CDGroup.RoughDivide) - 30, 0.8f, deadline) && state.NoMercyLeft > state.AnimationLock && state.CD(CDGroup.GnashingFang) > 10 && state.CD(CDGroup.SonicBreak) > 10 && state.CD(CDGroup.DoubleDown) > 10)
+            if (wantOnslaught && state.CanWeave(state.CD(CDGroup.RoughDivide) - 30, 0.6f, deadline - state.OGCDSlotLength) && state.NoMercyLeft > state.AnimationLock && state.CD(CDGroup.GnashingFang) > 10 && state.CD(CDGroup.SonicBreak) > 10 && state.CD(CDGroup.DoubleDown) > 10)
                 return ActionID.MakeSpell(AID.RoughDivide);
 
             if (wantOnslaught && state.CanWeave(state.CD(CDGroup.RoughDivide), 0.8f, deadline) && state.NoMercyLeft < state.AnimationLock && state.NoMercyLeft > state.AnimationLock && state.CD(CDGroup.GnashingFang) > 10 && state.CD(CDGroup.SonicBreak) > 10 && state.CD(CDGroup.DoubleDown) > 10)

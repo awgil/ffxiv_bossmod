@@ -206,7 +206,7 @@ namespace BossMod.GNB
             SupportedActions.GCD(AID.KeenEdge, 3);
             SupportedActions.OGCD(AID.NoMercy, 0, CDGroup.NoMercy, 60.0f);
             SupportedActions.GCD(AID.BrutalShell, 3);
-            SupportedActions.OGCD(AID.Camouflage, 0, CDGroup.Camouflage, 90.0f);
+            SupportedActions.OGCD(AID.Camouflage, 0, CDGroup.Camouflage, 90.0f).EffectDuration = 20;
             SupportedActions.OGCD(AID.Rampart, 0, CDGroup.Rampart, 90.0f).EffectDuration = 20;
             SupportedActions.OGCD(AID.RoyalGuard, 0, CDGroup.RoyalGuard, 2.0f);
             SupportedActions.GCD(AID.DemonSlice, 0);

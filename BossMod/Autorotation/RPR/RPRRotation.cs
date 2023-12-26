@@ -64,14 +64,17 @@ namespace BossMod.RPR
                 [PropertyDisplay("Use Harpe or HarvestMoon if outside melee", 0x80c08000)]
                 HarpeorHarvestMoonIfNotInMelee = 2,
 
+                [PropertyDisplay("Use only HarvestMoon if outside melee", 0x80c08000)]
+                HarvestMoonIfNotInMelee = 3,
+
                 [PropertyDisplay("Force Harvest Moon", 0x80c08000)]
-                ForceHarvestMoon = 3,
+                ForceHarvestMoon = 4,
 
                 [PropertyDisplay("Use combo, unless it can't be finished before downtime", 0x80c0c000)]
-                ComboFitBeforeDowntime = 4,
+                ComboFitBeforeDowntime = 5,
 
                 [PropertyDisplay("Use combo until second-last step", 0x80400080)]
-                PenultimateComboThenSpend = 5,
+                PenultimateComboThenSpend = 6,
             }
 
             public enum BloodstalkUse : uint
@@ -464,6 +467,8 @@ namespace BossMod.RPR
             if (strategy.CombatTimer > -100 && strategy.CombatTimer < -1.7f)
                 return AID.None;
 
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.HarvestMoonIfNotInMelee && state.HasSoulsow && state.RangeToTarget > 3 && strategy.CombatTimer > 0)
+                return AID.HarvestMoon;
             if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceHarvestMoon && state.HasSoulsow)
                 return AID.HarvestMoon;
             if (strategy.GaugeStrategy == Strategy.GaugeUse.HarpeorHarvestMoonIfNotInMelee && state.RangeToTarget > 3 && strategy.CombatTimer < 0)
