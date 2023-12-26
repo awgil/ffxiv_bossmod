@@ -121,7 +121,7 @@ namespace BossMod.GNB
             // TODO: these bindings should be done by the framework...
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 7)
+                if (overrides.Length >= 8)
                 {
                     GaugeStrategy = (GaugeUse)overrides[0];
                     PotionStrategy = (PotionUse)overrides[1];
