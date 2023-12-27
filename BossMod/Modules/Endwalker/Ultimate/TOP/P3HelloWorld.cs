@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_initialRoles[slot] != PlayerRole.None)
+            if (_initialRoles[slot] != PlayerRole.None && NumCasts < 16)
                 hints.Add($"Next role: {RoleForNextTowers(slot)}", false);
 
             if (Towers.Count == 4)
@@ -77,14 +77,30 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (_defamationTowerColor != TowerColor.None)
+            if (_defamationTowerColor != TowerColor.None && NumCasts < 16)
                 hints.Add($"Defamation color: {_defamationTowerColor}");
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {
-            var role = _initialRoles[pcSlot];
-            return role != PlayerRole.None && role == _initialRoles[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
+            var initialPCRole = _initialRoles[pcSlot];
+            var initialPlayerRole = _initialRoles[playerSlot];
+            if (initialPCRole == PlayerRole.None)
+                return PlayerPriority.Irrelevant; // mechanic not started yet
+            if (initialPCRole == initialPlayerRole)
+            {
+                customColor = ArenaColor.Vulnerable;
+                return PlayerPriority.Interesting; // partner
+            }
+            var avoidPlayer = (RoleForNextTowers(initialPCRole), RoleForNextTowers(initialPlayerRole)) switch
+            {
+                (PlayerRole.Defamation, _) => !_defamationRotDone[playerSlot],
+                (PlayerRole.Stack, _) => !_stackRotDone[playerSlot],
+                (_, PlayerRole.Defamation) => !_defamationRotDone[pcSlot],
+                (_, PlayerRole.Stack) => !_stackRotDone[pcSlot],
+                _ => false,
+            };
+            return avoidPlayer ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

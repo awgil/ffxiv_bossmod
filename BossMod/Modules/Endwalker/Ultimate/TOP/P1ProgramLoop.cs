@@ -85,7 +85,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 arena.AddLine(t.Position, module.PrimaryActor.Position, correctSoaker ? ArenaColor.Safe : ArenaColor.Danger, tetherToGrab ? 2 : 1);
             }
 
-            if (grabThisTether)
+            if (grabThisTether && NumTethersDone == NumTowersDone)
             {
                 // show hint for tether position
                 var spot = GetTetherDropSpot(module, ps.Group);
