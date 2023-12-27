@@ -116,6 +116,8 @@ namespace BossMod.GNB
             _state.ReadyToTear = Player.FindStatus(SID.ReadyToTear) != null;
             _state.ReadyToGouge = Player.FindStatus(SID.ReadyToGouge) != null;
             _state.ReadyToBlast = Player.FindStatus(SID.ReadyToBlast) != null;
+            _state.AuroraLeft = StatusDetails(Player, SID.Aurora, Player.InstanceID).Left;
+            _state.NumTargetsHitByAOE = NumTargetsHitByAOE();
         }
 
         private void OnConfigModified(object? sender, EventArgs args)
