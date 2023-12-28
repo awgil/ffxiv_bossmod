@@ -105,10 +105,10 @@ namespace BossMod.GNB
                 LB3 = 1, // use LB3 if available
 
                 [PropertyDisplay("Stance ON", 0x80ff00ff)]
-                StanceOn = 1, // use LB3 if available
+                StanceOn = 2, // use LB3 if available
 
-                [PropertyDisplay("Stance ON", 0x80c0c000)]
-                StanceOff = 1, // use LB3 if available
+                [PropertyDisplay("Stance OFF", 0x80c0c000)]
+                StanceOff = 3, // use LB3 if available
             }
 
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
