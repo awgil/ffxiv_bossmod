@@ -102,7 +102,13 @@ namespace BossMod.GNB
                 None = 0, // don't use any special actions
 
                 [PropertyDisplay("LB3", 0x8000ff00)]
-                LB3, // use LB3 if available
+                LB3 = 1, // use LB3 if available
+
+                [PropertyDisplay("Stance ON", 0x80ff00ff)]
+                StanceOn = 1, // use LB3 if available
+
+                [PropertyDisplay("Stance ON", 0x80c0c000)]
+                StanceOff = 1, // use LB3 if available
             }
 
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
@@ -435,6 +441,12 @@ namespace BossMod.GNB
 
             if (wantOnslaught && state.CanWeave(state.CD(CDGroup.RoughDivide), 0.6f, deadline) && state.CD(CDGroup.GnashingFang) > 2.5)
                 return ActionID.MakeSpell(AID.RoughDivide);
+
+            if (strategy.SpecialActionUse == Strategy.SpecialAction.StanceOn && state.CanWeave(state.CD(CDGroup.RoyalGuard), 0.6f, deadline) && state.GunComboStep == 0 && !state.HaveTankStance)
+                return ActionID.MakeSpell(AID.RoyalGuard);
+
+            if (strategy.SpecialActionUse == Strategy.SpecialAction.StanceOff && state.CanWeave(state.CD(CDGroup.ReleaseRoyalGuard), 0.6f, deadline) && state.GunComboStep == 0 && state.HaveTankStance)
+                return ActionID.MakeSpell(AID.ReleaseRoyalGuard);
 
             if (state.CanWeave(state.CD(CDGroup.Aurora) - 60, 0.6f, deadline) && state.AuroraLeft < state.GCD && state.CD(CDGroup.NoMercy) > 1 && state.CD(CDGroup.GnashingFang) > 1 && state.CD(CDGroup.SonicBreak) > 1 && state.CD(CDGroup.DoubleDown) > 1)
                 return ActionID.MakeSpell(AID.Aurora);
