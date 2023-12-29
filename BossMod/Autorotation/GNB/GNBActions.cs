@@ -127,7 +127,8 @@ namespace BossMod.GNB
             SupportedSpell(AID.DemonSlice).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             // combo replacement
-            SupportedSpell(AID.BrutalShell).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextBurtalShellComboAction(ComboLastMove)) : null;
+            SupportedSpell(AID.BrutalShell).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextBrutalShellComboAction(ComboLastMove)) : null;
+            SupportedSpell(AID.SolidBarrel).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.SolidBarrel)) : null;
             SupportedSpell(AID.DemonSlaughter).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(ComboLastMove)) : null;
 
             // smart targets
