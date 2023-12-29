@@ -27,6 +27,7 @@ namespace BossMod.GNB
             SupportedSpell(AID.DangerZone).TransformAction = SupportedSpell(AID.BlastingZone).TransformAction = () => ActionID.MakeSpell(_state.BestZone);
             SupportedSpell(AID.HeartOfStone).TransformAction = SupportedSpell(AID.HeartOfCorundum).TransformAction = () => ActionID.MakeSpell(_state.BestHeart);
             SupportedSpell(AID.Continuation).TransformAction = SupportedSpell(AID.JugularRip).TransformAction = SupportedSpell(AID.AbdomenTear).TransformAction = SupportedSpell(AID.EyeGouge).TransformAction = SupportedSpell(AID.Hypervelocity).TransformAction = () => ActionID.MakeSpell(_state.BestContinuation);
+            SupportedSpell(AID.GnashingFang).TransformAction = SupportedSpell(AID.SavageClaw).TransformAction = SupportedSpell(AID.WickedTalon).TransformAction = () => ActionID.MakeSpell(_state.BestGnash);
 
             SupportedSpell(AID.Aurora).Condition = _ => Player.HP.Cur < Player.HP.Max;
             SupportedSpell(AID.Reprisal).Condition = _ => Autorot.Hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(Player.Position, 5 + e.Actor.HitboxRadius)); // TODO: consider checking only target?..
