@@ -76,10 +76,10 @@ namespace BossMod.Endwalker.Ultimate.TOP
             P6FlashGales(id + 0x30000, 7.5f);
             P6UnlimitedWaveCannon(id + 0x40000, 0.3f);
             P6FlashGales(id + 0x50000, 4.9f);
-            // not sure about timings below...
             P6CosmoArrowWaveCannon(id + 0x60000, 0.3f);
             P6FlashGales(id + 0x70000, 4.9f);
             P6UnlimitedWaveCannonCosmoDive(id + 0x80000, 0.3f);
+            // not sure about timings below...
             P6FlashGales(id + 0x90000, 7.5f);
             // meteors, flares, magic numbers, enrage
             SimpleState(id + 0xFF0000, 100, "???");
@@ -504,6 +504,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
             ComponentCondition<P6CosmoDive>(id + 0x30, 2.5f, comp => !comp.Active, "Tankbusters + Stack")
                 .DeactivateOnExit<P6CosmoDive>()
+                .DeactivateOnExit<P6CosmoArrow>()
                 .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
         }
 
@@ -530,14 +531,14 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
         }
 
-        // TODO: timings..
         private void P6CosmoArrowWaveCannon(uint id, float delay)
         {
             ActorCast(id, _module.BossP6, AID.CosmoArrow, delay, 6, true)
                 .ActivateOnEnter<P6CosmoArrow>();
             ComponentCondition<P6CosmoArrow>(id + 0x10, 2, comp => comp.NumCasts > 0, "Exasquare 1");
-
-            ActorCastStart(id + 0x100, _module.BossP6, AID.P6WaveCannonProtean, 11.2f, true);
+            ComponentCondition<P6CosmoArrow>(id + 0x11, 2, comp => comp.NumCasts >= 10, "Exasquare 2");
+            ComponentCondition<P6CosmoArrow>(id + 0x12, 2, comp => comp.NumCasts >= 18, "Exasquare 3");
+            ActorCastStart(id + 0x100, _module.BossP6, AID.P6WaveCannonProtean, 2, true, "Exasquare 4"); // cast starts at the same time as 4th exasquares
             ComponentCondition<P6WaveCannonProteans>(id + 0x101, 3, comp => comp.NumCasts > 0, "Proteans 1")
                 .ActivateOnEnter<P6WaveCannonProteans>();
             ComponentCondition<P6WaveCannonProteans>(id + 0x102, 2, comp => comp.NumCasts > 4, "Proteans 2")
@@ -550,6 +551,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
         }
 
+        // TODO: timings..
         private void P6UnlimitedWaveCannonCosmoDive(uint id, float delay)
         {
             ActorCast(id, _module.BossP6, AID.UnlimitedWaveCannon, delay, 5, true)
