@@ -1,7 +1,4 @@
 ﻿
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using System.Runtime.CompilerServices;
 
 namespace BossMod.GNB
 {
