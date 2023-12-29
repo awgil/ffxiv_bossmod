@@ -162,7 +162,13 @@ namespace BossMod.GNB
 
         public static int GetAOEComboLength(AID comboLastMove) => comboLastMove == AID.DemonSlice ? 1 : 2;
 
-        public static AID GetNextBurtalShellComboAction(AID comboLastMove) => comboLastMove == AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
+        public static AID GetNextBrutalShellComboAction(AID comboLastMove) => comboLastMove == AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
+        public static AID GetNextSTComboAction(AID comboLastMove, AID finisher) => comboLastMove switch
+        {
+            AID.BrutalShell => finisher,
+            AID.KeenEdge => AID.BrutalShell,
+            _ => AID.KeenEdge
+        };
 
         public static AID GetNextAOEComboAction(AID comboLastMove) => comboLastMove == AID.DemonSlice ? AID.DemonSlaughter : AID.DemonSlice;
 
