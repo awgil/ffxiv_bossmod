@@ -1,5 +1,6 @@
 ﻿
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using System.Runtime.CompilerServices;
 
 namespace BossMod.GNB
@@ -24,6 +25,7 @@ namespace BossMod.GNB
             public AID BestZone => Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
             public AID BestHeart => Unlocked(AID.HeartOfCorundum) ? AID.HeartOfCorundum : AID.HeartOfStone;
             public AID BestContinuation => ReadyToRip ? AID.JugularRip : ReadyToTear ? AID.AbdomenTear : ReadyToGouge ? AID.EyeGouge : ReadyToBlast ? AID.Hypervelocity : AID.Continuation;
+            public AID BestGnash => GunComboStep == 1 ? AID.SavageClaw : GunComboStep == 2 ? AID.WickedTalon : AID.GnashingFang;
             public AID ComboLastMove => (AID)ComboLastAction;
 
             public State(float[] cooldowns) : base(cooldowns) { }
