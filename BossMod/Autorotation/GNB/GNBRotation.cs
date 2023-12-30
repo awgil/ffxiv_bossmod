@@ -152,7 +152,7 @@ namespace BossMod.GNB
                     GnashUse = OffensiveAbilityUse.Automatic;
                     ZoneUse = OffensiveAbilityUse.Automatic;
                     BowUse = OffensiveAbilityUse.Automatic;
-                    RoughDivideStrategy = RoughDivideUse.NoReserve;
+                    RoughDivideStrategy = RoughDivideUse.Automatic;
                     SpecialActionUse = SpecialAction.None;
                 }
             }
@@ -253,9 +253,9 @@ namespace BossMod.GNB
                     return AID.BurstStrike;
             }
 
-            if (Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5)
+            if (Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5)
                 return AID.SolidBarrel;
-            if (!Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5 && state.CD(CDGroup.Bloodfest) > 20)
+            if (!Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5 && (state.CD(CDGroup.Bloodfest) > 20 && state.Unlocked(AID.Bloodfest)))
                 return AID.SolidBarrel;
 
             if (state.CD(CDGroup.NoMercy) > 17)
@@ -359,21 +359,21 @@ namespace BossMod.GNB
                 bool isDoubleDownReady = state.CD(CDGroup.DoubleDown) < 2.5 && state.Unlocked(AID.DoubleDown);
                 bool justusewhenever = !state.Unlocked(AID.BurstStrike) && state.TargetingEnemy && state.RangeToTarget < 5;
 
-                bool shouldUseEarlyNoMercy = state.TargetingEnemy && ((!isEarlyNoMercy && state.ComboLastMove == AID.BrutalShell) || (isEarlyNoMercy && state.ComboLastMove == AID.KeenEdge)) && strategy.CombatTimer < 10 && (state.Ammo == 0 || state.Ammo == state.MaxCartridges) && ((state.GCD < 0.8 && gnbConfig.Skscheck) || (!gnbConfig.Skscheck));
+                bool shouldUseEarlyNoMercy = state.TargetingEnemy && ((!isEarlyNoMercy && state.ComboLastMove == AID.BrutalShell) || (isEarlyNoMercy && state.ComboLastMove == AID.KeenEdge)) && state.Unlocked(AID.Bloodfest) && strategy.CombatTimer < 10 && (state.Ammo == 0 || state.Ammo == state.MaxCartridges) && ((state.GCD < 0.8 && gnbConfig.Skscheck) || (!gnbConfig.Skscheck));
 
                 bool shouldUseRegularNoMercy = (!gnbConfig.Skscheck
                     && (isGnashingFangReady || isSonicBreakReady || isDoubleDownReady)
                     && state.TargetingEnemy
                     && ((state.Ammo == state.MaxCartridges)
-                    || (state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.CD(CDGroup.Bloodfest) > 20)
-                    || (state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1))) || shouldUseEarlyNoMercy;
+                    || (state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.CD(CDGroup.Bloodfest) > 20)
+                    || (state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1 && state.Unlocked(AID.Bloodfest)))) || shouldUseEarlyNoMercy;
 
                 bool shouldUseSksCheck = (gnbConfig.Skscheck && state.GCD < 0.8
                     && (isGnashingFangReady || isSonicBreakReady || isDoubleDownReady)
                     && state.TargetingEnemy
                     && (state.Ammo == state.MaxCartridges
-                    || (state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1)
-                    || (state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.CD(CDGroup.Bloodfest) > 20))) || shouldUseEarlyNoMercy;
+                    || (state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1 && state.Unlocked(AID.Bloodfest))
+                    || (state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.CD(CDGroup.Bloodfest) > 20 && state.Unlocked(AID.Bloodfest)))) || shouldUseEarlyNoMercy;
 
                 return shouldUseRegularNoMercy || shouldUseSksCheck || justusewhenever;
             }
@@ -584,7 +584,7 @@ namespace BossMod.GNB
             if (state.Unlocked(AID.BowShock) && ShouldUseBow(state, strategy) && state.CanWeave(CDGroup.BowShock, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.BowShock);
 
-            if (state.ReadyToBlast && state.Unlocked(AID.Continuation))
+            if (state.ReadyToBlast && state.Unlocked(AID.Hypervelocity))
                 return ActionID.MakeSpell(AID.Hypervelocity);
             if (state.ReadyToGouge && state.Unlocked(AID.Continuation))
                 return ActionID.MakeSpell(AID.EyeGouge);

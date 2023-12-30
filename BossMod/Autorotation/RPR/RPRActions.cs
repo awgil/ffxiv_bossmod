@@ -135,6 +135,8 @@ namespace BossMod.RPR
             _state.VoidShroudCount = gauge.VoidShroud;
             _state.ShroudGauge = gauge.Shroud;
             _state.SoulGauge = gauge.Soul;
+            if (_state.ComboLastMove == AID.InfernalSlice)
+                _state.ComboTimeLeft = 0;
 
 
             _state.SoulReaverLeft = StatusDetails(Player, SID.SoulReaver, Player.InstanceID).Left;

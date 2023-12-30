@@ -242,17 +242,20 @@ namespace BossMod.RPR
 
         public static AID GetNextBSAction(State state, bool aoe)
         {
-            if (state.EnhancedGibbetLeft > state.GCD)
-                return !aoe ? AID.Gibbet : AID.Gibbet;
+            if (!aoe)
+            {
+                if (state.EnhancedGibbetLeft > state.GCD)
+                    return AID.Gibbet;
 
-            if (state.EnhancedGallowsLeft > state.GCD)
-                return !aoe ? AID.Gallows : AID.Gallows;
+                if (state.EnhancedGallowsLeft > state.GCD)
+                    return AID.Gallows;
+            }
 
             if (aoe)
                 return AID.Guillotine;
 
 
-            return !aoe ? AID.Gallows : AID.Gallows;
+            return AID.Gallows;
         }
 
         public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD;
@@ -286,7 +289,7 @@ namespace BossMod.RPR
                     if (state.SoulGauge >= 50 && state.CD(CDGroup.Gluttony) > 28 && !aoe && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0) && state.ShroudGauge <= 90 && state.CD(CDGroup.ArcaneCircle) > 9)
                         return true;
 
-                    if (state.SoulGauge == 100 && state.CD(CDGroup.Gluttony) > state.AnimationLock && !aoe && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0) && state.ShroudGauge <= 90)
+                    if (state.SoulGauge == 100 && state.CD(CDGroup.Gluttony) > state.AnimationLock && !aoe && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0) && state.ShroudGauge <= 90 && state.ImmortalSacrificeLeft < state.AnimationLock)
                         return true;
 
                     return false;
@@ -382,7 +385,7 @@ namespace BossMod.RPR
                         return false;
                     if (state.ArcaneCircleLeft > state.AnimationLock && state.ShroudGauge >= 50 && (state.ComboTimeLeft > 11 || state.ComboTimeLeft == 0))
                         return true;
-                    if ((state.CD(CDGroup.ArcaneCircle) < 6.5 || state.CD(CDGroup.ArcaneCircle) > 60) && state.ShroudGauge >= 50 && (state.ComboTimeLeft > 11 || state.ComboTimeLeft == 0))
+                    if ((state.CD(CDGroup.ArcaneCircle) < 6 || state.CD(CDGroup.ArcaneCircle) > 60) && state.ShroudGauge >= 50 && (state.ComboTimeLeft > 11 || state.ComboTimeLeft == 0))
                         return true;
 
                     return false;
@@ -399,7 +402,7 @@ namespace BossMod.RPR
             if (soulReaver)
                 return false;
 
-            if (state.EnshroudedLeft < 25 && state.TargetDeathDesignLeft > 30 && state.GCD < 0.8)
+            if (enshrouded && state.CD(CDGroup.Enshroud) < 11f && state.TargetDeathDesignLeft > 30)
                 return true;
             if (state.ShroudGauge < 50 && !enshrouded && strategy.CombatTimer > 0)
                 return true;
@@ -496,6 +499,8 @@ namespace BossMod.RPR
             }
 
 
+            if (plentifulReady && state.BloodsownCircleLeft < 1 && !soulReaver && !enshrouded && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0))
+                return AID.PlentifulHarvest;
 
             if ((state.CD(CDGroup.Gluttony) < 7.5 && state.Unlocked(AID.Gluttony) && !enshrouded && !soulReaver && state.TargetDeathDesignLeft < 10) || (state.CD(CDGroup.Gluttony) > 25 && state.Unlocked(AID.Gluttony) && state.SoulGauge >= 50 && !soulReaver && !enshrouded && state.TargetDeathDesignLeft < 7.5))
                 return AID.ShadowofDeath;
@@ -522,11 +527,9 @@ namespace BossMod.RPR
                 if (state.Unlocked(AID.Communio) && state.LemureShroudCount is 1 && state.VoidShroudCount is 0)
                     return AID.Communio;
 
-                return AID.CrossReaping;
+                return AID.GrimReaping;
             }
 
-            if (plentifulReady && state.BloodsownCircleLeft < 1 && !soulReaver && !enshrouded && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0))
-                return AID.PlentifulHarvest;
 
             if (state.SoulReaverLeft > state.GCD)
                 return GetNextBSAction(state, aoe);
