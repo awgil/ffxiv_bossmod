@@ -1,8 +1,4 @@
 ﻿
-using BossMod.Components;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using System.Runtime.CompilerServices;
-
 namespace BossMod.GNB
 {
     public static class Rotation
