@@ -60,7 +60,10 @@
 
     class P6WaveCannonWildCharge : Components.GenericWildCharge
     {
-        public P6WaveCannonWildCharge() : base(4, ActionID.MakeSpell(AID.P6WaveCannonWildCharge)) { }
+        public P6WaveCannonWildCharge() : base(4, ActionID.MakeSpell(AID.P6WaveCannonWildCharge))
+        {
+            FixedLength = 100;
+        }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
