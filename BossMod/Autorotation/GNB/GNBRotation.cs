@@ -1,4 +1,7 @@
 ﻿
+using BossMod.Components;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using System.Runtime.CompilerServices;
 
 namespace BossMod.GNB
 {
@@ -32,7 +35,7 @@ namespace BossMod.GNB
 
             public override string ToString()
             {
-                return $"ammo={Ammo}, ReadytoBlast={ReadyToBlast}, ReadytoGouge={ReadyToGouge}, ReadytoRip={ReadyToRip}, ReadytoTear={ReadyToTear}, roughdivide={CD(CDGroup.RoughDivide):f1}, RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"ammo={Ammo}, ReadytoBlast={ReadyToBlast}, ReadytoGouge={ReadyToGouge}, ReadytoRip={ReadyToRip}, ReadytoTear={ReadyToTear}, roughdivide={CD(CDGroup.RoughDivide):f1}, CBT={ComboTimeLeft:f1}, RB={RaidBuffsLeft:f1}, PotCD={PotionCD:f1}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -52,8 +55,11 @@ namespace BossMod.GNB
                 [PropertyDisplay("Use ST combo if still in ST combo, else use AOE combo", 0x80c0c000)]
                 ComboFitBeforeDowntime = 3, // useful on late phases before downtime
 
+                [PropertyDisplay("Use appropriate rotation to reach max gauge before downtime (NEEDS TESTING)", 0x80c0c000)]
+                MaxGaugeBeforeDowntime = 4, // useful on late phases before downtime
+
                 [PropertyDisplay("Use combo until second-last step, then spend gauge", 0x80400080)]
-                PenultimateComboThenSpend = 4, // useful for ensuring ST extension is used right before long downtime
+                PenultimateComboThenSpend = 5, // useful for ensuring ST extension is used right before long downtime
             }
 
             public enum PotionUse : uint
@@ -113,6 +119,7 @@ namespace BossMod.GNB
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
             public PotionUse PotionStrategy; // how are we supposed to use potions
             public OffensiveAbilityUse NoMercyUse; // how are we supposed to use IR
+            public OffensiveAbilityUse BloodFestUse;
             public OffensiveAbilityUse GnashUse; // how are we supposed to use upheaval
             public OffensiveAbilityUse ZoneUse; // how are we supposed to use upheaval
             public OffensiveAbilityUse BowUse; // how are we supposed to use PR
@@ -128,22 +135,24 @@ namespace BossMod.GNB
             // TODO: these bindings should be done by the framework...
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 8)
+                if (overrides.Length >= 9)
                 {
                     GaugeStrategy = (GaugeUse)overrides[0];
                     PotionStrategy = (PotionUse)overrides[1];
                     NoMercyUse = (OffensiveAbilityUse)overrides[2];
-                    GnashUse = (OffensiveAbilityUse)overrides[3];
-                    ZoneUse = (OffensiveAbilityUse)overrides[4];
-                    BowUse = (OffensiveAbilityUse)overrides[5];
-                    RoughDivideStrategy = (RoughDivideUse)overrides[6];
-                    SpecialActionUse = (SpecialAction)overrides[7];
+                    BloodFestUse = (OffensiveAbilityUse)overrides[3];
+                    GnashUse = (OffensiveAbilityUse)overrides[4];
+                    ZoneUse = (OffensiveAbilityUse)overrides[5];
+                    BowUse = (OffensiveAbilityUse)overrides[6];
+                    RoughDivideStrategy = (RoughDivideUse)overrides[7];
+                    SpecialActionUse = (SpecialAction)overrides[8];
                 }
                 else
                 {
                     GaugeStrategy = GaugeUse.Automatic;
                     PotionStrategy = PotionUse.Manual;
                     NoMercyUse = OffensiveAbilityUse.Automatic;
+                    BloodFestUse = OffensiveAbilityUse.Automatic;
                     GnashUse = OffensiveAbilityUse.Automatic;
                     ZoneUse = OffensiveAbilityUse.Automatic;
                     BowUse = OffensiveAbilityUse.Automatic;
@@ -153,6 +162,13 @@ namespace BossMod.GNB
             }
         }
 
+        public static int GaugeGainedFromAction(State state, AID action) => action switch
+        {
+            AID.SolidBarrel or AID.DemonSlaughter => 1,
+            AID.Bloodfest => state.Unlocked(TraitID.CartridgeChargeII) ? 3 : 2,
+            _ => 0
+        };
+
         public static int GetSTComboLength(AID comboLastMove) => comboLastMove switch
         {
             AID.BrutalShell => 1,
@@ -161,8 +177,6 @@ namespace BossMod.GNB
         };
 
         public static int GetAOEComboLength(AID comboLastMove) => comboLastMove == AID.DemonSlice ? 1 : 2;
-
-        public static AID GetNextBrutalShellComboAction(AID comboLastMove) => comboLastMove == AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
         public static AID GetNextSTComboAction(AID comboLastMove, AID finisher) => comboLastMove switch
         {
             AID.BrutalShell => finisher,
@@ -170,22 +184,56 @@ namespace BossMod.GNB
             _ => AID.KeenEdge
         };
 
-        public static AID GetNextAOEComboAction(AID comboLastMove) => comboLastMove == AID.DemonSlice ? AID.DemonSlaughter : AID.DemonSlice;
+        public static AID GetNextBrutalShellComboAction(AID comboLastMove)
+        {
+            if (comboLastMove == AID.DemonSlice)
+            {
+                return AID.DemonSlaughter;
+            }
+            else if (comboLastMove == AID.BrutalShell)
+            {
+                return AID.SolidBarrel;
+            }
+            else if (comboLastMove == AID.KeenEdge)
+            {
+                return AID.BrutalShell;
+            }
+
+            return AID.KeenEdge;
+        }
+
+        public static AID GetNextAOEComboAction(AID comboLastMove)
+        {
+            if (comboLastMove == AID.DemonSlice)
+            {
+                return AID.DemonSlaughter;
+            }
+            else if (comboLastMove == AID.BrutalShell)
+            {
+                return AID.SolidBarrel;
+            }
+            else if (comboLastMove == AID.KeenEdge)
+            {
+                return AID.BrutalShell;
+            }
+
+            return AID.DemonSlice;
+        }
 
         public static AID GetNextUnlockedComboAction(State state, Strategy strategy, bool aoe)
         {
-            if (strategy.GaugeStrategy == Strategy.GaugeUse.ComboFitBeforeDowntime && (strategy.FightEndIn <= state.GCD + 2.5f * GetSTComboLength(AID.KeenEdge)) && state.ComboTimeLeft == 0)
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.ComboFitBeforeDowntime && (strategy.FightEndIn <= state.GCD + 2.5f * GetSTComboLength(state.ComboLastMove)) && state.ComboTimeLeft == 0)
                 return AID.DemonSlice;
 
             if (aoe)
             {
                 return state.ComboLastMove switch
-                { 
+                {
                     AID.DemonSlice => state.Unlocked(AID.DemonSlaughter) ? AID.DemonSlaughter : AID.DemonSlice,
                     AID.BrutalShell => state.Unlocked(AID.SolidBarrel) ? AID.SolidBarrel : AID.KeenEdge,
                     AID.KeenEdge => state.Unlocked(AID.BrutalShell) ? AID.BrutalShell : AID.KeenEdge,
                     _ => AID.DemonSlice
-                    };
+                };
             }
             else
             {
@@ -201,13 +249,22 @@ namespace BossMod.GNB
 
         public static AID GetNextAmmoAction(State state, Strategy strategy, bool aoe)
         {
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.Spend)
+            {
+                if (state.CD(CDGroup.GnashingFang) > 9 && state.Ammo >= 1)
+                    return AID.BurstStrike;
+                if (strategy.FightEndIn < 9 && state.Ammo > 0)
+                    return AID.BurstStrike;
+            }
+
             if (Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5)
                 return AID.SolidBarrel;
             if (!Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5 && state.CD(CDGroup.Bloodfest) > 20)
                 return AID.SolidBarrel;
+
             if (state.CD(CDGroup.NoMercy) > 17)
             {
-                if (state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1 && ShouldUseGnash(state, strategy) && state.NumTargetsHitByAOE <= 3)
+                if (state.GunComboStep == 0 && state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1 && ShouldUseGnash(state, strategy) && state.NumTargetsHitByAOE <= 3)
                     return AID.GnashingFang;
             }
 
@@ -233,9 +290,9 @@ namespace BossMod.GNB
                     return AID.FatedCircle;
                 if (aoe && state.Ammo >= 1 && state.CD(CDGroup.GnashingFang) > state.GCD && state.CD(CDGroup.SonicBreak) > state.GCD && !state.Unlocked(AID.DoubleDown) && state.GunComboStep == 0)
                     return AID.FatedCircle;
-                if (aoe && state.Ammo >= 1 && state.CD(CDGroup.GnashingFang) > state.GCD && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak) && state.GunComboStep == 0)
+                if (aoe && state.Ammo >= 1 && state.CD(CDGroup.GnashingFang) > state.GCD && state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak) && state.GunComboStep == 0)
                     return AID.FatedCircle;
-                if (aoe && state.Ammo >= 1 && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak) && !state.Unlocked(AID.GnashingFang))
+                if (aoe && state.Ammo >= 1 && state.Unlocked(AID.FatedCircle) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak) && !state.Unlocked(AID.GnashingFang))
                     return AID.FatedCircle;
             }
 
@@ -247,12 +304,12 @@ namespace BossMod.GNB
                     return AID.SavageClaw;
             }
 
-            if (state.ComboLastMove == AID.BrutalShell && state.Ammo == state.MaxCartridges)
+            if (state.ComboLastMove == AID.BrutalShell && state.Ammo == state.MaxCartridges && state.Unlocked(AID.BurstStrike))
             {
                 return AID.BurstStrike;
             }
 
-            if (aoe && state.ComboLastMove == AID.DemonSlice && state.Ammo == state.MaxCartridges)
+            if (aoe && state.ComboLastMove == AID.DemonSlice && state.Ammo == state.MaxCartridges && state.Unlocked(AID.FatedCircle))
             {
                 return AID.FatedCircle;
             }
@@ -286,33 +343,87 @@ namespace BossMod.GNB
             _ => false
         };
 
-        public static bool ShouldUseNoMercy(State state, Strategy strategy) => strategy.NoMercyUse switch
+        public static bool ShouldUseNoMercy(State state, Strategy strategy)
         {
-            Strategy.OffensiveAbilityUse.Delay => false,
-            Strategy.OffensiveAbilityUse.Force => true,
-            _ => (!Service.Config.Get<GNBConfig>().Skscheck && strategy.CombatTimer >= 0 && (state.CD(CDGroup.GnashingFang) < state.GCD) && ((state.TargetingEnemy && ((!Service.Config.Get<GNBConfig>().EarlyNoMercy && state.ComboLastMove == AID.BrutalShell) || (Service.Config.Get<GNBConfig>().EarlyNoMercy && state.ComboLastMove == AID.KeenEdge)) && state.Ammo == 0 && state.CD(CDGroup.Bloodfest) < 4) || state.Ammo == state.MaxCartridges || state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1 || (state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.CD(CDGroup.Bloodfest) > 20))) || 
-            (Service.Config.Get<GNBConfig>().Skscheck && state.GCD < 0.8 && (state.CD(CDGroup.GnashingFang) < state.GCD) && (state.Ammo == state.MaxCartridges || (state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1) || (state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell)))
-        };
+            if (strategy.NoMercyUse == Strategy.OffensiveAbilityUse.Delay)
+            {
+                return false;
+            }
+            else if (strategy.NoMercyUse == Strategy.OffensiveAbilityUse.Force)
+            {
+                return true;
+            }
+            else
+            {
+                GNBConfig gnbConfig = Service.Config.Get<GNBConfig>();
+                bool isEarlyNoMercy = gnbConfig.EarlyNoMercy;
+
+                bool isGnashingFangReady = state.CD(CDGroup.GnashingFang) < 2.5 && state.Unlocked(AID.GnashingFang);
+                bool isSonicBreakReady = state.CD(CDGroup.SonicBreak) < 2.5 && state.Unlocked(AID.SonicBreak);
+                bool isDoubleDownReady = state.CD(CDGroup.DoubleDown) < 2.5 && state.Unlocked(AID.DoubleDown);
+                bool justusewhenever = !state.Unlocked(AID.BurstStrike) && state.TargetingEnemy && state.RangeToTarget < 5;
+
+                bool shouldUseEarlyNoMercy = state.TargetingEnemy && ((!isEarlyNoMercy && state.ComboLastMove == AID.BrutalShell) || (isEarlyNoMercy && state.ComboLastMove == AID.KeenEdge)) && strategy.CombatTimer < 10 && (state.Ammo == 0 || state.Ammo == state.MaxCartridges) && ((state.GCD < 0.8 && gnbConfig.Skscheck) || (!gnbConfig.Skscheck));
+
+                bool shouldUseRegularNoMercy = (!gnbConfig.Skscheck
+                    && (isGnashingFangReady || isSonicBreakReady || isDoubleDownReady)
+                    && state.TargetingEnemy
+                    && ((state.Ammo == state.MaxCartridges)
+                    || (state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.CD(CDGroup.Bloodfest) > 20)
+                    || (state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1))) || shouldUseEarlyNoMercy;
+
+                bool shouldUseSksCheck = (gnbConfig.Skscheck && state.GCD < 0.8
+                    && (isGnashingFangReady || isSonicBreakReady || isDoubleDownReady)
+                    && state.TargetingEnemy
+                    && (state.Ammo == state.MaxCartridges
+                    || (state.CD(CDGroup.Bloodfest) < 15 && state.Ammo == 1)
+                    || (state.Ammo == 2 && state.ComboLastMove == AID.BrutalShell && state.CD(CDGroup.Bloodfest) > 20))) || shouldUseEarlyNoMercy;
+
+                return shouldUseRegularNoMercy || shouldUseSksCheck || justusewhenever;
+            }
+        }
+
 
         public static bool ShouldUseGnash(State state, Strategy strategy) => strategy.GnashUse switch
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1
+            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1
         };
 
         public static bool ShouldUseZone(State state, Strategy strategy) => strategy.ZoneUse switch
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.CD(CDGroup.GnashingFang) > state.AnimationLock && state.CD(CDGroup.NoMercy) > 17
+            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.SonicBreak) && state.CD(CDGroup.SonicBreak) > state.AnimationLock && state.CD(CDGroup.NoMercy) > 17
         };
+
+        public static bool ShouldUseFest(State state, Strategy strategy)
+        {
+            if (strategy.BloodFestUse == Strategy.OffensiveAbilityUse.Delay)
+            {
+                return false;
+            }
+            else if (strategy.BloodFestUse == Strategy.OffensiveAbilityUse.Force)
+            {
+                return true;
+            }
+            else
+            {
+                GNBConfig gnbConfig = Service.Config.Get<GNBConfig>();
+                bool isEarlyNoMercy = gnbConfig.EarlyNoMercy;
+
+                bool shouldUseEarlyNoMercy = state.TargetingEnemy && state.CD(CDGroup.NoMercy) < state.AnimationLock && ((!isEarlyNoMercy && state.ComboLastMove == AID.BrutalShell) || (isEarlyNoMercy && state.ComboLastMove == AID.KeenEdge)) && strategy.CombatTimer < 10 && state.Ammo == 0 && state.Unlocked(AID.Bloodfest);
+                bool inNoMercy = state.NoMercyLeft > state.AnimationLock && state.Unlocked(AID.Bloodfest);
+                return inNoMercy && state.Ammo == 0;
+            }
+        }
 
         public static bool ShouldUseBow(State state, Strategy strategy) => strategy.BowUse switch
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.CD(CDGroup.GnashingFang) > state.AnimationLock && state.CD(CDGroup.NoMercy) > 40
+            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.BowShock) && state.CD(CDGroup.SonicBreak) > state.AnimationLock && state.CD(CDGroup.NoMercy) > 40
         };
 
         public static bool ShouldUseRoughDivide(State state, Strategy strategy)
@@ -352,13 +463,60 @@ namespace BossMod.GNB
             }
         }
 
+        public static AID ChooseRotationBasedOnGauge(State state, Strategy strategy, bool aoe)
+        {
+            int maxGauge = state.MaxCartridges;
+
+            // Calculate remaining gauge needed
+            int remainingGauge = maxGauge - state.Ammo;
+
+            // Calculate the time needed to complete each rotation
+            float timeForSTRotation;
+            float timeForAOERotation;
+            float timeForSTRotationForOneCart;
+            float timeForAOERotationForOneCart;
+
+            // Calculate the time needed to gain the remaining gauge for each rotation
+            timeForSTRotation = state.GCD + remainingGauge * (2.5f * GetSTComboLength(state.ComboLastMove) - 1); // Assuming SolidBarrel adds 1 gauge
+            timeForAOERotation = state.GCD + remainingGauge * (2.5f * GetAOEComboLength(state.ComboLastMove) - 1); // Assuming DemonSlice adds 1 gauge
+
+            timeForSTRotationForOneCart = state.GCD + (2.5f * GetSTComboLength(state.ComboLastMove) - 1); // Assuming SolidBarrel adds 1 gauge
+            timeForAOERotationForOneCart = state.GCD + (2.5f * GetAOEComboLength(state.ComboLastMove) - 1); // Assuming DemonSlice adds 1 gauge
+
+            // Choose the rotation with the shorter duration
+            if (strategy.FightEndIn <= timeForSTRotation)
+            {
+                // Return the next ST GCD action
+                return GetNextBrutalShellComboAction(state.ComboLastMove);
+            }
+            if (strategy.FightEndIn <= timeForAOERotation)
+            {
+                // Return the next AOE GCD action
+                return GetNextAOEComboAction(state.ComboLastMove);
+            }
+            // Choose the rotation with the shorter duration
+            if (strategy.FightEndIn <= timeForSTRotationForOneCart)
+            {
+                // Return the next ST GCD action
+                return GetNextBrutalShellComboAction(state.ComboLastMove);
+            }
+            if (strategy.FightEndIn <= timeForAOERotationForOneCart)
+            {
+                // Return the next AOE GCD action
+                return GetNextAOEComboAction(state.ComboLastMove);
+            }
+
+            // Default action
+            return GetNextUnlockedComboAction(state, strategy, aoe);
+        }
+
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
             // prepull
             if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
                 return AID.None;
 
-            if (strategy.GaugeStrategy == Strategy.GaugeUse.ComboFitBeforeDowntime && GetSTComboLength(state.ComboLastMove) <= strategy.FightEndIn)
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.ComboFitBeforeDowntime && (state.GCD + 2.5f * GetSTComboLength(state.ComboLastMove) <= strategy.FightEndIn) && state.NoMercyLeft < state.AnimationLock)
                 return GetNextAOEComboAction(state.ComboLastMove);
 
             if (strategy.GaugeStrategy == Strategy.GaugeUse.LightningShotIfNotInMelee && state.RangeToTarget > 3)
@@ -396,35 +554,27 @@ namespace BossMod.GNB
                     return AID.SavageClaw;
             }
 
-            if (strategy.GaugeStrategy == Strategy.GaugeUse.Spend && state.Ammo >= 1 && state.CD(CDGroup.GnashingFang) >= state.AnimationLock && state.CD(CDGroup.SonicBreak) >= state.AnimationLock && state.CD(CDGroup.DoubleDown) >= state.AnimationLock && state.GunComboStep == 0)
-                return AID.BurstStrike;
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.Spend)
+                return GetNextAmmoAction(state, strategy, aoe);
+
+            if (strategy.GaugeStrategy == Strategy.GaugeUse.MaxGaugeBeforeDowntime && state.NoMercyLeft < state.AnimationLock)
+                return ChooseRotationBasedOnGauge(state, strategy, aoe);
 
             return GetNextUnlockedComboAction(state, strategy, aoe);
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
-            if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
-                return ActionID.MakeSpell(AID.None);
             bool hasContinuation = state.ReadyToBlast || state.ReadyToGouge || state.ReadyToRip || state.ReadyToTear;
             if (strategy.SpecialActionUse == Strategy.SpecialAction.LB3)
                 return ActionID.MakeSpell(AID.GunmetalSoul);
 
-            bool wantOnslaught = state.Unlocked(AID.RoughDivide) && state.TargetingEnemy && ShouldUseRoughDivide(state, strategy);
-            if (wantOnslaught && state.RangeToTarget > 3)
+            bool wantRoughDivide = state.Unlocked(AID.RoughDivide) && state.TargetingEnemy && ShouldUseRoughDivide(state, strategy);
+            if (wantRoughDivide && state.RangeToTarget > 3)
                 return ActionID.MakeSpell(AID.RoughDivide);
 
             if (ShouldUsePotion(state, strategy) && state.CanWeave(state.PotionCD, 1.1f, deadline))
                 return CommonDefinitions.IDPotionStr;
-
-            if (state.ReadyToBlast)
-                return ActionID.MakeSpell(AID.Hypervelocity);
-            if (state.ReadyToGouge)
-                return ActionID.MakeSpell(AID.EyeGouge);
-            if (state.ReadyToTear)
-                return ActionID.MakeSpell(AID.AbdomenTear);
-            if (state.ReadyToRip)
-                return ActionID.MakeSpell(AID.JugularRip);
 
             if (state.Unlocked(AID.NoMercy))
             {
@@ -438,13 +588,25 @@ namespace BossMod.GNB
             if (state.Unlocked(AID.BowShock) && ShouldUseBow(state, strategy) && state.CanWeave(CDGroup.BowShock, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.BowShock);
 
-            if (state.Unlocked(AID.Bloodfest) && state.CanWeave(CDGroup.Bloodfest, 0.6f, deadline) && state.Ammo == 0 && state.NoMercyLeft > state.AnimationLock)
+            if (state.ReadyToBlast && state.Unlocked(AID.Continuation))
+                return ActionID.MakeSpell(AID.Hypervelocity);
+            if (state.ReadyToGouge && state.Unlocked(AID.Continuation))
+                return ActionID.MakeSpell(AID.EyeGouge);
+            if (state.ReadyToTear && state.Unlocked(AID.Continuation))
+                return ActionID.MakeSpell(AID.AbdomenTear);
+            if (state.ReadyToRip && state.Unlocked(AID.Continuation))
+                return ActionID.MakeSpell(AID.JugularRip);
+
+            if (state.Unlocked(AID.Bloodfest) && state.CanWeave(CDGroup.Bloodfest, 0.6f, deadline) && ShouldUseFest(state, strategy))
                 return ActionID.MakeSpell(AID.Bloodfest);
 
-            if (wantOnslaught && Service.Config.Get<GNBConfig>().NoMercyRoughDivide && state.CanWeave(state.CD(CDGroup.RoughDivide) - 28.5f, 0.6f, deadline) && state.NoMercyLeft > state.AnimationLock && state.CD(CDGroup.GnashingFang) > 2.5)
+            if (wantRoughDivide && Service.Config.Get<GNBConfig>().NoMercyRoughDivide && state.CanWeave(state.CD(CDGroup.RoughDivide) - 28.5f, 0.6f, deadline) && state.NoMercyLeft > state.AnimationLock && state.CD(CDGroup.SonicBreak) > 5.5 && state.Unlocked(AID.BurstStrike))
                 return ActionID.MakeSpell(AID.RoughDivide);
 
-            if (wantOnslaught && state.CanWeave(state.CD(CDGroup.RoughDivide), 0.6f, deadline) && state.CD(CDGroup.GnashingFang) > 2.5)
+            if (wantRoughDivide && state.CanWeave(state.CD(CDGroup.RoughDivide), 0.6f, deadline) && state.Unlocked(AID.SonicBreak) && state.CD(CDGroup.SonicBreak) > 5.5)
+                return ActionID.MakeSpell(AID.RoughDivide);
+
+            if (wantRoughDivide && state.CanWeave(state.CD(CDGroup.RoughDivide), 0.6f, deadline) && !state.Unlocked(AID.SonicBreak))
                 return ActionID.MakeSpell(AID.RoughDivide);
 
             if (strategy.SpecialActionUse == Strategy.SpecialAction.StanceOn && state.CanWeave(state.CD(CDGroup.RoyalGuard), 0.6f, deadline) && state.GunComboStep == 0 && !state.HaveTankStance)
@@ -453,7 +615,16 @@ namespace BossMod.GNB
             if (strategy.SpecialActionUse == Strategy.SpecialAction.StanceOff && state.CanWeave(state.CD(CDGroup.ReleaseRoyalGuard), 0.6f, deadline) && state.GunComboStep == 0 && state.HaveTankStance)
                 return ActionID.MakeSpell(AID.ReleaseRoyalGuard);
 
-            if (state.CanWeave(state.CD(CDGroup.Aurora) - 60, 0.6f, deadline) && state.AuroraLeft < state.GCD && state.CD(CDGroup.NoMercy) > 1 && state.CD(CDGroup.GnashingFang) > 1 && state.CD(CDGroup.SonicBreak) > 1 && state.CD(CDGroup.DoubleDown) > 1)
+            if (state.CanWeave(state.CD(CDGroup.Aurora) - 60, 0.6f, deadline) && state.Unlocked(AID.Aurora) && state.AuroraLeft < state.GCD && state.CD(CDGroup.NoMercy) > 1 && state.CD(CDGroup.GnashingFang) > 1 && state.CD(CDGroup.SonicBreak) > 1 && state.CD(CDGroup.DoubleDown) > 1)
+                return ActionID.MakeSpell(AID.Aurora);
+
+            if (state.CanWeave(state.CD(CDGroup.Aurora) - 60, 0.6f, deadline) && state.Unlocked(AID.Aurora) && !state.Unlocked(AID.DoubleDown) && state.AuroraLeft < state.GCD && state.CD(CDGroup.NoMercy) > 1 && state.CD(CDGroup.GnashingFang) > 1 && state.CD(CDGroup.SonicBreak) > 1)
+                return ActionID.MakeSpell(AID.Aurora);
+
+            if (state.CanWeave(state.CD(CDGroup.Aurora) - 60, 0.6f, deadline) && state.Unlocked(AID.Aurora) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak) && state.AuroraLeft < state.GCD && state.CD(CDGroup.NoMercy) > 1 && state.CD(CDGroup.GnashingFang) > 1)
+                return ActionID.MakeSpell(AID.Aurora);
+
+            if (state.CanWeave(state.CD(CDGroup.Aurora) - 60, 0.6f, deadline) && state.Unlocked(AID.Aurora) && !state.Unlocked(AID.DoubleDown) && !state.Unlocked(AID.SonicBreak) && !state.Unlocked(AID.GnashingFang) && state.AuroraLeft < state.GCD && state.CD(CDGroup.NoMercy) > 1)
                 return ActionID.MakeSpell(AID.Aurora);
 
             return new();

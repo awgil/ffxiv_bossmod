@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Types;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.JobGauge.Types;
 using System;
 using System.Linq;
 
@@ -106,10 +107,12 @@ namespace BossMod.GNB
         {
             FillCommonPlayerState(_state);
             _state.HaveTankStance = Player.FindStatus(SID.RoyalGuard) != null;
+            if (_state.ComboLastMove == AID.SolidBarrel)
+                _state.ComboTimeLeft = 0;
 
             _state.Ammo = Service.JobGauges.Get<GNBGauge>().Ammo;
             _state.GunComboStep = Service.JobGauges.Get<GNBGauge>().AmmoComboStep;
-            _state.MaxCartridges = _state.Level >= 88 ? 3 : 2;
+            _state.MaxCartridges = _state.Unlocked(TraitID.CartridgeChargeII) ? 3 : 2;
 
             _state.NoMercyLeft = StatusDetails(Player, SID.NoMercy, Player.InstanceID).Left;
             _state.ReadyToRip = Player.FindStatus(SID.ReadyToRip) != null;
@@ -132,7 +135,6 @@ namespace BossMod.GNB
             SupportedSpell(AID.DemonSlaughter).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(ComboLastMove)) : null;
 
             // smart targets
-            SupportedSpell(AID.HeartOfCorundum).TransformTarget = _config.SmartHeartofCorundumShirkTarget ? SmartTargetCoTank : null;
             SupportedSpell(AID.Shirk).TransformTarget = _config.SmartHeartofCorundumShirkTarget ? SmartTargetCoTank : null;
             SupportedSpell(AID.Provoke).TransformTarget = _config.ProvokeMouseover ? SmartTargetHostile : null; // TODO: also interject/low-blow
         }
