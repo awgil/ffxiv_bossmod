@@ -28,6 +28,10 @@ namespace BossMod.GNB
             SupportedSpell(AID.HeartOfStone).TransformAction = SupportedSpell(AID.HeartOfCorundum).TransformAction = () => ActionID.MakeSpell(_state.BestHeart);
             SupportedSpell(AID.Continuation).TransformAction = SupportedSpell(AID.JugularRip).TransformAction = SupportedSpell(AID.AbdomenTear).TransformAction = SupportedSpell(AID.EyeGouge).TransformAction = SupportedSpell(AID.Hypervelocity).TransformAction = () => ActionID.MakeSpell(_state.BestContinuation);
             SupportedSpell(AID.GnashingFang).TransformAction = SupportedSpell(AID.SavageClaw).TransformAction = SupportedSpell(AID.WickedTalon).TransformAction = () => ActionID.MakeSpell(_state.BestGnash);
+            SupportedSpell(AID.Continuation).Condition = _ => _state.ReadyToRip ? ActionID.MakeSpell(AID.JugularRip) : ActionID.MakeSpell(AID.None);
+            SupportedSpell(AID.Continuation).Condition = _ => _state.ReadyToTear ? ActionID.MakeSpell(AID.AbdomenTear) : ActionID.MakeSpell(AID.None);
+            SupportedSpell(AID.Continuation).Condition = _ => _state.ReadyToGouge ? ActionID.MakeSpell(AID.EyeGouge) : ActionID.MakeSpell(AID.None);
+            SupportedSpell(AID.Continuation).Condition = _ => _state.ReadyToBlast ? ActionID.MakeSpell(AID.Hypervelocity) : ActionID.MakeSpell(AID.None);
 
             SupportedSpell(AID.Aurora).Condition = _ => Player.HP.Cur < Player.HP.Max;
             SupportedSpell(AID.Reprisal).Condition = _ => Autorot.Hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(Player.Position, 5 + e.Actor.HitboxRadius)); // TODO: consider checking only target?..

@@ -1,4 +1,6 @@
 ﻿
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+
 namespace BossMod.GNB
 {
     public static class Rotation
@@ -71,7 +73,7 @@ namespace BossMod.GNB
                 [PropertyDisplay("2min / 8min Potion use", 0x800000ff)]
                 Special = 3,
 
-                [PropertyDisplay("Use ASAP, even if without ST", 0x800000ff)]
+                [PropertyDisplay("Use ASAP", 0x800000ff)]
                 Force = 4,
             }
 
@@ -519,13 +521,13 @@ namespace BossMod.GNB
                 return AID.LightningShot;
 
             if (state.ReadyToBlast)
-                return AID.Hypervelocity;
+                return state.BestContinuation;
             if (state.ReadyToGouge)
-                return AID.EyeGouge;
+                return state.BestContinuation;
             if (state.ReadyToTear)
-                return AID.AbdomenTear;
+                return state.BestContinuation;
             if (state.ReadyToRip)
-                return AID.JugularRip;
+                return state.BestContinuation;
 
             if (strategy.GaugeStrategy == Strategy.GaugeUse.PenultimateComboThenSpend && state.ComboLastMove != AID.BrutalShell && state.ComboLastMove != AID.DemonSlice && (state.ComboLastMove != AID.BrutalShell || state.Ammo == state.MaxCartridges) && state.GunComboStep == 0)
                 return aoe ? AID.DemonSlice : state.ComboLastMove == AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
@@ -585,13 +587,13 @@ namespace BossMod.GNB
                 return ActionID.MakeSpell(AID.BowShock);
 
             if (state.ReadyToBlast && state.Unlocked(AID.Hypervelocity))
-                return ActionID.MakeSpell(AID.Hypervelocity);
+                return ActionID.MakeSpell(state.BestContinuation);
             if (state.ReadyToGouge && state.Unlocked(AID.Continuation))
-                return ActionID.MakeSpell(AID.EyeGouge);
+                return ActionID.MakeSpell(state.BestContinuation);
             if (state.ReadyToTear && state.Unlocked(AID.Continuation))
-                return ActionID.MakeSpell(AID.AbdomenTear);
+                return ActionID.MakeSpell(state.BestContinuation);
             if (state.ReadyToRip && state.Unlocked(AID.Continuation))
-                return ActionID.MakeSpell(AID.JugularRip);
+                return ActionID.MakeSpell(state.BestContinuation);
 
             if (state.Unlocked(AID.Bloodfest) && state.CanWeave(CDGroup.Bloodfest, 0.6f, deadline) && ShouldUseFest(state, strategy))
                 return ActionID.MakeSpell(AID.Bloodfest);

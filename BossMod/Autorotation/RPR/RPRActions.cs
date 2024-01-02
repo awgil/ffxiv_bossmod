@@ -25,6 +25,7 @@ namespace BossMod.RPR
             SupportedSpell(AID.BloodStalk).TransformAction = SupportedSpell(AID.UnveiledGallows).TransformAction = SupportedSpell(AID.UnveiledGibbet).TransformAction = () => ActionID.MakeSpell(_state.Beststalk);
             SupportedSpell(AID.Gibbet).TransformAction = SupportedSpell(AID.VoidReaping).TransformAction = () => ActionID.MakeSpell(_state.BestGibbet);
             SupportedSpell(AID.Gallows).TransformAction = SupportedSpell(AID.CrossReaping).TransformAction = () => ActionID.MakeSpell(_state.BestGallow);
+            SupportedSpell(AID.SoulSow).TransformAction = SupportedSpell(AID.HarvestMoon).TransformAction = () => ActionID.MakeSpell(_state.BestSow);
 
             SupportedSpell(AID.Harpe).Condition = _ => !_config.ForbidEarlyHarpe || _strategy.CombatTimer == float.MinValue || _strategy.CombatTimer >= -1.7f;
             SupportedSpell(AID.LegSweep).Condition = target => target?.CastInfo?.Interruptible ?? false;
