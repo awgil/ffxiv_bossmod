@@ -62,7 +62,6 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
                         break;
                 }
             }
-            hints.ForcedTarget = hints.PotentialTargets.MaxBy(e => e.Priority)?.Actor;
 
             // if there are no active mechanics, all except current tank prefer stacking on max melee behind boss, at an angle that allows all positionals
             if (!haveGaolers && !KillNextBomb && actor.InstanceID != module.PrimaryActor.TargetID && hints.ForbiddenZones.Count == 0)
