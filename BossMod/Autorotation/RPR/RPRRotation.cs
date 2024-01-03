@@ -386,6 +386,8 @@ namespace BossMod.RPR
                         return false;
                     if (soulReaver)
                         return false;
+                    if (!state.Unlocked(AID.Enshroud))
+                        return false;
 
                     if (enshrouded)
                         return false;
