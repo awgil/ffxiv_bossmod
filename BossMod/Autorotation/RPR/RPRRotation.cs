@@ -550,10 +550,10 @@ namespace BossMod.RPR
             if (state.SoulReaverLeft > state.GCD)
                 return GetNextBSAction(state, aoe);
 
-            if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && state.Unlocked(AID.SoulScythe) && !enshrouded && !soulReaver && aoe && (state.ComboTimeLeft > 2.5 + 2.5 || state.ComboTimeLeft == 0))
+            if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && state.Unlocked(AID.SoulScythe) && !enshrouded && !soulReaver && aoe && (state.ComboTimeLeft > 2.5 + 2.5 || state.ComboTimeLeft == 0) && state.CD(CDGroup.ArcaneCircle) > 8)
                 return AID.SoulScythe;
 
-            if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && state.Unlocked(AID.SoulSlice) && !enshrouded && !soulReaver && !aoe && (state.ComboTimeLeft > 2.5 + 2.5 || state.ComboTimeLeft == 0))
+            if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && state.Unlocked(AID.SoulSlice) && !enshrouded && !soulReaver && !aoe && (state.ComboTimeLeft > 2.5 + 2.5 || state.ComboTimeLeft == 0) && state.CD(CDGroup.ArcaneCircle) > 8)
                 return AID.SoulSlice;
 
 
