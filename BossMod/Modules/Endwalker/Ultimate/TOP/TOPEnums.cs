@@ -27,6 +27,8 @@
         IntermissionAlpha = 0x3E75, // R0.900, spawn during fight (purely visual during pre-p6 intermission)
         IntermissionOmegaF = 0x3E76, // R0.500, spawn during fight (purely visual during pre-p6 intermission)
         BossP6 = 0x3D6D, // R13.000, spawn during fight
+        CosmoMeteor = 0x3D6E, // R3.000, spawn during fight (p6 big meteor)
+        CosmoComet = 0x3D6F, // R1.000, spawn during fight (p6 small comet)
 
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
@@ -227,6 +229,10 @@
         P6WaveCannonProtean = 31657, // BossP6->self, 10.9s cast, single-target, visual (proteans + wild charge)
         P6WaveCannonWildCharge = 31658, // BossP6->self, no cast, range 100 width 8 rect wild charge
         P6WaveCannonProteanAOE = 31659, // Helper->self, no cast, range 100 width 8 rect
+        CosmoMeteor = 31664, // BossP6->self, 5.0s cast, single-target, visual (big puddles + meteors/comets spawn)
+        CosmoMeteorAOE = 31666, // Helper->self, 4.0s cast, range 10 circle puddle
+        CosmoMeteorSpread = 32699, // Helper->player, no cast, range 5 circle spread
+        CosmoMeteorCometEnrage = 31669, // CosmoComet->self, no cast, range 100 circle, wipe if comets not killed in time
 
         //_Ability_LatentSynchronizationDefect = 31576, // Helper->player, no cast, single-target
     };

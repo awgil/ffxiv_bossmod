@@ -79,8 +79,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
             P6CosmoArrowWaveCannon(id + 0x60000, 0.3f);
             P6FlashGales(id + 0x70000, 4.9f);
             P6UnlimitedWaveCannonCosmoDive(id + 0x80000, 0.3f);
-            // not sure about timings below...
             P6FlashGales(id + 0x90000, 7.5f);
+            P6CosmoMeteor(id + 0xA0000, 3.5f);
             // meteors, flares, magic numbers, enrage
             SimpleState(id + 0xFF0000, 100, "???");
         }
@@ -496,10 +496,10 @@ namespace BossMod.Endwalker.Ultimate.TOP
             ComponentCondition<P6CosmoArrow>(id + 0x13, 2, comp => comp.NumCasts >= 26, "Exasquare 4");
 
             ActorCastStart(id + 0x20, _module.BossP6, AID.CosmoDive, 1.1f, true);
-            ComponentCondition<P6CosmoArrow>(id + 0x21, 0.9f, comp => comp.NumCasts >= (comp.CurPattern == Ultimate.TOP.P6CosmoArrow.Pattern.OutIn ? 34 : 30), "Exasquare 5") // depending on pattern, lines expanding outwards could have finished
+            ComponentCondition<P6CosmoArrow>(id + 0x21, 0.9f, comp => comp.NumCasts >= (comp.CurPattern == P6CosmoArrow.Pattern.OutIn ? 34 : 30), "Exasquare 5") // depending on pattern, lines expanding outwards could have finished
                 .ActivateOnEnter<P6CosmoDive>();
-            ComponentCondition<P6CosmoArrow>(id + 0x22, 2, comp => comp.NumCasts >= (comp.CurPattern == Ultimate.TOP.P6CosmoArrow.Pattern.OutIn ? 38 : 34), "Exasquare 6");
-            ComponentCondition<P6CosmoArrow>(id + 0x23, 2, comp => comp.NumCasts >= (comp.CurPattern == Ultimate.TOP.P6CosmoArrow.Pattern.OutIn ? 42 : 38), "Exasquare 7"); // will get one more for in-out pattern
+            ComponentCondition<P6CosmoArrow>(id + 0x22, 2, comp => comp.NumCasts >= (comp.CurPattern == P6CosmoArrow.Pattern.OutIn ? 38 : 34), "Exasquare 6");
+            ComponentCondition<P6CosmoArrow>(id + 0x23, 2, comp => comp.NumCasts >= (comp.CurPattern == P6CosmoArrow.Pattern.OutIn ? 42 : 38), "Exasquare 7"); // will get one more for in-out pattern
             ActorCastEnd(id + 0x24, _module.BossP6, 0.7f, true);
 
             ComponentCondition<P6CosmoDive>(id + 0x30, 2.5f, comp => !comp.Active, "Tankbusters + Stack")
@@ -551,7 +551,6 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
         }
 
-        // TODO: timings..
         private void P6UnlimitedWaveCannonCosmoDive(uint id, float delay)
         {
             ActorCast(id, _module.BossP6, AID.UnlimitedWaveCannon, delay, 5, true)
@@ -560,13 +559,31 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 .ActivateOnEnter<P6WaveCannonPuddle>();
             ComponentCondition<P6WaveCannonExaflare>(id + 0x11, 1.9f, comp => comp.NumCasts > 0, "Exaflares start");
 
-            ActorCast(id + 0x20, _module.BossP6, AID.CosmoDive, 6, 5.6f, true)
+            ActorCast(id + 0x20, _module.BossP6, AID.CosmoDive, 6.1f, 5.6f, true)
                 .ActivateOnEnter<P6CosmoDive>();
             ComponentCondition<P6CosmoDive>(id + 0x30, 2.5f, comp => !comp.Active, "Tankbusters + Stack")
                 .DeactivateOnExit<P6CosmoDive>()
                 .DeactivateOnExit<P6WaveCannonExaflare>()
                 .DeactivateOnExit<P6WaveCannonPuddle>()
                 .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P6CosmoMeteor(uint id, float delay)
+        {
+            ActorCast(id, _module.BossP6, AID.CosmoMeteor, delay, 5, true);
+            ComponentCondition<P6CosmoMeteorPuddles>(id + 0x10, 0.1f, comp => comp.Casters.Count > 0, "Puddles bait")
+                .ActivateOnEnter<P6CosmoMeteorPuddles>();
+            ComponentCondition<P6CosmoMeteorPuddles>(id + 0x20, 4.0f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P6CosmoMeteorSpread>()
+                .ActivateOnEnter<P6CosmoMeteorAddComet>() // adds become targetable ~3.2s after puddle casts start
+                .ActivateOnEnter<P6CosmoMeteorAddMeteor>()
+                .DeactivateOnExit<P6CosmoMeteorPuddles>();
+            ComponentCondition<P6CosmoMeteorSpread>(id + 0x30, 1.2f, comp => comp.NumCasts > 0, "Spreads 1");
+            ComponentCondition<P6CosmoMeteorSpread>(id + 0x31, 1.0f, comp => comp.NumCasts > 4, "Spreads 2");
+            ComponentCondition<P6CosmoMeteorSpread>(id + 0x32, 5.0f, comp => comp.NumCasts > 8, "Spreads 3");
+            ComponentCondition<P6CosmoMeteorSpread>(id + 0x33, 1.0f, comp => comp.NumCasts > 12, "Spreads 4")
+                .DeactivateOnExit<P6CosmoMeteorSpread>();
+            // +3.2s: comet enrage
         }
     }
 }
