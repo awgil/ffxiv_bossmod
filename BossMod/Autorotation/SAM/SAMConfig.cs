@@ -9,5 +9,8 @@ namespace BossMod {
 
         [PropertyDisplay("Automatically spend Kenki gauge")]
         public bool UseKenki = true;
+
+        [PropertyDisplay("Use Gyoten as a gap closer")]
+        public bool DashOutsideMelee = false;
     }
 }

@@ -72,13 +72,14 @@ namespace BossMod.SAM
             if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
                 return AID.None;
 
+            // fallback 1: out of range for ogi
+            // (enpi is the only gcd that doesn't cancel tsubame)
+            if (CanEnpi(state, strategy) && state.RangeToTarget > 8)
+                return AID.Enpi;
+
             // we can't save kaeshi across GCDs, weaponskills break the combo, so always use them even unbuffed
             if (state.NextKaeshi != AID.None)
                 return state.NextKaeshi;
-
-            // fallback 1: out of range for ogi
-            if (CanEnpi(state, strategy) && state.RangeToTarget > 8)
-                return AID.Enpi;
 
             // ogi checks
             if (state.OgiNamikiriLeft > 0 &&
@@ -242,7 +243,7 @@ namespace BossMod.SAM
                 && state.RaidBuffsLeft > state.AnimationLock
                 && state.Unlocked(AID.HissatsuGyoten)
                 && state.Kenki >= 10
-                && (!state.Unlocked(AID.HissatsuSenei) || state.CD(CDGroup.HissatsuSenei) > 0))
+                && (!state.Unlocked(AID.HissatsuSenei) || state.CD(CDGroup.HissatsuSenei) > state.RaidBuffsLeft))
                 return ActionID.MakeSpell(AID.HissatsuGyoten);
 
             if (CanUseKenki(state, strategy)) {
@@ -258,10 +259,15 @@ namespace BossMod.SAM
                         return ActionID.MakeSpell(AID.HissatsuKyuten);
                 } else {
                     // 120s cooldown
-                    if (state.Unlocked(AID.HissatsuSenei)
+                    if (state.Unlocked(AID.HissatsuGuren)
                         && state.HasCombatBuffs
                         && state.CanWeave(CDGroup.HissatsuSenei, 0.6f, deadline))
-                        return ActionID.MakeSpell(AID.HissatsuSenei);
+                    {
+                        // senei is unlocked at 72
+                        if (state.Unlocked(AID.HissatsuSenei)) return ActionID.MakeSpell(AID.HissatsuSenei);
+                        // otherwise use single target guren
+                        return ActionID.MakeSpell(AID.HissatsuGuren);
+                    }
 
                     // use on cooldown
                     if (state.Unlocked(AID.HissatsuShinten) && state.CanWeave(deadline))
@@ -274,9 +280,10 @@ namespace BossMod.SAM
 
         private static bool ShouldRefreshHiganbana(State state, Strategy strategy)
         {
-            // higanbana needs to tick for 45 out of 60 seconds to be a dps gain
+            // higanbana needs to tick for 45 out of 60 seconds to be a dps gain, but it also
+            // gives a meditation stack, so use it to get shoha even if the target is dying
             if (strategy.FightEndIn > 0 && strategy.FightEndIn <= 45 + state.GCD)
-                return false;
+                return state.MeditationStacks == 2;
 
             // TODO: use actual GCD length once we have it
             return state.TargetHiganbanaLeft < (state.GCDTime * 3) + state.GCD;
