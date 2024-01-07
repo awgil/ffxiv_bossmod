@@ -42,16 +42,6 @@ namespace BossMod.SAM
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level);
 
-            public AID NextKaeshi =>
-                (Kaeshi, NextTsubameCharge) switch
-                {
-                    (Kaeshi.NAMIKIRI, _) => AID.KaeshiNamikiri,
-                    (Kaeshi.GOKEN, 0) => AID.KaeshiGoken,
-                    (Kaeshi.SETSUGEKKA, 0) => AID.KaeshiSetsugekka,
-                    // kaeshi: higanbana is useless
-                    _ => AID.None
-                };
-
             public AID ComboLastMove => (AID)ComboLastAction;
 
             public AID AOEStarter => Unlocked(AID.Fuko) ? AID.Fuko : AID.Fuga;
@@ -67,6 +57,25 @@ namespace BossMod.SAM
             }
         }
 
+        private static AID NextKaeshi(State state)
+        {
+            if (state.Kaeshi == Kaeshi.NAMIKIRI) {
+                // namikiri is not tied to tsubame cooldown
+                return AID.KaeshiNamikiri;
+            } else if (state.NextTsubameCharge <= state.GCD) {
+                // will have tsubame on next gcd
+                return state.Kaeshi switch
+                {
+                    Kaeshi.GOKEN => AID.KaeshiGoken,
+                    Kaeshi.SETSUGEKKA => AID.KaeshiSetsugekka,
+                    // higanbana is worthless
+                    _ => AID.None
+                };
+            }
+
+            return AID.None;
+        }
+
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
             if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
@@ -78,8 +87,9 @@ namespace BossMod.SAM
                 return AID.Enpi;
 
             // we can't save kaeshi across GCDs, weaponskills break the combo, so always use them even unbuffed
-            if (state.NextKaeshi != AID.None)
-                return state.NextKaeshi;
+            var k = NextKaeshi(state);
+            if (k != AID.None)
+                return k;
 
             // ogi checks
             if (state.OgiNamikiriLeft > 0 &&
@@ -257,6 +267,10 @@ namespace BossMod.SAM
                     // use on cooldown
                     if (state.Unlocked(AID.HissatsuKyuten) && state.CanWeave(deadline))
                         return ActionID.MakeSpell(AID.HissatsuKyuten);
+
+                    // below level 62 kyuten is not unlocked, use single target instead
+                    if (state.Unlocked(AID.HissatsuShinten) && state.CanWeave(deadline))
+                        return ActionID.MakeSpell(AID.HissatsuShinten);
                 } else {
                     // 120s cooldown
                     if (state.Unlocked(AID.HissatsuGuren)
