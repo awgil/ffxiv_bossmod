@@ -13,7 +13,7 @@ namespace BossMod.SAM
         Jinpu = 7478, // L4, instant, range 3, single-target 0/0, targets=hostile, animLock=0.600s
         Enpi = 7486, // L15, instant, range 20, single-target 0/0, targets=hostile, animLock=0.600s
         Shifu = 7479, // L18, instant, range 3, single-target 0/0, targets=hostile, animLock=0.600s
-        Fuga = 7483, // L26, instant, range 8, AOE cone 8/0, targets=hostile, animLock=???
+        Fuga = 7483, // L26, instant, range 8, AOE cone 8/0, targets=hostile, animLock=0.600s
         Iaijutsu = 7867, // L30, 1.8s cast, range 0, single-target 0/0, targets=self, animLock=???
         Higanbana = 7489, // L30, 1.8s cast, range 6, single-target 0/0, targets=hostile, animLock=0.100s
         Gekko = 7481, // L30, instant, range 3, single-target 0/0, targets=hostile, animLock=0.600s
