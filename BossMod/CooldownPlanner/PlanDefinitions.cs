@@ -61,6 +61,7 @@ namespace BossMod
             Classes[Class.SCH] = DefineSCH();
             Classes[Class.DRG] = DefineDRG();
             Classes[Class.MNK] = DefineMNK();
+            Classes[Class.SAM] = DefineSAM();
             Classes[Class.BRD] = DefineBRD();
             Classes[Class.BLM] = DefineBLM();
             Classes[Class.RPR] = DefineRPR();
@@ -130,6 +131,15 @@ namespace BossMod
         private static ClassData DefineMNK()
         {
             var c = new ClassData(typeof(MNK.AID), MNK.Definitions.SupportedActions);
+            return c;
+        }
+
+        private static ClassData DefineSAM()
+        {
+            var c = new ClassData(typeof(SAM.AID), SAM.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(SAM.AID.Feint), 22));
+            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(SAM.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("ThirdEye", ActionID.MakeSpell(SAM.AID.ThirdEye), 6));
             return c;
         }
 
