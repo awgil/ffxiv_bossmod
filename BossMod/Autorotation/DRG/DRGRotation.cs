@@ -1,5 +1,4 @@
 ﻿
-
 namespace BossMod.DRG
 {
     public static class Rotation
@@ -49,6 +48,15 @@ namespace BossMod.DRG
         // strategy configuration
         public class Strategy : CommonRotation.Strategy
         {
+            public enum TrueNorthUse : uint
+            {
+                Automatic = 0,
+
+                [PropertyDisplay("Delay", 0x800000ff)]
+                Delay = 1,
+                [PropertyDisplay("Force", 0x8000ff00)]
+                Force = 2,
+            }
             public enum SpineShatteruse : uint
             {
                 Automatic = 0, // always keep one charge reserved, use other charges under raidbuffs or prevent overcapping
@@ -66,6 +74,7 @@ namespace BossMod.DRG
                 UseOutsideMelee = 4, // use immediately if outside melee range
             }
 
+            public TrueNorthUse TrueNorthStrategy;
             public SpineShatteruse SpineShatterStrategy; // how are we supposed to use spineshatter dive
             public int NumAOEGCDTargets; // range 10 width 4 rect
             public bool UseAOERotation;
@@ -79,10 +88,13 @@ namespace BossMod.DRG
             {
                 if (overrides.Length >= 8)
                 {
-                    SpineShatterStrategy = (SpineShatteruse)overrides[0];
+                    TrueNorthStrategy = (TrueNorthUse)overrides[0];
+                    SpineShatterStrategy = (SpineShatteruse)overrides[1];
+
                 }
                 else
                 {
+                    TrueNorthStrategy = TrueNorthUse.Automatic;
                     SpineShatterStrategy = SpineShatteruse.Automatic;
                 }
             }
@@ -253,6 +265,60 @@ namespace BossMod.DRG
             }
         }
 
+        public static bool ShouldUseTrueNorth(State state, Strategy strategy)
+        {
+            switch (strategy.TrueNorthStrategy)
+            {
+                case Strategy.TrueNorthUse.Delay:
+                    return false;
+
+                default:
+                    if (!state.TargetingEnemy)
+                        return false;
+                    if (state.TrueNorthLeft > state.AnimationLock || state.RightEyeLeft > state.AnimationLock)
+                        return false;
+                    if (GetNextPositional(state, strategy).Item2 && strategy.NextPositionalCorrect)
+                        return false;
+                    if (GetNextPositional(state, strategy).Item2 && !strategy.NextPositionalCorrect)
+                        return true;
+                    return false;
+            }
+        }
+
+        public static bool ShouldUseGeirskogul(State state, Strategy strategy)
+        {
+            if (state.EyeCount == 2 && state.CD(CDGroup.LanceCharge) < 40)
+                return false;
+            if (state.EyeCount == 2 && state.LanceChargeLeft > state.AnimationLock)
+                return true;
+            if (state.EyeCount == 1 && state.LanceChargeLeft > state.AnimationLock)
+            {
+                if (state.DiveReadyLeft > state.AnimationLock && state.CD(CDGroup.HighJump) > 10)
+                    return false;
+            }
+            if (state.EyeCount != 2 && state.CD(CDGroup.LanceCharge) < 40)
+            {
+                    return true;
+            }
+            if (state.EyeCount == 0)
+            {
+                return true;
+            }
+            return true;
+        }   
+
+        public static bool ShouldUseWyrmWindThrust(State state, Strategy strategy)
+        {
+            bool nextGCDisRaiden = state.DraconianFireLeft > state.AnimationLock && (state.ComboLastMove == AID.WheelingThrust || state.ComboLastMove == AID.FangAndClaw) && state.WheelInMotionLeft < state.AnimationLock && state.FangAndClawBaredLeft < state.AnimationLock;
+            if (state.FirstmindFocusCount >= 2 && state.CD(CDGroup.LanceCharge) > 10)
+                return true;
+            if (state.FirstmindFocusCount >= 2 && state.LanceChargeLeft > state.AnimationLock)
+                return true;
+            if (state.FirstmindFocusCount >= 2 && state.CD(CDGroup.LanceCharge) < 10 && !nextGCDisRaiden)
+                return false;
+            return false;
+        }
+        
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
             // prepull
@@ -284,14 +350,15 @@ namespace BossMod.DRG
             }
         }
 
-        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
+        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
             bool canJump = strategy.PositionLockIn > state.AnimationLock;
             bool wantSpineShatter = state.Unlocked(AID.SpineshatterDive) && state.TargetingEnemy && UseSpineShatterDive(state, strategy);
 
+
             if (state.PowerSurgeLeft > state.GCD)
             {
-                if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline) && ((state.CD(CDGroup.DragonSight) < state.GCD) || (state.CD(CDGroup.DragonSight) < 65) && (state.CD(CDGroup.DragonSight) > 55)))
+                if (state.Unlocked(AID.LanceCharge) && state.CanWeave(CDGroup.LanceCharge, 0.6f, deadline - state.OGCDSlotLength) && ((state.CD(CDGroup.DragonSight) < state.GCD) || (state.CD(CDGroup.DragonSight) < 65) && (state.CD(CDGroup.DragonSight) > 55)))
                     return ActionID.MakeSpell(AID.LanceCharge);
                 if (state.Unlocked(AID.DragonSight) && state.CanWeave(CDGroup.DragonSight, 0.6f, deadline) && state.CD(CDGroup.BattleLitany) < state.GCD + 2.5)
                     return ActionID.MakeSpell(AID.DragonSight);
@@ -307,17 +374,21 @@ namespace BossMod.DRG
 
                 if (state.CD(CDGroup.LanceCharge) > 5 && state.CD(CDGroup.DragonSight) > 5 && state.CD(CDGroup.BattleLitany) > 5)
                 {
-                    if (state.Unlocked(AID.Geirskogul) && state.CanWeave(CDGroup.Geirskogul, 0.6f, deadline))
+                    if (state.CanWeave(CDGroup.WyrmwindThrust, 0.6f, deadline) && ShouldUseWyrmWindThrust(state, strategy) && (GetNextBestGCD(state, strategy) == AID.DraconianFury || GetNextBestGCD(state, strategy) == AID.RaidenThrust))
+                        return ActionID.MakeSpell(AID.WyrmwindThrust);
+                    if (state.Unlocked(AID.Geirskogul) && state.CanWeave(CDGroup.Geirskogul, 0.6f, deadline) && ShouldUseGeirskogul(state, strategy))
                         return ActionID.MakeSpell(AID.Geirskogul);
                     if (canJump && state.Unlocked(AID.Jump) && state.CanWeave(state.Unlocked(AID.HighJump) ? CDGroup.HighJump : CDGroup.Jump, 0.8f, deadline))
                         return ActionID.MakeSpell(state.BestJump);
+                    if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && state.EyeCount == 1 && state.CD(CDGroup.Geirskogul) < state.AnimationLock && state.LanceChargeLeft > state.AnimationLock)
+                        return ActionID.MakeSpell(AID.MirageDive);
                     if (canJump && state.Unlocked(AID.DragonfireDive) && state.CanWeave(CDGroup.DragonfireDive, 0.8f, deadline))
                         return ActionID.MakeSpell(AID.DragonfireDive);
                     if (wantSpineShatter && state.CanWeave(state.CD(CDGroup.SpineshatterDive), 0.8f, deadline))
                         return ActionID.MakeSpell(AID.SpineshatterDive);
                     if (canJump && state.Unlocked(AID.Stardiver) && state.LifeOfTheDragonLeft > state.AnimationLock && state.CanWeave(CDGroup.Stardiver, 1.5f, deadline))
                         return ActionID.MakeSpell(AID.Stardiver);
-                    if (state.FirstmindFocusCount >= 2 && state.CanWeave(CDGroup.WyrmwindThrust, 0.6f, deadline))
+                    if (state.CanWeave(CDGroup.WyrmwindThrust, 0.6f, deadline) && ShouldUseWyrmWindThrust(state, strategy))
                         return ActionID.MakeSpell(AID.WyrmwindThrust);
                     if (wantSpineShatter && state.RangeToTarget > 3)
                         return ActionID.MakeSpell(AID.SpineshatterDive);
@@ -331,11 +402,13 @@ namespace BossMod.DRG
                     //    return ActionID.MakeSpell(AID.MirageDive);
                     //if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && state.EyeCount != 2 && state.LifeOfTheDragonLeft < state.AnimationLock)
                     //    return ActionID.MakeSpell(AID.MirageDive);
-                    if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && state.EyeCount != 2)
+                    if (state.DiveReadyLeft > state.AnimationLock && state.CanWeave(CDGroup.MirageDive, 0.6f, deadline) && (state.EyeCount != 2 || state.DiveReadyLeft < state.GCD))
                         return ActionID.MakeSpell(AID.MirageDive);
                 }
             }
 
+            if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(CDGroup.TrueNorth - 45, 0.6f, deadline) && !aoe && state.GCD < 0.8)
+                return ActionID.MakeSpell(AID.TrueNorth);
 
             // no suitable oGCDs...
             return new();
