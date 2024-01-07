@@ -29,5 +29,8 @@
 
         [PropertyDisplay("Early No Mercy in Opener")]
         public bool EarlyNoMercy = true;
+
+        [PropertyDisplay("Early Sonic Break in Opener")]
+        public bool EarlySonicBreak = true;
     }
 }

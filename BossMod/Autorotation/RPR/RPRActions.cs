@@ -13,6 +13,7 @@ namespace BossMod.RPR
         private bool _aoe;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
+        private bool lastActionisSoD;
 
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
@@ -25,6 +26,7 @@ namespace BossMod.RPR
             SupportedSpell(AID.BloodStalk).TransformAction = SupportedSpell(AID.UnveiledGallows).TransformAction = SupportedSpell(AID.UnveiledGibbet).TransformAction = () => ActionID.MakeSpell(_state.Beststalk);
             SupportedSpell(AID.Gibbet).TransformAction = SupportedSpell(AID.VoidReaping).TransformAction = () => ActionID.MakeSpell(_state.BestGibbet);
             SupportedSpell(AID.Gallows).TransformAction = SupportedSpell(AID.CrossReaping).TransformAction = () => ActionID.MakeSpell(_state.BestGallow);
+            SupportedSpell(AID.SoulSow).TransformAction = SupportedSpell(AID.HarvestMoon).TransformAction = () => ActionID.MakeSpell(_state.BestSow);
 
             SupportedSpell(AID.Harpe).Condition = _ => !_config.ForbidEarlyHarpe || _strategy.CombatTimer == float.MinValue || _strategy.CombatTimer >= -1.7f;
             SupportedSpell(AID.LegSweep).Condition = target => target?.CastInfo?.Interruptible ?? false;
@@ -135,6 +137,8 @@ namespace BossMod.RPR
             _state.VoidShroudCount = gauge.VoidShroud;
             _state.ShroudGauge = gauge.Shroud;
             _state.SoulGauge = gauge.Soul;
+            if (_state.ComboLastMove == AID.InfernalSlice)
+                _state.ComboTimeLeft = 0;
 
 
             _state.SoulReaverLeft = StatusDetails(Player, SID.SoulReaver, Player.InstanceID).Left;
@@ -151,6 +155,11 @@ namespace BossMod.RPR
             _state.CircleofSacrificeLeft = StatusDetails(Player, SID.CircleofSacrifice, Player.InstanceID).Left;
 
             _state.TargetDeathDesignLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedShadowofDeath, Player.InstanceID).Left;
+        }
+
+        protected override void OnActionSucceeded(ActorCastEvent ev)
+        {
+            _state.lastActionisSoD = ev.Action.Type == ActionType.Spell && (AID)ev.Action.ID is AID.ShadowofDeath or AID.WhorlofDeath;
         }
 
         private void OnConfigModified(object? sender, EventArgs args)
