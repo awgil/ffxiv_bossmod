@@ -542,8 +542,6 @@ namespace BossMod.RPR
             {
                 if (state.CD(CDGroup.ArcaneCircle) < 11.5f && state.TargetDeathDesignLeft < 30)
                     return AID.ShadowofDeath;
-                if (state.CD(CDGroup.ArcaneCircle) < 7.5f)
-                    return AID.Enshroud;
                 if (state.LemureShroudCount is 4 && !state.lastActionisSoD && state.CD(CDGroup.ArcaneCircle) < 8)
                     return AID.ShadowofDeath;
                 if (state.LemureShroudCount is 1)
