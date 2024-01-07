@@ -500,7 +500,7 @@ namespace BossMod.RPR
                 default:
                     if (!state.TargetingEnemy)
                         return false;
-                    if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && (state.ComboTimeLeft > 5 || state.ComboTimeLeft == 0) && state.CD(CDGroup.ArcaneCircle) > 11.5f)
+                    if (state.SoulGauge <= 50 && state.CD(CDGroup.SoulSlice) - 30 < state.GCD && (state.ComboTimeLeft > 5 || state.ComboTimeLeft == 0 || (state.ArcaneCircleLeft > state.AnimationLock && state.ComboTimeLeft > 11)) && state.CD(CDGroup.ArcaneCircle) > 11.5f)
                         return true;
                     if (enshrouded)
                         return false;
@@ -538,11 +538,13 @@ namespace BossMod.RPR
             if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceExtendDD && state.Unlocked(AID.ShadowofDeath) && !soulReaver)
                 return aoe ? AID.WhorlofDeath : AID.ShadowofDeath;
 
-            if (strategy.PotionStrategy == Strategy.PotionUse.Special && state.HasSoulsow)
+            if (strategy.PotionStrategy == Strategy.PotionUse.Special && state.HasSoulsow && state.CD(CDGroup.ArcaneCircle) < 11.5)
             {
                 if (state.CD(CDGroup.ArcaneCircle) < 11.5f && state.TargetDeathDesignLeft < 30)
                     return AID.ShadowofDeath;
-                if (state.LemureShroudCount is 4 && !state.lastActionisSoD && state.CD(CDGroup.ArcaneCircle) < 8)
+                if (state.ComboTimeLeft != 0 || state.ComboTimeLeft == 0)
+                    return GetNextUnlockedComboAction(state, aoe);
+                if (state.LemureShroudCount is 3 && !state.lastActionisSoD && state.PotionCD < 1)
                     return AID.ShadowofDeath;
                 if (state.LemureShroudCount is 1)
                     return AID.HarvestMoon;
@@ -557,17 +559,7 @@ namespace BossMod.RPR
 
                     return AID.CrossReaping;
                 }
-                if (state.SoulReaverLeft > state.GCD)
-                    return GetNextBSAction(state, aoe);
 
-                if (state.SoulReaverLeft > state.GCD)
-                    return GetNextBSAction(state, aoe);
-
-                if (ShouldUseSoulSlice(state, strategy, aoe) && aoe)
-                    return AID.SoulScythe;
-
-                if (ShouldUseSoulSlice(state, strategy, aoe) && !aoe)
-                    return AID.SoulSlice;
                 return GetNextUnlockedComboAction(state, aoe);
             }
 
@@ -590,7 +582,7 @@ namespace BossMod.RPR
 
             if (enshrouded && !aoe)
             {
-                if ((state.LemureShroudCount == 4 || state.LemureShroudCount == 3) && !state.lastActionisSoD && state.CD(CDGroup.ArcaneCircle) < 9)
+                if ((state.LemureShroudCount == 4 || state.LemureShroudCount == 3) && (!state.lastActionisSoD || strategy.PotionStrategy == Strategy.PotionUse.Burst && !state.lastActionisSoD && state.PotionCD < 1) && state.CD(CDGroup.ArcaneCircle) < 9)
                     return AID.ShadowofDeath;
                 if (state.Unlocked(AID.Communio) && state.LemureShroudCount is 1 && state.VoidShroudCount is 0)
                     return AID.Communio;
@@ -637,9 +629,9 @@ namespace BossMod.RPR
             {
                 if (state.CD(CDGroup.ArcaneCircle) < 7.5f && state.ShroudGauge >= 50 && state.CanWeave(CDGroup.Enshroud, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.Enshroud);
-                if (state.LemureShroudCount is 4 && state.CanWeave(state.PotionCD, 1.1f, deadline) && state.lastActionisSoD)
+                if (state.LemureShroudCount is 3 && state.CanWeave(state.PotionCD, 1.1f, deadline) && state.lastActionisSoD)
                     return CommonDefinitions.IDPotionStr;
-                if (state.LemureShroudCount is 3 && state.CanWeave(CDGroup.ArcaneCircle, 0.6f, deadline))
+                if (state.LemureShroudCount is 2 && state.CanWeave(CDGroup.ArcaneCircle, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.ArcaneCircle);
                 if (state.CD(CDGroup.ArcaneCircle) > 11 && state.VoidShroudCount >= 2 && state.CanWeave(CDGroup.LemuresSlice, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.LemuresSlice);
