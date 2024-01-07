@@ -169,6 +169,7 @@ namespace BossMod
             c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
             c.StrategyTracks.Add(new("Gauge", typeof(RPR.Rotation.Strategy.GaugeUse)));
             c.StrategyTracks.Add(new("SOUL", typeof(RPR.Rotation.Strategy.BloodstalkUse)));
+            c.StrategyTracks.Add(new("SS", typeof(RPR.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("TrN", typeof(RPR.Rotation.Strategy.TrueNorthUse)));
             c.StrategyTracks.Add(new("ENSH", typeof(RPR.Rotation.Strategy.EnshroudUse)));
             c.StrategyTracks.Add(new("ARC", typeof(RPR.Rotation.Strategy.ArcaneCircleUse)));

@@ -13,6 +13,7 @@ namespace BossMod.RPR
         private bool _aoe;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
+        private bool lastActionisSoD;
 
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
@@ -154,6 +155,11 @@ namespace BossMod.RPR
             _state.CircleofSacrificeLeft = StatusDetails(Player, SID.CircleofSacrifice, Player.InstanceID).Left;
 
             _state.TargetDeathDesignLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedShadowofDeath, Player.InstanceID).Left;
+        }
+
+        protected override void OnActionSucceeded(ActorCastEvent ev)
+        {
+            _state.lastActionisSoD = ev.Action.Type == ActionType.Spell && (AID)ev.Action.ID is AID.ShadowofDeath or AID.WhorlofDeath;
         }
 
         private void OnConfigModified(object? sender, EventArgs args)

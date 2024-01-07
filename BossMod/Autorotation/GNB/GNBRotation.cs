@@ -260,17 +260,20 @@ namespace BossMod.GNB
             if (!Service.Config.Get<GNBConfig>().Skscheck && state.Ammo == state.MaxCartridges - 1 && state.ComboLastMove == AID.BrutalShell && state.GunComboStep == 0 && state.CD(CDGroup.GnashingFang) < 2.5 && (state.CD(CDGroup.Bloodfest) > 20 && state.Unlocked(AID.Bloodfest)))
                 return AID.SolidBarrel;
 
+            if (Service.Config.Get<GNBConfig>().EarlySonicBreak && state.CD(CDGroup.NoMercy) > 40 && state.CD(CDGroup.SonicBreak) < 0.6f)
+                return AID.SonicBreak;
+
             if (state.CD(CDGroup.NoMercy) > 17)
             {
-                if (state.GunComboStep == 0 && state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1 && ShouldUseGnash(state, strategy) && state.NumTargetsHitByAOE <= 3)
+                if (state.GunComboStep == 0 && state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) < 0.6f && state.Ammo >= 1 && ShouldUseGnash(state, strategy) && state.NumTargetsHitByAOE <= 3)
                     return AID.GnashingFang;
             }
 
             if (state.NoMercyLeft > state.AnimationLock)
             {
-                if (state.CD(CDGroup.SonicBreak) < 0.6 && state.Unlocked(AID.SonicBreak))
+                if (state.CD(CDGroup.SonicBreak) < 0.6f && state.Unlocked(AID.SonicBreak))
                     return AID.SonicBreak;
-                if (state.CD(CDGroup.DoubleDown) < 0.6 && state.Unlocked(AID.DoubleDown) && state.Ammo >= 2 && state.RangeToTarget <= 5)
+                if (state.CD(CDGroup.DoubleDown) < 0.6f && state.Unlocked(AID.DoubleDown) && state.Ammo >= 2 && state.RangeToTarget <= 5)
                     return AID.DoubleDown;
                 if (!aoe && state.CD(CDGroup.DoubleDown) < state.GCD && state.CD(CDGroup.GnashingFang) > state.GCD && state.Unlocked(AID.DoubleDown) && state.Ammo == 1 && state.CD(CDGroup.Bloodfest) < 1.9)
                     return AID.BurstStrike;
@@ -314,7 +317,7 @@ namespace BossMod.GNB
 
             if (strategy.GaugeStrategy == Strategy.GaugeUse.Spend && state.Ammo >= 0)
             {
-                if (state.CD(CDGroup.GnashingFang) < 0.6)
+                if (state.CD(CDGroup.GnashingFang) < 0.6f)
                     return AID.GnashingFang;
                 return AID.BurstStrike;
             }
@@ -386,7 +389,7 @@ namespace BossMod.GNB
         {
             Strategy.OffensiveAbilityUse.Delay => false,
             Strategy.OffensiveAbilityUse.Force => true,
-            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) < 0.6 && state.Ammo >= 1
+            _ => strategy.CombatTimer >= 0 && state.TargetingEnemy && state.Unlocked(AID.GnashingFang) && state.CD(CDGroup.GnashingFang) < 0.6f && state.Ammo >= 1
         };
 
         public static bool ShouldUseZone(State state, Strategy strategy) => strategy.ZoneUse switch
@@ -541,7 +544,7 @@ namespace BossMod.GNB
             if (state.NoMercyLeft > state.AnimationLock)
                 return GetNextAmmoAction(state, strategy, aoe);
 
-            if (state.CD(CDGroup.GnashingFang) < 0.6)
+            if (state.CD(CDGroup.GnashingFang) < 0.6f)
                 return GetNextAmmoAction(state, strategy, aoe);
 
             if (state.GunComboStep > 0)
