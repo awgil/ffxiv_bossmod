@@ -37,10 +37,10 @@ namespace BossMod.SAM
             public bool InCombo => ComboLastMove is AID.Fuko or AID.Fuga or AID.Hakaze or AID.Jinpu or AID.Shifu;
 
             public float NextMeikyoCharge => MathF.Max(0, CD(CDGroup.MeikyoShisui) - (Unlocked(TraitID.EnhancedMeikyoShisui) ? 55 : 0));
-            public float NextTsubameCharge => MathF.Max(0, CD(CDGroup.Tsubame) - (Unlocked(TraitID.EnhancedTsubame) ? 60 : 0));
+            public float NextTsubameCharge => MathF.Max(0, CD(CDGroup.TsubameGaeshi) - (Unlocked(TraitID.EnhancedTsubame) ? 60 : 0));
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
-            public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level);
+            public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
 
             public AID ComboLastMove => (AID)ComboLastAction;
 
@@ -53,11 +53,11 @@ namespace BossMod.SAM
                 if (HasMoonSen) senReadable.Add("Moon");
                 if (HasFlowerSen) senReadable.Add("Flower");
 
-                return $"Sen=[{string.Join(",", senReadable)}], K={Kenki}, M={MeditationStacks}, Kae={Kaeshi}, TCD={CD(CDGroup.Tsubame)}, MCD={CD(CDGroup.MeikyoShisui)}, Fuka={FukaLeft:f3}, Fugetsu={FugetsuLeft:f3}, TN={TrueNorthLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"Sen=[{string.Join(",", senReadable)}], K={Kenki}, M={MeditationStacks}, Kae={Kaeshi}, TCD={CD(CDGroup.TsubameGaeshi)}, MCD={CD(CDGroup.MeikyoShisui)}, Fuka={FukaLeft:f3}, Fugetsu={FugetsuLeft:f3}, TN={TrueNorthLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
-        private static AID NextKaeshi(State state)
+        private static AID ImminentKaeshi(State state)
         {
             if (state.Kaeshi == Kaeshi.NAMIKIRI) {
                 // namikiri is not tied to tsubame cooldown
@@ -87,7 +87,7 @@ namespace BossMod.SAM
                 return AID.Enpi;
 
             // we can't save kaeshi across GCDs, weaponskills break the combo, so always use them even unbuffed
-            var k = NextKaeshi(state);
+            var k = ImminentKaeshi(state);
             if (k != AID.None)
                 return k;
 
@@ -176,8 +176,7 @@ namespace BossMod.SAM
             return AID.None;
         }
 
-        // range checked at call site rather than here since our different options
-        // (ogi, iaijutsu, weaponskills) have different ranges
+        // range checked at callsite rather than here since our different options (ogi, iaijutsu, weaponskills) have different ranges
         private static bool CanEnpi(State state, Strategy strategy)
         {
             return strategy.EnpiStrategy switch
@@ -253,7 +252,8 @@ namespace BossMod.SAM
                 && state.RaidBuffsLeft > state.AnimationLock
                 && state.Unlocked(AID.HissatsuGyoten)
                 && state.Kenki >= 10
-                && (!state.Unlocked(AID.HissatsuSenei) || state.CD(CDGroup.HissatsuSenei) > state.RaidBuffsLeft))
+                && (!state.Unlocked(AID.HissatsuSenei) || state.CD(CDGroup.HissatsuGuren) > state.RaidBuffsLeft)
+                && state.CanWeave(state.CD(CDGroup.HissatsuGyoten), 0.6f, deadline))
                 return ActionID.MakeSpell(AID.HissatsuGyoten);
 
             if (CanUseKenki(state, strategy)) {
@@ -261,7 +261,7 @@ namespace BossMod.SAM
                     // 120s cooldown
                     if (state.Unlocked(AID.HissatsuGuren)
                         && state.HasCombatBuffs
-                        && state.CanWeave(CDGroup.HissatsuSenei, 0.6f, deadline))
+                        && state.CanWeave(CDGroup.HissatsuGuren, 0.6f, deadline))
                         return ActionID.MakeSpell(AID.HissatsuGuren);
 
                     // use on cooldown
@@ -275,7 +275,7 @@ namespace BossMod.SAM
                     // 120s cooldown
                     if (state.Unlocked(AID.HissatsuGuren)
                         && state.HasCombatBuffs
-                        && state.CanWeave(CDGroup.HissatsuSenei, 0.6f, deadline))
+                        && state.CanWeave(CDGroup.HissatsuGuren, 0.6f, deadline))
                     {
                         // senei is unlocked at 72
                         if (state.Unlocked(AID.HissatsuSenei)) return ActionID.MakeSpell(AID.HissatsuSenei);
@@ -326,7 +326,7 @@ namespace BossMod.SAM
                 // don't overwrite
                 || state.MeikyoLeft > 0
                 // don't use with a tsubame followup available, wastes a GCD of buff duration
-                || state.NextKaeshi != AID.None
+                || ImminentKaeshi(state) != AID.None
                 // don't use during combo, wastes the GCD used for the combo starter
                 || state.InCombo
             ) return false;
