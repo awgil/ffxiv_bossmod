@@ -300,7 +300,7 @@ namespace BossMod.RPR
                     if (state.SoulGauge >= 50 && !aoe && (state.ComboTimeLeft > 2.5 || state.ComboTimeLeft == 0) && state.ImmortalSacrificeLeft > state.AnimationLock && state.BloodsownCircleLeft > 4.8f && (state.CD(CDGroup.SoulSlice) > 30 || state.CD(CDGroup.SoulSlice) < 60) && state.ShroudGauge <= 40)
                         return true;
 
-                    if ((state.CD(CDGroup.ArcaneCircle) < 6 || state.CD(CDGroup.ArcaneCircle) > 60) && state.ShroudGauge >= 50 && (state.ComboTimeLeft > 11 || state.ComboTimeLeft == 0))
+                    if ((state.CD(CDGroup.ArcaneCircle) < 9 || state.CD(CDGroup.ArcaneCircle) > 60) && state.ShroudGauge >= 50 && (state.ComboTimeLeft > 11 || state.ComboTimeLeft == 0))
                         return false;
                     return false;
             }
@@ -425,7 +425,7 @@ namespace BossMod.RPR
                 if (soulReaver)
                     return false;
 
-                if (enshrouded && state.TargetDeathDesignLeft > 30)
+                if (enshrouded && state.LemureShroudCount is 3 && state.TargetDeathDesignLeft > 30)
                     return true;
                 if (state.ShroudGauge < 50 && !enshrouded && state.TargetDeathDesignLeft > 0)
                     return true;
