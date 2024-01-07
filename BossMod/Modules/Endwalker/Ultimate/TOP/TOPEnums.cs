@@ -132,6 +132,7 @@
         HWBlueTowerUnsoakedWipe = 31586, // Helper->self, no cast, range 100 circle - 'latent performance defect', wipe if blue tower was not soaked
         HWStack = 31574, // Helper->players, no cast, range 5 circle - 'critical synchronization bug', 2-man stack
         HWDefamation = 31575, // Helper->players, no cast, range 20 circle - 'critical overflow bug', defamation
+        HWStackExpireFail = 31576, // Helper->player, no cast, single-target - 'latent synchronization defect', damage-down if stack was not soaked in time
         HWDefamationExpireFail = 31577, // Helper->player, no cast, single-target - damage-down if defamation was not soaked in time
         HWRedRot = 31578, // Helper->players, no cast, range 5 circle - 'critical underflow bug' - aoe on red rot expiration
         HWBlueRot = 31579, // Helper->player, no cast, range 5 circle - 'critical performance bug' - aoe on blue rot expiration
@@ -233,8 +234,11 @@
         CosmoMeteorAOE = 31666, // Helper->self, 4.0s cast, range 10 circle puddle
         CosmoMeteorSpread = 32699, // Helper->player, no cast, range 5 circle spread
         CosmoMeteorCometEnrage = 31669, // CosmoComet->self, no cast, range 100 circle, wipe if comets not killed in time
-
-        //_Ability_LatentSynchronizationDefect = 31576, // Helper->player, no cast, single-target
+        CosmoMeteorStack = 31667, // Helper->players, no cast, range 6 circle 5-man stack
+        CosmoMeteorFlare = 31668, // Helper->players, no cast, range 100 circle with ? falloff
+        CosmoMeteorVisualEnd = 31665, // BossP6->self, no cast, single-target, visual (?)
+        MagicNumber = 31670, // BossP6->self, 5.0s cast, range 100 circle, raidwide requiring LB
+        RunMi = 31648, // BossP6->self, 16.0s cast, range 100 circle, enrage
     };
 
     public enum SID : uint
