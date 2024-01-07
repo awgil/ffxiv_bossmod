@@ -538,11 +538,11 @@ namespace BossMod.RPR
             if (strategy.GaugeStrategy == Strategy.GaugeUse.ForceExtendDD && state.Unlocked(AID.ShadowofDeath) && !soulReaver)
                 return aoe ? AID.WhorlofDeath : AID.ShadowofDeath;
 
-            if (strategy.PotionStrategy == Strategy.PotionUse.Special && state.HasSoulsow && state.CD(CDGroup.ArcaneCircle) < 11.5)
+            if (strategy.PotionStrategy == Strategy.PotionUse.Special && state.HasSoulsow && (state.CD(CDGroup.ArcaneCircle) < 11.5 || state.CD(CDGroup.ArcaneCircle) > 115))
             {
                 if (state.CD(CDGroup.ArcaneCircle) < 11.5f && state.TargetDeathDesignLeft < 30)
                     return AID.ShadowofDeath;
-                if (state.ComboTimeLeft != 0 || state.ComboTimeLeft == 0)
+                if (state.ComboTimeLeft != 0 || state.ComboTimeLeft == 0 && !enshrouded && !soulReaver)
                     return GetNextUnlockedComboAction(state, aoe);
                 if (state.LemureShroudCount is 3 && !state.lastActionisSoD && state.PotionCD < 1)
                     return AID.ShadowofDeath;
