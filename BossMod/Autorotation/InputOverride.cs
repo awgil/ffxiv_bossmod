@@ -30,6 +30,9 @@ namespace BossMod
         private delegate ref int GetRefValueDelegate(int vkCode);
         private GetRefValueDelegate _getKeyRef;
 
+        private IntPtr _forceDisableMovementPtr;
+        internal unsafe ref int ForceDisableMovement => ref *(int*)(_forceDisableMovementPtr + 4);
+
         public unsafe InputOverride()
         {
             _kbprocHook = Service.Hook.HookFromSignature<KbprocDelegate>("48 89 5C 24 08 55 56 57 41 56 41 57 48 8D 6C 24 B0 48 81 EC 50 01 00 00 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 40 4D 8B F9 49 8B D8 81 FA 00 01 00 00", KbprocDetour); // note: look for callers of GetKeyboardState
@@ -41,6 +44,8 @@ namespace BossMod
             Service.Log($"[InputOverride] GetGamepadAxis address: 0x{_getGamepadAxisHook.Address:X}");
 
             _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
+
+            _forceDisableMovementPtr = Service.SigScanner.GetStaticAddressFromSig("F3 0F 10 05 ?? ?? ?? ?? 0F 2E C6 0F 8A");
         }
 
         public void Dispose()
@@ -60,10 +65,11 @@ namespace BossMod
             if (_movementBlocked)
                 return;
             _movementBlocked = true;
-            Block(VirtualKey.W);
-            Block(VirtualKey.S);
-            Block(VirtualKey.A);
-            Block(VirtualKey.D);
+            ForceDisableMovement++;
+            // Block(VirtualKey.W);
+            // Block(VirtualKey.S);
+            // Block(VirtualKey.A);
+            // Block(VirtualKey.D);
             Service.Log("[InputOverride] Movement block started");
         }
 
@@ -72,10 +78,11 @@ namespace BossMod
             if (!_movementBlocked)
                 return;
             _movementBlocked = false;
-            Unblock(VirtualKey.W);
-            Unblock(VirtualKey.S);
-            Unblock(VirtualKey.A);
-            Unblock(VirtualKey.D);
+            ForceDisableMovement--;
+            // Unblock(VirtualKey.W);
+            // Unblock(VirtualKey.S);
+            // Unblock(VirtualKey.A);
+            // Unblock(VirtualKey.D);
             Service.Log("[InputOverride] Movement block ended");
         }
 

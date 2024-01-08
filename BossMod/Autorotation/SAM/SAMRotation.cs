@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime;
+using BossMod.Components;
 using BossMod.ReplayAnalysis;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using Lumina.Excel;
@@ -34,6 +35,8 @@ namespace BossMod.SAM
             public Positional ClosestPositional;
 
             public int SenCount => (HasIceSen ? 1 : 0) + (HasMoonSen ? 1 : 0) + (HasFlowerSen ? 1 : 0);
+
+            public float CastTime => Unlocked(TraitID.EnhancedIaijutsu) ? 1.3f : 1.8f;
 
             public bool HasCombatBuffs => FukaLeft > GCD && FugetsuLeft > GCD;
             public bool InCombo => ComboLastMove is AID.Fuko or AID.Fuga or AID.Hakaze or AID.Jinpu or AID.Shifu;
@@ -78,10 +81,17 @@ namespace BossMod.SAM
             return AID.None;
         }
 
+        private static bool CanCast(State state, Strategy strategy)
+        {
+            return strategy.PositionLockIn > state.GCD + state.CastTime;
+        }
+
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
             if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
                 return AID.None;
+
+            var canCast = CanCast(state, strategy);
 
             // fallback 1: out of range for ogi
             // (enpi is the only gcd that doesn't cancel tsubame)
@@ -94,7 +104,7 @@ namespace BossMod.SAM
                 return k;
 
             // ogi checks
-            if (state.OgiNamikiriLeft > 0 &&
+            if (state.OgiNamikiriLeft > 0 && canCast &&
                 // missed window, panic use
                 (state.OgiNamikiriLeft < state.GCDTime ||
                     // buffed up
@@ -110,11 +120,11 @@ namespace BossMod.SAM
                 return AID.Enpi;
 
             // midare is always worth it even if unbuffed
-            if (state.SenCount == 3)
+            if (state.SenCount == 3 && canCast)
                 return AID.MidareSetsugekka;
 
             // iaijutsu checks
-            if (state.HasCombatBuffs) {
+            if (state.HasCombatBuffs && canCast) {
                 if (state.SenCount == 1 && state.Unlocked(AID.Higanbana) && ShouldRefreshHiganbana(state, strategy))
                     return AID.Higanbana;
 
@@ -207,7 +217,9 @@ namespace BossMod.SAM
             if (!state.HasMoonSen) return (AID.Gekko, true);
             if (!state.HasIceSen) return (AID.Yukikaze, true);
 
-            return (AID.None, false);
+            // full on sen but can't cast due to a cdplan fuckup, e.g. midare planned during a forced movement mechanic
+            // gotta do something
+            return (state.ClosestPositional == Positional.Rear ? AID.Gekko : AID.Kasha, false);
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
@@ -221,7 +233,6 @@ namespace BossMod.SAM
                 return new();
             }
 
-            Service.Logger.Debug("{strat}", strategy.DashStrategy);
             if (strategy.DashStrategy == Strategy.DashUse.UseOutsideMelee
                 && state.RangeToTarget > 3
                 && state.Unlocked(AID.HissatsuGyoten)
@@ -239,7 +250,7 @@ namespace BossMod.SAM
                 && state.CanWeave(CDGroup.Hagakure, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Hagakure);
 
-            if (CanUseMeikyo(state, strategy) && state.CanWeave(state.NextMeikyoCharge, 0.6f, deadline))
+            if (CanMeikyo(state, strategy) && state.CanWeave(state.NextMeikyoCharge, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.MeikyoShisui);
 
             // wait for combat buffs before ikishoten
@@ -334,7 +345,7 @@ namespace BossMod.SAM
             return (state.Kenki >= kenkiThreshold && state.HasCombatBuffs) || state.Kenki >= overcapLimit;
         }
 
-        private static bool CanUseMeikyo(State state, Strategy strategy)
+        private static bool CanMeikyo(State state, Strategy strategy)
         {
             if (!state.Unlocked(AID.MeikyoShisui)
                 // don't overwrite
@@ -345,6 +356,10 @@ namespace BossMod.SAM
                 || state.InCombo
             ) return false;
 
+            // we want to have two meikyo charges during buff window but math is hard
+            // if (strategy.RaidBuffsIn < state.CD(CDGroup.MeikyoShisui))
+            //     return false;
+
             if (strategy.UseAOERotation)
             {
                 // use unless we already have two (or three) sen, in which case it should be delayed for
@@ -354,8 +369,11 @@ namespace BossMod.SAM
                 // don't use it if we're about to cast higanbana
                 if (state.SenCount == 1 && ShouldRefreshHiganbana(state, strategy)) return false;
 
-                // in ST, meikyo should never be used to generate ice sen, yukikaze is lower potency
-                return state.HasIceSen && state.SenCount < 3;
+                if (!state.HasIceSen || state.SenCount == 3) return false;
+
+                // use if we have time to finish a midare cast
+                var midareCastFinish = state.GCD + state.GCDTime * (3 - state.SenCount) + state.CastTime;
+                return strategy.FightEndIn == 0 || strategy.FightEndIn >= midareCastFinish;
             }
         }
 

@@ -14,7 +14,6 @@ namespace BossMod.SAM
 
         public Actions(Autorotation autorot, Actor player) : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
-            Service.Logger.Debug("{acts}", Definitions.SupportedActions);
             _config = Service.Config.Get<SAMConfig>();
             _state = new(autorot.Cooldowns);
             _strategy = new();
@@ -125,15 +124,13 @@ namespace BossMod.SAM
             _state.ClosestPositional = GetClosestPositional();
         }
 
-        const float COS45 = 0.70710678118654752f;
-
         private Positional GetClosestPositional() {
             var tar = Autorot.PrimaryTarget;
             if (tar == null) return Positional.Any;
 
             return (Player.Position - tar.Position).Normalized().Dot(tar.Rotation.ToDirection()) switch {
-                < -COS45 => Positional.Rear,
-                < COS45 => Positional.Flank,
+                < -0.707167f => Positional.Rear,
+                < 0.707167f => Positional.Flank,
                 _ => Positional.Front
             };
         }
