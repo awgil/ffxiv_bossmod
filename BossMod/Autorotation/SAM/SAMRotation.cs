@@ -157,39 +157,11 @@ namespace BossMod.SAM
             }
 
             if (state.ComboLastMove == AID.Hakaze) {
-                var aid = GetHakazeCombo(state);
+                var aid = GetHakazeComboAction(state);
                 if (aid != AID.None) return aid;
             }
 
             return strategy.UseAOERotation ? state.AOEStarter : AID.Hakaze;
-        }
-
-        private static AID GetHakazeCombo(State state)
-        {
-            // refresh buffs if they are about to expire
-            if (state.Unlocked(AID.Shifu) && state.FukaLeft < state.GCDTime * 2)
-                return AID.Shifu;
-            if (state.Unlocked(AID.Jinpu) && state.FugetsuLeft < state.GCDTime * 2)
-                return AID.Jinpu;
-
-            // lvl 50+, all sen combos are guaranteed to be unlocked here
-            if (state.Unlocked(AID.Yukikaze) && !state.HasIceSen &&
-                // if we have one sen, and higanbana will drop below 15 after next weaponskill,
-                // use non-ice combo: it gives us one extra GCD to let higanbana tick
-                !(state.SenCount == 1 && state.TargetHiganbanaLeft - state.GCDTime - state.GCD < 15)) {
-                return AID.Yukikaze;
-            }
-
-            // if not using ice, refresh the buff that runs out first
-            if (state.Unlocked(AID.Shifu)
-                && !state.HasFlowerSen
-                && state.FugetsuLeft >= state.FukaLeft)
-                return AID.Shifu;
-
-            if (state.Unlocked(AID.Jinpu) && !state.HasMoonSen)
-                return AID.Jinpu;
-
-            return AID.None;
         }
 
         // range checked at callsite rather than here since our different options (ogi, iaijutsu, weaponskills) have different ranges
@@ -366,15 +338,47 @@ namespace BossMod.SAM
                 // 1-2 gcds depending on if tsubame is off cooldown
                 return state.SenCount < 2;
             } else {
-                // don't use it if we're about to cast higanbana
-                if (state.SenCount == 1 && ShouldRefreshHiganbana(state, strategy)) return false;
-
-                if (!state.HasIceSen || state.SenCount == 3) return false;
+                if (
+                    // don't use it if we're about to cast higanbana
+                    (state.SenCount == 1 && ShouldRefreshHiganbana(state, strategy))
+                    // or midare
+                    || state.SenCount == 3
+                    // or if yukikaze is one of the actions we would use
+                    || !state.HasIceSen
+                ) return false;
 
                 // use if we have time to finish a midare cast
                 var midareCastFinish = state.GCD + state.GCDTime * (3 - state.SenCount) + state.CastTime;
                 return strategy.FightEndIn == 0 || strategy.FightEndIn >= midareCastFinish;
             }
+        }
+
+        private static AID GetHakazeComboAction(State state)
+        {
+            // refresh buffs if they are about to expire
+            if (state.Unlocked(AID.Shifu) && state.FukaLeft < state.GCDTime * 2)
+                return AID.Shifu;
+            if (state.Unlocked(AID.Jinpu) && state.FugetsuLeft < state.GCDTime * 2)
+                return AID.Jinpu;
+
+            // lvl 50+, all sen combos are guaranteed to be unlocked here
+            if (state.Unlocked(AID.Yukikaze) && !state.HasIceSen &&
+                // if we have one sen, and higanbana will drop below 15 after next weaponskill,
+                // use non-ice combo: it gives us one extra GCD to let higanbana tick
+                (state.SenCount != 1 || state.TargetHiganbanaLeft >= state.GCDTime + state.GCD + 15)) {
+                return AID.Yukikaze;
+            }
+
+            // if not using ice, refresh the buff that runs out first
+            if (state.Unlocked(AID.Shifu)
+                && !state.HasFlowerSen
+                && state.FugetsuLeft >= state.FukaLeft)
+                return AID.Shifu;
+
+            if (state.Unlocked(AID.Jinpu) && !state.HasMoonSen)
+                return AID.Jinpu;
+
+            return AID.None;
         }
 
         public static (Positional, bool) GetNextPositional(State state, Strategy strategy)
@@ -397,7 +401,7 @@ namespace BossMod.SAM
                 return (Positional.Flank, true);
 
             if (state.ComboLastMove == AID.Hakaze) {
-                var predicted = GetHakazeCombo(state);
+                var predicted = GetHakazeComboAction(state);
                 // TODO: DRY
                 if (predicted == AID.Jinpu && state.Unlocked(AID.Gekko))
                     return (Positional.Rear, false);
