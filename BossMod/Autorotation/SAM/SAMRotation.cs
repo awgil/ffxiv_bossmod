@@ -101,9 +101,9 @@ namespace BossMod.SAM
                 // missed window, panic use
                 (state.OgiNamikiriLeft < state.GCDTime ||
                     // buffed up
-                    (state.HasCombatBuffs
+                    (state.HasCombatBuffs && InRaidBuffWindow(state, strategy)
                     // meikyo charge won't be lost while we use ogi and kaeshi
-                    && (state.MeikyoLeft == 0 || state.MeikyoLeft >= (state.GCD + state.GCDTime * 2))
+                    && (state.MeikyoLeft == 0 || state.MeikyoLeft > (state.GCD + state.GCDTime * 2))
                     // higanbana is already applied (in opener)
                     && !ShouldRefreshHiganbana(state, strategy))))
                         return AID.OgiNamikiri;
@@ -223,6 +223,7 @@ namespace BossMod.SAM
             // but we follow it to be safe
             if (state.HasCombatBuffs) {
                 if (state.Unlocked(AID.Ikishoten)
+                    && (InRaidBuffWindow(state, strategy) || strategy.RaidBuffsIn < 30)
                     && state.Kenki <= 50 // prevent overcap
                     && state.CanWeave(CDGroup.Ikishoten, 0.6f, deadline))
                     return ActionID.MakeSpell(AID.Ikishoten);
@@ -244,6 +245,7 @@ namespace BossMod.SAM
                     // 120s cooldown
                     if (state.Unlocked(AID.HissatsuGuren)
                         && state.HasCombatBuffs
+                        && InRaidBuffWindow(state, strategy)
                         && state.CanWeave(CDGroup.HissatsuGuren, 0.6f, deadline))
                         return ActionID.MakeSpell(AID.HissatsuGuren);
 
@@ -258,6 +260,7 @@ namespace BossMod.SAM
                     // 120s cooldown
                     if (state.Unlocked(AID.HissatsuGuren)
                         && state.HasCombatBuffs
+                        && InRaidBuffWindow(state, strategy)
                         && state.CanWeave(CDGroup.HissatsuGuren, 0.6f, deadline))
                     {
                         // senei is unlocked at 72
@@ -273,6 +276,13 @@ namespace BossMod.SAM
             }
 
             return new();
+        }
+
+        private static bool InRaidBuffWindow(State state, Strategy strategy)
+        {
+            return state.RaidBuffsLeft > state.GCD
+                // fight will end before next window, use everything
+                || strategy.RaidBuffsIn > strategy.FightEndIn;
         }
 
         private static bool ShouldRefreshHiganbana(State state, Strategy strategy)
