@@ -545,7 +545,7 @@ namespace BossMod.WAR
                 return GetNextFCAction(state, aoe);
 
             // TODO: reconsider min time left...
-            return GetNextUnlockedComboAction(state, gcdDelay + 12.5f, aoe);
+            return GetNextUnlockedComboAction(state, strategy.GaugeStrategy == Strategy.GaugeUse.ForceSpend ? 0 : gcdDelay + 12.5f, aoe);
         }
 
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
