@@ -1,13 +1,6 @@
-
-
 using System;
 using System.Collections.Generic;
-using System.Runtime;
-using BossMod.Components;
-using BossMod.ReplayAnalysis;
 using Dalamud.Game.ClientState.JobGauge.Enums;
-using Lumina.Excel;
-using SharpDX.Direct3D11;
 
 namespace BossMod.SAM
 {
@@ -343,9 +336,13 @@ namespace BossMod.SAM
                     (state.SenCount == 1 && ShouldRefreshHiganbana(state, strategy))
                     // or midare
                     || state.SenCount == 3
-                    // or if yukikaze is one of the actions we would use
-                    || !state.HasIceSen
                 ) return false;
+
+
+                // don't want to use meikyo -> yukikaze due to potency loss, but if we need to refresh
+                // higanbana soon, no yukikaze needed: we can do meikyo -> moon -> higanbana -> moon -> flower
+                if (!state.HasIceSen && !ShouldRefreshHiganbana(state, strategy))
+                    return false;
 
                 // use if we have time to finish a midare cast
                 var midareCastFinish = state.GCD + state.GCDTime * (3 - state.SenCount) + state.CastTime;
