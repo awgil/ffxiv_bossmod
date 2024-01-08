@@ -1,5 +1,3 @@
-
-
 using System;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
@@ -45,6 +43,9 @@ namespace BossMod.SAM
                     ? Rotation.Strategy.KenkiSpend.Most
                     : Rotation.Strategy.KenkiSpend.All)
                 : Rotation.Strategy.KenkiSpend.Never;
+            _strategy.DashStrategy = _config.DashOutsideMelee
+                ? Rotation.Strategy.DashUse.UseOutsideMelee
+                : Rotation.Strategy.DashUse.Automatic;
         }
 
         public override void Dispose()

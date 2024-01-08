@@ -221,6 +221,7 @@ namespace BossMod.SAM
                 return new();
             }
 
+            Service.Logger.Debug("{strat}", strategy.DashStrategy);
             if (strategy.DashStrategy == Strategy.DashUse.UseOutsideMelee
                 && state.RangeToTarget > 3
                 && state.Unlocked(AID.HissatsuGyoten)
