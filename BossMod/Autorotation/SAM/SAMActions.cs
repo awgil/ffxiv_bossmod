@@ -115,7 +115,7 @@ namespace BossMod.SAM
             _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
             _state.MeikyoLeft = StatusDetails(Player, SID.MeikyoShisui, Player.InstanceID).Left;
             _state.OgiNamikiriLeft = StatusDetails(Player, SID.OgiNamikiriReady, Player.InstanceID).Left;
-            _state.GCDTime = 2.14f;
+            _state.GCDTime = ActionManagerEx.Instance!.GCDTime();
 
             _state.TargetHiganbanaLeft = (_strategy.ForbidDOTs || _strategy.UseAOERotation)
                 ? 10000f

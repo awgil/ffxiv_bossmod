@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime;
 using BossMod.ReplayAnalysis;
 using Dalamud.Game.ClientState.JobGauge.Enums;
+using Lumina.Excel;
 using SharpDX.Direct3D11;
 
 namespace BossMod.SAM
@@ -53,7 +55,7 @@ namespace BossMod.SAM
                 if (HasMoonSen) senReadable.Add("Moon");
                 if (HasFlowerSen) senReadable.Add("Flower");
 
-                return $"Sen=[{string.Join(",", senReadable)}], K={Kenki}, M={MeditationStacks}, Kae={Kaeshi}, TCD={CD(CDGroup.TsubameGaeshi)}, MCD={CD(CDGroup.MeikyoShisui)}, Fuka={FukaLeft:f3}, Fugetsu={FugetsuLeft:f3}, TN={TrueNorthLeft:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"Sen=[{string.Join(",", senReadable)}], K={Kenki}, M={MeditationStacks}, Kae={Kaeshi}, TCD={CD(CDGroup.TsubameGaeshi)}, MCD={CD(CDGroup.MeikyoShisui)}, Fuka={FukaLeft:f3}, Fugetsu={FugetsuLeft:f3}, TN={TrueNorthLeft:f3}, PotCD={PotionCD:f3}, GCDT={GCDTime:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -155,16 +157,20 @@ namespace BossMod.SAM
         private static AID GetHakazeCombo(State state)
         {
             // refresh buffs if they are about to expire
-            if (state.Unlocked(AID.Shifu) && state.FukaLeft < state.GCDTime * 3)
+            if (state.Unlocked(AID.Shifu) && state.FukaLeft < state.GCDTime * 2)
                 return AID.Shifu;
-            if (state.Unlocked(AID.Jinpu) && state.FugetsuLeft < state.GCDTime * 3)
+            if (state.Unlocked(AID.Jinpu) && state.FugetsuLeft < state.GCDTime * 2)
                 return AID.Jinpu;
 
-            // otherwise, get ice sen so we can use meikyo
-            if (state.Unlocked(AID.Yukikaze) && !state.HasIceSen)
+            // lvl 50+, all sen combos are guaranteed to be unlocked here
+            if (state.Unlocked(AID.Yukikaze) && !state.HasIceSen &&
+                // if we have one sen, and higanbana will drop below 15 after next weaponskill,
+                // use non-ice combo: it gives us one extra GCD to let higanbana tick
+                !(state.SenCount == 1 && state.TargetHiganbanaLeft - state.GCDTime - state.GCD < 15)) {
                 return AID.Yukikaze;
+            }
 
-            // if we have ice or are <49, just refresh the buff that runs out first
+            // if not using ice, refresh the buff that runs out first
             if (state.Unlocked(AID.Shifu)
                 && !state.HasFlowerSen
                 && state.FugetsuLeft >= state.FukaLeft)
@@ -294,13 +300,20 @@ namespace BossMod.SAM
 
         private static bool ShouldRefreshHiganbana(State state, Strategy strategy)
         {
-            // higanbana needs to tick for 45 out of 60 seconds to be a dps gain, but it also
-            // gives a meditation stack, so use it to get shoha even if the target is dying
-            if (strategy.FightEndIn > 0 && strategy.FightEndIn <= 45 + state.GCD)
+            // force use to get shoha even if the target is dying, dot overwrite doesn't matter
+            if (strategy.FightEndIn > 0 && (strategy.FightEndIn - state.GCD) < 45)
                 return state.MeditationStacks == 2;
 
-            // TODO: use actual GCD length once we have it
-            return state.TargetHiganbanaLeft < (state.GCDTime * 3) + state.GCD;
+            // we have a buffer of one GCD (moon1 or flower1) before sen count goes over 1,
+            // so only refresh if higanbana will expire within that time
+            if (state.ComboLastMove == AID.Hakaze)
+                return state.TargetHiganbanaLeft < state.GCD + state.GCDTime;
+            
+            // can't avoid generating sen on next GCD. check the higanbana timer
+            if (state.ComboLastMove is AID.Jinpu or AID.Shifu)
+                return state.TargetHiganbanaLeft < state.GCD + 15;
+
+            return state.TargetHiganbanaLeft == 0;
         }
 
         private static bool CanUseKenki(State state, Strategy strategy)

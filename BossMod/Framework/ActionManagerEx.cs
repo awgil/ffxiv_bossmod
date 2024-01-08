@@ -210,6 +210,12 @@ namespace BossMod
             return gcd->Total - gcd->Elapsed;
         }
 
+        public float GCDTime()
+        {
+            var gcd = _inst->GetRecastGroupDetail(CommonDefinitions.GCDGroup);
+            return gcd->Total;
+        }
+
         public uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
 
         public uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
