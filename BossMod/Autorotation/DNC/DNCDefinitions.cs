@@ -179,6 +179,24 @@ namespace BossMod.DNC
                 _ => true,
             };
         }
+        public static bool Unlocked(TraitID tid, int level, int questProgress)
+        {
+            return tid switch
+            {
+                TraitID.FourfoldFantasy => level >= 30,
+                TraitID.IncreasedActionDamage => level >= 50,
+                TraitID.IncreasedActionDamageII => level >= 60,
+                TraitID.EnhancedEnAvant => level >= 68,
+                TraitID.Esprit => level >= 76,
+                TraitID.EnhancedEnAvantII => level >= 78,
+                TraitID.EnhancedTechnicalFinish => level >= 82,
+                TraitID.EnhancedEsprit => level >= 84,
+                TraitID.EnhancedFlourish => level >= 86,
+                TraitID.EnhancedShieldSamba => level >= 88,
+                TraitID.EnhancedDevilment => level >= 90,
+                _ => true,
+            };
+        }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
         static Definitions()
