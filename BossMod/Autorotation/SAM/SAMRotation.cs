@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using static BossMod.CommonRotation.Strategy;
 
@@ -85,30 +86,39 @@ namespace BossMod.SAM
             {
                 [PropertyDisplay("Use as a damage skill during raid buffs")]
                 Automatic = 0,
-                [PropertyDisplay("Never automatically use")]
+                [PropertyDisplay("Never automatically use", 0xff800000)]
                 Never = 1,
-                [PropertyDisplay("Use as a gap closer if outside melee range")]
+                [PropertyDisplay("Use as a gap closer if outside melee range", 0xff800080)]
                 UseOutsideMelee = 2
             }
             public DashUse DashStrategy;
 
+            // takes priority over higanbana strategy
+            // setting this to Force will cause us to use iaijutsu even during position-lock or forced movement windows
+            public OffensiveAbilityUse IaijutsuUse;
             public OffensiveAbilityUse MeikyoUse;
             public OffensiveAbilityUse HiganbanaUse;
+
+            public OffensiveAbilityUse TrueNorthUse;
 
             public bool UseAOERotation;
 
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 5)
+                if (overrides.Length >= 6)
                 {
-                    HiganbanaUse = (OffensiveAbilityUse)overrides[0];
-                    MeikyoUse = (OffensiveAbilityUse)overrides[1];
-                    DashStrategy = (DashUse)overrides[2];
-                    EnpiStrategy = (EnpiUse)overrides[3];
-                    KenkiStrategy = (KenkiSpend)overrides[4];
+                    TrueNorthUse = (OffensiveAbilityUse)overrides[0];
+                    IaijutsuUse = (OffensiveAbilityUse)overrides[1];
+                    HiganbanaUse = (OffensiveAbilityUse)overrides[2];
+                    MeikyoUse = (OffensiveAbilityUse)overrides[3];
+                    DashStrategy = (DashUse)overrides[4];
+                    EnpiStrategy = (EnpiUse)overrides[5];
+                    KenkiStrategy = (KenkiSpend)overrides[6];
                 }
                 else
                 {
+                    TrueNorthUse = OffensiveAbilityUse.Automatic;
+                    IaijutsuUse = OffensiveAbilityUse.Automatic;
                     HiganbanaUse = OffensiveAbilityUse.Automatic;
                     MeikyoUse = OffensiveAbilityUse.Automatic;
                     DashStrategy = DashUse.Automatic;
@@ -140,7 +150,12 @@ namespace BossMod.SAM
 
         private static bool CanCast(State state, Strategy strategy)
         {
-            return strategy.PositionLockIn > state.GCD + state.CastTime;
+            if (strategy.IaijutsuUse == OffensiveAbilityUse.Force)
+                return true;
+            if (strategy.IaijutsuUse == OffensiveAbilityUse.Delay)
+                return false;
+
+            return MathF.Max(strategy.PositionLockIn, strategy.ForceMovementIn) >= state.GCD + state.CastTime;
         }
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
@@ -224,6 +239,8 @@ namespace BossMod.SAM
         // range checked at callsite rather than here since our different options (ogi, iaijutsu, weaponskills) have different ranges
         private static bool CanEnpi(State state, Strategy strategy)
         {
+            if (strategy.UseAOERotation) return false;
+
             return strategy.EnpiStrategy switch
             {
                 Strategy.EnpiUse.Automatic => state.Unlocked(AID.Enpi) && state.EnhancedEnpiLeft > state.GCD,
@@ -256,7 +273,7 @@ namespace BossMod.SAM
             if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f) {
                 if (strategy.CombatTimer > -9 && state.MeikyoLeft == 0)
                     return ActionID.MakeSpell(AID.MeikyoShisui);
-                if (strategy.CombatTimer > -5 && state.TrueNorthLeft == 0)
+                if (strategy.CombatTimer > -5 && state.TrueNorthLeft == 0 && strategy.TrueNorthUse != OffensiveAbilityUse.Delay)
                     return ActionID.MakeSpell(AID.TrueNorth);
 
                 return new();
@@ -264,6 +281,7 @@ namespace BossMod.SAM
 
             if (strategy.DashStrategy == Strategy.DashUse.UseOutsideMelee
                 && state.RangeToTarget > 3
+                && state.RangeToTarget <= 20
                 && state.Unlocked(AID.HissatsuGyoten)
                 && state.Kenki >= 10
                 && state.CanWeave(CDGroup.HissatsuGyoten, 0.6f, deadline))
@@ -281,6 +299,10 @@ namespace BossMod.SAM
 
             if (CanMeikyo(state, strategy) && state.CanWeave(state.NextMeikyoCharge, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.MeikyoShisui);
+
+            // everything after this requires a target
+            if (!state.TargetingEnemy)
+                return new();
 
             // wait for combat buffs before ikishoten
             // thebalance opener does this, not sure if it's mandatory or what makes it optimal
@@ -378,8 +400,7 @@ namespace BossMod.SAM
             {
                 Strategy.KenkiSpend.All => 25,
                 Strategy.KenkiSpend.Most => 35,
-                Strategy.KenkiSpend.Never => 0,
-                _ => throw new NotImplementedException(),
+                _ => 0,
             };
             if (kenkiThreshold == 0)
                 return false;
@@ -405,6 +426,8 @@ namespace BossMod.SAM
                 ImminentKaeshi(state) != AID.None
                 // don't use during combo, wastes the GCD used for the combo starter
                 || state.InCombo
+                // don't use during downtime if not forced
+                || !state.TargetingEnemy
             ) return false;
 
             // we want to have two meikyo charges during buff window but math is hard

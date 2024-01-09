@@ -192,7 +192,7 @@ namespace BossMod.SAM
             SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
             SupportedActions.GCD(AID.Enpi, 20);
             SupportedActions.GCD(AID.Shifu, 3);
-            SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f);
+            SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
             SupportedActions.GCD(AID.Fuga, 8);
             SupportedActions.GCDCast(AID.Iaijutsu, 0, 1.8f);
             SupportedActions.GCDCast(AID.Higanbana, 6, 1.8f);
