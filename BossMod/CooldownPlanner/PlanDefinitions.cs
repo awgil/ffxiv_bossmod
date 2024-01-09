@@ -138,9 +138,10 @@ namespace BossMod
         private static ClassData DefineSAM()
         {
             var c = new ClassData(typeof(SAM.AID), SAM.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("ThirdEye", ActionID.MakeSpell(SAM.AID.ThirdEye), 6));
             c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(SAM.AID.Feint), 22));
             c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(SAM.AID.ArmsLength), 32));
-            c.CooldownTracks.Add(new("ThirdEye", ActionID.MakeSpell(SAM.AID.ThirdEye), 6));
+            c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
             c.StrategyTracks.Add(new("Higanbana", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("Meikyo", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("Dash", typeof(SAM.Rotation.Strategy.DashUse)));
