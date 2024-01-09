@@ -6,13 +6,13 @@ namespace BossMod.DNC
     {
         public class State(float[] cooldowns) : CommonRotation.PlayerState(cooldowns)
         {
-            public DNCGauge Gauge { private get; set; }
+            public DNCGauge Gauge { private get; set; } = default!;
 
             public byte Feathers => Gauge.Feathers;
             public bool IsDancing => Gauge.IsDancing;
             public byte CompletedSteps => Gauge.CompletedSteps;
-            public uint NextStep => CompletedSteps == 4 || Gauge.NextStep == 15998 ? 0 : Gauge.NextStep;
-            public float Esprit => Gauge.Esprit;
+            public uint NextStep => (CompletedSteps == 4 || Gauge.NextStep == 15998) ? 0 : Gauge.NextStep;
+            public byte Esprit => Gauge.Esprit;
 
             public float StandardStepLeft; // 15s max
             public float StandardFinishLeft; // 60s max
@@ -64,7 +64,8 @@ namespace BossMod.DNC
 
             public override string ToString()
             {
-                return $"F={Feathers}, E={Esprit:f3}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                var steps = IsDancing ? CompletedSteps : 0;
+                return $"F={Feathers}, E={Esprit}, S={steps}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -110,12 +111,30 @@ namespace BossMod.DNC
             if (SpendEsprit(state, strategy) && state.Unlocked(AID.SaberDance))
                 return AID.SaberDance;
 
-            if (state.FlowLeft > state.GCD) return AID.Fountainfall;
-            if (state.SymmetryLeft > state.GCD) return AID.ReverseCascade;
+            if (state.FlowLeft > state.GCD) {
+                if (strategy.UseAOERotation && state.Unlocked(AID.Bloodshower))
+                    return AID.Bloodshower;
 
-            if (state.ComboLastMove == AID.Cascade && state.Unlocked(AID.Fountain)) return AID.Fountain;
+                // todo: skip this in aoe mode?
+                if (state.Unlocked(AID.Fountainfall))
+                    return AID.Fountainfall;
+            }
 
-            return AID.Cascade;
+            if (state.SymmetryLeft > state.GCD) {
+                if (strategy.UseAOERotation && state.Unlocked(AID.RisingWindmill))
+                    return AID.RisingWindmill;
+
+                // todo: see above
+                if (state.Unlocked(AID.ReverseCascade))
+                    return AID.ReverseCascade;
+            }
+
+            if (state.ComboLastMove == AID.Windmill && state.Unlocked(AID.Bladeshower))
+                return AID.Bladeshower;
+            if (state.ComboLastMove == AID.Cascade && state.Unlocked(AID.Fountain))
+                return AID.Fountain;
+
+            return (strategy.UseAOERotation && state.Unlocked(AID.Windmill)) ? AID.Windmill : AID.Cascade;
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
