@@ -77,17 +77,17 @@ namespace BossMod.DNC
                 if (state.NextStep != 0)
                     return (AID)state.NextStep;
 
-                if (state.StandardStepLeft > 0 && (strategy.CombatTimer > 0 || state.StandardStepLeft < 0.5))
+                if (state.StandardStepLeft > 0 && (strategy.CombatTimer > 0 || state.StandardStepLeft < 0.6))
                     return state.BestStandardStep;
 
-                if (state.TechStepLeft > 0 && (strategy.CombatTimer > 0 || state.TechStepLeft < 0.5))
+                if (state.TechStepLeft > 0 && (strategy.CombatTimer > 0 || state.TechStepLeft < 0.6))
                     return state.BestTechStep;
 
                 // we can't use non-step GCDs while dancing
                 return AID.None;
             }
 
-            if (strategy.CombatTimer > -100 && strategy.CombatTimer < 0) {
+            if (strategy.CombatTimer < 0) {
                 if (strategy.CombatTimer > -15.5 && strategy.CombatTimer < -3.5 && !state.IsDancing)
                     return AID.StandardStep;
 
@@ -142,6 +142,9 @@ namespace BossMod.DNC
             // only permitted OGCDs while dancing are role actions, shield samba, and curing waltz
             if (DoNothing(state, strategy) || state.IsDancing)
                 return new();
+
+            if (strategy.CombatTimer > -15 && strategy.CombatTimer < -2 && state.NextStep == 0)
+                return ActionID.MakeSpell(AID.Peloton);
 
             if (state.RaidBuffsLeft > state.GCD) {
                 if (state.Unlocked(AID.Devilment) && state.CanWeave(CDGroup.Devilment, 0.6f, deadline))
