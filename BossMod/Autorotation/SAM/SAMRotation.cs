@@ -394,7 +394,7 @@ namespace BossMod.SAM
             if (!state.Unlocked(AID.MeikyoShisui)
                 // don't overwrite even in force mode
                 || state.MeikyoLeft > 0
-                // delaying
+                // disabled via raidplan
                 || strategy.MeikyoUse == OffensiveAbilityUse.Delay
             ) return false;
 
@@ -431,8 +431,8 @@ namespace BossMod.SAM
                     return false;
 
                 // use if we have time to finish a midare cast
-                var midareCastFinish = state.GCD + state.GCDTime * (3 - state.SenCount) + state.CastTime;
-                return strategy.FightEndIn == 0 || strategy.FightEndIn >= midareCastFinish;
+                var predictedMidareCastFinish = state.GCD + state.GCDTime * (3 - state.SenCount) + state.CastTime;
+                return strategy.FightEndIn == 0 || strategy.FightEndIn >= predictedMidareCastFinish;
             }
         }
 
