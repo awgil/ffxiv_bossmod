@@ -62,6 +62,7 @@ namespace BossMod
             Classes[Class.DRG] = DefineDRG();
             Classes[Class.MNK] = DefineMNK();
             Classes[Class.BRD] = DefineBRD();
+            Classes[Class.DNC] = DefineDNC();
             Classes[Class.BLM] = DefineBLM();
             Classes[Class.RPR] = DefineRPR();
             Classes[Class.GNB] = DefineGNB();
@@ -151,6 +152,16 @@ namespace BossMod
             c.StrategyTracks.Add(new("EA", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("Barrage", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("SW", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
+            return c;
+        }
+
+        private static ClassData DefineDNC()
+        {
+            var c = new ClassData(typeof(DNC.AID), DNC.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("Samba", ActionID.MakeSpell(DNC.AID.ShieldSamba), 56));
+            c.CooldownTracks.Add(new("Waltz", ActionID.MakeSpell(DNC.AID.CuringWaltz), 52));
+            c.CooldownTracks.Add(new("Improv", ActionID.MakeSpell(DNC.AID.Improvisation), 80));
+            c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
             return c;
         }
 
