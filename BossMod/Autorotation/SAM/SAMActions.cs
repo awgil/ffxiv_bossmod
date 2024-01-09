@@ -88,6 +88,7 @@ namespace BossMod.SAM
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
+            _strategy.ApplyStrategyOverrides(Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? new uint[0]);
             _strategy.UseAOERotation = autoAction switch
             {
                 AutoActionST => false,

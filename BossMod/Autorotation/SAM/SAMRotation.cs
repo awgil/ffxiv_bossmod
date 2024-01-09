@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Dalamud.Game.ClientState.JobGauge.Enums;
+using static BossMod.CommonRotation.Strategy;
 
 namespace BossMod.SAM
 {
@@ -54,6 +55,69 @@ namespace BossMod.SAM
                 return $"Sen=[{string.Join(",", senReadable)}], K={Kenki}, M={MeditationStacks}, Kae={Kaeshi}, TCD={CD(CDGroup.TsubameGaeshi)}, MCD={CD(CDGroup.MeikyoShisui)}, Fuka={FukaLeft:f3}, Fugetsu={FugetsuLeft:f3}, TN={TrueNorthLeft:f3}, PotCD={PotionCD:f3}, GCDT={GCDTime:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
+
+        public class Strategy : CommonRotation.Strategy
+        {
+            public enum KenkiSpend : uint
+            {
+                [PropertyDisplay("Reserve 10 kenki for mobility skills")]
+                Most = 0, // reserve 10 for forward and backwards dash abilities
+                [PropertyDisplay("Use kenki gauge at 25")]
+                All = 1, // or don't
+                [PropertyDisplay("Don't auto-use kenki at all")]
+                Never = 2
+            }
+
+            public KenkiSpend KenkiStrategy;
+
+            public enum EnpiUse : uint
+            {
+                [PropertyDisplay("Use when outside melee range if Enhanced Enpi is active")]
+                Automatic = 0,
+                [PropertyDisplay("Use when outside melee range, even if unbuffed")]
+                Ranged = 1,
+                [PropertyDisplay("Never automatically suse")]
+                Never = 2
+            }
+            public EnpiUse EnpiStrategy;
+
+            public enum DashUse : uint
+            {
+                [PropertyDisplay("Use as a damage skill during raid buffs")]
+                Automatic = 0,
+                [PropertyDisplay("Never automatically use")]
+                Never = 1,
+                [PropertyDisplay("Use as a gap closer if outside melee range")]
+                UseOutsideMelee = 2
+            }
+            public DashUse DashStrategy;
+
+            public OffensiveAbilityUse MeikyoUse;
+            public OffensiveAbilityUse HiganbanaUse;
+
+            public bool UseAOERotation;
+
+            public void ApplyStrategyOverrides(uint[] overrides)
+            {
+                if (overrides.Length >= 4)
+                {
+                    HiganbanaUse = (OffensiveAbilityUse)overrides[0];
+                    MeikyoUse = (OffensiveAbilityUse)overrides[1];
+                    DashStrategy = (DashUse)overrides[2];
+                    EnpiStrategy = (EnpiUse)overrides[3];
+                    KenkiStrategy = (KenkiSpend)overrides[4];
+                }
+                else
+                {
+                    HiganbanaUse = OffensiveAbilityUse.Automatic;
+                    MeikyoUse = OffensiveAbilityUse.Automatic;
+                    DashStrategy = DashUse.Automatic;
+                    EnpiStrategy = EnpiUse.Automatic;
+                    KenkiStrategy = KenkiSpend.Most;
+                }
+            }
+        }
+
 
         private static AID ImminentKaeshi(State state)
         {
@@ -287,6 +351,11 @@ namespace BossMod.SAM
 
         private static bool ShouldRefreshHiganbana(State state, Strategy strategy)
         {
+            if (strategy.HiganbanaUse == OffensiveAbilityUse.Delay)
+                return false;
+            if (strategy.HiganbanaUse == OffensiveAbilityUse.Force)
+                return true;
+
             // force use to get shoha even if the target is dying, dot overwrite doesn't matter
             if (strategy.FightEndIn > 0 && (strategy.FightEndIn - state.GCD) < 45)
                 return state.MeditationStacks == 2;
@@ -323,10 +392,17 @@ namespace BossMod.SAM
         private static bool CanMeikyo(State state, Strategy strategy)
         {
             if (!state.Unlocked(AID.MeikyoShisui)
-                // don't overwrite
+                // don't overwrite even in force mode
                 || state.MeikyoLeft > 0
+                // delaying
+                || strategy.MeikyoUse == OffensiveAbilityUse.Delay
+            ) return false;
+
+            if (strategy.MeikyoUse == OffensiveAbilityUse.Force) return true;
+
+            if (
                 // don't use with a tsubame followup available, wastes a GCD of buff duration
-                || ImminentKaeshi(state) != AID.None
+                ImminentKaeshi(state) != AID.None
                 // don't use during combo, wastes the GCD used for the combo starter
                 || state.InCombo
             ) return false;
@@ -418,45 +494,6 @@ namespace BossMod.SAM
             }
 
             return default;
-        }
-
-        public class Strategy : CommonRotation.Strategy
-        {
-            public enum KenkiSpend : uint
-            {
-                [PropertyDisplay("Reserve 10 kenki for mobility skills")]
-                Most = 0, // reserve 10 for forward and backwards dash abilities
-                [PropertyDisplay("Use kenki gauge at 25")]
-                All = 1, // or don't
-                [PropertyDisplay("Don't auto-use kenki at all")]
-                Never = 2
-            }
-
-            public KenkiSpend KenkiStrategy;
-
-            public enum EnpiUse : uint
-            {
-                [PropertyDisplay("Use when outside melee range if Enhanced Enpi is active")]
-                Automatic = 0,
-                [PropertyDisplay("Use when outside melee range, even if unbuffed")]
-                Ranged = 1,
-                [PropertyDisplay("Never automatically suse")]
-                Never = 2
-            }
-            public EnpiUse EnpiStrategy;
-
-            public enum DashUse : uint
-            {
-                [PropertyDisplay("Use as a damage skill during raid buffs")]
-                Automatic = 0,
-                [PropertyDisplay("Never automatically use")]
-                Never = 1,
-                [PropertyDisplay("Use as a gap closer if outside melee range")]
-                UseOutsideMelee = 2
-            }
-            public DashUse DashStrategy;
-
-            public bool UseAOERotation;
         }
     }
 }

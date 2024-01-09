@@ -186,7 +186,7 @@ namespace BossMod.SAM
             SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
             SupportedActions.GCD(AID.Hakaze, 3);
             SupportedActions.GCD(AID.Jinpu, 3);
-            SupportedActions.OGCD(AID.ThirdEye, 0, CDGroup.ThirdEye, 15.0f);
+            SupportedActions.OGCD(AID.ThirdEye, 0, CDGroup.ThirdEye, 15.0f).EffectDuration = 4;
             SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
             SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
             SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
@@ -197,7 +197,7 @@ namespace BossMod.SAM
             SupportedActions.GCDCast(AID.Iaijutsu, 0, 1.8f);
             SupportedActions.GCDCast(AID.Higanbana, 6, 1.8f);
             SupportedActions.GCD(AID.Gekko, 3);
-            SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f);
+            SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
             SupportedActions.GCD(AID.Mangetsu, 0);
             SupportedActions.GCD(AID.Kasha, 3);
             SupportedActions.GCDCast(AID.TenkaGoken, 0, 1.8f);

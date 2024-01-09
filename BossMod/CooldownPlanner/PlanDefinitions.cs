@@ -141,6 +141,11 @@ namespace BossMod
             c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(SAM.AID.Feint), 22));
             c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(SAM.AID.ArmsLength), 32));
             c.CooldownTracks.Add(new("ThirdEye", ActionID.MakeSpell(SAM.AID.ThirdEye), 6));
+            c.StrategyTracks.Add(new("Higanbana", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("Meikyo", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("Dash", typeof(SAM.Rotation.Strategy.DashUse)));
+            c.StrategyTracks.Add(new("Enpi", typeof(SAM.Rotation.Strategy.EnpiUse)));
+            c.StrategyTracks.Add(new("Kenki", typeof(SAM.Rotation.Strategy.KenkiSpend)));
             return c;
         }
 
