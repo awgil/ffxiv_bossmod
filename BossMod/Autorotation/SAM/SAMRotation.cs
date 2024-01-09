@@ -99,7 +99,7 @@ namespace BossMod.SAM
 
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 4)
+                if (overrides.Length >= 5)
                 {
                     HiganbanaUse = (OffensiveAbilityUse)overrides[0];
                     MeikyoUse = (OffensiveAbilityUse)overrides[1];
