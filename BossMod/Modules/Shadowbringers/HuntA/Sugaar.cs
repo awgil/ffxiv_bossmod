@@ -35,7 +35,6 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
     {
         public float PullDistance;
         public Angle Direction;
-        public DateTime Activation;
         public float DistanceToBoss;
         public int active;
         public NumbingNoiseRotationKB() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation),default) { }
@@ -50,7 +49,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
               if (Boss != null && player != null) 
               Direction=Angle.FromDirection(player.Position - Boss.Position);
              if (active>=1 && PullDistance > 0 && PullDistance <=25)
-                yield return new(new(), PullDistance, Activation = default, null, Direction, Kind.TowardsOrigin);
+                yield return new(new(), PullDistance, default, null, Direction, Kind.TowardsOrigin);
             }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

@@ -2,7 +2,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
 {
     public enum OID : uint
     {
-        Boss = 0x2874,Tail=1,
+        Boss = 0x2874,
     };
 
     public enum AID : uint
