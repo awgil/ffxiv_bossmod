@@ -53,4 +53,5 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
                 activeHelper = 0;
             }
         }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints){}
     }
