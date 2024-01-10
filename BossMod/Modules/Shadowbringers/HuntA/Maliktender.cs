@@ -2,17 +2,23 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
 {
     public enum OID : uint
     {
-        Boss = 0x2874,
+        Boss = 0x2874,Tail=1,
     };
 
     public enum AID : uint
     {
         AutoAttack = 872, // Boss->player, no cast, single-target
-        Sabotendance = 18019, // Boss->self, 3.5s cast, range 8 circle
+        Sabotendance = 18019, // Boss->self, 3.5s cast, range 8 circle, stuns players
         TwentyKNeedles = 18022, // Boss->self, 3.5s cast, range 20 width 8 rect
         NineNineNineKNeedles = 18024, // Boss->self, 3.0s cast, range 20 width 8 rect
         Haste = 18020, // Boss->self, 3.0s cast, buff to self, boss will use 990k needles instead of 20k needles
     }
+        public enum SID : uint
+    {
+        Haste = 1962,
+        Stun = 149,
+
+    };
 
     class Sabotendance : Components.SelfTargetedAOEs
     {
@@ -25,7 +31,23 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
     }
     class Haste : Components.CastHint
     {
-        public Haste() : base(ActionID.MakeSpell(AID.Haste), "Needle attack will instant kill from now on!") { }
+        public Haste() : base(ActionID.MakeSpell(AID.Haste), "") { }
+        public int HasteB;
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastStarted(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.Haste)
+            {
+                HasteB = 1;
+            }
+        }
+         public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (HasteB == 1)
+            {
+                hints.Add("Needle attack will instantly kill you from now on!");
+            }
+        }
     }
     class NineNineNineKNeedles : Components.SelfTargetedAOEs
     {
@@ -39,7 +61,8 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
             TrivialPhase()
                 .ActivateOnEnter<Sabotendance>()
                 .ActivateOnEnter<TwentyKNeedles>()
-                .ActivateOnEnter<NineNineNineKNeedles>();
+                .ActivateOnEnter<NineNineNineKNeedles>()
+                .ActivateOnEnter<Haste>();
         }
     }
 
