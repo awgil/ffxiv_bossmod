@@ -45,7 +45,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
         {
             if (HasteB == 1)
             {
-                hints.Add("Needle attack will instantly kill you from now on!");
+                hints.Add("Getting hit by the needle attack will instantly kill you from now on!");
             }
         }
     }
