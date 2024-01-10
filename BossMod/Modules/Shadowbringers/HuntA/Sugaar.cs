@@ -129,11 +129,11 @@ class TailSnapRotationKB : Components.KnockbackFromCastTarget //TODO: pulls/attr
     class TailSnapRotation : Components.SelfTargetedAOEs
     
     {
-        public TailSnapRotation() : base(ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18,60.Degrees(), directionOffset: 180.Degrees())) { }
+        public TailSnapRotation() : base(ActionID.MakeSpell(AID.TailSnapRotation), new AOEShapeCone(18,60.Degrees(), directionOffset: 180.Degrees())) { }
     }
     class TailSnapDuringRotation : Components.SelfTargetedAOEs
     {
-        public TailSnapDuringRotation() : base(ActionID.MakeSpell(AID.TailSnapRotation), new AOEShapeCone(18,60.Degrees()),3) { }
+        public TailSnapDuringRotation() : base(ActionID.MakeSpell(AID.TailSnapDuringRotation), new AOEShapeCone(18,60.Degrees()),3) { }
     }
     class BodySlam : Components.SelfTargetedAOEs
     {
