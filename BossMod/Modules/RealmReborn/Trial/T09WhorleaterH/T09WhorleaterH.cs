@@ -171,14 +171,13 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
     {
         public float Distance;
         public Angle Direction;
-        public DateTime Activation;
 
         public float LeviathanZ;
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (Distance > 0)
-                yield return new(new(), Distance, Activation = default, null, Direction, Kind.DirForward);
+                yield return new(new(), Distance, default, null, Direction, Kind.DirForward);
         }
 
         public override void Update(BossModule module)
@@ -210,9 +209,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         class BodySlamAOE : GenericAOEs
         {
         public float active;
-        
         public Angle Direction;
-
         public float LeviathanZ;
         private static AOEShapeRect rect = new(30, 5);
 
