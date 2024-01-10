@@ -155,7 +155,7 @@ namespace BossMod.SAM
             if (strategy.IaijutsuUse == OffensiveAbilityUse.Delay)
                 return false;
 
-            return MathF.Max(strategy.PositionLockIn, strategy.ForceMovementIn) >= state.GCD + state.CastTime;
+            return strategy.ForceMovementIn >= state.GCD + state.CastTime;
         }
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
@@ -322,19 +322,20 @@ namespace BossMod.SAM
                 && state.RaidBuffsLeft > state.AnimationLock
                 && state.Unlocked(AID.HissatsuGyoten)
                 && state.Kenki >= 10
-                && (!state.Unlocked(AID.HissatsuSenei) || state.CD(CDGroup.HissatsuGuren) > state.RaidBuffsLeft)
+                && (!state.Unlocked(AID.HissatsuGuren) || state.CD(CDGroup.HissatsuGuren) > state.RaidBuffsLeft)
                 && state.CanWeave(state.CD(CDGroup.HissatsuGyoten), 0.6f, deadline))
                 return ActionID.MakeSpell(AID.HissatsuGyoten);
 
-            if (CanUseKenki(state, strategy)) {
-                if (strategy.UseAOERotation) {
-                    // 120s cooldown
-                    if (state.Unlocked(AID.HissatsuGuren)
-                        && state.HasCombatBuffs
-                        && InRaidBuffWindow(state, strategy)
-                        && state.CanWeave(CDGroup.HissatsuGuren, 0.6f, deadline))
-                        return ActionID.MakeSpell(AID.HissatsuGuren);
+            if (strategy.UseAOERotation) {
+                // 120s cooldown
+                if (CanUseKenki(state, strategy, true)
+                    && state.Unlocked(AID.HissatsuGuren)
+                    && state.HasCombatBuffs
+                    && InRaidBuffWindow(state, strategy)
+                    && state.CanWeave(CDGroup.HissatsuGuren, 0.6f, deadline))
+                    return ActionID.MakeSpell(AID.HissatsuGuren);
 
+                if (CanUseKenki(state, strategy)) {
                     // use on cooldown
                     if (state.Unlocked(AID.HissatsuKyuten) && state.CanWeave(deadline))
                         return ActionID.MakeSpell(AID.HissatsuKyuten);
@@ -342,19 +343,22 @@ namespace BossMod.SAM
                     // below level 62 kyuten is not unlocked, use single target instead
                     if (state.Unlocked(AID.HissatsuShinten) && state.CanWeave(deadline))
                         return ActionID.MakeSpell(AID.HissatsuShinten);
-                } else {
-                    // 120s cooldown
-                    if (state.Unlocked(AID.HissatsuGuren)
-                        && state.HasCombatBuffs
-                        && InRaidBuffWindow(state, strategy)
-                        && state.CanWeave(CDGroup.HissatsuGuren, 0.6f, deadline))
-                    {
-                        // senei is unlocked at 72
-                        if (state.Unlocked(AID.HissatsuSenei)) return ActionID.MakeSpell(AID.HissatsuSenei);
-                        // otherwise use single target guren
-                        return ActionID.MakeSpell(AID.HissatsuGuren);
-                    }
+                }
+            } else {
+                // 120s cooldown
+                if (CanUseKenki(state, strategy, true)
+                    && state.Unlocked(AID.HissatsuGuren)
+                    && state.HasCombatBuffs
+                    && InRaidBuffWindow(state, strategy)
+                    && state.CanWeave(CDGroup.HissatsuGuren, 0.6f, deadline))
+                {
+                    // senei is unlocked at 72
+                    if (state.Unlocked(AID.HissatsuSenei)) return ActionID.MakeSpell(AID.HissatsuSenei);
+                    // otherwise use single target guren
+                    return ActionID.MakeSpell(AID.HissatsuGuren);
+                }
 
+                if (CanUseKenki(state, strategy)) {
                     // use on cooldown
                     if (state.Unlocked(AID.HissatsuShinten) && state.CanWeave(deadline))
                         return ActionID.MakeSpell(AID.HissatsuShinten);
@@ -394,12 +398,12 @@ namespace BossMod.SAM
             return state.TargetHiganbanaLeft == 0;
         }
 
-        private static bool CanUseKenki(State state, Strategy strategy)
+        private static bool CanUseKenki(State state, Strategy strategy, bool spendAll = false)
         {
             var kenkiThreshold = strategy.KenkiStrategy switch
             {
                 Strategy.KenkiSpend.All => 25,
-                Strategy.KenkiSpend.Most => 35,
+                Strategy.KenkiSpend.Most => spendAll ? 25 : 35,
                 _ => 0,
             };
             if (kenkiThreshold == 0)
