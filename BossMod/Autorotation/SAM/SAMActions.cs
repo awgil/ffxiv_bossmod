@@ -37,14 +37,6 @@ namespace BossMod.SAM
         {
             SupportedSpell(AID.Hakaze).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             SupportedSpell(AID.Fuga).PlaceholderForAuto = SupportedSpell(AID.Fuko).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
-            _strategy.KenkiStrategy = _config.UseKenki ?
-                (_config.ReserveKenki
-                    ? Rotation.Strategy.KenkiSpend.Most
-                    : Rotation.Strategy.KenkiSpend.All)
-                : Rotation.Strategy.KenkiSpend.Never;
-            _strategy.DashStrategy = _config.DashOutsideMelee
-                ? Rotation.Strategy.DashUse.UseOutsideMelee
-                : Rotation.Strategy.DashUse.Automatic;
         }
 
         public override void Dispose()
