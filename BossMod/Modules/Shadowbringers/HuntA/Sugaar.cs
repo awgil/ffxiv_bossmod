@@ -26,11 +26,98 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
     {
         public NumbingNoise() : base(ActionID.MakeSpell(AID.NumbingNoise), new AOEShapeCone(13,60.Degrees())) { } 
     }
-    class NumbingNoiseRotation : Components.SelfTargetedAOEs
+    class TailSnap : Components.SelfTargetedAOEs
     {
-        public NumbingNoiseRotation() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation), new AOEShapeCone(13,60.Degrees())) { }
+        public TailSnap() : base(ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18,60.Degrees())) { }
+    }
+    class Rotation : Components.GenericAOEs
+    {
+        private int _remainingHits = 0;
+        private int _numbingnoise = 0;
+        private int _tailsnap = 0;
+        private Angle _RotationDir;
+        private Angle _RotationDirIncrement;
+
+        private static AOEShapeCone _shapeNumbingNoise = new(13, 60.Degrees());
+        private static AOEShapeCone _shapeTailSnap = new(18, 60.Degrees());
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_remainingHits > 0 && _numbingnoise > 0)
+                yield return new(_shapeNumbingNoise, module.PrimaryActor.Position, _RotationDir);
+            if (_remainingHits > 0 && _tailsnap > 0)
+                yield return new(_shapeTailSnap, module.PrimaryActor.Position, _RotationDir);
+        }
+
+        public override void Update(BossModule module)
+        {
+            if (module.PrimaryActor.CastInfo == null || !module.PrimaryActor.CastInfo.IsSpell())
+                return;
+            switch ((AID)module.PrimaryActor.CastInfo.Action.ID)
+            {
+                case AID.NumbingNoiseRotation:
+                    _RotationDir = module.PrimaryActor.Rotation;
+                    break;
+                case AID.TailSnapRotation:
+                    _RotationDir = module.PrimaryActor.Rotation+180.Degrees();
+                    break;
+            }
+        }
+
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            base.DrawArenaBackground(module, pcSlot, pc, arena);
+            if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _numbingnoise == 1)
+                arena.ZoneCone(module.PrimaryActor.Position, 0, _shapeNumbingNoise.Radius, _RotationDir + _RotationDirIncrement, 60.Degrees(), ArenaColor.Danger);
+            if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _tailsnap == 1)
+                arena.ZoneCone(module.PrimaryActor.Position, 0, _shapeTailSnap.Radius, _RotationDir + _RotationDirIncrement, 60.Degrees(), ArenaColor.Danger);
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (caster != module.PrimaryActor)
+                return;
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.NumbingNoiseRotation:
+                    _tailsnap = 0;
+                    _numbingnoise = 1;
+                    _remainingHits = 3;
+                    _RotationDirIncrement = 120.Degrees();
+                    break;
+                case AID.NumbingNoiseDuringRotation:
+                    _RotationDirIncrement = 120.Degrees();
+                    break;
+                case AID.TailSnapRotation:
+                    _tailsnap = 1;
+                    _numbingnoise = 0;
+                    _remainingHits = 3;
+                    _RotationDirIncrement = -120.Degrees();
+                    break;
+                case AID.TailSnapDuringRotation:
+                    _RotationDirIncrement = -120.Degrees();
+                    break;
+            }
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (caster != module.PrimaryActor)
+                return;
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.NumbingNoiseDuringRotation:
+                case AID.TailSnapDuringRotation:
+                    _RotationDir += _RotationDirIncrement;
+                    --_remainingHits;
+                    break;
+            }
+        }
     }
 
+    class BodySlam : Components.SelfTargetedAOEs
+    {
+        public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11)) { }
+    }
    class NumbingNoiseRotationKB : Components.KnockbackFromCastTarget //TODO: pulls/attracts should probably have their own component to make this easier in future
     {
         public float PullDistance;
@@ -117,27 +204,6 @@ class TailSnapRotationKB : Components.KnockbackFromCastTarget //TODO: pulls/attr
             }
         }
     }
-    class NumbingNoiseDuringRotation : Components.SelfTargetedAOEs
-    {
-        public NumbingNoiseDuringRotation() : base(ActionID.MakeSpell(AID.NumbingNoiseDuringRotation), new AOEShapeCone(13,60.Degrees()),3) { }
-    }
-    class TailSnap : Components.SelfTargetedAOEs
-    {
-        public TailSnap() : base(ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18,60.Degrees())) { }
-    }
-    class TailSnapRotation : Components.SelfTargetedAOEs
-    
-    {
-        public TailSnapRotation() : base(ActionID.MakeSpell(AID.TailSnapRotation), new AOEShapeCone(18,60.Degrees(), directionOffset: 180.Degrees())) { }
-    }
-    class TailSnapDuringRotation : Components.SelfTargetedAOEs
-    {
-        public TailSnapDuringRotation() : base(ActionID.MakeSpell(AID.TailSnapDuringRotation), new AOEShapeCone(18,60.Degrees()),3) { }
-    }
-    class BodySlam : Components.SelfTargetedAOEs
-    {
-        public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11)) { }
-    }
     class SugaarStates : StateMachineBuilder
     {
         public SugaarStates(BossModule module) : base(module)
@@ -145,12 +211,9 @@ class TailSnapRotationKB : Components.KnockbackFromCastTarget //TODO: pulls/attr
             TrivialPhase()
                 .ActivateOnEnter<NumbingNoise>()
                 .ActivateOnEnter<TailSnap>()
-                .ActivateOnEnter<TailSnapRotation>()
                 .ActivateOnEnter<TailSnapRotationKB>()
-                .ActivateOnEnter<NumbingNoiseRotation>()
                 .ActivateOnEnter<NumbingNoiseRotationKB>()
-                .ActivateOnEnter<NumbingNoiseDuringRotation>()
-                .ActivateOnEnter<TailSnapDuringRotation>()
+                .ActivateOnEnter<Rotation>()
                 .ActivateOnEnter<BodySlam>();
         }
     }
