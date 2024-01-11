@@ -118,13 +118,15 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
     {
         public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11)) { }
     }
-   class NumbingNoiseRotationKB : Components.KnockbackFromCastTarget //TODO: pulls/attracts should probably have their own component to make this easier in future
+   class RotationPull: Components.KnockbackFromCastTarget //TODO: pulls/attracts should probably have their own component to make this easier in future
     {
-        public float PullDistance;
-        public Angle Direction;
-        public float DistanceToBoss;
-        public int active;
-        public NumbingNoiseRotationKB() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation),default) { }
+        private float PullDistance;
+        private Angle Direction;
+        private float DistanceToBoss;
+        private int activeTailSnap;
+        private int activeNumbingNoise;
+        private string hint = "Use anti knockback ability or get pulled into danger zone!";
+        public RotationPull() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation),default) { }
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
                var Boss = module.Enemies(OID.Boss).FirstOrDefault();
@@ -135,7 +137,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                 PullDistance = 30 - (Boss.HitboxRadius + player.HitboxRadius + (30-DistanceToBoss));
               if (Boss != null && player != null) 
               Direction=Angle.FromDirection(player.Position - Boss.Position);
-             if (active>=1 && PullDistance > 0 && PullDistance <=25)
+             if (activeNumbingNoise > 0 || activeTailSnap > 0 && PullDistance > 0 && PullDistance <=25)
                 yield return new(new(), PullDistance, default, null, Direction, Kind.TowardsOrigin);
             }
 
@@ -143,67 +145,32 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.NumbingNoiseRotation)
-            active=1;
+            activeNumbingNoise=1;
+            if ((AID)spell.Action.ID == AID.TailSnapRotation)
+            activeTailSnap = 1;
         }
-                public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.NumbingNoiseRotation)
-            active=0;
+            activeNumbingNoise = 0;
+            if ((AID)spell.Action.ID == AID.TailSnapDuringRotation)
+            activeTailSnap = 0;
         }
-
             public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-             if (active>=1 && DistanceToBoss >= 13 && DistanceToBoss <=30)
+             if (activeNumbingNoise > 0 && DistanceToBoss >= 13 && DistanceToBoss <=30)
             {
-                hints.Add("Use anti knockback ability or get pulled into danger zone!");
+                hints.Add(hint);
+            }
+            if (activeTailSnap > 0 && DistanceToBoss >= 18 && DistanceToBoss <=30)
+            {
+                hints.Add(hint);
             }
         }
     }
 
-class TailSnapRotationKB : Components.KnockbackFromCastTarget //TODO: pulls/attracts should probably have their own component to make this easier in future
-    {
-        public float PullDistance;
-        public Angle Direction;
-        public DateTime Activation;
-        public float DistanceToBoss;
-        public int active;
-        public TailSnapRotationKB() : base(ActionID.MakeSpell(AID.TailSnapRotation),default) { }
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-               var Boss = module.Enemies(OID.Boss).FirstOrDefault();
-               var player = module.Raid.Player();
-             if (Boss != null && player != null) 
-                DistanceToBoss = (player.Position - Boss.Position).Length();
-             if (Boss != null && player != null) 
-                PullDistance = 30 - (Boss.HitboxRadius + player.HitboxRadius + (30-DistanceToBoss));
-              if (Boss != null && player != null) 
-              Direction=Angle.FromDirection(player.Position - Boss.Position);
-             if (active>=1 && PullDistance > 0 && PullDistance <=25)
-                yield return new(new(), PullDistance, Activation = default, null, Direction, Kind.TowardsOrigin);
-            }
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            base.OnCastStarted(module, caster, spell);
-            if ((AID)spell.Action.ID == AID.TailSnapRotation)
-            active=1;
-        }
-                public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            base.OnCastStarted(module, caster, spell);
-            if ((AID)spell.Action.ID == AID.TailSnapRotation)
-            active=0;
-        }
-
-            public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-             if (active>=1 && DistanceToBoss >= 18 && DistanceToBoss <=30)
-            {
-                hints.Add("Use anti knockback ability or get pulled into danger zone!");
-            }
-        }
-    }
     class SugaarStates : StateMachineBuilder
     {
         public SugaarStates(BossModule module) : base(module)
@@ -211,8 +178,7 @@ class TailSnapRotationKB : Components.KnockbackFromCastTarget //TODO: pulls/attr
             TrivialPhase()
                 .ActivateOnEnter<NumbingNoise>()
                 .ActivateOnEnter<TailSnap>()
-                .ActivateOnEnter<TailSnapRotationKB>()
-                .ActivateOnEnter<NumbingNoiseRotationKB>()
+                .ActivateOnEnter<RotationPull>()
                 .ActivateOnEnter<Rotation>()
                 .ActivateOnEnter<BodySlam>();
         }
