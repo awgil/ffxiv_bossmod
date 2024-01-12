@@ -135,10 +135,6 @@ namespace BossMod.SAM
             _state.MeditationStacks = gauge.MeditationStacks;
             _state.Kenki = gauge.Kenki;
             _state.Kaeshi = gauge.Kaeshi;
-            _state.TimeSinceTsubame =
-                _lastTsubame == default
-                    ? float.MaxValue
-                    : (float)(Autorot.WorldState.CurrentTime - _lastTsubame).TotalSeconds;
             _state.FukaLeft = StatusDetails(Player, SID.Fuka, Player.InstanceID).Left;
             _state.FugetsuLeft = StatusDetails(Player, SID.Fugetsu, Player.InstanceID).Left;
             _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
@@ -148,12 +144,17 @@ namespace BossMod.SAM
                 SID.OgiNamikiriReady,
                 Player.InstanceID
             ).Left;
-            _state.GCDTime = ActionManagerEx.Instance!.GCDTime();
 
             _state.TargetHiganbanaLeft =
                 (_strategy.ForbidDOTs || _strategy.UseAOERotation)
-                    ? 10000f
+                    ? float.MaxValue
                     : StatusDetails(Autorot.PrimaryTarget, SID.Higanbana, Player.InstanceID).Left;
+
+            _state.GCDTime = ActionManagerEx.Instance!.GCDTime();
+            _state.LastTsubame =
+                _lastTsubame == default
+                    ? float.MaxValue
+                    : (float)(Autorot.WorldState.CurrentTime - _lastTsubame).TotalSeconds;
 
             _state.ClosestPositional = GetClosestPositional();
         }

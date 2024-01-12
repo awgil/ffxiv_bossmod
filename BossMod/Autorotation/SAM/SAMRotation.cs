@@ -26,7 +26,7 @@ namespace BossMod.SAM
             public int Kenki; // 100 max, changes by 5
             public Kaeshi Kaeshi; // see SAMGauge.Kaeshi
             public float FukaLeft; // 40 max
-            public float TimeSinceTsubame; // can be infinite
+            public float LastTsubame; // can be infinite
             public float FugetsuLeft; // 40 max
             public float TrueNorthLeft; // 10 max
             public float MeikyoLeft; // 15 max
@@ -141,13 +141,10 @@ namespace BossMod.SAM
                 [PropertyDisplay("Never automatically use", 0xff000080)]
                 Never = 1,
 
-                [PropertyDisplay("Force usage after the next weaponskill combo ender", 0xff800080)]
+                [PropertyDisplay("Force use after the next weaponskill combo ender", 0xff800080)]
                 Force = 2,
 
-                [PropertyDisplay(
-                    "Force immediate usage, even if a combo is in progress",
-                    0xff008080
-                )]
+                [PropertyDisplay("Force use even if a combo is in progress", 0xff008080)]
                 ForceBreakCombo = 3
             }
 
@@ -226,19 +223,16 @@ namespace BossMod.SAM
             var canCast = CanCast(state, strategy);
 
             // fallback 1: out of range for ogi
-            // (enpi is the only gcd that doesn't cancel tsubame)
             if (CanEnpi(state, strategy) && state.RangeToTarget > 8)
                 return AID.Enpi;
 
-            // we can't save kaeshi across GCDs, weaponskills break the combo, so always use them even unbuffed
             var k = ImminentKaeshi(state);
             if (k != AID.None)
                 return k;
 
-            // ogi checks
             if (
                 state.OgiNamikiriLeft > 0
-                && canCast
+                && state.HasCombatBuffs
                 && !ShouldRefreshHiganbana(state, strategy)
                 && state.SenCount == 0
             )
@@ -248,11 +242,9 @@ namespace BossMod.SAM
             if (CanEnpi(state, strategy) && state.RangeToTarget > 6)
                 return AID.Enpi;
 
-            // midare is always worth it even if unbuffed
             if (state.SenCount == 3 && canCast)
                 return AID.MidareSetsugekka;
 
-            // iaijutsu checks
             if (state.HasCombatBuffs && canCast)
             {
                 if (
@@ -431,14 +423,29 @@ namespace BossMod.SAM
             if (state.MeditationStacks == 3 && state.CanWeave(deadline))
                 return ActionID.MakeSpell(AID.Shoha);
 
-            if (
-                state.MeikyoLeft == 0
-                && state.SenCount == 0
-                && state.TimeSinceTsubame < state.GCDTime
-            )
+            if (state.MeikyoLeft == 0 && state.LastTsubame < state.GCDTime * 3)
                 return ActionID.MakeSpell(AID.MeikyoShisui);
 
+            if (
+                ShouldUseTrueNorth(state, strategy)
+                && state.CanWeave(state.CD(CDGroup.TrueNorth) - 45, 0.6f, deadline)
+                && state.GCD < 0.800
+            )
+                return ActionID.MakeSpell(AID.TrueNorth);
+
             return new();
+        }
+
+        private static bool ShouldUseTrueNorth(State state, Strategy strategy)
+        {
+            if (state.TrueNorthLeft > state.AnimationLock)
+                return false;
+            if (strategy.TrueNorthUse == OffensiveAbilityUse.Force)
+                return true;
+            if (!state.TargetingEnemy || strategy.TrueNorthUse == OffensiveAbilityUse.Delay)
+                return false;
+
+            return strategy.NextPositionalImminent && !strategy.NextPositionalCorrect;
         }
 
         private static bool ShouldUseBurst(State state, Strategy strategy, float deadline)
@@ -446,6 +453,7 @@ namespace BossMod.SAM
             return state.RaidBuffsLeft > deadline
                 // fight will end before next window, use everything
                 || strategy.RaidBuffsIn > strategy.FightEndIn
+                // general combat, no module active. yolo
                 || strategy.RaidBuffsIn > 9000;
         }
 
