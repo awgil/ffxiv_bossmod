@@ -12,7 +12,11 @@ namespace BossMod.SAM
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
 
-        public Actions(Autorotation autorot, Actor player) : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
+        private DateTime _lastTsubame;
+        private float _tsubameCooldown = 0;
+
+        public Actions(Autorotation autorot, Actor player)
+            : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<SAMConfig>();
             _state = new(autorot.Cooldowns);
@@ -23,6 +27,7 @@ namespace BossMod.SAM
         }
 
         public override CommonRotation.PlayerState GetState() => _state;
+
         public override CommonRotation.Strategy GetStrategy() => _strategy;
 
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
@@ -35,8 +40,12 @@ namespace BossMod.SAM
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            SupportedSpell(AID.Hakaze).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-            SupportedSpell(AID.Fuga).PlaceholderForAuto = SupportedSpell(AID.Fuko).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+            SupportedSpell(AID.Hakaze).PlaceholderForAuto = _config.FullRotation
+                ? AutoActionST
+                : AutoActionNone;
+            SupportedSpell(AID.Fuga).PlaceholderForAuto = SupportedSpell(
+                AID.Fuko
+            ).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
         }
 
         public override void Dispose()
@@ -70,9 +79,17 @@ namespace BossMod.SAM
         protected override void QueueAIActions()
         {
             if (_state.Unlocked(AID.SecondWind))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.SecondWind),
+                    Player,
+                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f
+                );
             if (_state.Unlocked(AID.Bloodbath))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f);
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.Bloodbath),
+                    Player,
+                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f
+                );
             // TODO: true north...
         }
 
@@ -80,7 +97,11 @@ namespace BossMod.SAM
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            _strategy.ApplyStrategyOverrides(Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? []);
+            _strategy.ApplyStrategyOverrides(
+                Autorot
+                    .Bossmods.ActiveModule?.PlanExecution
+                    ?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? []
+            );
             _strategy.UseAOERotation = autoAction switch
             {
                 AutoActionST => false,
@@ -88,12 +109,23 @@ namespace BossMod.SAM
                 AutoActionAIFight => false, // TODO: detect
                 _ => false,
             };
-            FillStrategyPositionals(_strategy, Rotation.GetNextPositional(_state, _strategy), _state.TrueNorthLeft > _state.GCD);
+            FillStrategyPositionals(
+                _strategy,
+                Rotation.GetNextPositional(_state, _strategy),
+                _state.TrueNorthLeft > _state.GCD
+            );
         }
 
         private void UpdatePlayerState()
         {
             FillCommonPlayerState(_state);
+
+            var newTsubameCooldown = _state.CD(CDGroup.TsubameGaeshi);
+            if (newTsubameCooldown > _tsubameCooldown)
+            {
+                _lastTsubame = Autorot.WorldState.CurrentTime;
+                _tsubameCooldown = newTsubameCooldown;
+            }
 
             var gauge = Service.JobGauges.Get<SAMGauge>();
 
@@ -103,25 +135,39 @@ namespace BossMod.SAM
             _state.MeditationStacks = gauge.MeditationStacks;
             _state.Kenki = gauge.Kenki;
             _state.Kaeshi = gauge.Kaeshi;
+            _state.TimeSinceTsubame =
+                _lastTsubame == default
+                    ? float.MaxValue
+                    : (float)(Autorot.WorldState.CurrentTime - _lastTsubame).TotalSeconds;
             _state.FukaLeft = StatusDetails(Player, SID.Fuka, Player.InstanceID).Left;
             _state.FugetsuLeft = StatusDetails(Player, SID.Fugetsu, Player.InstanceID).Left;
             _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
             _state.MeikyoLeft = StatusDetails(Player, SID.MeikyoShisui, Player.InstanceID).Left;
-            _state.OgiNamikiriLeft = StatusDetails(Player, SID.OgiNamikiriReady, Player.InstanceID).Left;
+            _state.OgiNamikiriLeft = StatusDetails(
+                Player,
+                SID.OgiNamikiriReady,
+                Player.InstanceID
+            ).Left;
             _state.GCDTime = ActionManagerEx.Instance!.GCDTime();
 
-            _state.TargetHiganbanaLeft = (_strategy.ForbidDOTs || _strategy.UseAOERotation)
-                ? 10000f
-                : StatusDetails(Autorot.PrimaryTarget, SID.Higanbana, Player.InstanceID).Left;
+            _state.TargetHiganbanaLeft =
+                (_strategy.ForbidDOTs || _strategy.UseAOERotation)
+                    ? 10000f
+                    : StatusDetails(Autorot.PrimaryTarget, SID.Higanbana, Player.InstanceID).Left;
 
             _state.ClosestPositional = GetClosestPositional();
         }
 
-        private Positional GetClosestPositional() {
+        private Positional GetClosestPositional()
+        {
             var tar = Autorot.PrimaryTarget;
-            if (tar == null) return Positional.Any;
+            if (tar == null)
+                return Positional.Any;
 
-            return (Player.Position - tar.Position).Normalized().Dot(tar.Rotation.ToDirection()) switch {
+            return (Player.Position - tar.Position)
+                .Normalized()
+                .Dot(tar.Rotation.ToDirection()) switch
+            {
                 < -0.707167f => Positional.Rear,
                 < 0.707167f => Positional.Flank,
                 _ => Positional.Front
