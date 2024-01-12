@@ -26,17 +26,18 @@ namespace BossMod.SAM
             public int Kenki; // 100 max, changes by 5
             public Kaeshi Kaeshi; // see SAMGauge.Kaeshi
             public float FukaLeft; // 40 max
-            public float LastTsubame; // can be infinite
             public float FugetsuLeft; // 40 max
             public float TrueNorthLeft; // 10 max
             public float MeikyoLeft; // 15 max
             public float TargetHiganbanaLeft; // 60 max
             public float OgiNamikiriLeft; // 30 max
             public float EnhancedEnpiLeft; // 15 max
-            public float GCDTime;
             public bool HasIceSen;
             public bool HasMoonSen;
             public bool HasFlowerSen;
+
+            public float GCDTime;
+            public float LastTsubame; // can be infinite
 
             // for action selection during meikyo if both combo enders are usable.
             // doesn't check whether you're in melee range or not
@@ -52,15 +53,9 @@ namespace BossMod.SAM
                 ComboLastMove is AID.Fuko or AID.Fuga or AID.Hakaze or AID.Jinpu or AID.Shifu;
 
             public float NextMeikyoCharge =>
-                MathF.Max(
-                    0,
-                    CD(CDGroup.MeikyoShisui) - (Unlocked(TraitID.EnhancedMeikyoShisui) ? 55 : 0)
-                );
+                CD(CDGroup.MeikyoShisui) - (Unlocked(TraitID.EnhancedMeikyoShisui) ? 55 : 0);
             public float NextTsubameCharge =>
-                MathF.Max(
-                    0,
-                    CD(CDGroup.TsubameGaeshi) - (Unlocked(TraitID.EnhancedTsubame) ? 60 : 0)
-                );
+                CD(CDGroup.TsubameGaeshi) - (Unlocked(TraitID.EnhancedTsubame) ? 60 : 0);
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
 
@@ -302,7 +297,7 @@ namespace BossMod.SAM
             return strategy.UseAOERotation ? state.AOEStarter : AID.Hakaze;
         }
 
-        // range checked at callsite rather than here since our different options (ogi, iaijutsu, weaponskills) have different ranges
+        // range checked at callsite
         private static bool CanEnpi(State state, Strategy strategy)
         {
             if (strategy.UseAOERotation)
@@ -321,7 +316,7 @@ namespace BossMod.SAM
             if (!state.HasMoonSen && !state.HasFlowerSen)
             {
                 if (state.TrueNorthLeft > state.GCD)
-                    return (AID.Gekko, true);
+                    return (AID.Gekko, false);
 
                 return state.ClosestPositional switch
                 {
@@ -367,6 +362,13 @@ namespace BossMod.SAM
                 if (strategy.MeikyoStrategy == MeikyoUse.ForceBreakCombo)
                     return ActionID.MakeSpell(AID.MeikyoShisui);
             }
+
+            if (
+                ShouldUseTrueNorth(state, strategy)
+                && state.CanWeave(state.CD(CDGroup.TrueNorth) - 45, 0.6f, deadline)
+                && state.GCD < 0.800
+            )
+                return ActionID.MakeSpell(AID.TrueNorth);
 
             if (!state.TargetingEnemy)
                 return default;
@@ -425,13 +427,6 @@ namespace BossMod.SAM
 
             if (state.MeikyoLeft == 0 && state.LastTsubame < state.GCDTime * 3)
                 return ActionID.MakeSpell(AID.MeikyoShisui);
-
-            if (
-                ShouldUseTrueNorth(state, strategy)
-                && state.CanWeave(state.CD(CDGroup.TrueNorth) - 45, 0.6f, deadline)
-                && state.GCD < 0.800
-            )
-                return ActionID.MakeSpell(AID.TrueNorth);
 
             return new();
         }
