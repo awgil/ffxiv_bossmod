@@ -5,10 +5,10 @@ using System.Collections.Generic;
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
     class BodySlamKB : Knockback
     {
-        public float Distance;
-        public Angle Direction;
+        private float Distance;
+        private Angle Direction;
 
-        public float LeviathanZ;
+        private float LeviathanZ;
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
@@ -46,9 +46,9 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
     }
         class BodySlamAOE : GenericAOEs
         {
-        public float active;
-        public Angle Direction;
-        public float LeviathanZ;
+        private float active;
+        private Angle Direction;
+        private float LeviathanZ;
         private static AOEShapeRect rect = new(30, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)

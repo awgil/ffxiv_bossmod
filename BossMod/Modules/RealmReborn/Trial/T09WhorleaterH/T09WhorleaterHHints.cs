@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
@@ -32,5 +33,13 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
                     hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
                 }
             }
+        }
+
+            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+                var converter1 = module.Enemies(OID.Converter).FirstOrDefault();
+                var convertertarget = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
+                if (converter1 != null && convertertarget != null)
+                arena.AddCircle(converter1.Position, 1.4f, ArenaColor.Safe);
         }
     }

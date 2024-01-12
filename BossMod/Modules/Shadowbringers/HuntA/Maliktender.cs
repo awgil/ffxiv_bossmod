@@ -32,7 +32,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
     class Haste : Components.CastHint
     {
         public Haste() : base(ActionID.MakeSpell(AID.Haste), "") { }
-        public int HasteB;
+        private int HasteB;
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
@@ -41,7 +41,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
                 HasteB = 1;
             }
         }
-         public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (HasteB == 1)
             {
