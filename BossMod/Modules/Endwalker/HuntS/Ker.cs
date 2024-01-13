@@ -39,7 +39,7 @@
 
     class MinaxGlare : Components.CastHint
     {
-        public MinaxGlare() : base(ActionID.MakeSpell(AID.MinaxGlare), "Applies temporary misdirection to the closest 32 players") { }
+        public MinaxGlare() : base(ActionID.MakeSpell(AID.MinaxGlare), "Applies temporary misdirection") { }
     }
 
     class Heliovoid : Components.SelfTargetedAOEs
@@ -143,7 +143,7 @@
     class AncientFlare : Components.CastHint
     {
         private int pyretic;
-        public AncientFlare() : base(ActionID.MakeSpell(AID.AncientFlare), "Applies Pyretic to the closest 32 targets, stop everything until status runs out!") { }
+        public AncientFlare() : base(ActionID.MakeSpell(AID.AncientFlare), "Applies Pyretic - STOP everything until it runs out!") { }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             var player = module.Raid.Player();
@@ -174,7 +174,7 @@
     }
      class WhispersManifest : Components.CastHint
     {
-        public WhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest), "Applies Pyretic to the closest 32 targets, stop everything until status runs out!") { }
+        public WhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest), "Applies Pyretic - STOP everything until it runs out!") { }
     }
     class AncientHoly : Components.RaidwideCast
     {        public AncientHoly() : base(ActionID.MakeSpell(AID.AncientHoly)) { }

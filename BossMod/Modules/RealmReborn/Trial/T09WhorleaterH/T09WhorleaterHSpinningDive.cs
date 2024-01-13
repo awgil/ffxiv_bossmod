@@ -9,21 +9,21 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
         private static AOEShapeRect rect = new(46, 8);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-                var helper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();      
-                 if (helper != null && activeHelper >=1)
+            var helper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();      
+            if (helper != null && activeHelper >=1)
             yield return new(rect, helper.Position, helper.Rotation, new());
             }
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.SpinningDiveHelper)
-             activeHelper =1;
+             activeHelper = 1;
         }
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.SpinningDiveSnapshot)
             {
-                activeHelper = 0;
+                activeHelper = 0 ;
             }
         }
     }

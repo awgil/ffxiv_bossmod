@@ -1,10 +1,14 @@
-namespace BossMod.Endwalker.TreasureHunt.Pithekos
+using System.IO.Compression;
+using System.Security.Cryptography.X509Certificates;
+using FFXIVClientStructs.FFXIV.Common.Lua;
+
+namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
 {
     public enum OID : uint
     {
         Boss = 0x3D2B, //R=6
         BallOfLevin = 0x3E90,
-        BossMikros = 0x3D2C, //R=4.2
+        BossAdd = 0x3D2C, //R=4.2
         BossHelper = 0x233C,
     };
 
@@ -23,8 +27,7 @@ public enum AID : uint
 
 public enum IconID : uint
 {    
-    AOE = 111, // player
-    TankBuster = 218, // player
+    AOE = 111, // Thundercall marker
 };
 
     class Spark : Components.SelfTargetedAOEs
@@ -42,29 +45,33 @@ public enum IconID : uint
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             var player = module.Raid.Player();
-            if(player == actor)
-             switch ((IconID)iconID)
-            {
-                case IconID.AOE:
-                    targeted = 1;
-                    break;
-            }
+            if(player == actor && iconID == (uint)IconID.AOE)
+                targeted = 1;
         }
-        public override void OnActorCreated(BossModule module, Actor actor)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((OID)actor.OID == OID.BallOfLevin)
-             targeted = 0;
+            if ((AID)spell.Action.ID == AID.Thundercall)
+                targeted = 0;
         }
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
              if (targeted > 0)
-            {
-                hints.Add("Drop the AOE at the edge of the arena, will spawn a huge AOE");
-            }
+                hints.Add("Drop the puddle at the edge of the arena and get away, it will spawn a huge AOE circle");
         }
-
-    }
-        class RockThrow : Components.LocationTargetedAOEs
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            var player = module.Raid.Player();
+            if(targeted > 0 && player != null)
+            arena.AddCircle(player.Position, 18, ArenaColor.Danger);
+        }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+           var player = module.Raid.Player();
+            if(player == actor && targeted > 0)
+            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 19));
+        }
+     }
+    class RockThrow : Components.LocationTargetedAOEs
     {
         public RockThrow() : base(ActionID.MakeSpell(AID.RockThrow), 6) { }
     }
@@ -98,7 +105,7 @@ public enum IconID : uint
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-            foreach (var s in Enemies(OID.BossMikros))
+            foreach (var s in Enemies(OID.BossAdd))
                 Arena.Actor(s, ArenaColor.Object, false);
         }
     
@@ -109,7 +116,7 @@ public enum IconID : uint
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
-                    OID.BossMikros => 2,
+                    OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0
                 };
