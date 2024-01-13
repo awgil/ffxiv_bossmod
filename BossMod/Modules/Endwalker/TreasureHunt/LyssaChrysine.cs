@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         BossAdd = 0x3D4E, //R=3.75
         BossHelper = 0x233C,
         IcePillars = 0x3D44, 
-        BonusAdds_Lampas = 0x3D4D, //R=2.001, RNG chance to spawn for bonus loot, they don't attack and can be ignored if you don't care about the loot
+        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack
     };
 
 public enum AID : uint
