@@ -187,7 +187,7 @@ namespace BossMod.SAM
             SupportedActions.OGCD(AID.ThirdEye, 0, CDGroup.ThirdEye, 15.0f).EffectDuration = 4;
             SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
             SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
-            SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
+            SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f).EffectDuration = 20;
             SupportedActions.GCD(AID.Enpi, 20);
             SupportedActions.GCD(AID.Shifu, 3);
             SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
