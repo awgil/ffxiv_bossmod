@@ -1,6 +1,4 @@
-﻿
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
-
+﻿// CONTRIB: made by lazylemo, not checked
 namespace BossMod.GNB
 {
     public static class Rotation

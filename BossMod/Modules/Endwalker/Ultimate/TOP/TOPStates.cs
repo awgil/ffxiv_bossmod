@@ -594,7 +594,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
         {
             ActorCast(id, _module.BossP6, AID.MagicNumber, delay, 5, true, "Tank+Heal LB 1");
             ActorCast(id + 0x1000, _module.BossP6, AID.MagicNumber, 11.2f, 5, true, "Tank+Heal LB 2");
-            ActorCast(id + 0x2000, _module.BossP6, AID.RunMi, 9.1f, 16, true, "Enrage");
+            ActorCast(id + 0x2000, _module.BossP6, AID.RunMi, 9.1f, 16, true);
+            Timeout(id + 0x2010, 14, "Enrage"); // effect-result is extremely delayed...
         }
     }
 }

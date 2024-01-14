@@ -1,4 +1,4 @@
-﻿
+﻿// CONTRIB: made by lazylemo, not checked
 namespace BossMod.RPR
 {
     public static class Rotation

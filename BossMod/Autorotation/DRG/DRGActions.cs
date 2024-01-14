@@ -12,7 +12,6 @@ namespace BossMod.DRG
         private DRGConfig _config;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
-        private bool _aoe;
 
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
@@ -116,7 +115,7 @@ namespace BossMod.DRG
             //if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
             //res = Rotation.GetNextBestOGCD(_state, _strategy, deadline - _state.OGCDSlotLength);
             if (!res && _state.CanWeave(deadline)) // second/only ogcd slot
-                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline, _aoe);
+                res = Rotation.GetNextBestOGCD(_state, _strategy, deadline);
 
             var target = res == ActionID.MakeSpell(AID.DragonSight) ? FindBestDragonSightTarget() : Autorot.PrimaryTarget;
             return MakeResult(res, target);

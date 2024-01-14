@@ -12,6 +12,7 @@ general:
 -- on bossmodule deactivation or zone change == if current is interesting, move it to last (discard prev last); clear and restart current
 -- button to 'keep' last (add as temp to replay manager) or to 'save' last (save into replay file)
 - proper lb support
+- proper gcd time calculation
 - bozja action support
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - constrain bossmodules to zone id (e.g. for T04)

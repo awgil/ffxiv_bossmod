@@ -1,4 +1,4 @@
-﻿
+﻿// CONTRIB: contributions by lazylemo, needs final pass
 namespace BossMod.DRG
 {
     public static class Rotation
@@ -350,7 +350,7 @@ namespace BossMod.DRG
             }
         }
 
-        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
+        public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
             bool canJump = strategy.PositionLockIn > state.AnimationLock;
             bool wantSpineShatter = state.Unlocked(AID.SpineshatterDive) && state.TargetingEnemy && UseSpineShatterDive(state, strategy);
@@ -407,7 +407,7 @@ namespace BossMod.DRG
                 }
             }
 
-            if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(CDGroup.TrueNorth - 45, 0.6f, deadline) && !aoe && state.GCD < 0.8)
+            if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(CDGroup.TrueNorth - 45, 0.6f, deadline) && !strategy.UseAOERotation && state.GCD < 0.8)
                 return ActionID.MakeSpell(AID.TrueNorth);
 
             // no suitable oGCDs...
