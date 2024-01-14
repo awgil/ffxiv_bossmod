@@ -121,11 +121,10 @@ namespace BossMod.SAM
             FillCommonPlayerState(_state);
 
             var newTsubameCooldown = _state.CD(CDGroup.TsubameGaeshi);
-            if (newTsubameCooldown > _tsubameCooldown)
-            {
+            if (newTsubameCooldown > _tsubameCooldown + 10) // eliminate variance, cd increment is 60s
                 _lastTsubame = Autorot.WorldState.CurrentTime;
-                _tsubameCooldown = newTsubameCooldown;
-            }
+
+            _tsubameCooldown = newTsubameCooldown;
 
             var gauge = Service.JobGauges.Get<SAMGauge>();
 

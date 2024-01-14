@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.AccessControl;
 
 namespace BossMod
 {
@@ -62,11 +61,11 @@ namespace BossMod
             Classes[Class.SCH] = DefineSCH();
             Classes[Class.DRG] = DefineDRG();
             Classes[Class.MNK] = DefineMNK();
-            Classes[Class.SAM] = DefineSAM();
             Classes[Class.BRD] = DefineBRD();
             Classes[Class.BLM] = DefineBLM();
             Classes[Class.RPR] = DefineRPR();
             Classes[Class.GNB] = DefineGNB();
+            Classes[Class.SAM] = DefineSAM();
         }
 
         private static ClassData DefineWAR()
@@ -136,23 +135,6 @@ namespace BossMod
             return c;
         }
 
-        private static ClassData DefineSAM()
-        {
-            var c = new ClassData(typeof(SAM.AID), SAM.Definitions.SupportedActions);
-            c.CooldownTracks.Add(new("ThirdEye", ActionID.MakeSpell(SAM.AID.ThirdEye), 6));
-            c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(SAM.AID.Feint), 22));
-            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(SAM.AID.ArmsLength), 32));
-            c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
-            c.StrategyTracks.Add(new("TrueN", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-            c.StrategyTracks.Add(new("Cast", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-            c.StrategyTracks.Add(new("Higanbana", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-            c.StrategyTracks.Add(new("Meikyo", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
-            c.StrategyTracks.Add(new("Dash", typeof(SAM.Rotation.Strategy.DashUse)));
-            c.StrategyTracks.Add(new("Enpi", typeof(SAM.Rotation.Strategy.EnpiUse)));
-            c.StrategyTracks.Add(new("Kenki", typeof(SAM.Rotation.Strategy.KenkiSpend)));
-            return c;
-        }
-
         private static ClassData DefineBRD()
         {
             var c = new ClassData(typeof(BRD.AID), BRD.Definitions.SupportedActions);
@@ -197,6 +179,24 @@ namespace BossMod
             c.StrategyTracks.Add(new("spec", typeof(RPR.Rotation.Strategy.SpecialAction)));
             return c;
         }
+
+        private static ClassData DefineSAM()
+        {
+            var c = new ClassData(typeof(SAM.AID), SAM.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("ThirdEye", ActionID.MakeSpell(SAM.AID.ThirdEye), 6));
+            c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(SAM.AID.Feint), 22));
+            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(SAM.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+            c.StrategyTracks.Add(new("TrueN", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("Cast", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("Higanbana", typeof(SAM.Rotation.Strategy.HiganbanaUse)));
+            c.StrategyTracks.Add(new("Meikyo", typeof(SAM.Rotation.Strategy.MeikyoUse)));
+            c.StrategyTracks.Add(new("Dash", typeof(SAM.Rotation.Strategy.DashUse)));
+            c.StrategyTracks.Add(new("Enpi", typeof(SAM.Rotation.Strategy.EnpiUse)));
+            c.StrategyTracks.Add(new("Kenki", typeof(SAM.Rotation.Strategy.KenkiUse)));
+            return c;
+        }
+
         private static ClassData DefineGNB()
         {
             var c = new ClassData(typeof(GNB.AID), GNB.Definitions.SupportedActions);

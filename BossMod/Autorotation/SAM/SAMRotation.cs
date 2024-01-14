@@ -50,7 +50,8 @@ namespace BossMod.SAM
 
             public bool HasCombatBuffs => FukaLeft > GCD && FugetsuLeft > GCD;
             public bool InCombo =>
-                ComboLastMove is AID.Fuko or AID.Fuga or AID.Hakaze or AID.Jinpu or AID.Shifu;
+                ComboTimeLeft > GCD
+                && ComboLastMove is AID.Fuko or AID.Fuga or AID.Hakaze or AID.Jinpu or AID.Shifu;
 
             public float NextMeikyoCharge =>
                 CD(CDGroup.MeikyoShisui) - (Unlocked(TraitID.EnhancedMeikyoShisui) ? 55 : 0);
@@ -81,7 +82,7 @@ namespace BossMod.SAM
 
         public class Strategy : CommonRotation.Strategy
         {
-            public enum KenkiSpend : uint
+            public enum KenkiUse : uint
             {
                 [PropertyDisplay(
                     "Spend all kenki when in raid buff window, otherwise prevent overcap"
@@ -98,7 +99,7 @@ namespace BossMod.SAM
                 Never = 3
             }
 
-            public KenkiSpend KenkiStrategy;
+            public KenkiUse KenkiStrategy;
 
             public enum EnpiUse : uint
             {
@@ -143,11 +144,24 @@ namespace BossMod.SAM
                 ForceBreakCombo = 3
             }
 
+            public MeikyoUse MeikyoStrategy;
+
+            public enum HiganbanaUse : uint
+            {
+                Automatic = 0,
+
+                [PropertyDisplay("Never use", 0xff000080)]
+                Never = 1,
+
+                [PropertyDisplay("Ignore downtime prediction", 0xff008080)]
+                Eager = 2,
+            }
+
+            public HiganbanaUse HiganbanaStrategy;
+
             // takes priority over higanbana strategy
             // setting this to Force will cause us to use iaijutsu even during position-lock or forced movement windows
             public OffensiveAbilityUse IaijutsuUse;
-            public MeikyoUse MeikyoStrategy;
-            public OffensiveAbilityUse HiganbanaUse;
 
             public OffensiveAbilityUse TrueNorthUse;
 
@@ -159,21 +173,21 @@ namespace BossMod.SAM
                 {
                     TrueNorthUse = (OffensiveAbilityUse)overrides[0];
                     IaijutsuUse = (OffensiveAbilityUse)overrides[1];
-                    HiganbanaUse = (OffensiveAbilityUse)overrides[2];
+                    HiganbanaStrategy = (HiganbanaUse)overrides[2];
                     MeikyoStrategy = (MeikyoUse)overrides[3];
                     DashStrategy = (DashUse)overrides[4];
                     EnpiStrategy = (EnpiUse)overrides[5];
-                    KenkiStrategy = (KenkiSpend)overrides[6];
+                    KenkiStrategy = (KenkiUse)overrides[6];
                 }
                 else
                 {
                     TrueNorthUse = OffensiveAbilityUse.Automatic;
                     IaijutsuUse = OffensiveAbilityUse.Automatic;
-                    HiganbanaUse = OffensiveAbilityUse.Automatic;
+                    HiganbanaStrategy = HiganbanaUse.Automatic;
                     MeikyoStrategy = MeikyoUse.Automatic;
                     DashStrategy = DashUse.Automatic;
                     EnpiStrategy = EnpiUse.Automatic;
-                    KenkiStrategy = KenkiSpend.Automatic;
+                    KenkiStrategy = KenkiUse.Automatic;
                 }
             }
         }
@@ -228,6 +242,7 @@ namespace BossMod.SAM
             if (
                 state.OgiNamikiriLeft > 0
                 && state.HasCombatBuffs
+                && canCast
                 && !ShouldRefreshHiganbana(state, strategy)
                 && state.SenCount == 0
             )
@@ -271,7 +286,7 @@ namespace BossMod.SAM
                         return AID.Oka;
                 }
                 else
-                    return GetMeikyoPositional(state).Action;
+                    return GetMeikyoPositional(state, strategy).Action;
             }
 
             if (state.ComboLastMove == AID.Jinpu && state.Unlocked(AID.Gekko))
@@ -311,9 +326,15 @@ namespace BossMod.SAM
             };
         }
 
-        private static (AID Action, bool Imminent) GetMeikyoPositional(State state)
+        private static (AID Action, bool Imminent) GetMeikyoPositional(
+            State state,
+            Strategy strategy
+        )
         {
-            if (!state.HasMoonSen && !state.HasFlowerSen)
+            if (
+                !state.HasMoonSen && !state.HasFlowerSen
+                || (state.SenCount == 1 && ShouldRefreshHiganbana(state, strategy))
+            )
             {
                 if (state.TrueNorthLeft > state.GCD)
                     return (AID.Gekko, false);
@@ -373,6 +394,9 @@ namespace BossMod.SAM
             if (!state.TargetingEnemy)
                 return default;
 
+            if (state.MeikyoLeft == 0 && state.LastTsubame < state.GCDTime * 3)
+                return ActionID.MakeSpell(AID.MeikyoShisui);
+
             if (state.RangeToTarget > 3 && strategy.DashStrategy == DashUse.UseOutsideMelee)
                 return ActionID.MakeSpell(AID.HissatsuGyoten);
 
@@ -408,8 +432,8 @@ namespace BossMod.SAM
                 if (
                     CanUseKenki(state, strategy, 10)
                     && state.RaidBuffsLeft > 0
-                    && state.RaidBuffsLeft < state.GCD
                     && state.CanWeave(CDGroup.HissatsuGyoten, 0.6f, deadline)
+                    && (state.CD(CDGroup.HissatsuGuren) > state.GCDTime || state.Kenki >= 35)
                     && state.RangeToTarget <= 3
                     && strategy.DashStrategy != DashUse.Never
                 )
@@ -419,14 +443,12 @@ namespace BossMod.SAM
             if (
                 CanUseKenki(state, strategy)
                 && state.CanWeave(CDGroup.HissatsuShinten, 0.6f, deadline)
+                && (state.CD(CDGroup.HissatsuGuren) > state.GCDTime || state.Kenki >= 50)
             )
                 return ActionID.MakeSpell(AID.HissatsuShinten);
 
             if (state.MeditationStacks == 3 && state.CanWeave(deadline))
                 return ActionID.MakeSpell(AID.Shoha);
-
-            if (state.MeikyoLeft == 0 && state.LastTsubame < state.GCDTime * 3)
-                return ActionID.MakeSpell(AID.MeikyoShisui);
 
             return new();
         }
@@ -458,13 +480,15 @@ namespace BossMod.SAM
             uint gcdsInAdvance = 0
         )
         {
-            if (strategy.HiganbanaUse == OffensiveAbilityUse.Delay)
+            if (strategy.HiganbanaStrategy == HiganbanaUse.Never)
                 return false;
-            if (strategy.HiganbanaUse == OffensiveAbilityUse.Force)
-                return true;
 
             // force use to get shoha even if the target is dying, dot overwrite doesn't matter
-            if (strategy.FightEndIn > 0 && (strategy.FightEndIn - state.GCD) < 45)
+            if (
+                strategy.HiganbanaStrategy != HiganbanaUse.Eager
+                && strategy.FightEndIn > 0
+                && (strategy.FightEndIn - state.GCD) < 45
+            )
                 return state.MeditationStacks == 2;
 
             return state.TargetHiganbanaLeft < (5 + state.GCD + state.GCDTime * gcdsInAdvance);
@@ -474,15 +498,15 @@ namespace BossMod.SAM
         {
             return strategy.KenkiStrategy switch
             {
-                KenkiSpend.Automatic
+                KenkiUse.Automatic
                     => state.Kenki >= 90
                         || (
                             state.Kenki >= minCost
                             && ShouldUseBurst(state, strategy, state.AnimationLock)
                         ),
-                KenkiSpend.Force => state.Kenki >= minCost,
-                KenkiSpend.ForceDash => state.Kenki - 10 >= minCost,
-                KenkiSpend.Never or _ => false,
+                KenkiUse.Force => state.Kenki >= minCost,
+                KenkiUse.ForceDash => state.Kenki - 10 >= minCost,
+                KenkiUse.Never or _ => false,
             };
         }
 
@@ -530,7 +554,7 @@ namespace BossMod.SAM
                 return default;
 
             if (state.MeikyoLeft > state.GCD)
-                return GetMeikyoPositional(state) switch
+                return GetMeikyoPositional(state, strategy) switch
                 {
                     (AID.Gekko, var imminent) => (Positional.Rear, imminent),
                     (AID.Kasha, var imminent) => (Positional.Flank, imminent),
