@@ -16,9 +16,9 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         NumbingNoise = 18015, // Boss->self (front), 5.0s cast, range 13, 120 degree cone
         TailSnap = 18016, // Boss->self (behind), 5.0s cast, range 18, 120 degree cone
         BodySlam = 18018, // Boss->self, 5.0s cast, range 11 circle
-        NumbingNoiseRotation = 18100, // rotation, pulls player in from 30 units, 3 attacks of NumbingNoise2
+        NumbingNoiseRotation = 18100, // rotation, pulls player in from 30 by max 25 units between hitboxes, 3 attacks of NumbingNoise2
         NumbingNoiseDuringRotation = 18098, // during rotation, 0.3s cast time, 13 range, 120 degree cone
-        TailSnapRotation = 18101, // rotation, pulls player in from 30 units, 3 attacks of TailSnap2
+        TailSnapRotation = 18101, // rotation, pulls player in from 30 by max 25 units between hitboxes, 3 attacks of TailSnap2
         TailSnapDuringRotation = 18099, // Boss->self (behind), 0.3s cast, range 18, 120 degree cone
     }
 
@@ -134,10 +134,10 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
              if (Boss != null && player != null) 
                 DistanceToBoss = (player.Position - Boss.Position).Length();
              if (Boss != null && player != null) 
-                PullDistance = 30 - (Boss.HitboxRadius + player.HitboxRadius + (30-DistanceToBoss));
+                PullDistance = 30 - (Boss.HitboxRadius + player.HitboxRadius + (30 - DistanceToBoss));
               if (Boss != null && player != null) 
               Direction=Angle.FromDirection(player.Position - Boss.Position);
-             if (activeNumbingNoise > 0 || activeTailSnap > 0 && PullDistance > 0 && PullDistance <=25)
+             if (activeNumbingNoise > 0 || activeTailSnap > 0 && PullDistance > 0 && PullDistance <= 25 && DistanceToBoss <= 30)
                 yield return new(new(), PullDistance, default, null, Direction, Kind.TowardsOrigin);
             }
 

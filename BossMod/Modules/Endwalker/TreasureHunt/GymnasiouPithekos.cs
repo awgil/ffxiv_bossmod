@@ -62,7 +62,7 @@ public enum IconID : uint
         {
             var player = module.Raid.Player();
             if(targeted > 0 && player != null)
-            arena.AddCircle(player.Position, 18, ArenaColor.Danger);
+            arena.AddCircle(player.Position, 18, ArenaColor.Danger); //TODO: find a way to make the AOE clip with the arena
         }
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
