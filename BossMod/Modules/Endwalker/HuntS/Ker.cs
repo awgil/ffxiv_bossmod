@@ -15,10 +15,11 @@
         RearInterment = 27642, // Boss->self, 6.0s cast, range 40 180-degree cone
         RightInterment = 27643, // Boss->self, 6.0s cast, range 40 180-degree cone
         LeftInterment = 27644, // Boss->self, 6.0s cast, range 40 180-degree cone
-        WhisperedIncantation = 27645, // Boss->self, 5.0s cast, single-target, applies status to boss, remembers next skill (always Ancient Flare in my tests, pending more tests)
+        WhisperedIncantation = 27645, // Boss->self, 5.0s cast, single-target, applies status to boss, remembers next skill
         EternalDamnation = 27647, // Boss->self, 6.0s cast, range 40 circle gaze
         AncientFlare = 27704, // Boss->self, 6.0s cast, range 40 circle, applies pyretic
         WhispersManifest = 27706, // Boss->self, 6,0s cast, range 40 circle, applies pyretc (remembered skill from Whispered Incantation)
+        WhispersManifest2 = 27653, // Boss->self, 6,0s cast, range 40 circle (Ancient Holy? to be verified)
         MirroredIncantation = 27927, // Boss->self, 3,0s cast, single-target, mirrors the next 3 interments
         MirroredIncantation2 = 27928, // Boss->self, 3,0s cast, single-target, mirrors the next 4 interments
         Mirrored_RightInterment = 27663, // Boss->self, 6,0s cast, range 40 180-degree cone
@@ -172,12 +173,15 @@
             }
         }
     }
-     class WhispersManifest : Components.CastHint
+     class AncientFlareWhispersManifest : Components.CastHint
     {
-        public WhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest), "Applies Pyretic - STOP everything until it runs out!") { }
+        public AncientFlareWhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest), "Applies Pyretic - STOP everything until it runs out!") { }
     }
     class AncientHoly : Components.RaidwideCast
     {        public AncientHoly() : base(ActionID.MakeSpell(AID.AncientHoly)) { }
+    }
+    class AncientHolyWhispersManifest : Components.RaidwideCast
+    {        public AncientHolyWhispersManifest() : base(ActionID.MakeSpell(AID.AncientHoly)) { }
     }
     // TODO: wicked swipe, check if there are even more skills missing
     class KerStates : StateMachineBuilder
@@ -201,8 +205,8 @@
                 .ActivateOnEnter<EternalDamnation>()
                 .ActivateOnEnter<AncientFlare>()
                 .ActivateOnEnter<AncientHoly>()
-                .ActivateOnEnter<WhispersManifest>()
-                .ActivateOnEnter<WhisperedIncantation>();
+                .ActivateOnEnter<AncientHolyWhispersManifest>()
+                .ActivateOnEnter<AncientFlareWhispersManifest>();
         }
     }
 
