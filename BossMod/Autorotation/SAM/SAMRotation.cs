@@ -159,8 +159,7 @@ namespace BossMod.SAM
 
             public HiganbanaUse HiganbanaStrategy;
 
-            // takes priority over higanbana strategy
-            // setting this to Force will cause us to use iaijutsu even during position-lock or forced movement windows
+            // setting this to Force will make iaijutsu get used during position-lock windows
             public OffensiveAbilityUse IaijutsuUse;
 
             public OffensiveAbilityUse TrueNorthUse;
