@@ -4,6 +4,7 @@ using ImGuiNET;
 using System;
 using System.Linq;
 
+
 namespace BossMod
 {
     // typically 'casting an action' causes the following sequence of events:
@@ -125,6 +126,7 @@ namespace BossMod
                     Class.SCH => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(SCH.Actions) : null,
                     Class.RPR => typeof(RPR.Actions),
                     Class.GNB => typeof(GNB.Actions),
+                    Class.SAM => Service.ClientState.LocalPlayer?.Level == 90 ? typeof(SAM.Actions) : null,
                     _ => null
                 };
             }
