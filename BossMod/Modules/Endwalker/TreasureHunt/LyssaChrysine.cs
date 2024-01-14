@@ -58,8 +58,7 @@ class OutInAOE : Components.ConcentricAOEs
                 AID.CircleOfIce2 => 1,
                 _ => -1
             };
-            if (!AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(4f)))
-                module.ReportError(this, $"Unexpected ring {order}");
+            AdvanceSequence(order, module.Bounds.Center);
         }
     }
 class InOutAOE : Components.ConcentricAOEs
@@ -82,8 +81,7 @@ class InOutAOE : Components.ConcentricAOEs
                 AID.FrigidNeedle2 => 1,
                 _ => -1
             };
-            if (!AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(4f)))
-                module.ReportError(this, $"Unexpected ring {order}");
+            AdvanceSequence(order, module.Bounds.Center);
         }
     }
 class PillarPierce : Components.SelfTargetedAOEs

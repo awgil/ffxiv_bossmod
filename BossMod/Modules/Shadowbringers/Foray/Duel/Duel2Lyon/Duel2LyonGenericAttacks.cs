@@ -67,7 +67,6 @@ class HeartOfNatureConcentric : ConcentricAOEs
                 AID.NaturesPulse3 => 2,
                 _ => -1
             };
-            if (!AdvanceSequence(order, caster.Position, module.WorldState.CurrentTime.AddSeconds(2)))
-                module.ReportError(this, $"Unexpected ring {order}");
+            AdvanceSequence(order, caster.Position);
         }
     }
