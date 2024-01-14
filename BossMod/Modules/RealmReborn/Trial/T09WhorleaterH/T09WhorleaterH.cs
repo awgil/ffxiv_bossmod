@@ -1,4 +1,5 @@
-﻿using System;
+﻿// CONTRIB: made by taurenkey, not checked
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
