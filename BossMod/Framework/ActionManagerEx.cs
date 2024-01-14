@@ -210,6 +210,7 @@ namespace BossMod
             return gcd->Total - gcd->Elapsed;
         }
 
+        // TODO: calculate gcd duration properly, current implementation would return 0 during downtime
         public float GCDTime()
         {
             var gcd = _inst->GetRecastGroupDetail(CommonDefinitions.GCDGroup);

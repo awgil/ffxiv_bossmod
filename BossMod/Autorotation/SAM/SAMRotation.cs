@@ -1,3 +1,4 @@
+// CONTRIB: made by xan, not checked
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -36,7 +37,7 @@ namespace BossMod.SAM
             public bool HasMoonSen;
             public bool HasFlowerSen;
 
-            public float GCDTime;
+            public float GCDTime; // TODO: should be moved to base state
             public float LastTsubame; // can be infinite
 
             // for action selection during meikyo if both combo enders are usable.
