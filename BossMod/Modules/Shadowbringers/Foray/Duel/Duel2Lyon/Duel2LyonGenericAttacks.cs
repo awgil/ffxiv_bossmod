@@ -7,33 +7,43 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
     class Enaero : CastHint
     {
         private int EnaeroBuff;
-        public Enaero() : base(ActionID.MakeSpell(AID.RagingWinds), "Applies Enaero to Lyon. Use Dispell to remove it!") { }
+        private int casting;
+        public Enaero() : base(ActionID.MakeSpell(AID.RagingWinds1), "") { }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            var player = module.Raid.Player();
-            if (actor == player)
+            var boss = module.Enemies(OID.Boss).FirstOrDefault();  
+            if (actor == boss)
             {if ((SID)status.ID == SID.Enaero)
                 {
                     EnaeroBuff = 1;
                 }
             }
         }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.RagingWinds1)
+                casting = 1;
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.RagingWinds1)
+                casting = 0;
+        }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
-            var player = module.Raid.Player();
-            if (actor == player)
-            {if ((SID)status.ID == SID.Enaero)
-                {
-                    EnaeroBuff = 0;
-                }
+            var boss = module.Enemies(OID.Boss).FirstOrDefault();  
+            if (actor == boss)
+            {
+                if ((SID)status.ID == SID.Enaero)
+                EnaeroBuff = 0;
             }
         }
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
+            if (casting > 0)
+            hints.Add("Applies Enaero to Lyon. Use Dispell to remove it");    
             if (EnaeroBuff == 1)
-            {
-                hints.Add("Enaero on Lyon. Use Dispell to remove it! You only need to do this once per duel, so you can switch to a different action after removing his buff.");
-            }
+            hints.Add("Enaero on Lyon. Use Dispell to remove it! You only need to do this once per duel, so you can switch to a different action after removing his buff.");
         }
     }
 class HeartOfNatureConcentric : ConcentricAOEs

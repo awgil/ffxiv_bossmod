@@ -54,57 +54,6 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         ExtremeCaution = 1269, // Boss->players
     };
    
-   class MtGulgPull: Components.KnockbackFromCastTarget //TODO: pulls/attracts should probably have their own component to make this easier in future
-    {
-        private float PullDistance;
-        private Angle Direction;
-        private float DistanceToBoss;
-        private int activePull;
-        private int casts;
-        private string hint = "Use anti knockback ability or get pulled into danger zone!";
-        public MtGulgPull() : base(ActionID.MakeSpell(AID.FiresOfMtGulgPull),default) { }
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-               var Boss = module.Enemies(OID.Boss).FirstOrDefault();
-               var player = module.Raid.Player();
-             if (Boss != null && player != null) 
-                DistanceToBoss = (player.Position - Boss.Position).Length();
-             if (Boss != null && player != null) 
-                PullDistance = 50 - (50 - DistanceToBoss);
-              if (Boss != null && player != null) 
-              Direction=Angle.FromDirection(player.Position - Boss.Position);
-             if (activePull > 0 && PullDistance > 0 && PullDistance <= 30 && DistanceToBoss > 10)
-                yield return new(new(), PullDistance, default, null, Direction, Kind.TowardsOrigin);
-            }
-
-        public override void OnActorCreated(BossModule module, Actor actor)
-        {
-            if ((OID)actor.OID == OID.PullHelper)
-             activePull = 1;
-        }       
-         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            base.OnEventCast(module, caster, spell);
-            if ((AID)spell.Action.ID == AID.FiresOfMtGulgPull)
-            {
-                ++casts;
-                activePull = 1; //fallback incase player joined fight during the 9 hits of the mechanic, after actor was created
-            }
-        }
-        public override void OnActorDestroyed(BossModule module, Actor actor)
-        {
-            if ((OID)actor.OID == OID.PullHelper)
-             activePull = 0;
-             casts = 0;
-        }   
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-             if (activePull > 0 && casts < 9 && DistanceToBoss > 10 && DistanceToBoss <= 50)
-            {
-                hints.Add(hint);
-            }
-        }
-    }
     class Spincrush : Components.SelfTargetedAOEs
     {
         public Spincrush() : base(ActionID.MakeSpell(AID.Spincrush), new AOEShapeCone(15, 60.Degrees())) { }
@@ -276,8 +225,20 @@ namespace BossMod.Shadowbringers.FATE.Formidable
 
     class DynamicSensoryJammer : Components.CastHint
     {
-        public DynamicSensoryJammer() : base(ActionID.MakeSpell(AID.DynamicSensoryJammer), "Stop everything including auto attacks or get launched into the air") { }
+        public DynamicSensoryJammer() : base(ActionID.MakeSpell(AID.DynamicSensoryJammer), "") { }
         private int ec;
+        private int casting;
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
+                casting = 1;
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
+                casting = 0;
+        }        
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             var player = module.Raid.Player();
@@ -292,18 +253,17 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         {
             var player = module.Raid.Player();
             if (actor == player)
-            {if ((SID)status.ID == SID.ExtremeCaution)
-                {
-                    ec = 0;
-                }
+            {
+                if ((SID)status.ID == SID.ExtremeCaution)
+                     ec = 0;
             }
         }
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (ec == 1)
-            {
-                hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
-            }
+            hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
+            if (casting > 0)
+            hints.Add("Stop everything including auto attacks or get launched into the air");    
         }
     }
 
@@ -315,7 +275,6 @@ namespace BossMod.Shadowbringers.FATE.Formidable
                 .ActivateOnEnter<Spincrush>()
                 .ActivateOnEnter<FireShot>()
                 .ActivateOnEnter<FiresOfMtGulg>()
-                .ActivateOnEnter<MtGulgPull>()
                 .ActivateOnEnter<BarrageFire>()
                 .ActivateOnEnter<DrillShot>()
                 .ActivateOnEnter<ExplosionMissile>()

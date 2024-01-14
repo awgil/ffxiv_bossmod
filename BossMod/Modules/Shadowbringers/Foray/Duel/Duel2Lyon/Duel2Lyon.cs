@@ -1,16 +1,17 @@
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon
 {
 
-class LyonStates : StateMachineBuilder
+class Lyon2DuelStates : StateMachineBuilder
     {
-        public LyonStates(BossModule module) : base(module)
+        public Lyon2DuelStates(BossModule module) : base(module)
         {
             TrivialPhase()
+            .ActivateOnEnter<Enaero>()
             .ActivateOnEnter<HeartOfNatureConcentric>();
         }
     }
-public class Lyon : BossModule
+public class Lyon2Duel : BossModule
     {
-        public Lyon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(211, 380), 20)) {}
+        public Lyon2Duel(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(211, 380), 20)) {}
     }
 }

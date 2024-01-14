@@ -101,8 +101,19 @@
     class MirroredIncantation : Components.CastHint
     {
         private int Mirrorstacks;
-        public MirroredIncantation() : base(ActionID.MakeSpell(AID.MirroredIncantation), "The next three interments will be mirrored!") { }
-        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        private int casting;
+        public MirroredIncantation() : base(ActionID.MakeSpell(AID.MirroredIncantation), "") { }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.MirroredIncantation)
+                casting = 1;
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.MirroredIncantation)
+                casting = 0;
+        }
+       public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             if (actor == module.PrimaryActor)
              switch ((SID)status.ID)
@@ -132,9 +143,9 @@
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (Mirrorstacks > 0)
-            {
-                hints.Add($"Mirrored interments left: {Mirrorstacks}!");
-            }
+                  hints.Add($"Mirrored interments left: {Mirrorstacks}!");
+            if (casting > 0)
+                  hints.Add("The next three interments will be mirrored!");           
         }
     }
       class MirroredIncantation2 : Components.CastHint
@@ -144,7 +155,18 @@
     class AncientFlare : Components.CastHint
     {
         private int pyretic;
-        public AncientFlare() : base(ActionID.MakeSpell(AID.AncientFlare), "Applies Pyretic - STOP everything until it runs out!") { }
+        private int casting;
+        public AncientFlare() : base(ActionID.MakeSpell(AID.AncientFlare), "") { }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.AncientFlare)
+                casting = 1;
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.AncientFlare)
+                casting = 0;
+        }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             var player = module.Raid.Player();
@@ -168,9 +190,9 @@
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (pyretic == 1)
-            {
-                hints.Add("Pyretic on you! STOP everything!");
-            }
+            hints.Add("Pyretic on you! STOP everything!");
+            if (casting > 0)
+            hints.Add("Applies Pyretic - STOP everything until it runs out!");  
         }
     }
      class AncientFlareWhispersManifest : Components.CastHint

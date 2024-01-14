@@ -8,8 +8,8 @@ public enum OID : uint
 public enum AID : uint
 {
     Attack = 6497, // Boss->player, no cast, single-target
-    RagingWinds2 = 20800, // Boss->self, 3,0s cast, single-target
-    RagingWinds = 20801, // Helper->self, 1,0s cast, range 50 circle
+    RagingWinds1 = 20800, // Boss->self, 3,0s cast, single-target
+    RagingWinds2 = 20801, // Helper->self, 1,0s cast, range 50 circle
     UnfetteredFerocity = 20813, // Boss->location, no cast, single-target
     HeartOfNature = 20794, // Boss->self, 3,0s cast, range 80 circle
     NaturesPulse1 = 20797, // Helper->self, 4,0s cast, range 10 circle
