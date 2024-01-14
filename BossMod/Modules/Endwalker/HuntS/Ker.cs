@@ -101,17 +101,17 @@
     class MirroredIncantation : Components.CastHint
     {
         private int Mirrorstacks;
-        private int casting;
+        private bool casting;
         public MirroredIncantation() : base(ActionID.MakeSpell(AID.MirroredIncantation), "") { }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.MirroredIncantation)
-                casting = 1;
+                casting = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.MirroredIncantation)
-                casting = 0;
+                casting = false;
         }
        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -144,7 +144,7 @@
         {
             if (Mirrorstacks > 0)
                   hints.Add($"Mirrored interments left: {Mirrorstacks}!");
-            if (casting > 0)
+            if (casting == true)
                   hints.Add("The next three interments will be mirrored!");           
         }
     }
@@ -154,18 +154,18 @@
     }
     class AncientFlare : Components.CastHint
     {
-        private int pyretic;
-        private int casting;
+        private bool pyretic;
+        private bool casting;
         public AncientFlare() : base(ActionID.MakeSpell(AID.AncientFlare), "") { }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.AncientFlare)
-                casting = 1;
+                casting = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.AncientFlare)
-                casting = 0;
+                casting = false;
         }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -173,7 +173,7 @@
             if (actor == player)
             {if ((SID)status.ID == SID.Pyretic)
                 {
-                    pyretic = 1;
+                    pyretic = true;
                 }
             }
         }
@@ -183,15 +183,15 @@
             if (actor == player)
             {if ((SID)status.ID == SID.Pyretic)
                 {
-                    pyretic = 0;
+                    pyretic = false;
                 }
             }
         }
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (pyretic == 1)
+            if (pyretic == true)
             hints.Add("Pyretic on you! STOP everything!");
-            if (casting > 0)
+            if (casting == true)
             hints.Add("Applies Pyretic - STOP everything until it runs out!");  
         }
     }

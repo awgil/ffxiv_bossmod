@@ -1,13 +1,12 @@
 using BossMod.Components;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
 
     class Enaero : CastHint
     {
-        private int EnaeroBuff;
-        private int casting;
+        private bool EnaeroBuff;
+        private bool casting;
         public Enaero() : base(ActionID.MakeSpell(AID.RagingWinds1), "") { }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -15,19 +14,19 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
             if (actor == boss)
             {if ((SID)status.ID == SID.Enaero)
                 {
-                    EnaeroBuff = 1;
+                    EnaeroBuff = true;
                 }
             }
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.RagingWinds1)
-                casting = 1;
+                casting = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.RagingWinds1)
-                casting = 0;
+                casting = false;
         }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
@@ -35,14 +34,14 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
             if (actor == boss)
             {
                 if ((SID)status.ID == SID.Enaero)
-                EnaeroBuff = 0;
+                EnaeroBuff = false;
             }
         }
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (casting > 0)
+            if (casting == true)
             hints.Add("Applies Enaero to Lyon. Use Dispell to remove it");    
-            if (EnaeroBuff == 1)
+            if (EnaeroBuff == true)
             hints.Add("Enaero on Lyon. Use Dispell to remove it! You only need to do this once per duel, so you can switch to a different action after removing his buff.");
         }
     }

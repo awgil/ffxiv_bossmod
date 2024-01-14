@@ -7,7 +7,7 @@ public enum OID : uint
     };
 public enum AID : uint
 {
-    Attack = 6497, // Boss->player, no cast, single-target
+    AutoAttack = 6497, // Boss->player, no cast, single-target
     RagingWinds1 = 20800, // Boss->self, 3,0s cast, single-target
     RagingWinds2 = 20801, // Helper->self, 1,0s cast, range 50 circle
     UnfetteredFerocity = 20813, // Boss->location, no cast, single-target

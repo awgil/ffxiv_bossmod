@@ -1,7 +1,3 @@
-using System.IO.Compression;
-using System.Security.Cryptography.X509Certificates;
-using FFXIVClientStructs.FFXIV.Common.Lua;
-
 namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
 {
     public enum OID : uint
@@ -20,14 +16,14 @@ public enum AID : uint
     LightningBolt2 = 32215, // BossHelper->location, 3,0s cast, range 6 circle
     ThunderIV = 32213, // BallOfLevin->self, 7,0s cast, range 18 circle
     Spark = 32216, // Boss->self, 4,0s cast, range 14-30 donut --> TODO: confirm inner circle size
-    Attack2 = 870, // BossMikros->player, no cast, single-target
-    RockThrow = 32217, // BossMikros->location, 3,0s cast, range 6 circle
+    AutoAttack2 = 870, // BossAdds->player, no cast, single-target
+    RockThrow = 32217, // BossAdds->location, 3,0s cast, range 6 circle
     SweepingGouge = 32211, // Boss->player, 5,0s cast, single-target
 };
 
 public enum IconID : uint
 {    
-    AOE = 111, // Thundercall marker
+    Thundercall = 111, // Thundercall marker
 };
 
     class Spark : Components.SelfTargetedAOEs
@@ -40,34 +36,34 @@ public enum IconID : uint
     }
     class Thundercall : Components.LocationTargetedAOEs
     {
-        private int targeted;
+        private bool targeted;
         public Thundercall() : base(ActionID.MakeSpell(AID.Thundercall), 3) {}
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             var player = module.Raid.Player();
-            if(player == actor && iconID == (uint)IconID.AOE)
-                targeted = 1;
+            if(player == actor && iconID == (uint)IconID.Thundercall)
+                targeted = true;
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Thundercall)
-                targeted = 0;
+                targeted = false;
         }
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-             if (targeted > 0)
-                hints.Add("Drop the puddle at the edge of the arena and get away, it will spawn a huge AOE circle");
+             if (targeted == true)
+                hints.Add("GTFO to the edge");
         }
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             var player = module.Raid.Player();
-            if(targeted > 0 && player != null)
+            if(targeted == true && player != null)
             arena.AddCircle(player.Position, 18, ArenaColor.Danger); //TODO: find a way to make the AOE clip with the arena
         }
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
            var player = module.Raid.Player();
-            if(player == actor && targeted > 0)
+            if(player == actor && targeted == true)
             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 19));
         }
      }

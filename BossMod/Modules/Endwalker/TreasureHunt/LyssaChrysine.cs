@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 
 public enum AID : uint
 {
-    Attack = 870, // Boss/BossAdd->player, no cast, single-target
+    AutoAttack = 870, // Boss/BossAdd->player, no cast, single-target
     Icicall = 32307, // Boss->self, 2,5s cast, single-target, spawns ice pillars
     IcePillar = 32315, // IcePillars->self, 3,0s cast, range 6 circle
     SkullDasher = 32306, // Boss->player, 5,0s cast, single-target
@@ -98,24 +98,24 @@ class HeavySmash : Components.StackWithCastTargets
     }
 class IcePillarSpawn : Components.GenericAOEs
     {     
-        private float activePillar;       
+        private bool activePillar;       
         private static AOEShapeCircle circle = new(6);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             var helper = module.Enemies(OID.IcePillars).FirstOrDefault();  
-            if (helper != null && activePillar > 0)
+            if (helper != null && activePillar == true)
             foreach (var pillar in module.Enemies(OID.IcePillars))
             yield return new(circle, pillar.Position, pillar.Rotation, new());
         }
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.IcePillars)
-             activePillar = 1;
+             activePillar = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.IcePillar)
-                activePillar = 0;
+                activePillar = false;
         }
     }
     class Howl : Components.CastHint

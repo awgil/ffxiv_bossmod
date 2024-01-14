@@ -137,10 +137,11 @@ namespace BossMod.Components
                 WDir dir = s.Kind switch
                 {
                     Kind.AwayFromOrigin => from != s.Origin ? (from - s.Origin).Normalized() : new(),
+                    Kind.TowardsOrigin => -s.Direction.ToDirection(),
                     Kind.DirForward => s.Direction.ToDirection(),
                     Kind.DirLeft => s.Direction.ToDirection().OrthoL(),
                     Kind.DirRight => s.Direction.ToDirection().OrthoR(),
-                    Kind.TowardsOrigin => s.Direction.ToDirection().OrthoL().OrthoL(),
+
                     _ => new()
                 };
                 if (dir == default)
@@ -154,12 +155,6 @@ namespace BossMod.Components
                     break;
             }
         }
-
-        internal void OnCastFinished(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            throw new NotImplementedException();
-        }
-
     }
 
     // generic 'knockback away from cast target' component
