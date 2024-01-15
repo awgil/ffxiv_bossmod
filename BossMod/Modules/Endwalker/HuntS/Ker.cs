@@ -247,6 +247,7 @@
                 .ActivateOnEnter<EternalDamnation2>()
                 .ActivateOnEnter<AncientFlare>()
                 .ActivateOnEnter<AncientHoly>()
+                .ActivateOnEnter<AncientHoly2>()
                 .ActivateOnEnter<AncientHolyWhispersManifest>()
                 .ActivateOnEnter<AncientFlareWhispersManifest>();
         }
