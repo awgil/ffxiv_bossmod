@@ -1,4 +1,4 @@
-﻿using BossMod.Components;
+using BossMod.Components;
 
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
      class GrandFall : LocationTargetedAOEs

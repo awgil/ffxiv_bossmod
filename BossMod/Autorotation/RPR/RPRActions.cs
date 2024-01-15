@@ -13,7 +13,6 @@ namespace BossMod.RPR
         private bool _aoe;
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
-        private bool lastActionisSoD;
 
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
