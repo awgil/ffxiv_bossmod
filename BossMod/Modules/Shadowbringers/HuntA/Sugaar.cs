@@ -32,9 +32,9 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
     }
     class Rotation : Components.GenericAOEs
     {
-        private int _remainingHits = 0;
-        private int _numbingnoise = 0;
-        private int _tailsnap = 0;
+        private int _remainingHits;
+        private bool _numbingnoise;
+        private bool _tailsnap;
         private Angle _RotationDir;
         private Angle _RotationDirIncrement;
 
@@ -43,9 +43,9 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_remainingHits > 0 && _numbingnoise > 0)
+            if (_remainingHits > 0 && _numbingnoise)
                 yield return new(_shapeNumbingNoise, module.PrimaryActor.Position, _RotationDir);
-            if (_remainingHits > 0 && _tailsnap > 0)
+            if (_remainingHits > 0 && _tailsnap )
                 yield return new(_shapeTailSnap, module.PrimaryActor.Position, _RotationDir);
         }
 
@@ -67,9 +67,9 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaBackground(module, pcSlot, pc, arena);
-            if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _numbingnoise == 1)
+            if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _numbingnoise)
                 arena.ZoneCone(module.PrimaryActor.Position, 0, _shapeNumbingNoise.Radius, _RotationDir + _RotationDirIncrement, 60.Degrees(), ArenaColor.Danger);
-            if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _tailsnap == 1)
+            if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _tailsnap)
                 arena.ZoneCone(module.PrimaryActor.Position, 0, _shapeTailSnap.Radius, _RotationDir + _RotationDirIncrement, 60.Degrees(), ArenaColor.Danger);
         }
 
@@ -80,8 +80,8 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
             switch ((AID)spell.Action.ID)
             {
                 case AID.NumbingNoiseRotation:
-                    _tailsnap = 0;
-                    _numbingnoise = 1;
+                    _tailsnap = false;
+                    _numbingnoise = true;
                     _remainingHits = 3;
                     _RotationDirIncrement = 120.Degrees();
                     break;
@@ -89,8 +89,8 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                     _RotationDirIncrement = 120.Degrees();
                     break;
                 case AID.TailSnapRotation:
-                    _tailsnap = 1;
-                    _numbingnoise = 0;
+                    _tailsnap = true;
+                    _numbingnoise = false;
                     _remainingHits = 3;
                     _RotationDirIncrement = -120.Degrees();
                     break;
@@ -123,21 +123,20 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         private float PullDistance;
         private Angle Direction;
         private float DistanceToBoss;
-        private int activeTailSnap;
-        private int activeNumbingNoise;
+        private bool activeTailSnap;
+        private bool activeNumbingNoise;
         private string hint = "Use anti knockback ability or get pulled into danger zone!";
         public RotationPull() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation),default) { }
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-               var Boss = module.Enemies(OID.Boss).FirstOrDefault();
                var player = module.Raid.Player();
-             if (Boss != null && player != null) 
-                DistanceToBoss = (player.Position - Boss.Position).Length();
-             if (Boss != null && player != null) 
-                PullDistance = 30 - (Boss.HitboxRadius + player.HitboxRadius + (30 - DistanceToBoss));
-              if (Boss != null && player != null) 
-              Direction=Angle.FromDirection(player.Position - Boss.Position);
-             if (activeNumbingNoise > 0 || activeTailSnap > 0 && PullDistance > 0 && PullDistance <= 25 && DistanceToBoss <= 30)
+             if (player != null) 
+                DistanceToBoss = (player.Position - module.PrimaryActor.Position).Length();
+             if (player != null) 
+                PullDistance = 30 - (module.PrimaryActor.HitboxRadius + player.HitboxRadius + (30 - DistanceToBoss));
+              if (player != null) 
+              Direction=Angle.FromDirection(player.Position - module.PrimaryActor.Position);
+             if (activeNumbingNoise || activeTailSnap && PullDistance > 0 && PullDistance <= 25 && DistanceToBoss <= 30)
                 yield return new(new(), PullDistance, default, null, Direction, Kind.TowardsOrigin);
             }
 
@@ -145,28 +144,24 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.NumbingNoiseRotation)
-            activeNumbingNoise=1;
+                activeNumbingNoise = true;
             if ((AID)spell.Action.ID == AID.TailSnapRotation)
-            activeTailSnap = 1;
+                activeTailSnap = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.NumbingNoiseRotation)
-            activeNumbingNoise = 0;
+                activeNumbingNoise = false;
             if ((AID)spell.Action.ID == AID.TailSnapDuringRotation)
-            activeTailSnap = 0;
+                activeTailSnap = false;
         }
-            public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-             if (activeNumbingNoise > 0 && DistanceToBoss >= 13 && DistanceToBoss <=30)
-            {
+            if (activeNumbingNoise && DistanceToBoss >= 13 && DistanceToBoss <=30)
                 hints.Add(hint);
-            }
-            if (activeTailSnap > 0 && DistanceToBoss >= 18 && DistanceToBoss <=30)
-            {
+            if (activeTailSnap && DistanceToBoss >= 18 && DistanceToBoss <=30)
                 hints.Add(hint);
-            }
         }
     }
 
