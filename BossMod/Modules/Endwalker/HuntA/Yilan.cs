@@ -65,7 +65,7 @@ namespace BossMod.Endwalker.HuntA.Yilan
 
     class Devour : Components.CastHint
     {
-        public Devour() : base(ActionID.MakeSpell(AID.Devour), "Harmless until failed previous mechanic") { }
+        public Devour() : base(ActionID.MakeSpell(AID.Devour), "Harmless unless you got minimized by the previous mechanic") { }
     }
 
     class BogBomb : Components.LocationTargetedAOEs
