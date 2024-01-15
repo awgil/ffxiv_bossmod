@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-
 
 namespace BossMod.Shadowbringers.HuntA.Sugaar
 {
@@ -47,30 +45,10 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                 yield return new(_shapeNumbingNoise, module.PrimaryActor.Position, _RotationDir);
             if (_remainingHits > 0 && _tailsnap )
                 yield return new(_shapeTailSnap, module.PrimaryActor.Position, _RotationDir);
-        }
-
-        public override void Update(BossModule module)
-        {
-            if (module.PrimaryActor.CastInfo == null || !module.PrimaryActor.CastInfo.IsSpell())
-                return;
-            switch ((AID)module.PrimaryActor.CastInfo.Action.ID)
-            {
-                case AID.NumbingNoiseRotation:
-                    _RotationDir = module.PrimaryActor.Rotation;
-                    break;
-                case AID.TailSnapRotation:
-                    _RotationDir = module.PrimaryActor.Rotation+180.Degrees();
-                    break;
-            }
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            base.DrawArenaBackground(module, pcSlot, pc, arena);
             if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _numbingnoise)
-                arena.ZoneCone(module.PrimaryActor.Position, 0, _shapeNumbingNoise.Radius, _RotationDir + _RotationDirIncrement, 60.Degrees(), ArenaColor.Danger);
+                yield return new(_shapeNumbingNoise, module.PrimaryActor.Position, _RotationDir + _RotationDirIncrement, default, ArenaColor.Danger);
             if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _tailsnap)
-                arena.ZoneCone(module.PrimaryActor.Position, 0, _shapeTailSnap.Radius, _RotationDir + _RotationDirIncrement, 60.Degrees(), ArenaColor.Danger);
+                yield return new(_shapeTailSnap, module.PrimaryActor.Position, _RotationDir + _RotationDirIncrement, default, ArenaColor.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -83,6 +61,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                     _tailsnap = false;
                     _numbingnoise = true;
                     _remainingHits = 3;
+                    _RotationDir = module.PrimaryActor.Rotation;
                     _RotationDirIncrement = 120.Degrees();
                     break;
                 case AID.NumbingNoiseDuringRotation:
@@ -92,6 +71,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                     _tailsnap = true;
                     _numbingnoise = false;
                     _remainingHits = 3;
+                    _RotationDir = module.PrimaryActor.Rotation+180.Degrees();
                     _RotationDirIncrement = -120.Degrees();
                     break;
                 case AID.TailSnapDuringRotation:
