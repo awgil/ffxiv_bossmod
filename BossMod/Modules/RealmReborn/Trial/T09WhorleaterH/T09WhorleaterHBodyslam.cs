@@ -13,7 +13,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (Distance > 0)
-                yield return new(new(), Distance, default, null, Direction, Kind.DirForward);
+                yield return new(module.Bounds.Center, Distance, default, null, Direction, Kind.DirForward);
         }
 
         public override void Update(BossModule module)
@@ -53,7 +53,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (active == true)
+            if (active)
                  yield return new(rect, module.PrimaryActor.Position, Direction, new());
         }
 
