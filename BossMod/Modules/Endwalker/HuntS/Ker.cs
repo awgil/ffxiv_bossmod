@@ -155,7 +155,7 @@
     class AncientFlare : Components.CastHint
     {
         private BitMask _pyretic;
-        public bool pyretic { get; private set; }
+        public bool Pyretic { get; private set; }
         private bool casting;
         public AncientFlare() : base(ActionID.MakeSpell(AID.AncientFlare), "") { }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -180,7 +180,7 @@
         }
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_pyretic[slot] != pyretic)
+            if (_pyretic[slot] != Pyretic)
             hints.Add("Pyretic on you! STOP everything!");
         }
         public override void AddGlobalHints(BossModule module, GlobalHints hints)

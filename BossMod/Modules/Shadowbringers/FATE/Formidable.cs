@@ -227,7 +227,7 @@ namespace BossMod.Shadowbringers.FATE.Formidable
     {
         public DynamicSensoryJammer() : base(ActionID.MakeSpell(AID.DynamicSensoryJammer), "") { }
         private BitMask _ec;
-        public bool ec { get; private set; }
+        public bool Ec { get; private set; }
         private bool casting;
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -252,7 +252,7 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         }
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (_ec[slot] != ec)
+            if (_ec[slot] != Ec)
             hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
         }
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
