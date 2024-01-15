@@ -19,6 +19,7 @@
         EternalDamnation = 27647, // Boss->self, 6.0s cast, range 40 circle gaze
         AncientFlare = 27704, // Boss->self, 6.0s cast, range 40 circle, applies pyretic
         WhispersManifest = 27706, // Boss->self, 6,0s cast, range 40 circle, applies pyretc (remembered skill from Whispered Incantation)
+        AncientHoly = 27646, // Boss->self, 6,0s cast, range 40 circle
         WhispersManifest2 = 27653, // Boss->self, 6,0s cast, range 40 circle (Ancient Holy? to be verified)
         MirroredIncantation = 27927, // Boss->self, 3,0s cast, single-target, mirrors the next 3 interments
         MirroredIncantation2 = 27928, // Boss->self, 3,0s cast, single-target, mirrors the next 4 interments
@@ -27,7 +28,6 @@
         Mirrored_ForeInterment = 27661, // Boss->self, 6,0s cast, range 40 180-degree cone
         Mirrored_RearInterment = 27662, // Boss->self, 6,0s cast, range 40 180-degree cone
         unknown = 25698, // Boss->player, no cast, single-target
-        AncientHoly = 27646, // Boss->self, 6,0s cast, range 40 circle
     };
     public enum SID : uint
     {
@@ -144,7 +144,7 @@
         {
             if (Mirrorstacks > 0)
                   hints.Add($"Mirrored interments left: {Mirrorstacks}!");
-            if (casting == true)
+            if (casting)
                   hints.Add("The next three interments will be mirrored!");           
         }
     }
@@ -154,7 +154,8 @@
     }
     class AncientFlare : Components.CastHint
     {
-        private bool pyretic;
+        private BitMask _pyretic;
+        public bool pyretic { get; private set; }
         private bool casting;
         public AncientFlare() : base(ActionID.MakeSpell(AID.AncientFlare), "") { }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -169,29 +170,22 @@
         }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            var player = module.Raid.Player();
-            if (actor == player)
-            {if ((SID)status.ID == SID.Pyretic)
-                {
-                    pyretic = true;
-                }
-            }
+              if ((SID)status.ID == SID.Pyretic)
+                _pyretic.Set(module.Raid.FindSlot(actor.InstanceID));
         }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
-            var player = module.Raid.Player();
-            if (actor == player)
-            {if ((SID)status.ID == SID.Pyretic)
-                {
-                    pyretic = false;
-                }
-            }
+            if ((SID)status.ID == SID.Pyretic)
+                _pyretic.Clear(module.Raid.FindSlot(actor.InstanceID));
         }
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (pyretic == true)
+            if (_pyretic[slot] != pyretic)
             hints.Add("Pyretic on you! STOP everything!");
-            if (casting == true)
+        }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (casting)
             hints.Add("Applies Pyretic - STOP everything until it runs out!");  
         }
     }
