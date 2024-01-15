@@ -226,47 +226,42 @@ namespace BossMod.Shadowbringers.FATE.Formidable
     class DynamicSensoryJammer : Components.CastHint
     {
         public DynamicSensoryJammer() : base(ActionID.MakeSpell(AID.DynamicSensoryJammer), "") { }
-        private int ec;
-        private int casting;
+        private BitMask _ec;
+        public bool ec { get; private set; }
+        private bool casting;
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
-                casting = 1;
+                casting = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
-                casting = 0;
+                casting = false;
         }        
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-            var player = module.Raid.Player();
-            if (actor == player)
-            {if ((SID)status.ID == SID.ExtremeCaution)
-                {
-                    ec = 1;
-                }
-            }
+              if ((SID)status.ID == SID.ExtremeCaution)
+                _ec.Set(module.Raid.FindSlot(actor.InstanceID));
         }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
-            var player = module.Raid.Player();
-            if (actor == player)
-            {
-                if ((SID)status.ID == SID.ExtremeCaution)
-                     ec = 0;
-            }
+            if ((SID)status.ID == SID.ExtremeCaution)
+                _ec.Clear(module.Raid.FindSlot(actor.InstanceID));
+        }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_ec[slot] != ec)
+            hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
         }
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (ec == 1)
-            hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
-            if (casting > 0)
+            if (casting)
             hints.Add("Stop everything including auto attacks or get launched into the air");    
         }
     }
-
+    
     class FormidableStates : StateMachineBuilder
     {
         public FormidableStates(BossModule module) : base(module)
