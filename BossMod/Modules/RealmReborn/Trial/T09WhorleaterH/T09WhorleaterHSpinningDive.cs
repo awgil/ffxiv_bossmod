@@ -10,7 +10,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             var helper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();      
-            if (helper != null && activeHelper == true)
+            if (helper != null && activeHelper)
             yield return new(rect, helper.Position, helper.Rotation, new());
             }
         public override void OnActorCreated(BossModule module, Actor actor)
@@ -36,7 +36,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
                 var helper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();  
-                if (helper != null && activeHelper == true)
+                if (helper != null && activeHelper)
                 yield return new(helper.Position, 10, default, rect, helper.Rotation, Kind.AwayFromOrigin);
         }
 
