@@ -62,8 +62,5 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
         }
     }
 
-    public class Maliktender : SimpleBossModule
-    {
-        public Maliktender(WorldState ws, Actor primary) : base(ws, primary) { }
-    }
+    public class Maliktender(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
 }

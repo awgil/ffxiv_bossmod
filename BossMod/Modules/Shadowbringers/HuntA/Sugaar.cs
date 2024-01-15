@@ -125,7 +125,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         private float DistanceToBoss;
         private bool activeTailSnap;
         private bool activeNumbingNoise;
-        private string hint = "Use anti knockback ability or get pulled into danger zone!";
+        private readonly string hint = "Use anti knockback ability or get pulled into danger zone!";
         public RotationPull() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation),default) { }
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
@@ -179,8 +179,5 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         }
     }
 
-    public class Sugaar : SimpleBossModule
-    {
-        public Sugaar(WorldState ws, Actor primary) : base(ws, primary) { }
-    }
+    public class Sugaar(WorldState ws, Actor primary) : SimpleBossModule(ws, primary)  {}
 }

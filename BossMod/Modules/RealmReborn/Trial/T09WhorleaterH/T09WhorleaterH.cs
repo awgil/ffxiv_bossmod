@@ -29,11 +29,9 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
                 .ActivateOnEnter<Hints>();
         }
     } 
-    public class T09WhorleaterH : BossModule
+    public class T09WhorleaterH(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-0, 0), 14.5f, 20))
     {
-        public T09WhorleaterH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-0, 0), 14.5f, 20)) {}
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
+    protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in Enemies(OID.Spume))

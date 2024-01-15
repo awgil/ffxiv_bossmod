@@ -63,7 +63,7 @@ class OutInAOE : Components.ConcentricAOEs
     }
 class InOutAOE : Components.ConcentricAOEs
     {
-        private static AOEShape[] _shapes = {new AOEShapeDonut(10, 20), new AOEShapeCircle(10)};
+        private static readonly AOEShape[] _shapes = [new AOEShapeDonut(10, 20), new AOEShapeCircle(10)];
 
         public InOutAOE() : base(_shapes) { }
 
@@ -98,19 +98,18 @@ class HeavySmash : Components.StackWithCastTargets
     }
 class IcePillarSpawn : Components.GenericAOEs
     {     
-        private bool activePillar;       
-        private static AOEShapeCircle circle = new(6);
+        private bool activePillar; 
+        private static readonly AOEShapeCircle circle = new(6);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            var helper = module.Enemies(OID.IcePillars).FirstOrDefault();  
-            if (helper != null && activePillar == true)
-            foreach (var pillar in module.Enemies(OID.IcePillars))
-            yield return new(circle, pillar.Position, pillar.Rotation, new());
+            if (activePillar)
+                foreach (var p in module.Enemies(OID.IcePillars))
+                    yield return new(circle, p.Position, p.Rotation, new());
         }
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.IcePillars)
-             activePillar = true;
+                activePillar = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {

@@ -28,7 +28,7 @@ public enum IconID : uint
 
     class Spark : Components.SelfTargetedAOEs
     {
-        public Spark() : base(ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(13,30)) { } 
+        public Spark() : base(ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14,30)) { } 
     }
     class SweepingGouge : Components.SingleTargetCast
     {

@@ -7,7 +7,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
     {     
         private Actor? SpinningDiveHelper;     
         private bool dived;       
-        private static AOEShapeRect rect = new(46, 8);
+        private static readonly AOEShapeRect rect = new(46, 8);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();  
@@ -32,7 +32,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
         private Actor? SpinningDiveHelper;     
         private bool dived;       
          public SpinningDiveKB() : base(ActionID.MakeSpell(AID.SpinningDiveEffect)) { }
-        private static AOEShapeRect rect = new(46, 8);
+        private static readonly AOEShapeRect rect = new(46, 8);
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();  

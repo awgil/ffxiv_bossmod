@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Shadowbringers.FATE.Formidable
 {
@@ -162,26 +161,18 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         public ExplosionGrenade() : base(ActionID.MakeSpell(AID.ExplosionGrenade), new AOEShapeCircle(12)) { }
     }
 
-    class DwarvenDischarge : Components.GenericAOEs
+    class DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay) : Components.GenericAOEs
     {
-        private AOEShape _shape;
-        private OID _oid;
-        private AID _aid;
-        private float _delay;
-        private List<(Actor caster, DateTime activation)> _casters = new();
-
-        public DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay)
-        {
-            _shape = shape;
-            _oid = oid;
-            _aid = aid;
-            _delay = delay; 
-        }
+        private readonly AOEShape _shape = shape;
+        private readonly OID _oid = oid;
+        private readonly AID _aid = aid;
+        private readonly float _delay = delay;
+        private List<(Actor caster, DateTime activation)> _casters = [];
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            foreach (var c in _casters)
-                yield return new(_shape, c.caster.Position, default, c.caster.CastInfo?.FinishAt ?? c.activation);
+            foreach (var (caster, activation) in _casters)
+                yield return new(_shape, caster.Position, default, caster.CastInfo?.FinishAt ?? activation);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)
@@ -282,8 +273,5 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         }
     }
 
-    public class Formidable : SimpleBossModule
-    {
-        public Formidable(WorldState ws, Actor primary) : base(ws, primary) { }
-    }
+    public class Formidable(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
 }
