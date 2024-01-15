@@ -45,7 +45,7 @@ namespace BossMod.DNC
 
         protected override NextAction CalculateAutomaticGCD()
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
+            if (AutoAction < AutoActionAIFight)
                 return new();
 
             var aid = Rotation.GetNextBestGCD(_state, _strategy);

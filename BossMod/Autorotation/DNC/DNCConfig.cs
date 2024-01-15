@@ -7,6 +7,6 @@
         public bool FullRotation = true;
 
         [PropertyDisplay("Pause autorotation while Improvisation is active")]
-        public bool PauseDuringImprov = true;
+        public bool PauseDuringImprov = false;
     }
 }
