@@ -34,36 +34,30 @@ public enum IconID : uint
     {
         public SweepingGouge() : base(ActionID.MakeSpell(AID.SweepingGouge)) { }
     }
-    class Thundercall : Components.LocationTargetedAOEs
+   class Thundercall : Components.LocationTargetedAOEs
     {
-        private bool targeted;
         public Thundercall() : base(ActionID.MakeSpell(AID.Thundercall), 3) {}
+    }
+    class Thundercall2 : Components.UniformStackSpread
+    {   
+        public Thundercall2() : base(0, 18, alwaysShowSpreads: true) { }
+        private bool targeted;
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            var player = module.Raid.Player();
-            if(player == actor && iconID == (uint)IconID.Thundercall)
+            if(iconID == (uint)IconID.Thundercall)
+                AddSpread(actor);
                 targeted = true;
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Thundercall)
+                Spreads.Clear();
                 targeted = false;
-        }
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-             if (targeted == true)
-                hints.Add("GTFO to the edge");
-        }
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            var player = module.Raid.Player();
-            if(targeted == true && player != null)
-            arena.AddCircle(player.Position, 18, ArenaColor.Danger); //TODO: find a way to make the AOE clip with the arena
         }
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
            var player = module.Raid.Player();
-            if(player == actor && targeted == true)
+            if(player == actor && targeted)
             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 19));
         }
      }
@@ -87,6 +81,7 @@ public enum IconID : uint
             TrivialPhase()
             .ActivateOnEnter<Spark>()
             .ActivateOnEnter<Thundercall>()
+            .ActivateOnEnter<Thundercall2>()
             .ActivateOnEnter<RockThrow>()
             .ActivateOnEnter<LightningBolt2>()
             .ActivateOnEnter<SweepingGouge>()
