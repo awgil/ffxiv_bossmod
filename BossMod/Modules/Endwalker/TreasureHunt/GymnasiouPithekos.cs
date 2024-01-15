@@ -58,7 +58,7 @@ public enum IconID : uint
         {
            var player = module.Raid.Player();
             if(player == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 19));
+            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
         }
      }
     class RockThrow : Components.LocationTargetedAOEs
