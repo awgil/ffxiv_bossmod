@@ -5,53 +5,50 @@ using System.Collections.Generic;
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
    class SpinningDive : GenericAOEs //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
     {     
-        private bool activeHelper;       
+        private Actor? SpinningDiveHelper;     
+        private bool dived;       
         private static AOEShapeRect rect = new(46, 8);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            var helper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();      
-            if (helper != null && activeHelper)
-            yield return new(rect, helper.Position, helper.Rotation, new());
+            SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();  
+            if (SpinningDiveHelper != null && !dived)
+            yield return new(rect, SpinningDiveHelper.Position, SpinningDiveHelper.Rotation, new());
             }
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.SpinningDiveHelper)
-             activeHelper = true;
+            dived = false;
         }
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.SpinningDiveSnapshot)
-            {
-                activeHelper = false;
-            }
+            dived = true;
         }
     }
 
         class SpinningDiveKB : Knockback //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
-    {        
-        private bool activeHelper;       
+    {   
+        private Actor? SpinningDiveHelper;     
+        private bool dived;       
          public SpinningDiveKB() : base(ActionID.MakeSpell(AID.SpinningDiveEffect)) { }
         private static AOEShapeRect rect = new(46, 8);
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-                var helper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();  
-                if (helper != null && activeHelper)
-                yield return new(helper.Position, 10, default, rect, helper.Rotation, Kind.AwayFromOrigin);
+                SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();  
+                if (SpinningDiveHelper != null && !dived)
+                yield return new(SpinningDiveHelper.Position, 10, default, rect, SpinningDiveHelper.Rotation, Kind.AwayFromOrigin);
         }
-
-        public override void OnActorCreated(BossModule module, Actor actor)
+           public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.SpinningDiveHelper)
-             activeHelper = true;
+            dived = false;
         }
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.SpinningDiveEffect)
-            {
-                activeHelper = false;
-            }
+            dived = true;
         }
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints){}
     }
