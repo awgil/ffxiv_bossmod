@@ -32,21 +32,17 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
     class Haste : Components.CastHint
     {
         public Haste() : base(ActionID.MakeSpell(AID.Haste), "") { }
-        private int HasteB;
+        private bool HasteB;
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Haste)
-            {
-                HasteB = 1;
-            }
+                HasteB = true;
         }
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (HasteB == 1)
-            {
+            if (HasteB)
                 hints.Add("Getting hit by the needle attack will instantly kill you from now on!");
-            }
         }
     }
     class NineNineNineKNeedles : Components.SelfTargetedAOEs

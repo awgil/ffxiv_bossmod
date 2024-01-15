@@ -27,10 +27,10 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
         BodySlamRectAOE = 1860, // Boss->self, no cast, range 30+R width 10 rect
         BodySlamNorth = 1938, // ACD->self, no cast, ???
         VeilOfTheWhorl = 2165, // Boss->self, no cast, single-target
-        Attack = 1853, // Boss->player, no cast, single-target
+        AutoAttack = 1853, // Boss->player, no cast, single-target
         MantleOfTheWhorl = 2164, // Tail->self, no cast, single-target
         ScaleDarts = 1857, // Tail->player, no cast, single-target
-        AutoAttack = 870, // Sahagin->player, no cast, single-target
+        AutoAttack2 = 870, // Sahagin->player, no cast, single-target
         AetherDraw = 1870, // Spume->B84, no cast, single-target
         StunShot = 1862, // Sahagin->player, no cast, single-target
         DreadTide = 1877, // A88->location, no cast, range 2 circle

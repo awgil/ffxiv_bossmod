@@ -69,17 +69,17 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
                 {
                     LeviathanZ = boss.Position.Z;
                     if ((boss.Position.Z+boss.Position.X)<=-1f && (boss.Position.Z+boss.Position.X)>=-2f)// Leviathan head slams SW
-                    Direction = boss.Position.Z <= 0 ? 0.Degrees() : 90.Degrees(); 
-                    active = true;
+                        Direction = boss.Position.Z <= 0 ? 0.Degrees() : 90.Degrees(); 
+                        active = true;
                     if ((boss.Position.Z+boss.Position.X)<=28f && (boss.Position.Z+boss.Position.X)>=27f)// Leviathan head slams SE
-                    Direction = boss.Position.Z <= 0 ? 0.Degrees() : 270.Degrees(); 
-                    active = true;
+                        Direction = boss.Position.Z <= 0 ? 0.Degrees() : 270.Degrees(); 
+                        active = true;
                     if ((boss.Position.Z+boss.Position.X)<=-27f && (boss.Position.Z+boss.Position.X)>=-28f)// Leviathan head slams NW
-                    Direction = boss.Position.Z <= 0 ? 90.Degrees() : 0.Degrees(); 
-                    active = true;
+                        Direction = boss.Position.Z <= 0 ? 90.Degrees() : 0.Degrees(); 
+                        active = true;
                     if ((boss.Position.Z+boss.Position.X)<=2f && (boss.Position.Z+boss.Position.X)>=1f)// Leviathan head slams NE
-                    Direction = boss.Position.Z <= 0 ? 270.Degrees() : 0.Degrees(); 
-                    active = true;
+                        Direction = boss.Position.Z <= 0 ? 270.Degrees() : 0.Degrees(); 
+                        active = true;
                 }
             }
         }
@@ -88,8 +88,6 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
         {
             base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.BodySlamRectAOE)
-            {
                 active = false;
-            }
         }
     }
