@@ -3,7 +3,8 @@ public enum OID : uint
     {
         Boss = 0x2E8D, // R0.60
         Helper = 0x233C, // R0.500
-        VermillionFlame = 0x2E8F //R1.2
+        VermillionFlame = 0x2E8F, //R1.2
+        RavenousGaleVoidzone = 0x1E8910 //R0.5
     };
 public enum AID : uint
 {
