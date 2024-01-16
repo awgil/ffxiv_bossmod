@@ -1,4 +1,5 @@
 using BossMod.Components;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -74,7 +75,7 @@ class TasteOfBlood : SelfTargetedAOEs
     {
         public TasteOfBlood() : base(ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40,90.Degrees())) { } 
     }
-    class RavenousGale : GenericAOEs
+class RavenousGale : GenericAOEs
     {
         private bool activeTwister; 
         private bool casting;
@@ -108,10 +109,45 @@ class TasteOfBlood : SelfTargetedAOEs
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (casting)
-                  hints.Add("Spawns a tiny voidzone under you, move a little");           
+                  hints.Add("Move a little to avoid voidzone spawning under you");
         }
     }
 class TwinAgonies : SingleTargetCast
     {
         public TwinAgonies() : base(ActionID.MakeSpell(AID.TwinAgonies), "Heavy Tankbuster, use Manawall or tank mitigations") { }
+    }
+class WindsPeak : SelfTargetedAOEs
+    {
+        public WindsPeak() : base(ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5)) { } 
+    }
+class WindsPeakKB : KnockbackFromCastTarget //actual knockback is delayed between 0.4s to 0.6s, but 4s warning should be enough time to either move to safety or use anti-knockback ability
+    {
+        public WindsPeakKB() : base(ActionID.MakeSpell(AID.WindsPeak2), 15) { }
+    }
+class TheKingsNotice : CastGaze
+    {
+        public TheKingsNotice() : base(ActionID.MakeSpell(AID.TheKingsNotice)) { }
+    }
+class SplittingRage : CastHint
+    {
+        public SplittingRage() : base(ActionID.MakeSpell(AID.SplittingRage), "Applies temporary misdirection") { }
+    }
+class SkyrendingStrike : CastHint
+    {
+        private bool casting;
+        private DateTime enragestart;
+        public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), "") { }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.SkyrendingStrike)
+                {   
+                    casting = true;       
+                    enragestart = module.WorldState.CurrentTime;
+                }
+        }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (casting)
+                hints.Add($"Enrage! {Math.Max(35 - (module.WorldState.CurrentTime - enragestart).TotalSeconds, 0.0f):f1}s");
+        }
     }

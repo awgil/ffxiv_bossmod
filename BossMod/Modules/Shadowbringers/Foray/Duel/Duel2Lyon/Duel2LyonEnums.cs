@@ -21,7 +21,7 @@ public enum AID : uint
     DynasticFlame1 = 20806, // Boss->player, 3,0s cast, range 5 circle
     DynasticFlame2 = 20807, // Boss->player, no cast, range 5 circle
     SpitefulFlame1 = 20808, // VermillionFlame->self, 1,0s cast, range 10 circle
-    SpitefulFlame2 = 20809, // VermillionFlame  ->player, 3,0s cast, range 80 width 4 rect
+    SpitefulFlame2 = 20809, // VermillionFlame->player, 3,0s cast, range 80 width 4 rect
     TwinAgonies = 20816, // Boss->player, 6,0s cast, single-target
     WindsPeak1 = 20811, // Boss->self, 3,0s cast, range 5 circle
     WindsPeak2 = 20812, // Helper->self, 4,0s cast, range 50 circle
@@ -29,6 +29,7 @@ public enum AID : uint
     NaturesBlood2 = 20796, // Helper->self, no cast, range 4 circle
     TheKingsNotice = 20810, // Boss->self, 5,0s cast, range 50 circle
     SplittingRage = 20814, // Boss->self, 3,0s cast, range 50 circle
+    SkyrendingStrike = 20804, //enrage, 35s cast time, datamined from Godbert, needs confirmation
 };
 public enum IconID : uint
 {
