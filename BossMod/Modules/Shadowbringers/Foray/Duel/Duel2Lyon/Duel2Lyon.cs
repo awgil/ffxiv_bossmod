@@ -7,7 +7,10 @@ class Lyon2DuelStates : StateMachineBuilder
         {
             TrivialPhase()
             .ActivateOnEnter<Enaero>()
-            .ActivateOnEnter<HeartOfNatureConcentric>();
+            .ActivateOnEnter<HeartOfNatureConcentric>()
+            .ActivateOnEnter<TasteOfBlood>()
+            .ActivateOnEnter<RavenousGale>()
+            .ActivateOnEnter<TwinAgonies>();
         }
     }
 public class Lyon2Duel : BossModule
