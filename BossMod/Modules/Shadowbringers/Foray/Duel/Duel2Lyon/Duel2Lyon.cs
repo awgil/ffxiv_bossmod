@@ -10,7 +10,12 @@ class Lyon2DuelStates : StateMachineBuilder
             .ActivateOnEnter<HeartOfNatureConcentric>()
             .ActivateOnEnter<TasteOfBlood>()
             .ActivateOnEnter<RavenousGale>()
-            .ActivateOnEnter<TwinAgonies>();
+            .ActivateOnEnter<WindsPeakKB>()
+            .ActivateOnEnter<WindsPeak>()
+            .ActivateOnEnter<SplittingRage>()
+            .ActivateOnEnter<TheKingsNotice>()
+            .ActivateOnEnter<TwinAgonies>()
+            .ActivateOnEnter<SkyrendingStrike>();
         }
     }
 public class Lyon2Duel : BossModule
