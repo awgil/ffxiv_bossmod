@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntA.Maliktender
 {
     public enum OID : uint
@@ -13,11 +14,11 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
         NineNineNineKNeedles = 18024, // Boss->self, 3.0s cast, range 20 width 8 rect
         Haste = 18020, // Boss->self, 3.0s cast, buff to self, boss will use 990k needles instead of 20k needles
     }
-        public enum SID : uint
+
+    public enum SID : uint
     {
         Haste = 1962,
         Stun = 149,
-
     };
 
     class Sabotendance : Components.SelfTargetedAOEs
@@ -29,6 +30,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
     {
         public TwentyKNeedles() : base(ActionID.MakeSpell(AID.TwentyKNeedles), new AOEShapeRect(20,4)) { }
     }
+
     class Haste : Components.CastHint
     {
         public Haste() : base(ActionID.MakeSpell(AID.Haste), "") { }
@@ -45,6 +47,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
                 hints.Add("Getting hit by the needle attack will instantly kill you from now on!");
         }
     }
+
     class NineNineNineKNeedles : Components.SelfTargetedAOEs
     {
         public NineNineNineKNeedles() : base(ActionID.MakeSpell(AID.NineNineNineKNeedles), new AOEShapeRect(20,4)) { }

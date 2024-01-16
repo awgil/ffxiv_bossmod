@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
 
@@ -5,7 +6,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
 {
     public enum OID : uint
     {
-        Boss = 0x2875, 
+        Boss = 0x2875,
     };
 
     public enum AID : uint
@@ -24,10 +25,12 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
     {
         public NumbingNoise() : base(ActionID.MakeSpell(AID.NumbingNoise), new AOEShapeCone(13,60.Degrees())) { } 
     }
+
     class TailSnap : Components.SelfTargetedAOEs
     {
         public TailSnap() : base(ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18,60.Degrees())) { }
     }
+
     class Rotation : Components.GenericAOEs
     {
         private int _remainingHits;
@@ -79,6 +82,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                     break;
             }
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (caster != module.PrimaryActor)
@@ -98,7 +102,8 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
     {
         public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11)) { }
     }
-   class RotationPull: Components.KnockbackFromCastTarget //TODO: pulls/attracts should probably have their own component to make this easier in future
+
+    class RotationPull: Components.KnockbackFromCastTarget //TODO: pulls/attracts should probably have their own component to make this easier in future
     {
         private float PullDistance;
         private Angle Direction;
@@ -107,18 +112,19 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         private bool activeNumbingNoise;
         private readonly string hint = "Use anti knockback ability or get pulled into danger zone!";
         public RotationPull() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation),default) { }
+
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-               var player = module.Raid.Player();
-             if (player != null) 
+            var player = module.Raid.Player();
+            if (player != null)
                 DistanceToBoss = (player.Position - module.PrimaryActor.Position).Length();
-             if (player != null) 
+            if (player != null)
                 PullDistance = 30 - (module.PrimaryActor.HitboxRadius + player.HitboxRadius + (30 - DistanceToBoss));
-              if (player != null) 
-              Direction=Angle.FromDirection(player.Position - module.PrimaryActor.Position);
-             if (activeNumbingNoise || activeTailSnap && PullDistance > 0 && PullDistance <= 25 && DistanceToBoss <= 30)
+            if (player != null)
+                Direction = Angle.FromDirection(player.Position - module.PrimaryActor.Position);
+            if (activeNumbingNoise || activeTailSnap && PullDistance > 0 && PullDistance <= 25 && DistanceToBoss <= 30)
                 yield return new(new(), PullDistance, default, null, Direction, Kind.TowardsOrigin);
-            }
+        }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -128,6 +134,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
             if ((AID)spell.Action.ID == AID.TailSnapRotation)
                 activeTailSnap = true;
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
@@ -136,6 +143,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
             if ((AID)spell.Action.ID == AID.TailSnapDuringRotation)
                 activeTailSnap = false;
         }
+
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (activeNumbingNoise && DistanceToBoss >= 13 && DistanceToBoss <=30)
@@ -144,7 +152,6 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                 hints.Add(hint);
         }
     }
-
 
     class SugaarStates : StateMachineBuilder
     {
@@ -159,5 +166,5 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         }
     }
 
-    public class Sugaar(WorldState ws, Actor primary) : SimpleBossModule(ws, primary)  {}
+    public class Sugaar(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
 }

@@ -1,7 +1,9 @@
+// CONTRIB: made by taurenkey, changed by malediktus, not checked
 using BossMod.Components;
 
-namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
-     class GrandFall : LocationTargetedAOEs
+namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
+{
+    class GrandFall : LocationTargetedAOEs
     {
         public GrandFall() : base(ActionID.MakeSpell(AID.GrandFall), 8) { }
     }
@@ -14,6 +16,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
     {
         public Dreadstorm() : base(5, ActionID.MakeSpell(AID.Dreadstorm), m => m.Enemies(OID.DreadstormZone), 0) { }
     }
+
     class T09WhorleaterHStates : StateMachineBuilder
     {
         public T09WhorleaterHStates(BossModule module) : base(module)
@@ -28,10 +31,11 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
                 .ActivateOnEnter<SpinningDiveKB>()
                 .ActivateOnEnter<Hints>();
         }
-    } 
+    }
+
     public class T09WhorleaterH(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-0, 0), 14.5f, 20))
     {
-    protected override void DrawEnemies(int pcSlot, Actor pc)
+        protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in Enemies(OID.Spume))
@@ -62,3 +66,4 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
             }
         }
     }
+}

@@ -1,5 +1,5 @@
-namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
-
+namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
+{
     public enum OID : uint
     {
         Boss = 0xA67, // R4.500, x1
@@ -62,3 +62,4 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
         Heavy = 14, // A88->player, extra=0x19
         Hysteria = 296 // from dreadstorm AOE
     };
+}

@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
 {
     public enum OID : uint
@@ -8,38 +9,41 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
         BossHelper = 0x233C,
     };
 
-public enum AID : uint
-{
-    Attack = 872, // Boss->player, no cast, single-target
-    Thundercall = 32212, // Boss->location, 2,5s cast, range 3 circle
-    LightningBolt = 32214, // Boss->self, 3,0s cast, single-target
-    LightningBolt2 = 32215, // BossHelper->location, 3,0s cast, range 6 circle
-    ThunderIV = 32213, // BallOfLevin->self, 7,0s cast, range 18 circle
-    Spark = 32216, // Boss->self, 4,0s cast, range 14-30 donut --> TODO: confirm inner circle size
-    AutoAttack2 = 870, // BossAdds->player, no cast, single-target
-    RockThrow = 32217, // BossAdds->location, 3,0s cast, range 6 circle
-    SweepingGouge = 32211, // Boss->player, 5,0s cast, single-target
-};
+    public enum AID : uint
+    {
+        Attack = 872, // Boss->player, no cast, single-target
+        Thundercall = 32212, // Boss->location, 2,5s cast, range 3 circle
+        LightningBolt = 32214, // Boss->self, 3,0s cast, single-target
+        LightningBolt2 = 32215, // BossHelper->location, 3,0s cast, range 6 circle
+        ThunderIV = 32213, // BallOfLevin->self, 7,0s cast, range 18 circle
+        Spark = 32216, // Boss->self, 4,0s cast, range 14-30 donut --> TODO: confirm inner circle size
+        AutoAttack2 = 870, // BossAdds->player, no cast, single-target
+        RockThrow = 32217, // BossAdds->location, 3,0s cast, range 6 circle
+        SweepingGouge = 32211, // Boss->player, 5,0s cast, single-target
+    };
 
-public enum IconID : uint
-{    
-    Thundercall = 111, // Thundercall marker
-};
+    public enum IconID : uint
+    {
+        Thundercall = 111, // Thundercall marker
+    };
 
     class Spark : Components.SelfTargetedAOEs
     {
         public Spark() : base(ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14,30)) { } 
     }
+
     class SweepingGouge : Components.SingleTargetCast
     {
         public SweepingGouge() : base(ActionID.MakeSpell(AID.SweepingGouge)) { }
     }
+
    class Thundercall : Components.LocationTargetedAOEs
     {
         public Thundercall() : base(ActionID.MakeSpell(AID.Thundercall), 3) {}
     }
+
     class Thundercall2 : Components.UniformStackSpread
-    {   
+    {
         public Thundercall2() : base(0, 18, alwaysShowSpreads: true) { }
         private bool targeted;
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -60,15 +64,18 @@ public enum IconID : uint
             if(player == actor && targeted)
             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
         }
-     }
+    }
+
     class RockThrow : Components.LocationTargetedAOEs
     {
         public RockThrow() : base(ActionID.MakeSpell(AID.RockThrow), 6) { }
     }
+
     class LightningBolt2 : Components.LocationTargetedAOEs
     {
         public LightningBolt2() : base(ActionID.MakeSpell(AID.LightningBolt2), 6) { }
     }
+
     class ThunderIV : Components.SelfTargetedAOEs
     {
         public ThunderIV() : base(ActionID.MakeSpell(AID.ThunderIV), new AOEShapeCircle(18)) { }
@@ -99,8 +106,8 @@ public enum IconID : uint
             foreach (var s in Enemies(OID.BossAdd))
                 Arena.Actor(s, ArenaColor.Object, false);
         }
-    
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)

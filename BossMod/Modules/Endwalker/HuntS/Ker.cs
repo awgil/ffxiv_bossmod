@@ -1,4 +1,5 @@
-﻿namespace BossMod.Endwalker.HuntS.Ker
+﻿// CONTRIB: changes by malediktus, not checked
+namespace BossMod.Endwalker.HuntS.Ker
 {
     public enum OID : uint
     {

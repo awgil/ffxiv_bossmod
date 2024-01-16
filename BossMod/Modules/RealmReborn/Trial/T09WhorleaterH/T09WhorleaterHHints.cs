@@ -1,8 +1,8 @@
 using System.Linq;
 
-namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
-     
-      class Hints : BossComponent
+namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
+{
+    class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
@@ -26,11 +26,12 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
             }
         }
 
-            public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-                var converter1 = module.Enemies(OID.Converter).FirstOrDefault();
-                var convertertargetable = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
-                if (converter1 != null && convertertargetable != null)
-                    arena.AddCircle(converter1.Position, 1.4f, ArenaColor.Safe);
+            var converter1 = module.Enemies(OID.Converter).FirstOrDefault();
+            var convertertargetable = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
+            if (converter1 != null && convertertargetable != null)
+                arena.AddCircle(converter1.Position, 1.4f, ArenaColor.Safe);
         }
     }
+}

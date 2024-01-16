@@ -1,4 +1,5 @@
-﻿using System;
+﻿// CONTRIB: changes by malediktus, not checked
+using System;
 using System.Collections.Generic;
 
 namespace BossMod.Shadowbringers.FATE.Formidable
