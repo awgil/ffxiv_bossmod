@@ -76,6 +76,7 @@
         public Ex6GolbezConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 950, NameID = 12365)]
     public class Ex6Golbez : BossModule
     {
         public Ex6Golbez(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 15)) { }

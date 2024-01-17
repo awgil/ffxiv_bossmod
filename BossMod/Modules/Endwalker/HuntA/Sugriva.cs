@@ -133,6 +133,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 185)]
     public class Sugriva : SimpleBossModule
     {
         public Sugriva(WorldState ws, Actor primary) : base(ws, primary) { }

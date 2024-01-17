@@ -19,6 +19,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         public Ex3TitanConfig() : base(50) { }
     }
 
+    [ModuleInfo(CFCID = 64, NameID = 1801)]
     public class Ex3Titan : BossModule
     {
         private List<Actor> _heart;

@@ -100,6 +100,7 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 204)]
     public class MoussePrincess : SimpleBossModule
     {
         public MoussePrincess(WorldState ws, Actor primary) : base(ws, primary) { }

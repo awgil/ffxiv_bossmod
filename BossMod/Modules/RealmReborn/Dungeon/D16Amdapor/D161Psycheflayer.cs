@@ -86,7 +86,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D161Psycheflayer
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, CFCID = 14, NameID = 1689)]
     public class D161Psycheflayer : BossModule
     {
         private Actor? _bossP2;

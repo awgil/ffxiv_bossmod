@@ -191,6 +191,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
         }
     }
 
+    [ModuleInfo(CFCID = 778, DynamicEventID = 21)]
     public class CE41WithDiremiteAndMain : BossModule
     {
         private List<Actor> _dimCrystals = new();

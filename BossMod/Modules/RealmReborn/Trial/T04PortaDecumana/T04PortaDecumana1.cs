@@ -130,6 +130,7 @@
         }
     }
 
+    [ModuleInfo(CFCID = 830, NameID = 2137)]
     public class T04PortaDecumana1 : BossModule
     {
         public T04PortaDecumana1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-772, -600), 20)) { }

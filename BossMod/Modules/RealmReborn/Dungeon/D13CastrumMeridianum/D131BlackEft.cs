@@ -50,6 +50,7 @@
     // first wave = 3x signifier + 3x laquearius
     // second wave = 2x colossus
     // third wave = 2x colossus + 2x signifier + 2x laquearius
+    [ModuleInfo(CFCID = 15, NameID = 557)]
     public class D131BlackEft : BossModule
     {
         public D131BlackEft(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(10, -40), 20)) { }

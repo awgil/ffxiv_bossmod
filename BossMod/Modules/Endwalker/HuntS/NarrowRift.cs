@@ -129,6 +129,7 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 226)]
     public class NarrowRift : SimpleBossModule
     {
         public NarrowRift(WorldState ws, Actor primary) : base(ws, primary) { }

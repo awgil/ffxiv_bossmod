@@ -53,6 +53,7 @@
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 174)]
     public class Hulder : SimpleBossModule
     {
         public Hulder(WorldState ws, Actor primary) : base(ws, primary) { }

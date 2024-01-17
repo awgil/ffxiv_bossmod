@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Alliance.A10Lions
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.Lion)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.Lion, CFCID = 866, NameID = 11294)]
     public class A10Lions : BossModule
     {
         private Actor? _lioness;

@@ -90,6 +90,7 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D102Koshchei
         }
     }
 
+    [ModuleInfo(CFCID = 11, NameID = 1678)]
     public class D102Koshchei : BossModule
     {
         public D102Koshchei(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(40, -80), 10)) { }

@@ -49,6 +49,7 @@ namespace BossMod.Endwalker.HuntA.Petalodus
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 214)]
     public class Petalodus : SimpleBossModule
     {
         public Petalodus(WorldState ws, Actor primary) : base(ws, primary) { }

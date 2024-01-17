@@ -56,6 +56,7 @@
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 225)]
     public class FanAil : SimpleBossModule
     {
         public FanAil(WorldState ws, Actor primary) : base(ws, primary) { }

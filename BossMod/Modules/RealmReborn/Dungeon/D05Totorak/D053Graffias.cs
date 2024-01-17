@@ -64,6 +64,7 @@ namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias
         }
     }
 
+    [ModuleInfo(CFCID = 1, NameID = 444)]
     public class D053Graffias : BossModule
     {
         public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20)) { }

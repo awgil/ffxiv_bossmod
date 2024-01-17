@@ -25,6 +25,7 @@
         public SublimeSunset() : base(ActionID.MakeSpell(AID.SublimeSunsetAOE), 40) { } // TODO: check falloff
     }
 
+    [ModuleInfo(CFCID = 866, NameID = 11277)]
     public class A13Azeyma : BossModule
     {
         public A13Azeyma(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-750, -750), 30)) { }

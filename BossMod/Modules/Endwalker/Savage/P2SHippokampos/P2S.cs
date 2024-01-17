@@ -16,6 +16,7 @@
         public P2SConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 811, NameID = 10348)]
     public class P2S : BossModule
     {
         public P2S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

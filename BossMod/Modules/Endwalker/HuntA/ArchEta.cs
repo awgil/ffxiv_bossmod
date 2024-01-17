@@ -54,6 +54,7 @@
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 224)]
     public class ArchEta : SimpleBossModule
     {
         public ArchEta(WorldState ws, Actor primary) : base(ws, primary) { }

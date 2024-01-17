@@ -22,6 +22,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public P5BlindFaith() : base(ActionID.MakeSpell(AID.BlindFaithSuccess), "Intermission") { }
     }
 
+    [ModuleInfo(CFCID = 908)]
     public class TOP : BossModule
     {
         private Actor? _opticalUnit;

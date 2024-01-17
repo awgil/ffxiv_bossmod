@@ -17,6 +17,7 @@
         public Ex1ZodiarkConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 803, NameID = 10456)]
     public class Ex1Zodiark : BossModule
     {
         public Ex1Zodiark(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

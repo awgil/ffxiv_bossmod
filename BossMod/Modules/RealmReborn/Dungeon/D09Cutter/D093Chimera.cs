@@ -88,6 +88,7 @@ namespace BossMod.RealmReborn.Dungeon.D09Cutter.D093Chimera
         }
     }
 
+    [ModuleInfo(CFCID = 12, NameID = 1590)]
     public class D093Chimera : BossModule
     {
         public D093Chimera(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-170, -200), 30)) { }

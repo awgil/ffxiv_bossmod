@@ -33,6 +33,7 @@
         }
     }
 
+    [ModuleInfo(CFCID = 825, NameID = 3632)]
     public class Un1Ultima : BossModule
     {
         public Un1Ultima(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20)) { }

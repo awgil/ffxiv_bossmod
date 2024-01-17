@@ -84,6 +84,7 @@ namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D151KeeperOfHalidom
         }
     }
 
+    [ModuleInfo(CFCID = 10, NameID = 1548)]
     public class D151KeeperOfHalidom : BossModule
     {
         public D151KeeperOfHalidom(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(125, 108), 20)) { }

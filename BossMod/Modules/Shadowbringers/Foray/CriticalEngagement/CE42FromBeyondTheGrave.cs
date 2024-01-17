@@ -193,6 +193,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         }
     }
 
+    [ModuleInfo(CFCID = 778, DynamicEventID = 20)]
     public class CE42FromBeyondTheGrave : BossModule
     {
         public CE42FromBeyondTheGrave(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-60, 800), 30)) { }

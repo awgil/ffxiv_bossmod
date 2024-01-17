@@ -112,6 +112,7 @@ namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius
         }
     }
 
+    [ModuleInfo(CFCID = 16, NameID = 2136)]
     public class D143Gaius : BossModule
     {
         public D143Gaius(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-562, 220), 15, 20)) { }

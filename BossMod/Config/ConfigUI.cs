@@ -1,6 +1,13 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
+using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
 
 namespace BossMod
@@ -25,6 +32,12 @@ namespace BossMod
         private UITree _tree = new();
         private ConfigRoot _root;
         private WorldState _ws;
+
+        private Dictionary<uint, ModuleRegistry.Info> _modules;
+        private Dictionary<uint, ModuleRegistry.Info> _uncatalogued;
+        private Lumina.Excel.ExcelSheet<ExVersion> _exSheet;
+        private Lumina.Excel.ExcelSheet<ContentFinderCondition> _cfcSheet;
+        private List<uint> _expacs;
 
         public ConfigUI(ConfigRoot config, WorldState ws)
         {
@@ -52,11 +65,80 @@ namespace BossMod
             }
 
             SortByOrder(_roots);
+
+            _exSheet = Service.DataManager.GetExcelSheet<ExVersion>()!;
+            _cfcSheet = Service.DataManager.GetExcelSheet<ContentFinderCondition>()!;
+            _modules = ModuleRegistry.RegisteredModules
+                .Where(x => !x.Value.IsUncatalogued)
+                .OrderBy(x => x.Value.ExVersion)
+                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.ClassJobLevelSync)
+                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.ItemLevelRequired)
+                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.SortKey)
+                .ToDictionary(x => x.Key, x => x.Value);
+            _uncatalogued = _modules.Where(x => x.Value.IsUncatalogued || x.Value.ExVersion == 69).Select(x => x).ToDictionary(x => x.Key, x => x.Value);
+            _expacs = _modules.Where(x => x.Value.ExVersion != 69).Select(x => x.Value.ExVersion).Distinct().ToList()!;
         }
 
         public void Draw()
         {
-            DrawNodes(_roots);
+            using var tabs = ImRaii.TabBar("Tabs");
+            if (tabs)
+            {
+                using (var tab = ImRaii.TabItem("Configs"))
+                    if (tab)
+                        DrawNodes(_roots);
+                using (var tab = ImRaii.TabItem("Modules"))
+                    if (tab)
+                        DrawModules();
+            }   
+        }
+
+        private void DrawModules()
+        {
+            // TODO: separate unreals from trials and alliance raids from raids and show old unreals in uncatalogued
+            foreach (var expac in _expacs)
+            {
+                var expac_mods = _modules.Where(x => x.Value.ExVersion == expac);
+                var expac_cont = expac_mods.Select(x => x.Value.ContentType).Distinct();
+                UIMisc.TextUnderlined(ImGuiColors.DalamudViolet, $"{_exSheet.GetRow(expac)!.Name}");
+                foreach (var cont in expac_cont)
+                {
+                    ImGui.Indent();
+                    UIMisc.TextUnderlined(ImGuiColors.TankBlue, $"{(cont!.RawString.IsNullOrEmpty() ? "Unknown" : cont)}");
+                    KeyValuePair<uint, ModuleRegistry.Info> prevMod = new();
+                    foreach (var mod in expac_mods.Where(x => x.Value.ContentType == cont))
+                    {
+                        if (prevMod.Value == null || prevMod.Value.InstanceName != mod.Value.InstanceName || mod.IsCriticalEngagement())
+                        {
+                            ImGui.Indent();
+                            var displayName = mod.IsHunt() ? $"[{mod.Value.HuntRank}] {mod.Value.BossName}" ?? ""
+                                : mod.IsCriticalEngagement() ? $"[CE] {mod.Value.ForayName}" ?? ""
+                                : mod.Value.InstanceName ?? "";
+                            foreach (var x in _tree.Node($"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(displayName)}###{mod.Key}"))
+                            {
+                                DrawBosses(expac_mods, mod.Value.CFCID);
+                            }
+                            ImGui.Unindent();
+                        }
+                        prevMod = mod;
+                    }
+                    ImGui.Unindent();
+                }
+            }
+
+            if (_uncatalogued.Any())
+            {
+                UIMisc.TextUnderlined(ImGuiColors.DPSRed, $"Uncatalogued");
+                foreach (var mod in _uncatalogued)
+                    ImGui.Text($"{mod.Value.ModuleType.Name}");
+            }
+        }
+
+        private static void DrawBosses(IEnumerable<KeyValuePair<uint, ModuleRegistry.Info>> expac_mods, uint cfcID)
+        {
+            foreach (var mod in expac_mods.Where(x => x.Value.CFCID == cfcID && cfcID != 0))
+                if (!mod.Value.BossName!.RawString.IsNullOrEmpty())
+                    ImGui.Text($"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(mod.Value.BossName)}");
         }
 
         private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config") ? t.Name.Remove(t.Name.Length - "Config".Length) : t.Name;

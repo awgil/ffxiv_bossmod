@@ -158,7 +158,7 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.WhiskerwallKupdiKoop)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.WhiskerwallKupdiKoop, CFCID = 66, NameID = 725)]
     public class T08ThornmarchH : BossModule
     {
         public T08ThornmarchH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }

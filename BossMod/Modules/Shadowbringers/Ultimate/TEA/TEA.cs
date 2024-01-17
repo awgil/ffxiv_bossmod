@@ -84,7 +84,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public P3DivineJudgmentRaidwide() : base(ActionID.MakeSpell(AID.DivineJudgmentRaidwide)) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, CFCID = 694)]
     public class TEA : BossModule
     {
         private List<Actor> _liquidHand;

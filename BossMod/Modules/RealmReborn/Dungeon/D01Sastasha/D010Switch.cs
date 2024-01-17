@@ -33,7 +33,8 @@ namespace BossMod.RealmReborn.Dungeon.D01Sastasha.D010Switch
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.Blue)]
+    // no name ID :(
+    [ModuleInfo(PrimaryActorOID = (uint)OID.Blue, CFCID = 4)]
     public class D010Switch : BossModule
     {
         public D010Switch(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(primary.Position, 20))

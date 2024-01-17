@@ -53,6 +53,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
         public GreatWhirlwind() : base(ActionID.MakeSpell(AID.GreatWhirlwind), 8) { }
     }
 
+    [ModuleInfo(CFCID = 65, NameID = 1644)]
     public class Ex2Garuda : BossModule
     {
         public List<Actor> Monoliths;
