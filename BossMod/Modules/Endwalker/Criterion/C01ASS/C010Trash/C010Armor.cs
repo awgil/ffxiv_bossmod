@@ -57,6 +57,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11515)]
     public class C010NArmor : SimpleBossModule { public C010NArmor(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 878, NameID = 11515)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11515)]
     public class C010SArmor : SimpleBossModule { public C010SArmor(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

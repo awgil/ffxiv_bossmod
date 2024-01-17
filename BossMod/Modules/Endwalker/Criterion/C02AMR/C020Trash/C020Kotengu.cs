@@ -76,6 +76,6 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash2
     [ModuleInfo(PrimaryActorOID = (uint)OID.NKotengu, CFCID = 946, NameID = 12410)]
     public class C020NKotengu : C020Trash2 { public C020NKotengu(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SKotengu, CFCID = 946, NameID = 12410)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SKotengu, CFCID = 947, NameID = 12410)]
     public class C020SKotengu : C020Trash2 { public C020SKotengu(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

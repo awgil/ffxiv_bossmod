@@ -57,6 +57,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11506)]
     public class C010NDullahan : SimpleBossModule { public C010NDullahan(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 878, NameID = 11506)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11506)]
     public class C010SDullahan : SimpleBossModule { public C010SDullahan(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

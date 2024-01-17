@@ -22,6 +22,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 946, NameID = 12428)]
     public class C021NShishio : C021Shishio { public C021NShishio(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 946, NameID = 12428)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 947, NameID = 12428)]
     public class C021SShishio : C021Shishio { public C021SShishio(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

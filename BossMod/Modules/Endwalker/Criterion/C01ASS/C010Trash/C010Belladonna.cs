@@ -57,6 +57,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11514)]
     public class C010NBelladonna : SimpleBossModule { public C010NBelladonna(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 878, NameID = 11514)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11514)]
     public class C010SBelladonna : SimpleBossModule { public C010SBelladonna(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

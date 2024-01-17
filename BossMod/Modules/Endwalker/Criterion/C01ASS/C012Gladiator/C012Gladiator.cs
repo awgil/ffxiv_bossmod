@@ -22,6 +22,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11387)]
     public class C012NGladiator : C012Gladiator { public C012NGladiator(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 878, NameID = 11387)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11387)]
     public class C012SGladiator : C012Gladiator { public C012SGladiator(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

@@ -102,7 +102,7 @@
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SRaiko, CFCID = 946, NameID = 12422)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SRaiko, CFCID = 947, NameID = 12422)]
     public class C020SRaiko : C020Trash1
     {
         public C020SRaiko(WorldState ws, Actor primary) : base(ws, primary) { }
