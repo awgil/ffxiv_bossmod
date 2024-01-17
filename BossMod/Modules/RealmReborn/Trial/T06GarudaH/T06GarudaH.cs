@@ -104,6 +104,7 @@ namespace BossMod.RealmReborn.Trial.T06GarudaH
         }
     }
 
+    [ModuleInfo(CFCID = 61, NameID = 1644)]
     public class T06GarudaH : BossModule
     {
         private List<Actor> _monoliths;

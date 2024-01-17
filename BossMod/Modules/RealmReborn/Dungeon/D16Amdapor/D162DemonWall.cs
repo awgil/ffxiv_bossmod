@@ -71,6 +71,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
         }
     }
 
+    [ModuleInfo(CFCID = 14, NameID = 1694)]
     public class D162DemonWall : BossModule
     {
         public D162DemonWall(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(200, -131), 10, 21)) { }

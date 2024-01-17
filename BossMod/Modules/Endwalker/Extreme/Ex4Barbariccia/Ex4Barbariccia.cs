@@ -120,6 +120,7 @@
         public IronOut() : base(ActionID.MakeSpell(AID.IronOutAOE)) { }
     }
 
+    [ModuleInfo(CFCID = 871, NameID = 11398)]
     public class Ex4Barbariccia : BossModule
     {
         public Ex4Barbariccia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

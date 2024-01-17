@@ -77,6 +77,7 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
         }
     }
 
+    [ModuleInfo(CFCID = 57, NameID = 1801)]
     public class T02TitanN : BossModule
     {
         private List<Actor> _heart;

@@ -77,7 +77,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public P7AlternativeEnd() : base(ActionID.MakeSpell(AID.AlternativeEnd)) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP2, CFCID = 788)]
     public class DSW2 : BossModule
     {
         public static ArenaBoundsCircle BoundsCircle = new ArenaBoundsCircle(new (100, 100), 21); // p2, intermission

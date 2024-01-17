@@ -46,6 +46,7 @@
     }
 
     // TODO: balancing counter
+    [ModuleInfo(CFCID = 866, NameID = 11286)]
     public class A14Naldthal : BossModule
     {
         public A14Naldthal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 30)) { }

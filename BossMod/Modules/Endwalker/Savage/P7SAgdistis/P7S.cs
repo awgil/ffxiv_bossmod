@@ -51,6 +51,7 @@
         public P7SConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 877, NameID = 11374)]
     public class P7S : BossModule
     {
         public P7S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 27)) { }

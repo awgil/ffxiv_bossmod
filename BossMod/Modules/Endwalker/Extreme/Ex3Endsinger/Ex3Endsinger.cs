@@ -34,6 +34,7 @@
         public Ex3EndsingerConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 846, NameID = 10448)]
     public class Ex3Endsinger : BossModule
     {
         public Ex3Endsinger(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

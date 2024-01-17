@@ -89,6 +89,7 @@ namespace BossMod.Endwalker.HuntS.Ophioneus
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 216)]
     public class Ophioneus : SimpleBossModule
     {
         public Ophioneus(WorldState ws, Actor primary) : base(ws, primary) { }

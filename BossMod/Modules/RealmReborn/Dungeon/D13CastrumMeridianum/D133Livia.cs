@@ -234,6 +234,7 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         }
     }
 
+    [ModuleInfo(CFCID = 15, NameID = 2118)]
     public class D133Livia : BossModule
     {
         public D133Livia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-98, -33), 20)) { }

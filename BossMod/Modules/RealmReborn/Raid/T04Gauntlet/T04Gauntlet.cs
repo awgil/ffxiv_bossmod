@@ -79,7 +79,7 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
     }
 
     // helper actor is destroyed immediately on combat end (be it a wipe or a kill), and is not recreated immediately after wipe (only after interacting with terminal), making it ideal for wipe checks
-    [ModuleInfo(PrimaryActorOID = (uint)OID.DriveCylinder)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.DriveCylinder, CFCID = 96)]
     public class T04Gauntlet : BossModule
     {
         public List<Actor> P1Bugs;

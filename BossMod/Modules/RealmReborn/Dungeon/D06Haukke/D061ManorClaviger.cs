@@ -39,6 +39,7 @@
         }
     }
 
+    [ModuleInfo(CFCID = 6, NameID = 423)]
     public class D061ManorClaviger : BossModule
     {
         public D061ManorClaviger(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(2.5f, 0), 16)) { } // TODO: really a rect, x=[-25, +20], y=[-16, +16]

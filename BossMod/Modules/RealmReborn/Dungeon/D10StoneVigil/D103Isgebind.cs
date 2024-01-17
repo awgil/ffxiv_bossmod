@@ -74,6 +74,7 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D103Isgebind
         }
     }
 
+    [ModuleInfo(CFCID = 11, NameID = 1680)]
     public class D103Isgebind : BossModule
     {
         public D103Isgebind(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, -248), 20)) { }

@@ -75,6 +75,7 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 195)]
     public class Aegeiros : SimpleBossModule
     {
         public Aegeiros(WorldState ws, Actor primary) : base(ws, primary) { }

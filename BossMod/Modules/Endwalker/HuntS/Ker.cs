@@ -254,6 +254,7 @@ namespace BossMod.Endwalker.HuntS.Ker
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 181)]
     public class Ker : SimpleBossModule
     {
         public Ker(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -17,6 +17,11 @@ namespace BossMod
         public Type? StatusIDType; // default: ns.SID
         public Type? TetherIDType; // default: ns.TetherID
         public Type? IconIDType; // default: ns.IconID
+        public uint DynamicEventID; // default: 0
+        public uint FateID; // default: 0
+        public uint NotoriousMonsterID; // default: 0
+        public uint NameID; // default: 0
+        public uint CFCID; // default: 0
         public uint PrimaryActorOID; // default: OID.Boss
     }
 

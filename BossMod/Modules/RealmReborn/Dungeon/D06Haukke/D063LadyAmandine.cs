@@ -59,6 +59,7 @@ namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine
         }
     }
 
+    [ModuleInfo(CFCID = 6, NameID = 422)]
     public class D063LadyAmandine : BossModule
     {
         public D063LadyAmandine(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 4), 20)) { }

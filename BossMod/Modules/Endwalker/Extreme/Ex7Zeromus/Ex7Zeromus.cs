@@ -31,6 +31,7 @@
         public Ex7ZeromusConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 965, NameID = 12586)]
     public class Ex7Zeromus : BossModule
     {
         public Ex7Zeromus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

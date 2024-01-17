@@ -128,6 +128,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
         }
     }
 
+    [ModuleInfo(CFCID = 735, DynamicEventID = 6)]
     public class CE21FinalFurlong : BossModule
     {
         public CE21FinalFurlong(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(644, 228), 27)) { }

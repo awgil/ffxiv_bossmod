@@ -94,6 +94,7 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
         }
     }
 
+    [ModuleInfo(CFCID = 58, NameID = 1644)]
     public class T03GarudaN : BossModule
     {
         public T03GarudaN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }

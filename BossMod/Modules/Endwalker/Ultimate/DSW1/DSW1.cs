@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public HoliestHallowing() : base(ActionID.MakeSpell(AID.HoliestHallowing), "Interrupt!") { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SerAdelphel)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SerAdelphel, CFCID = 788)]
     public class DSW1 : BossModule
     {
         private Actor? _grinnaux;

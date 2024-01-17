@@ -72,6 +72,7 @@ public class Un5ThordanConfig : CooldownPlanningConfigNode
     public Un5ThordanConfig() : base(90) { }
 }
 
+[ModuleInfo(CFCID = 963, NameID = 3632)]
 public class Un5Thordan : BossModule
 {
     public Un5Thordan(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }

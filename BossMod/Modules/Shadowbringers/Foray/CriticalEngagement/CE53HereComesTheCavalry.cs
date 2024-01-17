@@ -154,6 +154,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         }
     }
 
+    [ModuleInfo(CFCID = 778, DynamicEventID = 22)]
     public class CE53HereComesTheCavalry : BossModule
     {
         public CE53HereComesTheCavalry(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-750, 790), 25)) { }

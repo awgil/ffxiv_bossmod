@@ -122,7 +122,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
     }
 
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda, CFCID = 539)]
     public class UWU : BossModule
     {
         private List<Actor> _ifrits;
