@@ -30,6 +30,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11393)]
     public class C013NShadowcaster : C013Shadowcaster { public C013NShadowcaster(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 878, NameID = 11393)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11393)]
     public class C013SShadowcaster : C013Shadowcaster { public C013SShadowcaster(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

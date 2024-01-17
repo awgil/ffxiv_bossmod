@@ -95,7 +95,7 @@
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SFuko, CFCID = 946, NameID = 12399)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SFuko, CFCID = 947, NameID = 12399)]
     public class C020SFuko : C020Trash1
     {
         public C020SFuko(WorldState ws, Actor primary) : base(ws, primary) { }

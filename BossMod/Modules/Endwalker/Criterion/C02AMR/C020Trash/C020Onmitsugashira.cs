@@ -55,6 +55,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NOnmitsugashira, CFCID = 946, NameID = 12424)]
     public class C020NOnmitsugashira : C020Trash2 { public C020NOnmitsugashira(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SOnmitsugashira, CFCID = 946, NameID = 12424)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SOnmitsugashira, CFCID = 947, NameID = 12424)]
     public class C020SOnmitsugashira : C020Trash2 { public C020SOnmitsugashira(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

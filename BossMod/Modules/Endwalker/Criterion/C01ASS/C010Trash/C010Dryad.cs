@@ -82,7 +82,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 878, NameID = 11513)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11513)]
     public class C010SDryad : SimpleBossModule
     {
         public C010SDryad(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -82,7 +82,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 878, NameID = 11511)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11511)]
     public class C010SUdumbara : SimpleBossModule
     {
         public C010SUdumbara(WorldState ws, Actor primary) : base(ws, primary) { }

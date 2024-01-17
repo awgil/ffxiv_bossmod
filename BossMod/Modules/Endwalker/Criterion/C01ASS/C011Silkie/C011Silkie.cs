@@ -61,6 +61,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11369)]
     public class C011NSilkie : C011Silkie { public C011NSilkie(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 878, NameID = 11369)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11369)]
     public class C011SSilkie : C011Silkie { public C011SSilkie(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

@@ -15,6 +15,6 @@
     [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 946, NameID = 12357)]
     public class C023NMoko : C023Moko { public C023NMoko(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 946, NameID = 12357)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 947, NameID = 12357)]
     public class C023SMoko : C023Moko { public C023SMoko(WorldState ws, Actor primary) : base(ws, primary) { } }
 }
