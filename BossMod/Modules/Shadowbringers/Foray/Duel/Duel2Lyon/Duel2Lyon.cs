@@ -15,6 +15,7 @@ class Lyon2DuelStates : StateMachineBuilder
             .ActivateOnEnter<SplittingRage>()
             .ActivateOnEnter<TheKingsNotice>()
             .ActivateOnEnter<TwinAgonies>()
+            .ActivateOnEnter<NaturesBlood>()
             .ActivateOnEnter<SkyrendingStrike>();
         }
     }
