@@ -20,16 +20,14 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         public override void Update(BossModule module)
         {
             base.Update(module);
-            var boss = module.Enemies(OID.Boss).FirstOrDefault();
-            if (boss != null)
             {
                 if (LeviathanZ == default)
-                    LeviathanZ = module.Enemies(OID.Boss).First().Position.Z;
-                if (boss.Position.Z != LeviathanZ && boss.Position.Z != 0)
+                    LeviathanZ = module.PrimaryActor.Position.Z;
+                if (module.PrimaryActor.Position.Z != LeviathanZ && module.PrimaryActor.Position.Z != 0)
                 {
-                    LeviathanZ = boss.Position.Z;
+                    LeviathanZ = module.PrimaryActor.Position.Z;
                     Distance = 25;
-                    Direction = boss.Position.Z <= 0 ? 180.Degrees() : 0.Degrees();
+                    Direction = module.PrimaryActor.Position.Z <= 0 ? 180.Degrees() : 0.Degrees();
                 }
             }
         }
@@ -58,14 +56,12 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         public override void Update(BossModule module)
         {
             base.Update(module);
-            var boss = module.Enemies(OID.Boss).FirstOrDefault();
-            if (boss != null)
             {
                 if (LeviathanZ == default)
-                    LeviathanZ = module.Enemies(OID.Boss).First().Position.Z;
-                if (boss.Position.Z != LeviathanZ && boss.Position.Z != 0)
+                    LeviathanZ = module.PrimaryActor.Position.Z;
+                if (module.PrimaryActor.Position.Z != LeviathanZ && module.PrimaryActor.Position.Z != 0)
                     {
-                        LeviathanZ = boss.Position.Z;
+                        LeviathanZ = module.PrimaryActor.Position.Z;
                         active = true;
                     }
             }
