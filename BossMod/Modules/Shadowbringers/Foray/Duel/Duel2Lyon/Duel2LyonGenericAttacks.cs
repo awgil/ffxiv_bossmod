@@ -132,6 +132,36 @@ class SplittingRage : CastHint
     {
         public SplittingRage() : base(ActionID.MakeSpell(AID.SplittingRage), "Applies temporary misdirection") { }
     }
+ class NaturesBlood : Exaflare
+    {
+        public NaturesBlood() : base(7) { }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.NaturesBlood1)
+            {
+                Lines.Add(new() { Next = caster.Position, Advance = 6 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 1.1f, ExplosionsLeft = 8, MaxShownExplosions = 4 });
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
+            {
+                var pos = (AID)spell.Action.ID == AID.NaturesBlood1 ? caster.Position : spell.TargetXZ;
+                int index = Lines.FindIndex(item => item.Next.AlmostEqual(pos, 1));
+                if (index == -1)
+                {
+                    module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X}");
+                    return;
+                }
+
+                AdvanceLine(module, Lines[index], pos);
+                if (Lines[index].ExplosionsLeft == 0)
+                    Lines.RemoveAt(index);
+            }
+        }
+    }
 class SkyrendingStrike : CastHint
     {
         private bool casting;
