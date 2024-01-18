@@ -16,7 +16,7 @@ class Lyon2DuelStates : StateMachineBuilder
             .ActivateOnEnter<TheKingsNotice>()
             .ActivateOnEnter<TwinAgonies>()
             .ActivateOnEnter<NaturesBlood>()
-            .ActivateOnEnter<SpitefulFlameCircle>()
+            .ActivateOnEnter<SpitefulFlameCircleVoidzone>()
             .ActivateOnEnter<SpitefulFlameRect>()
             .ActivateOnEnter<DynasticFlame>()
             .ActivateOnEnter<SkyrendingStrike>();

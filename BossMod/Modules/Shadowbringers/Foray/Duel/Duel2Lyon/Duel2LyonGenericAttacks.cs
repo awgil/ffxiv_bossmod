@@ -2,6 +2,7 @@ using BossMod.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
 
@@ -144,7 +145,7 @@ class SplittingRage : CastHint
                         Next = caster.Position;
                         Advance = 6 * caster.Rotation.ToDirection();
                         NextExplosion = caster.CastInfo!.FinishAt;
-                        TimeToMove = 1.1f; //note the actual time between exaflare moves seems to vary by upto 100ms, but all 4 exaflary move at the same time
+                        TimeToMove = 1.1f; //note the actual time between exaflare moves seems to vary by upto 100ms, but all 4 exaflares move at the same time
                         ExplosionsLeft = 7;
                         MaxShownExplosions = 7;
                         Caster = caster;
@@ -163,20 +164,39 @@ class SplittingRage : CastHint
             if ((AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
             {
                 int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
-                if (index == -1)
-                {
-                    module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X}");
-                    return;
-                }
                 AdvanceLine(module, Lines[index], caster.Position);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
             }
         }
     }
-class SpitefulFlameCircle : SelfTargetedAOEs
+class SpitefulFlameCircleVoidzone : GenericAOEs
     {
-        public SpitefulFlameCircle() : base(ActionID.MakeSpell(AID.SpitefulFlame1), new AOEShapeCircle(10)) { } 
+        private bool activeOrb; 
+        private int casts;
+        private static readonly AOEShapeCircle circle = new(10);
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (activeOrb && casts <= 11 && casts != 0)
+                foreach (var p in module.Enemies(OID.VermillionFlame))
+                    yield return new(circle, p.Position);
+        }
+        public override void OnActorCreated(BossModule module, Actor actor)
+        {
+            if ((OID)actor.OID == OID.VermillionFlame)
+                activeOrb = true;
+        }
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.SpitefulFlame1)
+                casts++;
+            if (casts == 12)
+                {
+                casts = 0;
+                activeOrb = false;
+                }
+        }
     }
 class SpitefulFlameRect : SelfTargetedAOEs
     {
@@ -186,18 +206,24 @@ class DynasticFlame : UniformStackSpread
     {
         public DynasticFlame() : base(0, 10, alwaysShowSpreads: true) { }
         private bool tethered;
+        private int casts;
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             if ((TetherID)tether.ID == TetherID.fireorbs)
                 tethered = true;
         }
-        public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((TetherID)tether.ID == TetherID.fireorbs)
-                {
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID is AID.DynasticFlame1 or AID.DynasticFlame2)
+                casts++;
+            if (casts == 4)
+            {
+                
+                casts = 0;
                 Spreads.Clear();
                 tethered = false;
-                }
+            }
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
