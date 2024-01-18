@@ -253,7 +253,7 @@ namespace BossMod.MNK
 
                 if (
                     (
-                        strategy.CombatTimer > -20 && state.FormShiftLeft < 20
+                        strategy.CombatTimer > -20 && state.FormShiftLeft < 5
                         || strategy.PreCombatFormShift && state.FormShiftLeft < 2
                     ) && state.Unlocked(AID.FormShift)
                 )
@@ -424,7 +424,7 @@ namespace BossMod.MNK
             if (strategy.WindUse == OffensiveAbilityUse.Force)
                 return true;
 
-            // thebalance recommends using RoW as an oGCD dot, so we use on cooldown as long as RoF has been used first
+            // thebalance recommends using RoW like an oGCD dot, so we use on cooldown as long as RoF has been used first
             return state.CD(CDGroup.RiddleOfFire) > 0;
         }
 
