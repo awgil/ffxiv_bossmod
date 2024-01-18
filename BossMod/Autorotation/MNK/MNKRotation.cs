@@ -248,7 +248,12 @@ namespace BossMod.MNK
             }
 
             if (!state.TargetingEnemy)
+            {
+                if (state.Chakra < 5 && state.Unlocked(AID.Meditation))
+                    return AID.Meditation;
+
                 return AID.None;
+            }
 
             if (state.Unlocked(AID.SixSidedStar) && strategy.SSSUse == OffensiveAbilityUse.Force)
                 return AID.SixSidedStar;
