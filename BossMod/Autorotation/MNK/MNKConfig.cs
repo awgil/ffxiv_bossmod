@@ -11,6 +11,9 @@
         [PropertyDisplay("Execute form-specific aoe GCD on Four-point Fury")]
         public bool AOECombos = true;
 
+        [PropertyDisplay("Automatic mouseover targeting for Thunderclap")]
+        public bool SmartThunderclap = true;
+
         [PropertyDisplay("Use Form Shift out of combat")]
         public bool AutoFormShift = false;
     }

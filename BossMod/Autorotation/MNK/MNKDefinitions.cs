@@ -248,7 +248,7 @@ namespace BossMod.MNK
             SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
             SupportedActions.GCD(AID.Meditation, 0);
             SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
-            SupportedActions.OGCDWithCharges(AID.Thunderclap, 20, CDGroup.Thunderclap, 30.0f, 2);
+            SupportedActions.OGCDWithCharges(AID.Thunderclap, 20, CDGroup.Thunderclap, 30.0f, 3);
             SupportedActions.GCD(AID.FormShift, 0);
             SupportedActions.OGCD(AID.Anatman, 0, CDGroup.Anatman, 60.0f);
             SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);

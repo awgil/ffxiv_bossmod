@@ -202,6 +202,10 @@ namespace BossMod.MNK
                     )
                 : null;
 
+            SupportedSpell(AID.Thunderclap).TransformTarget = _config.SmartThunderclap
+                ? (act) => Autorot.SecondaryTarget ?? act
+                : null;
+
             _strategy.PreCombatFormShift = _config.AutoFormShift;
 
             // smart targets
