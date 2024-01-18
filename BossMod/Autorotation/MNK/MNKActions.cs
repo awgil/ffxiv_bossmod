@@ -114,7 +114,7 @@ namespace BossMod.MNK
 
         protected override NextAction CalculateAutomaticGCD()
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
+            if (AutoAction < AutoActionAIFight)
                 return new();
             var aid = Rotation.GetNextBestGCD(_state, _strategy);
             return MakeResult(aid, Autorot.PrimaryTarget);
@@ -201,6 +201,8 @@ namespace BossMod.MNK
                         )
                     )
                 : null;
+
+            _strategy.PreCombatFormShift = _config.AutoFormShift;
 
             // smart targets
         }
