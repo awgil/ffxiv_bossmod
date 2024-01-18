@@ -105,6 +105,8 @@ namespace BossMod.MNK
         OpoOpoForm = 107, // applied by Snap Punch to self
         RaptorForm = 108, // applied by Bootshine, Arm of the Destroyer to self
         CoeurlForm = 109, // applied by True Strike, Twin Snakes to self
+        RiddleOfFire = 1181, // applied by Riddle of Fire to self
+        RiddleOfWind = 2687, // applied by Riddle of Wind to self
         LeadenFist = 1861, // applied by Dragon Kick to self
         DisciplinedFist = 3001, // applied by Twin Snakes to self, damage buff
         PerfectBalance = 110, // applied by Perfect Balance to self, ignore form requirements
@@ -114,11 +116,25 @@ namespace BossMod.MNK
         Mantra = 102, // applied by Mantra to targets, +10% healing taken
         TrueNorth = 1250, // applied by True North to self, ignore positionals
         Stun = 2, // applied by Leg Sweep to target
+        FormlessFist = 2513,
     }
 
     public static class Definitions
     {
-        public static uint[] UnlockQuests = { 66094, 66103, 66597, 66598, 66599, 66600, 66602, 67563, 67564, 67567, 67966 };
+        public static uint[] UnlockQuests =
+        {
+            66094,
+            66103,
+            66597,
+            66598,
+            66599,
+            66600,
+            66602,
+            67563,
+            67564,
+            67567,
+            67966
+        };
 
         public static bool Unlocked(AID aid, int level, int questProgress)
         {
@@ -188,6 +204,7 @@ namespace BossMod.MNK
         }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
+
         static Definitions()
         {
             SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
@@ -213,7 +230,13 @@ namespace BossMod.MNK
             SupportedActions.OGCD(AID.ForbiddenChakra, 3, CDGroup.SteelPeak, 1.0f);
             SupportedActions.OGCD(AID.HowlingFist, 10, CDGroup.SteelPeak, 1.0f);
             SupportedActions.OGCD(AID.Enlightenment, 10, CDGroup.SteelPeak, 1.0f);
-            SupportedActions.OGCDWithCharges(AID.PerfectBalance, 0, CDGroup.PerfectBalance, 40.0f, 2);
+            SupportedActions.OGCDWithCharges(
+                AID.PerfectBalance,
+                0,
+                CDGroup.PerfectBalance,
+                40.0f,
+                2
+            );
             SupportedActions.OGCD(AID.RiddleOfFire, 0, CDGroup.RiddleOfFire, 60.0f);
             SupportedActions.OGCD(AID.Brotherhood, 0, CDGroup.Brotherhood, 120.0f);
             SupportedActions.OGCD(AID.RiddleOfWind, 0, CDGroup.RiddleOfWind, 90.0f);
