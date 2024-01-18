@@ -93,6 +93,20 @@ namespace BossMod.MNK
 
             public bool PreCombatFormShift;
 
+            public enum DashStrategy : uint
+            {
+                // only use in opener
+                Automatic = 0,
+
+                [PropertyDisplay("Forbid")]
+                Forbid = 1,
+
+                [PropertyDisplay("Use if outside melee range")]
+                GapClose = 2
+            }
+
+            public DashStrategy DashUse;
+
             public enum NadiChoice : uint
             {
                 Automatic = 0, // lunar -> solar
@@ -122,16 +136,18 @@ namespace BossMod.MNK
             {
                 if (overrides.Length >= 7)
                 {
-                    TrueNorthUse = (OffensiveAbilityUse)overrides[0];
-                    NextNadi = (NadiChoice)overrides[1];
-                    FireUse = (OffensiveAbilityUse)overrides[2];
-                    WindUse = (OffensiveAbilityUse)overrides[3];
-                    BrotherhoodUse = (OffensiveAbilityUse)overrides[4];
-                    PerfectBalanceUse = (OffensiveAbilityUse)overrides[5];
-                    SSSUse = (OffensiveAbilityUse)overrides[6];
+                    DashUse = (DashStrategy)overrides[0];
+                    TrueNorthUse = (OffensiveAbilityUse)overrides[1];
+                    NextNadi = (NadiChoice)overrides[2];
+                    FireUse = (OffensiveAbilityUse)overrides[3];
+                    WindUse = (OffensiveAbilityUse)overrides[4];
+                    BrotherhoodUse = (OffensiveAbilityUse)overrides[5];
+                    PerfectBalanceUse = (OffensiveAbilityUse)overrides[6];
+                    SSSUse = (OffensiveAbilityUse)overrides[7];
                 }
                 else
                 {
+                    DashUse = DashStrategy.Automatic;
                     TrueNorthUse = OffensiveAbilityUse.Automatic;
                     NextNadi = NadiChoice.Automatic;
                     FireUse = OffensiveAbilityUse.Automatic;
@@ -302,7 +318,11 @@ namespace BossMod.MNK
 
             if (strategy.CombatTimer < 0 && strategy.CombatTimer > -100)
             {
-                if (strategy.CombatTimer > -0.2 && state.RangeToTarget > 3)
+                if (
+                    strategy.CombatTimer > -0.2
+                    && state.RangeToTarget > 3
+                    && strategy.DashUse != Strategy.DashStrategy.Forbid
+                )
                     return ActionID.MakeSpell(AID.Thunderclap);
 
                 return new();
@@ -358,6 +378,13 @@ namespace BossMod.MNK
                 && state.CanWeave(state.CD(CDGroup.TrueNorth) - 45, 0.6f, deadline)
             )
                 return ActionID.MakeSpell(AID.TrueNorth);
+
+            if (
+                state.RangeToTarget > 3
+                && strategy.DashUse == Strategy.DashStrategy.GapClose
+                && state.CanWeave(state.CD(CDGroup.Thunderclap) - 60, 0.6f, deadline)
+            )
+                return ActionID.MakeSpell(AID.Thunderclap);
 
             // no suitable oGCDs...
             return new();
