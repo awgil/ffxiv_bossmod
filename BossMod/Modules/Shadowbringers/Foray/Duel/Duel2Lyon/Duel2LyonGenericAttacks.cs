@@ -2,7 +2,6 @@ using BossMod.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
 
@@ -74,7 +73,12 @@ class HeartOfNatureConcentric : ConcentricAOEs
     }
 class TasteOfBlood : SelfTargetedAOEs
     {
+        private bool casting;
         public TasteOfBlood() : base(ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40,90.Degrees())) { } 
+    }
+class TasteOfBloodHint : CastHint
+    {
+        public TasteOfBloodHint() : base(ActionID.MakeSpell(AID.TasteOfBlood), "Go behind Lyon!") { }
     }
 class RavenousGale : GenericAOEs
     {
@@ -209,7 +213,9 @@ class DynasticFlame : UniformStackSpread
         private int casts;
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
-            if ((TetherID)tether.ID == TetherID.fireorbs)
+            var player = module.Raid.Player();
+            if ((TetherID)tether.ID == TetherID.fireorbs && player != null)
+                AddSpread(player);
                 tethered = true;
         }
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -224,15 +230,6 @@ class DynasticFlame : UniformStackSpread
                 Spreads.Clear();
                 tethered = false;
             }
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            var player = module.Raid.Player();
-            if ((AID)spell.Action.ID == AID.DynasticFlame1 && player != null)
-                {
-                AddSpread(player);
-                tethered = false;
-                }
         }
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {

@@ -9,6 +9,7 @@ class Lyon2DuelStates : StateMachineBuilder
             .ActivateOnEnter<Enaero>()
             .ActivateOnEnter<HeartOfNatureConcentric>()
             .ActivateOnEnter<TasteOfBlood>()
+            .ActivateOnEnter<TasteOfBloodHint>()
             .ActivateOnEnter<RavenousGale>()
             .ActivateOnEnter<WindsPeakKB>()
             .ActivateOnEnter<WindsPeak>()
