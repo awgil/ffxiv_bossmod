@@ -91,6 +91,8 @@ namespace BossMod.MNK
             public int NumPointBlankAOETargets; // range 5 around self
             public int NumEnlightenmentTargets; // range 10 width 2/4 rect
 
+            public bool PreCombatFormShift;
+
             public enum NadiChoice : uint
             {
                 Automatic = 0, // lunar -> solar
@@ -113,7 +115,7 @@ namespace BossMod.MNK
 
             public override string ToString()
             {
-                return $"AOE={NumPointBlankAOETargets}/{NumEnlightenmentTargets}, no-dots={ForbidDOTs}";
+                return $"AOE={NumPointBlankAOETargets}/{NumEnlightenmentTargets}, no-dots={ForbidDOTs}, {CombatTimer}";
             }
 
             public void ApplyStrategyOverrides(uint[] overrides)
@@ -234,14 +236,19 @@ namespace BossMod.MNK
                     return AID.Meditation;
 
                 if (
-                    strategy.CombatTimer > -20
-                    && state.FormShiftLeft == 0
-                    && state.Unlocked(AID.FormShift)
+                    (
+                        strategy.CombatTimer > -20 && state.FormShiftLeft < 20
+                        || strategy.PreCombatFormShift && state.FormShiftLeft < 2
+                    ) && state.Unlocked(AID.FormShift)
                 )
                     return AID.FormShift;
 
-                return AID.None;
+                if (strategy.CombatTimer > -100)
+                    return AID.None;
             }
+
+            if (!state.TargetingEnemy)
+                return AID.None;
 
             if (state.Unlocked(AID.SixSidedStar) && strategy.SSSUse == OffensiveAbilityUse.Force)
                 return AID.SixSidedStar;
@@ -344,7 +351,6 @@ namespace BossMod.MNK
             if (
                 ShouldUseTrueNorth(state, strategy)
                 && state.CanWeave(state.CD(CDGroup.TrueNorth) - 45, 0.6f, deadline)
-                && state.GCD < 0.8
             )
                 return ActionID.MakeSpell(AID.TrueNorth);
 
