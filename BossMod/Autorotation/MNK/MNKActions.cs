@@ -1,6 +1,5 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Types;
-using System;
-using System.Linq;
+﻿using System;
+using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace BossMod.MNK
 {
@@ -21,11 +20,17 @@ namespace BossMod.MNK
             _strategy = new();
 
             // upgrades
-            SupportedSpell(AID.SteelPeak).TransformAction = SupportedSpell(AID.ForbiddenChakra).TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);
-            SupportedSpell(AID.HowlingFist).TransformAction = SupportedSpell(AID.Enlightenment).TransformAction = () => ActionID.MakeSpell(_state.BestEnlightenment);
-            SupportedSpell(AID.ArmOfTheDestroyer).TransformAction = SupportedSpell(AID.ShadowOfTheDestroyer).TransformAction = () => ActionID.MakeSpell(_state.BestShadowOfTheDestroyer);
-            SupportedSpell(AID.FlintStrike).TransformAction = SupportedSpell(AID.RisingPhoenix).TransformAction = () => ActionID.MakeSpell(_state.BestRisingPhoenix);
-            SupportedSpell(AID.TornadoKick).TransformAction = SupportedSpell(AID.PhantomRush).TransformAction = () => ActionID.MakeSpell(_state.BestPhantomRush);
+            SupportedSpell(AID.SteelPeak).TransformAction = SupportedSpell(
+                AID.ForbiddenChakra
+            ).TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);
+            SupportedSpell(AID.HowlingFist).TransformAction = SupportedSpell(
+                AID.Enlightenment
+            ).TransformAction = () => ActionID.MakeSpell(_state.BestEnlightenment);
+            SupportedSpell(AID.ArmOfTheDestroyer).TransformAction = SupportedSpell(
+                AID.ShadowOfTheDestroyer
+            ).TransformAction = () => ActionID.MakeSpell(_state.BestShadowOfTheDestroyer);
+            SupportedSpell(AID.MasterfulBlitz).TransformAction = () =>
+                ActionID.MakeSpell(_state.BestBlitz);
 
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
@@ -37,12 +42,21 @@ namespace BossMod.MNK
         }
 
         public override CommonRotation.PlayerState GetState() => _state;
+
         public override CommonRotation.Strategy GetStrategy() => _strategy;
 
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: multidotting support...
-            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumPointBlankAOETargets, _strategy.ForbidDOTs) : AID.None) switch
+            var pos = (
+                _state.Form == Rotation.Form.Coeurl
+                    ? Rotation.GetCoeurlFormAction(
+                        _state,
+                        _strategy.NumPointBlankAOETargets,
+                        _strategy.ForbidDOTs
+                    )
+                    : AID.None
+            ) switch
             {
                 AID.SnapPunch => Positional.Flank,
                 AID.Demolish => Positional.Rear,
@@ -55,18 +69,47 @@ namespace BossMod.MNK
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionStr);
-            _strategy.NumPointBlankAOETargets = autoAction == AutoActionST ? 0 : NumTargetsHitByPBAOE();
-            _strategy.NumEnlightenmentTargets = Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.HowlingFist) ? NumTargetsHitByEnlightenment(Autorot.PrimaryTarget) : 0;
+            _strategy.ApplyStrategyOverrides(
+                Autorot
+                    .Bossmods.ActiveModule?.PlanExecution
+                    ?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine)
+                    ?? new uint[0]
+            );
+            _strategy.NumPointBlankAOETargets =
+                autoAction == AutoActionST ? 0 : NumTargetsHitByPBAOE();
+            _strategy.NumEnlightenmentTargets =
+                Autorot.PrimaryTarget != null
+                && autoAction != AutoActionST
+                && _state.Unlocked(AID.HowlingFist)
+                    ? NumTargetsHitByEnlightenment(Autorot.PrimaryTarget)
+                    : 0;
+            FillStrategyPositionals(
+                _strategy,
+                Rotation.GetNextPositional(_state, _strategy),
+                _state.TrueNorthLeft > _state.GCD
+            );
         }
 
         protected override void QueueAIActions()
         {
             if (_state.Unlocked(AID.SteelPeak))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.Meditation), Player, !Player.InCombat && _state.Chakra < 5);
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.Meditation),
+                    Player,
+                    !Player.InCombat && _state.Chakra < 5
+                );
             if (_state.Unlocked(AID.SecondWind))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.SecondWind),
+                    Player,
+                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f
+                );
             if (_state.Unlocked(AID.Bloodbath))
-                SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f);
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.Bloodbath),
+                    Player,
+                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f
+                );
         }
 
         protected override NextAction CalculateAutomaticGCD()
@@ -94,13 +137,32 @@ namespace BossMod.MNK
         {
             FillCommonPlayerState(_state);
 
-            _state.Chakra = Service.JobGauges.Get<MNKGauge>().Chakra;
+            var gauge = Service.JobGauges.Get<MNKGauge>();
+            _state.Chakra = gauge.Chakra;
+            _state.BeastChakra = gauge.BeastChakra;
+            _state.Nadi = gauge.Nadi;
 
             (_state.Form, _state.FormLeft) = DetermineForm();
-            _state.DisciplinedFistLeft = StatusDetails(Player, SID.DisciplinedFist, Player.InstanceID).Left;
+            _state.DisciplinedFistLeft = StatusDetails(
+                Player,
+                SID.DisciplinedFist,
+                Player.InstanceID
+            ).Left;
             _state.LeadenFistLeft = StatusDetails(Player, SID.LeadenFist, Player.InstanceID).Left;
+            _state.PerfectBalanceLeft = StatusDetails(
+                Player,
+                SID.PerfectBalance,
+                Player.InstanceID
+            ).Left;
+            _state.FormShiftLeft = StatusDetails(Player, SID.FormlessFist, Player.InstanceID).Left;
+            _state.FireLeft = StatusDetails(Player, SID.RiddleOfFire, Player.InstanceID).Left;
+            _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
 
-            _state.TargetDemolishLeft = StatusDetails(Autorot.PrimaryTarget, SID.Demolish, Player.InstanceID).Left;
+            _state.TargetDemolishLeft = StatusDetails(
+                Autorot.PrimaryTarget,
+                SID.Demolish,
+                Player.InstanceID
+            ).Left;
         }
 
         private (Rotation.Form, float) DetermineForm()
@@ -120,16 +182,38 @@ namespace BossMod.MNK
         private void OnConfigModified(object? sender, EventArgs args)
         {
             // placeholders
-            SupportedSpell(AID.Bootshine).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-            SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+            SupportedSpell(AID.Bootshine).PlaceholderForAuto = _config.FullRotation
+                ? AutoActionST
+                : AutoActionNone;
+            SupportedSpell(AID.ShadowOfTheDestroyer).PlaceholderForAuto = _config.FullRotation
+                ? AutoActionAOE
+                : AutoActionNone;
 
             // combo replacement
-            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, 100, false)) : null;
+            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos
+                ? () =>
+                    ActionID.MakeSpell(
+                        Rotation.GetNextComboAction(
+                            _state,
+                            100,
+                            false,
+                            Rotation.Strategy.NadiChoice.Automatic
+                        )
+                    )
+                : null;
 
             // smart targets
         }
 
-        private int NumTargetsHitByPBAOE() => Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-        private int NumTargetsHitByEnlightenment(Actor primary) => Autorot.Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), 10, _state.Unlocked(AID.Enlightenment) ? 2 : 1);
+        private int NumTargetsHitByPBAOE() =>
+            Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+
+        private int NumTargetsHitByEnlightenment(Actor primary) =>
+            Autorot.Hints.NumPriorityTargetsInAOERect(
+                Player.Position,
+                (primary.Position - Player.Position).Normalized(),
+                10,
+                _state.Unlocked(AID.Enlightenment) ? 2 : 1
+            );
     }
 }
