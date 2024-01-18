@@ -136,7 +136,7 @@ namespace BossMod
             c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(MNK.AID.ArmsLength), 32));
             c.CooldownTracks.Add(new("RoE", ActionID.MakeSpell(MNK.AID.RiddleOfEarth), 64));
             c.CooldownTracks.Add(new("Mantra", ActionID.MakeSpell(MNK.AID.Mantra), 42));
-            c.CooldownTracks.Add(new("Dash", ActionID.MakeSpell(MNK.AID.Thunderclap), 35));
+            c.StrategyTracks.Add(new("Dash", typeof(MNK.Rotation.Strategy.DashStrategy)));
             c.StrategyTracks.Add(new("TrueN", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("Nadi", typeof(MNK.Rotation.Strategy.NadiChoice)));
             c.StrategyTracks.Add(new("RoF", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
