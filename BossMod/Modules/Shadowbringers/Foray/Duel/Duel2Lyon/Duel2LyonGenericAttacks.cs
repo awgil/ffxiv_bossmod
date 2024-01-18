@@ -134,13 +134,27 @@ class SplittingRage : CastHint
     }
  class NaturesBlood : Exaflare
     {
-        public NaturesBlood() : base(7) { }
+        public NaturesBlood() : base(4) { }
+             class LineWithActor : Line
+                {
+                    public Actor Caster;
 
+                     public LineWithActor(Actor caster)
+                    {
+                        Next = caster.Position;
+                        Advance = 6 * caster.Rotation.ToDirection();
+                        NextExplosion = caster.CastInfo!.FinishAt;
+                        TimeToMove = 1.1f;
+                        ExplosionsLeft = 7;
+                        MaxShownExplosions = 7;
+                        Caster = caster;
+                    }
+                }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.NaturesBlood1)
+            if ((AID)spell.Action.ID is AID.NaturesBlood1)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = 6 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 1.1f, ExplosionsLeft = 8, MaxShownExplosions = 4 });
+                Lines.Add(new LineWithActor(caster));
             }
         }
 
@@ -148,18 +162,62 @@ class SplittingRage : CastHint
         {
             if ((AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
             {
-                var pos = (AID)spell.Action.ID == AID.NaturesBlood1 ? caster.Position : spell.TargetXZ;
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(pos, 1));
+                int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
                 if (index == -1)
                 {
                     module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X}");
                     return;
                 }
-
-                AdvanceLine(module, Lines[index], pos);
+                AdvanceLine(module, Lines[index], caster.Position);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
             }
+        }
+    }
+class SpitefulFlameCircle : SelfTargetedAOEs
+    {
+        public SpitefulFlameCircle() : base(ActionID.MakeSpell(AID.SpitefulFlame1), new AOEShapeCircle(10)) { } 
+    }
+class SpitefulFlameRect : SelfTargetedAOEs
+    {
+        public SpitefulFlameRect() : base(ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80,2)) { } 
+    }
+class DynasticFlame : UniformStackSpread
+    {
+        public DynasticFlame() : base(0, 10, alwaysShowSpreads: true) { }
+        private bool tethered;
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            if ((TetherID)tether.ID == TetherID.fireorbs)
+                tethered = true;
+        }
+        public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            if ((TetherID)tether.ID == TetherID.fireorbs)
+                {
+                Spreads.Clear();
+                tethered = false;
+                }
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            var player = module.Raid.Player();
+            if ((AID)spell.Action.ID == AID.DynasticFlame1 && player != null)
+                {
+                AddSpread(player);
+                tethered = false;
+                }
+        }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+           var player = module.Raid.Player();
+            if(player == actor && tethered)
+            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+        }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (tethered)
+                  hints.Add("Go to the edge and run until 4 orbs are spawned");
         }
     }
 class SkyrendingStrike : CastHint
