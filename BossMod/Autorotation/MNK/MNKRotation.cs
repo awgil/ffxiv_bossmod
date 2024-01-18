@@ -120,7 +120,21 @@ namespace BossMod.MNK
 
             public NadiChoice NextNadi;
 
-            public OffensiveAbilityUse FireUse;
+            public enum FireStrategy : uint
+            {
+                Automatic = 0, // use on cooldown-ish if something is targetable
+
+                [PropertyDisplay("Don't use")]
+                Delay = 1,
+
+                [PropertyDisplay("Force use")]
+                Force = 2,
+
+                [PropertyDisplay("Delay until Brotherhood is off cooldown")]
+                DelayUntilBrotherhood = 3
+            }
+
+            public FireStrategy FireUse;
             public OffensiveAbilityUse WindUse;
             public OffensiveAbilityUse BrotherhoodUse;
             public OffensiveAbilityUse PerfectBalanceUse;
@@ -139,7 +153,7 @@ namespace BossMod.MNK
                     DashUse = (DashStrategy)overrides[0];
                     TrueNorthUse = (OffensiveAbilityUse)overrides[1];
                     NextNadi = (NadiChoice)overrides[2];
-                    FireUse = (OffensiveAbilityUse)overrides[3];
+                    FireUse = (FireStrategy)overrides[3];
                     WindUse = (OffensiveAbilityUse)overrides[4];
                     BrotherhoodUse = (OffensiveAbilityUse)overrides[5];
                     PerfectBalanceUse = (OffensiveAbilityUse)overrides[6];
@@ -150,7 +164,7 @@ namespace BossMod.MNK
                     DashUse = DashStrategy.Automatic;
                     TrueNorthUse = OffensiveAbilityUse.Automatic;
                     NextNadi = NadiChoice.Automatic;
-                    FireUse = OffensiveAbilityUse.Automatic;
+                    FireUse = FireStrategy.Automatic;
                     WindUse = OffensiveAbilityUse.Automatic;
                     BrotherhoodUse = OffensiveAbilityUse.Automatic;
                     PerfectBalanceUse = OffensiveAbilityUse.Automatic;
@@ -394,12 +408,12 @@ namespace BossMod.MNK
         {
             if (
                 !state.Unlocked(AID.RiddleOfFire)
-                || strategy.FireUse == OffensiveAbilityUse.Delay
+                || strategy.FireUse == Strategy.FireStrategy.Delay
                 || !state.CanWeave(CDGroup.RiddleOfFire, 0.6f, deadline)
             )
                 return false;
 
-            if (strategy.FireUse == OffensiveAbilityUse.Force)
+            if (strategy.FireUse == Strategy.FireStrategy.Force)
                 return true;
 
             if (state.GCD > 0.800)
@@ -409,7 +423,15 @@ namespace BossMod.MNK
                 // use before demolish in opener
                 return state.Form == Form.Coeurl;
             else
-                return state.Form == Form.OpoOpo;
+            {
+                var buffWait =
+                    strategy.FireUse == Strategy.FireStrategy.Automatic
+                    || state.CD(CDGroup.Brotherhood) < 4;
+
+                // cooldown alignment for braindead looping rotation
+                // TODO: implement optimal drift (it can't be that hard with math, right?)
+                return state.Form == Form.OpoOpo && buffWait;
+            }
         }
 
         private static bool ShouldUseRoW(State state, Strategy strategy, float deadline)
