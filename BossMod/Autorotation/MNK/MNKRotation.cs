@@ -359,8 +359,12 @@ namespace BossMod.MNK
                 state.Unlocked(AID.SteelPeak)
                 && state.Chakra == 5
                 && state.CanWeave(CDGroup.SteelPeak, 0.6f, deadline)
-                // prevent early use in opener
-                && state.CD(CDGroup.RiddleOfFire) > 0
+                && (
+                    // prevent early use in opener
+                    state.CD(CDGroup.RiddleOfFire) > 0
+                    || strategy.FireUse == Strategy.FireStrategy.Delay
+                    || strategy.FireUse == Strategy.FireStrategy.DelayUntilBrotherhood
+                )
             )
             {
                 // L15 Steel Peak is 180p
@@ -393,15 +397,30 @@ namespace BossMod.MNK
             )
                 return ActionID.MakeSpell(AID.TrueNorth);
 
-            if (
-                state.RangeToTarget > 3
-                && strategy.DashUse == Strategy.DashStrategy.GapClose
-                && state.CanWeave(state.CD(CDGroup.Thunderclap) - 60, 0.6f, deadline)
-            )
+            if (ShouldDash(state, strategy, deadline))
                 return ActionID.MakeSpell(AID.Thunderclap);
 
             // no suitable oGCDs...
             return new();
+        }
+
+        private static bool ShouldDash(State state, Strategy strategy, float deadline)
+        {
+            if (
+                state.RangeToTarget <= 3
+                || !state.CanWeave(state.CD(CDGroup.Thunderclap) - 60, 0.6f, deadline)
+                || strategy.DashUse == Strategy.DashStrategy.Forbid
+            )
+                return false;
+
+            if (strategy.DashUse == Strategy.DashStrategy.GapClose)
+                return true;
+
+            // someone early pulled
+            if (strategy.DashUse == Strategy.DashStrategy.Automatic && strategy.CombatTimer < 3)
+                return true;
+
+            return false;
         }
 
         private static bool ShouldUseRoF(State state, Strategy strategy, float deadline)
