@@ -1,4 +1,5 @@
-﻿using System;
+﻿// CONTRIB: changes by malediktus, not checked
+using System;
 using System.Collections.Generic;
 
 namespace BossMod.Shadowbringers.FATE.Formidable
@@ -37,7 +38,7 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         ExpandGrenadeRadius = 18006, // ExpandHelper->self, no cast, range 60 circle (applies Altered States with extra 0x50 to grenades, increasing their aoe radius by 8)
         ExplosionGrenade = 17411, // GiantGrenade->self, 12.0s cast, range 4+8 circle (expanded due to altered states)
         Shock = 17402, // Boss->self, 5.0s cast, single-target, visual (donut/circles)
-        DwarvenDischargeDonut = 17404, // DwarvenChargeDonut->self, 3.5s cast, range 10-60 donut
+        DwarvenDischargeDonut = 17404, // DwarvenChargeDonut->self, 3.5s cast, range 9-60 donut
         DwarvenDischargeCircle = 17405, // DwarvenChargeCircle->self, 3.0s cast, range 8 circle
         SteamDome = 17394, // Boss->self, 3.0s cast, range 30 circle knockback 15
         DynamicSensoryJammer = 17407, // Boss->self, 3.0s cast, range 70 circle
@@ -47,7 +48,12 @@ namespace BossMod.Shadowbringers.FATE.Formidable
     {
         DrillShot = 62, // player
     };
-
+    public enum SID : uint
+    {
+        AlteredStates = 1387, // ExpandHelper-->GiantGrenade
+        ExtremeCaution = 1269, // Boss->players
+    };
+   
     class Spincrush : Components.SelfTargetedAOEs
     {
         public Spincrush() : base(ActionID.MakeSpell(AID.Spincrush), new AOEShapeCone(15, 60.Degrees())) { }
@@ -156,27 +162,18 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         public ExplosionGrenade() : base(ActionID.MakeSpell(AID.ExplosionGrenade), new AOEShapeCircle(12)) { }
     }
 
-    class DwarvenDischarge : Components.GenericAOEs
+    class DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay) : Components.GenericAOEs
     {
-        private AOEShape _shape;
-        private OID _oid;
-        private AID _aid;
-        private float _delay;
-        private List<(Actor caster, DateTime activation)> _casters = new();
-        //private AOEShapeDonut _shape = new(10, 60);
-
-        public DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay)
-        {
-            _shape = shape;
-            _oid = oid;
-            _aid = aid;
-            _delay = delay; 
-        }
+        private readonly AOEShape _shape = shape;
+        private readonly OID _oid = oid;
+        private readonly AID _aid = aid;
+        private readonly float _delay = delay;
+        private List<(Actor caster, DateTime activation)> _casters = [];
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            foreach (var c in _casters)
-                yield return new(_shape, c.caster.Position, default, c.caster.CastInfo?.FinishAt ?? c.activation);
+            foreach (var (caster, activation) in _casters)
+                yield return new(_shape, caster.Position, default, caster.CastInfo?.FinishAt ?? activation);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)
@@ -200,7 +197,7 @@ namespace BossMod.Shadowbringers.FATE.Formidable
 
     class DwarvenDischargeDonut : DwarvenDischarge
     {
-        public DwarvenDischargeDonut() : base(new AOEShapeDonut(10, 60), OID.DwarvenChargeDonut, AID.DwarvenDischargeDonut, 9.3f) { }
+        public DwarvenDischargeDonut() : base(new AOEShapeDonut(9, 60), OID.DwarvenChargeDonut, AID.DwarvenDischargeDonut, 9.3f) { }
     }
 
     class DwarvenDischargeCircle : DwarvenDischarge
@@ -218,12 +215,45 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         public SteamDome() : base(ActionID.MakeSpell(AID.SteamDome), 15) { }
     }
 
-    // TODO: stay/move component
     class DynamicSensoryJammer : Components.CastHint
     {
-        public DynamicSensoryJammer() : base(ActionID.MakeSpell(AID.DynamicSensoryJammer), "Stay still!") { }
-    }
+        public DynamicSensoryJammer() : base(ActionID.MakeSpell(AID.DynamicSensoryJammer), "") { }
+        private BitMask _ec;
+        public bool Ec { get; private set; }
+        private bool casting;
 
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
+                casting = true;
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
+                casting = false;
+        }        
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+              if ((SID)status.ID == SID.ExtremeCaution)
+                _ec.Set(module.Raid.FindSlot(actor.InstanceID));
+        }
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.ExtremeCaution)
+                _ec.Clear(module.Raid.FindSlot(actor.InstanceID));
+        }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_ec[slot] != Ec)
+            hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
+        }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (casting)
+            hints.Add("Stop everything including auto attacks or get launched into the air");    
+        }
+    }
+    
     class FormidableStates : StateMachineBuilder
     {
         public FormidableStates(BossModule module) : base(module)
@@ -244,8 +274,5 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         }
     }
 
-    public class Formidable : SimpleBossModule
-    {
-        public Formidable(WorldState ws, Actor primary) : base(ws, primary) { }
-    }
+    public class Formidable(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
 }

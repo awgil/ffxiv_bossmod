@@ -480,7 +480,7 @@ namespace BossMod.SAM
             uint gcdsInAdvance = 0
         )
         {
-            if (strategy.HiganbanaStrategy == HiganbanaUse.Never)
+            if (strategy.HiganbanaStrategy == HiganbanaUse.Never || !state.HasCombatBuffs)
                 return false;
 
             // force use to get shoha even if the target is dying, dot overwrite doesn't matter

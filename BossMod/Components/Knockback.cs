@@ -10,8 +10,10 @@ namespace BossMod.Components
         public enum Kind
         {
             AwayFromOrigin, // standard knockback - specific distance along ray from origin to target
+            TowardsOrigin, // standard pull - "knockback" to source - forward along source's direction + 180 degrees
             DirForward, // directional knockback - forward along source's direction
             DirLeft, // directional knockback - forward along source's direction + 90 degrees
+            DirRight, // directional knockback - forward along source's direction - 90 degrees
         }
 
         public struct Source
@@ -135,8 +137,11 @@ namespace BossMod.Components
                 WDir dir = s.Kind switch
                 {
                     Kind.AwayFromOrigin => from != s.Origin ? (from - s.Origin).Normalized() : new(),
+                    Kind.TowardsOrigin => -s.Direction.ToDirection(),
                     Kind.DirForward => s.Direction.ToDirection(),
                     Kind.DirLeft => s.Direction.ToDirection().OrthoL(),
+                    Kind.DirRight => s.Direction.ToDirection().OrthoR(),
+
                     _ => new()
                 };
                 if (dir == default)
