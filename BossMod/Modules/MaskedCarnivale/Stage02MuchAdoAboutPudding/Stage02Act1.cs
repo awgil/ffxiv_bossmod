@@ -1,11 +1,12 @@
-namespace BossMod.MaskedCarnivale.Stage02.Act1.ArenaBavarois
+using System.Linq;
+
+namespace BossMod.MaskedCarnivale.Stage02.Act1
 {
     public enum OID : uint
     {
-        Boss = 0x25C4, //R1.8
+        Boss = 0x25C0, //R=1.8
         Marshmallow = 0x25C2, //R1.8
-        Pudding = 0x25C0, //R=1.8
-
+        Bavarois = 0x25C4, //R1.8
     };
 
 public enum AID : uint
@@ -34,31 +35,43 @@ class Hints2 : BossComponent
             hints.Add("Pudding is weak to wind spells.\nMarshmallow is weak to ice spells.\nBavarois is weak to earth spells.");
         } 
     }    
-class Stage02PuddingStates : StateMachineBuilder
+class Stage02Act1States : StateMachineBuilder
     {
-        public Stage02PuddingStates(BossModule module) : base(module)
+        private static bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
+        public Stage02Act1States(Stage02Act1 module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<GoldenTongue>()
             .ActivateOnEnter<Hints2>()               
-            .DeactivateOnEnter<Hints>();
+            .DeactivateOnEnter<Hints>()
+            .Raw.Update = () => IsDead(module.Pudding()) && IsDead(module.Marshmallow()) && IsDead(module.Bavarois());
         }
     }
 
-public class Stage02Pudding : BossModule
+public class Stage02Act1 : BossModule
     {
-        public Stage02Pudding(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+        public Actor? _Marshmallow;
+        public Actor? _Bavarois;
+        public Actor? Pudding() => PrimaryActor;
+        public Actor? Marshmallow() => _Marshmallow;
+        public Actor? Bavarois() => _Bavarois;
+        public Stage02Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
         }
-
+        protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Marshmallow).Any(e => e.InCombat) || Enemies(OID.Bavarois).Any(e => e.InCombat); }
+        protected override void UpdateModule()
+        {
+            _Marshmallow ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Marshmallow).FirstOrDefault() : null;
+            _Bavarois ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Bavarois).FirstOrDefault() : null;
+        }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
                 Arena.Actor(s, ArenaColor.Enemy, false);
-            foreach (var s in Enemies(OID.Pudding))
-                Arena.Actor(s, ArenaColor.Enemy, false);
             foreach (var s in Enemies(OID.Marshmallow))
+                Arena.Actor(s, ArenaColor.Enemy, false);
+            foreach (var s in Enemies(OID.Bavarois))
                 Arena.Actor(s, ArenaColor.Enemy, false);
         }
     }

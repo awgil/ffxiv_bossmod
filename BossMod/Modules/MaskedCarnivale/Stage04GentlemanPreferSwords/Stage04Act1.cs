@@ -1,0 +1,67 @@
+using System.Linq;
+
+namespace BossMod.MaskedCarnivale.Stage04.Act1
+{
+    public enum OID : uint
+    {
+        Boss = 0x25C8, //R=1.65
+        Bat = 0x25D2, //R0.4
+    };
+
+public enum AID : uint
+{
+    AutoAttack = 6497, // 25C8->player, no cast, single-target
+    AutoAttack2 = 6499, // 25D2->player, no cast, single-target
+    BloodDrain = 14360, // 25D2->player, no cast, single-target
+    SanguineBite = 14361, // 25C8->self, no cast, range 3+R width 2 rect
+};
+
+class Hints : BossComponent
+    {
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            hints.Add("Trivial stage.\nEnemies here are weak to lightning and fire.\nIn Act 2 the Ram's Voice and Ultravibration combo can be useful.\nFlying Sardine for interrupts can be beneficial.");
+        } 
+    }
+class Hints2 : BossComponent
+    {
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            hints.Add("Bats are weak to lightning.\nThe wolf is weak to fire.");
+        } 
+    }    
+class Stage04States : StateMachineBuilder
+    {
+        private static bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
+        public Stage04States(Stage04 module) : base(module)
+        {
+            TrivialPhase()
+            .ActivateOnEnter<Hints2>()
+            .DeactivateOnEnter<Hints>()
+            .Raw.Update = () => IsDead(module.Wolf()) && IsDead(module.Bat());
+        }
+    }
+
+public class Stage04 : BossModule
+    {
+        public Actor? _Bat;
+        public Actor? Wolf() => PrimaryActor;
+        public Actor? Bat() => _Bat;
+        public Stage04(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+        {
+            ActivateComponent<Hints>();
+        }
+        protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bat).Any(e => e.InCombat); }
+        protected override void UpdateModule()
+        {
+            _Bat ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Bat).FirstOrDefault() : null;
+        }
+        protected override void DrawEnemies(int pcSlot, Actor pc)
+        {
+            foreach (var s in Enemies(OID.Boss))
+                Arena.Actor(s, ArenaColor.Enemy, false);
+            foreach (var s in Enemies(OID.Bat))
+                Arena.Actor(s, ArenaColor.Enemy, false);
+        }
+    }
+}

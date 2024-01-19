@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace BossMod.MaskedCarnivale.Stage02.Act2.ArenaGelato
+namespace BossMod.MaskedCarnivale.Stage02.Act2
 {
     public enum OID : uint
     {
@@ -26,43 +26,35 @@ class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("To beat this stage in a timely manner,\nyou should have at least one spell of each element.\n(Water, Fire, Ice, Lightning, Earth and Wind)");
-        } 
-    }
-class Hints2 : BossComponent
-    {
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
             hints.Add("Gelato is weak to fire spells.\nFlan is weak to lightning spells.\nLicorice is weak to water spells.");
         } 
     }    
 
-class Stage02GelatoStates : StateMachineBuilder
+class Stage02Act2States : StateMachineBuilder
     {
-        public Stage02GelatoStates(Stage02Gelato module) : base(module)
+        private static bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
+        public Stage02Act2States(Stage02Act2 module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<GoldenTongue>()
-            .ActivateOnEnter<Hints2>()               
-            .DeactivateOnEnter<Hints>()
-            .Raw.Update = () => module.MainBoss().IsDead || module.MainBoss().IsDestroyed;
+            .ActivateOnEnter<Hints>()               
+            .Raw.Update = () => IsDead(module.Gelato()) && IsDead(module.Flan()) && IsDead(module.Licorice());
         }
     }
-[ModuleInfo(PrimaryActorOID = (uint)OID.Boss)]
-public class Stage02Gelato : BossModule
+
+public class Stage02Act2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
     {
-        public Actor? Flan;
-        public Actor? Licorice;
-        public Actor? Boss;
-        public Actor MainBoss() => Flan ?? Licorice ?? PrimaryActor;
-        public Stage02Gelato(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
-        {
-            ActivateComponent<Hints>();
-        }
+        public Actor? _Flan;
+        public Actor? _Licorice;
+        public Actor? Gelato() => PrimaryActor;
+        public Actor? Licorice() => _Licorice;
+        public Actor? Flan() => _Flan;
+
+        protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Flan).Any(e => e.InCombat) || Enemies(OID.Licorice).Any(e => e.InCombat); }
         protected override void UpdateModule()
         {
-            Licorice ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Licorice).FirstOrDefault() : null;
-            Flan ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Licorice).FirstOrDefault() : null;
+            _Licorice ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Licorice).FirstOrDefault() : null;
+            _Flan ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Flan).FirstOrDefault() : null;
         }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
