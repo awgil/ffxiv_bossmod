@@ -116,7 +116,12 @@ namespace BossMod.DNC
 
             if (strategy.CombatTimer < 0)
             {
-                if (strategy.CombatTimer > -15.5 && strategy.CombatTimer < -3.5 && !state.IsDancing)
+                if (
+                    strategy.CombatTimer > -15.5
+                    && strategy.CombatTimer < -3.5
+                    && !state.IsDancing
+                    && state.Unlocked(AID.StandardStep)
+                )
                     return AID.StandardStep;
 
                 return AID.None;
@@ -193,6 +198,7 @@ namespace BossMod.DNC
                 && strategy.CombatTimer < -2
                 && state.NextStep == 0
                 && state.PelotonLeft == 0
+                && state.Unlocked(AID.Peloton)
             )
                 return ActionID.MakeSpell(AID.Peloton);
 
