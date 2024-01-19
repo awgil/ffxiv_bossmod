@@ -106,6 +106,8 @@ namespace BossMod.DNC
             }
         }
 
+        const float FINISH_DANCE_WINDOW = 0.2f;
+
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
             if (ShouldDoNothing(state, strategy))
@@ -113,6 +115,11 @@ namespace BossMod.DNC
 
             if (state.IsDancing && state.NextStep != 0)
                 return (AID)state.NextStep;
+
+            if (ShouldFinishDance(state.StandardStepLeft, state, strategy))
+                return state.BestStandardStep;
+            if (ShouldFinishDance(state.TechStepLeft, state, strategy))
+                return state.BestTechStep;
 
             if (strategy.CombatTimer < 0)
             {
@@ -126,11 +133,6 @@ namespace BossMod.DNC
 
                 return AID.None;
             }
-
-            if (ShouldFinishDance(state.StandardStepLeft, state, strategy))
-                return state.BestStandardStep;
-            if (ShouldFinishDance(state.TechStepLeft, state, strategy))
-                return state.BestTechStep;
 
             if (!state.TargetingEnemy)
                 return AID.None;
@@ -249,7 +251,7 @@ namespace BossMod.DNC
         {
             if (state.NextStep != 0)
                 return false;
-            if (danceTimeLeft < 0.2)
+            if (danceTimeLeft > 0 && danceTimeLeft < FINISH_DANCE_WINDOW)
                 return true;
 
             return danceTimeLeft > state.GCD && strategy.NumHostilesInDanceRange > 0;
