@@ -55,7 +55,6 @@ namespace BossMod.DNC
         FanDanceIV = 25791, // L86, instant, 1.0s CD (group 4), range 15, AOE cone 15/0, targets=hostile, animLock=0.600s
     }
 
-
     public enum TraitID : uint
     {
         None = 0,
@@ -179,6 +178,7 @@ namespace BossMod.DNC
                 _ => true,
             };
         }
+
         public static bool Unlocked(TraitID tid, int level, int questProgress)
         {
             return tid switch
@@ -199,6 +199,7 @@ namespace BossMod.DNC
         }
 
         public static Dictionary<ActionID, ActionDefinition> SupportedActions;
+
         static Definitions()
         {
             SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionDex);
@@ -212,7 +213,8 @@ namespace BossMod.DNC
             SupportedActions.GCD(AID.Entrechat, 0);
             SupportedActions.GCD(AID.Emboite, 0);
             SupportedActions.GCD(AID.SingleStandardFinish, 0);
-            SupportedActions.OGCD(AID.StandardStep, 0, CDGroup.StandardStep, 30.0f);
+            SupportedActions.OGCD(AID.StandardStep, 0, CDGroup.StandardStep, 30.0f).EffectDuration =
+                15;
             SupportedActions.GCD(AID.Windmill, 0);
             SupportedActions.GCD(AID.StandardFinish, 0);
             SupportedActions.GCD(AID.DoubleStandardFinish, 0);
@@ -228,7 +230,8 @@ namespace BossMod.DNC
             SupportedActions.OGCD(AID.FanDanceII, 0, CDGroup.FanDanceII, 1.0f);
             SupportedActions.OGCDWithCharges(AID.EnAvant, 0, CDGroup.EnAvant, 30.0f, 3);
             SupportedActions.OGCD(AID.CuringWaltz, 0, CDGroup.CuringWaltz, 60.0f);
-            SupportedActions.OGCD(AID.ShieldSamba, 0, CDGroup.ShieldSamba, 120.0f).EffectDuration = 15;
+            SupportedActions.OGCD(AID.ShieldSamba, 0, CDGroup.ShieldSamba, 120.0f).EffectDuration =
+                15;
             SupportedActions.OGCD(AID.Ending, 0, CDGroup.Ending, 1.0f);
             SupportedActions.OGCD(AID.ClosedPosition, 30, CDGroup.Ending, 30.0f);
             SupportedActions.OGCD(AID.Devilment, 0, CDGroup.Devilment, 120.0f);
@@ -241,7 +244,9 @@ namespace BossMod.DNC
             SupportedActions.GCD(AID.SingleTechnicalFinish, 0);
             SupportedActions.OGCD(AID.Flourish, 0, CDGroup.Flourish, 60.0f).EffectDuration = 30;
             SupportedActions.GCD(AID.SaberDance, 25);
-            SupportedActions.OGCD(AID.ImprovisedFinish, 0, CDGroup.ImprovisedFinish, 1.5f).EffectDuration = 60;
+            SupportedActions
+                .OGCD(AID.ImprovisedFinish, 0, CDGroup.ImprovisedFinish, 1.5f)
+                .EffectDuration = 60;
             SupportedActions.OGCD(AID.Improvisation, 0, CDGroup.Improvisation, 120.0f);
             SupportedActions.GCD(AID.Tillana, 0);
             SupportedActions.OGCD(AID.FanDanceIV, 15, CDGroup.FanDanceIV, 1.0f);

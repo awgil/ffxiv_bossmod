@@ -1,4 +1,6 @@
+using System.Security.Permissions;
 using Dalamud.Game.ClientState.JobGauge.Types;
+using static BossMod.CommonRotation.Strategy;
 
 namespace BossMod.DNC
 {
@@ -6,13 +8,11 @@ namespace BossMod.DNC
     {
         public class State(float[] cooldowns) : CommonRotation.PlayerState(cooldowns)
         {
-            public DNCGauge Gauge { private get; set; } = default!;
-
-            public byte Feathers => Gauge.Feathers;
-            public bool IsDancing => Gauge.IsDancing;
-            public byte CompletedSteps => Gauge.CompletedSteps;
-            public uint NextStep => (CompletedSteps == 4 || Gauge.NextStep == 15998) ? 0 : Gauge.NextStep;
-            public byte Esprit => Gauge.Esprit;
+            public byte Feathers;
+            public bool IsDancing;
+            public byte CompletedSteps;
+            public uint NextStep;
+            public byte Esprit;
 
             public float StandardStepLeft; // 15s max
             public float StandardFinishLeft; // 60s max
@@ -27,14 +27,19 @@ namespace BossMod.DNC
             public float FlourishingStarfallLeft; // 20s max
             public float ThreefoldLeft; // 30s max
             public float FourfoldLeft; // 30s max
+            public float PelotonLeft;
 
             public AID ComboLastMove => (AID)ComboLastAction;
 
-            public AID BestStandardStep {
-                get {
-                    if (StandardStepLeft <= GCD) return AID.StandardStep;
+            public AID BestStandardStep
+            {
+                get
+                {
+                    if (StandardStepLeft <= GCD)
+                        return AID.StandardStep;
 
-                    return CompletedSteps switch {
+                    return CompletedSteps switch
+                    {
                         0 => AID.StandardFinish,
                         1 => AID.SingleStandardFinish,
                         _ => AID.DoubleStandardFinish,
@@ -42,12 +47,17 @@ namespace BossMod.DNC
                 }
             }
 
-            public AID BestTechStep {
-                get {
-                    if (FlourishingFinishLeft > GCD && Unlocked(AID.Tillana)) return AID.Tillana;
-                    if (TechStepLeft <= GCD) return AID.TechnicalStep;
+            public AID BestTechStep
+            {
+                get
+                {
+                    if (FlourishingFinishLeft > GCD && Unlocked(AID.Tillana))
+                        return AID.Tillana;
+                    if (TechStepLeft <= GCD)
+                        return AID.TechnicalStep;
 
-                    return CompletedSteps switch {
+                    return CompletedSteps switch
+                    {
                         0 => AID.TechnicalFinish,
                         1 => AID.SingleTechnicalFinish,
                         2 => AID.DoubleTechnicalFinish,
@@ -55,11 +65,13 @@ namespace BossMod.DNC
                         _ => AID.QuadrupleTechnicalFinish
                     };
                 }
-            } 
+            }
 
-            public AID BestImprov => ImprovisationLeft > 0 ? AID.ImprovisedFinish : AID.Improvisation;
+            public AID BestImprov =>
+                ImprovisationLeft > 0 ? AID.ImprovisedFinish : AID.Improvisation;
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
+
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
 
             public override string ToString()
@@ -69,49 +81,79 @@ namespace BossMod.DNC
             }
         }
 
+        public class Strategy : CommonRotation.Strategy
+        {
+            public bool PauseDuringImprov;
+            public bool UseAOERotation;
+            public int NumHostilesInDanceRange;
+
+            public OffensiveAbilityUse FeatherUse;
+            public OffensiveAbilityUse GaugeUse;
+
+            public void ApplyStrategyOverrides(uint[] overrides)
+            {
+                if (overrides.Length >= 2)
+                {
+                    GaugeUse = (OffensiveAbilityUse)overrides[0];
+                    FeatherUse = (OffensiveAbilityUse)overrides[1];
+                }
+                else
+                {
+                    GaugeUse = OffensiveAbilityUse.Automatic;
+                    FeatherUse = OffensiveAbilityUse.Automatic;
+                }
+            }
+        }
+
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
-            if (DoNothing(state, strategy)) return AID.None;
-
-            if (state.IsDancing) {
-                if (state.NextStep != 0)
-                    return (AID)state.NextStep;
-
-                if (state.StandardStepLeft > 0 && (strategy.CombatTimer > 0 || state.StandardStepLeft < 0.6))
-                    return state.BestStandardStep;
-
-                if (state.TechStepLeft > 0 && (strategy.CombatTimer > 0 || state.TechStepLeft < 0.6))
-                    return state.BestTechStep;
-
-                // we can't use non-step GCDs while dancing
+            if (ShouldDoNothing(state, strategy))
                 return AID.None;
-            }
 
-            if (strategy.CombatTimer < 0) {
+            if (state.IsDancing && state.NextStep != 0)
+                return (AID)state.NextStep;
+
+            if (strategy.CombatTimer < 0)
+            {
                 if (strategy.CombatTimer > -15.5 && strategy.CombatTimer < -3.5 && !state.IsDancing)
                     return AID.StandardStep;
 
                 return AID.None;
             }
 
-            if (state.DevilmentLeft > state.GCD && state.FlourishingStarfallLeft > state.GCD && state.Unlocked(AID.StarfallDance))
+            if (ShouldFinishDance(state.StandardStepLeft, state, strategy))
+                return state.BestStandardStep;
+            if (ShouldFinishDance(state.TechStepLeft, state, strategy))
+                return state.BestTechStep;
+
+            if (!state.TargetingEnemy)
+                return AID.None;
+
+            if (
+                state.DevilmentLeft > state.GCD
+                && state.FlourishingStarfallLeft > state.GCD
+                && state.Unlocked(AID.StarfallDance)
+            )
                 return AID.StarfallDance;
 
             if (state.FlourishingFinishLeft > state.GCD)
                 return AID.Tillana;
 
-            if (state.StandardFinishLeft > state.GCD + 5.5
+            if (
+                state.StandardFinishLeft > state.GCD + 5.5
                 && state.Unlocked(AID.TechnicalStep)
-                && state.CD(CDGroup.TechnicalStep) <= state.GCD)
+                && state.CD(CDGroup.TechnicalStep) <= state.GCD
+            )
                 return AID.TechnicalStep;
 
             if (state.CD(CDGroup.StandardStep) <= state.GCD && state.Unlocked(AID.StandardStep))
                 return AID.StandardStep;
 
-            if (SpendEsprit(state, strategy) && state.Unlocked(AID.SaberDance))
+            if (ShouldSpendEsprit(state, strategy) && state.Unlocked(AID.SaberDance))
                 return AID.SaberDance;
 
-            if (state.FlowLeft > state.GCD) {
+            if (state.FlowLeft > state.GCD)
+            {
                 if (strategy.UseAOERotation && state.Unlocked(AID.Bloodshower))
                     return AID.Bloodshower;
 
@@ -120,7 +162,8 @@ namespace BossMod.DNC
                     return AID.Fountainfall;
             }
 
-            if (state.SymmetryLeft > state.GCD) {
+            if (state.SymmetryLeft > state.GCD)
+            {
                 if (strategy.UseAOERotation && state.Unlocked(AID.RisingWindmill))
                     return AID.RisingWindmill;
 
@@ -134,68 +177,102 @@ namespace BossMod.DNC
             if (state.ComboLastMove == AID.Cascade && state.Unlocked(AID.Fountain))
                 return AID.Fountain;
 
-            return (strategy.UseAOERotation && state.Unlocked(AID.Windmill)) ? AID.Windmill : AID.Cascade;
+            return (strategy.UseAOERotation && state.Unlocked(AID.Windmill))
+                ? AID.Windmill
+                : AID.Cascade;
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
         {
-            // only permitted OGCDs while dancing are role actions, shield samba, and curing waltz
-            if (DoNothing(state, strategy) || state.IsDancing)
+            if (ShouldDoNothing(state, strategy))
                 return new();
 
-            if (strategy.CombatTimer > -15 && strategy.CombatTimer < -2 && state.NextStep == 0)
+            if (
+                strategy.CombatTimer > -10
+                && strategy.CombatTimer < -2
+                && state.NextStep == 0
+                && state.PelotonLeft == 0
+            )
                 return ActionID.MakeSpell(AID.Peloton);
 
-            if (state.RaidBuffsLeft > state.GCD) {
-                if (state.Unlocked(AID.Devilment) && state.CanWeave(CDGroup.Devilment, 0.6f, deadline))
+            // only permitted OGCDs while dancing are role actions, shield samba, and curing waltz
+            if (state.IsDancing || !state.TargetingEnemy)
+                return new();
+
+            if (state.RaidBuffsLeft > state.GCD)
+            {
+                if (
+                    state.Unlocked(AID.Devilment)
+                    && state.CanWeave(CDGroup.Devilment, 0.6f, deadline)
+                )
                     return ActionID.MakeSpell(AID.Devilment);
 
-                if (state.Unlocked(AID.Flourish) && state.CanWeave(CDGroup.Flourish, 0.6f, deadline))
+                if (
+                    state.Unlocked(AID.Flourish) && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
+                )
                     return ActionID.MakeSpell(AID.Flourish);
 
                 if (state.FourfoldLeft > state.AnimationLock && state.CanWeave(deadline))
                     return ActionID.MakeSpell(AID.FanDanceIV);
             }
 
-            if (state.CD(CDGroup.Devilment) >= 55 && state.CanWeave(CDGroup.Flourish, 0.6f, deadline))
+            if (
+                state.CD(CDGroup.Devilment) >= 55
+                && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
+            )
                 return ActionID.MakeSpell(AID.Flourish);
 
-            if (state.CD(CDGroup.Devilment) > 0 && state.FourfoldLeft > state.AnimationLock && state.CanWeave(deadline))
+            if (
+                state.CD(CDGroup.Devilment) > 0
+                && state.FourfoldLeft > state.AnimationLock
+                && state.CanWeave(deadline)
+            )
                 return ActionID.MakeSpell(AID.FanDanceIV);
 
             if (state.ThreefoldLeft > state.AnimationLock && state.CanWeave(deadline))
                 return ActionID.MakeSpell(AID.FanDanceIII);
 
-            if (SpendFeathers(state, strategy) && state.CanWeave(deadline))
+            if (ShouldSpendFeathers(state, strategy) && state.CanWeave(deadline))
                 return ActionID.MakeSpell(AID.FanDance);
 
             return new();
         }
 
-        private static bool SpendFeathers(State state, Strategy strategy)
+        private static bool ShouldFinishDance(float danceTimeLeft, State state, Strategy strategy)
         {
-            // don't overcap
-            if (state.Feathers == 4) return true;
+            if (state.NextStep != 0)
+                return false;
+            if (danceTimeLeft < 0.2)
+                return true;
 
-            return state.RaidBuffsLeft > state.AnimationLock && state.Feathers > 0;
+            return danceTimeLeft > state.GCD && strategy.NumHostilesInDanceRange > 0;
         }
 
-        private static bool SpendEsprit(State state, Strategy strategy)
+        private static bool ShouldSpendFeathers(State state, Strategy strategy)
         {
-            if (state.Esprit >= 90) return true;
+            if (state.Feathers == 0 || strategy.FeatherUse == OffensiveAbilityUse.Delay)
+                return false;
 
-            return state.RaidBuffsLeft > state.GCD && state.Esprit >= 50;
+            if (state.Feathers == 4 || strategy.FeatherUse == OffensiveAbilityUse.Force)
+                return true;
+
+            return state.RaidBuffsLeft > state.AnimationLock;
         }
 
-        private static bool DoNothing(State state, Strategy strategy)
+        private static bool ShouldSpendEsprit(State state, Strategy strategy)
+        {
+            if (state.Esprit < 50 || strategy.GaugeUse == OffensiveAbilityUse.Delay)
+                return false;
+
+            if (state.Esprit >= 90 || strategy.GaugeUse == OffensiveAbilityUse.Force)
+                return true;
+
+            return state.RaidBuffsLeft > state.GCD;
+        }
+
+        private static bool ShouldDoNothing(State state, Strategy strategy)
         {
             return strategy.PauseDuringImprov && state.ImprovisationLeft > 0;
-        }
-
-        public class Strategy : CommonRotation.Strategy
-        {
-            public bool PauseDuringImprov;
-            public bool UseAOERotation;
         }
     }
 }
