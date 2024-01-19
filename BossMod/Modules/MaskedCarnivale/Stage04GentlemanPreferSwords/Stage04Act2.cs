@@ -73,5 +73,18 @@ class Hints2 : BossComponent
             foreach (var s in Enemies(OID.Beetle))
                 Arena.Actor(s, ArenaColor.Object, false);
         }
+                public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.CalculateAIHints(slot, actor, assignment, hints);
+            foreach (var e in hints.PotentialTargets)
+            {
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    OID.Beetle => 1,
+                    OID.Boss => 0,
+                    _ => 0
+                };
+            }
+        }
     }
 }
