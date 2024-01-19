@@ -8,5 +8,8 @@
 
         [PropertyDisplay("Pause autorotation while Improvisation is active")]
         public bool PauseDuringImprov = false;
+
+        [PropertyDisplay("Automatically choose dance partner")]
+        public bool AutoPartner = true;
     }
 }

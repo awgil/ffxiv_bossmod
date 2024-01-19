@@ -50,6 +50,7 @@ namespace BossMod.DNC
                 : AutoActionNone;
 
             _strategy.PauseDuringImprov = _config.PauseDuringImprov;
+            _strategy.AutoPartner = _config.AutoPartner;
         }
 
         protected override NextAction CalculateAutomaticGCD()
@@ -67,7 +68,8 @@ namespace BossMod.DNC
                 return new();
 
             if (
-                _state.Unlocked(AID.ClosedPosition)
+                _strategy.AutoPartner
+                && _state.Unlocked(AID.ClosedPosition)
                 && StatusDetails(Player, SID.ClosedPosition, Player.InstanceID).Left == 0
                 && FindDancePartner(out var partner)
             )
