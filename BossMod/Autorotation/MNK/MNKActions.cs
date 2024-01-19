@@ -23,6 +23,10 @@ namespace BossMod.MNK
             SupportedSpell(AID.SteelPeak).TransformAction = SupportedSpell(
                 AID.ForbiddenChakra
             ).TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);
+            SupportedSpell(AID.Meditation).TransformAction = () =>
+                ActionID.MakeSpell(
+                    _state.Chakra == 5 ? _state.BestForbiddenChakra : AID.Meditation
+                );
             SupportedSpell(AID.HowlingFist).TransformAction = SupportedSpell(
                 AID.Enlightenment
             ).TransformAction = () => ActionID.MakeSpell(_state.BestEnlightenment);
