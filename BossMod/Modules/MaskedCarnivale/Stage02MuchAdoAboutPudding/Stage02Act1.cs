@@ -37,34 +37,23 @@ class Hints2 : BossComponent
     }    
 class Stage02Act1States : StateMachineBuilder
     {
-        private static bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
         public Stage02Act1States(Stage02Act1 module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<GoldenTongue>()
             .ActivateOnEnter<Hints2>()               
             .DeactivateOnEnter<Hints>()
-            .Raw.Update = () => IsDead(module.Pudding()) && IsDead(module.Marshmallow()) && IsDead(module.Bavarois());
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Marshmallow).All(e => e.IsDead) && module.Enemies(OID.Bavarois).All(e => e.IsDead);
         }
     }
 
 public class Stage02Act1 : BossModule
     {
-        public Actor? _Marshmallow;
-        public Actor? _Bavarois;
-        public Actor? Pudding() => PrimaryActor;
-        public Actor? Marshmallow() => _Marshmallow;
-        public Actor? Bavarois() => _Bavarois;
         public Stage02Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Marshmallow).Any(e => e.InCombat) || Enemies(OID.Bavarois).Any(e => e.InCombat); }
-        protected override void UpdateModule()
-        {
-            _Marshmallow ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Marshmallow).FirstOrDefault() : null;
-            _Bavarois ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Bavarois).FirstOrDefault() : null;
-        }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))

@@ -29,14 +29,14 @@ namespace BossMod.MaskedCarnivale.Stage03
     {
         public Obliterate() : base(ActionID.MakeSpell(AID.Obliterate), "Interruptible raidwide") { }
     }
-class Hints : BossComponent
+    class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add("Zipacna is weak against water based spells.\nFlying Sardine is recommended to interrupt raidwide.");
         } 
     }
-class Hints2 : BossComponent
+    class Hints2 : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {

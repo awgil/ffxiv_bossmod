@@ -5,7 +5,7 @@ namespace BossMod.MaskedCarnivale.Stage05
         Boss = 0x25CC, //R=5.0
     };
 
-class Hints : BossComponent
+    class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {

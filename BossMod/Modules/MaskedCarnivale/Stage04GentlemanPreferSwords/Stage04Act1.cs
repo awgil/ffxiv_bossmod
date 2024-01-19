@@ -32,30 +32,22 @@ class Hints2 : BossComponent
     }    
 class Stage04States : StateMachineBuilder
     {
-        private static bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
         public Stage04States(Stage04 module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<Hints2>()
             .DeactivateOnEnter<Hints>()
-            .Raw.Update = () => IsDead(module.Wolf()) && IsDead(module.Bat());
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Bat).All(e => e.IsDead);
         }
     }
 
 public class Stage04 : BossModule
     {
-        public Actor? _Bat;
-        public Actor? Wolf() => PrimaryActor;
-        public Actor? Bat() => _Bat;
         public Stage04(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bat).Any(e => e.InCombat); }
-        protected override void UpdateModule()
-        {
-            _Bat ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Bat).FirstOrDefault() : null;
-        }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))

@@ -38,24 +38,13 @@ class Stage02Act2States : StateMachineBuilder
             TrivialPhase()
             .ActivateOnEnter<GoldenTongue>()
             .ActivateOnEnter<Hints>()               
-            .Raw.Update = () => IsDead(module.Gelato()) && IsDead(module.Flan()) && IsDead(module.Licorice());
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Flan).All(e => e.IsDead) && module.Enemies(OID.Licorice).All(e => e.IsDead);
         }
     }
 
 public class Stage02Act2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
     {
-        public Actor? _Flan;
-        public Actor? _Licorice;
-        public Actor? Gelato() => PrimaryActor;
-        public Actor? Licorice() => _Licorice;
-        public Actor? Flan() => _Flan;
-
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Flan).Any(e => e.InCombat) || Enemies(OID.Licorice).Any(e => e.InCombat); }
-        protected override void UpdateModule()
-        {
-            _Licorice ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Licorice).FirstOrDefault() : null;
-            _Flan ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Flan).FirstOrDefault() : null;
-        }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))

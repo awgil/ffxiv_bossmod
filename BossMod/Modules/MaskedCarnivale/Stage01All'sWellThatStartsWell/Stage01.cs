@@ -28,30 +28,22 @@ class Hints : BossComponent
     }   
 class Stage01States : StateMachineBuilder
     {
-        private static bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
         public Stage01States(Stage01 module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<IronJustice>()
             .DeactivateOnEnter<Hints>()
-            .Raw.Update = () => IsDead(module.Dullahan()) && IsDead(module.Slime());
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Slime).All(e => e.IsDead);
         }
     }
 
 public class Stage01 : BossModule
     {
-        public Actor? _Slime;
-        public Actor? Dullahan() => PrimaryActor;
-        public Actor? Slime() => _Slime;
         public Stage01(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat); }
-        protected override void UpdateModule()
-        {
-            _Slime ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Slime).FirstOrDefault() : null;
-        }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
