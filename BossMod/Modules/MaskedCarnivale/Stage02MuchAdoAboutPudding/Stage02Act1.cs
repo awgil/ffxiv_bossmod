@@ -9,13 +9,13 @@ namespace BossMod.MaskedCarnivale.Stage02.Act1
         Bavarois = 0x25C4, //R1.8
     };
 
-public enum AID : uint
-{
-    Fire = 14266, // 25C0->player, 1,0s cast, single-target
-    Aero = 14269, // 25C2->player, 1,0s cast, single-target
-    Thunder = 14268, // 25C4->player, 1,0s cast, single-target
-    GoldenTongue = 14265, // 25C0/25C2/25C4->self, 5,0s cast, single-target
-};
+    public enum AID : uint
+    {
+        Fire = 14266, // 25C0->player, 1,0s cast, single-target
+        Aero = 14269, // 25C2->player, 1,0s cast, single-target
+        Thunder = 14268, // 25C4->player, 1,0s cast, single-target
+        GoldenTongue = 14265, // 25C0/25C2/25C4->self, 5,0s cast, single-target
+    };
 
 class GoldenTongue : Components.CastHint
     {
@@ -37,7 +37,7 @@ class Hints2 : BossComponent
     }    
 class Stage02Act1States : StateMachineBuilder
     {
-        public Stage02Act1States(Stage02Act1 module) : base(module)
+        public Stage02Act1States(BossModule module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<GoldenTongue>()

@@ -8,13 +8,13 @@ namespace BossMod.MaskedCarnivale.Stage01
         Slime = 0x25BD, //R1.5
     };
 
-public enum AID : uint
-{
-    AutoAttack = 6499, // 25BD->player, no cast, single-target
-    FluidSpread = 14198, // 25BD->player, no cast, single-target
-    AutoAttack2 = 6497, // 25BE->player, no cast, single-target
-    IronJustice = 14199, // 25BE->self, 2,5s cast, range 8+R 120-degree cone
-};
+    public enum AID : uint
+    {
+        AutoAttack = 6499, // 25BD->player, no cast, single-target
+        FluidSpread = 14198, // 25BD->player, no cast, single-target
+        AutoAttack2 = 6497, // 25BE->player, no cast, single-target
+        IronJustice = 14199, // 25BE->self, 2,5s cast, range 8+R 120-degree cone
+    };
 class IronJustice : Components.SelfTargetedAOEs
     {
         public IronJustice() : base(ActionID.MakeSpell(AID.IronJustice), new AOEShapeCone(8,60.Degrees())) { } 
@@ -28,7 +28,7 @@ class Hints : BossComponent
     }   
 class Stage01States : StateMachineBuilder
     {
-        public Stage01States(Stage01 module) : base(module)
+        public Stage01States(BossModule module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<IronJustice>()

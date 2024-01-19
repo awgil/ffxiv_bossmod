@@ -8,13 +8,13 @@ namespace BossMod.MaskedCarnivale.Stage04.Act1
         Bat = 0x25D2, //R0.4
     };
 
-public enum AID : uint
-{
-    AutoAttack = 6497, // 25C8->player, no cast, single-target
-    AutoAttack2 = 6499, // 25D2->player, no cast, single-target
-    BloodDrain = 14360, // 25D2->player, no cast, single-target
-    SanguineBite = 14361, // 25C8->self, no cast, range 3+R width 2 rect
-};
+    public enum AID : uint
+    {
+        AutoAttack = 6497, // 25C8->player, no cast, single-target
+        AutoAttack2 = 6499, // 25D2->player, no cast, single-target
+        BloodDrain = 14360, // 25D2->player, no cast, single-target
+        SanguineBite = 14361, // 25C8->self, no cast, range 3+R width 2 rect
+    };
 
 class Hints : BossComponent
     {
@@ -30,9 +30,9 @@ class Hints2 : BossComponent
             hints.Add("Bats are weak to lightning.\nThe wolf is weak to fire.");
         } 
     }    
-class Stage04States : StateMachineBuilder
+class Stage04Act1States : StateMachineBuilder
     {
-        public Stage04States(Stage04 module) : base(module)
+        public Stage04Act1States(BossModule module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<Hints2>()
@@ -41,9 +41,9 @@ class Stage04States : StateMachineBuilder
         }
     }
 
-public class Stage04 : BossModule
+public class Stage04Act1 : BossModule
     {
-        public Stage04(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+        public Stage04Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
         }

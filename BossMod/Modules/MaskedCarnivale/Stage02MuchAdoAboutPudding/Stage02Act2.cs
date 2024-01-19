@@ -10,13 +10,13 @@ namespace BossMod.MaskedCarnivale.Stage02.Act2
 
     };
 
-public enum AID : uint
-{
-    Water = 14271, // 25C5->player, 1,0s cast, single-target
-    Stone = 14270, // 25C3->player, 1,0s cast, single-target
-    Blizzard = 14267, // 25C1->player, 1,0s cast, single-target
-    GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5,0s cast, single-target
-};
+    public enum AID : uint
+    {
+        Water = 14271, // 25C5->player, 1,0s cast, single-target
+        Stone = 14270, // 25C3->player, 1,0s cast, single-target
+        Blizzard = 14267, // 25C1->player, 1,0s cast, single-target
+        GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5,0s cast, single-target
+    };
 
 class GoldenTongue : Components.CastHint
     {
@@ -32,8 +32,7 @@ class Hints : BossComponent
 
 class Stage02Act2States : StateMachineBuilder
     {
-        private static bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
-        public Stage02Act2States(Stage02Act2 module) : base(module)
+        public Stage02Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<GoldenTongue>()

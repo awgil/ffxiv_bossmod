@@ -60,9 +60,9 @@ class Hints2 : BossComponent
         }
     }
 
-    public class Stage03 : BossModule
+    public class Stage04Act2 : BossModule
     {
-        public Stage03(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+        public Stage04Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
         }
