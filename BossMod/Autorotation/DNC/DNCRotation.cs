@@ -84,6 +84,7 @@ namespace BossMod.DNC
         public class Strategy : CommonRotation.Strategy
         {
             public bool PauseDuringImprov;
+            public bool AutoPartner;
             public bool UseAOERotation;
             public int NumHostilesInDanceRange;
 
