@@ -106,7 +106,7 @@ namespace BossMod.DNC
             }
         }
 
-        const float FINISH_DANCE_WINDOW = 0.2f;
+        const float FINISH_DANCE_WINDOW = 0.5f;
 
         public static AID GetNextBestGCD(State state, Strategy strategy)
         {
@@ -144,7 +144,7 @@ namespace BossMod.DNC
             )
                 return AID.StarfallDance;
 
-            if (state.FlourishingFinishLeft > state.GCD)
+            if (state.FlourishingFinishLeft > state.GCD && state.CD(CDGroup.Devilment) > 0)
                 return AID.Tillana;
 
             if (
