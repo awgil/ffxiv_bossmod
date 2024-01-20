@@ -15,5 +15,6 @@
         public const uint PlayerInteresting = 0xffc0c0c0;
         public const uint PlayerGeneric = 0xff808080;
         public const uint Vulnerable = 0xffff00ff;
+        public const uint Invisible = 0x00FFFFFF;
     }
 }

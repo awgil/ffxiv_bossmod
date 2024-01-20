@@ -20,13 +20,112 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
         DreadGaze = 14694, // 25CE->self, 3,0s cast, range 6+R ?-degree cone
 
     };
+    public enum SID : uint
+    {
+        Blind = 571, // Mandragora->player, extra=0x0
+
+    };
+    class DemonEye : CastGaze
+    {
+        public DemonEye() : base(ActionID.MakeSpell(AID.DemonEye)) {}
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = false;
+                    }
+                }
+            }
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = true;
+                    }
+                }
+            }
+    }
+    class ColdStare : SelfTargetedAOEs
+    {
+        public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(40,45.Degrees())) { } 
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = false;
+                        Color = ArenaColor.Invisible;
+                    }
+                }
+            }
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = true;
+                    }
+                }
+            }
+    }
     class TearyTwirl : StackWithCastTargets
     {
+    private bool blinded = false;
         public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6) { }
+                public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        blinded = true;
+                    }
+                }
+            }
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        blinded = false;
+                    }
+                }
+            }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) 
+            {
+                if (!blinded)
+                    hints.Add("Stack to get blinded!", false);
+            }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+            {
+                if (blinded)
+                hints.Add("Kill mandragoras last incase you need to get blinded again.");
+            } 
     }
+
     class DreadGaze : SelfTargetedAOEs
     {
         public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(6,45.Degrees())) { } 
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = false;
+                        Color = ArenaColor.Background;
+                    }
+                }
+            }
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = true;
+                    }
+                }
+            }
     }
     class Stage06Act2States : StateMachineBuilder
     {
@@ -34,6 +133,8 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
         {
             TrivialPhase()
             .ActivateOnEnter<TearyTwirl>()
+            .ActivateOnEnter<DemonEye>()
+            .ActivateOnEnter<ColdStare>()
             .ActivateOnEnter<DreadGaze>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead) && module.Enemies(OID.Eye).All(e => e.IsDead);
         }

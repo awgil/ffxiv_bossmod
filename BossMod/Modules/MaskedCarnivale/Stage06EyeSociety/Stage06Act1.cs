@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace BossMod.MaskedCarnivale.Stage06.Act1
 {
@@ -22,23 +23,84 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
         Blind = 571, // Mandragora->player, extra=0x0
 
     };
-
-    class DemonEye : GenericAOEs
+    class DemonEye : CastGaze
     {
-        private bool activePillar; 
-        private static readonly AOEShapeCircle circle = new(6);
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (activePillar)
-                foreach (var p in module.Enemies(OID.Boss))
-                    yield return new(circle, p.Position, p.Rotation, new());
-        }
+        public DemonEye() : base(ActionID.MakeSpell(AID.DemonEye)) {}
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = false;
+                    }
+                }
+            }
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = true;
+                    }
+                }
+            }
+    }
+    class ColdStare : SelfTargetedAOEs
+    {
+        public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(40,45.Degrees())) { } 
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = false;
+                        Color = ArenaColor.Invisible;
+                    }
+                }
+            }
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        Risky = true;
+                    }
+                }
+            }
     }
     class TearyTwirl : StackWithCastTargets
     {
+    private bool blinded = false;
         public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6) { }
+                public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        blinded = true;
+                    }
+                }
+            }
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+            {
+            if (actor == module.Raid.Player())
+                {if ((SID)status.ID == SID.Blind)
+                    {
+                        blinded = false;
+                    }
+                }
+            }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) 
+            {
+                if (!blinded)
+                    hints.Add("Stack to get blinded!", false);
+            }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+            {
+                if (blinded)
+                hints.Add("Kill mandragoras last incase you need to get blinded again.");
+            } 
     }
-
 
     class Hints : BossComponent
     {
@@ -54,15 +116,23 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
             TrivialPhase()
             .DeactivateOnEnter<Hints>()
             .ActivateOnEnter<TearyTwirl>()
+            .ActivateOnEnter<DemonEye>()
+            .ActivateOnEnter<ColdStare>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead);
         }
     }
 
     public class Stage06Act2 : BossModule
     {
+
+        public static float BarricadeRadius = 20;
         public Stage06Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
+        }
+        protected override void DrawArenaForeground(int pcSlot, Actor pc)
+        {
+                Arena.AddQuad(new(100,107),new(107,100),new(100,93),new(93,100), ArenaColor.Border, 2);
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -105,10 +105,11 @@ namespace BossMod.Components
     public class CastGaze : GenericGaze
     {
         private List<Actor> _casters = new();
+        public bool Risky = true; // can be customized if needed
 
         public CastGaze(ActionID aid, bool inverted = false) : base(aid, inverted) { }
 
-        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.FinishAt));
+        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.FinishAt, default, Risky));
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
