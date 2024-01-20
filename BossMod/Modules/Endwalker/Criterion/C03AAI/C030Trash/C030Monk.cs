@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-            if (_caster?.TargetID == actor.InstanceID)
+            if (_caster?.CastInfo?.TargetID == actor.InstanceID)
                 yield return new(_caster.Position, 10, _caster.CastInfo?.FinishAt ?? default);
         }
 

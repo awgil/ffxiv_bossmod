@@ -19,11 +19,6 @@
         STwister = 0x40D8, // R1.500, spawn during fight
 
         Helper = 0x233C, // R0.500, 523 type, spawn during fight
-
-        _Gen_Actor1e8f2f = 0x1E8F2F, // R0.500, x2, EventObj type
-        _Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x3, EventObj type
-        _Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
-        _Gen_Shortcut = 0x1E873C, // R0.500, x1, EventObj type
     };
 
     public enum AID : uint
