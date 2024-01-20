@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace BossMod.MaskedCarnivale.Stage06.Act1
 {
