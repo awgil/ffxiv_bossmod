@@ -14,8 +14,8 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
     {
         TearyTwirl = 14693, // 2700->self, 3,0s cast, range 6+R circle
         DemonEye = 14691, // 25CD->self, 5,0s cast, range 50+R circle
-        Attack = 6499, // 2700/25CD->player, no cast, single-target
-        ColdStare = 14692, // 25CD->self, 2,5s cast, range 40+R 90-degree cone
+        Attack = 6499, // /25CD->player, no cast, single-target
+        ColdStare = 14692, // 25CE->self, 2,5s cast, range 40+R 90-degree cone
         Stone = 14695, // 25CE->player, 1,0s cast, single-target
         DreadGaze = 14694, // 25CE->self, 3,0s cast, range 6+R ?-degree cone
 
@@ -49,7 +49,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
     }
     class ColdStare : SelfTargetedAOEs
     {
-        public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(40,45.Degrees())) { } 
+        public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f,45.Degrees())) { } 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
             if (actor == module.Raid.Player())
@@ -73,7 +73,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
     class TearyTwirl : StackWithCastTargets
     {
     private bool blinded = false;
-        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6) { }
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) { }
                 public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
             if (actor == module.Raid.Player())
@@ -106,7 +106,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
 
     class DreadGaze : SelfTargetedAOEs
     {
-        public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(6,45.Degrees())) { } 
+        public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(7.35f,45.Degrees())) { } 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
             if (actor == module.Raid.Player())

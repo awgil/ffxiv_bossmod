@@ -21,7 +21,7 @@ public enum AID : uint
 
     class GrandStrike : SelfTargetedAOEs
     {
-        public GrandStrike() : base(ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(75,2)) { } 
+        public GrandStrike() : base(ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f,2)) { } 
     }
 
     class MagitekRay: LocationTargetedAOEs

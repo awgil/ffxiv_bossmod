@@ -45,7 +45,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
     }
     class ColdStare : SelfTargetedAOEs
     {
-        public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(40,45.Degrees())) { } 
+        public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f,45.Degrees())) { } 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
             if (actor == module.Raid.Player())
@@ -69,7 +69,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
     class TearyTwirl : StackWithCastTargets
     {
     private bool blinded = false;
-        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6) { }
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) { }
                 public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
             if (actor == module.Raid.Player())

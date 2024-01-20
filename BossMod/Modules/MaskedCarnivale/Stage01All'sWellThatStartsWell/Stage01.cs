@@ -17,7 +17,7 @@ namespace BossMod.MaskedCarnivale.Stage01
     };
 class IronJustice : Components.SelfTargetedAOEs
     {
-        public IronJustice() : base(ActionID.MakeSpell(AID.IronJustice), new AOEShapeCone(8,60.Degrees())) { } 
+        public IronJustice() : base(ActionID.MakeSpell(AID.IronJustice), new AOEShapeCone(9.5f,60.Degrees())) { } 
     }
 class Hints : BossComponent
     {
