@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
 
@@ -21,9 +20,19 @@ namespace BossMod.MaskedCarnivale.Stage07.Act2
         {
             if (!module.Enemies(OID.Boss).All(e => e.IsDead))
                 foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
-                    arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+                    arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
         }
-    }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                var player = module.Raid.Player();
+                if(player!=null)
+                    foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
+                        if(player.Position.InCircle(p.Position, 7.6f))
+                        {
+                            hints.Add("In Slime explosion radius!");
+                        }
+            }
+        }
 class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -31,21 +40,21 @@ class Hints : BossComponent
             hints.Add("Pull or push the Lava Slimes to the Ice Sprites and then hit the slimes\nfrom a distance to set of the explosions.");
         } 
     }       
-class Stage01States : StateMachineBuilder
+class Stage07Act2States : StateMachineBuilder
     {
-        public Stage01States(BossModule module) : base(module)
+        public Stage07Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<SlimeExplosion>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Sprite).All(e => e.IsDead);
         }
     }
 
-public class Stage01 : BossModule
+public class Stage07Act2 : BossModule
     {
-        public Stage01(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+        public Stage07Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
+            ActivateComponent<SlimeExplosion>();
         }
         protected override void DrawArenaForeground(int pcSlot, Actor pc)
         {

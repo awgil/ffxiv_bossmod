@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
 
@@ -21,14 +20,24 @@ namespace BossMod.MaskedCarnivale.Stage07.Act1
         {
             if (!module.Enemies(OID.Boss).All(e => e.IsDead))
                 foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
-                    arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+                    arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
         }
-    }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+            {
+                var player = module.Raid.Player();
+                if(player!=null)
+                    foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
+                        if(player.Position.InCircle(p.Position, 7.6f))
+                        {
+                            hints.Add("In Slime explosion radius!");
+                        }
+            }
+        }
 class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("For this stage the spells Sticky Tongue and Snort are recommended.\nUse them to pull or push Slimes close to\nIce Sprites. Then hit the slime from a distance to set of an explosion.");
+            hints.Add("For this stage the spells Sticky Tongue and Snort are recommended.\nUse them to pull or push Slimes close toIce Sprites.\nThen hit the slime from a distance with anything but fire spells to set of an explosion.");
         } 
     }
 class Hints2 : BossComponent
@@ -38,23 +47,23 @@ class Hints2 : BossComponent
             hints.Add("Hit the Lava Slime from a safe distance to win this act.");
         } 
     }       
-class Stage01States : StateMachineBuilder
+class Stage07Act1States : StateMachineBuilder
     {
-        public Stage01States(BossModule module) : base(module)
+        public Stage07Act1States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<SlimeExplosion>()
             .DeactivateOnEnter<Hints>()
             .ActivateOnEnter<Hints2>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Sprite).All(e => e.IsDead);
         }
     }
 
-public class Stage01 : BossModule
+public class Stage07Act1 : BossModule
     {
-        public Stage01(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+        public Stage07Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
+            ActivateComponent<SlimeExplosion>();
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Sprite).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)
