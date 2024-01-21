@@ -19,6 +19,7 @@ namespace BossMod.Components
 
         public AOEShape Shape { get; private init; }
         public uint ImminentColor = ArenaColor.Danger;
+        public uint FutureColor = ArenaColor.AOE;
         protected List<Line> Lines = new();
 
         public bool Active => Lines.Count > 0;
@@ -32,7 +33,7 @@ namespace BossMod.Components
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var (c, t) in FutureAOEs(module.WorldState.CurrentTime))
-                yield return new(Shape, c, activation: t);
+                yield return new(Shape, c, activation: t, color: FutureColor);
             foreach (var (c, t) in ImminentAOEs())
                 yield return new(Shape, c, activation: t, color: ImminentColor);
         }
