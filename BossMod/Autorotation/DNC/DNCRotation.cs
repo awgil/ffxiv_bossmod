@@ -136,7 +136,7 @@ namespace BossMod.DNC
                 return AID.None;
             }
 
-            if (strategy.CombatTimer < 0)
+            if (strategy.CombatTimer > -100 && strategy.CombatTimer < 0)
             {
                 if (
                     strategy.CombatTimer > -15.5
