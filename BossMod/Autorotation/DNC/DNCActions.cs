@@ -178,6 +178,7 @@ namespace BossMod.DNC
                 return SelectBestTarget(initial, NumFan4Targets);
 
             // default for saber dance and fan3
+            // TODO: look for enemies we can aoe and move closer?
             return SelectBestTarget(initial, NumAOETargets);
         }
 
