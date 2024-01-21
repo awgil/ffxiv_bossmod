@@ -18,7 +18,6 @@ namespace BossMod.MaskedCarnivale.Stage07.Act2
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (!module.Enemies(OID.Boss).All(e => e.IsDead))
                 foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
                     arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
         }

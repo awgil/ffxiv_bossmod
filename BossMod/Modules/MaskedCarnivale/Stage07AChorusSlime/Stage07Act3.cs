@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
 
@@ -17,13 +18,12 @@ namespace BossMod.MaskedCarnivale.Stage07.Act3
     };
     class LowVoltage : GenericLineOfSightAOE
     {
-        public LowVoltage() : base(ActionID.MakeSpell(AID.LowVoltage), 30, true) { }
+        public LowVoltage() : base(ActionID.MakeSpell(AID.LowVoltage), 35, true) { } //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
     }
     class SlimeExplosion : GenericStackSpread
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            if (!module.Enemies(OID.Boss).All(e => e.IsDead))
                 foreach (var p in module.Enemies(OID.Slime).Where(x => x.HP.Cur > 0))
                     arena.AddCircle(p.Position, 7.5f, ArenaColor.Danger);
         }
@@ -57,6 +57,24 @@ class Stage07Act3States : StateMachineBuilder
 
 public class Stage07Act3 : BossModule
     {
+        public static IEnumerable<WPos> Wall1()
+        {
+            yield return new WPos(85,95);
+            yield return new WPos(95,95);
+            yield return new WPos(95,89);
+            yield return new WPos(94.5f,89);
+            yield return new WPos(94.5f,94.5f);
+            yield return new WPos(85,94.5f);
+        }
+        public static IEnumerable<WPos> Wall2()
+        {
+            yield return new WPos(105,95);
+            yield return new WPos(115,95);
+            yield return new WPos(115,94.5f);
+            yield return new WPos(105.5f,94.5f);
+            yield return new WPos(105.5f,89);
+            yield return new WPos(105,89);
+        }
         public Stage07Act3(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
@@ -64,10 +82,8 @@ public class Stage07Act3 : BossModule
         }
         protected override void DrawArenaForeground(int pcSlot, Actor pc)
         {
-                Arena.AddQuad(new(85,95),new(95,95),new(95,94.5f),new(85,94.5f), ArenaColor.Border);
-                Arena.AddQuad(new(95,94.5f),new(95,89),new(94.5f,89),new(94.5f,94.5f), ArenaColor.Border);
-                Arena.AddQuad(new(105,95),new(115,95),new(115,94.5f),new(105,94.5f), ArenaColor.Border);
-                Arena.AddQuad(new(105,94.5f),new(105,89),new(105.5f,89),new(105.5f,94.5f), ArenaColor.Border);
+                Arena.AddPolygon(Wall1(),ArenaColor.Border);
+                Arena.AddPolygon(Wall2(),ArenaColor.Border);
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)
