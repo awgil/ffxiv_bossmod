@@ -116,7 +116,8 @@ namespace BossMod.MNK
         Mantra = 102, // applied by Mantra to targets, +10% healing taken
         TrueNorth = 1250, // applied by True North to self, ignore positionals
         Stun = 2, // applied by Leg Sweep to target
-        FormlessFist = 2513,
+        FormlessFist = 2513, // applied by Form Shift to self
+        SixSidedStar = 2514, // applied by Six-Sided Star to self
     }
 
     public static class Definitions

@@ -1,4 +1,4 @@
-﻿namespace BossMod
+namespace BossMod
 {
     [ConfigDisplay(Parent = typeof(AutorotationConfig))]
     class MNKConfig : ConfigNode
@@ -13,6 +13,9 @@
 
         [PropertyDisplay("Automatic mouseover targeting for Thunderclap")]
         public bool SmartThunderclap = true;
+
+        [PropertyDisplay("Delay Thunderclap if already in melee range of target")]
+        public bool PreventCloseDash = true;
 
         [PropertyDisplay("Use Form Shift out of combat")]
         public bool AutoFormShift = false;
