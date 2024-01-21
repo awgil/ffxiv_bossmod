@@ -12,10 +12,10 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
 
     public enum AID : uint
     {
-        TearyTwirl = 14693, // 2700->self, 3,0s cast, range 6+R circle
-        DemonEye = 14691, // 25CD->self, 5,0s cast, range 50+R circle
-        Attack = 6499, // /25CD->player, no cast, single-target
-        ColdStare = 14692, // 25CE->self, 2,5s cast, range 40+R 90-degree cone
+        TearyTwirl = 14693, // 2701->self, 3,0s cast, range 6+R circle
+        DemonEye = 14691, // 26FF->self, 5,0s cast, range 50+R circle
+        Attack = 6499, // /26FF/2701->player, no cast, single-target
+        ColdStare = 14692, // 26FF->self, 2,5s cast, range 40+R 90-degree cone
         Stone = 14695, // 25CE->player, 1,0s cast, single-target
         DreadGaze = 14694, // 25CE->self, 3,0s cast, range 6+R ?-degree cone
 

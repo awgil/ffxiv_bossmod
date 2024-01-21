@@ -1,30 +1,34 @@
+using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
 
-namespace BossMod.MaskedCarnivale.Stage08.Act1
+namespace BossMod.MaskedCarnivale.Stage08.Act2
 {
     public enum OID : uint
     {
-        Boss = 0x2708, //R=0.6
-        Bomb = 0x2709, //R=1.2
-        Snoll = 0x270A, //R=0.9
+        Boss = 0x270B, //R=3.75
+        Bomb = 0x270C, //R=0.6
+        Snoll = 0x270D, //R=0.9
     };
 
     public enum AID : uint
     {
-        SelfDestruct = 14687, // 2708->self, no cast, range 10 circle
-        HypothermalCombustion = 14689, // 270A->self, no cast, range 6 circle
-        SelfDestruct2 = 14688, // 2709->self, no cast, range 6 circle
+        Attack = 6499, // 270C/270B->player, no cast, single-target
+        SelfDestruct = 14730, // 270C->self, no cast, range 6 circle
+        HypothermalCombustion = 14731, // 270D->self, no cast, range 6 circle
+        Sap = 14708, // 270B->location, 5,0s cast, range 8 circle
+        Burst = 14680, // 270B->self, 6,0s cast, range 50 circle
     };
-
+    class Burst : CastHint
+    {
+        public Burst() : base(ActionID.MakeSpell(AID.Burst), "Interrupt or wipe!") { }
+    }
     class Selfdetonations : GenericStackSpread
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-                foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
-                    arena.AddCircle(p.Position, 10, ArenaColor.Danger);
                 foreach (var p in module.Enemies(OID.Bomb).Where(x => x.HP.Cur > 0))
-                    arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+                    arena.AddCircle(p.Position, 10, ArenaColor.Danger);
                 foreach (var p in module.Enemies(OID.Snoll).Where(x => x.HP.Cur > 0))
                     arena.AddCircle(p.Position, 6, ArenaColor.Danger);
         }
@@ -33,13 +37,8 @@ namespace BossMod.MaskedCarnivale.Stage08.Act1
                 var player = module.Raid.Player();
                 if(player!=null)
                     {
-                    foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
-                        if(player.Position.InCircle(p.Position, 10))
-                        {
-                            hints.Add("In bomb explosion radius!");
-                        }
                     foreach (var p in module.Enemies(OID.Bomb).Where(x => x.HP.Cur > 0))
-                        if(player.Position.InCircle(p.Position, 6))
+                        if(player.Position.InCircle(p.Position, 10))
                         {
                             hints.Add("In bomb explosion radius!");
                         }
@@ -55,33 +54,49 @@ class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("For this stage the spell Flying Sardine to interrupt the Progenitrix in Act 2\nis highly recommended. Hit the Cherry Bomb from a safe distance\nwith anything but fire damage to set of a chain reaction to win this act.");
+            hints.Add("Clever activation of cherry bombs will freeze the Progenitrix.\nInterrupt its burst skill or wipe. The Progenitrix is weak to wind spells.");
         } 
     }
-class Hints2 : BossComponent
+   
+class Stage08Act2States : StateMachineBuilder
     {
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            hints.Add("Hit the Cherry Bomb from a safe distance to win this act.");
-        } 
-    }       
-class Stage08Act1States : StateMachineBuilder
-    {
-        public Stage08Act1States(BossModule module) : base(module)
+        public Stage08Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .DeactivateOnEnter<Hints>()
-            .ActivateOnEnter<Hints2>()
+            .ActivateOnEnter<Burst>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Bomb).All(e => e.IsDead) && module.Enemies(OID.Snoll).All(e => e.IsDead);
         }
     }
 
-public class Stage08Act1 : BossModule
+public class Stage08Act2 : BossModule
     {
-        public Stage08Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+        public static IEnumerable<WPos> Wall1()
+        {
+            yield return new WPos(85,95);
+            yield return new WPos(95,95);
+            yield return new WPos(95,89);
+            yield return new WPos(94.5f,89);
+            yield return new WPos(94.5f,94.5f);
+            yield return new WPos(85,94.5f);
+        }
+        public static IEnumerable<WPos> Wall2()
+        {
+            yield return new WPos(105,95);
+            yield return new WPos(115,95);
+            yield return new WPos(115,94.5f);
+            yield return new WPos(105.5f,94.5f);
+            yield return new WPos(105.5f,89);
+            yield return new WPos(105,89);
+        }
+        public Stage08Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
             ActivateComponent<Selfdetonations>();
+        }
+        protected override void DrawArenaForeground(int pcSlot, Actor pc)
+        {
+                Arena.AddPolygon(Wall1(),ArenaColor.Border);
+                Arena.AddPolygon(Wall2(),ArenaColor.Border);
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -108,3 +123,5 @@ public class Stage08Act1 : BossModule
             }
         }
 }
+
+
