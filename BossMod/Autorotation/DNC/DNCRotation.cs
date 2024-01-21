@@ -85,7 +85,6 @@ namespace BossMod.DNC
         {
             public bool PauseDuringImprov;
             public bool AutoPartner;
-            public bool UseAOERotation;
 
             public int NumDanceTargets; // 15y around self
             public int NumAOETargets; // 5y around self
