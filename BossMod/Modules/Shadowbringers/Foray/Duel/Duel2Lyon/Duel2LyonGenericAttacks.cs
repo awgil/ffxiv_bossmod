@@ -150,7 +150,7 @@ class SplittingRage : CastHint
                         NextExplosion = caster.CastInfo!.FinishAt;
                         TimeToMove = 1.1f; //note the actual time between exaflare moves seems to vary by upto 100ms, but all 4 exaflares move at the same time
                         ExplosionsLeft = 7;
-                        MaxShownExplosions = 7;
+                        MaxShownExplosions = 3;
                         Caster = caster;
                     }
                 }
