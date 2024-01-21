@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace BossMod.DNC
@@ -84,24 +85,81 @@ namespace BossMod.DNC
             return MakeResult(res, Autorot.PrimaryTarget);
         }
 
-        protected override void QueueAIActions() { }
+        protected override void QueueAIActions()
+        {
+            if (_state.Unlocked(AID.HeadGraze))
+            {
+                var interruptibleEnemy = Autorot.Hints.PotentialTargets.Find(
+                    e =>
+                        e.ShouldBeInterrupted
+                        && (e.Actor.CastInfo?.Interruptible ?? false)
+                        && e.Actor.Position.InCircle(
+                            Player.Position,
+                            25 + e.Actor.HitboxRadius + Player.HitboxRadius
+                        )
+                );
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.HeadGraze),
+                    interruptibleEnemy?.Actor,
+                    interruptibleEnemy != null
+                );
+            }
+            if (_state.Unlocked(AID.Peloton))
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.Peloton),
+                    Player,
+                    !Player.InCombat && _state.PelotonLeft < 3 && _strategy.ForceMovementIn == 0
+                );
+            if (_state.Unlocked(AID.CuringWaltz))
+            {
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.CuringWaltz),
+                    Player,
+                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f
+                );
+            }
+            if (
+                _state.Unlocked(AID.SecondWind)
+                && (
+                    !_state.Unlocked(AID.CuringWaltz)
+                    // try to avoid immediately queueing both when we fall under 50% hp
+                    || (_state.CD(CDGroup.CuringWaltz) > 0 && _state.CD(CDGroup.CuringWaltz) < 57.5)
+                )
+            )
+            {
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.SecondWind),
+                    Player,
+                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f
+                );
+            }
+        }
 
         protected override void UpdateInternalState(int autoAction)
         {
             UpdatePlayerState();
             FillCommonStrategy(_strategy, CommonDefinitions.IDPotionDex);
+
+            var primaryTarget = Autorot.PrimaryTarget;
+
+            _strategy.NumDanceTargets = Autorot.Hints.NumPriorityTargetsInAOECircle(
+                Player.Position,
+                15
+            );
+            _strategy.NumAOETargets = autoAction == AutoActionST ? 0 : NumAOETargets(Player);
+            _strategy.NumRangedAOETargets =
+                primaryTarget == null ? 0 : NumAOETargets(primaryTarget);
+            _strategy.NumFan4Targets = primaryTarget == null ? 0 : NumFan4Targets(primaryTarget);
+            _strategy.NumStarfallTargets =
+                primaryTarget == null ? 0 : NumStarfallTargets(primaryTarget);
+
             _strategy.UseAOERotation = autoAction switch
             {
                 AutoActionST => false,
                 AutoActionAOE => true,
-                AutoActionAIFight => false, // TODO: detect
+                AutoActionAIFight => _strategy.NumAOETargets >= 3,
                 _ => false,
             };
-
-            _strategy.NumHostilesInDanceRange = Autorot.Hints.NumPriorityTargetsInAOECircle(
-                Player.Position,
-                15
-            );
 
             _strategy.ApplyStrategyOverrides(
                 Autorot
@@ -109,6 +167,18 @@ namespace BossMod.DNC
                     ?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine)
                     ?? new uint[0]
             );
+        }
+
+        public override Targeting SelectBetterTarget(AIHints.Enemy initial)
+        {
+            if (_state.FlourishingStarfallLeft > _state.GCD && _state.Unlocked(AID.StarfallDance))
+                return SelectBestTarget(initial, NumStarfallTargets);
+
+            if (_state.CD(CDGroup.Devilment) > 0 && _state.FourfoldLeft > _state.AnimationLock)
+                return SelectBestTarget(initial, NumFan4Targets);
+
+            // default for saber dance and fan3
+            return SelectBestTarget(initial, NumAOETargets);
         }
 
         private void UpdatePlayerState()
@@ -150,8 +220,21 @@ namespace BossMod.DNC
                 _state.PelotonLeft = 0;
         }
 
-        private float StatusLeft(SID status) =>
-            StatusDetails(Player, status, Player.InstanceID).Left;
+        private Targeting SelectBestTarget(AIHints.Enemy initial, Func<Actor, int> prio)
+        {
+            var newBest = initial;
+            int currentPrio = prio(initial.Actor);
+            foreach (var enemy in Autorot.Hints.PriorityTargets.Where(x => x != initial))
+            {
+                int potential = prio(enemy.Actor);
+                if (potential > currentPrio)
+                {
+                    newBest = enemy;
+                    currentPrio = potential;
+                }
+            }
+            return new(newBest, newBest.StayAtLongRange ? 25 : 15);
+        }
 
         private bool FindDancePartner([NotNullWhen(true)] out Actor? actor)
         {
@@ -164,18 +247,18 @@ namespace BossMod.DNC
                     p =>
                         p.Class switch
                         {
-                            Class.SAM => 1.00,
-                            Class.NIN => 0.99,
-                            Class.MNK => 0.88,
-                            Class.RPR => 0.87,
-                            Class.DRG => 0.86,
-                            Class.BLM => 0.79,
-                            Class.SMN => 0.78,
-                            Class.RDM => 0.77,
-                            Class.MCH => 0.69,
-                            Class.BRD => 0.68,
-                            Class.DNC => 0.67,
-                            _ => 0.01f
+                            Class.SAM => 100,
+                            Class.NIN => 99,
+                            Class.MNK => 88,
+                            Class.RPR => 87,
+                            Class.DRG => 86,
+                            Class.BLM => 79,
+                            Class.SMN => 78,
+                            Class.RDM => 77,
+                            Class.MCH => 69,
+                            Class.BRD => 68,
+                            Class.DNC => 67,
+                            _ => 1
                         }
                 );
             if (target != null)
@@ -186,5 +269,27 @@ namespace BossMod.DNC
 
             return false;
         }
+
+        private float StatusLeft(SID status) =>
+            StatusDetails(Player, status, Player.InstanceID).Left;
+
+        private int NumAOETargets(Actor origin) =>
+            Autorot.Hints.NumPriorityTargetsInAOECircle(origin.Position, 5);
+
+        private int NumFan4Targets(Actor primary) =>
+            Autorot.Hints.NumPriorityTargetsInAOECone(
+                Player.Position,
+                15,
+                (primary.Position - Player.Position).Normalized(),
+                60.Degrees()
+            );
+
+        private int NumStarfallTargets(Actor primary) =>
+            Autorot.Hints.NumPriorityTargetsInAOERect(
+                Player.Position,
+                (primary.Position - Player.Position).Normalized(),
+                25,
+                4
+            );
     }
 }

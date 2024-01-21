@@ -86,7 +86,12 @@ namespace BossMod.DNC
             public bool PauseDuringImprov;
             public bool AutoPartner;
             public bool UseAOERotation;
-            public int NumHostilesInDanceRange;
+
+            public int NumDanceTargets; // 15y around self
+            public int NumAOETargets; // 5y around self
+            public int NumRangedAOETargets; // 5y around target - Saber Dance, Fan3
+            public int NumFan4Targets; // 15y/120deg cone
+            public int NumStarfallTargets; // 25/4 rect
 
             public OffensiveAbilityUse FeatherUse;
             public OffensiveAbilityUse GaugeUse;
@@ -104,6 +109,11 @@ namespace BossMod.DNC
                     FeatherUse = OffensiveAbilityUse.Automatic;
                 }
             }
+
+            public override string ToString()
+            {
+                return $"AOE={NumAOETargets}/Fan3 {NumRangedAOETargets}/Fan4 {NumFan4Targets}/Star {NumStarfallTargets}, Dance={NumDanceTargets}";
+            }
         }
 
         const float FINISH_DANCE_WINDOW = 0.5f;
@@ -113,13 +123,18 @@ namespace BossMod.DNC
             if (ShouldDoNothing(state, strategy))
                 return AID.None;
 
-            if (state.IsDancing && state.NextStep != 0)
-                return (AID)state.NextStep;
+            if (state.IsDancing)
+            {
+                if (state.NextStep != 0)
+                    return (AID)state.NextStep;
 
-            if (ShouldFinishDance(state.StandardStepLeft, state, strategy))
-                return state.BestStandardStep;
-            if (ShouldFinishDance(state.TechStepLeft, state, strategy))
-                return state.BestTechStep;
+                if (ShouldFinishDance(state.StandardStepLeft, state, strategy))
+                    return state.BestStandardStep;
+                if (ShouldFinishDance(state.TechStepLeft, state, strategy))
+                    return state.BestTechStep;
+
+                return AID.None;
+            }
 
             if (strategy.CombatTimer < 0)
             {
@@ -134,60 +149,84 @@ namespace BossMod.DNC
                 return AID.None;
             }
 
-            if (!state.TargetingEnemy)
-                return AID.None;
-
             if (
                 state.DevilmentLeft > state.GCD
                 && state.FlourishingStarfallLeft > state.GCD
                 && state.Unlocked(AID.StarfallDance)
+                && strategy.NumStarfallTargets > 0
             )
                 return AID.StarfallDance;
 
-            if (state.FlourishingFinishLeft > state.GCD && state.CD(CDGroup.Devilment) > 0)
+            if (
+                state.FlourishingFinishLeft > state.GCD
+                && state.CD(CDGroup.Devilment) > 0
+                && strategy.NumDanceTargets > 0
+            )
                 return AID.Tillana;
 
             if (
                 state.StandardFinishLeft > state.GCD + 5.5
                 && state.Unlocked(AID.TechnicalStep)
                 && state.CD(CDGroup.TechnicalStep) <= state.GCD
+                && strategy.NumDanceTargets > 0
             )
                 return AID.TechnicalStep;
 
-            if (state.CD(CDGroup.StandardStep) <= state.GCD && state.Unlocked(AID.StandardStep))
+            if (
+                state.CD(CDGroup.StandardStep) <= state.GCD
+                && state.Unlocked(AID.StandardStep)
+                && strategy.NumDanceTargets > 0
+            )
                 return AID.StandardStep;
 
-            if (ShouldSpendEsprit(state, strategy) && state.Unlocked(AID.SaberDance))
+            if (
+                ShouldSpendEsprit(state, strategy)
+                && state.Unlocked(AID.SaberDance)
+                && strategy.NumRangedAOETargets > 0
+            )
                 return AID.SaberDance;
 
             if (state.FlowLeft > state.GCD)
             {
-                if (strategy.UseAOERotation && state.Unlocked(AID.Bloodshower))
+                // bloodshower > fountainfall on 2 targets
+                if (strategy.NumAOETargets > 1 && state.Unlocked(AID.Bloodshower))
                     return AID.Bloodshower;
 
-                // todo: skip this in aoe mode?
-                if (state.Unlocked(AID.Fountainfall))
+                if (state.Unlocked(AID.Fountainfall) && state.TargetingEnemy)
                     return AID.Fountainfall;
             }
 
             if (state.SymmetryLeft > state.GCD)
             {
-                if (strategy.UseAOERotation && state.Unlocked(AID.RisingWindmill))
+                // rising windmill == reverse cascade on 2 targets
+                if (strategy.NumAOETargets > 1 && state.Unlocked(AID.RisingWindmill))
                     return AID.RisingWindmill;
 
-                // todo: see above
-                if (state.Unlocked(AID.ReverseCascade))
+                if (state.Unlocked(AID.ReverseCascade) && state.TargetingEnemy)
                     return AID.ReverseCascade;
             }
 
-            if (state.ComboLastMove == AID.Windmill && state.Unlocked(AID.Bladeshower))
+            if (
+                state.ComboLastMove == AID.Windmill
+                && state.Unlocked(AID.Bladeshower)
+                // bladeshower (140) is higher potency on 2 targets (280) than cascade (220)
+                && strategy.NumAOETargets > 1
+            )
                 return AID.Bladeshower;
-            if (state.ComboLastMove == AID.Cascade && state.Unlocked(AID.Fountain))
+
+            // windmill is higher potency on 3 targets (100x3) than cascade (220) or fountain (280)
+            if (strategy.NumAOETargets > 2 && state.Unlocked(AID.Windmill))
+                return AID.Windmill;
+
+            if (!state.TargetingEnemy) return AID.None;
+
+            if (
+                state.ComboLastMove == AID.Cascade
+                && state.Unlocked(AID.Fountain)
+            )
                 return AID.Fountain;
 
-            return (strategy.UseAOERotation && state.Unlocked(AID.Windmill))
-                ? AID.Windmill
-                : AID.Cascade;
+            return AID.Cascade;
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
@@ -205,7 +244,7 @@ namespace BossMod.DNC
                 return ActionID.MakeSpell(AID.Peloton);
 
             // only permitted OGCDs while dancing are role actions, shield samba, and curing waltz
-            if (state.IsDancing || !state.TargetingEnemy)
+            if (state.IsDancing)
                 return new();
 
             if (state.RaidBuffsLeft > state.GCD)
@@ -221,7 +260,11 @@ namespace BossMod.DNC
                 )
                     return ActionID.MakeSpell(AID.Flourish);
 
-                if (state.FourfoldLeft > state.AnimationLock && state.CanWeave(deadline))
+                if (
+                    state.FourfoldLeft > state.AnimationLock
+                    && state.CanWeave(deadline)
+                    && strategy.NumFan4Targets > 0
+                )
                     return ActionID.MakeSpell(AID.FanDanceIV);
             }
 
@@ -235,14 +278,21 @@ namespace BossMod.DNC
                 state.CD(CDGroup.Devilment) > 0
                 && state.FourfoldLeft > state.AnimationLock
                 && state.CanWeave(deadline)
+                && strategy.NumFan4Targets > 0
             )
                 return ActionID.MakeSpell(AID.FanDanceIV);
 
-            if (state.ThreefoldLeft > state.AnimationLock && state.CanWeave(deadline))
+            if (
+                state.ThreefoldLeft > state.AnimationLock
+                && state.CanWeave(deadline)
+                && strategy.NumRangedAOETargets > 0
+            )
                 return ActionID.MakeSpell(AID.FanDanceIII);
 
             if (ShouldSpendFeathers(state, strategy) && state.CanWeave(deadline))
-                return ActionID.MakeSpell(AID.FanDance);
+                return strategy.NumAOETargets > 1 && state.Unlocked(AID.FanDanceII)
+                    ? ActionID.MakeSpell(AID.FanDanceII)
+                    : ActionID.MakeSpell(AID.FanDance);
 
             return new();
         }
@@ -254,7 +304,7 @@ namespace BossMod.DNC
             if (danceTimeLeft > 0 && danceTimeLeft < FINISH_DANCE_WINDOW)
                 return true;
 
-            return danceTimeLeft > state.GCD && strategy.NumHostilesInDanceRange > 0;
+            return danceTimeLeft > state.GCD && strategy.NumDanceTargets > 0;
         }
 
         private static bool ShouldSpendFeathers(State state, Strategy strategy)
