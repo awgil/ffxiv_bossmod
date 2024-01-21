@@ -127,13 +127,19 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
                 }
             }
     }
+class Hints : BossComponent
+    {
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            hints.Add("The eyes are weak to lightning spells.");
+        } 
+    }
     class Stage06Act2States : StateMachineBuilder
     {
         public Stage06Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<TearyTwirl>()
-            .ActivateOnEnter<DemonEye>()
             .ActivateOnEnter<ColdStare>()
             .ActivateOnEnter<DreadGaze>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead) && module.Enemies(OID.Eye).All(e => e.IsDead);
@@ -142,7 +148,11 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
 
     public class Stage06Act2 : BossModule
     {
-        public Stage06Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25)) {}
+        public Stage06Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+        {
+            ActivateComponent<DemonEye>();
+            ActivateComponent<Hints>();
+        }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat) || Enemies(OID.Eye).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

@@ -114,7 +114,6 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
             TrivialPhase()
             .DeactivateOnEnter<Hints>()
             .ActivateOnEnter<TearyTwirl>()
-            .ActivateOnEnter<DemonEye>()
             .ActivateOnEnter<ColdStare>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead);
         }
@@ -127,6 +126,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
         public Stage06Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
+            ActivateComponent<DemonEye>();
         }
         protected override void DrawArenaForeground(int pcSlot, Actor pc)
         {
