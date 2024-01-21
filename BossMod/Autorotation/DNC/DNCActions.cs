@@ -153,14 +153,6 @@ namespace BossMod.DNC
             _strategy.NumStarfallTargets =
                 primaryTarget == null ? 0 : NumStarfallTargets(primaryTarget);
 
-            _strategy.UseAOERotation = autoAction switch
-            {
-                AutoActionST => false,
-                AutoActionAOE => true,
-                AutoActionAIFight => _strategy.NumAOETargets >= 3,
-                _ => false,
-            };
-
             _strategy.ApplyStrategyOverrides(
                 Autorot
                     .Bossmods.ActiveModule?.PlanExecution
