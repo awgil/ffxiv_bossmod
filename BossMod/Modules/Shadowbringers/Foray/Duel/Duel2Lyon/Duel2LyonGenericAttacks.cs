@@ -73,7 +73,6 @@ class HeartOfNatureConcentric : ConcentricAOEs
     }
 class TasteOfBlood : SelfTargetedAOEs
     {
-        private bool casting;
         public TasteOfBlood() : base(ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40,90.Degrees())) { } 
     }
 class TasteOfBloodHint : CastHint
