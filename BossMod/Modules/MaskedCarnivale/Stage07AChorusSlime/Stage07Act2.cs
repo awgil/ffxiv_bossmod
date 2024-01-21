@@ -28,7 +28,7 @@ namespace BossMod.MaskedCarnivale.Stage07.Act2
                     foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
                         if(player.Position.InCircle(p.Position, 7.6f))
                         {
-                            hints.Add("In Slime explosion radius!");
+                            hints.Add("In slime explosion radius!");
                         }
             }
         }
