@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace BossMod.MNK
@@ -189,7 +189,7 @@ namespace BossMod.MNK
             SupportedSpell(AID.Bootshine).PlaceholderForAuto = _config.FullRotation
                 ? AutoActionST
                 : AutoActionNone;
-            SupportedSpell(AID.ShadowOfTheDestroyer).PlaceholderForAuto = _config.FullRotation
+            SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = _config.FullRotation
                 ? AutoActionAOE
                 : AutoActionNone;
 
@@ -205,6 +205,19 @@ namespace BossMod.MNK
                         )
                     )
                 : null;
+
+            SupportedSpell(AID.Thunderclap).Condition = !_config.PreventCloseDash
+                ? null
+                : (act) =>
+                {
+                    if (act == null)
+                        return false;
+
+                    return (act.Position - Player.Position).Length()
+                            - act.HitboxRadius
+                            - Player.HitboxRadius
+                        > 3;
+                };
 
             SupportedSpell(AID.Thunderclap).TransformTarget = _config.SmartThunderclap
                 ? (act) => Autorot.SecondaryTarget ?? act

@@ -417,7 +417,11 @@ namespace BossMod.MNK
                 return true;
 
             // someone early pulled
-            if (strategy.DashUse == Strategy.DashStrategy.Automatic && strategy.CombatTimer < 3)
+            if (
+                strategy.DashUse == Strategy.DashStrategy.Automatic
+                && strategy.CombatTimer > 0
+                && strategy.CombatTimer < 3
+            )
                 return true;
 
             return false;
