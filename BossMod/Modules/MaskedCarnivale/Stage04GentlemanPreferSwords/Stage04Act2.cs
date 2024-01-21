@@ -32,14 +32,14 @@ public enum AID : uint
     {
         public MagitekField() : base(ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses") { }
     }
-class Hints : BossComponent
+    class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("Kreios is weak to Lightning.\nDuring the fight he will spawn 6 beetles.\nIf available use the Ultravibration combo.");
+            hints.Add("Kreios is weak to lightning spells.\nDuring the fight he will spawn 6 beetles.\nIf available use the Ultravibration combo.");
         } 
     }
-class Hints2 : BossComponent
+    class Hints2 : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
@@ -47,9 +47,9 @@ class Hints2 : BossComponent
         } 
     }    
 
-    class Stage03States : StateMachineBuilder
+    class Stage04Act2States : StateMachineBuilder
     {
-        public Stage03States(BossModule module) : base(module)
+        public Stage04Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<MagitekField>()

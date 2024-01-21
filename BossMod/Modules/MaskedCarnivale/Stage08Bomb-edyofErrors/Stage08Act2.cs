@@ -19,6 +19,10 @@ namespace BossMod.MaskedCarnivale.Stage08.Act2
         Sap = 14708, // 270B->location, 5,0s cast, range 8 circle
         Burst = 14680, // 270B->self, 6,0s cast, range 50 circle
     };
+    class Sap : LocationTargetedAOEs
+    {
+        public Sap() : base(ActionID.MakeSpell(AID.Sap), 8) { }
+    }
     class Burst : CastHint
     {
         public Burst() : base(ActionID.MakeSpell(AID.Burst), "Interrupt or wipe!") { }
@@ -64,6 +68,7 @@ class Stage08Act2States : StateMachineBuilder
         {
             TrivialPhase()
             .ActivateOnEnter<Burst>()
+            .ActivateOnEnter<Sap>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Bomb).All(e => e.IsDead) && module.Enemies(OID.Snoll).All(e => e.IsDead);
         }
     }

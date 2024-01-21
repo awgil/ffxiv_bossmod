@@ -20,7 +20,7 @@ namespace BossMod.MaskedCarnivale.Stage02.Act2
 
 class GoldenTongue : Components.CastHint
     {
-        public GoldenTongue() : base(ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increases its magic defenses.") { }
+        public GoldenTongue() : base(ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increases its magic damage.") { }
     }
 class Hints : BossComponent
     {
