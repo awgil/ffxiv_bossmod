@@ -62,6 +62,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
                 {if ((SID)status.ID == SID.Blind)
                     {
                         Risky = true;
+                        Color = ArenaColor.AOE;
                     }
                 }
             }
@@ -70,7 +71,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
     {
     private bool blinded = false;
         public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) { }
-                public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
             if (actor == module.Raid.Player())
                 {if ((SID)status.ID == SID.Blind)

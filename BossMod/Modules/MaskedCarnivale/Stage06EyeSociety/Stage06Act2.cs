@@ -66,6 +66,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
                 {if ((SID)status.ID == SID.Blind)
                     {
                         Risky = true;
+                        Color = ArenaColor.AOE;
                     }
                 }
             }
@@ -113,7 +114,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
                 {if ((SID)status.ID == SID.Blind)
                     {
                         Risky = false;
-                        Color = ArenaColor.Background;
+                        Color = ArenaColor.Invisible;
                     }
                 }
             }
@@ -123,6 +124,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
                 {if ((SID)status.ID == SID.Blind)
                     {
                         Risky = true;
+                        Color = ArenaColor.AOE;
                     }
                 }
             }
