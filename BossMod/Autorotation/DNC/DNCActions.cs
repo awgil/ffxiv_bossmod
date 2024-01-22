@@ -89,15 +89,20 @@ namespace BossMod.DNC
         {
             if (_state.Unlocked(AID.HeadGraze))
             {
-                var interruptibleEnemy = Autorot.Hints.PotentialTargets.Find(
-                    e =>
-                        e.ShouldBeInterrupted
-                        && (e.Actor.CastInfo?.Interruptible ?? false)
-                        && e.Actor.Position.InCircle(
-                            Player.Position,
-                            25 + e.Actor.HitboxRadius + Player.HitboxRadius
-                        )
-                );
+                var interruptibleEnemy = Autorot
+                    .Hints
+                    .PotentialTargets
+                    .Find(
+                        e =>
+                            e.ShouldBeInterrupted
+                            && (e.Actor.CastInfo?.Interruptible ?? false)
+                            && e.Actor
+                                .Position
+                                .InCircle(
+                                    Player.Position,
+                                    25 + e.Actor.HitboxRadius + Player.HitboxRadius
+                                )
+                    );
                 SimulateManualActionForAI(
                     ActionID.MakeSpell(AID.HeadGraze),
                     interruptibleEnemy?.Actor,
@@ -115,17 +120,10 @@ namespace BossMod.DNC
                 SimulateManualActionForAI(
                     ActionID.MakeSpell(AID.CuringWaltz),
                     Player,
-                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f
+                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.75f
                 );
             }
-            if (
-                _state.Unlocked(AID.SecondWind)
-                && (
-                    !_state.Unlocked(AID.CuringWaltz)
-                    // try to avoid immediately queueing both when we fall under 50% hp
-                    || (_state.CD(CDGroup.CuringWaltz) > 0 && _state.CD(CDGroup.CuringWaltz) < 57.5)
-                )
-            )
+            if (_state.Unlocked(AID.SecondWind))
             {
                 SimulateManualActionForAI(
                     ActionID.MakeSpell(AID.SecondWind),
@@ -142,10 +140,9 @@ namespace BossMod.DNC
 
             var primaryTarget = Autorot.PrimaryTarget;
 
-            _strategy.NumDanceTargets = Autorot.Hints.NumPriorityTargetsInAOECircle(
-                Player.Position,
-                15
-            );
+            _strategy.NumDanceTargets = Autorot
+                .Hints
+                .NumPriorityTargetsInAOECircle(Player.Position, 15);
             _strategy.NumAOETargets = autoAction == AutoActionST ? 0 : NumAOETargets(Player);
             _strategy.NumRangedAOETargets =
                 primaryTarget == null ? 0 : NumAOETargets(primaryTarget);
@@ -155,7 +152,9 @@ namespace BossMod.DNC
 
             _strategy.ApplyStrategyOverrides(
                 Autorot
-                    .Bossmods.ActiveModule?.PlanExecution
+                    .Bossmods
+                    .ActiveModule
+                    ?.PlanExecution
                     ?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine)
                     ?? new uint[0]
             );
@@ -222,11 +221,14 @@ namespace BossMod.DNC
             var newBest = initial;
             int currentPrio = prio(initial.Actor);
             foreach (
-                var enemy in Autorot.Hints.PriorityTargets.Where(
-                    x =>
-                        x != initial
-                        && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer)
-                )
+                var enemy in Autorot
+                    .Hints
+                    .PriorityTargets
+                    .Where(
+                        x =>
+                            x != initial
+                            && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer)
+                    )
             )
             {
                 int potential = prio(enemy.Actor);
@@ -244,7 +246,9 @@ namespace BossMod.DNC
             actor = null;
 
             var target = Autorot
-                .WorldState.Party.WithoutSlot()
+                .WorldState
+                .Party
+                .WithoutSlot()
                 .Exclude(Player)
                 .MaxBy(
                     p =>
@@ -280,19 +284,23 @@ namespace BossMod.DNC
             Autorot.Hints.NumPriorityTargetsInAOECircle(origin.Position, 5);
 
         private int NumFan4Targets(Actor primary) =>
-            Autorot.Hints.NumPriorityTargetsInAOECone(
-                Player.Position,
-                15,
-                (primary.Position - Player.Position).Normalized(),
-                60.Degrees()
-            );
+            Autorot
+                .Hints
+                .NumPriorityTargetsInAOECone(
+                    Player.Position,
+                    15,
+                    (primary.Position - Player.Position).Normalized(),
+                    60.Degrees()
+                );
 
         private int NumStarfallTargets(Actor primary) =>
-            Autorot.Hints.NumPriorityTargetsInAOERect(
-                Player.Position,
-                (primary.Position - Player.Position).Normalized(),
-                25,
-                4
-            );
+            Autorot
+                .Hints
+                .NumPriorityTargetsInAOERect(
+                    Player.Position,
+                    (primary.Position - Player.Position).Normalized(),
+                    25,
+                    4
+                );
     }
 }
