@@ -72,6 +72,7 @@ namespace BossMod.DNC
                 _strategy.AutoPartner
                 && _state.Unlocked(AID.ClosedPosition)
                 && StatusDetails(Player, SID.ClosedPosition, Player.InstanceID).Left == 0
+                && _state.CanWeave(CDGroup.Ending, 0.6f, deadline)
                 && FindDancePartner(out var partner)
             )
                 return MakeResult(ActionID.MakeSpell(AID.ClosedPosition), partner);
