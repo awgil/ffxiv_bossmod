@@ -85,11 +85,19 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
     class PlanarTacticsForcedMarch : Components.GenericForcedMarch
     {
         private int[] _rotationCount = new int[4];
+        private Angle[] _rotation = new Angle[4];
         private DateTime _activation;
 
         public PlanarTacticsForcedMarch()
         {
             MovementSpeed = 4;
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_rotation[slot] != default)
+                hints.Add($"Rotation: {(_rotation[slot].Rad < 0 ? "CW" : "CCW")}", false);
+            base.AddHints(module, slot, actor, hints, movementHints);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -99,12 +107,12 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
                 case SID.TimesThreePlayer:
                     _activation = status.ExpireAt;
                     if (module.Raid.FindSlot(actor.InstanceID) is var slot1 && slot1 >= 0 && slot1 < _rotationCount.Length)
-                        _rotationCount[slot1] = 3;
+                        _rotationCount[slot1] = -1;
                     break;
                 case SID.TimesFivePlayer:
                     _activation = status.ExpireAt;
                     if (module.Raid.FindSlot(actor.InstanceID) is var slot2 && slot2 >= 0 && slot2 < _rotationCount.Length)
-                        _rotationCount[slot2] = 5;
+                        _rotationCount[slot2] = 1;
                     break;
                 case SID.ForcedMarch:
                     State.GetOrAdd(actor.InstanceID).PendingMoves.Clear();
@@ -122,7 +130,10 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
                 _ => default
             };
             if (rot != default && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotationCount.Length)
-                AddForcedMovement(actor, rot * _rotationCount[slot], 6, _activation);
+            {
+                _rotation[slot] = rot * _rotationCount[slot];
+                AddForcedMovement(actor, _rotation[slot], 6, _activation);
+            }
         }
     }
 }

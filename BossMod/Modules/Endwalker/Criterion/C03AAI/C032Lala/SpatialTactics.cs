@@ -27,6 +27,13 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
             _array = module.FindComponent<ArcaneArray>();
         }
 
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_remainingStacks[slot] > 0)
+                hints.Add($"Remaining stacks: {_remainingStacks[slot]}", false);
+            base.AddHints(module, slot, actor, hints, movementHints);
+        }
+
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID is OID.NArcaneFont or OID.SArcaneFont)
