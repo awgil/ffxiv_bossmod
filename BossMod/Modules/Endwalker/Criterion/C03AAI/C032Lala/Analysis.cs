@@ -68,6 +68,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
         public bool Active;
         private Analysis? _analysis;
         private Angle[] _rotation = new Angle[4];
+        private Angle[] _safeDir = new Angle[4];
         private int[] _rotationCount = new int[4];
         private DateTime _activation;
 
@@ -75,8 +76,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
 
         public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
         {
-            if (_analysis != null && Active)
-                yield return new(module.Bounds.Center, _activation, _analysis.SafeDir[slot] + _rotation[slot]);
+            if (Active)
+                yield return new(module.Bounds.Center, _activation, _safeDir[slot]);
         }
 
         public override void Init(BossModule module)
@@ -84,12 +85,19 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
             _analysis = module.FindComponent<Analysis>();
         }
 
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_rotation[slot] != default)
+                hints.Add($"Rotation: {(_rotation[slot].Rad < 0 ? "CW" : "CCW")}", false);
+            base.AddHints(module, slot, actor, hints, movementHints);
+        }
+
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             var count = (SID)status.ID switch
             {
-                SID.TimesThreePlayer => 3,
-                SID.TimesFivePlayer => 5,
+                SID.TimesThreePlayer => -1,
+                SID.TimesFivePlayer => 1,
                 _ => 0
             };
             if (count != 0 && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotationCount.Length)
@@ -105,7 +113,11 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
                 _ => default
             };
             if (rot != default && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotation.Length)
+            {
                 _rotation[slot] = rot * _rotationCount[slot];
+                if (_analysis != null)
+                    _safeDir[slot] = _analysis.SafeDir[slot] + _rotation[slot];
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
