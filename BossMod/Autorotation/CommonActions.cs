@@ -191,15 +191,17 @@ namespace BossMod
             };
         }
 
-        public void UpdateAutoAction(int autoAction, float maxCastTime)
+        public void UpdateAutoAction(int autoAction, float maxCastTime, bool isUserRequested)
         {
+            var sticky = Autorot.Config.StickyAutoActions && isUserRequested;
+
             if (AutoAction != autoAction)
             {
                 Log($"Auto action set to {autoAction}");
                 AutoAction = autoAction;
-                _autoActionExpire = Autorot.Config.StickyAutoActions ? DateTime.MaxValue : Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
+                _autoActionExpire = sticky ? DateTime.MaxValue : Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
             }
-            else if (Autorot.Config.StickyAutoActions)
+            else if (sticky)
             {
                 Log($"Turning off auto action {autoAction}");
                 AutoAction = AutoActionNone;
@@ -229,7 +231,7 @@ namespace BossMod
 
             if (supportedAction.PlaceholderForAuto != AutoActionNone)
             {
-                UpdateAutoAction(supportedAction.PlaceholderForAuto, float.MaxValue);
+                UpdateAutoAction(supportedAction.PlaceholderForAuto, float.MaxValue, true);
                 return true;
             }
 

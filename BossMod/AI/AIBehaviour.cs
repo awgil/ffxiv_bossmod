@@ -62,7 +62,7 @@ namespace BossMod.AI
             if (!forbidActions)
             {
                 int actionStrategy = target.Target != null ? CommonActions.AutoActionAIFight : CommonActions.AutoActionAIIdle;
-                _autorot.ClassActions?.UpdateAutoAction(actionStrategy, _maxCastTime);
+                _autorot.ClassActions?.UpdateAutoAction(actionStrategy, _maxCastTime, false);
             }
 
             UpdateMovement(player, master, target, !forbidActions);
