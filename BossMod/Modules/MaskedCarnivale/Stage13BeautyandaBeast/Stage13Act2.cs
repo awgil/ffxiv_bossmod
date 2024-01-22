@@ -5,7 +5,8 @@ namespace BossMod.MaskedCarnivale.Stage13.Act2
     public enum OID : uint
     {
         Boss = 0x26F8, // R=2.0
-        Succubus = 0x26F7 //R=1.0
+        Succubus = 0x26F7, //R=1.0
+        Helper = 0x233C, //R=0.5
     };
 public enum AID : uint
 {

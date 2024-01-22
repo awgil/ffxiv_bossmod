@@ -100,8 +100,8 @@ public class Stage08Act2 : BossModule
         }
         protected override void DrawArenaForeground(int pcSlot, Actor pc)
         {
-                Arena.AddPolygon(Wall1(),ArenaColor.Border);
-                Arena.AddPolygon(Wall2(),ArenaColor.Border);
+            Arena.AddPolygon(Wall1(),ArenaColor.Border);
+            Arena.AddPolygon(Wall2(),ArenaColor.Border);
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)
