@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BossMod.Components;
 
@@ -16,9 +17,9 @@ namespace BossMod.MaskedCarnivale.Stage15
         Summon = 14897, // 26F9->self, no cast, range 50 circle
         Ballast0 = 14893, // 26F9->self, 1,0s cast, single-target
         Ballast1 = 14955, // 26F9->self, no cast, single-target
-        Ballast2 = 14894, // 233C->self, 3,0s cast, range 5+R 270-degree cone
-        Ballast3 = 14895, // 233C->self, 3,0s cast, range 10+R 270-degree cone
-        Ballast4 = 14896, // 233C->self, 3,0s cast, range 15+R 270-degree cone
+        Ballast2 = 14894, // 233C->self, 3,0s cast, range 5+R 270-degree cone, knockback dist 15
+        Ballast3 = 14895, // 233C->self, 3,0s cast, range 10+R 270-degree cone, knockback dist 15
+        Ballast4 = 14896, // 233C->self, 3,0s cast, range 15+R 270-degree cone, knockback dist 15
         PiercingLaser = 14891, // 26F9->self, 3,0s cast, range 30+R width 8 rect
         AutoAttack = 6497, // 26FA/26FB->player, no cast, single-target
         RepellingCannons = 14892, // 26F9->self, 3,0s cast, range 10+R circle
@@ -91,6 +92,34 @@ namespace BossMod.MaskedCarnivale.Stage15
     {
         public Disseminate() : base(ActionID.MakeSpell(AID.Disseminate), new AOEShapeCircle(7.2f)) { } 
     }
+    class BallastKB : Knockback
+    {
+        private bool watched0;
+        private Angle _rotation;
+        private DateTime Time1;
+        private static readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            if (watched0 && module.WorldState.CurrentTime < Time1.AddSeconds(4.7f))
+                yield return new(module.PrimaryActor.Position, 20, default, cone2, _rotation, new());
+            if (watched0 && module.WorldState.CurrentTime < Time1.AddSeconds(5.6f))
+                yield return new(module.PrimaryActor.Position, 20, default, cone3, _rotation, new());
+            if (watched0 && module.WorldState.CurrentTime < Time1.AddSeconds(6.1f))
+                yield return new(module.PrimaryActor.Position, 20, default, cone4, _rotation, new());
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastStarted(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.Ballast0)
+            {   
+                watched0 = true; 
+                Time1 = module.WorldState.CurrentTime;
+                _rotation = module.PrimaryActor.Rotation;
+            }
+        }
+    }
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -105,6 +134,7 @@ namespace BossMod.MaskedCarnivale.Stage15
             TrivialPhase()
             .ActivateOnEnter<HighVoltage>()
             .ActivateOnEnter<Ballast>()
+            .ActivateOnEnter<BallastKB>()
             .ActivateOnEnter<PiercingLaser>()
             .ActivateOnEnter<RepellingCannons>()
             .ActivateOnEnter<Superstorm>()
