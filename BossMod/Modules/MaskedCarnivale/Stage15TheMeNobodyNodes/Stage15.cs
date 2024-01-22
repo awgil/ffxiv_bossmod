@@ -61,9 +61,9 @@ namespace BossMod.MaskedCarnivale.Stage15
                 _rotation = module.PrimaryActor.Rotation;
             }
         }
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnCastFinished(module, caster, spell);
+            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast2)
                 casting2 = false;
             if ((AID)spell.Action.ID == AID.Ballast3)
@@ -92,32 +92,44 @@ namespace BossMod.MaskedCarnivale.Stage15
     {
         public Disseminate() : base(ActionID.MakeSpell(AID.Disseminate), new AOEShapeCircle(7.2f)) { } 
     }
-    class BallastKB : Knockback
+    class BallastKB : Knockback //actual knockbacks are 0.274s after snapshot
     {
-        private bool watched0;
+        private bool casting2;
+        private bool casting3;
+        private bool casting4;
         private Angle _rotation;
-        private DateTime Time1;
         private static readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
         private static readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
         private static readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-            if (watched0 && module.WorldState.CurrentTime < Time1.AddSeconds(4.7f))
+            if (casting2)
                 yield return new(module.PrimaryActor.Position, 20, default, cone2, _rotation, new());
-            if (watched0 && module.WorldState.CurrentTime < Time1.AddSeconds(5.6f))
+            if (casting3)
                 yield return new(module.PrimaryActor.Position, 20, default, cone3, _rotation, new());
-            if (watched0 && module.WorldState.CurrentTime < Time1.AddSeconds(6.1f))
+            if (casting4)
                 yield return new(module.PrimaryActor.Position, 20, default, cone4, _rotation, new());
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast0)
-            {   
-                watched0 = true; 
-                Time1 = module.WorldState.CurrentTime;
+            {    
+                casting2 = true;
+                casting3 = true;
+                casting4 = true;
                 _rotation = module.PrimaryActor.Rotation;
             }
+        }
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.Ballast2)
+                casting2 = false;
+            if ((AID)spell.Action.ID == AID.Ballast3)
+                casting3 = false;
+            if ((AID)spell.Action.ID == AID.Ballast4)
+                casting4 = false;
         }
     }
     class Hints : BossComponent

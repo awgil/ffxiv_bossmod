@@ -50,24 +50,26 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
     {
         public TenTonzeWave2() : base(ActionID.MakeSpell(AID.TenTonzeWave2), new AOEShapeDonut(10,20)) { } 
     }
-    class OneOneOneTonzeSwingKB : Knockback
+    class OneOneOneTonzeSwingKB : Knockback //actual knockback happens a whole 1,462s after snapshot
     {
-        private DateTime Time;
-        private bool watched;
+        private bool casting;
         private readonly AOEShapeCircle circle = new(12);
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-            if (watched && module.WorldState.CurrentTime < Time.AddSeconds(5.8f))
+            if (casting)
                 yield return new(module.PrimaryActor.Position, 20, default, circle, module.PrimaryActor.Rotation, new());
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
-            {    
-                watched = true;
-                Time = module.WorldState.CurrentTime;
-            }
+                casting = true;
+        }
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
+                casting = false;
         }
     }
     class ZoomInKB : Knockback
@@ -93,7 +95,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("For this stage Flying Sardine and Acorn Bomb are highly recommended.\nUse Flying Sardine to interrupt High Voltage.\nUse Acorn Bomb to put Shabtis to sleep until their buff runs out.");
+            hints.Add("Tikbalang will spawn a cyclops a few seconds into the fight. Make sure\nto kill it before it reaches you. After that you can just slowly take down the\nboss. Alternatively you can try the Final Sting combo when he drops below\naround 75% health. (Off-guard->Bristle->Moonflute->Final Sting)");
         }
     }
     class Stage16Act2States : StateMachineBuilder
