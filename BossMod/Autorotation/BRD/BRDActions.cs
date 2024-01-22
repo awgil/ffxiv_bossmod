@@ -51,16 +51,7 @@ namespace BossMod.BRD
             var bestTarget = initial;
             if (_state.Unlocked(AID.QuickNock))
             {
-                var bestAOECount = NumTargetsHitByLadonsbite(initial.Actor);
-                foreach (var candidate in Autorot.Hints.PriorityTargets.Where(e => e != initial && e.Actor.Position.InCircle(Player.Position, 12)))
-                {
-                    var candidateAOECount = NumTargetsHitByLadonsbite(candidate.Actor);
-                    if (candidateAOECount > bestAOECount)
-                    {
-                        bestTarget = candidate;
-                        bestAOECount = candidateAOECount;
-                    }
-                }
+                bestTarget = FindBetterTargetBy(bestTarget, 12, e => NumTargetsHitByLadonsbite(e.Actor)).Target;
             }
             return new(bestTarget, bestTarget.StayAtLongRange ? 25 : 12);
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -468,6 +468,21 @@ namespace BossMod
             if (_playerCombatStart != default)
                 return (float)(Autorot.WorldState.CurrentTime - _playerCombatStart).TotalSeconds;
             return -Math.Max(0.001f, Autorot.WorldState.Client.CountdownRemaining ?? float.MaxValue);
+        }
+
+        protected (AIHints.Enemy Target, int Priority) FindBetterTargetBy(AIHints.Enemy initial, float maxDistanceFromPlayer, Func<AIHints.Enemy, int> prioFunc)
+        {
+            var bestTarget = initial;
+            var bestPrio = prioFunc(bestTarget);
+            foreach(var enemy in Autorot.Hints.PriorityTargets.Where(x => x != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer)))
+            {
+                var newPrio = prioFunc(enemy);
+                if (newPrio > bestPrio) {
+                    bestPrio = newPrio;
+                    bestTarget = enemy;
+                }
+            }
+            return (bestTarget, bestPrio);
         }
     }
 }
