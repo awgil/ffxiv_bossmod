@@ -164,14 +164,14 @@ namespace BossMod.DNC
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             if (_state.FlourishingStarfallLeft > _state.GCD && _state.Unlocked(AID.StarfallDance))
-                return SelectBestTarget(initial, NumStarfallTargets);
+                return SelectBestTarget(initial, 25, NumStarfallTargets);
 
             if (_state.CD(CDGroup.Devilment) > 0 && _state.FourfoldLeft > _state.AnimationLock)
-                return SelectBestTarget(initial, NumFan4Targets);
+                return SelectBestTarget(initial, 15, NumFan4Targets);
 
             // default for saber dance and fan3
             // TODO: look for enemies we can aoe and move closer?
-            return SelectBestTarget(initial, NumAOETargets);
+            return SelectBestTarget(initial, 25, NumAOETargets);
         }
 
         private void UpdatePlayerState()
@@ -213,11 +213,21 @@ namespace BossMod.DNC
                 _state.PelotonLeft = 0;
         }
 
-        private Targeting SelectBestTarget(AIHints.Enemy initial, Func<Actor, int> prio)
+        private Targeting SelectBestTarget(
+            AIHints.Enemy initial,
+            float maxDistanceFromPlayer,
+            Func<Actor, int> prio
+        )
         {
             var newBest = initial;
             int currentPrio = prio(initial.Actor);
-            foreach (var enemy in Autorot.Hints.PriorityTargets.Where(x => x != initial))
+            foreach (
+                var enemy in Autorot.Hints.PriorityTargets.Where(
+                    x =>
+                        x != initial
+                        && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer)
+                )
+            )
             {
                 int potential = prio(enemy.Actor);
                 if (potential > currentPrio)
