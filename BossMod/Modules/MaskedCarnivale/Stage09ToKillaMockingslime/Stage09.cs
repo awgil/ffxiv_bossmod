@@ -64,11 +64,35 @@ namespace BossMod.MaskedCarnivale.Stage09
         {
             ActivateComponent<Hints>();
         }
-
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+        base.CalculateAIHints(slot, actor, assignment, hints);
+            foreach (var e in hints.PotentialTargets)
+            {
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    OID.Licorice or OID.Flan or OID.Marshmallow or OID.Pudding or OID.Bavarois or OID.Gelato => 1,
+                    OID.Boss => 0,
+                    _ => 0
+                };
+            }
+        }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
                 Arena.Actor(s, ArenaColor.Enemy, false);
+            foreach (var s in Enemies(OID.Licorice))
+                Arena.Actor(s, ArenaColor.Object, false);
+            foreach (var s in Enemies(OID.Flan))
+                Arena.Actor(s, ArenaColor.Object, false);
+            foreach (var s in Enemies(OID.Pudding))
+                Arena.Actor(s, ArenaColor.Object, false);
+            foreach (var s in Enemies(OID.Marshmallow))
+                Arena.Actor(s, ArenaColor.Object, false);
+            foreach (var s in Enemies(OID.Bavarois))
+                Arena.Actor(s, ArenaColor.Object, false);
+            foreach (var s in Enemies(OID.Gelato))
+                Arena.Actor(s, ArenaColor.Object, false);
         }
     }
 }

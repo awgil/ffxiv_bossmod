@@ -32,45 +32,45 @@ namespace BossMod.MaskedCarnivale.Stage07.Act1
                         }
             }
         }
-class Hints : BossComponent
-    {
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    class Hints : BossComponent
         {
-            hints.Add("For this stage the spells Sticky Tongue and Snort are recommended.\nUse them to pull or push Slimes close toIce Sprites.\nThen hit the slime from a distance with anything but fire spells to set of an explosion.");
-        } 
-    }
-class Hints2 : BossComponent
-    {
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            hints.Add("Hit the Lava Slime from a safe distance to win this act.");
-        } 
-    }       
-class Stage07Act1States : StateMachineBuilder
-    {
-        public Stage07Act1States(BossModule module) : base(module)
-        {
-            TrivialPhase()
-            .DeactivateOnEnter<Hints>()
-            .ActivateOnEnter<Hints2>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Sprite).All(e => e.IsDead);
+            public override void AddGlobalHints(BossModule module, GlobalHints hints)
+            {
+                hints.Add("For this stage the spells Sticky Tongue and Snort are recommended.\nUse them to pull or push Slimes close toIce Sprites.\nThen hit the slime from a distance with anything but fire spells to set of an explosion.");
+            } 
         }
-    }
+    class Hints2 : BossComponent
+        {
+            public override void AddGlobalHints(BossModule module, GlobalHints hints)
+            {
+                hints.Add("Hit the Lava Slime from a safe distance to win this act.");
+            } 
+        }       
+    class Stage07Act1States : StateMachineBuilder
+        {
+            public Stage07Act1States(BossModule module) : base(module)
+            {
+                TrivialPhase()
+                .DeactivateOnEnter<Hints>()
+                .ActivateOnEnter<Hints2>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Sprite).All(e => e.IsDead);
+            }
+        }
 
-public class Stage07Act1 : BossModule
-    {
-        public Stage07Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+    public class Stage07Act1 : BossModule
         {
-            ActivateComponent<Hints>();
-            ActivateComponent<SlimeExplosion>();
+            public Stage07Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+            {
+                ActivateComponent<Hints>();
+                ActivateComponent<SlimeExplosion>();
+            }
+            protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Sprite).Any(e => e.InCombat); }
+            protected override void DrawEnemies(int pcSlot, Actor pc)
+            {
+                foreach (var s in Enemies(OID.Boss))
+                    Arena.Actor(s, ArenaColor.Enemy, false);
+                foreach (var s in Enemies(OID.Sprite))
+                    Arena.Actor(s, ArenaColor.Enemy, false);
+            }
         }
-        protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Sprite).Any(e => e.InCombat); }
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
-            foreach (var s in Enemies(OID.Sprite))
-                Arena.Actor(s, ArenaColor.Enemy, false);
-        }
-    }
 }

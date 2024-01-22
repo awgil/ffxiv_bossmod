@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace BossMod.MaskedCarnivale.Stage11.Act2
 {
     public enum OID : uint
@@ -21,7 +23,8 @@ namespace BossMod.MaskedCarnivale.Stage11.Act2
         public Stage11Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .DeactivateOnEnter<Hints>();
+            .DeactivateOnEnter<Hints>()
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead);
         }
     }
 
