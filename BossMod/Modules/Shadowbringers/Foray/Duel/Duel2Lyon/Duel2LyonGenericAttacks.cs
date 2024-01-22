@@ -124,9 +124,24 @@ class WindsPeak : SelfTargetedAOEs
     {
         public WindsPeak() : base(ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5)) { } 
     }
-class WindsPeakKB : KnockbackFromCastTarget //actual knockback is delayed between 0.4s to 0.6s, but 4s warning should be enough time to either move to safety or use anti-knockback ability
+class WindsPeakKB : Knockback
     {
-        public WindsPeakKB() : base(ActionID.MakeSpell(AID.WindsPeak2), 15) { }
+        private DateTime Time;
+        private bool watched;
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            if (watched && module.WorldState.CurrentTime < Time.AddSeconds(4.4f))
+                yield return new(module.PrimaryActor.Position, 15, default, default, module.PrimaryActor.Rotation, new());
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastStarted(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.WindsPeak1)
+            {    
+                watched = true;
+                Time = module.WorldState.CurrentTime;
+            }
+        }
     }
 class TheKingsNotice : CastGaze
     {
