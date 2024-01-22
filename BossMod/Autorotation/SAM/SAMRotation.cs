@@ -1,7 +1,5 @@
 // CONTRIB: made by xan, not checked
-using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using static BossMod.CommonRotation.Strategy;
 using static BossMod.SAM.Rotation.Strategy;

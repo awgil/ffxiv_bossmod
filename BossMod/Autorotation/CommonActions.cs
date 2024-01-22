@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using FFXIVGame = FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace BossMod
 {
@@ -367,6 +368,12 @@ namespace BossMod
             s.AnimationLockDelay = am.EffectiveAnimationLockDelay;
             s.ComboTimeLeft = am.ComboTimeLeft;
             s.ComboLastAction = am.ComboLastMove;
+
+            // all GCD skills share the same base recast time (with some exceptions that aren't relevant here)
+            // so we can check Fast Blade (9) and Stone (119) recast timers to get effective sks and sps
+            // regardless of current class
+            s.AttackGCDTime = FFXIVGame.ActionManager.GetAdjustedRecastTime(FFXIVGame.ActionType.Action, 9) / 1000f;
+            s.SpellGCDTime = FFXIVGame.ActionManager.GetAdjustedRecastTime(FFXIVGame.ActionType.Action, 119) / 1000f;
 
             s.RaidBuffsLeft = vuln.Item1 ? vuln.Item2 : 0;
             foreach (var status in Player.Statuses.Where(s => IsDamageBuff(s.ID)))

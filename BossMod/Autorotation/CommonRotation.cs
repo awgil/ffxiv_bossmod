@@ -30,6 +30,10 @@ namespace BossMod
             public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup]; // variable max
             public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group];
 
+            // both 2.5 max (unless slowed), reduced by gear attributes and certain status effects
+            public float AttackGCDTime;
+            public float SpellGCDTime;
+
             // check whether weaving typical ogcd off cooldown would end its animation lock by the specified deadline
             public float OGCDSlotLength => 0.6f + AnimationLockDelay; // most actions have 0.6 anim lock delay, which allows double-weaving oGCDs between GCDs
             public bool CanWeave(float deadline) => AnimationLock + OGCDSlotLength <= deadline; // is it still possible to weave typical oGCD without missing deadline?
