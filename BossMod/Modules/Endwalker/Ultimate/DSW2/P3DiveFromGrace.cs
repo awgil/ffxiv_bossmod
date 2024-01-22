@@ -75,7 +75,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
     // currently we make some arbitrary decisions:
     // 1. raid stacks to the north
-    // 2. if there are forward/backward jumps at given order, forward takes W spot, backward takes E spot (center takes S)
+    // 2. if there are forward/backward jumps at given order, forward takes W spot, backward takes E spot (center takes S) - this can be changed by config
     // 3. otherwise, no specific assignments are assumed until player baits or soaks the tower
     // TODO: split into towers & bait-away?
     class P3DiveFromGrace : Components.CastTowers
@@ -93,6 +93,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
 
         public int NumJumps { get; private set; }
+        private DSW2Config _config = Service.Config.Get<DSW2Config>();
         private bool _haveDirections;
         private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
         private BitMask[] _orderPlayers = new BitMask[3]; // [0] = players with order 1, etc.
@@ -112,9 +113,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (_haveDirections)
                 hints.Add($"Spot: {state.AssignedSpot switch
                 {
-                    1 => "E",
+                    1 => _config.P3DiveFromGraceLookWest ? "W" : "E",
                     2 => "S",
-                    3 => "W",
+                    3 => _config.P3DiveFromGraceLookWest ? "E" : "W",
                     _ => "flex"
                 }}", false);
 
@@ -258,7 +259,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             var towerOffset = pos - module.Bounds.Center;
             var toStack = DirectionForStack();
-            var dotForward = toStack.OrthoL().Dot(towerOffset); // TODO: this is arbitrary
+            var dotForward = DirectionForForwardArrow().Dot(towerOffset);
             return -toStack.Dot(towerOffset) > Math.Abs(dotForward) ? 2 : dotForward > 0 ? 3 : 1;
         }
 
@@ -277,6 +278,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         }
 
         private WDir DirectionForStack() => new(0, -_spotOffset); // TODO: this is arbitrary
+        private WDir DirectionForForwardArrow() => _config.P3DiveFromGraceLookWest ? DirectionForStack().OrthoR() : DirectionForStack().OrthoL();
 
         private IEnumerable<WPos> SafeSpots(BossModule module, int slot)
         {
@@ -292,11 +294,11 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                     origin += DirectionForStack() * 0.8f; // TODO: the coefficient is arbitrary
 
                 if (state.AssignedSpot is 0 or 1)
-                    yield return origin + DirectionForStack().OrthoR(); // TODO: this is arbitrary
+                    yield return origin - DirectionForForwardArrow();
                 if (state.AssignedSpot is 0 or 2 && state.JumpOrder != 2)
                     yield return origin - DirectionForStack();
                 if (state.AssignedSpot is 0 or 3)
-                    yield return origin + DirectionForStack().OrthoL();
+                    yield return origin + DirectionForForwardArrow();
             }
             else if (NumJumps < (state.JumpOrder == 3 ? 3 : 8))
             {
