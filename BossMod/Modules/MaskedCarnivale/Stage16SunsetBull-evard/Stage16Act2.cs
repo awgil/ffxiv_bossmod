@@ -72,6 +72,29 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
                 casting = false;
         }
     }
+    class ZoomIn : GenericWildCharge
+    {
+        public ZoomIn() : base(4,ActionID.MakeSpell(AID.ZoomIn)) { }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+            {
+                Source = caster;
+                foreach (var (slot, player) in module.Raid.WithSlot())
+                {
+                    PlayerRoles[slot] = player.InstanceID == spell.TargetID ? PlayerRole.Target : PlayerRole.Target;
+                }
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                {
+                Source = null;
+                }
+        }
+    }    
     class ZoomInKB : Knockback
     {
         private DateTime Time;
@@ -108,6 +131,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
             .ActivateOnEnter<OneOneOneTonzeSwingKB>()
             .ActivateOnEnter<TenTonzeSlash>()
             .ActivateOnEnter<CryOfRage>()
+            .ActivateOnEnter<ZoomIn>()
             .ActivateOnEnter<ZoomInKB>()
             .ActivateOnEnter<TenTonzeWave>()
             .ActivateOnEnter<TenTonzeWave2>()
