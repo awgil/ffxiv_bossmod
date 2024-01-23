@@ -122,11 +122,10 @@ namespace BossMod.Endwalker.HuntS.Ker
     {
         public WhisperedIncantation() : base(ActionID.MakeSpell(AID.WhisperedIncantation), "Remembers the next skill and uses it again when casting Whispers Manifest") { }
     }
-    class MirroredIncantation : Components.CastHint
+    class MirroredIncantation : BossComponent
     {
         private int Mirrorstacks;
         private bool casting;
-        public MirroredIncantation() : base(ActionID.MakeSpell(AID.MirroredIncantation), "") { }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.MirroredIncantation)
@@ -176,12 +175,11 @@ namespace BossMod.Endwalker.HuntS.Ker
     {
         public MirroredIncantation2() : base(ActionID.MakeSpell(AID.MirroredIncantation2), "The next four interments will be mirrored!") { }
     }
-    class AncientFlare : Components.CastHint
+    class AncientFlare : BossComponent
     {
         private BitMask _pyretic;
         public bool Pyretic { get; private set; }
         private bool casting;
-        public AncientFlare() : base(ActionID.MakeSpell(AID.AncientFlare), "") { }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.AncientFlare)
