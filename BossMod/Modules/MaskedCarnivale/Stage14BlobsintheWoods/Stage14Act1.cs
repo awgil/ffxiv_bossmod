@@ -44,7 +44,7 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
             hints.Add("These slimes start casting Final Song after death.\nWhile FInal Song is not deadly, it does heavy damage and applies silence\nto you. Take cover! For act 2 the spell Loom is strongly recommended.\nThe slimes are strong against blunt melee damage such as J Kick.");
         } 
     }
-
+    class Layout : Layout2Corners {}
     class Stage14Act1States : StateMachineBuilder
     {
         public Stage14Act1States(BossModule module) : base(module)
@@ -57,11 +57,12 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
         }
     }
 
-    public class Stage14Act1 : Layout2Corners
+    public class Stage14Act1 : BossModule
     {
         public Stage14Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
+            ActivateComponent<Layout>();
         }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

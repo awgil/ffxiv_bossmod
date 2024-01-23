@@ -46,7 +46,7 @@ namespace BossMod.MaskedCarnivale.Stage14.Act2
             hints.Add("Same as first act, but the slimes will apply heavy to you.\nUse Loom to get out of line of sight as soon as Final Song gets casted.");
         } 
     }
-
+    class Layout : LayoutBigQuad {}
     class Stage14Act2States : StateMachineBuilder
     {
         public Stage14Act2States(BossModule module) : base(module)
@@ -59,11 +59,12 @@ namespace BossMod.MaskedCarnivale.Stage14.Act2
         }
     }
 
-    public class Stage14Act2 : LayoutBigQuad
+    public class Stage14Act2 : BossModule
     {
         public Stage14Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
+            ActivateComponent<Layout>();
         }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

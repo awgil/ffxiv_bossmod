@@ -53,56 +53,59 @@ namespace BossMod.MaskedCarnivale.Stage08.Act2
                     }
             }
         }
-class Hints : BossComponent
-    {
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            hints.Add("Clever activation of cherry bombs will freeze the Progenitrix.\nInterrupt its burst skill or wipe. The Progenitrix is weak to wind spells.");
-        } 
-    }
-   
-class Stage08Act2States : StateMachineBuilder
-    {
-        public Stage08Act2States(BossModule module) : base(module)
-        {
-            TrivialPhase()
-            .ActivateOnEnter<Burst>()
-            .ActivateOnEnter<Sap>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Bomb).All(e => e.IsDead) && module.Enemies(OID.Snoll).All(e => e.IsDead);
-        }
-    }
 
-public class Stage08Act2 : Layout2Corners
-    {
-        public Stage08Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+    class Hints : BossComponent
         {
-            ActivateComponent<Hints>();
-            ActivateComponent<Selfdetonations>();
-        }
-        protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat); }
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
-            foreach (var s in Enemies(OID.Bomb))
-                Arena.Actor(s, ArenaColor.Enemy, false);
-            foreach (var s in Enemies(OID.Snoll))
-                Arena.Actor(s, ArenaColor.Enemy, false);
-        }
-        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+            public override void AddGlobalHints(BossModule module, GlobalHints hints)
             {
-            base.CalculateAIHints(slot, actor, assignment, hints);
-                foreach (var e in hints.PotentialTargets)
-                {
-                    e.Priority = (OID)e.Actor.OID switch
-                    {
-                        OID.Boss => 1,
-                        OID.Snoll or OID.Bomb => 0,
-                        _ => 0
-                    };
-                }
+                hints.Add("Clever activation of cherry bombs will freeze the Progenitrix.\nInterrupt its burst skill or wipe. The Progenitrix is weak to wind spells.");
+            } 
+        }
+    
+    class Layout : Layout2Corners {}
+    class Stage08Act2States : StateMachineBuilder
+        {
+            public Stage08Act2States(BossModule module) : base(module)
+            {
+                TrivialPhase()
+                .ActivateOnEnter<Burst>()
+                .ActivateOnEnter<Sap>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Bomb).All(e => e.IsDead) && module.Enemies(OID.Snoll).All(e => e.IsDead);
             }
         }
+
+    public class Stage08Act2 : BossModule
+        {
+            public Stage08Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+            {
+                ActivateComponent<Hints>();
+                ActivateComponent<Layout>();
+                ActivateComponent<Selfdetonations>();
+            }
+            protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat); }
+            protected override void DrawEnemies(int pcSlot, Actor pc)
+            {
+                foreach (var s in Enemies(OID.Boss))
+                    Arena.Actor(s, ArenaColor.Enemy, false);
+                foreach (var s in Enemies(OID.Bomb))
+                    Arena.Actor(s, ArenaColor.Enemy, false);
+                foreach (var s in Enemies(OID.Snoll))
+                    Arena.Actor(s, ArenaColor.Enemy, false);
+            }
+            public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+                {
+                base.CalculateAIHints(slot, actor, assignment, hints);
+                    foreach (var e in hints.PotentialTargets)
+                    {
+                        e.Priority = (OID)e.Actor.OID switch
+                        {
+                            OID.Boss => 1,
+                            OID.Snoll or OID.Bomb => 0,
+                            _ => 0
+                        };
+                    }
+                }
+            }
 }
 
 
