@@ -17,11 +17,9 @@ namespace BossMod.MaskedCarnivale.Stage14.Act2
     {
         public LastSong() : base(ActionID.MakeSpell(AID.TheLastSong), 60, true) { } //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
     }
-    class LastSongHint : CastHint
+    class LastSongHint : BossComponent
     {
-        public static bool casting;
-        public LastSongHint() : base(ActionID.MakeSpell(AID.TheLastSong), "") { }
-    
+        public static bool casting;   
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.TheLastSong)
