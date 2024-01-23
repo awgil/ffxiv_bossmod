@@ -41,15 +41,11 @@ namespace BossMod.MaskedCarnivale.Stage14.Act2
         }
     }
 
-    public class Stage14Act2 : BossModule
+    public class Stage14Act2 : LayoutBigQuad
     {
         public Stage14Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
-        }
-        protected override void DrawArenaForeground(int pcSlot, Actor pc)
-        {
-            Arena.AddQuad(new(100,107),new(107,100),new(100,93),new(93,100), ArenaColor.Border, 2);
         }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

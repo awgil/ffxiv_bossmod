@@ -48,19 +48,12 @@ class Stage07Act2States : StateMachineBuilder
         }
     }
 
-public class Stage07Act2 : BossModule
+public class Stage07Act2 : Layout4Quads
     {
         public Stage07Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
             ActivateComponent<SlimeExplosion>();
-        }
-        protected override void DrawArenaForeground(int pcSlot, Actor pc)
-        {
-                Arena.AddQuad(new(107,110),new(110,113),new(113,110),new(110,107), ArenaColor.Border, 2);
-                Arena.AddQuad(new(93,110),new(90,107),new(87,110),new(90,113), ArenaColor.Border, 2);
-                Arena.AddQuad(new(90,93),new(93,90),new(90,87),new(87,90), ArenaColor.Border, 2);
-                Arena.AddQuad(new(110,93),new(113,90),new(110,87),new(107,90), ArenaColor.Border, 2);
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Sprite).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)

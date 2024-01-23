@@ -73,35 +73,12 @@ class Stage08Act2States : StateMachineBuilder
         }
     }
 
-public class Stage08Act2 : BossModule
+public class Stage08Act2 : Layout2Corners
     {
-        public static IEnumerable<WPos> Wall1()
-        {
-            yield return new WPos(85,95);
-            yield return new WPos(95,95);
-            yield return new WPos(95,89);
-            yield return new WPos(94.5f,89);
-            yield return new WPos(94.5f,94.5f);
-            yield return new WPos(85,94.5f);
-        }
-        public static IEnumerable<WPos> Wall2()
-        {
-            yield return new WPos(105,95);
-            yield return new WPos(115,95);
-            yield return new WPos(115,94.5f);
-            yield return new WPos(105.5f,94.5f);
-            yield return new WPos(105.5f,89);
-            yield return new WPos(105,89);
-        }
         public Stage08Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
             ActivateComponent<Selfdetonations>();
-        }
-        protected override void DrawArenaForeground(int pcSlot, Actor pc)
-        {
-            Arena.AddPolygon(Wall1(),ArenaColor.Border);
-            Arena.AddPolygon(Wall2(),ArenaColor.Border);
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)

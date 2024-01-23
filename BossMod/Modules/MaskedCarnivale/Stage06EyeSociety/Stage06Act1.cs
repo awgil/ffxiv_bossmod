@@ -120,16 +120,12 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
         }
     }
 
-    public class Stage06Act2 : BossModule
+    public class Stage06Act2 : LayoutBigQuad
     {
         public Stage06Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
             ActivateComponent<DemonEye>();
-        }
-        protected override void DrawArenaForeground(int pcSlot, Actor pc)
-        {
-                Arena.AddQuad(new(100,107),new(107,100),new(100,93),new(93,100), ArenaColor.Border, 2);
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)
