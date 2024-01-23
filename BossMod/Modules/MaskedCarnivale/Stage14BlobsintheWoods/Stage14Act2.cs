@@ -17,11 +17,9 @@ namespace BossMod.MaskedCarnivale.Stage14.Act2
     {
         public LastSong() : base(ActionID.MakeSpell(AID.TheLastSong), 60, true) { } //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
     }
-    class LastSongHint : CastHint
+    class LastSongHint : BossComponent
     {
-        public static bool casting;
-        public LastSongHint() : base(ActionID.MakeSpell(AID.TheLastSong), "") { }
-    
+        public static bool casting;   
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.TheLastSong)
@@ -46,7 +44,6 @@ namespace BossMod.MaskedCarnivale.Stage14.Act2
             hints.Add("Same as first act, but the slimes will apply heavy to you.\nUse Loom to get out of line of sight as soon as Final Song gets casted.");
         } 
     }
-
     class Stage14Act2States : StateMachineBuilder
     {
         public Stage14Act2States(BossModule module) : base(module)
@@ -59,11 +56,12 @@ namespace BossMod.MaskedCarnivale.Stage14.Act2
         }
     }
 
-    public class Stage14Act2 : LayoutBigQuad
+    public class Stage14Act2 : BossModule
     {
         public Stage14Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
+            ActivateComponent<LayoutBigQuad>();
         }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

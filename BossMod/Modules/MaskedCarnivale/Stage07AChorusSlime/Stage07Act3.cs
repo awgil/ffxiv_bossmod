@@ -37,37 +37,39 @@ namespace BossMod.MaskedCarnivale.Stage07.Act3
                         }
             }
         }
-class Hints : BossComponent
-    {
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            hints.Add("Pull or push the Lava Slimes to the towers and then hit the slimes\nfrom a distance to set off the explosions. The towers create a damage\npulse every 12s and a deadly explosion when they die. Take cover.");
-        } 
-    }       
-class Stage07Act3States : StateMachineBuilder
-    {
-        public Stage07Act3States(BossModule module) : base(module)
-        {
-            TrivialPhase()
-            .ActivateOnEnter<LowVoltage>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Slime).All(e => e.IsDead);
-        }
-    }
 
-public class Stage07Act3 : Layout2Corners
-    {
-        public Stage07Act3(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+    class Hints : BossComponent
         {
-            ActivateComponent<Hints>();
-            ActivateComponent<SlimeExplosion>();
-        }
-        protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat); }
-        protected override void DrawEnemies(int pcSlot, Actor pc)
+            public override void AddGlobalHints(BossModule module, GlobalHints hints)
+            {
+                hints.Add("Pull or push the Lava Slimes to the towers and then hit the slimes\nfrom a distance to set off the explosions. The towers create a damage\npulse every 12s and a deadly explosion when they die. Take cover.");
+            } 
+        }       
+    class Stage07Act3States : StateMachineBuilder
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
-            foreach (var s in Enemies(OID.Slime))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            public Stage07Act3States(BossModule module) : base(module)
+            {
+                TrivialPhase()
+                .ActivateOnEnter<LowVoltage>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Slime).All(e => e.IsDead);
+            }
         }
-    }
+
+    public class Stage07Act3 : BossModule
+        {
+            public Stage07Act3(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+            {
+                ActivateComponent<Hints>();
+                ActivateComponent<Layout2Corners>();
+                ActivateComponent<SlimeExplosion>();
+            }
+            protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat); }
+            protected override void DrawEnemies(int pcSlot, Actor pc)
+            {
+                foreach (var s in Enemies(OID.Boss))
+                    Arena.Actor(s, ArenaColor.Enemy, false);
+                foreach (var s in Enemies(OID.Slime))
+                    Arena.Actor(s, ArenaColor.Enemy, false);
+            }
+        }
 }

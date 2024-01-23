@@ -107,7 +107,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
         {
             hints.Add("Get blinded by the Teary Twirl AOE from the mandragoras.\nBlindness makes you immune to all the gaze attacks.\nThe eyes in act 2 are weak to lightning damage.");
         } 
-    }   
+    }
     class Stage06Act2States : StateMachineBuilder
     {
         public Stage06Act2States(BossModule module) : base(module)
@@ -119,12 +119,12 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead);
         }
     }
-
-    public class Stage06Act2 : LayoutBigQuad
+    public class Stage06Act2 : BossModule
     {
         public Stage06Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
+            ActivateComponent<LayoutBigQuad>();
             ActivateComponent<DemonEye>();
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat); }
