@@ -36,7 +36,7 @@ public enum AID : uint
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("Kreios is weak to lightning spells.\nDuring the fight he will spawn 6 beetles.\nIf available use the Ultravibration combo.");
+            hints.Add("Kreios is weak to lightning spells.\nDuring the fight he will spawn 6 beetles.\nIf available use the Ram's Voice + Ultravibration combo for the instant kill.");
         } 
     }
     class Hints2 : BossComponent
