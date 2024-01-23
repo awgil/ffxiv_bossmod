@@ -17,7 +17,25 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
     }
     class LastSongHint : CastHint
     {
-        public LastSongHint() : base(ActionID.MakeSpell(AID.TheLastSong), "Take cover behind a barricade!") { }
+        public static bool casting;
+        public LastSongHint() : base(ActionID.MakeSpell(AID.TheLastSong), "") { }
+    
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.TheLastSong)
+                casting = true;
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.TheLastSong)
+                casting = false;
+        }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if(casting)
+            hints.Add("Take cover behind a barricade!");
+        } 
     }
     class Hints : BossComponent
     {
@@ -35,7 +53,7 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
             .DeactivateOnEnter<Hints>()
             .ActivateOnEnter<LastSong>()
             .ActivateOnEnter<LastSongHint>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !module.Enemies(OID.Boss).Any(e => e.CastInfo!.IsSpell(AID.TheLastSong));
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !LastSongHint.casting;
         }
     }
 

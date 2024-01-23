@@ -2,6 +2,14 @@ using System.Collections.Generic;
 
 namespace BossMod.MaskedCarnivale
 {
+    public enum OID : uint
+    {
+        empty = 0xFFFFFFD,
+        empty2 = 0xFFFFFE,
+        empty3 = 0xFFFFFFF,
+    };
+    class Layout2CornersStates(BossModule module) : StateMachineBuilder(module) {}
+    [ModuleInfo(PrimaryActorOID = (uint)OID.empty)]
     public class Layout2Corners(WorldState ws, Actor primary, ArenaBounds bounds) : BossModule(ws, primary, bounds)
     {
         public static IEnumerable<WPos> Wall1()
@@ -28,7 +36,8 @@ namespace BossMod.MaskedCarnivale
                 Arena.AddPolygon(Wall2(),ArenaColor.Border);
             }
     }
-
+    class Layout4QuadsStates(BossModule module) : StateMachineBuilder(module) {}
+    [ModuleInfo(PrimaryActorOID = (uint)OID.empty2)]
     public class Layout4Quads(WorldState ws, Actor primary, ArenaBounds bounds) : BossModule(ws, primary, bounds)
     {
         protected override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -39,7 +48,8 @@ namespace BossMod.MaskedCarnivale
                 Arena.AddQuad(new(110,93),new(113,90),new(110,87),new(107,90), ArenaColor.Border, 2);
             }
     }
-
+    class LayoutBigQuadStates(BossModule module) : StateMachineBuilder(module) {}
+    [ModuleInfo(PrimaryActorOID = (uint)OID.empty3)]
     public class LayoutBigQuad(WorldState ws, Actor primary, ArenaBounds bounds) : BossModule(ws, primary, bounds)
     {
         protected override void DrawArenaForeground(int pcSlot, Actor pc)
