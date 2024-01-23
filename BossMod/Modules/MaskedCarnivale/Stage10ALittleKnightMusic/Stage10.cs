@@ -47,15 +47,16 @@ namespace BossMod.MaskedCarnivale.Stage10
     }
     class KingsWill1 : CastHint
     {
-        public KingsWill1() : base(ActionID.MakeSpell(AID.KingsWill), "Interrupt if not going for the achievement") { }
+        public static readonly string hints = "Interrupt if not going for the achievement";
+        public KingsWill1() : base(ActionID.MakeSpell(AID.KingsWill), hints) { }
     }
     class KingsWill2 : CastHint
     {
-        public KingsWill2() : base(ActionID.MakeSpell(AID.KingsWill2), "Interrupt if not going for the achievement") { }
+        public KingsWill2() : base(ActionID.MakeSpell(AID.KingsWill2), KingsWill1.hints) { }
     }
     class KingsWill3 : CastHint
     {
-        public KingsWill3() : base(ActionID.MakeSpell(AID.KingsWill3), "Interrupt if not going for the achievement") { }
+        public KingsWill3() : base(ActionID.MakeSpell(AID.KingsWill3), KingsWill1.hints) { }
     }
     class Hints : BossComponent
     {

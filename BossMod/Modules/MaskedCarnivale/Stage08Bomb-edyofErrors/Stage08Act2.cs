@@ -62,7 +62,6 @@ namespace BossMod.MaskedCarnivale.Stage08.Act2
             } 
         }
     
-    class Layout : Layout2Corners {}
     class Stage08Act2States : StateMachineBuilder
         {
             public Stage08Act2States(BossModule module) : base(module)
@@ -79,7 +78,7 @@ namespace BossMod.MaskedCarnivale.Stage08.Act2
             public Stage08Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
             {
                 ActivateComponent<Hints>();
-                ActivateComponent<Layout>();
+                ActivateComponent<Layout2Corners>();
                 ActivateComponent<Selfdetonations>();
             }
             protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat); }

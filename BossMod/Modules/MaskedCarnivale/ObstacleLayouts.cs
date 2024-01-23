@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using BossMod.Components;
 
 namespace BossMod.MaskedCarnivale
 {

@@ -45,7 +45,6 @@ namespace BossMod.MaskedCarnivale.Stage07.Act3
                 hints.Add("Pull or push the Lava Slimes to the towers and then hit the slimes\nfrom a distance to set off the explosions. The towers create a damage\npulse every 12s and a deadly explosion when they die. Take cover.");
             } 
         }       
-    class Layout : Layout2Corners {}
     class Stage07Act3States : StateMachineBuilder
         {
             public Stage07Act3States(BossModule module) : base(module)
@@ -61,7 +60,7 @@ namespace BossMod.MaskedCarnivale.Stage07.Act3
             public Stage07Act3(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
             {
                 ActivateComponent<Hints>();
-                ActivateComponent<Layout>();
+                ActivateComponent<Layout2Corners>();
                 ActivateComponent<SlimeExplosion>();
             }
             protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Slime).Any(e => e.InCombat); }
