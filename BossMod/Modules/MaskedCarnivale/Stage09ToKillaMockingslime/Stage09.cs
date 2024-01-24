@@ -4,14 +4,14 @@ namespace BossMod.MaskedCarnivale.Stage09
 {
     public enum OID : uint
     {
-        Boss = 0x242D, // R2,400, x1
-        Pudding = 0x2711, // R1,800, spawn during fight
-        Gelato = 0x2712, // R1,800, spawn during fight
-        Marshmallow = 0x2713, // R1,800, spawn during fight
-        Licorice = 0x2714, // R1,800, spawn during fight
-        Bavarois = 0x2715, // R1,800, spawn during fight
-        Flan = 0x2716, // R1,800, spawn during fight
-        DarkVoidzone = 0x1E9C9D,
+        Boss = 0x242D, //R=2.4
+        Pudding = 0x2711, //R=1.8
+        Gelato = 0x2712, //R=1.8
+        Marshmallow = 0x2713, //R=1.8
+        Licorice = 0x2714, //R=1.8
+        Bavarois = 0x2715, //R=1.8
+        Flan = 0x2716, //R=1.8
+        DarkVoidzone = 0x1E9C9D, //R=0.5
     };
     public enum AID : uint
     {
