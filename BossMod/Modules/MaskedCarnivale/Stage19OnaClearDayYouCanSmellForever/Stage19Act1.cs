@@ -29,10 +29,6 @@ namespace BossMod.MaskedCarnivale.Stage19.Act1
         Pollen = 19, // none->player, extra=0x0
         Stun = 149, // 2729->player, extra=0x0
     };
-    class Reflect : CastHint
-    {
-        public Reflect() : base(ActionID.MakeSpell(AID.Reflect), "Boss will reflect all magic damage!") { } //TODO: could use an AI hint to never use magic abilities after this is casted
-    }
     class BadBreath : SelfTargetedAOEs
     {
         public BadBreath() : base(ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f,60.Degrees())) { } 
@@ -44,6 +40,33 @@ namespace BossMod.MaskedCarnivale.Stage19.Act1
     class OffalBreath : PersistentVoidzoneAtCastTarget
     {
         public OffalBreath() : base(6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0) { }
+    }
+    class Reflect : BossComponent
+    {
+        private bool reflect;
+        private bool casting;
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastStarted(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.Reflect)
+                casting = true;
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastStarted(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.Reflect)
+            {
+                reflect = true;
+                casting = false;
+            }
+        }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (casting)
+                hints.Add("Boss will reflect all magic damage!");
+            if (reflect)
+                hints.Add("Boss reflects all magic damage!");//TODO: could use an AI hint to never use magic abilities after this is casted
+        }
     }
     class Hints : BossComponent
     {

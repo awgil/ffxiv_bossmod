@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BossMod.Components;
 
 namespace BossMod.MaskedCarnivale.Stage17.Act2
@@ -65,6 +66,16 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
                 casting = false;
         }
     }
+    class Hints2 : BossComponent
+    {
+           public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (!module.Enemies(OID.LeftClaw).All(e => e.IsDead))
+                hints.Add("Left claw counters magical damage!");
+            if (!module.Enemies(OID.RightClaw).All(e => e.IsDead))
+                hints.Add("Right claw counters physical damage!");
+        }
+    }
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -83,6 +94,7 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
             .ActivateOnEnter<TheHandKB>()
             .ActivateOnEnter<GrandStrike>()
             .ActivateOnEnter<Shred>()
+            .ActivateOnEnter<Hints2>()
             .DeactivateOnEnter<Hints>();
         }
     }

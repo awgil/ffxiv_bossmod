@@ -47,6 +47,16 @@ namespace BossMod.MaskedCarnivale.Stage17.Act1
                 casting = false;
         }
     }
+    class Hints2 : BossComponent
+    {
+           public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (!module.Enemies(OID.Boss).All(e => e.IsDead))
+                hints.Add("Left claw counters magical damage!");
+            if (!module.Enemies(OID.RightClaw).All(e => e.IsDead))
+                hints.Add("Right claw counters physical damage!");
+        }
+    }
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -63,6 +73,7 @@ namespace BossMod.MaskedCarnivale.Stage17.Act1
             .ActivateOnEnter<Shred>()
             .ActivateOnEnter<TheHand>()
             .ActivateOnEnter<TheHandKB>()
+            .ActivateOnEnter<Hints2>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.RightClaw).All(e => e.IsDead);
         }
     }
