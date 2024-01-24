@@ -30,7 +30,7 @@ namespace BossMod
             public SeString? ForayName;
             public SeString? FateName;
             public SeString? BossName;
-            public string HuntRank;
+            public string HuntRank = "";
 
             public bool IsUncatalogued;
 
