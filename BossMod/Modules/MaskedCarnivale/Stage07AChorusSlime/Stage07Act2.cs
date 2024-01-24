@@ -6,7 +6,7 @@ namespace BossMod.MaskedCarnivale.Stage07.Act2
     public enum OID : uint
     {
         Boss = 0x2705, //R=1.6
-        Sprite = 0x2704, //R0.8
+        Sprite = 0x2704, //R=0.8
     };
 
     public enum AID : uint

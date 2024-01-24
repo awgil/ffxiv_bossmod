@@ -6,8 +6,8 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
     public enum OID : uint
     {
         Boss = 0x26FF, //R=2.53
-        Eye = 0x25CE, //R1.35
-        Mandragora = 0x2701, //R0.3
+        Eye = 0x25CE, //R=1.35
+        Mandragora = 0x2701, //R=0.3
     };
 
     public enum AID : uint
