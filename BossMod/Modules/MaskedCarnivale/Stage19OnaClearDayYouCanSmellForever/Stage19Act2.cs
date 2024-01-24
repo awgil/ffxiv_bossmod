@@ -35,8 +35,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
     };
     class ExplosiveDehiscence : CastGaze
     {
-        private bool casting;
-        private bool blinded;
+        public static bool blinded;
         public ExplosiveDehiscence() : base(ActionID.MakeSpell(AID.ExplosiveDehiscence)) {}
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
@@ -58,6 +57,15 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
                     }
                 }
             }
+    }
+    class GazeHint : BossComponent
+    {
+        public static bool casting;
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) 
+            {
+                if (!ExplosiveDehiscence.blinded && casting)
+                    hints.Add("Cast Ink Jet on boss to get blinded!");
+            }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Schizocarps)
@@ -69,12 +77,8 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
             if ((AID)spell.Action.ID == AID.ExplosiveDehiscence)
                 casting = false;
         }
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) 
-            {
-                if (!blinded && casting)
-                    hints.Add("Cast Ink Jet on boss to get blinded or prepare to look away!");
-            }
     }
+
     class Reflect : CastHint
     {
         public Reflect() : base(ActionID.MakeSpell(AID.Reflect), "Boss will reflect all magic damage!") { } //TODO: could use an AI hint to never use magic abilities after this is casted
@@ -95,7 +99,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("At the start of the fight Rebekkah will cast Reflect. This will reflect all\nmagic damage back to you. Useful skills: physical damage abilities,\nFlying Sardine, Ink Jet (Act 2), Exuviation (Act 2), potentially a Final Sting\ncombo. (Off-guard->Bristle->Moonflute->Final Sting)");
+            hints.Add("Same as first act, but this time the boss will cast a gaze from all directions.\nThe easiest counter for this is to blind yourself by casting Ink Jet on the\nboss after it casted Schizocarps.\nThe Final Sting combo window opens at around 75% health.\n(Off-guard->Bristle->Moonflute->Final Sting)");
         } 
     }
     class Stage19Act1States : StateMachineBuilder
@@ -108,6 +112,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
             .ActivateOnEnter<BadBreath>()
             .ActivateOnEnter<VineProbe>()
             .ActivateOnEnter<ExplosiveDehiscence>()
+            .ActivateOnEnter<GazeHint>()
             .ActivateOnEnter<OffalBreath>();
         }
     }

@@ -49,7 +49,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act1
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("At the start of the fight Rebekkah will cast Reflect. This will reflect all\nmagic damage back to you. Useful skills: physical damage abilities,\nFlying Sardine, Ink Jet (Act 2), Exuviation (Act 2), potentially a Final Sting\ncombo. (Off-guard->Bristle->Moonflute->Final Sting)");
+            hints.Add("At the start of the fight Rebekkah will cast Reflect. This will reflect all\nmagic damage back to you. Useful skills: Sharpened Knife,\nFlying Sardine, Ink Jet (Act 2), Exuviation (Act 2), potentially a Final Sting\ncombo. (Off-guard->Bristle->Moonflute->Final Sting)");
         } 
     }
     class Stage19Act1States : StateMachineBuilder
