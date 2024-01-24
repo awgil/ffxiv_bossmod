@@ -6,13 +6,7 @@ namespace BossMod.MNK
 {
     public static class Rotation
     {
-        public enum Form
-        {
-            None,
-            OpoOpo,
-            Raptor,
-            Coeurl
-        }
+        public enum Form { None, OpoOpo, Raptor, Coeurl }
 
         // full state needed for determining next action
         public class State : CommonRotation.PlayerState
@@ -39,18 +33,11 @@ namespace BossMod.MNK
                 );
 
             // upgrade paths
-            public AID BestForbiddenChakra =>
-                Unlocked(AID.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
-            public AID BestEnlightenment =>
-                Unlocked(AID.Enlightenment) ? AID.Enlightenment : AID.HowlingFist;
-            public AID BestShadowOfTheDestroyer =>
-                Unlocked(AID.ShadowOfTheDestroyer)
-                    ? AID.ShadowOfTheDestroyer
-                    : AID.ArmOfTheDestroyer;
-            public AID BestRisingPhoenix =>
-                Unlocked(AID.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike;
-            public AID BestPhantomRush =>
-                Unlocked(AID.PhantomRush) ? AID.PhantomRush : AID.TornadoKick;
+            public AID BestForbiddenChakra => Unlocked(AID.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
+            public AID BestEnlightenment => Unlocked(AID.Enlightenment) ? AID.Enlightenment : AID.HowlingFist;
+            public AID BestShadowOfTheDestroyer => Unlocked(AID.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
+            public AID BestRisingPhoenix => Unlocked(AID.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike;
+            public AID BestPhantomRush => Unlocked(AID.PhantomRush) ? AID.PhantomRush : AID.TornadoKick;
 
             public AID BestBlitz
             {
@@ -72,11 +59,9 @@ namespace BossMod.MNK
                 }
             }
 
-            public State(float[] cooldowns)
-                : base(cooldowns) { }
+            public State(float[] cooldowns) : base(cooldowns) { }
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
-
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
 
             public override string ToString()
@@ -143,7 +128,7 @@ namespace BossMod.MNK
 
             public override string ToString()
             {
-                return $"AOE={NumPointBlankAOETargets}/{NumEnlightenmentTargets}, no-dots={ForbidDOTs}, {CombatTimer}";
+                return $"AOE={NumPointBlankAOETargets}/{NumEnlightenmentTargets}, no-dots={ForbidDOTs}";
             }
 
             public void ApplyStrategyOverrides(uint[] overrides)
@@ -299,13 +284,7 @@ namespace BossMod.MNK
             )
                 return AID.SixSidedStar;
 
-            // TODO: L52+
-            return GetNextComboAction(
-                state,
-                strategy.NumPointBlankAOETargets,
-                strategy.ForbidDOTs,
-                strategy.NextNadi
-            );
+            return GetNextComboAction(state, strategy.NumPointBlankAOETargets, strategy.ForbidDOTs, strategy.NextNadi);
         }
 
         public static (Positional, bool) GetNextPositional(State state, Strategy strategy)
@@ -372,21 +351,11 @@ namespace BossMod.MNK
                 // L54 Forbidden Chakra is 340p => HF at 4+ targets
                 // L72 Enlightenment is 170p/target => at 2+ targets
                 if (state.Unlocked(AID.Enlightenment))
-                    return ActionID.MakeSpell(
-                        strategy.NumEnlightenmentTargets >= 2
-                            ? AID.Enlightenment
-                            : AID.ForbiddenChakra
-                    );
+                    return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 2 ? AID.Enlightenment : AID.ForbiddenChakra);
                 else if (state.Unlocked(AID.ForbiddenChakra))
-                    return ActionID.MakeSpell(
-                        strategy.NumEnlightenmentTargets >= 4
-                            ? AID.HowlingFist
-                            : AID.ForbiddenChakra
-                    );
+                    return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 4 ? AID.HowlingFist : AID.ForbiddenChakra);
                 else if (state.Unlocked(AID.HowlingFist))
-                    return ActionID.MakeSpell(
-                        strategy.NumEnlightenmentTargets >= 2 ? AID.HowlingFist : AID.SteelPeak
-                    );
+                    return ActionID.MakeSpell(strategy.NumEnlightenmentTargets >= 2 ? AID.HowlingFist : AID.SteelPeak);
                 else
                     return ActionID.MakeSpell(AID.SteelPeak);
             }
