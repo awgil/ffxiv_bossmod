@@ -70,7 +70,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public FakeLeftInTheDark1() : base(ActionID.MakeSpell(AID.FakeLeftInTheDark), new AOEShapeCone(20,90.Degrees()))
         {
             Risky = false;
-            Color = ArenaColor.Invisible;
+            Visible = false;
         } 
     }
     class FakeLeftInTheDark2 : Components.SelfTargetedAOEs
@@ -78,7 +78,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public FakeLeftInTheDark2() : base(ActionID.MakeSpell(AID.FakeLeftInTheDark2), new AOEShapeCone(20,90.Degrees()))        
         {
             Risky = false;
-            Color = ArenaColor.Invisible;
+            Visible = false;
         }  
     }
     class FakeRightInTheDark1 : Components.SelfTargetedAOEs
@@ -86,7 +86,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public FakeRightInTheDark1() : base(ActionID.MakeSpell(AID.FakeRightInTheDark), new AOEShapeCone(20,90.Degrees()))        
         {
             Risky = false;
-            Color = ArenaColor.Invisible;
+            Visible = false;
         } 
     }
     class FakeRightInTheDark2 : Components.SelfTargetedAOEs
@@ -94,7 +94,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public FakeRightInTheDark2() : base(ActionID.MakeSpell(AID.FakeRightInTheDark2), new AOEShapeCone(20,90.Degrees()))        
         {
             Risky = false;
-            Color = ArenaColor.Invisible;
+            Visible = false;
         } 
     }
     class FakeQuakeInYourBoots1 : Components.SelfTargetedAOEs
@@ -102,7 +102,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public FakeQuakeInYourBoots1() : base(ActionID.MakeSpell(AID.FakeQuakeInYourBoots), new AOEShapeCircle(10))        
         {
             Risky = false;
-            Color = ArenaColor.Invisible;
+            Visible = false;
         } 
     }
     class FakeQuakeInYourBoots2 : Components.SelfTargetedAOEs
@@ -110,7 +110,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public FakeQuakeInYourBoots2() : base(ActionID.MakeSpell(AID.FakeQuakeInYourBoots2), new AOEShapeDonut(10,20))        
         {
             Risky = false;
-            Color = ArenaColor.Invisible;
+            Visible = false;
         } 
     }
     class FakeQuakeMeAway1 : Components.SelfTargetedAOEs
@@ -118,7 +118,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public FakeQuakeMeAway1() : base(ActionID.MakeSpell(AID.FakeQuakeMeAway), new AOEShapeDonut(10,20))         
         {
             Risky = false;
-            Color = ArenaColor.Invisible;
+            Visible = false;
         } 
     }
     class FakeQuakeMeAway2 : Components.SelfTargetedAOEs
@@ -126,7 +126,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public FakeQuakeMeAway2() : base(ActionID.MakeSpell(AID.FakeQuakeMeAway2), new AOEShapeDonut(10,20))        
         {
             Risky = false;
-            Color = ArenaColor.Invisible;
+            Visible = false;
         }  
     }
     class LeftInTheDark1 : Components.SelfTargetedAOEs
