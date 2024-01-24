@@ -1,9 +1,9 @@
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon
 {
 
-class Lyon2DuelStates : StateMachineBuilder
+class Duel2LyonStates : StateMachineBuilder
     {
-        public Lyon2DuelStates(BossModule module) : base(module)
+        public Duel2LyonStates(BossModule module) : base(module)
         {
             TrivialPhase()
             .ActivateOnEnter<Enaero>()
@@ -23,8 +23,8 @@ class Lyon2DuelStates : StateMachineBuilder
             .ActivateOnEnter<SkyrendingStrike>();
         }
     }
-public class Lyon2Duel : BossModule
+public class Duel2Lyon: BossModule
     {
-        public Lyon2Duel(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(211, 380), 20)) {}
+        public Duel2Lyon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(211, 380), 20)) {}
     }
 }
