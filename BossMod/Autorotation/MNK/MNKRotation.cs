@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿// CONTRIB: made by xan, not checked
+using System.Linq;
 using Dalamud.Game.ClientState.JobGauge.Enums;
-using static BossMod.CommonRotation.Strategy;
 
 namespace BossMod.MNK
 {
@@ -12,7 +12,7 @@ namespace BossMod.MNK
         public class State : CommonRotation.PlayerState
         {
             public int Chakra; // 0-5
-            public BeastChakra[] BeastChakra;
+            public BeastChakra[] BeastChakra = [];
             public Nadi Nadi;
             public Form Form;
             public float FormLeft; // 0 if no form, 30 max
@@ -270,14 +270,14 @@ namespace BossMod.MNK
                 return AID.None;
             }
 
-            if (state.Unlocked(AID.SixSidedStar) && strategy.SSSUse == OffensiveAbilityUse.Force)
+            if (state.Unlocked(AID.SixSidedStar) && strategy.SSSUse == Strategy.OffensiveAbilityUse.Force)
                 return AID.SixSidedStar;
 
             if (state.BestBlitz != AID.MasterfulBlitz)
                 return state.BestBlitz;
 
             if (
-                strategy.SSSUse == OffensiveAbilityUse.Automatic
+                strategy.SSSUse == Strategy.OffensiveAbilityUse.Automatic
                 && strategy.FightEndIn > state.GCD
                 && strategy.FightEndIn < state.GCD + 1.95
                 && state.Unlocked(AID.SixSidedStar)
@@ -430,12 +430,12 @@ namespace BossMod.MNK
         {
             if (
                 !state.Unlocked(AID.RiddleOfWind)
-                || strategy.WindUse == OffensiveAbilityUse.Delay
+                || strategy.WindUse == Strategy.OffensiveAbilityUse.Delay
                 || !state.CanWeave(CDGroup.RiddleOfWind, 0.6f, deadline)
             )
                 return false;
 
-            if (strategy.WindUse == OffensiveAbilityUse.Force)
+            if (strategy.WindUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
             // thebalance recommends using RoW like an oGCD dot, so we use on cooldown as long as RoF has been used first
@@ -446,12 +446,12 @@ namespace BossMod.MNK
         {
             if (
                 !state.Unlocked(AID.Brotherhood)
-                || strategy.BrotherhoodUse == OffensiveAbilityUse.Delay
+                || strategy.BrotherhoodUse == Strategy.OffensiveAbilityUse.Delay
                 || !state.CanWeave(CDGroup.Brotherhood, 0.6f, deadline)
             )
                 return false;
 
-            if (strategy.BrotherhoodUse == OffensiveAbilityUse.Force)
+            if (strategy.BrotherhoodUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
             return strategy.NumPointBlankAOETargets == 0
@@ -465,11 +465,11 @@ namespace BossMod.MNK
                 state.PerfectBalanceLeft > 0
                 || !state.Unlocked(AID.PerfectBalance)
                 || !state.CanWeave(state.CD(CDGroup.PerfectBalance) - 40, 0.6f, deadline)
-                || strategy.PerfectBalanceUse == OffensiveAbilityUse.Delay
+                || strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Delay
             )
                 return false;
 
-            if (strategy.PerfectBalanceUse == OffensiveAbilityUse.Force)
+            if (strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
             return (state.FireLeft > state.GCD || !state.Unlocked(AID.RiddleOfFire))
@@ -479,11 +479,11 @@ namespace BossMod.MNK
         private static bool ShouldUseTrueNorth(State state, Strategy strategy)
         {
             if (
-                strategy.TrueNorthUse == OffensiveAbilityUse.Delay
+                strategy.TrueNorthUse == Strategy.OffensiveAbilityUse.Delay
                 || state.TrueNorthLeft > state.AnimationLock
             )
                 return false;
-            if (strategy.TrueNorthUse == OffensiveAbilityUse.Force)
+            if (strategy.TrueNorthUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
             return strategy.NextPositionalImminent && !strategy.NextPositionalCorrect;

@@ -1,10 +1,6 @@
 // CONTRIB: made by xan, not checked
-using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Dalamud.Game.ClientState.JobGauge.Enums;
-using static BossMod.CommonRotation.Strategy;
-using static BossMod.SAM.Rotation.Strategy;
 
 // opener -> cooldown -> odd burst -> filler -> cooldown -> even burst -> cooldown
 // 0s                    60s                                120s
@@ -216,9 +212,9 @@ namespace BossMod.SAM
 
         private static bool CanCast(State state, Strategy strategy)
         {
-            if (strategy.IaijutsuUse == OffensiveAbilityUse.Force)
+            if (strategy.IaijutsuUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
-            if (strategy.IaijutsuUse == OffensiveAbilityUse.Delay)
+            if (strategy.IaijutsuUse == Strategy.OffensiveAbilityUse.Delay)
                 return false;
 
             return strategy.ForceMovementIn >= state.GCD + state.CastTime;
@@ -320,9 +316,9 @@ namespace BossMod.SAM
 
             return strategy.EnpiStrategy switch
             {
-                EnpiUse.Automatic => state.Unlocked(AID.Enpi) && state.EnhancedEnpiLeft > state.GCD,
-                EnpiUse.Ranged => state.Unlocked(AID.Enpi),
-                EnpiUse.Never or _ => false,
+                Strategy.EnpiUse.Automatic => state.Unlocked(AID.Enpi) && state.EnhancedEnpiLeft > state.GCD,
+                Strategy.EnpiUse.Ranged => state.Unlocked(AID.Enpi),
+                Strategy.EnpiUse.Never or _ => false,
             };
         }
 
@@ -369,7 +365,7 @@ namespace BossMod.SAM
                 if (
                     strategy.CombatTimer > -5
                     && state.TrueNorthLeft == 0
-                    && strategy.TrueNorthUse != OffensiveAbilityUse.Delay
+                    && strategy.TrueNorthUse != Strategy.OffensiveAbilityUse.Delay
                 )
                     return ActionID.MakeSpell(AID.TrueNorth);
 
@@ -378,9 +374,9 @@ namespace BossMod.SAM
 
             if (state.MeikyoLeft == 0 && state.CanWeave(state.NextMeikyoCharge, 0.6f, deadline))
             {
-                if (strategy.MeikyoStrategy == MeikyoUse.Force && !state.InCombo)
+                if (strategy.MeikyoStrategy == Strategy.MeikyoUse.Force && !state.InCombo)
                     return ActionID.MakeSpell(AID.MeikyoShisui);
-                if (strategy.MeikyoStrategy == MeikyoUse.ForceBreakCombo)
+                if (strategy.MeikyoStrategy == Strategy.MeikyoUse.ForceBreakCombo)
                     return ActionID.MakeSpell(AID.MeikyoShisui);
             }
 
@@ -397,7 +393,7 @@ namespace BossMod.SAM
             if (state.MeikyoLeft == 0 && state.LastTsubame < state.GCDTime * 3)
                 return ActionID.MakeSpell(AID.MeikyoShisui);
 
-            if (state.RangeToTarget > 3 && strategy.DashStrategy == DashUse.UseOutsideMelee)
+            if (state.RangeToTarget > 3 && strategy.DashStrategy == Strategy.DashUse.UseOutsideMelee)
                 return ActionID.MakeSpell(AID.HissatsuGyoten);
 
             if (
@@ -435,7 +431,7 @@ namespace BossMod.SAM
                     && state.CanWeave(CDGroup.HissatsuGyoten, 0.6f, deadline)
                     && (state.CD(CDGroup.HissatsuGuren) > state.GCDTime || state.Kenki >= 35)
                     && state.RangeToTarget <= 3
-                    && strategy.DashStrategy != DashUse.Never
+                    && strategy.DashStrategy != Strategy.DashUse.Never
                 )
                     return ActionID.MakeSpell(AID.HissatsuGyoten);
             }
@@ -457,9 +453,9 @@ namespace BossMod.SAM
         {
             if (state.TrueNorthLeft > state.AnimationLock)
                 return false;
-            if (strategy.TrueNorthUse == OffensiveAbilityUse.Force)
+            if (strategy.TrueNorthUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
-            if (!state.TargetingEnemy || strategy.TrueNorthUse == OffensiveAbilityUse.Delay)
+            if (!state.TargetingEnemy || strategy.TrueNorthUse == Strategy.OffensiveAbilityUse.Delay)
                 return false;
 
             return strategy.NextPositionalImminent && !strategy.NextPositionalCorrect;
@@ -480,12 +476,12 @@ namespace BossMod.SAM
             uint gcdsInAdvance = 0
         )
         {
-            if (strategy.HiganbanaStrategy == HiganbanaUse.Never || !state.HasCombatBuffs)
+            if (strategy.HiganbanaStrategy == Strategy.HiganbanaUse.Never || !state.HasCombatBuffs)
                 return false;
 
             // force use to get shoha even if the target is dying, dot overwrite doesn't matter
             if (
-                strategy.HiganbanaStrategy != HiganbanaUse.Eager
+                strategy.HiganbanaStrategy != Strategy.HiganbanaUse.Eager
                 && strategy.FightEndIn > 0
                 && (strategy.FightEndIn - state.GCD) < 45
             )
@@ -498,15 +494,15 @@ namespace BossMod.SAM
         {
             return strategy.KenkiStrategy switch
             {
-                KenkiUse.Automatic
+                Strategy.KenkiUse.Automatic
                     => state.Kenki >= 90
                         || (
                             state.Kenki >= minCost
                             && ShouldUseBurst(state, strategy, state.AnimationLock)
                         ),
-                KenkiUse.Force => state.Kenki >= minCost,
-                KenkiUse.ForceDash => state.Kenki - 10 >= minCost,
-                KenkiUse.Never or _ => false,
+                Strategy.KenkiUse.Force => state.Kenki >= minCost,
+                Strategy.KenkiUse.ForceDash => state.Kenki - 10 >= minCost,
+                Strategy.KenkiUse.Never or _ => false,
             };
         }
 
