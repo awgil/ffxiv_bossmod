@@ -1,4 +1,3 @@
-using System.Linq;
 using BossMod.Components;
 
 namespace BossMod.MaskedCarnivale.Stage19.Act2
