@@ -149,7 +149,7 @@ namespace BossMod.SAM
                     ? float.MaxValue
                     : StatusDetails(Autorot.PrimaryTarget, SID.Higanbana, Player.InstanceID).Left;
 
-            _state.GCDTime = ActionManagerEx.Instance!.GCDTime();
+            _state.GCDTime = _state.AttackGCDTime;
             _state.LastTsubame =
                 _lastTsubame == default
                     ? float.MaxValue
