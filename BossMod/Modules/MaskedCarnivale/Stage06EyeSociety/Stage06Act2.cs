@@ -73,7 +73,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
     }
     class TearyTwirl : StackWithCastTargets
     {
-    private bool blinded = false;
+    private bool blinded;
         public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) { }
                 public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
