@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using System.Numerics;
 
 namespace BossMod
 {
@@ -16,7 +17,7 @@ namespace BossMod
             return res;
         }
 
-        public static void TextUnderlined(System.Numerics.Vector4 colour, string text)
+        public static void TextUnderlined(Vector4 colour, string text)
         {
             var size = ImGui.CalcTextSize(text);
             var cur = ImGui.GetCursorScreenPos();
