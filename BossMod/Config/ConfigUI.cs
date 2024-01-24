@@ -33,16 +33,14 @@ namespace BossMod
         private ConfigRoot _root;
         private WorldState _ws;
 
-        private Dictionary<uint, ModuleRegistry.Info> _modules;
-        private Dictionary<uint, ModuleRegistry.Info> _uncatalogued;
-        private Lumina.Excel.ExcelSheet<ExVersion> _exSheet;
-        private Lumina.Excel.ExcelSheet<ContentFinderCondition> _cfcSheet;
-        private List<uint> _expacs;
+        private readonly Lumina.Excel.ExcelSheet<ExVersion> _exSheet;
 
         public ConfigUI(ConfigRoot config, WorldState ws)
         {
             _root = config;
             _ws = ws;
+
+            _exSheet = Service.DataManager.GetExcelSheet<ExVersion>()!;
 
             Dictionary<Type, UINode> nodes = new();
             foreach (var n in config.Nodes)
@@ -65,18 +63,6 @@ namespace BossMod
             }
 
             SortByOrder(_roots);
-
-            _exSheet = Service.DataManager.GetExcelSheet<ExVersion>()!;
-            _cfcSheet = Service.DataManager.GetExcelSheet<ContentFinderCondition>()!;
-            _modules = ModuleRegistry.RegisteredModules
-                .Where(x => !x.Value.IsUncatalogued)
-                .OrderBy(x => x.Value.ExVersion)
-                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.ClassJobLevelSync)
-                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.ItemLevelRequired)
-                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.SortKey)
-                .ToDictionary(x => x.Key, x => x.Value);
-            _uncatalogued = _modules.Where(x => x.Value.IsUncatalogued || x.Value.ExVersion == 69).Select(x => x).ToDictionary(x => x.Key, x => x.Value);
-            _expacs = _modules.Where(x => x.Value.ExVersion != 69).Select(x => x.Value.ExVersion).Distinct().ToList()!;
         }
 
         public void Draw()
@@ -96,9 +82,9 @@ namespace BossMod
         private void DrawModules()
         {
             // TODO: separate unreals from trials and alliance raids from raids and show old unreals in uncatalogued
-            foreach (var expac in _expacs)
+            foreach (var expac in ModuleRegistry.AvailableExpansions)
             {
-                var expac_mods = _modules.Where(x => x.Value.ExVersion == expac);
+                var expac_mods = ModuleRegistry.RegisteredModules.Where(x => x.Value.ExVersion == expac);
                 var expac_cont = expac_mods.Select(x => x.Value.ContentType).Distinct();
                 UIMisc.TextUnderlined(ImGuiColors.DalamudViolet, $"{_exSheet.GetRow(expac)!.Name}");
                 foreach (var cont in expac_cont)
@@ -126,10 +112,10 @@ namespace BossMod
                 }
             }
 
-            if (_uncatalogued.Any())
+            if (ModuleRegistry.UncataloguedModules.Any())
             {
                 UIMisc.TextUnderlined(ImGuiColors.DPSRed, $"Uncatalogued");
-                foreach (var mod in _uncatalogued)
+                foreach (var mod in ModuleRegistry.UncataloguedModules)
                     ImGui.Text($"{mod.Value.ModuleType.Name}");
             }
         }
