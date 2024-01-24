@@ -33,6 +33,7 @@
         public P5SConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 873, NameID = 11440)]
     public class P5S : BossModule
     {
         public P5S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 15)) { }

@@ -189,6 +189,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         }
     }
 
+    [ModuleInfo(CFCID = 778, DynamicEventID = 18)]
     public class CE64FeelingTheBurn : BossModule
     {
         public List<Actor> Escorts;

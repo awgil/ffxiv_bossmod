@@ -184,6 +184,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         }
     }
 
+    [ModuleInfo(CFCID = 778, DynamicEventID = 25)]
     public class CE54NeverCryWolf : BossModule
     {
         private List<Actor> _adds = new();

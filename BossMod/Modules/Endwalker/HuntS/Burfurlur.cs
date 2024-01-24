@@ -96,6 +96,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 176)]
     public class Burfurlur : SimpleBossModule
     {
         public Burfurlur(WorldState ws, Actor primary) : base(ws, primary) { }

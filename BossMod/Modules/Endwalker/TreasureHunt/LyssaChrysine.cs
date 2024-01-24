@@ -146,6 +146,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         }
     }
 
+    [ModuleInfo(CFCID = 909, NameID = 12024)]
     public class Lyssa : BossModule
     {
         public Lyssa(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) {}

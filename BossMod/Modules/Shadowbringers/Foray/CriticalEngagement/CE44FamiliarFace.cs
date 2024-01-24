@@ -157,6 +157,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         }
     }
 
+    [ModuleInfo(CFCID = 778, DynamicEventID = 29)]
     public class CE44FamiliarFace : BossModule
     {
         public CE44FamiliarFace(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(330, 390), 30)) { }

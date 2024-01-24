@@ -65,5 +65,6 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 124)]
     public class Maliktender(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
 }

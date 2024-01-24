@@ -49,6 +49,7 @@ namespace BossMod.RealmReborn.Dungeon.D12AurumVale.D121Locksmith
         }
     }
 
+    [ModuleInfo(CFCID = 5, NameID = 1534)]
     public class D121Locksmith : BossModule
     {
         public D121Locksmith(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(35, 0), 15, 25)) { }

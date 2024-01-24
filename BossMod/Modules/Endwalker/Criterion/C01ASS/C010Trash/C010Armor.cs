@@ -54,9 +54,9 @@
     class C010NArmorStates : C010ArmorStates { public C010NArmorStates(BossModule module) : base(module, false) { } }
     class C010SArmorStates : C010ArmorStates { public C010SArmorStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11515)]
     public class C010NArmor : SimpleBossModule { public C010NArmor(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11515)]
     public class C010SArmor : SimpleBossModule { public C010SArmor(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

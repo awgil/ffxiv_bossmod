@@ -177,6 +177,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
         }
     }
 
+    [ModuleInfo(CFCID = 778, DynamicEventID = 28)]
     public class CE63WornToShadow : BossModule
     {
         public CE63WornToShadow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-480, -690), 30)) { }

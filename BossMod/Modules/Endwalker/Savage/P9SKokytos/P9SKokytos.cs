@@ -21,6 +21,7 @@
         public P9SKokytosConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 937, NameID = 12369)]
     public class P9SKokytos : BossModule
     {
         public P9SKokytos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

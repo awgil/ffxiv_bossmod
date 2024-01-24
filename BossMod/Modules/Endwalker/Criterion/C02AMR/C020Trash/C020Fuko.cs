@@ -82,7 +82,7 @@
     class C020NFukoStates : C020FukoStates { public C020NFukoStates(BossModule module) : base(module, false) { } }
     class C020SFukoStates : C020FukoStates { public C020SFukoStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NFuko)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NFuko, CFCID = 946, NameID = 12399)]
     public class C020NFuko : C020Trash1
     {
         public C020NFuko(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -95,7 +95,7 @@
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SFuko)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SFuko, CFCID = 947, NameID = 12399)]
     public class C020SFuko : C020Trash1
     {
         public C020SFuko(WorldState ws, Actor primary) : base(ws, primary) { }

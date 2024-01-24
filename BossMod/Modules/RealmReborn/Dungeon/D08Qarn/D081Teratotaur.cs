@@ -109,6 +109,7 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
         }
     }
 
+    [ModuleInfo(CFCID = 8, NameID = 1567)]
     public class D081Teratotaur : BossModule
     {
         public D081Teratotaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-70, -60), 20)) { }

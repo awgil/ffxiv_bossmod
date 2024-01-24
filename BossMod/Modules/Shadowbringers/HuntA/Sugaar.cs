@@ -166,5 +166,6 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 125)]
     public class Sugaar(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
 }

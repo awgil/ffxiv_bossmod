@@ -58,9 +58,9 @@
         public C011Silkie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-335, -155), 20)) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11369)]
     public class C011NSilkie : C011Silkie { public C011NSilkie(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11369)]
     public class C011SSilkie : C011Silkie { public C011SSilkie(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

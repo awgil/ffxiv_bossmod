@@ -28,9 +28,9 @@
     class C020NYukiStates : C020YukiStates { public C020NYukiStates(BossModule module) : base(module, false) { } }
     class C020SYukiStates : C020YukiStates { public C020SYukiStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NYuki)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NYuki, CFCID = 946, NameID = 12425)]
     public class C020NYuki : C020Trash1 { public C020NYuki(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SYuki)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SYuki, CFCID = 947, NameID = 12425)]
     public class C020SYuki : C020Trash1 { public C020SYuki(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

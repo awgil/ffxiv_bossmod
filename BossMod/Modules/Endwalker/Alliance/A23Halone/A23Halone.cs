@@ -45,6 +45,7 @@
         public Niphas() : base(ActionID.MakeSpell(AID.Niphas), new AOEShapeCircle(9)) { }
     }
 
+    [ModuleInfo(CFCID = 911, NameID = 12064)]
     public class A23Halone : BossModule
     {
         public A23Halone(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-700, 600), 30)) { }

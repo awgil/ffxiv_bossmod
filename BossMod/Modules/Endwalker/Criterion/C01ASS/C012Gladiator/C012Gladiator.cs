@@ -19,9 +19,9 @@
         public C012Gladiator(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-35, -271), 20)) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11387)]
     public class C012NGladiator : C012Gladiator { public C012NGladiator(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11387)]
     public class C012SGladiator : C012Gladiator { public C012SGladiator(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

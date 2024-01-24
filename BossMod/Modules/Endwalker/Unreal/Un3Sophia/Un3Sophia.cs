@@ -72,6 +72,7 @@
         public Un3SophiaConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 926, NameID = 5199)]
     public class Un3Sophia : BossModule
     {
         public Un3Sophia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 0), 20, 15)) { }

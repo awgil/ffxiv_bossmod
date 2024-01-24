@@ -160,7 +160,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
         public T02ADSConfig() : base(50) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.ADS)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.ADS, CFCID = 94, NameID = 1459)]
     public class T02ADS : BossModule
     {
         public T02ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 77), 18, 13)) { }
@@ -179,7 +179,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.QuarantineNode)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.QuarantineNode, CFCID = 94, NameID = 1468)]
     public class T02QuarantineNode : BossModule
     {
         public T02QuarantineNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 112), 14, 13)) { }
@@ -199,7 +199,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.AttackNode)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.AttackNode, CFCID = 94, NameID = 1469)]
     public class T02AttackNode : BossModule
     {
         public T02AttackNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-44, 94), 17)) { }
@@ -221,7 +221,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SanitaryNode)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SanitaryNode, CFCID = 94, NameID = 1470)]
     public class T02SanitaryNode : BossModule
     {
         public T02SanitaryNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-43, 52), 18, 15)) { }
@@ -240,7 +240,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.MonitoringNode)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.MonitoringNode, CFCID = 94, NameID = 1471)]
     public class T02MonitoringNode : BossModule
     {
         public T02MonitoringNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 39), 17, 15)) { }
@@ -259,7 +259,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.DefenseNode)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.DefenseNode, CFCID = 94, NameID = 1472)]
     public class T02DefenseNode : BossModule
     {
         public T02DefenseNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(46, 52), 17, 14)) { }
@@ -279,7 +279,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.DisposalNode)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.DisposalNode, CFCID = 94, NameID = 1473)]
     public class T02DisposalNode : BossModule
     {
         public T02DisposalNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(41, 94), 14, 20)) { }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Dynamic;
 
 namespace BossMod.Endwalker.HuntS.Armstrong
 {
@@ -100,7 +101,7 @@ namespace BossMod.Endwalker.HuntS.Armstrong
                 .ActivateOnEnter<SoporificGas>();
         }
     }
-
+    [ModuleInfo(NotoriousMonsterID = 196)]
     public class Armstrong : SimpleBossModule
     {
         public Armstrong(WorldState ws, Actor primary) : base(ws, primary) { }

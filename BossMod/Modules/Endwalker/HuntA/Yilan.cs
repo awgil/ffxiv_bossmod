@@ -91,6 +91,7 @@ namespace BossMod.Endwalker.HuntA.Yilan
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 184)]
     public class Yilan : SimpleBossModule
     {
         public Yilan(WorldState ws, Actor primary) : base(ws, primary) { }

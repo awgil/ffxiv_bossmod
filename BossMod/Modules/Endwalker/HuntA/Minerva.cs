@@ -117,6 +117,7 @@ namespace BossMod.Endwalker.HuntA.Minerva
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 194)]
     public class Minerva : SimpleBossModule
     {
         public Minerva(WorldState ws, Actor primary) : base(ws, primary) { }

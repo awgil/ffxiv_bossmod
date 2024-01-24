@@ -68,7 +68,7 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
         public Un4ZurvanConfig() : base(90) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, CFCID = 951, NameID = 5567)]
     public class Un4Zurvan : BossModule
     {
         private Actor? _bossP2;

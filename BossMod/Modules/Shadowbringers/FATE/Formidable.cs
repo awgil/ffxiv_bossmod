@@ -53,7 +53,7 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         AlteredStates = 1387, // ExpandHelper-->GiantGrenade
         ExtremeCaution = 1269, // Boss->players
     };
-   
+
     class Spincrush : Components.SelfTargetedAOEs
     {
         public Spincrush() : base(ActionID.MakeSpell(AID.Spincrush), new AOEShapeCone(15, 60.Degrees())) { }
@@ -231,10 +231,10 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         {
             if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
                 casting = false;
-        }        
+        }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-              if ((SID)status.ID == SID.ExtremeCaution)
+            if ((SID)status.ID == SID.ExtremeCaution)
                 _ec.Set(module.Raid.FindSlot(actor.InstanceID));
         }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
@@ -245,15 +245,15 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_ec[slot] != Ec)
-            hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
+                hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
         }
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (casting)
-            hints.Add("Stop everything including auto attacks or get launched into the air");    
+                hints.Add("Stop everything including auto attacks or get launched into the air");
         }
     }
-    
+
     class FormidableStates : StateMachineBuilder
     {
         public FormidableStates(BossModule module) : base(module)
@@ -274,5 +274,6 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         }
     }
 
-    public class Formidable(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    [ModuleInfo(FateID = 1464)]
+    public class Formidable(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

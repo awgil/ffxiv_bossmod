@@ -88,6 +88,7 @@ namespace BossMod.Endwalker.HuntS.Ruminator
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 206)]
     public class Ruminator : SimpleBossModule
     {
         public Ruminator(WorldState ws, Actor primary) : base(ws, primary) { }

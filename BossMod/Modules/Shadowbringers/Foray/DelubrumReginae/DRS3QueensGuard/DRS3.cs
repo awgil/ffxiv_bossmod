@@ -45,7 +45,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
         public Fracture() : base(ActionID.MakeSpell(AID.Fracture)) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.Knight)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.Knight, CFCID = 761, NameID = 9838)]
     public class DRS3 : BossModule
     {
         private List<Actor> _warrior;

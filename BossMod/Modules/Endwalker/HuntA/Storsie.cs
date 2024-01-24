@@ -74,6 +74,7 @@ namespace BossMod.Endwalker.HuntA.Storsie
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 175)]
     public class Storsie : SimpleBossModule
     {
         public Storsie(WorldState ws, Actor primary) : base(ws, primary) { }

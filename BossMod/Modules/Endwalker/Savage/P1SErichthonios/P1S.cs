@@ -1,5 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P1SErichthonios
 {
+    [ModuleInfo(CFCID = 809, NameID = 10576)]
     public class P1S : BossModule
     {
         public static float InnerCircleRadius { get; } = 12; // this determines in/out flails and cells boundary

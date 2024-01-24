@@ -20,6 +20,7 @@
         public DestructiveStrike() : base(ActionID.MakeSpell(AID.DestructiveStrike), new AOEShapeCone(13, 60.Degrees())) { } // TODO: verify angle
     }
 
+    [ModuleInfo(CFCID = 866, NameID = 11274)]
     public class A10RhalgrEmissary : BossModule
     {
         public A10RhalgrEmissary(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(74, 516), 25)) { }

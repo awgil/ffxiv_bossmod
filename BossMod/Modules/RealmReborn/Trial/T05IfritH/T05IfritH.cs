@@ -97,6 +97,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
         }
     }
 
+    [ModuleInfo(CFCID = 59, NameID = 1185)]
     public class T05IfritH : BossModule
     {
         private List<Actor> _nails;

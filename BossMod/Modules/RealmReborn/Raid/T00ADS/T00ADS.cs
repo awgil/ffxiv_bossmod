@@ -66,6 +66,7 @@
         }
     }
 
+    [ModuleInfo(CFCID = 93, NameID = 1459)]
     public class T00ADS : BossModule
     {
         public T00ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-3, 27), 7, 28)) { }

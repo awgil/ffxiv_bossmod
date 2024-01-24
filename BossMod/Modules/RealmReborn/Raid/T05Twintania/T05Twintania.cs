@@ -141,6 +141,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         }
     }
 
+    [ModuleInfo(CFCID = 97, NameID = 1482)]
     public class T05Twintania : BossModule
     {
         public const float NeurolinkRadius = 2;

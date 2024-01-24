@@ -32,6 +32,7 @@
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 177)]
     public class KerShroud : SimpleBossModule
     {
         public KerShroud(WorldState ws, Actor primary) : base(ws, primary) { }

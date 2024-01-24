@@ -51,6 +51,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         public P10SPandaemoniumConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 939, NameID = 12354)]
     public class P10SPandaemonium : BossModule
     {
         public P10SPandaemonium(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(100, 92.5f), 30, 22.5f)) { }

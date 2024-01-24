@@ -150,6 +150,7 @@ namespace BossMod.Endwalker.HuntS.Sphatika
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 186)]
     public class Sphatika : SimpleBossModule
     {
         public Sphatika(WorldState ws, Actor primary) : base(ws, primary) { }
