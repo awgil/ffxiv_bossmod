@@ -1,11 +1,13 @@
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
+
 public enum OID : uint
-    {
-        Boss = 0x2E8D, // R0.60
-        Helper = 0x233C, // R0.500
-        VermillionFlame = 0x2E8F, //R1.2
-        RavenousGaleVoidzone = 0x1E8910 //R0.5
-    };
+{
+    Boss = 0x2E8D, // R0.60
+    Helper = 0x233C, // R0.500
+    VermillionFlame = 0x2E8F, //R1.2
+    RavenousGaleVoidzone = 0x1E8910 //R0.5
+};
+
 public enum AID : uint
 {
     AutoAttack = 6497, // Boss->player, no cast, single-target
@@ -31,6 +33,7 @@ public enum AID : uint
     SplittingRage = 20814, // Boss->self, 3,0s cast, range 50 circle
     SkyrendingStrike = 20804, //enrage, 35s cast time, datamined from Godbert, needs confirmation
 };
+
 public enum IconID : uint
 {
     Unknown = 179, // Boss
@@ -40,6 +43,7 @@ public enum TetherID : uint
 {
     fireorbs = 5, // Boss->player
 };
+
 public enum SID : uint
 {
     Enaero = 206, // Boss->Boss, extra=0x64
