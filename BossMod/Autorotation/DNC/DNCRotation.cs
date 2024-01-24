@@ -1,7 +1,4 @@
-using System.Security.Permissions;
-using Dalamud.Game.ClientState.JobGauge.Types;
-using static BossMod.CommonRotation.Strategy;
-
+// CONTRIB: made by xan, not checked
 namespace BossMod.DNC
 {
     public static class Rotation
@@ -308,10 +305,10 @@ namespace BossMod.DNC
 
         private static bool ShouldSpendFeathers(State state, Strategy strategy)
         {
-            if (state.Feathers == 0 || strategy.FeatherUse == OffensiveAbilityUse.Delay)
+            if (state.Feathers == 0 || strategy.FeatherUse == Strategy.OffensiveAbilityUse.Delay)
                 return false;
 
-            if (state.Feathers == 4 || strategy.FeatherUse == OffensiveAbilityUse.Force)
+            if (state.Feathers == 4 || strategy.FeatherUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
             return state.RaidBuffsLeft > state.AnimationLock;
@@ -319,10 +316,10 @@ namespace BossMod.DNC
 
         private static bool ShouldSpendEsprit(State state, Strategy strategy)
         {
-            if (state.Esprit < 50 || strategy.GaugeUse == OffensiveAbilityUse.Delay)
+            if (state.Esprit < 50 || strategy.GaugeUse == Strategy.OffensiveAbilityUse.Delay)
                 return false;
 
-            if (state.Esprit >= 90 || strategy.GaugeUse == OffensiveAbilityUse.Force)
+            if (state.Esprit >= 90 || strategy.GaugeUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
             return state.RaidBuffsLeft > state.GCD;
