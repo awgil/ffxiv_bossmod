@@ -76,7 +76,7 @@ namespace BossMod
                 using (var tab = ImRaii.TabItem("Modules"))
                     if (tab)
                         DrawModules();
-            }   
+            }
         }
 
         private void DrawModules()
