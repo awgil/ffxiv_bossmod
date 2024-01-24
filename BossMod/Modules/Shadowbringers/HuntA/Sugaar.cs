@@ -103,7 +103,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11)) { }
     }
 
-    class RotationPull: Components.KnockbackFromCastTarget //TODO: pulls/attracts should probably have their own component to make this easier in future
+    class RotationPull: Components.Knockback //TODO: pulls/attracts should probably have their own component to make this easier in future
     {
         private float PullDistance;
         private Angle Direction;
@@ -111,7 +111,6 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         private bool activeTailSnap;
         private bool activeNumbingNoise;
         private readonly string hint = "Use anti knockback ability or get pulled into danger zone!";
-        public RotationPull() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation),default) { }
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
