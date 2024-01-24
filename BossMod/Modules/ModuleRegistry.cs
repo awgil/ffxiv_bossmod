@@ -213,15 +213,18 @@ namespace BossMod
 
         private static Dictionary<uint, Info> _modules = new(); // [primary-actor-oid] = module type
 
-        private static Lumina.Excel.ExcelSheet<ContentFinderCondition> CFCSheet;
-        private static Lumina.Excel.ExcelSheet<ContentType> ContentTypeSheet;
-        private static Lumina.Excel.ExcelSheet<NotoriousMonster> NMSheet;
-        private static Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets2.NotoriousMonsterTerritory> NMTSheet;
-        private static Lumina.Excel.ExcelSheet<Fate> FateSheet;
-        private static Lumina.Excel.ExcelSheet<CharaCardPlayStyle> PlayStyleSheet;
-        private static Lumina.Excel.ExcelSheet<TerritoryType> TerritorySheet;
-        private static Lumina.Excel.ExcelSheet<DynamicEvent> DynamicEventSheet;
-        private static Lumina.Excel.ExcelSheet<BNpcName> NPCNamesSheet;
+        private static readonly Lumina.Excel.ExcelSheet<ContentFinderCondition> CFCSheet;
+        private static readonly Lumina.Excel.ExcelSheet<ContentType> ContentTypeSheet;
+        private static readonly Lumina.Excel.ExcelSheet<NotoriousMonster> NMSheet;
+        private static readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets2.NotoriousMonsterTerritory> NMTSheet;
+        private static readonly Lumina.Excel.ExcelSheet<Fate> FateSheet;
+        private static readonly Lumina.Excel.ExcelSheet<CharaCardPlayStyle> PlayStyleSheet;
+        private static readonly Lumina.Excel.ExcelSheet<TerritoryType> TerritorySheet;
+        private static readonly Lumina.Excel.ExcelSheet<DynamicEvent> DynamicEventSheet;
+        private static readonly Lumina.Excel.ExcelSheet<BNpcName> NPCNamesSheet;
+
+        private static readonly Dictionary<uint, Info> _uncatalogued;
+        private static readonly List<uint> _expacs;
 
         static ModuleRegistry()
         {
@@ -245,6 +248,16 @@ namespace BossMod
                     throw new Exception($"Two boss modules have same primary actor OID: {t.Name} and {_modules[info.PrimaryActorOID].ModuleType.Name}");
                 _modules[info.PrimaryActorOID] = info;
             }
+
+            _modules = RegisteredModules
+                .Where(x => !x.Value.IsUncatalogued)
+                .OrderBy(x => x.Value.ExVersion)
+                .ThenBy(x => CFCSheet.GetRow(x.Value.CFCID)?.ClassJobLevelSync)
+                .ThenBy(x => CFCSheet.GetRow(x.Value.CFCID)?.ItemLevelRequired)
+                .ThenBy(x => CFCSheet.GetRow(x.Value.CFCID)?.SortKey)
+                .ToDictionary(x => x.Key, x => x.Value);
+            _uncatalogued = _modules.Where(x => x.Value.IsUncatalogued || x.Value.ExVersion == 69).Select(x => x).ToDictionary(x => x.Key, x => x.Value);
+            _expacs = _modules.Where(x => x.Value.ExVersion != 69).Select(x => x.Value.ExVersion).Distinct().ToList()!;
         }
 
         public static bool IsFate(this KeyValuePair<uint, Info> module) => !module.Value.FateName!.RawString.IsNullOrEmpty();
@@ -275,6 +288,8 @@ namespace BossMod
         }
 
         public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modules;
+        public static IReadOnlyList<uint> AvailableExpansions => _expacs;
+        public static IReadOnlyDictionary<uint, Info> UncataloguedModules => _uncatalogued;
 
         public static Info? FindByOID(uint oid) => _modules.GetValueOrDefault(oid);
 
