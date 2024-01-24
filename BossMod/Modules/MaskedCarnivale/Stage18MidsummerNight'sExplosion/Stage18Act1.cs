@@ -126,5 +126,18 @@ namespace BossMod.MaskedCarnivale.Stage18.Act1
             foreach (var s in Enemies(OID.Keg))
                 Arena.Actor(s, ArenaColor.Object, false);
         }
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+        base.CalculateAIHints(slot, actor, assignment, hints);
+            foreach (var e in hints.PotentialTargets)
+            {
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    OID.Boss => 1,
+                    OID.Keg => 0,
+                    _ => 0
+                };
+            }
+        }
     }
 }

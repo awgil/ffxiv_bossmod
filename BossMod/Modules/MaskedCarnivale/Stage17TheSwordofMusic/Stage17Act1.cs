@@ -87,10 +87,22 @@ namespace BossMod.MaskedCarnivale.Stage17.Act1
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.RightClaw).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss)) //TODO: ideally left claw should only be attacked with magical abilities
+            foreach (var s in Enemies(OID.Boss))
                 Arena.Actor(s, ArenaColor.Enemy, false);
-            foreach (var s in Enemies(OID.RightClaw)) //TODO: ideally right claw should only be attacked with physical abilities
+            foreach (var s in Enemies(OID.RightClaw))
                 Arena.Actor(s, ArenaColor.Enemy, false);
+        }
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+        base.CalculateAIHints(slot, actor, assignment, hints);
+            foreach (var e in hints.PotentialTargets)
+            {
+                e.Priority = (OID)e.Actor.OID switch
+                {
+                    OID.Boss or OID.RightClaw => 0, //TODO: ideally left claw should only be attacked with magical abilities and right claw should only be attacked with physical abilities
+                    _ => 0
+                };
+            }
         }
     }
 }
