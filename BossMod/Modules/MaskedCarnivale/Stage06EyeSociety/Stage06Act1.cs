@@ -52,7 +52,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
                 {if ((SID)status.ID == SID.Blind)
                     {
                         Risky = false;
-                        Color = ArenaColor.Invisible;
+                        Visible = false;
                     }
                 }
             }
@@ -62,7 +62,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
                 {if ((SID)status.ID == SID.Blind)
                     {
                         Risky = true;
-                        Color = ArenaColor.AOE;
+                        Visible = false;
                     }
                 }
             }
@@ -114,7 +114,6 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
         {
             TrivialPhase()
             .DeactivateOnEnter<Hints>()
-            .ActivateOnEnter<TearyTwirl>()
             .ActivateOnEnter<ColdStare>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead);
         }
@@ -125,6 +124,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act1
         {
             ActivateComponent<Hints>();
             ActivateComponent<LayoutBigQuad>();
+            ActivateComponent<TearyTwirl>();
             ActivateComponent<DemonEye>();
         }
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat); }
