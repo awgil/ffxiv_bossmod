@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using BossMod.Components;
 
 namespace BossMod.MaskedCarnivale.Stage19.Act2
@@ -34,35 +36,29 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
     };
     class ExplosiveDehiscence : CastGaze
     {
-        public static bool blinded;
+        public static BitMask _blinded;
         public ExplosiveDehiscence() : base(ActionID.MakeSpell(AID.ExplosiveDehiscence)) {}
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        Risky = false;
-                        blinded = true;
-                    }
-                }
+              if ((SID)status.ID == SID.Blind)
+                _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        Risky = true;
-                        blinded = false;
-                    }
-                }
+            if ((SID)status.ID == SID.Blind)
+                _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
             }
+        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
+        { 
+            return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
+        }
     }
     class GazeHint : BossComponent
     {
         public static bool casting;
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) 
             {
-                if (!ExplosiveDehiscence.blinded && casting)
+                if (!ExplosiveDehiscence._blinded[slot] && casting)
                     hints.Add("Cast Ink Jet on boss to get blinded!");
             }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
