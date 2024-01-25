@@ -1,10 +1,14 @@
 ﻿using Dalamud.Utility;
+using Lumina.Excel;
+using Lumina;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace BossMod
 {
@@ -31,6 +35,7 @@ namespace BossMod
             public SeString? FateName;
             public SeString? BossName;
             public string HuntRank = "";
+            public int CarnivaleStage;
 
             public bool IsUncatalogued;
 
@@ -114,22 +119,18 @@ namespace BossMod
                 uint nmID = infoAttr?.NotoriousMonsterID ?? 0;
                 uint fateID = infoAttr?.FateID ?? 0;
                 uint dynamicEventID = infoAttr?.DynamicEventID ?? 0;
-                if (nameID == 0 && nmID == 0 && fateID == 0 && dynamicEventID == 0)
-                    Service.Log($"[{nameof(ModuleRegistry)}] Module {module.Name} does not provide a Name/Notorious Monster/Fate/Dyanamic Event ID: this is needed for overworld, bozja, and multi fight instances (dungeons) to be catalogued properly. Please add one.");
-
                 uint cfcID = infoAttr?.CFCID ?? 0;
-                if (cfcID == 0)
-                    Service.Log($"[{nameof(ModuleRegistry)}] Module {module.Name} does not provide a CFC ID: this will prevent it from being catalogued properly. Please add one.");
 
                 bool uncatalogued = (cfcID == 0 && nameID == 0 && nmID == 0 && fateID == 0 && dynamicEventID == 0) || (cfcID != 0 && _cfcSheet.GetRow(cfcID)!.ShortCode.RawString.IsNullOrEmpty());
                 if (uncatalogued)
-                    Service.Log($"{module.Name} {uncatalogued}");
+                    Service.Log($"[{nameof(ModuleRegistry)}] Module {module.Name} is uncatalogued. It does not provide sufficient {nameof(Info)} tags.");
 
                 SeString contentType = new();
                 uint contentIcon = default;
                 SeString instanceName = new();
                 uint exVersion = 69;
                 string huntRank = "";
+                int carnivaleStage = 0;
                 SeString fateName = new();
                 SeString forayName = new();
                 SeString bossName = new();
@@ -140,11 +141,17 @@ namespace BossMod
                     contentType = cfcRow.ContentType?.Value?.Name ?? new SeString();
                     exVersion = cfcRow.TerritoryType?.Value?.ExVersion.Value?.RowId ?? 0;
                     instanceName = cfcRow.Name;
-                    // needed because bozja et al does not have a ContentType
-                    if (cfcID is 735 or 760 or 761 or 778)
+
+                    if (cfcID is 735 or 760 or 761 or 778) // bozja et al
                     {
                         contentType = Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(6)!.Name;
                         contentIcon = (uint)Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(6)!.Icon;
+                    }
+                    else if (cfcRow.ShortCode.RawString.StartsWith("aoz")) // masked carnivale
+                    {
+                        contentType = Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(8)!.Name;
+                        contentIcon = (uint)Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(8)!.Icon;
+                        carnivaleStage = int.Parse(Regex.Replace(cfcRow.ShortCode.RawString, @"\D", "").TrimStart('0'));
                     }
                     else
                         contentIcon = cfcRow.ContentType?.Value?.Icon ?? 0;
@@ -162,9 +169,8 @@ namespace BossMod
                     contentType = _playStyleSheet.GetRow(10)!.Name;
                     contentIcon = (uint)_playStyleSheet.GetRow(10)!.Icon;
                     foreach (var row in _nmtSheet)
-                        foreach (var prop in row.GetType().GetProperties())
-                            if (prop.GetValue(row) is uint row_nmID)
-                                exVersion = _territorySheet.FirstOrDefault(x => x.Unknown42 == row.RowId)?.ExVersion.Value?.RowId ?? 0;
+                        if (row.Monster.Contains((ushort)nmID))
+                            exVersion = _territorySheet.FirstOrDefault(x => x.Unknown42 == row.RowId)?.ExVersion.Value?.RowId ?? 0;
                 }
 
                 if (fateID != 0) // needs exversion
@@ -199,6 +205,7 @@ namespace BossMod
                     FateName = fateName,
                     ForayName = forayName,
                     HuntRank = huntRank,
+                    CarnivaleStage = carnivaleStage,
 
                     IsUncatalogued = uncatalogued,
                 };
@@ -213,15 +220,15 @@ namespace BossMod
 
         private static Dictionary<uint, Info> _modules = new(); // [primary-actor-oid] = module type
 
-        private static readonly Lumina.Excel.ExcelSheet<ContentFinderCondition> _cfcSheet;
-        private static readonly Lumina.Excel.ExcelSheet<ContentType> _contentTypeSheet;
-        private static readonly Lumina.Excel.ExcelSheet<NotoriousMonster> _nmSheet;
-        private static readonly Lumina.Excel.ExcelSheet<Lumina.Excel.GeneratedSheets2.NotoriousMonsterTerritory> _nmtSheet;
-        private static readonly Lumina.Excel.ExcelSheet<Fate> _fateSheet;
-        private static readonly Lumina.Excel.ExcelSheet<CharaCardPlayStyle> _playStyleSheet;
-        private static readonly Lumina.Excel.ExcelSheet<TerritoryType> _territorySheet;
-        private static readonly Lumina.Excel.ExcelSheet<DynamicEvent> _dynamicEventSheet;
-        private static readonly Lumina.Excel.ExcelSheet<BNpcName> _npcNamesSheet;
+        private static readonly ExcelSheet<ContentFinderCondition> _cfcSheet;
+        private static readonly ExcelSheet<ContentType> _contentTypeSheet;
+        private static readonly ExcelSheet<NotoriousMonster> _nmSheet;
+        private static readonly ExcelSheet<NotoriousMonsterTerritory> _nmtSheet;
+        private static readonly ExcelSheet<Fate> _fateSheet;
+        private static readonly ExcelSheet<CharaCardPlayStyle> _playStyleSheet;
+        private static readonly ExcelSheet<TerritoryType> _territorySheet;
+        private static readonly ExcelSheet<DynamicEvent> _dynamicEventSheet;
+        private static readonly ExcelSheet<BNpcName> _npcNamesSheet;
 
         private static readonly Dictionary<uint, Info> _uncatalogued;
         private static readonly List<uint> _expacs;
@@ -231,7 +238,7 @@ namespace BossMod
             _cfcSheet = Service.DataManager.GetExcelSheet<ContentFinderCondition>()!;
             _contentTypeSheet = Service.DataManager.GetExcelSheet<ContentType>()!;
             _nmSheet = Service.DataManager.GetExcelSheet<NotoriousMonster>()!;
-            _nmtSheet = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets2.NotoriousMonsterTerritory>()!;
+            _nmtSheet = Service.DataManager.GetExcelSheet<NotoriousMonsterTerritory>()!;
             _fateSheet = Service.DataManager.GetExcelSheet<Fate>()!;
             _playStyleSheet = Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!;
             _territorySheet = Service.DataManager.GetExcelSheet<TerritoryType>()!;
@@ -262,6 +269,7 @@ namespace BossMod
 
         public static bool IsFate(this KeyValuePair<uint, Info> module) => !module.Value.FateName!.RawString.IsNullOrEmpty();
         public static bool IsHunt(this KeyValuePair<uint, Info> module) => !module.Value.HuntRank.IsNullOrEmpty();
+        public static bool IsCarnivale(this KeyValuePair<uint, Info> module) => module.Value.CarnivaleStage != 0;
         public static bool IsCriticalEngagement(this KeyValuePair<uint, Info> module) => !module.Value.ForayName!.RawString.IsNullOrEmpty();
 
         // AFAIK, unreals are the only piece of content that regularly get removed. Their CFCID stays but the properties are all reverted to default.
@@ -275,11 +283,8 @@ namespace BossMod
             foreach (var prop in cfcRow.GetType().GetProperties())
             {
                 var propValue = prop.GetValue(cfcRow);
-
                 if (propValue != null && !propValue.Equals(default(PropertyInfo)))
-                {
                     return false; // Property has a non-default value, module is not removed content
-                }
             }
 
             return true; // All properties have default values, module is considered removed content
@@ -314,6 +319,22 @@ namespace BossMod
         public static BossModule? CreateModuleForTimeline(uint oid)
         {
             return CreateModule(FindByOID(oid)?.ModuleType, new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, "", ActorType.None, Class.None, new()));
+        }
+
+        [Sheet("NotoriousMonsterTerritory", columnHash: 0xf057da9c)]
+        public partial class NotoriousMonsterTerritory : ExcelRow
+        {
+            public const int Length = 10;
+            public ushort[] Monster { get; private set; } = new ushort[Length];
+
+            public override void PopulateData(RowParser parser, GameData gameData, Lumina.Data.Language language)
+            {
+                base.PopulateData(parser, gameData, language);
+                for (var i = 0; i < Length; ++i)
+                {
+                    Monster[i] = parser.ReadOffset<ushort>(2 * i);
+                }
+            }
         }
     }
 }

@@ -82,6 +82,7 @@ namespace BossMod
         private void DrawModules()
         {
             // TODO: separate unreals from trials and alliance raids from raids and show old unreals in uncatalogued
+            // support for fates and CEs to have nameIDs
             foreach (var expac in ModuleRegistry.AvailableExpansions)
             {
                 var expac_mods = ModuleRegistry.RegisteredModules.Where(x => x.Value.ExVersion == expac);
@@ -99,6 +100,7 @@ namespace BossMod
                             ImGui.Indent();
                             var displayName = mod.IsHunt() ? $"[{mod.Value.HuntRank}] {mod.Value.BossName}" ?? ""
                                 : mod.IsCriticalEngagement() ? $"[CE] {mod.Value.ForayName}" ?? ""
+                                : mod.IsCarnivale() ? $"[{mod.Value.CarnivaleStage}] {mod.Value.BossName}" ?? ""
                                 : mod.Value.InstanceName ?? "";
                             foreach (var x in _tree.Node($"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(displayName)}###{mod.Key}"))
                             {

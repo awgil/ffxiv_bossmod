@@ -60,13 +60,13 @@
     class C030NWoodGolemStates : C030WoodGolemStates { public C030NWoodGolemStates(BossModule module) : base(module, false) { } }
     class C030SWoodGolemStates : C030WoodGolemStates { public C030SWoodGolemStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NWoodGolem)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NWoodGolem, CFCID = 979, NameID = 12560)]
     public class C030NWoodGolem : C030Trash2
     {
         public C030NWoodGolem(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SWoodGolem)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SWoodGolem, CFCID = 980, NameID = 12560)]
     public class C030SWoodGolem : C030Trash2
     {
         public C030SWoodGolem(WorldState ws, Actor primary) : base(ws, primary) { }
