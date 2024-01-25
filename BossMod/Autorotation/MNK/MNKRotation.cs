@@ -158,10 +158,10 @@ namespace BossMod.MNK
             }
         }
 
-        public static AID GetOpoOpoFormAction(State state, int numAOETargets)
+        public static AID GetOpoOpoFormAction(State state, Strategy strategy)
         {
             // TODO: what should we use if form is not up?..
-            if (state.Unlocked(AID.ArmOfTheDestroyer) && numAOETargets >= 3)
+            if (state.Unlocked(AID.ArmOfTheDestroyer) && strategy.NumPointBlankAOETargets >= 3)
                 return state.BestShadowOfTheDestroyer;
 
             if (state.Unlocked(AID.DragonKick) && state.LeadenFistLeft <= state.GCD)
@@ -170,11 +170,11 @@ namespace BossMod.MNK
             return AID.Bootshine;
         }
 
-        public static AID GetRaptorFormAction(State state, int numAOETargets)
+        public static AID GetRaptorFormAction(State state, Strategy strategy)
         {
             // TODO: low level - consider early restart...
             // TODO: better threshold for buff reapplication...
-            if (state.Unlocked(AID.FourPointFury) && numAOETargets >= 3)
+            if (state.Unlocked(AID.FourPointFury) && strategy.NumPointBlankAOETargets >= 3)
                 return AID.FourPointFury;
 
             if (state.Unlocked(AID.TwinSnakes) && state.DisciplinedFistLeft < state.GCD + 7)
@@ -183,44 +183,39 @@ namespace BossMod.MNK
             return AID.TrueStrike;
         }
 
-        public static AID GetCoeurlFormAction(State state, int numAOETargets, bool forbidDOTs)
+        public static AID GetCoeurlFormAction(State state, Strategy strategy)
         {
             // TODO: multidot support...
             // TODO: low level - consider early restart...
             // TODO: better threshold for debuff reapplication...
-            if (state.Unlocked(AID.Rockbreaker) && numAOETargets >= 3)
+            if (state.Unlocked(AID.Rockbreaker) && strategy.NumPointBlankAOETargets >= 3)
                 return AID.Rockbreaker;
 
             if (
-                !forbidDOTs
+                !strategy.ForbidDOTs
                 && state.Unlocked(AID.Demolish)
-                && state.TargetDemolishLeft < state.GCD + 3
+                && ShouldRefreshDemolish(state)
             )
                 return AID.Demolish;
 
             return AID.SnapPunch;
         }
 
-        public static AID GetNextComboAction(
-            State state,
-            int numAOETargets,
-            bool forbidDOTs,
-            Strategy.NadiChoice nextNadi
-        )
+        public static AID GetNextComboAction(State state, Strategy strategy)
         {
-            var form = GetEffectiveForm(state, nextNadi);
+            var form = GetEffectiveForm(state, strategy);
             if (form == Form.Coeurl)
-                return GetCoeurlFormAction(state, numAOETargets, forbidDOTs);
+                return GetCoeurlFormAction(state, strategy);
 
             if (form == Form.Raptor)
-                return GetRaptorFormAction(state, numAOETargets);
+                return GetRaptorFormAction(state, strategy);
 
-            return GetOpoOpoFormAction(state, numAOETargets);
+            return GetOpoOpoFormAction(state, strategy);
         }
 
-        private static Form GetEffectiveForm(State state, Strategy.NadiChoice nextNadi)
+        private static Form GetEffectiveForm(State state, Strategy strategy)
         {
-            if (SolarTime(state, nextNadi))
+            if (SolarTime(state, strategy))
                 return state.BeastCount switch
                 {
                     2 => Form.Coeurl,
@@ -228,16 +223,20 @@ namespace BossMod.MNK
                     _ => Form.OpoOpo
                 };
 
-            return state.Form;
+            return state.FormShiftLeft > state.GCD ? Form.OpoOpo : state.Form;
         }
 
-        private static bool SolarTime(State state, Strategy.NadiChoice nextNadi)
+        private static bool SolarTime(State state, Strategy strategy)
         {
             if (state.PerfectBalanceLeft <= state.GCD)
                 return false;
-            return nextNadi switch
+
+            return strategy.NextNadi switch
             {
-                Strategy.NadiChoice.Automatic => state.HasLunar && !state.HasSolar,
+                Strategy.NadiChoice.Automatic
+                    => strategy.CombatTimer < 30
+                        ? state.HasLunar && !state.HasSolar
+                        : !(state.HasLunar || state.HasSolar),
                 Strategy.NadiChoice.Solar => true,
                 _ => false,
             };
@@ -279,12 +278,15 @@ namespace BossMod.MNK
             if (
                 strategy.SSSUse == Strategy.OffensiveAbilityUse.Automatic
                 && strategy.FightEndIn > state.GCD
-                && strategy.FightEndIn < state.GCD + 1.95
+                && strategy.FightEndIn < state.GCD + state.AttackGCDTime
                 && state.Unlocked(AID.SixSidedStar)
             )
                 return AID.SixSidedStar;
 
-            return GetNextComboAction(state, strategy.NumPointBlankAOETargets, strategy.ForbidDOTs, strategy.NextNadi);
+            if (state.FormShiftLeft > state.GCD && state.HasSolar && state.HasLunar)
+                return AID.TwinSnakes;
+
+            return GetNextComboAction(state, strategy);
         }
 
         public static (Positional, bool) GetNextPositional(State state, Strategy strategy)
@@ -292,17 +294,29 @@ namespace BossMod.MNK
             if (strategy.NumPointBlankAOETargets >= 3)
                 return (Positional.Any, false);
 
-            var gcdsInAdvance = GetEffectiveForm(state, strategy.NextNadi) switch
+            var curForm = GetEffectiveForm(state, strategy);
+
+            var gcdsInAdvance = curForm switch
             {
                 Form.Coeurl => 0,
                 Form.Raptor => 1,
                 _ => 2
             };
-            var willDemolish =
-                state.Unlocked(AID.Demolish)
-                && state.TargetDemolishLeft < state.GCD + 3 + (1.94 * gcdsInAdvance);
 
-            return (willDemolish ? Positional.Rear : Positional.Flank, gcdsInAdvance == 0);
+            var isCastingGcd = state.AttackGCDTime - 0.500 < state.GCD;
+            var formIsPending = state.FormLeft == 1000;
+            // the previous form sticks around for about 200ms before being updated. this results in an off-by-one error
+            // in the refresh calculation that causes an annoying flickering effect in the positionals predictor.
+            // if we know a form swap is imminent, bump the predicted GCD count back.
+            // if PB is active, the current "form" is updated instantly since it's based on job gauge instead of a status effect,
+            // so skip the adjustment
+            if (isCastingGcd && !formIsPending && state.PerfectBalanceLeft == 0)
+                gcdsInAdvance -= 1;
+
+            var willDemolish =
+                state.Unlocked(AID.Demolish) && ShouldRefreshDemolish(state, gcdsInAdvance);
+
+            return (willDemolish ? Positional.Rear : Positional.Flank, curForm == Form.Coeurl);
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
@@ -416,13 +430,8 @@ namespace BossMod.MNK
                 return state.Form == Form.Coeurl;
             else
             {
-                var buffWait =
-                    strategy.FireUse == Strategy.FireStrategy.Automatic
+                return strategy.FireUse == Strategy.FireStrategy.Automatic
                     || state.CD(CDGroup.Brotherhood) < 4;
-
-                // cooldown alignment for braindead looping rotation
-                // TODO: implement optimal drift (it can't be that hard with math, right?)
-                return state.Form == Form.OpoOpo && buffWait;
             }
         }
 
@@ -454,9 +463,14 @@ namespace BossMod.MNK
             if (strategy.BrotherhoodUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            return strategy.NumPointBlankAOETargets == 0
+            return strategy.NumPointBlankAOETargets < 3
                 && state.FireLeft > state.GCD
-                && state.LeadenFistLeft == 0;
+                && (
+                    // opener
+                    state.LeadenFistLeft == 0
+                    // even windows: use immediately before blitz
+                    || state.BeastCount == 3
+                );
         }
 
         private static bool ShouldUsePB(State state, Strategy strategy, float deadline)
@@ -472,8 +486,34 @@ namespace BossMod.MNK
             if (strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            return (state.FireLeft > state.GCD || !state.Unlocked(AID.RiddleOfFire))
-                && state.LeadenFistLeft == 0;
+            var haveRof = state.FireLeft > state.GCD || !state.Unlocked(AID.RiddleOfFire);
+
+            // opener. this will end up being skipped for fights with a non burst pre-phase like stygimoloch lord, in which case we treat first brotherhood like any other even window
+            if (strategy.CombatTimer < 30)
+            {
+                if (haveRof && state.LeadenFistLeft == 0)
+                    return true;
+            }
+            else
+            {
+                // odd windows
+                if (haveRof && state.LeadenFistLeft == 0 && state.TargetDemolishLeft > 12)
+                    return true;
+
+                // even windows
+                // TODO: this should actually check ShouldUseRoF with some expected amount of lead time,
+                // but that will require being able to look forward in time on the raidplan too
+                if (
+                    state.CD(CDGroup.RiddleOfFire) < 5
+                    && strategy.FireUse != Strategy.FireStrategy.Delay
+                    && state.CD(CDGroup.Brotherhood) < 15
+                    && strategy.BrotherhoodUse != CommonRotation.Strategy.OffensiveAbilityUse.Delay
+                    && state.LeadenFistLeft == 0
+                )
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool ShouldUseTrueNorth(State state, Strategy strategy)
@@ -488,5 +528,8 @@ namespace BossMod.MNK
 
             return strategy.NextPositionalImminent && !strategy.NextPositionalCorrect;
         }
+
+        private static bool ShouldRefreshDemolish(State state, int gcdsInAdvance = 0) =>
+            state.TargetDemolishLeft < state.GCD + (state.AttackGCDTime * (3 + gcdsInAdvance));
     }
 }
