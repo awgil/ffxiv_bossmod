@@ -166,7 +166,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
             .ActivateOnEnter<Pollen>();
         }
     }
-
+    [ModuleInfo(CFCID = 819, NameID = 10831)]
     public class LuckyFace : BossModule
     {
         public LuckyFace(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -460), 20)) {}
