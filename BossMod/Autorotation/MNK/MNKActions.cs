@@ -1,4 +1,4 @@
-using Dalamud.Game.ClientState.JobGauge.Types;
+﻿using Dalamud.Game.ClientState.JobGauge.Types;
 using System;
 
 namespace BossMod.MNK
@@ -41,7 +41,7 @@ namespace BossMod.MNK
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: multidotting support...
-            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumPointBlankAOETargets, _strategy.ForbidDOTs) : AID.None) switch
+            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy) : AID.None) switch
             {
                 AID.SnapPunch => Positional.Flank,
                 AID.Demolish => Positional.Rear,
@@ -132,7 +132,7 @@ namespace BossMod.MNK
             SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             // combo replacement
-            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, 100, false, Rotation.Strategy.NadiChoice.Automatic)) : null;
+            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, _strategy)) : null;
 
             SupportedSpell(AID.Thunderclap).Condition = _config.PreventCloseDash
                 ? ((act) => act == null || !act.Position.InCircle(Player.Position, 3))
