@@ -64,71 +64,6 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         tankbuster = 218,
         spreadmarker = 194,
     };
-    //Fake AOEs to tell the AI that the telegraphs are not risky
-    class FakeLeftInTheDark1 : Components.SelfTargetedAOEs
-    {
-        public FakeLeftInTheDark1() : base(ActionID.MakeSpell(AID.FakeLeftInTheDark), new AOEShapeCone(20,90.Degrees()))
-        {
-            Risky = false;
-            Visible = false;
-        } 
-    }
-    class FakeLeftInTheDark2 : Components.SelfTargetedAOEs
-    {
-        public FakeLeftInTheDark2() : base(ActionID.MakeSpell(AID.FakeLeftInTheDark2), new AOEShapeCone(20,90.Degrees()))        
-        {
-            Risky = false;
-            Visible = false;
-        }  
-    }
-    class FakeRightInTheDark1 : Components.SelfTargetedAOEs
-    {
-        public FakeRightInTheDark1() : base(ActionID.MakeSpell(AID.FakeRightInTheDark), new AOEShapeCone(20,90.Degrees()))        
-        {
-            Risky = false;
-            Visible = false;
-        } 
-    }
-    class FakeRightInTheDark2 : Components.SelfTargetedAOEs
-    {
-        public FakeRightInTheDark2() : base(ActionID.MakeSpell(AID.FakeRightInTheDark2), new AOEShapeCone(20,90.Degrees()))        
-        {
-            Risky = false;
-            Visible = false;
-        } 
-    }
-    class FakeQuakeInYourBoots1 : Components.SelfTargetedAOEs
-    {
-        public FakeQuakeInYourBoots1() : base(ActionID.MakeSpell(AID.FakeQuakeInYourBoots), new AOEShapeCircle(10))        
-        {
-            Risky = false;
-            Visible = false;
-        } 
-    }
-    class FakeQuakeInYourBoots2 : Components.SelfTargetedAOEs
-    {
-        public FakeQuakeInYourBoots2() : base(ActionID.MakeSpell(AID.FakeQuakeInYourBoots2), new AOEShapeDonut(10,20))        
-        {
-            Risky = false;
-            Visible = false;
-        } 
-    }
-    class FakeQuakeMeAway1 : Components.SelfTargetedAOEs
-    {
-        public FakeQuakeMeAway1() : base(ActionID.MakeSpell(AID.FakeQuakeMeAway), new AOEShapeDonut(10,20))         
-        {
-            Risky = false;
-            Visible = false;
-        } 
-    }
-    class FakeQuakeMeAway2 : Components.SelfTargetedAOEs
-    {
-        public FakeQuakeMeAway2() : base(ActionID.MakeSpell(AID.FakeQuakeMeAway2), new AOEShapeDonut(10,20))        
-        {
-            Risky = false;
-            Visible = false;
-        }  
-    }
     class LeftInTheDark1 : Components.SelfTargetedAOEs
     {
         public LeftInTheDark1() : base(ActionID.MakeSpell(AID.LeftInTheDark), new AOEShapeCone(20,90.Degrees())) { } 
@@ -212,14 +147,6 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         public LuckyFaceStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<FakeLeftInTheDark1>()
-            .ActivateOnEnter<FakeLeftInTheDark2>()
-            .ActivateOnEnter<FakeRightInTheDark1>()
-            .ActivateOnEnter<FakeRightInTheDark2>()
-            .ActivateOnEnter<FakeQuakeInYourBoots1>()
-            .ActivateOnEnter<FakeQuakeInYourBoots2>()
-            .ActivateOnEnter<FakeQuakeMeAway1>()
-            .ActivateOnEnter<FakeQuakeMeAway2>()
             .ActivateOnEnter<LeftInTheDark1>()
             .ActivateOnEnter<LeftInTheDark2>()
             .ActivateOnEnter<RightInTheDark1>()
