@@ -187,7 +187,7 @@ namespace BossMod.Components
                 else
                 {
                     var origin = module.WorldState.Actors.Find(c.CastInfo.TargetID)?.Position ?? c.CastInfo.LocXZ;
-                    yield return new(origin, Distance, c.CastInfo.FinishAt, Shape, c.CastInfo.Rotation, KnockbackKind); // TODO: not sure whether rotation should be this or Angle.FromDirection(origin - c.Position)...
+                    yield return new(origin, Distance, c.CastInfo.FinishAt, Shape, Angle.FromDirection(origin - c.Position), KnockbackKind);
                 }
             }
         }
