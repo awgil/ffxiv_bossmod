@@ -1,5 +1,6 @@
 using BossMod.Components;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage09
 {
     public enum OID : uint
@@ -13,6 +14,7 @@ namespace BossMod.MaskedCarnivale.Stage09
         Flan = 0x2716, //R=1.8
         DarkVoidzone = 0x1E9C9D, //R=0.5
     };
+
     public enum AID : uint
     {
         DeathRay = 15056, // 242D->player, 1,0s cast, single-target
@@ -25,25 +27,28 @@ namespace BossMod.MaskedCarnivale.Stage09
         Thunder = 14268, // 2715->player, 1,0s cast, single-target
         Water = 14271, // 2716->player, 1,0s cast, single-target
     };
-    
+
     class GoldenTongue : CastHint
     {
         public GoldenTongue() : base(ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increase its magic damage") { }
     }
+
     class DarkVoidzone : PersistentVoidzoneAtCastTarget
     {
         public DarkVoidzone() : base(4, ActionID.MakeSpell(AID.Dark), m => m.Enemies(OID.DarkVoidzone), 0) { }
     }
+
     class Dark : LocationTargetedAOEs
     {
         public Dark() : base(ActionID.MakeSpell(AID.Dark), 5) { }
     }
+
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add("Guimauve summons a total of 6 adds during the fight, one of each element.\nHealer mimikry can be helpful if you have trouble surviving.");
-        } 
+        }
     }
 
     class Stage09States : StateMachineBuilder
@@ -51,12 +56,13 @@ namespace BossMod.MaskedCarnivale.Stage09
         public Stage09States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<Dark>()
-            .ActivateOnEnter<DarkVoidzone>()
-            .ActivateOnEnter<GoldenTongue>()
-            .DeactivateOnEnter<Hints>();
+                .ActivateOnEnter<Dark>()
+                .ActivateOnEnter<DarkVoidzone>()
+                .ActivateOnEnter<GoldenTongue>()
+                .DeactivateOnEnter<Hints>();
         }
     }
+
     [ModuleInfo(CFCID = 619, NameID = 8099)]
     public class Stage09 : BossModule
     {
@@ -64,9 +70,10 @@ namespace BossMod.MaskedCarnivale.Stage09
         {
             ActivateComponent<Hints>();
         }
+
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-        base.CalculateAIHints(slot, actor, assignment, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch
@@ -77,6 +84,7 @@ namespace BossMod.MaskedCarnivale.Stage09
                 };
             }
         }
+
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))

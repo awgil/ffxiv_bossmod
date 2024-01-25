@@ -1,11 +1,13 @@
 using BossMod.Components;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage10
 {
     public enum OID : uint
     {
         Boss = 0x2717, // R1.0/1.5/2.0/2.5 (radius increases with amount of successful King's Will casts)
     };
+
     public enum AID : uint
     {
         IronJustice1 = 14725, // Boss->self, 2,5s cast, range 8+R 120-degree cone
@@ -23,41 +25,50 @@ namespace BossMod.MaskedCarnivale.Stage10
 
     class IronJustice1 : SelfTargetedAOEs
     {
-        public IronJustice1() : base(ActionID.MakeSpell(AID.IronJustice1), new AOEShapeCone(9,60.Degrees())) { } 
+        public IronJustice1() : base(ActionID.MakeSpell(AID.IronJustice1), new AOEShapeCone(9, 60.Degrees())) { }
     }
+
     class IronJustice2 : SelfTargetedAOEs
     {
-        public IronJustice2() : base(ActionID.MakeSpell(AID.IronJustice2), new AOEShapeCone(9.5f,60.Degrees())) { } 
+        public IronJustice2() : base(ActionID.MakeSpell(AID.IronJustice2), new AOEShapeCone(9.5f, 60.Degrees())) { }
     }
+
     class IronJustice3 : SelfTargetedAOEs
     {
-        public IronJustice3() : base(ActionID.MakeSpell(AID.IronJustice3), new AOEShapeCone(10,60.Degrees())) { } 
+        public IronJustice3() : base(ActionID.MakeSpell(AID.IronJustice3), new AOEShapeCone(10, 60.Degrees())) { }
     }
+
     class IronJustice4 : SelfTargetedAOEs
     {
-        public IronJustice4() : base(ActionID.MakeSpell(AID.IronJustice4), new AOEShapeCone(10.5f,60.Degrees())) { } 
+        public IronJustice4() : base(ActionID.MakeSpell(AID.IronJustice4), new AOEShapeCone(10.5f, 60.Degrees())) { }
     }
+
     class BlackNebula : CastHint
     {
         public BlackNebula() : base(ActionID.MakeSpell(AID.BlackNebula), "Interrupt or wipe!") { }
     }
+
     class Cloudcover1 : LocationTargetedAOEs
     {
         public Cloudcover1() : base(ActionID.MakeSpell(AID.Cloudcover1), 6) { }
     }
+
     class KingsWill1 : CastHint
     {
         public static readonly string hints = "Interrupt if not going for the achievement";
         public KingsWill1() : base(ActionID.MakeSpell(AID.KingsWill), hints) { }
     }
+
     class KingsWill2 : CastHint
     {
         public KingsWill2() : base(ActionID.MakeSpell(AID.KingsWill2), KingsWill1.hints) { }
     }
+
     class KingsWill3 : CastHint
     {
         public KingsWill3() : base(ActionID.MakeSpell(AID.KingsWill3), KingsWill1.hints) { }
     }
+
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -69,23 +80,25 @@ namespace BossMod.MaskedCarnivale.Stage10
             hints.Add("Requirement for achievement: Let Crom Dubh cast King's Will 3 times.", false);
         }
     }
+
     class Stage10States : StateMachineBuilder
     {
         public Stage10States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<IronJustice1>()
-            .ActivateOnEnter<IronJustice2>()
-            .ActivateOnEnter<IronJustice3>()
-            .ActivateOnEnter<IronJustice4>()
-            .ActivateOnEnter<Cloudcover1>()
-            .ActivateOnEnter<BlackNebula>()
-            .ActivateOnEnter<KingsWill1>()
-            .ActivateOnEnter<KingsWill2>()
-            .ActivateOnEnter<KingsWill3>()
-            .DeactivateOnEnter<Hints>();
+                .ActivateOnEnter<IronJustice1>()
+                .ActivateOnEnter<IronJustice2>()
+                .ActivateOnEnter<IronJustice3>()
+                .ActivateOnEnter<IronJustice4>()
+                .ActivateOnEnter<Cloudcover1>()
+                .ActivateOnEnter<BlackNebula>()
+                .ActivateOnEnter<KingsWill1>()
+                .ActivateOnEnter<KingsWill2>()
+                .ActivateOnEnter<KingsWill3>()
+                .DeactivateOnEnter<Hints>();
         }
     }
+
     [ModuleInfo(CFCID = 620, NameID = 8100)]
     public class Stage10 : BossModule
     {

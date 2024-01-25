@@ -1,5 +1,6 @@
 using BossMod.Components;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage20.Act2
 {
     public enum OID : uint
@@ -7,6 +8,7 @@ namespace BossMod.MaskedCarnivale.Stage20.Act2
         Boss = 0x272B, //R=5.1
         Helper = 0x233C, //R=0.5
     };
+
     public enum AID : uint
     {
         AquaBreath = 14713, // 272B->self, 2,5s cast, range 8+R 90-degree cone
@@ -15,25 +17,30 @@ namespace BossMod.MaskedCarnivale.Stage20.Act2
         Waterspout = 14718, // 233C->location, 2,5s cast, range 4 circle
         LightningBolt = 14717, // 233C->location, 3,0s cast, range 3 circle
     };
+
     class AquaBreath : SelfTargetedAOEs
     {
-        public AquaBreath() : base(ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f,45.Degrees())) { } 
+        public AquaBreath() : base(ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f, 45.Degrees())) { }
     }
+
     class Megavolt : SelfTargetedAOEs
     {
-        public Megavolt() : base(ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f)) { } 
+        public Megavolt() : base(ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f)) { }
     }
-    class Waterspout: LocationTargetedAOEs
+
+    class Waterspout : LocationTargetedAOEs
     {
         public Waterspout() : base(ActionID.MakeSpell(AID.Waterspout), 4) { }
     }
-    class LightningBolt: LocationTargetedAOEs
+
+    class LightningBolt : LocationTargetedAOEs
     {
         public LightningBolt() : base(ActionID.MakeSpell(AID.LightningBolt), 3) { }
     }
+
     class ImpSong : CastHint
     {
-        public ImpSong() : base(ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!") { } 
+        public ImpSong() : base(ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!") { }
     }
 
     class Hints : BossComponent
@@ -43,6 +50,7 @@ namespace BossMod.MaskedCarnivale.Stage20.Act2
             hints.Add("Ultros is weak to fire. Interrupt Imp Song.");
         }
     }
+
     class Stage20Act2States : StateMachineBuilder
     {
         public Stage20Act2States(BossModule module) : base(module)
@@ -57,6 +65,7 @@ namespace BossMod.MaskedCarnivale.Stage20.Act2
             .ActivateOnEnter<ImpSong>();
         }
     }
+
     [ModuleInfo(CFCID = 630, NameID = 7111)]
     public class Stage20Act2 : BossModule
     {
@@ -64,6 +73,7 @@ namespace BossMod.MaskedCarnivale.Stage20.Act2
         {
             ActivateComponent<Hints>();
         }
+
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))

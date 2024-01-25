@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BossMod.Components;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage16.Act2
 {
     public enum OID : uint
@@ -10,6 +11,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
         Cyclops = 0x26F3, //R=3.2
         Helper = 0x233C, //R=0.5
     };
+
     public enum AID : uint
     {
         AutoAttack = 6497, // 26F4->player, no cast, single-target
@@ -29,42 +31,51 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
     {
         public OneOneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Diamondback!") { }
     }
- 
+
     class TenTonzeSlash : SelfTargetedAOEs
     {
-        public TenTonzeSlash() : base(ActionID.MakeSpell(AID.TenTonzeSlash), new AOEShapeCone(44,30.Degrees())) { } 
+        public TenTonzeSlash() : base(ActionID.MakeSpell(AID.TenTonzeSlash), new AOEShapeCone(44, 30.Degrees())) { }
     }
+
     class OneOneOneTonzeSwing : SelfTargetedAOEs
     {
-        public OneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneTonzeSwing), new AOEShapeCircle(12)) { } 
+        public OneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneTonzeSwing), new AOEShapeCircle(12)) { }
     }
+
     class CryOfRage : CastGaze
     {
-        public CryOfRage() : base(ActionID.MakeSpell(AID.CryOfRage)) { } 
+        public CryOfRage() : base(ActionID.MakeSpell(AID.CryOfRage)) { }
     }
+
     class TenTonzeWave : SelfTargetedAOEs
     {
-        public TenTonzeWave() : base(ActionID.MakeSpell(AID.TenTonzeWave), new AOEShapeCone(44,30.Degrees())) { } 
+        public TenTonzeWave() : base(ActionID.MakeSpell(AID.TenTonzeWave), new AOEShapeCone(44, 30.Degrees())) { }
     }
+
     class TenTonzeWave2 : SelfTargetedAOEs
     {
-        public TenTonzeWave2() : base(ActionID.MakeSpell(AID.TenTonzeWave2), new AOEShapeDonut(10,20)) { } 
+        public TenTonzeWave2() : base(ActionID.MakeSpell(AID.TenTonzeWave2), new AOEShapeDonut(10, 20)) { }
     }
+
     class OneOneOneTonzeSwingKB : Knockback //actual knockback happens a whole 1,462s after snapshot
     {
         private bool casting;
+
         private readonly AOEShapeCircle circle = new(12);
+
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (casting)
                 yield return new(module.PrimaryActor.Position, 20, default, circle, module.PrimaryActor.Rotation, new());
         }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
                 casting = true;
         }
+
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             base.OnEventCast(module, caster, spell);
@@ -72,9 +83,11 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
                 casting = false;
         }
     }
+
     class ZoomIn : GenericWildCharge
     {
-        public ZoomIn() : base(4,ActionID.MakeSpell(AID.ZoomIn)) { }
+        public ZoomIn() : base(4, ActionID.MakeSpell(AID.ZoomIn)) { }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
@@ -90,30 +103,34 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                {
+            {
                 Source = null;
-                }
+            }
         }
-    }    
+    }
+
     class ZoomInKB : Knockback
     {
         private DateTime Time;
         private bool watched;
+
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (watched && module.WorldState.CurrentTime < Time.AddSeconds(4.5f))
                 yield return new(module.PrimaryActor.Position, 20, default, default, module.PrimaryActor.Rotation, new());
         }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.ZoomIn)
-            {    
+            {
                 watched = true;
                 Time = module.WorldState.CurrentTime;
             }
         }
     }
+
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -121,23 +138,25 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
             hints.Add("Tikbalang will spawn a cyclops a few seconds into the fight. Make sure\nto kill it before it reaches you. After that you can just slowly take down the\nboss. Use Diamondback to survive the 1111 Tonze Swing. Alternatively\nyou can try the Final Sting combo when he drops to about 75% health.\n(Off-guard->Bristle->Moonflute->Final Sting)");
         }
     }
+
     class Stage16Act2States : StateMachineBuilder
     {
         public Stage16Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<OneOneOneOneTonzeSwing>()
-            .ActivateOnEnter<OneOneOneTonzeSwing>()
-            .ActivateOnEnter<OneOneOneTonzeSwingKB>()
-            .ActivateOnEnter<TenTonzeSlash>()
-            .ActivateOnEnter<CryOfRage>()
-            .ActivateOnEnter<ZoomIn>()
-            .ActivateOnEnter<ZoomInKB>()
-            .ActivateOnEnter<TenTonzeWave>()
-            .ActivateOnEnter<TenTonzeWave2>()
-            .DeactivateOnEnter<Hints>();
+                .ActivateOnEnter<OneOneOneOneTonzeSwing>()
+                .ActivateOnEnter<OneOneOneTonzeSwing>()
+                .ActivateOnEnter<OneOneOneTonzeSwingKB>()
+                .ActivateOnEnter<TenTonzeSlash>()
+                .ActivateOnEnter<CryOfRage>()
+                .ActivateOnEnter<ZoomIn>()
+                .ActivateOnEnter<ZoomInKB>()
+                .ActivateOnEnter<TenTonzeWave>()
+                .ActivateOnEnter<TenTonzeWave2>()
+                .DeactivateOnEnter<Hints>();
         }
     }
+
     [ModuleInfo(CFCID = 626, NameID = 8113)]
     public class Stage16Act2 : BossModule
     {
@@ -153,14 +172,15 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
             foreach (var s in Enemies(OID.Cyclops))
                 Arena.Actor(s, ArenaColor.Object, false);
         }
+
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-        base.CalculateAIHints(slot, actor, assignment, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
-                    OID.Cyclops => 1, 
+                    OID.Cyclops => 1,
                     OID.Boss => 0,
                     _ => 0
                 };

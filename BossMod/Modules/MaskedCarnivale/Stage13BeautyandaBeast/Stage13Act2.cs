@@ -1,5 +1,6 @@
 using BossMod.Components;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage13.Act2
 {
     public enum OID : uint
@@ -8,6 +9,7 @@ namespace BossMod.MaskedCarnivale.Stage13.Act2
         Succubus = 0x26F7, //R=1.0
         Helper = 0x233C, //R=0.5
     };
+
     public enum AID : uint
     {
         Attack = 6497, // 26F8/26F7->player, no cast, single-target
@@ -24,45 +26,53 @@ namespace BossMod.MaskedCarnivale.Stage13.Act2
         BeguilingMist = 15045, // 26F7->self, 7,0s cast, range 50+R circle, interruptable, applies hysteria
         FatalAllure = 14952, // 26F8->self, no cast, range 50+R circle, attract, applies terror
         BloodRain = 14882, // 26F8->location, 3,0s cast, range 50 circle
-
     };
 
     class VoidFireII : LocationTargetedAOEs
     {
         public VoidFireII() : base(ActionID.MakeSpell(AID.VoidFireII), 5) { }
     }
+
     class VoidFireIV : LocationTargetedAOEs
     {
         public VoidFireIV() : base(ActionID.MakeSpell(AID.VoidFireIV), 10) { }
     }
+
     class VoidFireIV3 : LocationTargetedAOEs
     {
         public VoidFireIV3() : base(ActionID.MakeSpell(AID.VoidFireIV3), 6) { }
     }
+
     class VoidAero : SelfTargetedAOEs
     {
-        public VoidAero() : base(ActionID.MakeSpell(AID.VoidAero), new AOEShapeRect(42,4)) { } 
+        public VoidAero() : base(ActionID.MakeSpell(AID.VoidAero), new AOEShapeRect(42, 4)) { }
     }
+
     class DarkSabbath : CastGaze
     {
-        public DarkSabbath() : base(ActionID.MakeSpell(AID.DarkSabbath)) { } 
+        public DarkSabbath() : base(ActionID.MakeSpell(AID.DarkSabbath)) { }
     }
+
     class DarkMist : SelfTargetedAOEs
     {
-        public DarkMist() : base(ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(10)) { } 
+        public DarkMist() : base(ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(10)) { }
     }
+
     class CircleOfBlood : SelfTargetedAOEs
     {
-        public CircleOfBlood() : base(ActionID.MakeSpell(AID.CircleOfBlood2), new AOEShapeDonut(10,20)) { } 
+        public CircleOfBlood() : base(ActionID.MakeSpell(AID.CircleOfBlood2), new AOEShapeDonut(10, 20)) { }
     }
+
     class BeguilingMist : CastHint
     {
         public BeguilingMist() : base(ActionID.MakeSpell(AID.BeguilingMist), "Interrupt or run around uncontrollably!") { }
     }
+
     class BloodRain : RaidwideCast
     {
         public BloodRain() : base(ActionID.MakeSpell(AID.BloodRain), "Harmless raidwide unless you failed to kill succubus in time") { }
     }
+
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -70,22 +80,24 @@ namespace BossMod.MaskedCarnivale.Stage13.Act2
             hints.Add("Camilla will cast various AOEs and summons adds.\nInterrupt the adds with Flying Sardine and kill them fast.\nIf the add is still alive during the next Black Sabbath, you will be wiped.");
         }
     }
+
     class Stage13Act2States : StateMachineBuilder
     {
         public Stage13Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<VoidFireII>()
-            .ActivateOnEnter<VoidFireIV>()
-            .ActivateOnEnter<VoidFireIV3>()
-            .ActivateOnEnter<VoidAero>()
-            .ActivateOnEnter<DarkSabbath>()
-            .ActivateOnEnter<DarkMist>()
-            .ActivateOnEnter<CircleOfBlood>()
-            .ActivateOnEnter<BeguilingMist>()
-            .DeactivateOnEnter<Hints>();
+                .ActivateOnEnter<VoidFireII>()
+                .ActivateOnEnter<VoidFireIV>()
+                .ActivateOnEnter<VoidFireIV3>()
+                .ActivateOnEnter<VoidAero>()
+                .ActivateOnEnter<DarkSabbath>()
+                .ActivateOnEnter<DarkMist>()
+                .ActivateOnEnter<CircleOfBlood>()
+                .ActivateOnEnter<BeguilingMist>()
+                .DeactivateOnEnter<Hints>();
         }
     }
+
     [ModuleInfo(CFCID = 623, NameID = 8107)]
     public class Stage13Act2 : BossModule
     {

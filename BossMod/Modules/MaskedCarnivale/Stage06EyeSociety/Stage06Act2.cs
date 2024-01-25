@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage06.Act2
 {
     public enum OID : uint
@@ -29,101 +30,121 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
     class DemonEye : CastGaze
     {
         private BitMask _blinded;
-        public bool Blinded { get; private set; }
-        public DemonEye() : base(ActionID.MakeSpell(AID.DemonEye)) {}
+
+        public DemonEye() : base(ActionID.MakeSpell(AID.DemonEye)) { }
+
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
-            {
-              if ((SID)status.ID == SID.Blind)
+        {
+            if ((SID)status.ID == SID.Blind)
                 _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
-            {
+        {
             if ((SID)status.ID == SID.Blind)
                 _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
-        { 
+        {
             return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
         }
     }
+
     class ColdStare : SelfTargetedAOEs //TODO: cone based gaze
     {
         private BitMask _blinded;
-        public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f,45.Degrees())) { } 
+
+        public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f, 45.Degrees())) { }
+
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
-            {
-              if ((SID)status.ID == SID.Blind)
+        {
+            if ((SID)status.ID == SID.Blind)
                 _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
-            {
+        {
             if ((SID)status.ID == SID.Blind)
                 _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        { 
+        {
             return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(module, slot, actor);
         }
     }
+
     class TearyTwirl : StackWithCastTargets
     {
         private BitMask _blinded;
-        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) {}
+
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) { }
+
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
-            {
-              if ((SID)status.ID == SID.Blind)
+        {
+            if ((SID)status.ID == SID.Blind)
                 _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
-            {
+        {
             if ((SID)status.ID == SID.Blind)
                 _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
-            }
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) 
-            {
-              if(_blinded[slot])
-              hints.Add("Kill mandragoras last incase you need to get blinded again.", false);
-              if(!_blinded[slot])
-              hints.Add("Stack to get blinded!", false);
-            }
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_blinded[slot])
+                hints.Add("Kill mandragoras last incase you need to get blinded again.", false);
+            if (!_blinded[slot])
+                hints.Add("Stack to get blinded!", false);
+        }
     }
 
     class DreadGaze : SelfTargetedAOEs //TODO: cone based gaze
     {
         private BitMask _blinded;
-        public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(7.35f,45.Degrees())) { } 
+
+        public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(7.35f, 45.Degrees())) { }
+
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
-            {
-              if ((SID)status.ID == SID.Blind)
+        {
+            if ((SID)status.ID == SID.Blind)
                 _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
-            {
+        {
             if ((SID)status.ID == SID.Blind)
                 _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        { 
+        {
             return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(module, slot, actor);
         }
     }
-class Hints : BossComponent
+
+    class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add("The eyes are weak to lightning spells.");
-        } 
+        }
     }
+
     class Stage06Act2States : StateMachineBuilder
     {
         public Stage06Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<ColdStare>()
-            .ActivateOnEnter<DreadGaze>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead) && module.Enemies(OID.Eye).All(e => e.IsDead);
+                .ActivateOnEnter<ColdStare>()
+                .ActivateOnEnter<DreadGaze>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead) && module.Enemies(OID.Eye).All(e => e.IsDead);
         }
     }
+
     [ModuleInfo(CFCID = 616, NameID = 8092)]
     public class Stage06Act2 : BossModule
     {
@@ -133,7 +154,9 @@ class Hints : BossComponent
             ActivateComponent<TearyTwirl>();
             ActivateComponent<Hints>();
         }
+
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat) || Enemies(OID.Eye).Any(e => e.InCombat); }
+
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
@@ -143,9 +166,10 @@ class Hints : BossComponent
             foreach (var s in Enemies(OID.Mandragora))
                 Arena.Actor(s, ArenaColor.Object, false);
         }
+
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-        base.CalculateAIHints(slot, actor, assignment, hints);
+            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch

@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage05
 {
     public enum OID : uint
@@ -10,7 +11,7 @@ namespace BossMod.MaskedCarnivale.Stage05
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add("These turtles have very high defenses.\nBring 1000 Needles or Doom to defeat them.\nAlternatively you can remove their buff with Eerie Soundwave.");
-        } 
+        }
     }
 
     class Stage05States : StateMachineBuilder
@@ -21,6 +22,7 @@ namespace BossMod.MaskedCarnivale.Stage05
             .DeactivateOnEnter<Hints>();
         }
     }
+
     [ModuleInfo(CFCID = 615, NameID = 8089)]
     public class Stage05 : BossModule
     {

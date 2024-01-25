@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage19.Act2
 {
     public enum OID : uint
@@ -10,6 +11,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         HotHip = 0x2779, //R=1.50
         voidzone = 0x1EA9F9, //R=0.5
     };
+
     public enum AID : uint
     {
         Reflect = 15073, // 2728->self, 3,0s cast, single-target, boss starts reflecting all melee attacks
@@ -20,6 +22,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         ExplosiveDehiscence = 15078, // 2729->self, 6,0s cast, range 50 circle, gaze
         BadBreath = 15074, // 2728->self, 3,5s cast, range 12+R 120-degree cone, interruptible, voidzone
     };
+
     public enum SID : uint
     {
         Reflect = 518, // Boss->Boss, extra=0x0
@@ -34,33 +37,41 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         Pollen = 19, // none->player, extra=0x0
         Stun = 149, // 2729->player, extra=0x0
     };
+
     class ExplosiveDehiscence : CastGaze
     {
         public static BitMask _blinded;
-        public ExplosiveDehiscence() : base(ActionID.MakeSpell(AID.ExplosiveDehiscence)) {}
+
+        public ExplosiveDehiscence() : base(ActionID.MakeSpell(AID.ExplosiveDehiscence)) { }
+
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
-            {
-              if ((SID)status.ID == SID.Blind)
+        {
+            if ((SID)status.ID == SID.Blind)
                 _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
-            {
+        {
             if ((SID)status.ID == SID.Blind)
                 _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
-            }
+        }
+
         public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
-        { 
+        {
             return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
         }
     }
+
     class GazeHint : BossComponent
     {
         public static bool casting;
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) 
-            {
-                if (!ExplosiveDehiscence._blinded[slot] && casting)
-                    hints.Add("Cast Ink Jet on boss to get blinded!");
-            }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (!ExplosiveDehiscence._blinded[slot] && casting)
+                hints.Add("Cast Ink Jet on boss to get blinded!");
+        }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Schizocarps)
@@ -78,12 +89,14 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
     {
         private bool reflect;
         private bool casting;
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Reflect)
                 casting = true;
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
@@ -93,6 +106,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
                 casting = false;
             }
         }
+
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (casting)
@@ -101,39 +115,45 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
                 hints.Add("Boss reflects all magic damage!");//TODO: could use an AI hint to never use magic abilities after this is casted
         }
     }
+
     class BadBreath : SelfTargetedAOEs
     {
-        public BadBreath() : base(ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f,60.Degrees())) { } 
+        public BadBreath() : base(ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees())) { }
     }
+
     class VineProbe : SelfTargetedAOEs
     {
-        public VineProbe() : base(ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f,4)) { } 
+        public VineProbe() : base(ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4)) { }
     }
+
     class OffalBreath : PersistentVoidzoneAtCastTarget
     {
         public OffalBreath() : base(6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0) { }
     }
+
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add("Same as first act, but this time the boss will cast a gaze from all directions.\nThe easiest counter for this is to blind yourself by casting Ink Jet on the\nboss after it casted Schizocarps.\nThe Final Sting combo window opens at around 75% health.\n(Off-guard->Bristle->Moonflute->Final Sting)");
-        } 
+        }
     }
+
     class Stage19Act1States : StateMachineBuilder
     {
         public Stage19Act1States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .DeactivateOnEnter<Hints>()
-            .ActivateOnEnter<Reflect>()
-            .ActivateOnEnter<BadBreath>()
-            .ActivateOnEnter<VineProbe>()
-            .ActivateOnEnter<ExplosiveDehiscence>()
-            .ActivateOnEnter<GazeHint>()
-            .ActivateOnEnter<OffalBreath>();
+                .DeactivateOnEnter<Hints>()
+                .ActivateOnEnter<Reflect>()
+                .ActivateOnEnter<BadBreath>()
+                .ActivateOnEnter<VineProbe>()
+                .ActivateOnEnter<ExplosiveDehiscence>()
+                .ActivateOnEnter<GazeHint>()
+                .ActivateOnEnter<OffalBreath>();
         }
     }
+
     [ModuleInfo(CFCID = 629, NameID = 8117)]
     public class Stage19Act1 : BossModule
     {
@@ -141,6 +161,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         {
             ActivateComponent<Hints>();
         }
+
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))

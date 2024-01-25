@@ -1,5 +1,6 @@
 using BossMod.Components;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage03
 {
     public enum OID : uint
@@ -18,44 +19,48 @@ namespace BossMod.MaskedCarnivale.Stage03
 
     class BoulderClap : SelfTargetedAOEs
     {
-        public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14,60.Degrees())) { } 
+        public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14, 60.Degrees())) { }
     }
 
     class Dreadstorm : PersistentVoidzoneAtCastTarget
     {
         public Dreadstorm() : base(6, ActionID.MakeSpell(AID.EarthenHeart), m => m.Enemies(OID.voidzone), 0) { }
     }
+
     class Obliterate : RaidwideCast
     {
         public Obliterate() : base(ActionID.MakeSpell(AID.Obliterate), "Interruptible raidwide") { }
     }
+
     class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add("Zipacna is weak against water based spells.\nFlying Sardine is recommended to interrupt raidwide.");
-        } 
+        }
     }
+
     class Hints2 : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add("Zipacna is weak against water based spells.\nEarth based spells are useless against Zipacna.");
-        } 
-    }    
+        }
+    }
 
     class Stage03States : StateMachineBuilder
     {
         public Stage03States(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<BoulderClap>()
-            .ActivateOnEnter<Dreadstorm>()
-            .ActivateOnEnter<Obliterate>()
-            .ActivateOnEnter<Hints2>()
-            .DeactivateOnEnter<Hints>();
+                .ActivateOnEnter<BoulderClap>()
+                .ActivateOnEnter<Dreadstorm>()
+                .ActivateOnEnter<Obliterate>()
+                .ActivateOnEnter<Hints2>()
+                .DeactivateOnEnter<Hints>();
         }
     }
+
     [ModuleInfo(CFCID = 613, NameID = 8084)]
     public class Stage03 : BossModule
     {
