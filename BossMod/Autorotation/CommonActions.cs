@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using FFXIVGame = FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace BossMod
 {
@@ -191,15 +192,17 @@ namespace BossMod
             };
         }
 
-        public void UpdateAutoAction(int autoAction, float maxCastTime)
+        public void UpdateAutoAction(int autoAction, float maxCastTime, bool isUserRequested)
         {
+            var sticky = Autorot.Config.StickyAutoActions && isUserRequested;
+
             if (AutoAction != autoAction)
             {
                 Log($"Auto action set to {autoAction}");
                 AutoAction = autoAction;
-                _autoActionExpire = Autorot.Config.StickyAutoActions ? DateTime.MaxValue : Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
+                _autoActionExpire = sticky ? DateTime.MaxValue : Autorot.WorldState.CurrentTime.AddSeconds(1.0f);
             }
-            else if (Autorot.Config.StickyAutoActions)
+            else if (sticky)
             {
                 Log($"Turning off auto action {autoAction}");
                 AutoAction = AutoActionNone;
@@ -229,7 +232,7 @@ namespace BossMod
 
             if (supportedAction.PlaceholderForAuto != AutoActionNone)
             {
-                UpdateAutoAction(supportedAction.PlaceholderForAuto, float.MaxValue);
+                UpdateAutoAction(supportedAction.PlaceholderForAuto, float.MaxValue, true);
                 return true;
             }
 
@@ -368,6 +371,12 @@ namespace BossMod
             s.ComboTimeLeft = am.ComboTimeLeft;
             s.ComboLastAction = am.ComboLastMove;
 
+            // all GCD skills share the same base recast time (with some exceptions that aren't relevant here)
+            // so we can check Fast Blade (9) and Stone (119) recast timers to get effective sks and sps
+            // regardless of current class
+            s.AttackGCDTime = FFXIVGame.ActionManager.GetAdjustedRecastTime(FFXIVGame.ActionType.Action, 9) / 1000f;
+            s.SpellGCDTime = FFXIVGame.ActionManager.GetAdjustedRecastTime(FFXIVGame.ActionType.Action, 119) / 1000f;
+
             s.RaidBuffsLeft = vuln.Item1 ? vuln.Item2 : 0;
             foreach (var status in Player.Statuses.Where(s => IsDamageBuff(s.ID)))
             {
@@ -459,6 +468,21 @@ namespace BossMod
             if (_playerCombatStart != default)
                 return (float)(Autorot.WorldState.CurrentTime - _playerCombatStart).TotalSeconds;
             return -Math.Max(0.001f, Autorot.WorldState.Client.CountdownRemaining ?? float.MaxValue);
+        }
+
+        protected (AIHints.Enemy Target, int Priority) FindBetterTargetBy(AIHints.Enemy initial, float maxDistanceFromPlayer, Func<AIHints.Enemy, int> prioFunc)
+        {
+            var bestTarget = initial;
+            var bestPrio = prioFunc(bestTarget);
+            foreach(var enemy in Autorot.Hints.PriorityTargets.Where(x => x != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer)))
+            {
+                var newPrio = prioFunc(enemy);
+                if (newPrio > bestPrio) {
+                    bestPrio = newPrio;
+                    bestTarget = enemy;
+                }
+            }
+            return (bestTarget, bestPrio);
         }
     }
 }

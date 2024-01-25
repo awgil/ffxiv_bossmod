@@ -41,6 +41,7 @@ namespace BossMod
                     _tree.LeafNode($"Gimmick ID: {Utils.ReadField<uint>(internalObj, 0x7C):X}");
                     _tree.LeafNode($"Radius: {obj.HitboxRadius:f3}");
                     _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
+                    _tree.LeafNode($"BNpcBase/Name: {obj.DataId}/{Utils.GameObjectInternal(obj)->GetNpcID()}");
                     _tree.LeafNode($"Targetable: {obj.IsTargetable}");
                     _tree.LeafNode($"Friendly: {Utils.GameObjectIsFriendly(obj)}");
                     _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");

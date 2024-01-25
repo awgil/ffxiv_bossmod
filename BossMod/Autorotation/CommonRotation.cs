@@ -25,6 +25,10 @@ namespace BossMod
             public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
             public float[] Cooldowns;
 
+            // both 2.5 max (unless slowed), reduced by gear attributes and certain status effects
+            public float AttackGCDTime;
+            public float SpellGCDTime;
+
             public float GCD => Cooldowns[CommonDefinitions.GCDGroup]; // 2.5 max (decreased by SkS), 0 if not on gcd
             public float SprintCD => Cooldowns[CommonDefinitions.SprintCDGroup]; // 60.0 max
             public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup]; // variable max

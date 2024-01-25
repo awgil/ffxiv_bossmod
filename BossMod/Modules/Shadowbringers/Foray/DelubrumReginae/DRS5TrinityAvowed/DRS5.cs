@@ -21,6 +21,7 @@
         public GleamingArrow() : base(ActionID.MakeSpell(AID.GleamingArrow), new AOEShapeRect(60, 5)) { }
     }
 
+    [ModuleInfo(CFCID = 761, NameID = 9853)]
     public class DRS5 : BossModule
     {
         public DRS5(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-272, -82), 25)) { }

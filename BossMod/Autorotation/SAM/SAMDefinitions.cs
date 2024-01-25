@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Runtime.Versioning;
-using BossMod.Endwalker.HuntA.Petalodus;
 
 namespace BossMod.SAM
 {
@@ -201,13 +199,9 @@ namespace BossMod.SAM
             SupportedActions.GCDCast(AID.TenkaGoken, 0, 1.8f);
             SupportedActions.GCD(AID.Oka, 0);
             SupportedActions.GCDCast(AID.MidareSetsugekka, 6, 1.8f);
-            SupportedActions
-                .OGCDWithCharges(AID.MeikyoShisui, 0, CDGroup.MeikyoShisui, 55.0f, 2)
-                .EffectDuration = 15;
+            SupportedActions.OGCDWithCharges(AID.MeikyoShisui, 0, CDGroup.MeikyoShisui, 55.0f, 2).EffectDuration = 15;
             SupportedActions.GCD(AID.Yukikaze, 3);
-            SupportedActions
-                .OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2)
-                .EffectDuration = 10;
+            SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2).EffectDuration = 10;
             SupportedActions.OGCD(AID.HissatsuShinten, 3, CDGroup.HissatsuShinten, 1.0f);
             SupportedActions.OGCD(AID.HissatsuGyoten, 20, CDGroup.HissatsuGyoten, 10.0f);
             SupportedActions.OGCD(AID.HissatsuYaten, 5, CDGroup.HissatsuYaten, 10.0f, 0.800f);
@@ -218,21 +212,9 @@ namespace BossMod.SAM
             SupportedActions.OGCD(AID.HissatsuGuren, 10, CDGroup.HissatsuGuren, 120.0f);
             SupportedActions.OGCD(AID.HissatsuSenei, 3, CDGroup.HissatsuGuren, 120.0f);
             SupportedActions.OGCDWithCharges(AID.TsubameGaeshi, 0, CDGroup.TsubameGaeshi, 60.0f, 2);
-            SupportedActions.OGCDWithCharges(
-                AID.KaeshiHiganbana,
-                6,
-                CDGroup.TsubameGaeshi,
-                60.0f,
-                2
-            );
+            SupportedActions.OGCDWithCharges(AID.KaeshiHiganbana, 6, CDGroup.TsubameGaeshi, 60.0f, 2);
             SupportedActions.OGCDWithCharges(AID.KaeshiGoken, 0, CDGroup.TsubameGaeshi, 60.0f, 2);
-            SupportedActions.OGCDWithCharges(
-                AID.KaeshiSetsugekka,
-                6,
-                CDGroup.TsubameGaeshi,
-                60.0f,
-                2
-            );
+            SupportedActions.OGCDWithCharges(AID.KaeshiSetsugekka, 6, CDGroup.TsubameGaeshi, 60.0f, 2);
             SupportedActions.OGCD(AID.Shoha, 3, CDGroup.Shoha, 15.0f);
             SupportedActions.OGCD(AID.Shoha2, 0, CDGroup.Shoha, 15.0f);
             SupportedActions.GCD(AID.Fuko, 0);

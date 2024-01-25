@@ -27,9 +27,9 @@
         public C013Shadowcaster(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(289, -105), 15, 20)) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11393)]
     public class C013NShadowcaster : C013Shadowcaster { public C013NShadowcaster(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11393)]
     public class C013SShadowcaster : C013Shadowcaster { public C013SShadowcaster(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

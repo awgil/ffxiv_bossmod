@@ -54,9 +54,9 @@
     class C010NBelladonnaStates : C010BelladonnaStates { public C010NBelladonnaStates(BossModule module) : base(module, false) { } }
     class C010SBelladonnaStates : C010BelladonnaStates { public C010SBelladonnaStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11514)]
     public class C010NBelladonna : SimpleBossModule { public C010NBelladonna(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11514)]
     public class C010SBelladonna : SimpleBossModule { public C010SBelladonna(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

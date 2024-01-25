@@ -89,7 +89,7 @@
     class C020NRaikoStates : C020RaikoStates { public C020NRaikoStates(BossModule module) : base(module, false) { } }
     class C020SRaikoStates : C020RaikoStates { public C020SRaikoStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NRaiko)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NRaiko, CFCID = 946, NameID = 12422)]
     public class C020NRaiko : C020Trash1
     {
         public C020NRaiko(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -102,7 +102,7 @@
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SRaiko)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SRaiko, CFCID = 947, NameID = 12422)]
     public class C020SRaiko : C020Trash1
     {
         public C020SRaiko(WorldState ws, Actor primary) : base(ws, primary) { }

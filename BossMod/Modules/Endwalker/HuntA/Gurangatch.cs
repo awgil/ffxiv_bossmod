@@ -137,6 +137,7 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 215)]
     public class Gurangatch : SimpleBossModule
     {
         public Gurangatch(WorldState ws, Actor primary) : base(ws, primary) { }

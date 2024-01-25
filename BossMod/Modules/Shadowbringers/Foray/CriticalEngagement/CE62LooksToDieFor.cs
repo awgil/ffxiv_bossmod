@@ -208,6 +208,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
         }
     }
 
+    [ModuleInfo(CFCID = 778, DynamicEventID = 30)]
     public class CE62LooksToDieFor : BossModule
     {
         public CE62LooksToDieFor(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-200, -580), 20)) { }

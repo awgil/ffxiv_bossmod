@@ -1,5 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena
 {
+    [ModuleInfo(CFCID = 943, NameID = 12382)]
     public class P12S2PallasAthena : BossModule
     {
         public static ArenaBoundsRect DefaultBounds = new ArenaBoundsRect(new(100, 95), 20, 15);

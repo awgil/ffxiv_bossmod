@@ -47,6 +47,7 @@
         }
     }
 
+    [ModuleInfo(CFCID = 5, NameID = 1532)]
     public class D123MisersMistress : BossModule
     {
         public D123MisersMistress(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-400, -130), 25)) { }

@@ -33,6 +33,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
     }
 
     // TODO: ManaFlame component - show reflect hints
+    [ModuleInfo(CFCID = 761, NameID = 9759)]
     public class DRS6 : BossModule
     {
         private List<Actor> _monks;

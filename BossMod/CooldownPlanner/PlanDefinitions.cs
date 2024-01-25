@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BossMod
@@ -62,6 +62,7 @@ namespace BossMod
             Classes[Class.DRG] = DefineDRG();
             Classes[Class.MNK] = DefineMNK();
             Classes[Class.BRD] = DefineBRD();
+            Classes[Class.DNC] = DefineDNC();
             Classes[Class.BLM] = DefineBLM();
             Classes[Class.RPR] = DefineRPR();
             Classes[Class.GNB] = DefineGNB();
@@ -132,6 +133,20 @@ namespace BossMod
         private static ClassData DefineMNK()
         {
             var c = new ClassData(typeof(MNK.AID), MNK.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("Feint", ActionID.MakeSpell(MNK.AID.Feint), 22));
+            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(MNK.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("RoE", ActionID.MakeSpell(MNK.AID.RiddleOfEarth), 64));
+            c.CooldownTracks.Add(new("Mantra", ActionID.MakeSpell(MNK.AID.Mantra), 42));
+            c.StrategyTracks.Add(new("Dash", typeof(MNK.Rotation.Strategy.DashStrategy)));
+            c.StrategyTracks.Add(new("TrueN", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("Nadi", typeof(MNK.Rotation.Strategy.NadiChoice)));
+            c.StrategyTracks.Add(new("RoF", typeof(MNK.Rotation.Strategy.FireStrategy)));
+            c.StrategyTracks.Add(new("RoW", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("BHood", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(
+                new("PerfBal", typeof(CommonRotation.Strategy.OffensiveAbilityUse))
+            );
+            c.StrategyTracks.Add(new("SSS", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
             return c;
         }
 
@@ -152,6 +167,20 @@ namespace BossMod
             c.StrategyTracks.Add(new("EA", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("Barrage", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
             c.StrategyTracks.Add(new("SW", typeof(BRD.Rotation.Strategy.OffensiveAbilityUse)));
+            return c;
+        }
+
+        private static ClassData DefineDNC()
+        {
+            var c = new ClassData(typeof(DNC.AID), DNC.Definitions.SupportedActions);
+            c.CooldownTracks.Add(new("StdStep", ActionID.MakeSpell(DNC.AID.StandardStep), 15));
+            c.CooldownTracks.Add(new("Samba", ActionID.MakeSpell(DNC.AID.ShieldSamba), 56));
+            c.CooldownTracks.Add(new("Waltz", ActionID.MakeSpell(DNC.AID.CuringWaltz), 52));
+            c.CooldownTracks.Add(new("Improv", ActionID.MakeSpell(DNC.AID.Improvisation), 80));
+            c.CooldownTracks.Add(new("ArmsL", ActionID.MakeSpell(BRD.AID.ArmsLength), 32));
+            c.CooldownTracks.Add(new("Sprint", CommonDefinitions.IDSprint, 1));
+            c.StrategyTracks.Add(new("Gauge", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
+            c.StrategyTracks.Add(new("Feather", typeof(CommonRotation.Strategy.OffensiveAbilityUse)));
             return c;
         }
 

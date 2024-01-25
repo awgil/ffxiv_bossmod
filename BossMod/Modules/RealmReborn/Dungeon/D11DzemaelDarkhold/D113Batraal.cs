@@ -63,6 +63,7 @@ namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D113Batraal
         }
     }
 
+    [ModuleInfo(CFCID = 13, NameID = 1396)]
     public class D113Batraal : BossModule
     {
         public D113Batraal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(85, -180), 25)) { }

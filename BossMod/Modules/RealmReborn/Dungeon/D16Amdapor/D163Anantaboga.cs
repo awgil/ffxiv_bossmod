@@ -125,6 +125,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
         }
     }
 
+    [ModuleInfo(CFCID = 14, NameID = 1696)]
     public class D163Anantaboga : BossModule
     {
         public D163Anantaboga(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(10, 0), 25)) { }

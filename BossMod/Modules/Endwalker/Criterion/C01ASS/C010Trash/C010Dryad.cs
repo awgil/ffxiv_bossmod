@@ -70,7 +70,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad
     class C010NDryadStates : C010DryadStates { public C010NDryadStates(BossModule module) : base(module, false) { } }
     class C010SDryadStates : C010DryadStates { public C010SDryadStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11513)]
     public class C010NDryad : SimpleBossModule
     {
         public C010NDryad(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -82,7 +82,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11513)]
     public class C010SDryad : SimpleBossModule
     {
         public C010SDryad(WorldState ws, Actor primary) : base(ws, primary) { }

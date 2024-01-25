@@ -64,6 +64,7 @@
         }
     }
 
+    [ModuleInfo(CFCID = 10, NameID = 1549)]
     public class D152GiantBavarois : BossModule
     {
         public D152GiantBavarois(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(43, -232), 20)) { }

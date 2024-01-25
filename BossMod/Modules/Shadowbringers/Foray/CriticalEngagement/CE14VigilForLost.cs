@@ -115,6 +115,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE14VigilForLost
         }
     }
 
+    [ModuleInfo(CFCID = 735, DynamicEventID = 3)]
     public class CE14VigilForLost : BossModule
     {
         public CE14VigilForLost(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(451, 830), 30)) { }

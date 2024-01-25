@@ -74,6 +74,7 @@
         }
     }
 
+    [ModuleInfo(NotoriousMonsterID = 205)]
     public class LunatenderQueen : SimpleBossModule
     {
         public LunatenderQueen(WorldState ws, Actor primary) : base(ws, primary) { }

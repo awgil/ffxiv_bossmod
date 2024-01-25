@@ -105,6 +105,8 @@ namespace BossMod.MNK
         OpoOpoForm = 107, // applied by Snap Punch to self
         RaptorForm = 108, // applied by Bootshine, Arm of the Destroyer to self
         CoeurlForm = 109, // applied by True Strike, Twin Snakes to self
+        RiddleOfFire = 1181, // applied by Riddle of Fire to self
+        RiddleOfWind = 2687, // applied by Riddle of Wind to self
         LeadenFist = 1861, // applied by Dragon Kick to self
         DisciplinedFist = 3001, // applied by Twin Snakes to self, damage buff
         PerfectBalance = 110, // applied by Perfect Balance to self, ignore form requirements
@@ -114,6 +116,8 @@ namespace BossMod.MNK
         Mantra = 102, // applied by Mantra to targets, +10% healing taken
         TrueNorth = 1250, // applied by True North to self, ignore positionals
         Stun = 2, // applied by Leg Sweep to target
+        FormlessFist = 2513, // applied by Form Shift to self
+        SixSidedStar = 2514, // applied by Six-Sided Star to self
     }
 
     public static class Definitions
@@ -218,14 +222,14 @@ namespace BossMod.MNK
             SupportedActions.OGCD(AID.Brotherhood, 0, CDGroup.Brotherhood, 120.0f);
             SupportedActions.OGCD(AID.RiddleOfWind, 0, CDGroup.RiddleOfWind, 90.0f);
             SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
-            SupportedActions.OGCD(AID.Mantra, 0, CDGroup.Mantra, 90.0f);
-            SupportedActions.OGCDWithCharges(AID.RiddleOfEarth, 0, CDGroup.RiddleOfEarth, 30.0f, 3);
+            SupportedActions.OGCD(AID.Mantra, 0, CDGroup.Mantra, 90.0f).EffectDuration = 15;
+            SupportedActions.OGCD(AID.RiddleOfEarth, 0, CDGroup.RiddleOfEarth, 120.0f).EffectDuration = 10;
             SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
             SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
             SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
             SupportedActions.GCD(AID.Meditation, 0);
             SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
-            SupportedActions.OGCDWithCharges(AID.Thunderclap, 20, CDGroup.Thunderclap, 30.0f, 2);
+            SupportedActions.OGCDWithCharges(AID.Thunderclap, 20, CDGroup.Thunderclap, 30.0f, 3);
             SupportedActions.GCD(AID.FormShift, 0);
             SupportedActions.OGCD(AID.Anatman, 0, CDGroup.Anatman, 60.0f);
             SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);

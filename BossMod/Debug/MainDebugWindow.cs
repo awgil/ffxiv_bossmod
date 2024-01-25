@@ -240,7 +240,7 @@ namespace BossMod
             var dist = selfToObj.Length();
             var angle = Angle.FromDirection(new(selfToObj.XZ())) - refAngle;
             var visHalf = Angle.Asin(obj->HitboxRadius / dist);
-            ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->ObjectID)}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
+            ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->ObjectID)} {obj->DataID}:{obj->GetNpcID()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
         }
 
         private unsafe void DrawPlayerAttributes()

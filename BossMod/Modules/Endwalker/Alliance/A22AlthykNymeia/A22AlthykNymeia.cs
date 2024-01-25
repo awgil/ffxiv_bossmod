@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Alliance.A22AlthykNymeia
         public Hydroptosis() : base(ActionID.MakeSpell(AID.HydroptosisAOE), 6) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.Althyk)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.Althyk, CFCID = 911, NameID = 12244)]
     public class A22AlthykNymeia : BossModule
     {
         private Actor? _nymeia;

@@ -25,6 +25,7 @@
         public HuntersClaw() : base(ActionID.MakeSpell(AID.HuntersClaw), new AOEShapeCircle(8)) { }
     }
 
+    [ModuleInfo(CFCID = 761, NameID = 9751)]
     public class DRS2 : BossModule
     {
         public DRS2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(82, 138), 30)) { }

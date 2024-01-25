@@ -24,6 +24,7 @@
         public Ex2HydaelynConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 791, NameID = 10453)]
     public class Ex2Hydaelyn : BossModule
     {
         public Ex2Hydaelyn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

@@ -53,6 +53,7 @@
         public OptimalPlayCone() : base(ActionID.MakeSpell(AID.OptimalPlayCone), new AOEShapeCone(60, 135.Degrees())) { }
     }
 
+    [ModuleInfo(CFCID = 761, NameID = 9863)]
     public class DRS7 : BossModule
     {
         public DRS7(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-272, -415), 25)) { } // note: initially arena is square, but it quickly changes to circle

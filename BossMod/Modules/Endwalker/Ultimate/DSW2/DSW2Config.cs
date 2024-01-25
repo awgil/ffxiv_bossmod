@@ -104,6 +104,9 @@
         [PropertyCombo("CCW", "CW")]
         public bool P2Sanctity2NonPreyTowerCW = false;
 
+        [PropertyDisplay("P3 Dive from Grace: look west for arrows rather than east (so forward arrow takes E spot, backward arrow takes W spot")]
+        public bool P3DiveFromGraceLookWest = false;
+
         [PropertyDisplay("P3 enumeration towers: assignments")]
         [GroupDetails(new string[] { "NW Flex", "NE Flex", "SE Flex", "SW Flex", "NW Stay", "NE Stay", "SE Stay", "SW Stay" })]
         [GroupPreset("LPDU", new[] { 1, 3, 6, 0, 2, 4, 5, 7 })]

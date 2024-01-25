@@ -44,6 +44,7 @@
         }
     }
 
+    [ModuleInfo(CFCID = 11, NameID = 1677)]
     public class D101ChudoYudo : BossModule
     {
         public D101ChudoYudo(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 115), 20)) { }

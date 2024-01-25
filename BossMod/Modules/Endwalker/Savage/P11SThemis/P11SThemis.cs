@@ -6,6 +6,7 @@
         public P11SThemisConfig() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 941, NameID = 12388)]
     public class P11SThemis : BossModule
     {
         public P11SThemis(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

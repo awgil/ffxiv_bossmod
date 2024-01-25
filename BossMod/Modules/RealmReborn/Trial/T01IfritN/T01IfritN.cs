@@ -67,6 +67,7 @@ namespace BossMod.RealmReborn.Trial.T01IfritN
         }
     }
 
+    [ModuleInfo(CFCID = 56, NameID = 1185)]
     public class T01IfritN : BossModule
     {
         public T01IfritN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 20)) { }

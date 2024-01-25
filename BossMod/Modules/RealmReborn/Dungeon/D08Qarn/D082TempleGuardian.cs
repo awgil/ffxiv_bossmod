@@ -44,6 +44,7 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D082TempleGuardian
         }
     }
 
+    [ModuleInfo(CFCID = 8, NameID = 1569)]
     public class D082TempleGuardian : BossModule
     {
         public D082TempleGuardian(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(50, -10), 15)) { }

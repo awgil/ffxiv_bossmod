@@ -54,9 +54,9 @@
     class C010NDullahanStates : C010DullahanStates { public C010NDullahanStates(BossModule module) : base(module, false) { } }
     class C010SDullahanStates : C010DullahanStates { public C010SDullahanStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 878, NameID = 11506)]
     public class C010NDullahan : SimpleBossModule { public C010NDullahan(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 879, NameID = 11506)]
     public class C010SDullahan : SimpleBossModule { public C010SDullahan(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

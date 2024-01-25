@@ -16,6 +16,7 @@ general:
 - bozja action support
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - constrain bossmodules to zone id (e.g. for T04)
+- refactor pendingeffects
 
 boss modules:
 - wipe should not fast forward all phases

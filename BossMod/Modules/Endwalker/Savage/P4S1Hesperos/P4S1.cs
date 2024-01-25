@@ -13,6 +13,7 @@
         public P4S1Config() : base(90) { }
     }
 
+    [ModuleInfo(CFCID = 801, NameID = 10744)]
     public class P4S1 : BossModule
     {
         public P4S1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

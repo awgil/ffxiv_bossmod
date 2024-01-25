@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using System.Numerics;
 
 namespace BossMod
 {
@@ -14,6 +15,18 @@ namespace BossMod
             if (disabled && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
                 ImGui.SetTooltip("Hold shift");
             return res;
+        }
+
+        public static void TextUnderlined(Vector4 colour, string text)
+        {
+            var size = ImGui.CalcTextSize(text);
+            var cur = ImGui.GetCursorScreenPos();
+            cur.Y += size.Y;
+            ImGui.GetWindowDrawList().PathLineTo(cur);
+            cur.X += size.X;
+            ImGui.GetWindowDrawList().PathLineTo(cur);
+            ImGui.GetWindowDrawList().PathStroke(ImGui.ColorConvertFloat4ToU32(colour));
+            ImGui.TextColored(colour, text);
         }
     }
 }

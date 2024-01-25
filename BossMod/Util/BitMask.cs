@@ -33,6 +33,9 @@ namespace BossMod
         public int LowestSetBit() => BitOperations.TrailingZeroCount(Raw); // returns out-of-range value (64) if no bits are set
         public int HighestSetBit() => 63 - BitOperations.LeadingZeroCount(Raw); // returns out-of-range value (-1) if no bits are set
 
+        public BitMask WithBit(int index) => new(Raw | MaskForBit(index));
+        public BitMask WithoutBit(int index) => new(Raw & ~MaskForBit(index));
+
         public static BitMask operator ~(BitMask a) => new(~a.Raw);
         public static BitMask operator &(BitMask a, BitMask b) => new(a.Raw & b.Raw);
         public static BitMask operator |(BitMask a, BitMask b) => new(a.Raw | b.Raw);
