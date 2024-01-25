@@ -43,7 +43,7 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D083Adjudicator
         }
     }
 
-    [ModuleInfo(CFCID = 8, NameID = 1570)]
+    [ModuleInfo(CFCID = 9, NameID = 1570)]
     public class D083Adjudicator : BossModule
     {
         public D083Adjudicator(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(238, 0), 20)) { }
