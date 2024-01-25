@@ -54,7 +54,7 @@ namespace BossMod.Components
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in ActiveAOEs(module, pcSlot, pc))
-                c.Shape.Draw(arena, c.Origin, c.Rotation, c.Color);
+                    c.Shape.Draw(arena, c.Origin, c.Rotation, c.Color);
         }
     }
 
@@ -133,6 +133,7 @@ namespace BossMod.Components
         public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
         public uint Color = ArenaColor.AOE; // can be customized if needed
         public bool Risky = true; // can be customized if needed
+        public bool Visible = true; // can be customized if needed
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
         public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
