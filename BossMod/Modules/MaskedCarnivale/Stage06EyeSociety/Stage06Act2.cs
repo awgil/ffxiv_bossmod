@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using BossMod.Components;
 
@@ -27,107 +28,84 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
     };
     class DemonEye : CastGaze
     {
+        private BitMask _blinded;
+        public bool Blinded { get; private set; }
         public DemonEye() : base(ActionID.MakeSpell(AID.DemonEye)) {}
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        Risky = false;
-                    }
-                }
+              if ((SID)status.ID == SID.Blind)
+                _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        Risky = true;
-                    }
-                }
+            if ((SID)status.ID == SID.Blind)
+                _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
             }
+        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
+        { 
+            return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
+        }
     }
-    class ColdStare : SelfTargetedAOEs
+    class ColdStare : SelfTargetedAOEs //TODO: cone based gaze
     {
+        private BitMask _blinded;
         public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f,45.Degrees())) { } 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        Risky = false;
-                        Visible = false;
-                    }
-                }
+              if ((SID)status.ID == SID.Blind)
+                _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        Risky = true;
-                        Color = ArenaColor.AOE;
-                    }
-                }
+            if ((SID)status.ID == SID.Blind)
+                _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
             }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        { 
+            return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(module, slot, actor);
+        }
     }
     class TearyTwirl : StackWithCastTargets
     {
-    private bool blinded;
-        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) { }
-                public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        private BitMask _blinded;
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) {}
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        blinded = true;
-                    }
-                }
+              if ((SID)status.ID == SID.Blind)
+                _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        blinded = false;
-                    }
-                }
+            if ((SID)status.ID == SID.Blind)
+                _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
             }
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) 
             {
-                if (!blinded)
-                    hints.Add("Stack to get blinded!", false);
+              if(_blinded[slot])
+              hints.Add("Kill mandragoras last incase you need to get blinded again.", false);
+              if(!_blinded[slot])
+              hints.Add("Stack to get blinded!", false);
             }
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-            {
-                if (blinded)
-                hints.Add("Kill mandragoras last incase you need to get blinded again.");
-            } 
     }
 
-    class DreadGaze : SelfTargetedAOEs
+    class DreadGaze : SelfTargetedAOEs //TODO: cone based gaze
     {
+        private BitMask _blinded;
         public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(7.35f,45.Degrees())) { } 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        Risky = false;
-                        Visible = false;
-                    }
-                }
+              if ((SID)status.ID == SID.Blind)
+                _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
             }
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
             {
-            if (actor == module.Raid.Player())
-                {if ((SID)status.ID == SID.Blind)
-                    {
-                        Risky = true;
-                        Color = ArenaColor.AOE;
-                    }
-                }
+            if ((SID)status.ID == SID.Blind)
+                _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
             }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        { 
+            return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(module, slot, actor);
+        }
     }
 class Hints : BossComponent
     {
