@@ -76,7 +76,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
     class C030NSnipperStates : C030SnipperStates { public C030NSnipperStates(BossModule module) : base(module, false) { } }
     class C030SSnipperStates : C030SnipperStates { public C030SSnipperStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NSnipper)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NSnipper, CFCID = 979, NameID = 12537)]
     public class C030NSnipper : C030Trash1
     {
         public C030NSnipper(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -88,7 +88,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SSnipper)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SSnipper, CFCID = 980, NameID = 12537)]
     public class C030SSnipper : C030Trash1
     {
         public C030SSnipper(WorldState ws, Actor primary) : base(ws, primary) { }

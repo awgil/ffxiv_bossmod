@@ -60,7 +60,7 @@
     class C030NRayStates : C030RayStates { public C030NRayStates(BossModule module) : base(module, false) { } }
     class C030SRayStates : C030RayStates { public C030SRayStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NRay)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NRay, CFCID = 979, NameID = 12541)]
     public class C030NRay : C030Trash1
     {
         public C030NRay(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -72,7 +72,7 @@
         }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SRay)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SRay, CFCID = 980, NameID = 12541)]
     public class C030SRay : C030Trash1
     {
         public C030SRay(WorldState ws, Actor primary) : base(ws, primary) { }

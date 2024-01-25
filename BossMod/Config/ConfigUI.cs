@@ -99,6 +99,7 @@ namespace BossMod
                             ImGui.Indent();
                             var displayName = mod.IsHunt() ? $"[{mod.Value.HuntRank}] {mod.Value.BossName}" ?? ""
                                 : mod.IsCriticalEngagement() ? $"[CE] {mod.Value.ForayName}" ?? ""
+                                : mod.IsCarnivale() ? $"{mod.Value.CarnivaleStage} {mod.Value.BossName}" ?? ""
                                 : mod.Value.InstanceName ?? "";
                             foreach (var x in _tree.Node($"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(displayName)}###{mod.Key}"))
                             {

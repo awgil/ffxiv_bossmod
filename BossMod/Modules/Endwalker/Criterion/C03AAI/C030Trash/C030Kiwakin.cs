@@ -68,13 +68,13 @@
     class C030NKiwakinStates : C030KiwakinStates { public C030NKiwakinStates(BossModule module) : base(module, false) { } }
     class C030SKiwakinStates : C030KiwakinStates { public C030SKiwakinStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NKiwakin)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NKiwakin, CFCID = 979, NameID = 12632)]
     public class C030NKiwakin : C030Trash1
     {
         public C030NKiwakin(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SKiwakin)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SKiwakin, CFCID = 980, NameID = 12561)]
     public class C030SKiwakin : C030Trash1
     {
         public C030SKiwakin(WorldState ws, Actor primary) : base(ws, primary) { }

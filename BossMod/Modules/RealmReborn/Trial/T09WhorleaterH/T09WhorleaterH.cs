@@ -33,7 +33,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         }
     }
 
-    [ModuleInfo(CFCID = 72, NameID = 2205)]
+    [ModuleInfo(CFCID = 72, NameID = 2505)]
     public class T09WhorleaterH(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-0, 0), 14.5f, 20))
     {
         protected override void DrawEnemies(int pcSlot, Actor pc)
