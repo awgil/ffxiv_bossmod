@@ -57,7 +57,7 @@ namespace BossMod.MaskedCarnivale.Stage09
             .DeactivateOnEnter<Hints>();
         }
     }
-
+    [ModuleInfo(CFCID = 619, NameID = 8099)]
     public class Stage09 : BossModule
     {
         public Stage09(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))

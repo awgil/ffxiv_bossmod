@@ -38,7 +38,6 @@ namespace BossMod.MaskedCarnivale.Stage12.Act2
             hints.Add("Use Bomb Toss to stun Hydnora when he casts Inflammable Fumes.\nUse Ice Spikes to instantly kill roselets once they become aggressive.\nHydnora is weak against water and strong against earth spells.");
         } 
     }
-
     class Stage12Act2States : StateMachineBuilder
     {
         public Stage12Act2States(BossModule module) : base(module)
@@ -51,7 +50,7 @@ namespace BossMod.MaskedCarnivale.Stage12.Act2
             .DeactivateOnEnter<Hints>();
         }
     }
-
+    [ModuleInfo(CFCID = 622, NameID = 8102)]
     public class Stage12Act2 : BossModule
     {
         public Stage12Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))

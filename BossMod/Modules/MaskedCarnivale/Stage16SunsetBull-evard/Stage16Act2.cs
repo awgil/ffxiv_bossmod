@@ -138,7 +138,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
             .DeactivateOnEnter<Hints>();
         }
     }
-
+    [ModuleInfo(CFCID = 626, NameID = 8113)]
     public class Stage16Act2 : BossModule
     {
         public Stage16Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))

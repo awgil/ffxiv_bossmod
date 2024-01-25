@@ -29,7 +29,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act1
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead);
         }
     }
-
+    [ModuleInfo(CFCID = 626, NameID = 8112)]
     public class Stage16Act1 : BossModule
     {
         public Stage16Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))

@@ -15,18 +15,18 @@ namespace BossMod.MaskedCarnivale.Stage01
         AutoAttack2 = 6497, // 25BE->player, no cast, single-target
         IronJustice = 14199, // 25BE->self, 2,5s cast, range 8+R 120-degree cone
     };
-class IronJustice : Components.SelfTargetedAOEs
+    class IronJustice : Components.SelfTargetedAOEs
     {
         public IronJustice() : base(ActionID.MakeSpell(AID.IronJustice), new AOEShapeCone(9.5f,60.Degrees())) { } 
     }
-class Hints : BossComponent
+    class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             hints.Add("This stage is trivial.\nUse whatever skills you have to defeat these opponents.");
         } 
     }   
-class Stage01States : StateMachineBuilder
+    class Stage01States : StateMachineBuilder
     {
         public Stage01States(BossModule module) : base(module)
         {
@@ -36,8 +36,8 @@ class Stage01States : StateMachineBuilder
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Slime).All(e => e.IsDead);
         }
     }
-
-public class Stage01 : BossModule
+    [ModuleInfo(CFCID = 611, NameID = 8077)]
+    public class Stage01 : BossModule
     {
         public Stage01(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {

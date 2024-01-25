@@ -57,7 +57,7 @@ namespace BossMod.MaskedCarnivale.Stage20.Act2
             .ActivateOnEnter<ImpSong>();
         }
     }
-
+    [ModuleInfo(CFCID = 630, NameID = 7111)]
     public class Stage20Act2 : BossModule
     {
         public Stage20Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))

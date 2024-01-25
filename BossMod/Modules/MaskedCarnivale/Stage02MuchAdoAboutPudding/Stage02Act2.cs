@@ -18,11 +18,11 @@ namespace BossMod.MaskedCarnivale.Stage02.Act2
         GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5,0s cast, single-target
     };
 
-class GoldenTongue : Components.CastHint
+    class GoldenTongue : Components.CastHint
     {
         public GoldenTongue() : base(ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increases its magic damage.") { }
     }
-class Hints : BossComponent
+    class Hints : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
@@ -30,7 +30,7 @@ class Hints : BossComponent
         } 
     }    
 
-class Stage02Act2States : StateMachineBuilder
+    class Stage02Act2States : StateMachineBuilder
     {
         public Stage02Act2States(BossModule module) : base(module)
         {
@@ -40,8 +40,8 @@ class Stage02Act2States : StateMachineBuilder
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Flan).All(e => e.IsDead) && module.Enemies(OID.Licorice).All(e => e.IsDead);
         }
     }
-
-public class Stage02Act2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+    [ModuleInfo(CFCID = 612, NameID = 8079)]
+    public class Stage02Act2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
     {
         protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Flan).Any(e => e.InCombat) || Enemies(OID.Licorice).Any(e => e.InCombat); }
         protected override void DrawEnemies(int pcSlot, Actor pc)

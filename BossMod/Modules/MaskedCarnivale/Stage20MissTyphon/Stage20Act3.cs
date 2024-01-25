@@ -86,7 +86,7 @@ public enum AID : uint
             .ActivateOnEnter<Fireball>();
         }
     }
-
+    [ModuleInfo(CFCID = 630, NameID = 3046)]
     public class Stage20Act3 : BossModule
     {
         public Stage20Act3(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))

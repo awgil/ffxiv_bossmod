@@ -87,7 +87,7 @@ namespace BossMod.MaskedCarnivale.Stage19.Act1
             .ActivateOnEnter<OffalBreath>();
         }
     }
-
+    [ModuleInfo(CFCID = 629, NameID = 8117)]
     public class Stage19Act1 : BossModule
     {
         public Stage19Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))

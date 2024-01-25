@@ -59,7 +59,7 @@ public enum AID : uint
             .DeactivateOnEnter<Hints>();
         }
     }
-
+    [ModuleInfo(CFCID = 614, NameID = 8087)]
     public class Stage04Act2 : BossModule
     {
         public Stage04Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))

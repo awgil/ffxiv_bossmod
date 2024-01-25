@@ -75,7 +75,7 @@ class Stage08Act1States : StateMachineBuilder
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Bomb).All(e => e.IsDead) && module.Enemies(OID.Snoll).All(e => e.IsDead);
         }
     }
-
+    [ModuleInfo(CFCID = 618, NameID = 8140)]
 public class Stage08Act1 : BossModule
     {
         public Stage08Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))

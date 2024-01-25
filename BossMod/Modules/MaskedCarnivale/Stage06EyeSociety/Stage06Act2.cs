@@ -124,7 +124,7 @@ class Hints : BossComponent
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Mandragora).All(e => e.IsDead) && module.Enemies(OID.Eye).All(e => e.IsDead);
         }
     }
-
+    [ModuleInfo(CFCID = 616, NameID = 8092)]
     public class Stage06Act2 : BossModule
     {
         public Stage06Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
