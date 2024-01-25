@@ -136,7 +136,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
+            base.OnCastFinished(module, caster, spell);
             if ((AID)spell.Action.ID == AID.NumbingNoiseRotation)
                 activeNumbingNoise = false;
             if ((AID)spell.Action.ID == AID.TailSnapDuringRotation)
