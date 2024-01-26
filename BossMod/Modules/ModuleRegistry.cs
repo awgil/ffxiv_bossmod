@@ -144,13 +144,13 @@ namespace BossMod
 
                     if (cfcID is 735 or 760 or 761 or 778) // bozja et al
                     {
-                        contentType = Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(6)!.Name;
-                        contentIcon = (uint)Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(6)!.Icon;
+                        contentType = Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(6)!.Name;
+                        contentIcon = (uint)Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(6)!.Icon;
                     }
                     else if (cfcRow.ShortCode.RawString.StartsWith("aoz")) // masked carnivale
                     {
-                        contentType = Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(8)!.Name;
-                        contentIcon = (uint)Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(8)!.Icon;
+                        contentType = Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(8)!.Name;
+                        contentIcon = (uint)Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(8)!.Icon;
                         carnivaleStage = int.Parse(Regex.Replace(cfcRow.ShortCode.RawString, @"\D", "").TrimStart('0'));
                     }
                     else
@@ -235,15 +235,15 @@ namespace BossMod
 
         static ModuleRegistry()
         {
-            _cfcSheet = Service.DataManager.GetExcelSheet<ContentFinderCondition>()!;
-            _contentTypeSheet = Service.DataManager.GetExcelSheet<ContentType>()!;
-            _nmSheet = Service.DataManager.GetExcelSheet<NotoriousMonster>()!;
-            _nmtSheet = Service.DataManager.GetExcelSheet<NotoriousMonsterTerritory>()!;
-            _fateSheet = Service.DataManager.GetExcelSheet<Fate>()!;
-            _playStyleSheet = Service.DataManager.GetExcelSheet<CharaCardPlayStyle>()!;
-            _territorySheet = Service.DataManager.GetExcelSheet<TerritoryType>()!;
-            _dynamicEventSheet = Service.DataManager.GetExcelSheet<DynamicEvent>()!;
-            _npcNamesSheet = Service.DataManager.GetExcelSheet<BNpcName>()!;
+            _cfcSheet = Service.LuminaGameData!.GetExcelSheet<ContentFinderCondition>()!;
+            _contentTypeSheet = Service.LuminaGameData!.GetExcelSheet<ContentType>()!;
+            _nmSheet = Service.LuminaGameData!.GetExcelSheet<NotoriousMonster>()!;
+            _nmtSheet = Service.LuminaGameData!.GetExcelSheet<NotoriousMonsterTerritory>()!;
+            _fateSheet = Service.LuminaGameData!.GetExcelSheet<Fate>()!;
+            _playStyleSheet = Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!;
+            _territorySheet = Service.LuminaGameData!.GetExcelSheet<TerritoryType>()!;
+            _dynamicEventSheet = Service.LuminaGameData!.GetExcelSheet<DynamicEvent>()!;
+            _npcNamesSheet = Service.LuminaGameData!.GetExcelSheet<BNpcName>()!;
 
             foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
             {
