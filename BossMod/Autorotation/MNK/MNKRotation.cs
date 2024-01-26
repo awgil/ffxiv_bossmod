@@ -223,7 +223,7 @@ namespace BossMod.MNK
                     _ => Form.OpoOpo
                 };
 
-            return state.FormShiftLeft > state.GCD ? Form.OpoOpo : state.Form;
+            return state.FormShiftLeft > state.GCD || state.PerfectBalanceLeft > state.GCD ? Form.OpoOpo : state.Form;
         }
 
         private static bool SolarTime(State state, Strategy strategy)
@@ -335,18 +335,6 @@ namespace BossMod.MNK
                 return new();
             }
 
-            if (ShouldUseRoF(state, strategy, deadline))
-                return ActionID.MakeSpell(AID.RiddleOfFire);
-
-            if (ShouldUseBrotherhood(state, strategy, deadline))
-                return ActionID.MakeSpell(AID.Brotherhood);
-
-            if (ShouldUsePB(state, strategy, deadline))
-                return ActionID.MakeSpell(AID.PerfectBalance);
-
-            if (ShouldUseRoW(state, strategy, deadline))
-                return ActionID.MakeSpell(AID.RiddleOfWind);
-
             // 2. steel peek, if have chakra
             if (
                 state.Unlocked(AID.SteelPeak)
@@ -373,6 +361,18 @@ namespace BossMod.MNK
                 else
                     return ActionID.MakeSpell(AID.SteelPeak);
             }
+
+            if (ShouldUseRoF(state, strategy, deadline))
+                return ActionID.MakeSpell(AID.RiddleOfFire);
+
+            if (ShouldUseBrotherhood(state, strategy, deadline))
+                return ActionID.MakeSpell(AID.Brotherhood);
+
+            if (ShouldUsePB(state, strategy, deadline))
+                return ActionID.MakeSpell(AID.PerfectBalance);
+
+            if (ShouldUseRoW(state, strategy, deadline))
+                return ActionID.MakeSpell(AID.RiddleOfWind);
 
             if (
                 ShouldUseTrueNorth(state, strategy)
@@ -447,8 +447,8 @@ namespace BossMod.MNK
             if (strategy.WindUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            // thebalance recommends using RoW like an oGCD dot, so we use on cooldown as long as RoF has been used first
-            return state.CD(CDGroup.RiddleOfFire) > 0;
+            // thebalance recommends using RoW like an oGCD dot, so we use on cooldown as long as buffs have been used first
+            return state.CD(CDGroup.RiddleOfFire) > 0 && state.CD(CDGroup.Brotherhood) > 0;
         }
 
         private static bool ShouldUseBrotherhood(State state, Strategy strategy, float deadline)
@@ -498,18 +498,18 @@ namespace BossMod.MNK
             {
                 // level 68+: odd windows
                 // below 68: whenever it's on cooldown
-                if (haveRof && state.LeadenFistLeft == 0 && state.TargetDemolishLeft > 12)
+                if (haveRof && state.Form == Form.Raptor && state.TargetDemolishLeft > 12)
                     return true;
 
                 // even windows
                 // TODO: this should actually check ShouldUseRoF with some expected amount of lead time,
                 // but that will require being able to look forward in time on the raidplan too
                 if (
-                    state.CD(CDGroup.RiddleOfFire) < 5
+                    state.CD(CDGroup.RiddleOfFire) < state.AttackGCDTime * 3
                     && strategy.FireUse != Strategy.FireStrategy.Delay
-                    && state.CD(CDGroup.Brotherhood) < 15
+                    && state.CD(CDGroup.Brotherhood) < state.AttackGCDTime * 6
                     && strategy.BrotherhoodUse != CommonRotation.Strategy.OffensiveAbilityUse.Delay
-                    && state.LeadenFistLeft == 0
+                    && state.Form == Form.Raptor
                 )
                     return true;
             }
