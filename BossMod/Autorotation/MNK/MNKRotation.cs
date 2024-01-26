@@ -233,10 +233,7 @@ namespace BossMod.MNK
 
             return strategy.NextNadi switch
             {
-                Strategy.NadiChoice.Automatic
-                    => strategy.CombatTimer < 30
-                        ? state.HasLunar && !state.HasSolar
-                        : !(state.HasLunar || state.HasSolar),
+                Strategy.NadiChoice.Automatic => !state.HasSolar && (strategy.CombatTimer < 30 ? state.HasLunar : !state.HasLunar),
                 Strategy.NadiChoice.Solar => true,
                 _ => false,
             };
