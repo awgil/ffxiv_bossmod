@@ -488,7 +488,8 @@ namespace BossMod.MNK
 
             var haveRof = state.FireLeft > state.GCD || !state.Unlocked(AID.RiddleOfFire);
 
-            // opener. this will end up being skipped for fights with a non burst pre-phase like stygimoloch lord, in which case we treat first brotherhood like any other even window
+            // opener. this will end up being skipped for fights with a non burst pre-phase like
+            // stygimoloch lord, in which case we treat first brotherhood like any other even window
             if (strategy.CombatTimer < 30)
             {
                 if (haveRof && state.LeadenFistLeft == 0)
