@@ -43,12 +43,8 @@ namespace BossMod.DNC
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            SupportedSpell(AID.Cascade).PlaceholderForAuto = _config.FullRotation
-                ? AutoActionST
-                : AutoActionNone;
-            SupportedSpell(AID.Windmill).PlaceholderForAuto = _config.FullRotation
-                ? AutoActionAOE
-                : AutoActionNone;
+            SupportedSpell(AID.Cascade).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
+            SupportedSpell(AID.Windmill).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
 
             _strategy.PauseDuringImprov = _config.PauseDuringImprov;
             _strategy.AutoPartner = _config.AutoPartner;
@@ -90,47 +86,18 @@ namespace BossMod.DNC
         {
             if (_state.Unlocked(AID.HeadGraze))
             {
-                var interruptibleEnemy = Autorot
-                    .Hints
-                    .PotentialTargets
-                    .Find(
-                        e =>
-                            e.ShouldBeInterrupted
-                            && (e.Actor.CastInfo?.Interruptible ?? false)
-                            && e.Actor
-                                .Position
-                                .InCircle(
-                                    Player.Position,
-                                    25 + e.Actor.HitboxRadius + Player.HitboxRadius
-                                )
-                    );
-                SimulateManualActionForAI(
-                    ActionID.MakeSpell(AID.HeadGraze),
-                    interruptibleEnemy?.Actor,
-                    interruptibleEnemy != null
-                );
+                var interruptibleEnemy = Autorot.Hints.PotentialTargets.Find(e => e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false) && e.Actor.Position.InCircle(Player.Position, 25 + e.Actor.HitboxRadius + Player.HitboxRadius));
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.HeadGraze), interruptibleEnemy?.Actor, interruptibleEnemy != null);
             }
             if (_state.Unlocked(AID.Peloton))
-                SimulateManualActionForAI(
-                    ActionID.MakeSpell(AID.Peloton),
-                    Player,
-                    !Player.InCombat && _state.PelotonLeft < 3 && _strategy.ForceMovementIn == 0
-                );
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.Peloton), Player, !Player.InCombat && _state.PelotonLeft < 3 && _strategy.ForceMovementIn == 0);
             if (_state.Unlocked(AID.CuringWaltz))
             {
-                SimulateManualActionForAI(
-                    ActionID.MakeSpell(AID.CuringWaltz),
-                    Player,
-                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.75f
-                );
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.CuringWaltz), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.75f);
             }
             if (_state.Unlocked(AID.SecondWind))
             {
-                SimulateManualActionForAI(
-                    ActionID.MakeSpell(AID.SecondWind),
-                    Player,
-                    Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f
-                );
+                SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
             }
         }
 
@@ -141,24 +108,13 @@ namespace BossMod.DNC
 
             var primaryTarget = Autorot.PrimaryTarget;
 
-            _strategy.NumDanceTargets = Autorot
-                .Hints
-                .NumPriorityTargetsInAOECircle(Player.Position, 15);
+            _strategy.NumDanceTargets = Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 15);
             _strategy.NumAOETargets = autoAction == AutoActionST ? 0 : NumAOETargets(Player);
-            _strategy.NumRangedAOETargets =
-                primaryTarget == null ? 0 : NumAOETargets(primaryTarget);
+            _strategy.NumRangedAOETargets = primaryTarget == null ? 0 : NumAOETargets(primaryTarget);
             _strategy.NumFan4Targets = primaryTarget == null ? 0 : NumFan4Targets(primaryTarget);
-            _strategy.NumStarfallTargets =
-                primaryTarget == null ? 0 : NumStarfallTargets(primaryTarget);
+            _strategy.NumStarfallTargets = primaryTarget == null ? 0 : NumStarfallTargets(primaryTarget);
 
-            _strategy.ApplyStrategyOverrides(
-                Autorot
-                    .Bossmods
-                    .ActiveModule
-                    ?.PlanExecution
-                    ?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine)
-                    ?? new uint[0]
-            );
+            _strategy.ApplyStrategyOverrides(Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? new uint[0]);
         }
 
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
@@ -183,8 +139,7 @@ namespace BossMod.DNC
             _state.Feathers = gauge.Feathers;
             _state.IsDancing = gauge.IsDancing;
             _state.CompletedSteps = gauge.CompletedSteps;
-            _state.NextStep =
-                (gauge.CompletedSteps == 4 || gauge.NextStep == 15998) ? 0 : gauge.NextStep;
+            _state.NextStep = (gauge.CompletedSteps == 4 || gauge.NextStep == 15998) ? 0 : gauge.NextStep;
             _state.Esprit = gauge.Esprit;
 
             _state.StandardStepLeft = StatusLeft(SID.StandardStep);
@@ -195,14 +150,8 @@ namespace BossMod.DNC
             _state.ImprovisationLeft = StatusLeft(SID.Improvisation);
             _state.ImprovisedFinishLeft = StatusLeft(SID.ImprovisedFinish);
             _state.DevilmentLeft = StatusLeft(SID.Devilment);
-            _state.SymmetryLeft = MathF.Max(
-                StatusLeft(SID.SilkenSymmetry),
-                StatusLeft(SID.FlourishingSymmetry)
-            );
-            _state.FlowLeft = MathF.Max(
-                StatusLeft(SID.SilkenFlow),
-                StatusLeft(SID.FlourishingFlow)
-            );
+            _state.SymmetryLeft = MathF.Max(StatusLeft(SID.SilkenSymmetry), StatusLeft(SID.FlourishingSymmetry));
+            _state.FlowLeft = MathF.Max(StatusLeft(SID.SilkenFlow), StatusLeft(SID.FlourishingFlow));
             _state.FlourishingStarfallLeft = StatusLeft(SID.FlourishingStarfall);
             _state.ThreefoldLeft = StatusLeft(SID.ThreefoldFanDance);
             _state.FourfoldLeft = StatusLeft(SID.FourfoldFanDance);
@@ -246,29 +195,23 @@ namespace BossMod.DNC
         {
             actor = null;
 
-            var target = Autorot
-                .WorldState
-                .Party
-                .WithoutSlot()
-                .Exclude(Player)
-                .MaxBy(
-                    p =>
-                        p.Class switch
-                        {
-                            Class.SAM => 100,
-                            Class.NIN => 99,
-                            Class.MNK => 88,
-                            Class.RPR => 87,
-                            Class.DRG => 86,
-                            Class.BLM => 79,
-                            Class.SMN => 78,
-                            Class.RDM => 77,
-                            Class.MCH => 69,
-                            Class.BRD => 68,
-                            Class.DNC => 67,
-                            _ => 1
-                        }
-                );
+            var target = Autorot.WorldState.Party.WithoutSlot().Exclude(Player).MaxBy(p =>
+                p.Class switch
+                {
+                    Class.SAM => 100,
+                    Class.NIN => 99,
+                    Class.MNK => 88,
+                    Class.RPR => 87,
+                    Class.DRG => 86,
+                    Class.BLM => 79,
+                    Class.SMN => 78,
+                    Class.RDM => 77,
+                    Class.MCH => 69,
+                    Class.BRD => 68,
+                    Class.DNC => 67,
+                    _ => 1
+                }
+            );
             if (target != null)
             {
                 actor = target;
@@ -285,23 +228,9 @@ namespace BossMod.DNC
             Autorot.Hints.NumPriorityTargetsInAOECircle(origin.Position, 5);
 
         private int NumFan4Targets(Actor primary) =>
-            Autorot
-                .Hints
-                .NumPriorityTargetsInAOECone(
-                    Player.Position,
-                    15,
-                    (primary.Position - Player.Position).Normalized(),
-                    60.Degrees()
-                );
+            Autorot.Hints.NumPriorityTargetsInAOECone(Player.Position, 15, (primary.Position - Player.Position).Normalized(), 60.Degrees());
 
         private int NumStarfallTargets(Actor primary) =>
-            Autorot
-                .Hints
-                .NumPriorityTargetsInAOERect(
-                    Player.Position,
-                    (primary.Position - Player.Position).Normalized(),
-                    25,
-                    4
-                );
+            Autorot.Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), 25, 4);
     }
 }
