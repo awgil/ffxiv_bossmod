@@ -153,11 +153,10 @@ namespace BossMod.DNC
             if (ShouldTechStep(state, strategy))
                 return AID.TechnicalStep;
 
+            var shouldStdStep = ShouldStdStep(state, strategy);
+
             // priority for cdplan
-            if (
-                strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force
-                && ShouldStdStep(state, strategy)
-            )
+            if (strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force && shouldStdStep)
                 return AID.StandardStep;
 
             var canStarfall = state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0;
@@ -210,8 +209,6 @@ namespace BossMod.DNC
             // buffed saber dance
             if (state.RaidBuffsLeft > state.GCD && ShouldSaberDance(state, strategy, 50))
                 return AID.SaberDance;
-
-            var shouldStdStep = ShouldStdStep(state, strategy);
 
             // unbuffed standard step - combos 3 and 4 are higher priority in raid buff window
             if (state.TechFinishLeft == 0 && shouldStdStep)
