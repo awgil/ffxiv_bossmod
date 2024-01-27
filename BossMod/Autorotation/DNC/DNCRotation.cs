@@ -73,8 +73,7 @@ namespace BossMod.DNC
 
             public override string ToString()
             {
-                var steps = IsDancing ? CompletedSteps : 0;
-                return $"F={Feathers}, E={Esprit}, S={steps}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"T={TechFinishLeft:f2}, S={StandardFinishLeft:f2}, C3={SymmetryLeft:f2}, C4={FlowLeft:f2}, Fan3={ThreefoldLeft:f2}, Fan4={FourfoldLeft:f2}, E={Esprit}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -155,15 +154,13 @@ namespace BossMod.DNC
                 return AID.TechnicalStep;
 
             // priority for cdplan
-            if (strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force && ShouldStdStep(state, strategy))
+            if (
+                strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force
+                && ShouldStdStep(state, strategy)
+            )
                 return AID.StandardStep;
 
-            // see page 24 for overall GCD priority at level 90
-            // https://docs.google.com/document/d/1wHgJHjby0z-E4s30IqPvIZcSFxhNJE607Y5SKSIWJeU/edit
-            // 1. starfall - ignore the listed caveats in the doc; starfall now gains a potency bonus from +crit effects, meaning it is always optimal here
-            if (state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0)
-                return AID.StarfallDance;
-
+            var canStarfall = state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0;
             var canFlow = CanFlow(state, strategy, out var flowCombo);
             var canSymmetry = CanSymmetry(state, strategy, out var symmetryCombo);
             var combo2 = strategy.NumAOETargets > 1 ? AID.Bladeshower : AID.Fountain;
@@ -171,31 +168,38 @@ namespace BossMod.DNC
                 state.Unlocked(combo2)
                 && state.ComboLastMove == (strategy.NumAOETargets > 1 ? AID.Windmill : AID.Cascade);
 
-            // 2. fountainfall if proc expiring
+            // prevent starfall expiration
+            if (canStarfall && state.FlourishingStarfallLeft <= state.AttackGCDTime)
+                return AID.StarfallDance;
+
+            // prevent flow expiration
             if (canFlow && state.FlowLeft <= state.AttackGCDTime && canFlow)
                 return flowCombo;
 
-            // 3. reverse cascade if proc expiring
+            // prevent symmetry expiration
             if (canSymmetry && state.SymmetryLeft <= state.AttackGCDTime)
                 return symmetryCombo;
 
-            // 4. saber dance to prevent overcap
+            // prevent saber overcap
             if (ShouldSaberDance(state, strategy, 85))
                 return AID.SaberDance;
 
-            // if fountain combo will run out soon:
+            // starfall dance
+            if (canStarfall)
+                return AID.StarfallDance;
+
+            // prevent combo2 expiration
             if (haveCombo2 && state.ComboTimeLeft < state.AttackGCDTime * 2)
             {
-                // 5. fountainfall first, to avoid overwriting proc
+                // use flow first if we have it so combo2 doesn't overwrite proc
                 if (canFlow)
                     return flowCombo;
 
-                // 6. fountain if it will expire otherwise
                 if (state.ComboTimeLeft < state.AttackGCDTime)
                     return combo2;
             }
 
-            // 7. tillana
+            // tillana
             if (
                 state.FlourishingFinishLeft > state.GCD
                 && state.CD(CDGroup.Devilment) > 0
@@ -203,20 +207,26 @@ namespace BossMod.DNC
             )
                 return AID.Tillana;
 
-            // 8. buffed saber dance
+            // buffed saber dance
             if (state.RaidBuffsLeft > state.GCD && ShouldSaberDance(state, strategy, 50))
                 return AID.SaberDance;
 
-            // 9. standard step
-            if (ShouldStdStep(state, strategy))
+            var shouldStdStep = ShouldStdStep(state, strategy);
+
+            // unbuffed standard step - combos 3 and 4 are higher priority in raid buff window
+            if (state.TechFinishLeft == 0 && shouldStdStep)
                 return AID.StandardStep;
 
-            // 10. fountainfall
+            // combo 3
             if (canFlow)
                 return flowCombo;
-            // 11. reverse cascade
+            // combo 4
             if (canSymmetry)
                 return symmetryCombo;
+
+            // (possibly buffed) standard step
+            if (shouldStdStep)
+                return AID.StandardStep;
 
             if (haveCombo2)
                 return combo2;
@@ -258,13 +268,6 @@ namespace BossMod.DNC
                     state.Unlocked(AID.Flourish) && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
                 )
                     return ActionID.MakeSpell(AID.Flourish);
-
-                if (
-                    state.FourfoldLeft > state.AnimationLock
-                    && state.CanWeave(deadline)
-                    && strategy.NumFan4Targets > 0
-                )
-                    return ActionID.MakeSpell(AID.FanDanceIV);
             }
 
             if (
@@ -274,24 +277,29 @@ namespace BossMod.DNC
                 return ActionID.MakeSpell(AID.Flourish);
 
             if (
-                state.CD(CDGroup.Devilment) > 0
-                && state.FourfoldLeft > state.AnimationLock
-                && state.CanWeave(deadline)
-                && strategy.NumFan4Targets > 0
-            )
-                return ActionID.MakeSpell(AID.FanDanceIV);
-
-            if (
                 state.ThreefoldLeft > state.AnimationLock
-                && state.CanWeave(deadline)
                 && strategy.NumRangedAOETargets > 0
             )
                 return ActionID.MakeSpell(AID.FanDanceIII);
 
-            if (ShouldSpendFeathers(state, strategy) && state.CanWeave(deadline))
-                return strategy.NumAOETargets > 1 && state.Unlocked(AID.FanDanceII)
+            var canF1 = ShouldSpendFeathers(state, strategy);
+            var f1ToUse =
+                strategy.NumAOETargets > 1 && state.Unlocked(AID.FanDanceII)
                     ? ActionID.MakeSpell(AID.FanDanceII)
                     : ActionID.MakeSpell(AID.FanDance);
+
+            if (state.Feathers == 4 && canF1)
+                return f1ToUse;
+
+            if (
+                state.CD(CDGroup.Devilment) > 0
+                && state.FourfoldLeft > state.AnimationLock
+                && strategy.NumFan4Targets > 0
+            )
+                return ActionID.MakeSpell(AID.FanDanceIV);
+
+            if (canF1)
+                return f1ToUse;
 
             return new();
         }
