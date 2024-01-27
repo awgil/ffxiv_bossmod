@@ -40,7 +40,7 @@ namespace BossMod
             _root = config;
             _ws = ws;
 
-            _exSheet = Service.DataManager.GetExcelSheet<ExVersion>()!;
+            _exSheet = Service.LuminaGameData!.GetExcelSheet<ExVersion>()!;
 
             Dictionary<Type, UINode> nodes = new();
             foreach (var n in config.Nodes)
