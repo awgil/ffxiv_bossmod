@@ -161,6 +161,23 @@ namespace BossMod
                 case "r":
                     _wndReplay.SetVisible(!_wndReplay.IsOpen);
                     break;
+                case "aion":
+                    //turn ai on
+                    var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
+                    int leaderSlot = leader != null ? _ai._autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
+                    _ai.SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
+                    break;
+                case "aionnf":
+                    //turn ai on no follow
+                    var leader2 = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
+                    int leaderSlot2 = leader2 != null ? _ai._autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader2.ContentId) : -1;
+                    _ai.SwitchToFollow(leaderSlot2 >= 0 ? leaderSlot2 : PartyState.PlayerSlot);
+                    _ai.SwitchToFollow(PartyState.PlayerSlot);
+                    break;
+                case "aioff":
+                    //turn ai off
+                    _ai.SwitchToIdle();
+                    break;
             }
         }
 

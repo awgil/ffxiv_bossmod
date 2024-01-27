@@ -9,12 +9,13 @@ namespace BossMod.AI
 {
     class AIManager : IDisposable
     {
-        private Autorotation _autorot;
+        public Autorotation _autorot;
         private AIController _controller;
         private AIConfig _config;
         private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
         private AIBehaviour? _beh;
         private UISimpleWindow _ui;
+        public bool _nft = false;
 
         public AIManager(Autorotation autorot)
         {
@@ -71,7 +72,7 @@ namespace BossMod.AI
             }
         }
 
-        private void SwitchToIdle()
+        public void SwitchToIdle()
         {
             _beh?.Dispose();
             _beh = null;
@@ -80,7 +81,7 @@ namespace BossMod.AI
             _controller.Clear();
         }
 
-        private void SwitchToFollow(int masterSlot)
+        public void SwitchToFollow(int masterSlot)
         {
             SwitchToIdle();
             _masterSlot = masterSlot;
