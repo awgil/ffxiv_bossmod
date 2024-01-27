@@ -388,11 +388,7 @@ namespace BossMod.MNK
                 if (canRaptor && WillDFExpire(state, state.BeastCount == 2 ? 4 : 1))
                     return Form.Raptor;
 
-                return canOpo
-                    ? Form.OpoOpo
-                    : canRaptor
-                        ? Form.Raptor
-                        : Form.Coeurl;
+                return canOpo ? Form.OpoOpo : canRaptor ? Form.Raptor : Form.Coeurl;
             }
 
             if (state.FormShiftLeft > state.GCD || state.PerfectBalanceLeft > state.GCD)
@@ -463,6 +459,7 @@ namespace BossMod.MNK
             if (strategy.FireUse == Strategy.FireStrategy.Force)
                 return true;
 
+            // prevent early use in opener. DF should otherwise be up permanently excluding downtime
             return state.DisciplinedFistLeft > state.GCD;
         }
 
@@ -496,7 +493,13 @@ namespace BossMod.MNK
 
             return strategy.NumPointBlankAOETargets < 3
                 && state.FireLeft > state.GCD
-                && state.LeadenFistLeft == 0;
+                && (
+                    // opener timing hugely important as long as rof is used first, we just want to align with party buffs -
+                    // the default opener is bhood after first bootshine
+                    state.LeadenFistLeft == 0
+                    // later uses can be asap
+                    || strategy.CombatTimer > 30
+                );
         }
 
         private static bool ShouldUsePB(State state, Strategy strategy, float deadline)
