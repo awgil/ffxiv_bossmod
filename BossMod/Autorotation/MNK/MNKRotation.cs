@@ -515,7 +515,10 @@ namespace BossMod.MNK
             if (strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            if (state.HasSolar && (WillDFExpire(state, 3) || WillDemolishExpire(state, 3)))
+            var cantSolar = state.HasSolar && strategy.NextNadi != Strategy.NadiChoice.Solar;
+
+            // next blitz has to be solar if our buffs are about to run out, but in all other cases, lunar is more damage
+            if (cantSolar && (WillDFExpire(state, 3) || WillDemolishExpire(state, 3)))
                 return false;
 
             var rofIsAligned =
