@@ -264,10 +264,17 @@ namespace BossMod.DNC
             )
                 return ActionID.MakeSpell(AID.Devilment);
 
-            if (state.CD(CDGroup.Devilment) > 55 && state.CanWeave(CDGroup.Flourish, 0.6f, deadline))
+            if (
+                state.CD(CDGroup.Devilment) > 55
+                && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
+            )
                 return ActionID.MakeSpell(AID.Flourish);
 
-            if (state.ThreefoldLeft > state.AnimationLock && strategy.NumRangedAOETargets > 0)
+            if (
+                (state.TechFinishLeft == 0 || state.CD(CDGroup.Devilment) > 0)
+                && state.ThreefoldLeft > state.AnimationLock
+                && strategy.NumRangedAOETargets > 0
+            )
                 return ActionID.MakeSpell(AID.FanDanceIII);
 
             var canF1 = ShouldSpendFeathers(state, strategy);
