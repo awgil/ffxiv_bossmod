@@ -104,14 +104,14 @@
             Targetable(id, false, delay, "Boss disappears");
             Cast(id + 0x10, _savage ? AID.SRingARingOExplosions : AID.NRingARingOExplosions, 1.5f, 3)
                 .ActivateOnEnter<RingARingOExplosions>();
-            Cast(id + 0x20, _savage ? AID.SPresentBox : AID.NPresentBox, 2.1f, 3);
+            Cast(id + 0x20, _savage ? AID.SPresentBox : AID.NPresentBox, 2.1f, 3)
+                .ActivateOnEnter<Fireworks>()
+                .ActivateOnEnter<Fireworks1Hints>();
             // +0.9s: spawn 4x staffs, 2x missiles/claws
             // +1.6s: missiles/claws tether to players
             Cast(id + 0x30, _savage ? AID.SFireworks : AID.NFireworks, 2.1f, 3)
-                .ActivateOnEnter<Fireworks>()
                 .ActivateOnEnter<NFaerieRing>(!_savage) // casts start ~2.2s into cast
-                .ActivateOnEnter<SFaerieRing>(_savage)
-                .ActivateOnEnter<Fireworks1Hints>();
+                .ActivateOnEnter<SFaerieRing>(_savage);
             ComponentCondition<BurningChains>(id + 0x40, 4.6f, comp => comp.Active, "Chains")
                 .ActivateOnEnter<BurningChains>();
             ComponentCondition<Fireworks>(id + 0x50, 5.1f, comp => comp.Spreads.Count == 0, "Stack/spread")

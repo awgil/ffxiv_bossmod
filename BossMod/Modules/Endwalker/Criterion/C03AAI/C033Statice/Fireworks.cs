@@ -254,8 +254,16 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
                     AddSafeSpot(module, _safeSpotsMissile, -150.Degrees());
                     AddSafeSpot(module, _safeSpotsMissile, 45.Degrees());
                     break;
-                case 0xA: // 1+3: never seen
-                case 0x14: // 2+4: never seen
+                case 0xA: // 1+3: hard pattern, NE + SW
+                    AddSafeSpot(module, _safeSpotsClaw, 150.Degrees());
+                    AddSafeSpot(module, _safeSpotsMissile, 30.Degrees());
+                    AddSafeSpot(module, _safeSpotsMissile, -120.Degrees());
+                    break;
+                case 0x14: // 2+4: hard pattern, NW + SE
+                    AddSafeSpot(module, _safeSpotsClaw, -150.Degrees());
+                    AddSafeSpot(module, _safeSpotsMissile, -30.Degrees());
+                    AddSafeSpot(module, _safeSpotsMissile, 120.Degrees());
+                    break;
                 case 0x12: // 1+4: never seen
                 case 0xC: // 2+3: never seen
                 default:
@@ -272,19 +280,20 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var p in SafeSpots(pcSlot))
-                arena.AddCircle(p, 1, ArenaColor.Safe);
+            if (_fireworks?.TetheredAdds[pcSlot] is var add && add != null)
+            {
+                var safeSpots = (OID)add.OID is OID.NSurprisingClaw or OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
+                foreach (var p in safeSpots)
+                    arena.AddCircle(p, 1, ArenaColor.Safe);
+            }
+            else
+            {
+                foreach (var p in _safeSpotsClaw)
+                    arena.AddCircle(p, 1, ArenaColor.Enemy);
+            }
         }
 
         private void AddSafeSpot(BossModule module, List<WPos> list, Angle angle) => list.Add(module.Bounds.Center + 19 * angle.ToDirection());
-
-        private IEnumerable<WPos> SafeSpots(int slot)
-        {
-            if (_fireworks?.TetheredAdds[slot] is var add && add != null)
-                return (OID)add.OID is OID.NSurprisingClaw or OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
-            else
-                return Enumerable.Empty<WPos>();
-        }
     }
 
     // TODO: currently this assumes that DD always go rel-west, supports rel-east

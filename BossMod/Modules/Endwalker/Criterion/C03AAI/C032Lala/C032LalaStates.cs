@@ -24,6 +24,7 @@
             StrategicStrike(id + 0x90000, 8.0f);
             InfernoTheorem(id + 0xA0000, 3.2f);
             Analysis(id + 0xB0000, 9.5f);
+            StrategicStrike(id + 0xC0000, 5.7f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
