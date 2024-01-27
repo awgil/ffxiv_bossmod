@@ -156,10 +156,14 @@ namespace BossMod.DNC
             var shouldStdStep = ShouldStdStep(state, strategy);
 
             // priority for cdplan
-            if (strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force && shouldStdStep)
+            if (
+                strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force
+                && shouldStdStep
+            )
                 return AID.StandardStep;
 
-            var canStarfall = state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0;
+            var canStarfall =
+                state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0;
             var canFlow = CanFlow(state, strategy, out var flowCombo);
             var canSymmetry = CanSymmetry(state, strategy, out var symmetryCombo);
             var combo2 = strategy.NumAOETargets > 1 ? AID.Bladeshower : AID.Fountain;
@@ -253,30 +257,17 @@ namespace BossMod.DNC
             if (state.IsDancing)
                 return new();
 
-            if (state.RaidBuffsLeft > state.GCD)
-            {
-                if (
-                    state.Unlocked(AID.Devilment)
-                    && state.CanWeave(CDGroup.Devilment, 0.6f, deadline)
-                )
-                    return ActionID.MakeSpell(AID.Devilment);
-
-                if (
-                    state.Unlocked(AID.Flourish) && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
-                )
-                    return ActionID.MakeSpell(AID.Flourish);
-            }
-
             if (
-                state.CD(CDGroup.Devilment) >= 55
-                && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
+                state.TechFinishLeft > state.GCD
+                && state.Unlocked(AID.Devilment)
+                && state.CanWeave(CDGroup.Devilment, 0.6f, deadline)
             )
+                return ActionID.MakeSpell(AID.Devilment);
+
+            if (state.CD(CDGroup.Devilment) > 0 && state.CanWeave(CDGroup.Flourish, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Flourish);
 
-            if (
-                state.ThreefoldLeft > state.AnimationLock
-                && strategy.NumRangedAOETargets > 0
-            )
+            if (state.ThreefoldLeft > state.AnimationLock && strategy.NumRangedAOETargets > 0)
                 return ActionID.MakeSpell(AID.FanDanceIII);
 
             var canF1 = ShouldSpendFeathers(state, strategy);
