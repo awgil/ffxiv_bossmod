@@ -264,7 +264,7 @@ namespace BossMod.DNC
             )
                 return ActionID.MakeSpell(AID.Devilment);
 
-            if (state.CD(CDGroup.Devilment) > 0 && state.CanWeave(CDGroup.Flourish, 0.6f, deadline))
+            if (state.CD(CDGroup.Devilment) > 55 && state.CanWeave(CDGroup.Flourish, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Flourish);
 
             if (state.ThreefoldLeft > state.AnimationLock && strategy.NumRangedAOETargets > 0)
