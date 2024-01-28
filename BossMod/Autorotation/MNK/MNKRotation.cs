@@ -286,7 +286,8 @@ namespace BossMod.MNK
 
             var curForm = GetEffectiveForm(state, strategy);
 
-            var gcdsUntilCoeurl = curForm switch {
+            var gcdsUntilCoeurl = curForm switch
+            {
                 Form.Coeurl => 3,
                 Form.Raptor => 4,
                 _ => 5
@@ -338,8 +339,9 @@ namespace BossMod.MNK
             if (
                 state.Unlocked(AID.SteelPeak)
                 && state.Chakra == 5
-                && state.CanWeave(CDGroup.SteelPeak, 0.6f, deadline) && (
-                // prevent early use in opener
+                && state.CanWeave(CDGroup.SteelPeak, 0.6f, deadline)
+                && (
+                    // prevent early use in opener
                     state.CD(CDGroup.RiddleOfFire) > 0
                     || strategy.FireUse == Strategy.FireStrategy.Delay
                     || strategy.FireUse == Strategy.FireStrategy.DelayUntilBrotherhood
@@ -421,15 +423,16 @@ namespace BossMod.MNK
                 case Strategy.NadiChoice.Lunar:
                     return false;
                 default:
-                    // don't overcap unless forced
-                    if (state.HasSolar)
-                        return false;
-                    // solar is planned since we need a demo refresh
-                    // 5 GCDs = 3 for PB, one for blitz, then opo gcd post blitz
-                    if (WillDemolishExpire(state, 5 - state.BeastCount))
+                    // usually we don't overcap unless forced. however, if nadi are left over due to downtime or
+                    // over the course of multiple fights (e.g. delubrum savage), it's probably more dps
+                    // to solar for phantom rush than it is to hold until the next buff window
+                    if (WillDemolishExpire(state, 5 - state.BeastCount) || WillDFExpire(state, 5 - state.BeastCount))
                         return true;
-                    // if we have any non opo chakra we are in solar, assume refresh has happened or is unnecessary
-                    return state.BeastChakra.Any(x => x != BeastChakra.NONE && x != BeastChakra.OPOOPO);
+                    // don't interrupt a solar in process, celestial revolution is always a loss
+                    if (state.BeastChakra.Any(x => x != BeastChakra.NONE && x != BeastChakra.OPOOPO))
+                        return true;
+
+                    return state.HasLunar && !state.HasSolar;
             }
         }
 
@@ -524,18 +527,11 @@ namespace BossMod.MNK
             if (strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            var shouldSolar = !state.HasSolar || strategy.NextNadi == Strategy.NadiChoice.Solar;
-
-            var rofIsAligned =
-                state.FireLeft >= (deadline + state.AttackGCDTime * 3)
-                || ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime * 3);
-
-            if (!rofIsAligned) return false;
-
-            if (WillDemolishExpire(state, 5) && shouldSolar) return true;
-            if (!WillDFExpire(state, 4) && !WillDemolishExpire(state, 5)) return true;
-
-            return false;
+            return state.Form == Form.Raptor
+                && (
+                    ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime * 2)
+                    || state.FireLeft > deadline + state.AttackGCDTime * 3
+                );
         }
 
         private static bool ShouldUseTrueNorth(State state, Strategy strategy)
