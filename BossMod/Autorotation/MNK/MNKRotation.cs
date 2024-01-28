@@ -399,7 +399,7 @@ namespace BossMod.MNK
                 if (canCoeurl && WillDemolishExpire(state, state.BeastCount == 2 ? 5 : 2))
                     return Form.Coeurl;
 
-                if (canRaptor && WillDFExpire(state, state.BeastCount == 2 ? 4 : 1))
+                if (canRaptor && WillDFExpire(state, 3 - state.BeastCount))
                     return Form.Raptor;
 
                 return canOpo ? Form.OpoOpo : canRaptor ? Form.Raptor : Form.Coeurl;
