@@ -177,9 +177,23 @@ namespace BossMod.MNK
             if (state.Unlocked(AID.FourPointFury) && strategy.NumPointBlankAOETargets >= 3)
                 return AID.FourPointFury;
 
-            var rotationSlotLength = state.BeastCount > 0 ? 5 : 3;
+            if (!state.Unlocked(AID.TwinSnakes)) return AID.TrueStrike;
 
-            if (state.Unlocked(AID.TwinSnakes) && WillDFExpire(state, rotationSlotLength))
+            // any non-opo blitz GCD is demo or snakes
+            if (state.PerfectBalanceLeft > state.GCD)
+                return AID.TwinSnakes;
+
+            var rofIsAligned =
+                state.FireLeft > state.GCD
+                || ShouldUseRoF(state, strategy, state.GCD + state.AttackGCDTime * 4);
+
+            // during fire windows, if next GCD is demo, force refresh to align loop; we can't use a lunar PB unless
+            // DF + demo are close to max duration, since DF only lasts about 7-8 GCDs and a blitz window is 5
+            if (rofIsAligned && WillDemolishExpire(state, 4))
+                return AID.TwinSnakes;
+
+            // normal refresh
+            if (WillDFExpire(state, 3))
                 return AID.TwinSnakes;
 
             return AID.TrueStrike;
@@ -193,14 +207,12 @@ namespace BossMod.MNK
             if (state.Unlocked(AID.Rockbreaker) && strategy.NumPointBlankAOETargets >= 3)
                 return AID.Rockbreaker;
 
-            // blitzes add two additional gcds, the blitz itself and the opo gcd after
-            var rotationSlotLength = state.BeastCount > 0 ? 5 : 3;
+            // any non-opo blitz GCD is demo or snakes
+            if (state.PerfectBalanceLeft > state.GCD)
+                return AID.Demolish;
 
-            if (
-                !strategy.ForbidDOTs
-                && state.Unlocked(AID.Demolish)
-                && WillDemolishExpire(state, rotationSlotLength)
-            )
+            // normal refresh
+            if (!strategy.ForbidDOTs && state.Unlocked(AID.Demolish) && WillDemolishExpire(state, 3))
                 return AID.Demolish;
 
             return AID.SnapPunch;
@@ -414,10 +426,7 @@ namespace BossMod.MNK
                         return false;
                     // solar is planned since we need a demo refresh
                     // 5 GCDs = 3 for PB, one for blitz, then opo gcd post blitz
-                    if (
-                        WillDemolishExpire(state, 5 - state.BeastCount)
-                        || WillDFExpire(state, 5 - state.BeastCount)
-                    )
+                    if (WillDemolishExpire(state, 5 - state.BeastCount))
                         return true;
                     // if we have any non opo chakra we are in solar, assume refresh has happened or is unnecessary
                     return state.BeastChakra.Any(x => x != BeastChakra.NONE && x != BeastChakra.OPOOPO);
@@ -494,7 +503,7 @@ namespace BossMod.MNK
             return strategy.NumPointBlankAOETargets < 3
                 && state.FireLeft > state.GCD
                 && (
-                    // opener timing hugely important as long as rof is used first, we just want to align with party buffs -
+                    // opener timing mostly important as long as rof is used first, we just want to align with party buffs -
                     // the default opener is bhood after first bootshine
                     state.LeadenFistLeft == 0
                     // later uses can be asap
