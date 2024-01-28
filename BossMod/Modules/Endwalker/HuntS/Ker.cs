@@ -186,12 +186,12 @@ namespace BossMod.Endwalker.HuntS.Ker
         private bool casting;
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.AncientFlare || (AID)spell.Action.ID ==AID.AncientFlare2 || (AID)spell.Action.ID == AID.WhispersManifest)
+            if ((AID)spell.Action.ID == AID.AncientFlare || (AID)spell.Action.ID == AID.AncientFlare2 || (AID)spell.Action.ID == AID.WhispersManifest)
                 casting = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.AncientFlare || (AID)spell.Action.ID ==AID.AncientFlare2 || (AID)spell.Action.ID == AID.WhispersManifest)
+            if ((AID)spell.Action.ID == AID.AncientFlare || (AID)spell.Action.ID == AID.AncientFlare2 || (AID)spell.Action.ID == AID.WhispersManifest)
                 casting = false;
         }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
