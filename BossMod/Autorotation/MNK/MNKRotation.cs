@@ -6,7 +6,13 @@ namespace BossMod.MNK
 {
     public static class Rotation
     {
-        public enum Form { None, OpoOpo, Raptor, Coeurl }
+        public enum Form
+        {
+            None,
+            OpoOpo,
+            Raptor,
+            Coeurl
+        }
 
         // full state needed for determining next action
         public class State : CommonRotation.PlayerState
@@ -29,12 +35,14 @@ namespace BossMod.MNK
 
             public int NadiCount => (HasLunar ? 1 : 0) + (HasSolar ? 1 : 0);
 
-            public int BeastCount => BeastChakra.Count(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE);
+            public int BeastCount =>
+                BeastChakra.Count(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE);
 
             // upgrade paths
             public AID BestForbiddenChakra => Unlocked(AID.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
             public AID BestEnlightenment => Unlocked(AID.Enlightenment) ? AID.Enlightenment : AID.HowlingFist;
-            public AID BestShadowOfTheDestroyer => Unlocked(AID.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
+            public AID BestShadowOfTheDestroyer =>
+                Unlocked(AID.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
             public AID BestRisingPhoenix => Unlocked(AID.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike;
             public AID BestPhantomRush => Unlocked(AID.PhantomRush) ? AID.PhantomRush : AID.TornadoKick;
 
@@ -75,6 +83,8 @@ namespace BossMod.MNK
         {
             public int NumPointBlankAOETargets; // range 5 around self
             public int NumEnlightenmentTargets; // range 10 width 2/4 rect
+
+            public bool UseAOE;
 
             public bool PreCombatFormShift;
 
@@ -161,7 +171,7 @@ namespace BossMod.MNK
         public static AID GetOpoOpoFormAction(State state, Strategy strategy)
         {
             // TODO: what should we use if form is not up?..
-            if (state.Unlocked(AID.ArmOfTheDestroyer) && strategy.NumPointBlankAOETargets >= 3)
+            if (state.Unlocked(AID.ArmOfTheDestroyer) && strategy.UseAOE)
                 return state.BestShadowOfTheDestroyer;
 
             if (state.Unlocked(AID.DragonKick) && state.LeadenFistLeft <= state.GCD)
@@ -174,22 +184,18 @@ namespace BossMod.MNK
         {
             // TODO: low level - consider early restart...
             // TODO: better threshold for buff reapplication...
-            if (state.Unlocked(AID.FourPointFury) && strategy.NumPointBlankAOETargets >= 3)
+            if (state.Unlocked(AID.FourPointFury) && strategy.UseAOE)
                 return AID.FourPointFury;
 
-            if (!state.Unlocked(AID.TwinSnakes)) return AID.TrueStrike;
-
-            // any non-opo blitz GCD is demo or snakes
-            if (state.PerfectBalanceLeft > state.GCD)
-                return AID.TwinSnakes;
+            if (!state.Unlocked(AID.TwinSnakes))
+                return AID.TrueStrike;
 
             var rofIsAligned =
-                state.FireLeft > state.GCD
-                || ShouldUseRoF(state, strategy, state.GCD + state.AttackGCDTime * 4);
+                state.FireLeft > state.GCD || ShouldUseRoF(state, strategy, state.GCD + state.AttackGCDTime * 4);
 
             // during fire windows, if next GCD is demo, force refresh to align loop; we can't use a lunar PB unless
             // DF + demo are close to max duration, since DF only lasts about 7-8 GCDs and a blitz window is 5
-            if (rofIsAligned && WillDemolishExpire(state, 4))
+            if (rofIsAligned && WillDemolishExpire(state, strategy, 4))
                 return AID.TwinSnakes;
 
             // normal refresh
@@ -204,15 +210,11 @@ namespace BossMod.MNK
             // TODO: multidot support...
             // TODO: low level - consider early restart...
             // TODO: better threshold for debuff reapplication...
-            if (state.Unlocked(AID.Rockbreaker) && strategy.NumPointBlankAOETargets >= 3)
+            if (state.Unlocked(AID.Rockbreaker) && strategy.UseAOE)
                 return AID.Rockbreaker;
 
-            // any non-opo blitz GCD is demo or snakes
-            if (state.PerfectBalanceLeft > state.GCD)
-                return AID.Demolish;
-
             // normal refresh
-            if (!strategy.ForbidDOTs && state.Unlocked(AID.Demolish) && WillDemolishExpire(state, 3))
+            if (!strategy.ForbidDOTs && state.Unlocked(AID.Demolish) && WillDemolishExpire(state, strategy, 3))
                 return AID.Demolish;
 
             return AID.SnapPunch;
@@ -237,18 +239,14 @@ namespace BossMod.MNK
                 if (state.Chakra < 5 && state.Unlocked(AID.Meditation))
                     return AID.Meditation;
 
-                if (
-                    strategy.CombatTimer > -20
-                    && state.FormShiftLeft < 5
-                    && state.Unlocked(AID.FormShift)
-                )
+                if (strategy.CombatTimer > -20 && state.FormShiftLeft < 5 && state.Unlocked(AID.FormShift))
                     return AID.FormShift;
 
                 if (strategy.CombatTimer > -100)
                     return AID.None;
             }
 
-            if (!state.TargetingEnemy)
+            if (!HaveTarget(state, strategy))
             {
                 if (state.Chakra < 5 && state.Unlocked(AID.Meditation))
                     return AID.Meditation;
@@ -259,15 +257,13 @@ namespace BossMod.MNK
                 return AID.None;
             }
 
-            if (
-                state.Unlocked(AID.SixSidedStar)
-                && strategy.SSSUse == Strategy.OffensiveAbilityUse.Force
-            )
+            if (state.Unlocked(AID.SixSidedStar) && strategy.SSSUse == Strategy.OffensiveAbilityUse.Force)
                 return AID.SixSidedStar;
 
             if (state.BestBlitz != AID.MasterfulBlitz)
                 return state.BestBlitz;
 
+            // TODO: calculate optimal DK spam before SSS
             if (
                 strategy.SSSUse == Strategy.OffensiveAbilityUse.Automatic
                 && strategy.FightEndIn > state.GCD
@@ -281,7 +277,7 @@ namespace BossMod.MNK
 
         public static (Positional, bool) GetNextPositional(State state, Strategy strategy)
         {
-            if (strategy.NumPointBlankAOETargets >= 3)
+            if (strategy.UseAOE)
                 return (Positional.Any, false);
 
             var curForm = GetEffectiveForm(state, strategy);
@@ -303,8 +299,7 @@ namespace BossMod.MNK
             if (isCastingGcd && !formIsPending && state.PerfectBalanceLeft == 0)
                 gcdsUntilCoeurl -= 1;
 
-            var willDemolish =
-                state.Unlocked(AID.Demolish) && WillDemolishExpire(state, gcdsUntilCoeurl);
+            var willDemolish = state.Unlocked(AID.Demolish) && WillDemolishExpire(state, strategy, gcdsUntilCoeurl);
 
             return (willDemolish ? Positional.Rear : Positional.Flank, curForm == Form.Coeurl);
         }
@@ -366,10 +361,7 @@ namespace BossMod.MNK
             if (ShouldUseRoW(state, strategy, deadline))
                 return ActionID.MakeSpell(AID.RiddleOfWind);
 
-            if (
-                ShouldUseTrueNorth(state, strategy)
-                && state.CanWeave(state.CD(CDGroup.TrueNorth) - 45, 0.6f, deadline)
-            )
+            if (ShouldUseTrueNorth(state, strategy) && state.CanWeave(state.CD(CDGroup.TrueNorth) - 45, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.TrueNorth);
 
             if (ShouldDash(state, strategy, deadline))
@@ -381,59 +373,53 @@ namespace BossMod.MNK
 
         private static Form GetEffectiveForm(State state, Strategy strategy)
         {
-            if (NextIsSolar(state, strategy))
+            if (state.PerfectBalanceLeft > state.GCD)
             {
                 var canCoeurl = true;
-                var canOpo = true;
                 var canRaptor = true;
                 foreach (var chak in state.BeastChakra)
                 {
-                    if (chak == BeastChakra.COEURL)
-                        canCoeurl = false;
-                    if (chak == BeastChakra.OPOOPO)
-                        canOpo = false;
-                    if (chak == BeastChakra.RAPTOR)
-                        canRaptor = false;
+                    canCoeurl &= chak != BeastChakra.COEURL;
+                    canRaptor &= chak != BeastChakra.RAPTOR;
+                }
+                var forcedLunar = false;
+                var forcedSolar = false;
+                if (state.BeastCount == 2) {
+                    forcedLunar = state.BeastChakra[0] == state.BeastChakra[1];
+                    forcedSolar = !forcedLunar;
+                }
+                canCoeurl &= !forcedLunar;
+                canRaptor &= !forcedLunar;
+
+                if (canCoeurl && canRaptor) {
+                    if (WillDFExpire(state, 2))
+                        return Form.Raptor;
+                    if (WillDemolishExpire(state, strategy, 2))
+                        return Form.Coeurl;
+                } else if (canCoeurl) {
+                    if (state.BeastCount == 1 && WillDemolishExpire(state, strategy, 1))
+                        return Form.Coeurl;
+                    else if (state.BeastCount == 2 && WillDemolishExpire(state, strategy, 5))
+                        return Form.Coeurl;
+                } else if (canRaptor) {
+                    if (state.BeastCount == 1 && WillDFExpire(state, 1))
+                        return Form.Raptor;
+                    else if (state.BeastCount == 2 && WillDFExpire(state, 4))
+                        return Form.Raptor;
                 }
 
-                if (canCoeurl && WillDemolishExpire(state, state.BeastCount == 2 ? 5 : 2))
-                    return Form.Coeurl;
+                // pre-PB for BH2 even window means we are waiting for RoF to come off cooldown, so we prioritize
+                // forms in increasing order of potency
+                if (forcedSolar || (state.FireLeft == 0 && !state.HasSolar))
+                    return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
 
-                if (canRaptor && WillDFExpire(state, 3 - state.BeastCount))
-                    return Form.Raptor;
-
-                return canOpo ? Form.OpoOpo : canRaptor ? Form.Raptor : Form.Coeurl;
+                return Form.OpoOpo;
             }
 
-            if (state.FormShiftLeft > state.GCD || state.PerfectBalanceLeft > state.GCD)
+            if (state.FormShiftLeft > state.GCD)
                 return Form.OpoOpo;
 
             return state.Form;
-        }
-
-        private static bool NextIsSolar(State state, Strategy strategy)
-        {
-            if (state.PerfectBalanceLeft <= state.GCD)
-                return false;
-
-            switch (strategy.NextNadi)
-            {
-                case Strategy.NadiChoice.Solar:
-                    return true;
-                case Strategy.NadiChoice.Lunar:
-                    return false;
-                default:
-                    // usually we don't overcap unless forced. however, if nadi are left over due to downtime or
-                    // over the course of multiple fights (e.g. delubrum savage), it's probably more dps
-                    // to solar for phantom rush than it is to hold until the next buff window
-                    if (WillDemolishExpire(state, 5 - state.BeastCount) || WillDFExpire(state, 5 - state.BeastCount))
-                        return true;
-                    // don't interrupt a solar in process, celestial revolution is always a loss
-                    if (state.BeastChakra.Any(x => x != BeastChakra.NONE && x != BeastChakra.OPOOPO))
-                        return true;
-
-                    return state.HasLunar && !state.HasSolar;
-            }
         }
 
         private static bool ShouldDash(State state, Strategy strategy, float deadline)
@@ -471,7 +457,7 @@ namespace BossMod.MNK
             if (strategy.FireUse == Strategy.FireStrategy.Force)
                 return true;
 
-            // prevent early use in opener. DF should otherwise be up permanently excluding downtime
+            // prevent early use in standard opener
             return state.DisciplinedFistLeft > state.GCD;
         }
 
@@ -503,7 +489,7 @@ namespace BossMod.MNK
             if (strategy.BrotherhoodUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            return strategy.NumPointBlankAOETargets < 3
+            return !strategy.UseAOE
                 && state.FireLeft > state.GCD
                 && (
                     // opener timing mostly important as long as rof is used first, we just want to align with party buffs -
@@ -527,11 +513,34 @@ namespace BossMod.MNK
             if (strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            return state.Form == Form.Raptor
-                && (
-                    ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime * 2)
-                    || state.FireLeft > deadline + state.AttackGCDTime * 3
-                );
+            if (state.Form != Form.Raptor)
+                return false;
+
+            var haveFire = state.FireLeft > deadline + state.AttackGCDTime * 3;
+
+            // https://www.thebalanceffxiv.com/img/jobs/mnk/mnkguide_0011_optimaldrifteven.png
+            // RoF/Brotherhood 3 is the same sequence as the opener
+            if (haveFire || ShouldUseRoF(state, strategy, state.GCD))
+            {
+                // lunar
+                if (!WillDFExpire(state, 5) && !WillDemolishExpire(state, strategy, 6))
+                    return true;
+
+                // solar
+                if (!state.HasSolar)
+                    return true;
+            }
+
+            // even windows
+            if (state.NadiCount == 2)
+            {
+                //      [RF]    [RF]    [RF]
+                // Demo      O  [PB]  O      O      O
+                return !WillDemolishExpire(state, strategy, 7)
+                    && (haveFire || ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime));
+            }
+
+            return false;
         }
 
         private static bool ShouldUseTrueNorth(State state, Strategy strategy)
@@ -547,8 +556,10 @@ namespace BossMod.MNK
             return strategy.NextPositionalImminent && !strategy.NextPositionalCorrect;
         }
 
-        private static bool WillDemolishExpire(State state, int gcds) =>
-            WillStatusExpire(state, gcds, state.TargetDemolishLeft);
+        public static bool HaveTarget(State state, Strategy strategy) => state.TargetingEnemy || strategy.UseAOE;
+
+        private static bool WillDemolishExpire(State state, Strategy strategy, int gcds) =>
+            !strategy.UseAOE && WillStatusExpire(state, gcds, state.TargetDemolishLeft);
 
         private static bool WillDFExpire(State state, int gcds) =>
             WillStatusExpire(state, gcds, state.DisciplinedFistLeft);
