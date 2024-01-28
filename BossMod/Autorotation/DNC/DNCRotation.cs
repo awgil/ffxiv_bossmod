@@ -162,26 +162,21 @@ namespace BossMod.DNC
             )
                 return AID.StandardStep;
 
-            var canStarfall =
-                state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0;
+            var canStarfall = state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0;
             var canFlow = CanFlow(state, strategy, out var flowCombo);
             var canSymmetry = CanSymmetry(state, strategy, out var symmetryCombo);
             var combo2 = strategy.NumAOETargets > 1 ? AID.Bladeshower : AID.Fountain;
-            var haveCombo2 =
-                state.Unlocked(combo2)
-                && state.ComboLastMove == (strategy.NumAOETargets > 1 ? AID.Windmill : AID.Cascade);
+            var haveCombo2 = state.Unlocked(combo2) && state.ComboLastMove == (strategy.NumAOETargets > 1 ? AID.Windmill : AID.Cascade);
 
             // prevent starfall expiration
             if (canStarfall && state.FlourishingStarfallLeft <= state.AttackGCDTime)
                 return AID.StarfallDance;
 
             // prevent flow expiration
-            if (canFlow && state.FlowLeft <= state.AttackGCDTime && canFlow)
-                return flowCombo;
+            if (canFlow && state.FlowLeft <= state.AttackGCDTime) return flowCombo;
 
             // prevent symmetry expiration
-            if (canSymmetry && state.SymmetryLeft <= state.AttackGCDTime)
-                return symmetryCombo;
+            if (canSymmetry && state.SymmetryLeft <= state.AttackGCDTime) return symmetryCombo;
 
             // prevent saber overcap
             if (ShouldSaberDance(state, strategy, 85))
@@ -219,11 +214,9 @@ namespace BossMod.DNC
                 return AID.StandardStep;
 
             // combo 3
-            if (canFlow)
-                return flowCombo;
+            if (canFlow) return flowCombo;
             // combo 4
-            if (canSymmetry)
-                return symmetryCombo;
+            if (canSymmetry) return symmetryCombo;
 
             // (possibly buffed) standard step
             if (shouldStdStep)
