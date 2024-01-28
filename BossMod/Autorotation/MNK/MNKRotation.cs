@@ -382,7 +382,7 @@ namespace BossMod.MNK
                         canRaptor = false;
                 }
 
-                if (canCoeurl && WillDemolishExpire(state, state.BeastCount == 2 ? 4 : 1))
+                if (canCoeurl && WillDemolishExpire(state, state.BeastCount == 2 ? 5 : 2))
                     return Form.Coeurl;
 
                 if (canRaptor && WillDFExpire(state, state.BeastCount == 2 ? 4 : 1))
@@ -515,17 +515,18 @@ namespace BossMod.MNK
             if (strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            var cantSolar = state.HasSolar && strategy.NextNadi != Strategy.NadiChoice.Solar;
-
-            // next blitz has to be solar if our buffs are about to run out, but in all other cases, lunar is more damage
-            if (cantSolar && (WillDFExpire(state, 3) || WillDemolishExpire(state, 3)))
-                return false;
+            var shouldSolar = !state.HasSolar || strategy.NextNadi == Strategy.NadiChoice.Solar;
 
             var rofIsAligned =
                 state.FireLeft >= (deadline + state.AttackGCDTime * 3)
                 || ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime * 3);
 
-            return rofIsAligned;
+            if (!rofIsAligned) return false;
+
+            if (WillDemolishExpire(state, 5) && shouldSolar) return true;
+            if (!WillDFExpire(state, 4) && !WillDemolishExpire(state, 5)) return true;
+
+            return false;
         }
 
         private static bool ShouldUseTrueNorth(State state, Strategy strategy)
