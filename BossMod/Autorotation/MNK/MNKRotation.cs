@@ -27,9 +27,10 @@ namespace BossMod.MNK
             public bool HaveLunar => Nadi.HasFlag(Nadi.LUNAR);
             public bool HaveSolar => Nadi.HasFlag(Nadi.SOLAR);
 
-            public int NadiCount => (HaveLunar ? 1 : 0) + (HaveSolar ? 1 : 0);
-
             public int BeastCount => BeastChakra.Count(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE);
+
+            public bool ForcedLunar => BeastChakra[0] == Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.OPOOPO && BeastChakra[1] == Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.OPOOPO;
+            public bool ForcedSolar => BeastChakra.Any(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE && x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.OPOOPO);
 
             // upgrade paths
             public AID BestForbiddenChakra => Unlocked(AID.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
@@ -370,23 +371,18 @@ namespace BossMod.MNK
         {
             if (state.PerfectBalanceLeft > state.GCD)
             {
-                var canCoeurl = true;
-                var canRaptor = true;
+                var nextNadi = strategy.NextNadi;
+                // if a blitz is already in progress, finish it even if buffs would fall off in the process, since celestial revolution is always a mistake
+                var forcedLunar = nextNadi == Strategy.NadiChoice.Lunar || state.ForcedLunar;
+                var forcedSolar = nextNadi == Strategy.NadiChoice.Solar || state.ForcedSolar;
+                var canCoeurl = !forcedLunar;
+                var canRaptor = !forcedLunar;
+
                 foreach (var chak in state.BeastChakra)
                 {
                     canCoeurl &= chak != BeastChakra.COEURL;
                     canRaptor &= chak != BeastChakra.RAPTOR;
                 }
-                var nextNadi = strategy.NextNadi;
-                var mustLunar = nextNadi == Strategy.NadiChoice.Lunar;
-                var mustSolar = nextNadi == Strategy.NadiChoice.Solar;
-                if (state.BeastCount == 2)
-                {
-                    mustLunar = state.BeastChakra[0] == state.BeastChakra[1];
-                    mustSolar = !mustLunar;
-                }
-                canCoeurl &= !mustLunar;
-                canRaptor &= !mustLunar;
 
                 // big pile of conditionals to check whether this is a forced solar (buffs are running out).
                 // odd windows are planned out such that buffed demo was used right before perfect balance, so this
@@ -416,7 +412,7 @@ namespace BossMod.MNK
 
                 // pre-PB for BH2 even window means we are waiting for RoF to come off cooldown (at the latest, it will
                 // get weaved right before blitz) so use GCDs in increasing order of potency
-                if (mustSolar || (state.FireLeft == 0 && !state.HaveSolar))
+                if (forcedSolar || (state.FireLeft == 0 && !state.HaveSolar))
                     return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
 
                 // always use pb for opo gcds if we have the option
@@ -527,7 +523,7 @@ namespace BossMod.MNK
             // natural demolish happens during RoF
             if (ShouldUseRoF(state, strategy, deadline) || state.FireLeft > deadline + state.AttackGCDTime * 3)
             {
-                if (state.HaveSolar)
+                if (!CanSolar(state, strategy))
                     return !WillDFExpire(state, 5) && !WillDemolishExpire(state, strategy, 6);
 
                 return true;
@@ -535,13 +531,13 @@ namespace BossMod.MNK
 
             // odd windows where natural demolish happens before RoF, at most 3 GCDs prior - raptor GCD is forced to
             // be twin snakes if this is the case, so we don't need to check DF timer
-            if (state.HaveSolar && ShouldUseRoF(state, strategy, state.GCD + state.AttackGCDTime))
+            if (!CanSolar(state, strategy) && ShouldUseRoF(state, strategy, state.GCD + state.AttackGCDTime))
                 return !WillDemolishExpire(state, strategy, 7);
 
             // bhood 2 window: natural demolish happens in the middle of RoF. i don't remember exactly why this is the rule
             // but the first blitz has to be RP
             if (
-                !state.HaveSolar
+                CanSolar(state, strategy)
                 && !ShouldUseRoF(state, strategy, deadline)
                 && ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime * 3)
             )
@@ -573,5 +569,19 @@ namespace BossMod.MNK
 
         private static bool WillStatusExpire(State state, int gcds, float statusDuration) =>
             statusDuration < state.GCD + (state.AttackGCDTime * gcds);
+
+        private static bool CanSolar(State state, Strategy strategy) => strategy.NextNadi switch
+        {
+            Strategy.NadiChoice.Solar => true,
+            Strategy.NadiChoice.Lunar => false,
+            _ => !state.HaveSolar
+        };
+
+        private static bool PreferLunar(State state, Strategy strategy) => strategy.NextNadi switch
+        {
+            Strategy.NadiChoice.Solar => false,
+            Strategy.NadiChoice.Lunar => true,
+            _ => state.HaveSolar
+        };
     }
 }
