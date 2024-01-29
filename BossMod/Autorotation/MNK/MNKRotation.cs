@@ -429,6 +429,7 @@ namespace BossMod.MNK
         {
             if (
                 state.RangeToTarget <= 3
+                || !state.Unlocked(AID.Thunderclap)
                 || !state.CanWeave(state.CD(CDGroup.Thunderclap) - 60, 0.6f, deadline)
                 || strategy.DashUse == Strategy.DashStrategy.Forbid
             )
