@@ -522,7 +522,9 @@ namespace BossMod.MNK
 
             // bh1 and bh3 even windows where RoF is used no earlier than 2 GCDs before this; also odd windows where
             // natural demolish happens during RoF
-            if (ShouldUseRoF(state, strategy, deadline) || state.FireLeft > deadline + state.AttackGCDTime * 3)
+            // before level 68/RoF unlock, we have nothing to plan our blitzes around, so just use PB whenever it's off cooldown
+            // as long as buffs won't fall off
+            if (ShouldUseRoF(state, strategy, deadline) || state.FireLeft > deadline + state.AttackGCDTime * 3 || !state.Unlocked(AID.RiddleOfFire))
             {
                 if (!CanSolar(state, strategy))
                     return !WillDFExpire(state, 5) && !WillDemolishExpire(state, strategy, 6);
