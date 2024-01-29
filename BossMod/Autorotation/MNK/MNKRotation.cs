@@ -412,7 +412,7 @@ namespace BossMod.MNK
 
                 // pre-PB for BH2 even window means we are waiting for RoF to come off cooldown (at the latest, it will
                 // get weaved right before blitz) so use GCDs in increasing order of potency
-                if (forcedSolar || (state.FireLeft == 0 && !state.HaveSolar))
+                if (state.FireLeft == 0 && (forcedSolar || !state.HaveSolar))
                     return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
 
                 // always use pb for opo gcds if we have the option
