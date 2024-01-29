@@ -1,15 +1,16 @@
 // CONTRIB: made by malediktus, not checked
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 {
     public enum OID : uint
     {
         Boss = 0x3D43, //R=5
-        BossAdd = 0x3D4E, //R=3.75
+        BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don#t seem to despawn
         BossHelper = 0x233C,
         IcePillars = 0x3D44, 
-        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack
+        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
     };
 
     public enum AID : uint
@@ -142,7 +143,8 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
             .ActivateOnEnter<InOutAOE>()
             .ActivateOnEnter<FrigidStone2>()
             .ActivateOnEnter<HeavySmash2>()
-            .ActivateOnEnter<PillarPierce>();
+            .ActivateOnEnter<PillarPierce>()
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
         }
     }
 
@@ -154,7 +156,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-            foreach (var s in Enemies(OID.BossAdd))
+            foreach (var s in Enemies(OID.BonusAdds_Lyssa))
                 Arena.Actor(s, ArenaColor.Object, false);
             foreach (var s in Enemies(OID.BonusAdds_Lampas))
                 Arena.Actor(s, ArenaColor.Danger, false);
@@ -168,7 +170,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
                 e.Priority = (OID)e.Actor.OID switch
                 {
                     OID.BonusAdds_Lampas => 3,
-                    OID.BossAdd => 2,
+                    OID.BonusAdds_Lyssa => 2,
                     OID.Boss => 1,
                     _ => 0
                 };

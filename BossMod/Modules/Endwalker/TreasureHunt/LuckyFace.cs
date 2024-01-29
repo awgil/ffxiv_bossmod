@@ -1,15 +1,17 @@
 // CONTRIB: made by malediktus, not checked
+using System.Linq;
+
 namespace BossMod.Endwalker.TreasureHunt.LuckyFace
 {
     public enum OID : uint
     {
         Boss = 0x377F, // R3,240
         BossHelper = 0x233C, // R0,500
-        ExcitingQueen = 0x380C, // R0,840, spawn during fight (icon 5)
-        ExcitingTomato = 0x380B, // R0,840, spawn during fight (icon 4)
-        ExcitingGarlic = 0x380A, // R0,840, spawn during fight (icon 3)
-        ExcitingEgg = 0x3809, // R0,840, spawn during fight (icon 2)
-        ExcitingOnion = 0x3808, // R0,840, spawn during fight (icon 1)
+        ExcitingQueen = 0x380C, // R0,840, spawn during fight (icon 5), needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
+        ExcitingTomato = 0x380B, // R0,840, spawn during fight (icon 4), needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
+        ExcitingGarlic = 0x380A, // R0,840, spawn during fight (icon 3), needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
+        ExcitingEgg = 0x3809, // R0,840, spawn during fight (icon 2), needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
+        ExcitingOnion = 0x3808, // R0,840, spawn during fight (icon 1), needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
     };
 
     public enum AID : uint
@@ -163,7 +165,8 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
             .ActivateOnEnter<TearyTwirl>()
             .ActivateOnEnter<HeirloomScream>()
             .ActivateOnEnter<PungentPirouette>()
-            .ActivateOnEnter<Pollen>();
+            .ActivateOnEnter<Pollen>()
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.ExcitingEgg).All(e => e.IsDead) && module.Enemies(OID.ExcitingQueen).All(e => e.IsDead) && module.Enemies(OID.ExcitingOnion).All(e => e.IsDead) && module.Enemies(OID.ExcitingGarlic).All(e => e.IsDead) && module.Enemies(OID.ExcitingTomato).All(e => e.IsDead);
         }
     }
     [ModuleInfo(CFCID = 819, NameID = 10831)]
@@ -175,15 +178,15 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in Enemies(OID.ExcitingEgg))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Danger, false);
             foreach (var s in Enemies(OID.ExcitingTomato))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Danger, false);
             foreach (var s in Enemies(OID.ExcitingQueen))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Danger, false);
             foreach (var s in Enemies(OID.ExcitingGarlic))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Danger, false);
             foreach (var s in Enemies(OID.ExcitingOnion))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Danger, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
