@@ -30,10 +30,10 @@ namespace BossMod.MNK
             public float FireLeft; // 20 max
             public float TrueNorthLeft; // 10 max
 
-            public bool HasLunar => Nadi.HasFlag(Nadi.LUNAR);
-            public bool HasSolar => Nadi.HasFlag(Nadi.SOLAR);
+            public bool HaveLunar => Nadi.HasFlag(Nadi.LUNAR);
+            public bool HaveSolar => Nadi.HasFlag(Nadi.SOLAR);
 
-            public int NadiCount => (HasLunar ? 1 : 0) + (HasSolar ? 1 : 0);
+            public int NadiCount => (HaveLunar ? 1 : 0) + (HaveSolar ? 1 : 0);
 
             public int BeastCount =>
                 BeastChakra.Count(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE);
@@ -53,7 +53,7 @@ namespace BossMod.MNK
                     if (BeastCount != 3)
                         return AID.MasterfulBlitz;
 
-                    if (HasLunar && HasSolar)
+                    if (HaveLunar && HaveSolar)
                         return BestPhantomRush;
 
                     var bc = BeastChakra;
@@ -190,6 +190,10 @@ namespace BossMod.MNK
             if (!state.Unlocked(AID.TwinSnakes))
                 return AID.TrueStrike;
 
+            // TODO: this is kind of a hack
+            if (state.FireLeft > state.GCD && state.PerfectBalanceLeft > state.GCD)
+                return AID.TwinSnakes;
+
             var rofIsAligned =
                 state.FireLeft > state.GCD || ShouldUseRoF(state, strategy, state.GCD + state.AttackGCDTime * 4);
 
@@ -242,6 +246,9 @@ namespace BossMod.MNK
                 if (strategy.CombatTimer > -20 && state.FormShiftLeft < 5 && state.Unlocked(AID.FormShift))
                     return AID.FormShift;
 
+                if (strategy.PreCombatFormShift && state.FormShiftLeft < 2 && state.Unlocked(AID.FormShift))
+                    return AID.FormShift;
+
                 if (strategy.CombatTimer > -100)
                     return AID.None;
             }
@@ -250,9 +257,6 @@ namespace BossMod.MNK
             {
                 if (state.Chakra < 5 && state.Unlocked(AID.Meditation))
                     return AID.Meditation;
-
-                if (strategy.PreCombatFormShift && state.FormShiftLeft < 2 && state.Unlocked(AID.FormShift))
-                    return AID.FormShift;
 
                 return AID.None;
             }
@@ -410,7 +414,7 @@ namespace BossMod.MNK
 
                 // pre-PB for BH2 even window means we are waiting for RoF to come off cooldown, so we prioritize
                 // forms in increasing order of potency
-                if (forcedSolar || (state.FireLeft == 0 && !state.HasSolar))
+                if (forcedSolar || (state.FireLeft == 0 && !state.HaveSolar))
                     return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
 
                 return Form.OpoOpo;
@@ -516,29 +520,15 @@ namespace BossMod.MNK
             if (state.Form != Form.Raptor)
                 return false;
 
-            var haveFire = state.FireLeft > deadline + state.AttackGCDTime * 3;
+            if (ShouldUseRoF(state, strategy, deadline) || state.FireLeft > deadline + state.AttackGCDTime * 3) {
+                if (state.HaveSolar)
+                    return !WillDFExpire(state, 5) && !WillDemolishExpire(state, strategy, 6);
 
-            // https://www.thebalanceffxiv.com/img/jobs/mnk/mnkguide_0011_optimaldrifteven.png
-            // RoF/Brotherhood 3 is the same sequence as the opener
-            if (haveFire || ShouldUseRoF(state, strategy, state.GCD))
-            {
-                // lunar
-                if (!WillDFExpire(state, 5) && !WillDemolishExpire(state, strategy, 6))
-                    return true;
-
-                // solar
-                if (!state.HasSolar)
-                    return true;
+                return true;
             }
 
-            // even windows
-            if (state.NadiCount == 2)
-            {
-                //      [RF]    [RF]    [RF]
-                // Demo      O  [PB]  O      O      O
-                return !WillDemolishExpire(state, strategy, 7)
-                    && (haveFire || ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime));
-            }
+            if (!ShouldUseRoF(state, strategy, deadline) && ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime * 3))
+                return !WillDemolishExpire(state, strategy, 7);
 
             return false;
         }

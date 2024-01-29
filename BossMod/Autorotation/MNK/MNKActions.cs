@@ -80,7 +80,7 @@ namespace BossMod.MNK
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
+            if (!Rotation.HaveTarget(_state, _strategy) || AutoAction < AutoActionAIFight)
                 return new();
 
             ActionID res = new();
