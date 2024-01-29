@@ -6,13 +6,7 @@ namespace BossMod.MNK
 {
     public static class Rotation
     {
-        public enum Form
-        {
-            None,
-            OpoOpo,
-            Raptor,
-            Coeurl
-        }
+        public enum Form { None, OpoOpo, Raptor, Coeurl }
 
         // full state needed for determining next action
         public class State : CommonRotation.PlayerState
@@ -35,14 +29,12 @@ namespace BossMod.MNK
 
             public int NadiCount => (HaveLunar ? 1 : 0) + (HaveSolar ? 1 : 0);
 
-            public int BeastCount =>
-                BeastChakra.Count(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE);
+            public int BeastCount => BeastChakra.Count(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE);
 
             // upgrade paths
             public AID BestForbiddenChakra => Unlocked(AID.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
             public AID BestEnlightenment => Unlocked(AID.Enlightenment) ? AID.Enlightenment : AID.HowlingFist;
-            public AID BestShadowOfTheDestroyer =>
-                Unlocked(AID.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
+            public AID BestShadowOfTheDestroyer => Unlocked(AID.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer;
             public AID BestRisingPhoenix => Unlocked(AID.RisingPhoenix) ? AID.RisingPhoenix : AID.FlintStrike;
             public AID BestPhantomRush => Unlocked(AID.PhantomRush) ? AID.PhantomRush : AID.TornadoKick;
 
@@ -69,7 +61,6 @@ namespace BossMod.MNK
             public State(float[] cooldowns) : base(cooldowns) { }
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
-
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
 
             public override string ToString()
