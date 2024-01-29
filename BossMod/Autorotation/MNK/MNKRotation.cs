@@ -377,8 +377,9 @@ namespace BossMod.MNK
                     canCoeurl &= chak != BeastChakra.COEURL;
                     canRaptor &= chak != BeastChakra.RAPTOR;
                 }
-                var mustLunar = false;
-                var mustSolar = false;
+                var nextNadi = strategy.NextNadi;
+                var mustLunar = nextNadi == Strategy.NadiChoice.Lunar;
+                var mustSolar = nextNadi == Strategy.NadiChoice.Solar;
                 if (state.BeastCount == 2)
                 {
                     mustLunar = state.BeastChakra[0] == state.BeastChakra[1];
@@ -496,7 +497,7 @@ namespace BossMod.MNK
                 return true;
 
             return !strategy.UseAOE
-                && state.FireLeft > state.GCD
+                && state.CD(CDGroup.RiddleOfFire) > 0
                 && (
                     // opener timing mostly important as long as rof is used first, we just want to align with party buffs -
                     // the default opener is bhood after first bootshine
