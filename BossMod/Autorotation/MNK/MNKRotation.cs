@@ -386,37 +386,48 @@ namespace BossMod.MNK
                     canCoeurl &= chak != BeastChakra.COEURL;
                     canRaptor &= chak != BeastChakra.RAPTOR;
                 }
-                var forcedLunar = false;
-                var forcedSolar = false;
-                if (state.BeastCount == 2) {
-                    forcedLunar = state.BeastChakra[0] == state.BeastChakra[1];
-                    forcedSolar = !forcedLunar;
+                var mustLunar = false;
+                var mustSolar = false;
+                if (state.BeastCount == 2)
+                {
+                    mustLunar = state.BeastChakra[0] == state.BeastChakra[1];
+                    mustSolar = !mustLunar;
                 }
-                canCoeurl &= !forcedLunar;
-                canRaptor &= !forcedLunar;
+                canCoeurl &= !mustLunar;
+                canRaptor &= !mustLunar;
 
-                if (canCoeurl && canRaptor) {
-                    if (WillDFExpire(state, 2))
-                        return Form.Raptor;
+                // big pile of conditionals to check whether this is a forced solar (buffs are running out).
+                // odd windows are planned out such that buffed demo was used right before perfect balance, so this
+                // block only applies to even windows
+                // see ShouldUsePB for more context
+                if (canCoeurl && canRaptor)
+                {
                     if (WillDemolishExpire(state, strategy, 2))
                         return Form.Coeurl;
-                } else if (canCoeurl) {
+                    if (WillDFExpire(state, 2))
+                        return Form.Raptor;
+                }
+                else if (canCoeurl)
+                {
                     if (state.BeastCount == 1 && WillDemolishExpire(state, strategy, 1))
                         return Form.Coeurl;
                     else if (state.BeastCount == 2 && WillDemolishExpire(state, strategy, 5))
                         return Form.Coeurl;
-                } else if (canRaptor) {
+                }
+                else if (canRaptor)
+                {
                     if (state.BeastCount == 1 && WillDFExpire(state, 1))
                         return Form.Raptor;
                     else if (state.BeastCount == 2 && WillDFExpire(state, 4))
                         return Form.Raptor;
                 }
 
-                // pre-PB for BH2 even window means we are waiting for RoF to come off cooldown, so we prioritize
-                // forms in increasing order of potency
-                if (forcedSolar || (state.FireLeft == 0 && !state.HaveSolar))
+                // pre-PB for BH2 even window means we are waiting for RoF to come off cooldown (at the latest, it will
+                // get weaved right before blitz) so use GCDs in increasing order of potency
+                if (mustSolar || (state.FireLeft == 0 && !state.HaveSolar))
                     return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
 
+                // always use pb for opo gcds if we have the option
                 return Form.OpoOpo;
             }
 
@@ -520,14 +531,28 @@ namespace BossMod.MNK
             if (state.Form != Form.Raptor)
                 return false;
 
-            if (ShouldUseRoF(state, strategy, deadline) || state.FireLeft > deadline + state.AttackGCDTime * 3) {
+            // bh1 and bh3 even windows where RoF is used no earlier than 2 GCDs before this; also odd windows where
+            // natural demolish happens during RoF
+            if (ShouldUseRoF(state, strategy, deadline) || state.FireLeft > deadline + state.AttackGCDTime * 3)
+            {
                 if (state.HaveSolar)
                     return !WillDFExpire(state, 5) && !WillDemolishExpire(state, strategy, 6);
 
                 return true;
             }
 
-            if (!ShouldUseRoF(state, strategy, deadline) && ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime * 3))
+            // odd windows where natural demolish happens before RoF, at most 3 GCDs prior - raptor GCD is forced to
+            // be twin snakes if this is the case, so we don't need to check DF timer
+            if (state.HaveSolar && ShouldUseRoF(state, strategy, state.GCD + state.AttackGCDTime))
+                return !WillDemolishExpire(state, strategy, 7);
+
+            // bhood 2 window: natural demolish happens in the middle of RoF. i don't remember exactly why this is the rule
+            // but the first blitz has to be RP
+            if (
+                !state.HaveSolar
+                && !ShouldUseRoF(state, strategy, deadline)
+                && ShouldUseRoF(state, strategy, deadline + state.AttackGCDTime * 3)
+            )
                 return !WillDemolishExpire(state, strategy, 7);
 
             return false;
