@@ -377,6 +377,8 @@ namespace BossMod.MNK
                 var forcedSolar = nextNadi == Strategy.NadiChoice.Solar || state.ForcedSolar;
                 var canCoeurl = !forcedLunar;
                 var canRaptor = !forcedLunar;
+                // slightly annoying conditional because this is always true in lunar, but only true in solar if we haven't used it yet, just like the others
+                var canOpo = !state.ForcedSolar || state.BeastChakra.All(b => b != BeastChakra.OPOOPO);
 
                 foreach (var chak in state.BeastChakra)
                 {
@@ -410,13 +412,21 @@ namespace BossMod.MNK
                         return Form.Raptor;
                 }
 
-                // pre-PB for BH2 even window means we are waiting for RoF to come off cooldown (at the latest, it will
-                // get weaved right before blitz) so use GCDs in increasing order of potency
-                if (state.FireLeft == 0 && (forcedSolar || !state.HaveSolar))
+                // PB is used preemptively in two cases
+                // 1. odd windows (both nadi, NOT COVERED HERE): 1-2 GCDs before RoF so that phantom rush happens in the
+                //    buff window, followed by immediate natural demolish refresh
+                // 2. BH2 (no nadi, HERE): 1-3 GCDs before RoF (at the latest, it will be used right before Rising Phoenix).
+                //    this window consists of Solar -> natural demolish -> Lunar;
+                //      if we do lunar first, it's possible for all 3 opo GCDs to miss the RoF window;
+                //      if we try to delay both lunar/solar until RoF is up, like the standard opener (which is just BH3),
+                //      pre-PB demolish will fall off for multiple GCDs;
+                //      so early non-demo solar is the only way to prevent clipping
+                var isBH2 = state.FireLeft == 0 && !state.HaveSolar;
+
+                if (forcedSolar || isBH2)
                     return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
 
-                // always use pb for opo gcds if we have the option
-                return Form.OpoOpo;
+                return canOpo ? Form.OpoOpo : canCoeurl ? Form.Coeurl : Form.Raptor;
             }
 
             if (state.FormShiftLeft > state.GCD)
