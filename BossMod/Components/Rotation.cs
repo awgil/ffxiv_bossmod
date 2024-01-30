@@ -61,12 +61,33 @@ namespace BossMod.Components
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (spell.Action == Aid2 || Aid3 || Aid4 == WatchedAction || FirstAIDisRotationStep && spell.Action == Aid == WatchedAction)
-            {
-                _RotationDir += RotationDirIncrement;
-                --_maxcasts;
-                if(_maxcasts == 0)
-                    _casters.Remove(caster);
+            if(FirstAIDisRotationStep && spell.Action == Aid == WatchedAction && Aid != default)
+                {
+                    _RotationDir += RotationDirIncrement;
+                    --_maxcasts;
+                    if(_maxcasts == 0)
+                        _casters.Remove(caster);
+                }                
+            if(spell.Action == Aid2 == WatchedAction && Aid2 != default)
+                {
+                    _RotationDir += RotationDirIncrement;
+                    --_maxcasts;
+                    if(_maxcasts == 0)
+                        _casters.Remove(caster);
+                }            
+            if(spell.Action == Aid3 == WatchedAction && Aid3 != default)
+                {
+                    _RotationDir += RotationDirIncrement;
+                    --_maxcasts;
+                    if(_maxcasts == 0)
+                        _casters.Remove(caster);
+                }
+            if(spell.Action == Aid4 == WatchedAction && Aid4 != default)
+                {
+                    _RotationDir += RotationDirIncrement;
+                    --_maxcasts;
+                    if(_maxcasts == 0)
+                        _casters.Remove(caster);
             }
         }
     }
