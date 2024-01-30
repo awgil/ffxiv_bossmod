@@ -29,6 +29,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         HeavySmash2 = 32317, // BossAdd->location, 3,0s cast, range 6 circle
         FrigidStone = 32308, // Boss->self, 2,5s cast, single-target, activates helpers
         FrigidStone2 = 32309, // BossHelper->location, 3,0s cast, range 5 circle
+        Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
     };
 
     class HeavySmash2 : Components.LocationTargetedAOEs
