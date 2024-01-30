@@ -42,10 +42,10 @@ namespace BossMod.Components
         {
             foreach (var c in _casters)
             {
-                if (_maxcasts > 0)
-                yield return new AOEInstance(Shape, c.Position, _RotationDir, default, ImminentColor, Risky);
                 if (_maxcasts > 1)
                 yield return new AOEInstance(Shape, c.Position, _RotationDir + RotationDirIncrement, default, FutureColor, Risky);
+                if (_maxcasts > 0)
+                yield return new AOEInstance(Shape, c.Position, _RotationDir, default, ImminentColor, Risky);
             }
         }
 

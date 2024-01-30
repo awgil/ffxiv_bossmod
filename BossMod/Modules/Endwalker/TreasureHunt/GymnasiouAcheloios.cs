@@ -45,44 +45,22 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
     };
     class QuadrupleHammerCW : Components.SimpleRotationAOE
     {
-        public QuadrupleHammerCW() : base(ActionID.MakeSpell(AID.QuadrupleHammerA), ActionID.MakeSpell(AID.LeftHammer2), ActionID.MakeSpell(AID.RightHammer2), default, new AOEShapeCone(30,90.Degrees()), 4, -90.Degrees()) { }
+        public QuadrupleHammerCW() : base(ActionID.MakeSpell(AID.QuadrupleHammerA), ActionID.MakeSpell(AID.QuadrupleHammer2), ActionID.MakeSpell(AID.LeftHammer2), ActionID.MakeSpell(AID.RightHammer2), new AOEShapeCone(30,90.Degrees()), 4, -90.Degrees(), -90.Degrees()) { }
     }
     class QuadrupleHammerCCW : Components.SimpleRotationAOE
     {
-        public QuadrupleHammerCCW() : base(ActionID.MakeSpell(AID.QuadrupleHammerB), ActionID.MakeSpell(AID.LeftHammer2), ActionID.MakeSpell(AID.RightHammer2), default, new AOEShapeCone(30,90.Degrees()), 4, 90.Degrees()) { }
+        public QuadrupleHammerCCW() : base(ActionID.MakeSpell(AID.QuadrupleHammerB), ActionID.MakeSpell(AID.QuadrupleHammer2), ActionID.MakeSpell(AID.LeftHammer2), ActionID.MakeSpell(AID.RightHammer2), new AOEShapeCone(30,90.Degrees()), 4, 90.Degrees(), 90.Degrees()) { }
     }
     class DoubleSlammer : Components.GenericAOEs
     {
         private int _remainingHits;
         private Angle _RotationDir;
-        // private bool rotationA;
-        // private bool rotationB;
         private bool doubleA;
         private bool doubleB;       
-
         private static AOEShapeCone cone = new(30, 90.Degrees());
  
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-// //clockwise rotation
-//             if (_remainingHits == 4 && rotationA)
-//                 yield return new(cone, module.PrimaryActor.Position, _RotationDir - 90.Degrees());
-//             if (_remainingHits == 3 && rotationA)
-//                 yield return new(cone, module.PrimaryActor.Position, _RotationDir - 180.Degrees());
-//             if (_remainingHits == 2 && rotationA)
-//                 yield return new(cone, module.PrimaryActor.Position, _RotationDir - 270.Degrees());
-//             if (_remainingHits == 1 && rotationA)
-//                 yield return new(cone, module.PrimaryActor.Position, _RotationDir);
-// //counter clockwise rotation
-//             if (_remainingHits == 4 && rotationB)
-//                 yield return new(cone, module.PrimaryActor.Position, _RotationDir + 90.Degrees());
-//             if (_remainingHits == 3 && rotationB)
-//                 yield return new(cone, module.PrimaryActor.Position, _RotationDir + 180.Degrees());
-//             if (_remainingHits == 2 && rotationB)
-//                 yield return new(cone, module.PrimaryActor.Position, _RotationDir + 270.Degrees());
-//             if (_remainingHits == 1 && rotationB)
-//                 yield return new(cone, module.PrimaryActor.Position, _RotationDir);
-//double slams
             if (_remainingHits == 2 && doubleA)
                 yield return new(cone, module.PrimaryActor.Position, _RotationDir + 90.Degrees());
             if (_remainingHits == 1 && doubleB)
@@ -93,8 +71,6 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
                 yield return new(cone, module.PrimaryActor.Position, _RotationDir - 90.Degrees());
             if (_remainingHits == 0)
                 {
-                    // rotationA = false;
-                    // rotationB = false;
                     doubleA = false;
                     doubleB = false;
                 }
@@ -104,16 +80,6 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         {
             switch ((AID)spell.Action.ID)
             {
-                // case AID.QuadrupleHammerA:
-                //     rotationA = true;
-                //     _remainingHits = 4;
-                //     _RotationDir = spell.Rotation;
-                // break;
-                // case AID.QuadrupleHammerB:
-                //     rotationB = true;
-                //     _remainingHits = 4;
-                //     _RotationDir = spell.Rotation;
-                // break;
                 case AID.DoubleHammerA:
                     doubleA = true;
                     _remainingHits = 2;
@@ -133,16 +99,11 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
             {
                 case AID.LeftHammer2:
                 case AID.RightHammer2:
-                // case AID.QuadrupleHammer2:
                 case AID.DoubleHammer:
                     --_remainingHits;
                     break;
             }
         }
-        // public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        // {
-        //           hints.Add($"doubleA: {doubleA}! doubleB: {doubleB}! rotA: {rotationA}! rotB: {rotationB}!\nRemaining hits:{_remainingHits}");       
-        // }
     }
     class Earthbreak : Components.LocationTargetedAOEs
     {
