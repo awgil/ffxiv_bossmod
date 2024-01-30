@@ -158,9 +158,9 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in Enemies(OID.BonusAdds_Lyssa))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.BonusAdds_Lampas))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

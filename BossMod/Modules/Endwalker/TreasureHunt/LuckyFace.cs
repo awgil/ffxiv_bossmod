@@ -178,15 +178,15 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in Enemies(OID.ExcitingEgg))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.ExcitingTomato))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.ExcitingQueen))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.ExcitingGarlic))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.ExcitingOnion))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

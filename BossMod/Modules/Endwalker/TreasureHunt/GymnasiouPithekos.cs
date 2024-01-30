@@ -116,7 +116,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
             foreach (var s in Enemies(OID.BossAdd))
                 Arena.Actor(s, ArenaColor.Object, false);
             foreach (var s in Enemies(OID.BonusAdd_Lyssa))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

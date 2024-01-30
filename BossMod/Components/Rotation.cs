@@ -90,9 +90,5 @@ namespace BossMod.Components
                         _casters.Remove(caster);
             }
         }
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-                  hints.Add($"castsleft: {_maxcasts}!");       
-        }
     }
 }

@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,6 +14,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         GymnasticEggplant = 0x3D50, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
         GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
         GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
+        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
     };
 
     public enum AID : uint
@@ -105,6 +105,10 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
             }
         }
     }
+    class VolcanicHowl : Components.RaidwideCast
+    {
+        public VolcanicHowl() : base(ActionID.MakeSpell(AID.VolcanicHowl)) { }
+    }
     class Earthbreak : Components.LocationTargetedAOEs
     {
         public Earthbreak() : base(ActionID.MakeSpell(AID.Earthbreak2), 5) { }
@@ -141,16 +145,11 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { } 
     }
-    class PithekosStates : StateMachineBuilder
+    class AcheloiosStates : StateMachineBuilder
     {
-        public PithekosStates(BossModule module) : base(module)
+        public AcheloiosStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<PluckAndPrune>()
-            .ActivateOnEnter<TearyTwirl>()
-            .ActivateOnEnter<HeirloomScream>()
-            .ActivateOnEnter<PungentPirouette>()
-            .ActivateOnEnter<Pollen>()
             .ActivateOnEnter<QuadrupleHammerCW>()
             .ActivateOnEnter<QuadrupleHammerCCW>()
             .ActivateOnEnter<DoubleSlammer>()
@@ -158,28 +157,38 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
             .ActivateOnEnter<CriticalBite>()
             .ActivateOnEnter<DeadlyHold>()
             .ActivateOnEnter<Earthbreak>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
+            .ActivateOnEnter<VolcanicHowl>()
+            .ActivateOnEnter<PluckAndPrune>()
+            .ActivateOnEnter<TearyTwirl>()
+            .ActivateOnEnter<HeirloomScream>()
+            .ActivateOnEnter<PungentPirouette>()
+            .ActivateOnEnter<Pollen>()
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
         }
     }
 
     [ModuleInfo(CFCID = 909, NameID = 12019)]
-    public class Pithekos : BossModule
+    public class Acheloios : BossModule
     {
-        public Pithekos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) {}
+        public Acheloios(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) {}
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            foreach (var s in Enemies(OID.BossAdd))
+                Arena.Actor(s, ArenaColor.Object, false);
             foreach (var s in Enemies(OID.GymnasticEggplant))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.GymnasticTomato))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.GymnasticQueen))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.GymnasticGarlic))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.GymnasticOnion))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
+            foreach (var s in Enemies(OID.BonusAdds_Lampas))
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -193,7 +202,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
                     OID.GymnasticEggplant => 6,
                     OID.GymnasticGarlic => 5,
                     OID.GymnasticTomato => 4,
-                    OID.GymnasticQueen => 3,
+                    OID.GymnasticQueen or OID.BonusAdds_Lampas => 3,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0
