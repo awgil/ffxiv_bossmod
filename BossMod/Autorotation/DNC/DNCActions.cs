@@ -133,6 +133,7 @@ namespace BossMod.DNC
         private void UpdatePlayerState()
         {
             FillCommonPlayerState(_state);
+            _state.AnimationLockDelay = MathF.Max(0.1f, _state.AnimationLockDelay);
 
             var gauge = Service.JobGauges.Get<DNCGauge>();
 
