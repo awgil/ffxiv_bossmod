@@ -206,7 +206,7 @@ namespace BossMod.DNC
                 return AID.Tillana;
 
             // buffed saber dance
-            if (state.RaidBuffsLeft > state.GCD && ShouldSaberDance(state, strategy, 50))
+            if (state.TechFinishLeft > state.GCD && ShouldSaberDance(state, strategy, 50))
                 return AID.SaberDance;
 
             // unbuffed standard step - combos 3 and 4 are higher priority in raid buff window
@@ -344,7 +344,7 @@ namespace BossMod.DNC
             if (state.Feathers == 4 || strategy.FeatherUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            return state.RaidBuffsLeft > state.AnimationLock;
+            return state.TechFinishLeft > state.AnimationLock;
         }
 
         private static bool ShouldSaberDance(State state, Strategy strategy, int minimumEsprit)
