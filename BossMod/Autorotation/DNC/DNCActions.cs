@@ -169,26 +169,7 @@ namespace BossMod.DNC
             Func<Actor, int> prio
         )
         {
-            var newBest = initial;
-            int currentPrio = prio(initial.Actor);
-            foreach (
-                var enemy in Autorot
-                    .Hints
-                    .PriorityTargets
-                    .Where(
-                        x =>
-                            x != initial
-                            && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer)
-                    )
-            )
-            {
-                int potential = prio(enemy.Actor);
-                if (potential > currentPrio)
-                {
-                    newBest = enemy;
-                    currentPrio = potential;
-                }
-            }
+            var newBest = FindBetterTargetBy(initial, maxDistanceFromPlayer, (x) => prio(x.Actor)).Target;
             return new(newBest, newBest.StayAtLongRange ? 25 : 15);
         }
 
