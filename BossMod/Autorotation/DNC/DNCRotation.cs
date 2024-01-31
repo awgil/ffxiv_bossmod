@@ -210,7 +210,8 @@ namespace BossMod.DNC
                 return AID.SaberDance;
 
             // unbuffed standard step - combos 3 and 4 are higher priority in raid buff window
-            if (state.TechFinishLeft == 0 && shouldStdStep)
+            // skip if tech step is around 5s cooldown or lower since std step would delay it
+            if (state.TechFinishLeft == 0 && shouldStdStep && state.CD(CDGroup.TechnicalStep) > state.GCD + 5)
                 return AID.StandardStep;
 
             // combo 3
