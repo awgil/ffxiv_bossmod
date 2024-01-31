@@ -23,6 +23,7 @@ namespace BossMod.AI
             _config = Service.Config.Get<AIConfig>();
             _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
             Service.ChatGui.ChatMessage += OnChatMessage;
+            Service.CommandManager.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
         }
 
         public void Dispose()
@@ -30,6 +31,7 @@ namespace BossMod.AI
             SwitchToIdle();
             _ui.Dispose();
             Service.ChatGui.ChatMessage -= OnChatMessage;
+            Service.CommandManager.RemoveHandler("/vbmai");
         }
 
         public void Update()
@@ -123,6 +125,27 @@ namespace BossMod.AI
                     break;
                 default:
                     Service.Log($"[AI] Unknown command: {messageData[1]}");
+                    break;
+            }
+        }
+
+        private void OnCommand(string cmd, string message)
+        {
+            var messageData = message.Split(' ');
+            switch (messageData[0])
+            {
+                case "on":
+                    SwitchToFollow(PartyState.PlayerSlot);
+                    break;
+                case "off":
+                    SwitchToIdle();
+                    break;
+                case "toggle":
+                    if (_beh == null) SwitchToFollow(PartyState.PlayerSlot);
+                    else SwitchToIdle();
+                    break;
+                default:
+                    Service.Log($"[AI] Unknown command: {messageData[0]}");
                     break;
             }
         }
