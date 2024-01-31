@@ -421,9 +421,8 @@ namespace BossMod.MNK
                 //      if we try to delay both lunar/solar until RoF is up, like the standard opener (which is just BH3),
                 //      pre-PB demolish will fall off for multiple GCDs;
                 //      so early non-demo solar is the only way to prevent clipping
-                var isBH2 = state.FireLeft == 0 && !state.HaveSolar;
-
-                if (forcedSolar || isBH2)
+                var isBH2 = state.FireLeft == 0 && (forcedSolar || !state.HaveSolar);
+                if (isBH2)
                     return canRaptor ? Form.Raptor : canCoeurl ? Form.Coeurl : Form.OpoOpo;
 
                 return canOpo ? Form.OpoOpo : canCoeurl ? Form.Coeurl : Form.Raptor;
