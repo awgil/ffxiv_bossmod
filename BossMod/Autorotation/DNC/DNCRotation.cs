@@ -64,8 +64,7 @@ namespace BossMod.DNC
                 }
             }
 
-            public AID BestImprov =>
-                ImprovisationLeft > 0 ? AID.ImprovisedFinish : AID.Improvisation;
+            public AID BestImprov => ImprovisationLeft > 0 ? AID.ImprovisedFinish : AID.Improvisation;
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
 
@@ -156,27 +155,28 @@ namespace BossMod.DNC
             var shouldStdStep = ShouldStdStep(state, strategy);
 
             // priority for cdplan
-            if (
-                strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force
-                && shouldStdStep
-            )
+            if (strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force && shouldStdStep)
                 return AID.StandardStep;
 
             var canStarfall = state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0;
             var canFlow = CanFlow(state, strategy, out var flowCombo);
             var canSymmetry = CanSymmetry(state, strategy, out var symmetryCombo);
             var combo2 = strategy.NumAOETargets > 1 ? AID.Bladeshower : AID.Fountain;
-            var haveCombo2 = state.Unlocked(combo2) && state.ComboLastMove == (strategy.NumAOETargets > 1 ? AID.Windmill : AID.Cascade);
+            var haveCombo2 =
+                state.Unlocked(combo2)
+                && state.ComboLastMove == (strategy.NumAOETargets > 1 ? AID.Windmill : AID.Cascade);
 
             // prevent starfall expiration
             if (canStarfall && state.FlourishingStarfallLeft <= state.AttackGCDTime)
                 return AID.StarfallDance;
 
             // prevent flow expiration
-            if (canFlow && state.FlowLeft <= state.AttackGCDTime) return flowCombo;
+            if (canFlow && state.FlowLeft <= state.AttackGCDTime)
+                return flowCombo;
 
             // prevent symmetry expiration
-            if (canSymmetry && state.SymmetryLeft <= state.AttackGCDTime) return symmetryCombo;
+            if (canSymmetry && state.SymmetryLeft <= state.AttackGCDTime)
+                return symmetryCombo;
 
             // prevent saber overcap
             if (ShouldSaberDance(state, strategy, 85))
@@ -211,13 +211,19 @@ namespace BossMod.DNC
 
             // unbuffed standard step - combos 3 and 4 are higher priority in raid buff window
             // skip if tech step is around 5s cooldown or lower since std step would delay it
-            if (state.TechFinishLeft == 0 && shouldStdStep && state.CD(CDGroup.TechnicalStep) > state.GCD + 5)
+            if (
+                state.TechFinishLeft == 0
+                && shouldStdStep
+                && (state.CD(CDGroup.TechnicalStep) > state.GCD + 5 || !state.Unlocked(AID.TechnicalStep))
+            )
                 return AID.StandardStep;
 
             // combo 3
-            if (canFlow) return flowCombo;
+            if (canFlow)
+                return flowCombo;
             // combo 4
-            if (canSymmetry) return symmetryCombo;
+            if (canSymmetry)
+                return symmetryCombo;
 
             // (possibly buffed) standard step
             if (shouldStdStep)
@@ -258,10 +264,7 @@ namespace BossMod.DNC
             )
                 return ActionID.MakeSpell(AID.Devilment);
 
-            if (
-                state.CD(CDGroup.Devilment) > 55
-                && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
-            )
+            if (state.CD(CDGroup.Devilment) > 55 && state.CanWeave(CDGroup.Flourish, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Flourish);
 
             if (
@@ -323,7 +326,11 @@ namespace BossMod.DNC
             // skip if tech finish would expire before we can cast std finish
             // standard step = 1.5s, step = 2x1s -> 3.5s
             return strategy.NumDanceTargets > 0
-                && (state.TechFinishLeft == 0 || state.TechFinishLeft > state.GCD + 3.5);
+                && (
+                    state.TechFinishLeft == 0
+                    || state.TechFinishLeft > state.GCD + 3.5
+                    || !state.Unlocked(AID.TechnicalStep)
+                );
         }
 
         private static bool ShouldFinishDance(float danceTimeLeft, State state, Strategy strategy)
@@ -378,11 +385,7 @@ namespace BossMod.DNC
         private static bool CanSymmetry(State state, Strategy strategy, out AID action)
         {
             var act = strategy.NumAOETargets > 1 ? AID.RisingWindmill : AID.ReverseCascade;
-            if (
-                state.Unlocked(act)
-                && state.SymmetryLeft > state.GCD
-                && HaveTarget(state, strategy)
-            )
+            if (state.Unlocked(act) && state.SymmetryLeft > state.GCD && HaveTarget(state, strategy))
             {
                 action = act;
                 return true;
