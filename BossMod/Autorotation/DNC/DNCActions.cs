@@ -14,6 +14,8 @@ namespace BossMod.DNC
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
 
+        private bool _predictedTechFinish = false;
+
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
@@ -178,11 +180,28 @@ namespace BossMod.DNC
             _state.FlourishingStarfallLeft = StatusLeft(SID.FlourishingStarfall);
             _state.ThreefoldLeft = StatusLeft(SID.ThreefoldFanDance);
             _state.FourfoldLeft = StatusLeft(SID.FourfoldFanDance);
+
             var pelo = Player.FindStatus((uint)SID.Peloton);
             if (pelo != null)
                 _state.PelotonLeft = StatusDuration(pelo.Value.ExpireAt);
             else
                 _state.PelotonLeft = 0;
+
+            // there seems to be a delay between tech finish use and buff application in full parties - maybe it's a
+            // cascading buff that is applied to self last? anyway, the delay can cause the rotation to skip the
+            // devilment weave window that occurs right after tech finish since it doesn't think we have tech finish yet
+            if (_predictedTechFinish) {
+                if (_state.TechFinishLeft == 0)
+                    _state.TechFinishLeft = 1000f;
+                else
+                    _predictedTechFinish = false;
+            }
+        }
+
+        protected override void OnActionSucceeded(ActorCastEvent ev)
+        {
+            if (ev.Action.ID == (uint)AID.TechnicalFinish)
+                _predictedTechFinish = true;
         }
 
         private Targeting SelectBestTarget(AIHints.Enemy initial, float maxDistanceFromPlayer, Func<Actor, int> prio)
