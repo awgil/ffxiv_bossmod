@@ -260,7 +260,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
             foreach (var s in Enemies(OID.Boss))
                 Arena.Actor(s, ArenaColor.Enemy, false);
             foreach (var s in Enemies(OID.MagitekBit))
-                Arena.Actor(s, ArenaColor.PlayerGeneric, true);
+                Arena.Actor(s, ArenaColor.Vulnerable, true);
         }    
     }
 }
