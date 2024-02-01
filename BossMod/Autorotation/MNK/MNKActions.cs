@@ -65,8 +65,6 @@ namespace BossMod.MNK
                 _strategy.WindUse = CommonRotation.Strategy.OffensiveAbilityUse.Delay;
                 _strategy.BrotherhoodUse = CommonRotation.Strategy.OffensiveAbilityUse.Delay;
             }
-            if (!_config.AutoTrueNorth)
-                _strategy.TrueNorthUse = CommonRotation.Strategy.OffensiveAbilityUse.Delay;
             FillStrategyPositionals(_strategy, Rotation.GetNextPositional(_state, _strategy), _state.TrueNorthLeft > _state.GCD);
         }
 

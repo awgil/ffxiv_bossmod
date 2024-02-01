@@ -135,7 +135,7 @@ namespace BossMod.MNK
 
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 7)
+                if (overrides.Length >= 8)
                 {
                     DashUse = (DashStrategy)overrides[0];
                     TrueNorthUse = (OffensiveAbilityUse)overrides[1];
