@@ -24,6 +24,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
     };
     class MagitekBitLasers : Components.GenericAOEs
     {
+        private int numcasts;
         private bool SatelliteLaser;
         private bool DiffractiveLaserAngle0;
         private bool DiffractiveLaserAngle90;
@@ -39,141 +40,116 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
         {
                 foreach (var p in module.Enemies(OID.MagitekBit))
                 {
-                if (module.Bounds.Contains(p.Position) && module.WorldState.CurrentTime > time.AddSeconds(2)) //sometimes the bits teleport into weird locations, the angles got a range because the devs are sloppy and the bits can have variations in angle of upto 0.95°, delay to prevent flickering while all bits rotate into their final angle
+                if (module.Bounds.Contains(p.Position))
                     {
-                    if (SatelliteLaser)
+                    if (SatelliteLaser  && module.WorldState.CurrentTime > time.AddSeconds(2.5f) && (p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
+                        yield return new(rect, p.Position, p.Rotation, new());
+                    if (DiffractiveLaserAngle0 && module.WorldState.CurrentTime > time.AddSeconds(2))
                         {
-                            if (module.WorldState.CurrentTime < time.AddSeconds(12.5f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if (module.WorldState.CurrentTime < time.AddSeconds(12.5f) && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
+                                yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            if(numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if (module.WorldState.CurrentTime < time.AddSeconds(12.5f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
-                                yield return new(rect, p.Position, p.Rotation, new());
-                            if (module.WorldState.CurrentTime < time.AddSeconds(12.5f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                                yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            if(numcasts >= 9 && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
                         }
-                    if (DiffractiveLaserAngle0)
+                    if (DiffractiveLaserAngleM90 && module.WorldState.CurrentTime > time.AddSeconds(2))
                         {
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime < time.AddSeconds(10.7f) && module.WorldState.CurrentTime > time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(10.7f) && module.WorldState.CurrentTime > time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime > time.AddSeconds(10.7f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts >= 9 && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
                         }
-                    if (DiffractiveLaserAngleM90)
+                    if (DiffractiveLaserAngle90 && module.WorldState.CurrentTime > time.AddSeconds(2))
                         {
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime < time.AddSeconds(10.7f) && module.WorldState.CurrentTime > time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(10.7f) && module.WorldState.CurrentTime > time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime > time.AddSeconds(10.7f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 9 && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
                         }
-                    if (DiffractiveLaserAngle90)
+                    if (DiffractiveLaserAngle180 && module.WorldState.CurrentTime > time.AddSeconds(2))
                         {
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime < time.AddSeconds(10.7f) && module.WorldState.CurrentTime > time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(10.7f) && module.WorldState.CurrentTime > time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime > time.AddSeconds(10.7f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
-                                yield return new(rect, p.Position, p.Rotation, new());
-                        }
-                    if (DiffractiveLaserAngle180)
-                        {
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
-                                yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
-                                yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime < time.AddSeconds(10.7f) && module.WorldState.CurrentTime > time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
-                                yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(10.7f) && module.WorldState.CurrentTime > time.AddSeconds(8.9f) && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
-                                yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime > time.AddSeconds(10.7f) && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
+                            if(numcasts >= 9 && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
                         }
                     if (LaserShowerAngle90)
                         {
-                            if(module.WorldState.CurrentTime < time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.4f) && module.WorldState.CurrentTime > time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.4f) && module.WorldState.CurrentTime > time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime > time.AddSeconds(8.4f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 9 && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
                         }
                     if (LaserShowerAngleM90)
                         {
-                            if(module.WorldState.CurrentTime < time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.4f) && module.WorldState.CurrentTime > time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.4f) && module.WorldState.CurrentTime > time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime > time.AddSeconds(8.4f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 9 && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
                         }
                     if (LaserShowerAngle0)
                         {
-                            if(module.WorldState.CurrentTime < time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.4f) && module.WorldState.CurrentTime > time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.4f) && module.WorldState.CurrentTime > time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime > time.AddSeconds(8.4f) && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
+                            if(numcasts >= 9 && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
                         }
                     if (LaserShowerAngle180)
                         {
-                            if(module.WorldState.CurrentTime < time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && p.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.4f) && module.WorldState.CurrentTime > time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180) || p.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180)))
                                 yield return new(rect, p.Position, p.Rotation, new());
-                            if(module.WorldState.CurrentTime < time.AddSeconds(8.4f) && module.WorldState.CurrentTime > time.AddSeconds(6.6f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
-                            if(module.WorldState.CurrentTime > time.AddSeconds(8.4f) && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                            if(numcasts >= 9 && p.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
                                 yield return new(rect, p.Position, p.Rotation, new());
                         }
                     }
-                }
-                if ((SatelliteLaser || DiffractiveLaserAngle0 || DiffractiveLaserAngle90 || DiffractiveLaserAngleM90 || DiffractiveLaserAngle180) && module.WorldState.CurrentTime >= time.AddSeconds(12.5f))
-                    {
-                        DiffractiveLaserAngle0 = false;
-                        DiffractiveLaserAngle90 = false;
-                        DiffractiveLaserAngleM90 = false;
-                        DiffractiveLaserAngle180 = false;
-                        SatelliteLaser = false;
-                    }
-                if ((LaserShowerAngle90 || LaserShowerAngleM90 || LaserShowerAngle0 || LaserShowerAngle180) && module.WorldState.CurrentTime >= time.AddSeconds(10.25f))
-                    {
-                        LaserShowerAngle90 = false;
-                        LaserShowerAngleM90 = false;
-                        LaserShowerAngle0 = false;
-                        LaserShowerAngle180 = false;
-                    }
-                
+                }             
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -196,26 +172,37 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                 }
             if ((AID)spell.Action.ID == AID.LaserShower2)
                 {
-                    {
-                        if(caster.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
-                            LaserShowerAngle90 = true;
-                        if(caster.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
-                            LaserShowerAngle0 = true;
-                        if(caster.Rotation.AlmostEqual(-180.Degrees(),MathF.PI/180))
-                            LaserShowerAngle180 = true;
-                        if(caster.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
-                            LaserShowerAngleM90 = true;
-                    }
-                    time = module.WorldState.CurrentTime;
+                    if(caster.Rotation.AlmostEqual(90.Degrees(),MathF.PI/180))
+                        LaserShowerAngle90 = true;
+                    if(caster.Rotation.AlmostEqual(0.Degrees(),MathF.PI/180))
+                        LaserShowerAngle0 = true;
+                    if(caster.Rotation.AlmostEqual(180.Degrees(),MathF.PI/180))
+                        LaserShowerAngle180 = true;
+                    if(caster.Rotation.AlmostEqual(-90.Degrees(),MathF.PI/180))
+                        LaserShowerAngleM90 = true;
                 }
         }
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-                hints.Add($"SatelliteLaser is {SatelliteLaser}\nDL180° is {DiffractiveLaserAngle180}, DL0° is {DiffractiveLaserAngle0}, DLM90° is {DiffractiveLaserAngleM90},DL90° is {DiffractiveLaserAngle90}\nLS180° is {LaserShowerAngle180}, LS0° is {LaserShowerAngle0}, LSM90° is {LaserShowerAngleM90},LS90° is {LaserShowerAngle90}");
-
+            base.OnEventCast(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.RefractedLaser)
+                ++numcasts;
+            if (numcasts == 14)
+                {
+                    numcasts = 0;
+                    DiffractiveLaserAngle0 = false;
+                    DiffractiveLaserAngle90 = false;
+                    DiffractiveLaserAngleM90 = false;
+                    DiffractiveLaserAngle180 = false;
+                    SatelliteLaser = false;
+                    LaserShowerAngle90 = false;
+                    LaserShowerAngleM90 = false;
+                    LaserShowerAngle0 = false;
+                    LaserShowerAngle180 = false;
+                }
         }
     }
-    class Rush : Components.GenericWildCharge
+    class Rush : Components.GenericWildCharge //TODO: component only works if target player is in party, component needs to be more generalized for non party players and NPCs
     {
         public Rush() : base(7, ActionID.MakeSpell(AID.Rush)) { }
 
@@ -251,9 +238,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
     {
         public SatelliteLaser() : base(ActionID.MakeSpell(AID.SatelliteLaser), "Raidwide + all lasers fire at the same time") { }
     }
-    class CE31DainsleifStates : StateMachineBuilder
+    class CE31MetalFoxChaosStates : StateMachineBuilder
     {
-        public CE31DainsleifStates(BossModule module) : base(module)
+        public CE31MetalFoxChaosStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<SatelliteLaser>()
@@ -264,10 +251,10 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
         }
     }
 
-    [ModuleInfo(CFCID = 735, DynamicEventID = 6)]
-    public class CE31Dainsleif : BossModule
+    [ModuleInfo(CFCID = 735, DynamicEventID = 13)]
+    public class CE31MetalFoxChaos : BossModule
     {
-        public CE31Dainsleif(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-234, 262), 30.2f)) { }
+        public CE31MetalFoxChaos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-234, 262), 30.2f)) { }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
