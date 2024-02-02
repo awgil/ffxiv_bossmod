@@ -103,7 +103,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
 
     class LionsBreath : Components.SelfTargetedAOEs
     {
-        public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 32.5f.Degrees())) { } // TODO: verify angle
+        public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 37.5f.Degrees())) { } // TODO: verify angle
     }
 
     class VoidTornado : Components.CastHint
