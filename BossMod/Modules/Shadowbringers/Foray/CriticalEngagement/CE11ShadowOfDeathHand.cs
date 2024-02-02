@@ -22,7 +22,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
         RippingBlade = 20157, // Beastmaster->player, no cast, single-target, micro tankbuster
         BestialLoyalty = 20163, // Beastmaster->self, 3.0s cast, single-target, visual (summon crows)
         BestialLoyaltyAOE = 20164, // Helper->location, no cast, range 5 circle (aoe where crows appear)
-        RunWild = 20166, // Beastmaster->self, 4.0s cast, interruptible ???
+        RunWild = 20166, // Beastmaster->self, 4.0s cast, interruptible, buffs enemies with status effect Running Wild, seems to be some kind of damage buff
         Reward = 20169, // Beastmaster->Boss, 3.0s cast, single-target, heal
         WrathOfTheForsaken = 20170, // Boss->self, 3.0s cast, single-target, damage up after beastmaster death
         HardBeak = 20171, // Boss->player, 4.0s cast, single-target, tankbuster
@@ -55,7 +55,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
         public BestialLoyalty() : base(ActionID.MakeSpell(AID.BestialLoyalty), "Summon crows") { }
     }
 
-    // TODO: dunno what it does if not interrrupted
     class RunWild : Components.CastHint
     {
         public RunWild() : base(ActionID.MakeSpell(AID.RunWild), "Interrupt beastmaster") { }
