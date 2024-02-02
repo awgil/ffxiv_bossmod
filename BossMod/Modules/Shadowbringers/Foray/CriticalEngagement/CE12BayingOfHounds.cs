@@ -39,7 +39,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
     {
         public TheDragonsBreathA() : base(ActionID.MakeSpell(AID.TheDragonsBreathA), new AOEShapeCone(60, 25.Degrees())) { }
     }
-        class TheDragonsBreathB : Components.SelfTargetedAOEs
+    class TheDragonsBreathB : Components.SelfTargetedAOEs
     {
         public TheDragonsBreathB() : base(ActionID.MakeSpell(AID.TheDragonsBreathB), new AOEShapeCone(60, 25.Degrees())) { }
     }
@@ -103,7 +103,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
 
     class LionsBreath : Components.SelfTargetedAOEs
     {
-        public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 30.Degrees())) { } // TODO: verify angle
+        public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 32.5f.Degrees())) { } // TODO: verify angle
     }
 
     class VoidTornado : Components.CastHint
