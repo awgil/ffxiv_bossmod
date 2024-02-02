@@ -36,11 +36,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
     };
     class TheDragonsBreathA : Components.SelfTargetedAOEs
     {
-        public TheDragonsBreathA() : base(ActionID.MakeSpell(AID.TheDragonsBreathA), new AOEShapeCone(60, 27.5f.Degrees())) { }
+        public TheDragonsBreathA() : base(ActionID.MakeSpell(AID.TheDragonsBreathA), new AOEShapeCone(60, 25.Degrees())) { }
     }
         class TheDragonsBreathB : Components.SelfTargetedAOEs
     {
-        public TheDragonsBreathB() : base(ActionID.MakeSpell(AID.TheDragonsBreathB), new AOEShapeCone(60, 27.5f.Degrees())) { }
+        public TheDragonsBreathB() : base(ActionID.MakeSpell(AID.TheDragonsBreathB), new AOEShapeCone(60, 25.Degrees())) { }
     }
     class Hellclaw : Components.SingleTargetCast
     {
@@ -111,29 +111,29 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
     }
 
     class VoidQuake : Components.ConcentricAOEs
-{
-    private static AOEShape[] _shapes = {new AOEShapeDonut(20,30), new AOEShapeDonut(10,20), new AOEShapeCircle(10)};
-
-    public VoidQuake() : base(_shapes) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.VoidQuake)
-            AddSequence(module.Bounds.Center, spell.FinishAt);
-    }
+        private static AOEShape[] _shapes = {new AOEShapeDonut(20,30), new AOEShapeDonut(10,20), new AOEShapeCircle(10)};
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-    {
-        var order = (AID)spell.Action.ID switch
+        public VoidQuake() : base(_shapes) { }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            AID.VoidQuakeAOE3 => 0,
-            AID.VoidQuakeAOE2 => 1,
-            AID.VoidQuakeAOE1 => 2,
-            _ => -1
-        };
-        AdvanceSequence(order, caster.Position);
+            if ((AID)spell.Action.ID == AID.VoidQuake)
+                AddSequence(module.Bounds.Center, spell.FinishAt);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            var order = (AID)spell.Action.ID switch
+            {
+                AID.VoidQuakeAOE3 => 0,
+                AID.VoidQuakeAOE2 => 1,
+                AID.VoidQuakeAOE1 => 2,
+                _ => -1
+            };
+            AdvanceSequence(order, caster.Position);
+        }
     }
-}
 
     class CE12BayingOfHoundsStates : StateMachineBuilder
     {
