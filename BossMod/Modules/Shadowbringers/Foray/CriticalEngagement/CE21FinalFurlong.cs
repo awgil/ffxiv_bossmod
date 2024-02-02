@@ -41,6 +41,14 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
         Unfreezable = 17, // GraspingRancor->player (appears if hand wasn't hit by aoe)
     };
 
+    class TalonedGaze : Components.CastHint
+    {
+        public TalonedGaze() : base(ActionID.MakeSpell(AID.TalonedGaze), "AOE front/back --> sides") { }
+    }
+    class TalonedWings : Components.CastHint
+    {
+        public TalonedWings() : base(ActionID.MakeSpell(AID.TalonedWings), "AOE sides --> front/back") { }
+    }
     class GraspingRancor : Components.LocationTargetedAOEs
     {
         private List<Actor> _hands = new();
@@ -124,6 +132,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
                 .ActivateOnEnter<CoffinNails>()
                 .ActivateOnEnter<Stab>()
                 .ActivateOnEnter<GripOfPoison>()
+                .ActivateOnEnter<TalonedGaze>()
+                .ActivateOnEnter<TalonedWings>()
                 .ActivateOnEnter<StepsOfDestruction>();
         }
     }
