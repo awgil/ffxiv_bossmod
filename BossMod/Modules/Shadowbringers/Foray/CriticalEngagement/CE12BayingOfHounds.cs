@@ -36,11 +36,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
     };
     class TheDragonsBreathA : Components.SelfTargetedAOEs
     {
-        public TheDragonsBreathA() : base(ActionID.MakeSpell(AID.TheDragonsBreathA), new AOEShapeCone(60, 30.Degrees())) { }
+        public TheDragonsBreathA() : base(ActionID.MakeSpell(AID.TheDragonsBreathA), new AOEShapeCone(60, 27.5f.Degrees())) { }
     }
         class TheDragonsBreathB : Components.SelfTargetedAOEs
     {
-        public TheDragonsBreathB() : base(ActionID.MakeSpell(AID.TheDragonsBreathB), new AOEShapeCone(60, 30.Degrees())) { }
+        public TheDragonsBreathB() : base(ActionID.MakeSpell(AID.TheDragonsBreathB), new AOEShapeCone(60, 27.5f.Degrees())) { }
     }
     class Hellclaw : Components.SingleTargetCast
     {

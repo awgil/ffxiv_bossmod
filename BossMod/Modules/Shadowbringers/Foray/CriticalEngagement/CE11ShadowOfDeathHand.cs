@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
+﻿using System.Collections.Generic;
+
+namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
 {
     public enum OID : uint
     {
@@ -78,7 +80,27 @@
     {
         public BroadsideBarrage() : base(ActionID.MakeSpell(AID.BroadsideBarrage), new AOEShapeRect(40, 20)) { }
     }
+    class BroadsideBarrageKB : Components.Knockback
+    {
+        private bool casting;
 
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            if (casting)
+                yield return new(module.PrimaryActor.Position, 50, default, new AOEShapeRect(40, 20), module.PrimaryActor.Rotation, Kind.DirForward);
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.BroadsideBarrage)
+                casting = true;
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.BroadsideBarrage)
+                casting = false;
+        }
+    }
     class BlindsideBarrage : Components.RaidwideCast
     {
         public BlindsideBarrage() : base(ActionID.MakeSpell(AID.BlindsideBarrage), "Raidwide + deathwall appears") { }
@@ -115,6 +137,7 @@
                 .ActivateOnEnter<PiercingBarrageBoss>()
                 .ActivateOnEnter<Helldive>()
                 .ActivateOnEnter<BroadsideBarrage>()
+                .ActivateOnEnter<BroadsideBarrageKB>()
                 .ActivateOnEnter<BlindsideBarrage>()
                 .ActivateOnEnter<RollingBarrage>()
                 .ActivateOnEnter<Whirlwind>()
