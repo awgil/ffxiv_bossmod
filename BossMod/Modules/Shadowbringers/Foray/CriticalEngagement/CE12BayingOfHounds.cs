@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
 {
@@ -110,28 +111,31 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
         public VoidTornado() : base(ActionID.MakeSpell(AID.VoidTornado), "Set hp to 1") { }
     }
 
-    class VoidQuake : Components.ConcentricAOEs
+    class VoidQuake : Components.GenericAOEs
     {
-        private static AOEShape[] _shapes = {new AOEShapeDonut(20,30), new AOEShapeDonut(10,20), new AOEShapeCircle(10)};
+        private List<(Actor caster, AOEShape shape)> _active = new();
 
-        public VoidQuake() : base(_shapes) { }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.FinishAt));
+        }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.VoidQuake)
-                AddSequence(module.Bounds.Center, spell.FinishAt);
+            AOEShape? shape = (AID)spell.Action.ID switch
+            {
+                AID.VoidQuakeAOE1 => new AOEShapeCircle(10),
+                AID.VoidQuakeAOE2 => new AOEShapeDonut(10, 20),
+                AID.VoidQuakeAOE3 => new AOEShapeDonut(20, 30),
+                _ => null
+            };
+            if (shape != null)
+                _active.Add((caster, shape));
         }
 
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            var order = (AID)spell.Action.ID switch
-            {
-                AID.VoidQuakeAOE3 => 0,
-                AID.VoidQuakeAOE2 => 1,
-                AID.VoidQuakeAOE1 => 2,
-                _ => -1
-            };
-            AdvanceSequence(order, caster.Position);
+            _active.RemoveAll(c => c.caster == caster);
         }
     }
 
