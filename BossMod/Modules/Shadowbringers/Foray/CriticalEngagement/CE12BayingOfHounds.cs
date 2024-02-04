@@ -60,45 +60,13 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
     {
         public ScorchingLash() : base(ActionID.MakeSpell(AID.ScorchingLash), new AOEShapeRect(50, 5)) { }
     }
-
-    class Hellpounce : Components.GenericAOEs
+    class Hellpounce : Components.ChargeAOEs
     {
-        private AOEInstance? _charge;
-
-        public Hellpounce() : base(ActionID.MakeSpell(AID.Hellpounce), "GTFO from charge!") { }
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_charge != null)
-                yield return _charge.Value;
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.Hellpounce or AID.HellpounceSecond)
-                Activate(caster.Position, spell.LocXZ, spell.FinishAt);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.Hellpounce:
-                    var offset = spell.LocXZ - module.Bounds.Center;
-                    Activate(spell.LocXZ, module.Bounds.Center - offset, module.WorldState.CurrentTime.AddSeconds(3.7f));
-                    break;
-                case AID.HellpounceSecond:
-                    _charge = null;
-                    break;
-            }
-        }
-
-        private void Activate(WPos source, WPos target, DateTime activation)
-        {
-            var shape = new AOEShapeRect(0, 5);
-            shape.SetEndPoint(target, source, new());
-            _charge = new(shape, source, activation: activation);
-        }
+        public Hellpounce() : base(ActionID.MakeSpell(AID.Hellpounce), 5) { }
+    }
+    class HellpounceSecond : Components.ChargeAOEs
+    {
+        public HellpounceSecond() : base(ActionID.MakeSpell(AID.HellpounceSecond), 5) { }
     }
 
     class LionsBreath : Components.SelfTargetedAOEs
@@ -148,6 +116,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
                 .ActivateOnEnter<TailBlow>()
                 .ActivateOnEnter<ScorchingLash>()
                 .ActivateOnEnter<Hellpounce>()
+                .ActivateOnEnter<HellpounceSecond>()
                 .ActivateOnEnter<LionsBreath>()
                 .ActivateOnEnter<VoidTornado>()
                 .ActivateOnEnter<LavaSpitAOE>()
