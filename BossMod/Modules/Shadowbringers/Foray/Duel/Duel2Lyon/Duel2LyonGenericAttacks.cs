@@ -301,7 +301,7 @@ class SkyrendingStrike : CastHint
 
     public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
-        if (casting)
+        if (casting && module.PrimaryActor.IsTargetable)
             hints.Add($"Enrage! {Math.Max(35 - (module.WorldState.CurrentTime - enragestart).TotalSeconds, 0.0f):f1}s left.");
     }
 }
