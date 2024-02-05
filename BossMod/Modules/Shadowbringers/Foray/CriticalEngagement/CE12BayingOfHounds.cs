@@ -79,7 +79,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
         public VoidTornado() : base(ActionID.MakeSpell(AID.VoidTornado), "Set hp to 1") { }
     }
 
-    class VoidQuake : Components.GenericAOEs
+    class VoidQuake : Components.GenericAOEs //this concentric AOE can happen forwards or backwards in order with the same AID as the starter
     {
         private List<(Actor caster, AOEShape shape)> _active = new();
 
