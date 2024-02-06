@@ -36,7 +36,8 @@ namespace BossMod.AI
                 return;
 
             // keep master in focus
-            //FocusMaster(master);
+            if (Plugin._ai._config.FocusTargetLeader)
+                FocusMaster(master);
 
             _afkMode = !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
             bool forbidActions = _forbidActions || _ctrl.IsMounted || _afkMode || _autorot.ClassActions == null || _autorot.ClassActions.AutoAction >= CommonActions.AutoActionFirstCustom;

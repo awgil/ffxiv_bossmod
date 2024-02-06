@@ -7,15 +7,14 @@ using System.Linq;
 
 namespace BossMod.AI
 {
-    class AIManager : IDisposable
+    public class AIManager : IDisposable
     {
         public Autorotation _autorot;
         private AIController _controller;
-        private AIConfig _config;
+        public AIConfig _config;
         private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
         private AIBehaviour? _beh;
         private UISimpleWindow _ui;
-        public bool _nft = false;
 
         public AIManager(Autorotation autorot)
         {
@@ -53,7 +52,7 @@ namespace BossMod.AI
             }
             _controller.Update(player);
 
-            _ui.IsOpen = _config.Enabled && player != null;
+            _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
         }
 
         private void DrawOverlay()
@@ -64,11 +63,16 @@ namespace BossMod.AI
             if (ImGui.Button("Reset"))
                 SwitchToIdle();
             ImGui.SameLine();
-            if (ImGui.Button("Follow leader"))
+            if (ImGui.Button("AI On - Follow leader"))
             {
-                var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
-                int leaderSlot = leader != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
-                SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
+                if (_config.FollowLeader)
+                {
+                    var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
+                    int leaderSlot = leader != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
+                    SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
+                }
+                else
+                    SwitchToFollow(PartyState.PlayerSlot);
             }
         }
 

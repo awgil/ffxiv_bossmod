@@ -6,7 +6,7 @@ using FFXIVGame = FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace BossMod
 {
-    abstract class CommonActions : IDisposable
+    public abstract class CommonActions : IDisposable
     {
         public const int AutoActionNone = 0;
         public const int AutoActionAIIdle = 1;
