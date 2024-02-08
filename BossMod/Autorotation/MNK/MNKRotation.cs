@@ -320,7 +320,7 @@ namespace BossMod.MNK
             if (state.GCD <= 0.800f && ShouldUseRoF(state, strategy, deadline))
                 return ActionID.MakeSpell(AID.RiddleOfFire);
 
-            if (state.Form == Form.Raptor && ShouldUsePB(state, strategy, deadline))
+            if (ShouldUsePB(state, strategy, deadline))
                 return ActionID.MakeSpell(AID.PerfectBalance);
 
             if (ShouldUseBrotherhood(state, strategy, deadline))
@@ -587,13 +587,6 @@ namespace BossMod.MNK
             Strategy.NadiChoice.Solar => true,
             Strategy.NadiChoice.Lunar => false,
             _ => !state.HaveSolar
-        };
-
-        private static bool PreferLunar(State state, Strategy strategy) => strategy.NextNadi switch
-        {
-            Strategy.NadiChoice.Solar => false,
-            Strategy.NadiChoice.Lunar => true,
-            _ => state.HaveSolar
         };
     }
 }
