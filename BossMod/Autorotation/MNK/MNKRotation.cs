@@ -471,7 +471,7 @@ namespace BossMod.MNK
                 return true;
 
             // prevent early use in standard opener
-            return state.DisciplinedFistLeft > state.GCD && strategy.FightEndIn >= deadline + 20;
+            return state.DisciplinedFistLeft > state.GCD;
         }
 
         private static bool ShouldUseRoW(State state, Strategy strategy, float deadline)
@@ -487,7 +487,7 @@ namespace BossMod.MNK
                 return true;
 
             // thebalance recommends using RoW like an oGCD dot, so we use on cooldown as long as buffs have been used first
-            return state.CD(CDGroup.RiddleOfFire) > 0 && state.CD(CDGroup.Brotherhood) > 0 && strategy.FightEndIn >= deadline + 15;
+            return state.CD(CDGroup.RiddleOfFire) > 0 && state.CD(CDGroup.Brotherhood) > 0;
         }
 
         private static bool ShouldUseBrotherhood(State state, Strategy strategy, float deadline)
@@ -504,7 +504,6 @@ namespace BossMod.MNK
 
             return !strategy.UseAOE
                 && state.CD(CDGroup.RiddleOfFire) > 0
-                && strategy.FightEndIn >= deadline + 15
                 && (
                     // opener timing mostly important as long as rof is used first, we just want to align with party buffs -
                     // the default opener is bhood after first bootshine
@@ -527,7 +526,7 @@ namespace BossMod.MNK
             if (strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            if (state.Form != Form.Raptor || strategy.FightEndIn < deadline + state.AttackGCDTime * 4)
+            if (state.Form != Form.Raptor)
                 return false;
 
             // bh1 and bh3 even windows where RoF is used no earlier than 2 GCDs before this; also odd windows where
