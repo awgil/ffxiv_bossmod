@@ -28,9 +28,9 @@
         public C031Ketuduke(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 0), 20)) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 979, NameID = 12605)]
     public class C031NKetuduke : C031Ketuduke { public C031NKetuduke(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 980, NameID = 12605)]
     public class C031SKetuduke : C031Ketuduke { public C031SKetuduke(WorldState ws, Actor primary) : base(ws, primary) { } }
 }

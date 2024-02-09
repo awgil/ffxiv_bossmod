@@ -206,7 +206,7 @@ namespace BossMod.DNC
 
         private Targeting SelectBestTarget(AIHints.Enemy initial, float maxDistanceFromPlayer, Func<Actor, int> prio)
         {
-            var newBest = FindBetterTargetBy(initial, maxDistanceFromPlayer, (x) => prio(x.Actor)).Target;
+            var newBest = FindBetterTargetBy(initial, maxDistanceFromPlayer, x => prio(x.Actor)).Target;
             return new(newBest, newBest.StayAtLongRange ? 25 : 15);
         }
 

@@ -42,6 +42,7 @@ namespace BossMod
 
             // note: usually components are deactivated automatically on phase change - manual deactivate is needed only for components that opt out of this (useful for components that need to maintain state across multiple phases)
             public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.ActivateComponent<C>, condition);
+            public Phase DeactivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.DeactivateComponent<C>, condition); // TODO: reconsider...
             public Phase DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(_module.DeactivateComponent<C>, condition);
         }
 

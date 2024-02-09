@@ -20,9 +20,9 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
             if (tail != null)
             {
                 if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer)
-                    hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
+                    hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)",false);
                 if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged)
-                    hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
+                    hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)",false);
             }
         }
 

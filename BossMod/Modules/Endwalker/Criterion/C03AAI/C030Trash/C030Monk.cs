@@ -34,8 +34,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
             _savage = savage;
             DeathPhase(0, SinglePhase)
                 .ActivateOnEnter<Hydroshot>()
-                .ActivateOnEnter<NTwister>(!_savage)
-                .ActivateOnEnter<STwister>(_savage);
+                .ActivateOnEnter<Twister>();
         }
 
         private void SinglePhase(uint id)
@@ -61,13 +60,13 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
     class C030NMonkStates : C030MonkStates { public C030NMonkStates(BossModule module) : base(module, false) { } }
     class C030SMonkStates : C030MonkStates { public C030SMonkStates(BossModule module) : base(module, true) { } }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.NMonk)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.NMonk, CFCID = 979, NameID = 12631)]
     public class C030NMonk : C030Trash1
     {
         public C030NMonk(WorldState ws, Actor primary) : base(ws, primary) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.SMonk)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.SMonk, CFCID = 980, NameID = 12631)]
     public class C030SMonk : C030Trash1
     {
         public C030SMonk(WorldState ws, Actor primary) : base(ws, primary) { }

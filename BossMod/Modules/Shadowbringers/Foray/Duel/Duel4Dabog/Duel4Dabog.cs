@@ -20,7 +20,7 @@
         public LeftArmWave() : base(ActionID.MakeSpell(AID.LeftArmWaveAOE), 24) { }
     }
 
-    [ModuleInfo(CFCID = 735, NameID = 9958)]
+    [ModuleInfo(CFCID = 778, DynamicEventID = 19)]
     public class Duel4Dabog : BossModule
     {
         public Duel4Dabog(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(250, 710), 20)) { }
