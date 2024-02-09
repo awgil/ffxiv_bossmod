@@ -17,11 +17,25 @@ public enum AID : uint
     unknown = 14567, // 233C->self, 1,0s cast, single-target
     Plannyplot = 14558, // 25FA->self, 4,0s cast, single-target
     GobspinWhooshdrops = 14559, // 25FA->self, no cast, range 8 circle
+    unknown2 = 14568, // BossHelper->self, 1,0s cast, single-target
+    GobswipeConklops = 14560, // Boss->self, no cast, range 30 circle, knockback 15 away from source
 };
-
-    class GobfireShootypopsCCW : Components.SimpleRotationAOE
+    public enum IconID : uint
     {
-        public GobfireShootypopsCCW() : base(ActionID.MakeSpell(AID.GobfireShootypopsCCW), ActionID.MakeSpell(AID.GobfireShootypops), default, default, new AOEShapeRect(32,3), 6, 60.Degrees(), 0.Degrees(), true) { }
+       RotationCW = 168, // Boss
+       RotationCCW = 167, // Boss
+    };
+
+    class GobfireShootypops : Components.SimpleRotationAOE
+    {
+        public GobfireShootypops() : base(ActionID.MakeSpell(AID.GobfireShootypopsCCW), ActionID.MakeSpell(AID.GobfireShootypops), default, default, new AOEShapeRect(32,3), 6, 60.Degrees(), 0.Degrees(), true) { }
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if(iconID == (uint)IconID.RotationCW)
+                RotationDirIncrement = -60.Degrees();
+            if(iconID == (uint)IconID.RotationCCW)
+                RotationDirIncrement = 60.Degrees();
+        }
     }
     class IronKiss : Components.LocationTargetedAOEs
     {
@@ -33,7 +47,7 @@ public enum AID : uint
         {
             TrivialPhase()
                 .ActivateOnEnter<IronKiss>()
-                .ActivateOnEnter<GobfireShootypopsCCW>();
+                .ActivateOnEnter<GobfireShootypops>();
         }
     }
 
