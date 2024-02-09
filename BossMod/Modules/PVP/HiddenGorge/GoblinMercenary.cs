@@ -1,7 +1,7 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
+namespace BossMod.PVP.HiddenGorge.GoblinMercenary
 {
     public enum OID : uint
     {
@@ -14,7 +14,7 @@ public enum AID : uint
     IronKiss = 14562, // 233C->location, 5,0s cast, range 7 circle
     GobfireShootypopsCCW = 14563, // 25FA->self, 5,0s cast, range 30+R width 6 rect
     GobfireShootypops = 14564, // 25FA->self, no cast, range 30+R width 6 rect
-    unknown= 14567, // 233C->self, 1,0s cast, single-target
+    unknown = 14567, // 233C->self, 1,0s cast, single-target
     Plannyplot = 14558, // 25FA->self, 4,0s cast, single-target
     GobspinWhooshdrops = 14559, // 25FA->self, no cast, range 8 circle
 };
