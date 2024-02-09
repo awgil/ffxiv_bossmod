@@ -200,7 +200,14 @@ namespace BossMod.DNC
 
         protected override void OnActionSucceeded(ActorCastEvent ev)
         {
-            if (ev.Action.ID == (uint)AID.TechnicalFinish)
+            if (
+                ev.Action.ID
+                is (uint)AID.TechnicalFinish
+                    or (uint)AID.SingleTechnicalFinish
+                    or (uint)AID.DoubleTechnicalFinish
+                    or (uint)AID.TripleTechnicalFinish
+                    or (uint)AID.QuadrupleTechnicalFinish
+            )
                 _predictedTechFinish = true;
         }
 
