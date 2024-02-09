@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace BossMod.DNC
@@ -14,7 +13,7 @@ namespace BossMod.DNC
         private Rotation.State _state;
         private Rotation.Strategy _strategy;
 
-        private bool _predictedTechFinish = false;
+        private bool _predictedTechFinish = false; // TODO: find a way to remove that
 
         public Actions(Autorotation autorot, Actor player)
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
@@ -190,6 +189,7 @@ namespace BossMod.DNC
             // there seems to be a delay between tech finish use and buff application in full parties - maybe it's a
             // cascading buff that is applied to self last? anyway, the delay can cause the rotation to skip the
             // devilment weave window that occurs right after tech finish since it doesn't think we have tech finish yet
+            // TODO: this is not very robust (eg player could die between action and buff application), investigate why StatusDetail doesn't pick it up from pending statuses...
             if (_predictedTechFinish) {
                 if (_state.TechFinishLeft == 0)
                     _state.TechFinishLeft = 1000f;
