@@ -11,10 +11,10 @@
 
         SBoss = 0x40A3, // R8.000, x1
         SSpringCrystalSphere = 0x40A4, // R4.200, spawn during fight
-        SSpringCrystalRect = 0x40A5, // R4.200, spawn during fight (TODO: verify OID)
-        SAiryBubbleTyphoon = 0x40A6, // R1.200, spawn during fight (TODO: verify OID)
-        SAiryBubbleExaflare = 0x40A7, // R1.300, spawn during fight (TODO: verify OID)
-        SZaratan = 0x40A8, // R1.120, spawn during fight (TODO: verify OID)
+        SSpringCrystalRect = 0x40A5, // R4.200, spawn during fight
+        SAiryBubbleTyphoon = 0x40A6, // R1.200, spawn during fight
+        SAiryBubbleExaflare = 0x40A7, // R1.300, spawn during fight
+        SZaratan = 0x40A8, // R1.120, spawn during fight (snake)
 
         Helper = 0x233C, // R0.500, 523 type, spawn during fight
         KnockbackHelper = 0x40B2, // R0.500, spawn during fight
@@ -32,8 +32,10 @@
         STidalRoarAOE = 35565, // Helper->self, no cast, range 100 circle, raidwide
 
         SpringCrystals = 35496, // *Boss->self, 2.2s cast, single-target, visual (create crystals)
-        SpringCrystalSphereAppear = 35497, // *SpringCrystalSphere->self, no cast, single-target, visual
-        SpringCrystalRectAppear = 35498, // *SpringCrystalRect->self, no cast, single-target, visual
+        NSpringCrystalSphereAppear = 35497, // NSpringCrystalSphere->self, no cast, single-target, visual
+        NSpringCrystalRectAppear = 35498, // NSpringCrystalRect->self, no cast, single-target, visual
+        SSpringCrystalSphereAppear = 35545, // SSpringCrystalSphere->self, no cast, single-target, visual
+        SSpringCrystalRectAppear = 35546, // SSpringCrystalRect->self, no cast, single-target, visual
         NSaturateRect = 35500, // NSpringCrystalRect->self, 1.0s cast, range 76 width 10 rect aoe
         SSaturateRect = 35548, // SSpringCrystalRect->self, 1.0s cast, range 76 width 10 rect aoe (TODO: verify AID)
         BubbleNet1 = 35501, // *Boss->self, 4.1s cast, single-target, visual (raidwide + debuffs)

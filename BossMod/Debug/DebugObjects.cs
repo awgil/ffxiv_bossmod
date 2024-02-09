@@ -75,6 +75,7 @@ namespace BossMod
             if (selected != null)
             {
                 var h = new Vector3(0, Utils.GameObjectInternal(selected)->Height, 0);
+                Camera.Instance?.DrawWorldLine(Service.ClientState.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
                 Camera.Instance?.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
                 Camera.Instance?.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
                 Camera.Instance?.DrawWorldCircle(selected.Position - h, selected.HitboxRadius, 0xff00ff00);

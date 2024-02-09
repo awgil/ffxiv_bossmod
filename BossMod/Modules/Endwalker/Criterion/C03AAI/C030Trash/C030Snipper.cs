@@ -49,8 +49,9 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
                 .ActivateOnEnter<NWater>(!_savage)
                 .ActivateOnEnter<SWater>(_savage)
                 .ActivateOnEnter<BubbleShowerCrabDribble>()
-                .ActivateOnEnter<NTwister>(!_savage)
-                .ActivateOnEnter<STwister>(_savage);
+                .ActivateOnEnter<NTailScrew>(!_savage) // note: first mob is often pulled together with second one
+                .ActivateOnEnter<STailScrew>(_savage)
+                .ActivateOnEnter<Twister>();
         }
 
         private void SinglePhase(uint id)
