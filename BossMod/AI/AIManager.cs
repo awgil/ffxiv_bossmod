@@ -141,8 +141,10 @@ namespace BossMod.AI
                     SwitchToIdle();
                     break;
                 case "toggle":
-                    if (_beh == null) SwitchToFollow(PartyState.PlayerSlot);
-                    else SwitchToIdle();
+                    if (_beh == null)
+                        SwitchToFollow(PartyState.PlayerSlot);
+                    else
+                        SwitchToIdle();
                     break;
                 default:
                     Service.Log($"[AI] Unknown command: {messageData[0]}");
