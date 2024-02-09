@@ -59,7 +59,7 @@ namespace BossMod.Components
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if(FirstAIDisRotationStep && spell.Action == Aid == WatchedAction && Aid != default)
                 {
