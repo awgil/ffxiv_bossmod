@@ -25,6 +25,7 @@ namespace BossMod
         [PluginService] public static ITargetManager TargetManager { get; private set; }
         [PluginService] public static IFramework Framework { get; private set; }
         [PluginService] public static ITextureProvider Texture { get; private set; }
+        [PluginService] public static ICommandManager CommandManager { get; private set; }
 #pragma warning restore CS8618
 
         public static Action<string>? LogHandler = null;
