@@ -64,8 +64,7 @@ namespace BossMod.DNC
                 }
             }
 
-            public AID BestImprov =>
-                ImprovisationLeft > 0 ? AID.ImprovisedFinish : AID.Improvisation;
+            public AID BestImprov => ImprovisationLeft > 0 ? AID.ImprovisedFinish : AID.Improvisation;
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
 
@@ -73,8 +72,7 @@ namespace BossMod.DNC
 
             public override string ToString()
             {
-                var steps = IsDancing ? CompletedSteps : 0;
-                return $"F={Feathers}, E={Esprit}, S={steps}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
+                return $"T={TechFinishLeft:f2}, S={StandardFinishLeft:f2}, C3={SymmetryLeft:f2}, C4={FlowLeft:f2}, Fan3={ThreefoldLeft:f2}, Fan4={FourfoldLeft:f2}, E={Esprit}, PotCD={PotionCD:f3}, GCD={GCD:f3}, ALock={AnimationLock:f3}+{AnimationLockDelay:f3}, lvl={Level}/{UnlockProgress}";
             }
         }
 
@@ -89,20 +87,26 @@ namespace BossMod.DNC
             public int NumFan4Targets; // 15y/120deg cone
             public int NumStarfallTargets; // 25/4 rect
 
+            public OffensiveAbilityUse StdStepUse; // default: on cooldown, if there are enemies
+            public OffensiveAbilityUse TechStepUse; // default: on cooldown, if there are enemies
             public OffensiveAbilityUse FeatherUse;
             public OffensiveAbilityUse GaugeUse;
 
             public void ApplyStrategyOverrides(uint[] overrides)
             {
-                if (overrides.Length >= 2)
+                if (overrides.Length >= 4)
                 {
                     GaugeUse = (OffensiveAbilityUse)overrides[0];
                     FeatherUse = (OffensiveAbilityUse)overrides[1];
+                    TechStepUse = (OffensiveAbilityUse)overrides[2];
+                    StdStepUse = (OffensiveAbilityUse)overrides[3];
                 }
                 else
                 {
                     GaugeUse = OffensiveAbilityUse.Automatic;
                     FeatherUse = OffensiveAbilityUse.Automatic;
+                    TechStepUse = OffensiveAbilityUse.Automatic;
+                    StdStepUse = OffensiveAbilityUse.Automatic;
                 }
             }
 
@@ -145,14 +149,55 @@ namespace BossMod.DNC
                 return AID.None;
             }
 
-            if (
-                state.DevilmentLeft > state.GCD
-                && state.FlourishingStarfallLeft > state.GCD
-                && state.Unlocked(AID.StarfallDance)
-                && strategy.NumStarfallTargets > 0
-            )
+            if (ShouldTechStep(state, strategy))
+                return AID.TechnicalStep;
+
+            var shouldStdStep = ShouldStdStep(state, strategy);
+
+            // priority for cdplan
+            if (strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force && shouldStdStep)
+                return AID.StandardStep;
+
+            var canStarfall = state.FlourishingStarfallLeft > state.GCD && strategy.NumStarfallTargets > 0;
+            var canFlow = CanFlow(state, strategy, out var flowCombo);
+            var canSymmetry = CanSymmetry(state, strategy, out var symmetryCombo);
+            var combo2 = strategy.NumAOETargets > 1 ? AID.Bladeshower : AID.Fountain;
+            var haveCombo2 =
+                state.Unlocked(combo2)
+                && state.ComboLastMove == (strategy.NumAOETargets > 1 ? AID.Windmill : AID.Cascade);
+
+            // prevent starfall expiration
+            if (canStarfall && state.FlourishingStarfallLeft <= state.AttackGCDTime)
                 return AID.StarfallDance;
 
+            // prevent flow expiration
+            if (canFlow && state.FlowLeft <= state.AttackGCDTime)
+                return flowCombo;
+
+            // prevent symmetry expiration
+            if (canSymmetry && state.SymmetryLeft <= state.AttackGCDTime)
+                return symmetryCombo;
+
+            // prevent saber overcap
+            if (ShouldSaberDance(state, strategy, 85))
+                return AID.SaberDance;
+
+            // starfall dance
+            if (canStarfall)
+                return AID.StarfallDance;
+
+            // prevent combo2 expiration
+            if (haveCombo2 && state.ComboTimeLeft < state.AttackGCDTime * 2)
+            {
+                // use flow first if we have it so combo2 doesn't overwrite proc
+                if (canFlow)
+                    return flowCombo;
+
+                if (state.ComboTimeLeft < state.AttackGCDTime)
+                    return combo2;
+            }
+
+            // tillana
             if (
                 state.FlourishingFinishLeft > state.GCD
                 && state.CD(CDGroup.Devilment) > 0
@@ -160,69 +205,38 @@ namespace BossMod.DNC
             )
                 return AID.Tillana;
 
-            if (
-                state.StandardFinishLeft > state.GCD + 5.5
-                && state.Unlocked(AID.TechnicalStep)
-                && state.CD(CDGroup.TechnicalStep) <= state.GCD
-                && strategy.NumDanceTargets > 0
-            )
-                return AID.TechnicalStep;
+            // buffed saber dance
+            if (state.TechFinishLeft > state.GCD && ShouldSaberDance(state, strategy, 50))
+                return AID.SaberDance;
 
+            // unbuffed standard step - combos 3 and 4 are higher priority in raid buff window
+            // skip if tech step is around 5s cooldown or lower since std step would delay it
             if (
-                state.CD(CDGroup.StandardStep) <= state.GCD
-                && state.Unlocked(AID.StandardStep)
-                && strategy.NumDanceTargets > 0
+                state.TechFinishLeft == 0
+                && shouldStdStep
+                && (state.CD(CDGroup.TechnicalStep) > state.GCD + 5 || !state.Unlocked(AID.TechnicalStep))
             )
                 return AID.StandardStep;
 
-            if (
-                ShouldSpendEsprit(state, strategy)
-                && state.Unlocked(AID.SaberDance)
-                && strategy.NumRangedAOETargets > 0
-            )
-                return AID.SaberDance;
+            // combo 3
+            if (canFlow)
+                return flowCombo;
+            // combo 4
+            if (canSymmetry)
+                return symmetryCombo;
 
-            if (state.FlowLeft > state.GCD)
-            {
-                // bloodshower > fountainfall on 2 targets
-                if (strategy.NumAOETargets > 1 && state.Unlocked(AID.Bloodshower))
-                    return AID.Bloodshower;
+            // (possibly buffed) standard step
+            if (shouldStdStep)
+                return AID.StandardStep;
 
-                if (state.Unlocked(AID.Fountainfall) && state.TargetingEnemy)
-                    return AID.Fountainfall;
-            }
+            if (haveCombo2)
+                return combo2;
 
-            if (state.SymmetryLeft > state.GCD)
-            {
-                // rising windmill == reverse cascade on 2 targets
-                if (strategy.NumAOETargets > 1 && state.Unlocked(AID.RisingWindmill))
-                    return AID.RisingWindmill;
-
-                if (state.Unlocked(AID.ReverseCascade) && state.TargetingEnemy)
-                    return AID.ReverseCascade;
-            }
-
-            if (
-                state.ComboLastMove == AID.Windmill
-                && state.Unlocked(AID.Bladeshower)
-                // bladeshower (140) is higher potency on 2 targets (280) than cascade (220)
-                && strategy.NumAOETargets > 1
-            )
-                return AID.Bladeshower;
-
-            // windmill is higher potency on 3 targets (100x3) than cascade (220) or fountain (280)
-            if (strategy.NumAOETargets > 2 && state.Unlocked(AID.Windmill))
-                return AID.Windmill;
-
-            if (!state.TargetingEnemy) return AID.None;
-
-            if (
-                state.ComboLastMove == AID.Cascade
-                && state.Unlocked(AID.Fountain)
-            )
-                return AID.Fountain;
-
-            return AID.Cascade;
+            return strategy.NumAOETargets > 1 && state.Unlocked(AID.Windmill)
+                ? AID.Windmill
+                : state.TargetingEnemy
+                    ? AID.Cascade
+                    : AID.None;
         }
 
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
@@ -243,54 +257,80 @@ namespace BossMod.DNC
             if (state.IsDancing)
                 return new();
 
-            if (state.RaidBuffsLeft > state.GCD)
-            {
-                if (
-                    state.Unlocked(AID.Devilment)
-                    && state.CanWeave(CDGroup.Devilment, 0.6f, deadline)
-                )
-                    return ActionID.MakeSpell(AID.Devilment);
-
-                if (
-                    state.Unlocked(AID.Flourish) && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
-                )
-                    return ActionID.MakeSpell(AID.Flourish);
-
-                if (
-                    state.FourfoldLeft > state.AnimationLock
-                    && state.CanWeave(deadline)
-                    && strategy.NumFan4Targets > 0
-                )
-                    return ActionID.MakeSpell(AID.FanDanceIV);
-            }
-
             if (
-                state.CD(CDGroup.Devilment) >= 55
-                && state.CanWeave(CDGroup.Flourish, 0.6f, deadline)
+                state.TechFinishLeft > state.GCD
+                && state.Unlocked(AID.Devilment)
+                && state.CanWeave(CDGroup.Devilment, 0.6f, deadline)
             )
+                return ActionID.MakeSpell(AID.Devilment);
+
+            if (state.CD(CDGroup.Devilment) > 55 && state.CanWeave(CDGroup.Flourish, 0.6f, deadline))
                 return ActionID.MakeSpell(AID.Flourish);
 
             if (
-                state.CD(CDGroup.Devilment) > 0
-                && state.FourfoldLeft > state.AnimationLock
-                && state.CanWeave(deadline)
-                && strategy.NumFan4Targets > 0
-            )
-                return ActionID.MakeSpell(AID.FanDanceIV);
-
-            if (
-                state.ThreefoldLeft > state.AnimationLock
-                && state.CanWeave(deadline)
+                (state.TechFinishLeft == 0 || state.CD(CDGroup.Devilment) > 0)
+                && state.ThreefoldLeft > state.AnimationLock
                 && strategy.NumRangedAOETargets > 0
             )
                 return ActionID.MakeSpell(AID.FanDanceIII);
 
-            if (ShouldSpendFeathers(state, strategy) && state.CanWeave(deadline))
-                return strategy.NumAOETargets > 1 && state.Unlocked(AID.FanDanceII)
+            var canF1 = ShouldSpendFeathers(state, strategy);
+            var f1ToUse =
+                strategy.NumAOETargets > 1 && state.Unlocked(AID.FanDanceII)
                     ? ActionID.MakeSpell(AID.FanDanceII)
                     : ActionID.MakeSpell(AID.FanDance);
 
+            if (state.Feathers == 4 && canF1)
+                return f1ToUse;
+
+            if (
+                state.CD(CDGroup.Devilment) > 0
+                && state.FourfoldLeft > state.AnimationLock
+                && strategy.NumFan4Targets > 0
+            )
+                return ActionID.MakeSpell(AID.FanDanceIV);
+
+            if (canF1)
+                return f1ToUse;
+
             return new();
+        }
+
+        private static bool ShouldTechStep(State state, Strategy strategy)
+        {
+            if (
+                !state.Unlocked(AID.TechnicalStep)
+                || state.CD(CDGroup.TechnicalStep) > state.GCD
+                || strategy.TechStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Delay
+            )
+                return false;
+
+            if (strategy.TechStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force)
+                return true;
+
+            return strategy.NumDanceTargets > 0 && state.StandardFinishLeft > state.GCD + 5.5;
+        }
+
+        private static bool ShouldStdStep(State state, Strategy strategy)
+        {
+            if (
+                !state.Unlocked(AID.StandardStep)
+                || state.CD(CDGroup.StandardStep) > state.GCD
+                || strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Delay
+            )
+                return false;
+
+            if (strategy.StdStepUse == CommonRotation.Strategy.OffensiveAbilityUse.Force)
+                return true;
+
+            // skip if tech finish would expire before we can cast std finish
+            // standard step = 1.5s, step = 2x1s -> 3.5s
+            return strategy.NumDanceTargets > 0
+                && (
+                    state.TechFinishLeft == 0
+                    || state.TechFinishLeft > state.GCD + 3.5
+                    || !state.Unlocked(AID.TechnicalStep)
+                );
         }
 
         private static bool ShouldFinishDance(float danceTimeLeft, State state, Strategy strategy)
@@ -311,19 +351,52 @@ namespace BossMod.DNC
             if (state.Feathers == 4 || strategy.FeatherUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            return state.RaidBuffsLeft > state.AnimationLock;
+            return state.TechFinishLeft > state.AnimationLock;
         }
 
-        private static bool ShouldSpendEsprit(State state, Strategy strategy)
+        private static bool ShouldSaberDance(State state, Strategy strategy, int minimumEsprit)
         {
-            if (state.Esprit < 50 || strategy.GaugeUse == Strategy.OffensiveAbilityUse.Delay)
+            if (
+                state.Esprit < 50
+                || strategy.GaugeUse == Strategy.OffensiveAbilityUse.Delay
+                || !state.Unlocked(AID.SaberDance)
+            )
                 return false;
 
-            if (state.Esprit >= 90 || strategy.GaugeUse == Strategy.OffensiveAbilityUse.Force)
+            if (strategy.GaugeUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
-            return state.RaidBuffsLeft > state.GCD;
+            return state.Esprit >= minimumEsprit && strategy.NumRangedAOETargets > 0;
         }
+
+        private static bool CanFlow(State state, Strategy strategy, out AID action)
+        {
+            var act = strategy.NumAOETargets > 1 ? AID.Bloodshower : AID.Fountainfall;
+            if (state.Unlocked(act) && state.FlowLeft > state.GCD && HaveTarget(state, strategy))
+            {
+                action = act;
+                return true;
+            }
+
+            action = AID.None;
+            return false;
+        }
+
+        private static bool CanSymmetry(State state, Strategy strategy, out AID action)
+        {
+            var act = strategy.NumAOETargets > 1 ? AID.RisingWindmill : AID.ReverseCascade;
+            if (state.Unlocked(act) && state.SymmetryLeft > state.GCD && HaveTarget(state, strategy))
+            {
+                action = act;
+                return true;
+            }
+
+            action = AID.None;
+            return false;
+        }
+
+        private static bool HaveTarget(State state, Strategy strategy) =>
+            strategy.NumAOETargets > 1 || state.TargetingEnemy;
 
         private static bool ShouldDoNothing(State state, Strategy strategy)
         {
