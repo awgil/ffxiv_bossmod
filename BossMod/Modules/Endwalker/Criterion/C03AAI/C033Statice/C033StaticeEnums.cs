@@ -100,6 +100,7 @@
         SFireSpreadFirst = 35183, // Helper->self, 8.0s cast, range 12 width 5 rect
         SFireSpreadRest = 35323, // Helper->self, no cast, range 12 width 5 rect (x11, advance by 10 degrees every time)
         Enrage = 35875, // *Boss->self, 10.0s cast, range 60 circle, enrage
+        EnrageAOE = 35876, // *Boss->self, no cast, range 60 circle, enrage repeat (every 3s after enrage)
     };
 
     public enum SID : uint
