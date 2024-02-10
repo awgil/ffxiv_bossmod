@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
     {
         public int castsleft;
         private bool active;
-        private static readonly AOEShapeCircle circle = new(8);
+        private readonly AOEShapeCircle circle = new(8);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
