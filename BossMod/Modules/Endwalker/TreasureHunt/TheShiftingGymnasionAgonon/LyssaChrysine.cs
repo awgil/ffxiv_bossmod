@@ -1,15 +1,16 @@
 // CONTRIB: made by malediktus, not checked
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 {
     public enum OID : uint
     {
         Boss = 0x3D43, //R=5
-        BossAdd = 0x3D4E, //R=3.75
+        BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don#t seem to despawn
         BossHelper = 0x233C,
         IcePillars = 0x3D44, 
-        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack
+        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
     };
 
     public enum AID : uint
@@ -28,6 +29,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         HeavySmash2 = 32317, // BossAdd->location, 3,0s cast, range 6 circle
         FrigidStone = 32308, // Boss->self, 2,5s cast, single-target, activates helpers
         FrigidStone2 = 32309, // BossHelper->location, 3,0s cast, range 5 circle
+        Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
     };
 
     class HeavySmash2 : Components.LocationTargetedAOEs
@@ -42,7 +44,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 
     class OutInAOE : Components.ConcentricAOEs
     {
-        private static AOEShape[] _shapes = {new AOEShapeCircle(10), new AOEShapeDonut(10, 20)};
+        private static readonly AOEShape[] _shapes = {new AOEShapeCircle(10), new AOEShapeDonut(10, 20)};
 
         public OutInAOE() : base(_shapes) { }
 
@@ -105,7 +107,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
     class IcePillarSpawn : Components.GenericAOEs
     {
         private bool activePillar; 
-        private static readonly AOEShapeCircle circle = new(6);
+        private readonly AOEShapeCircle circle = new(6);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (activePillar)
@@ -142,7 +144,8 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
             .ActivateOnEnter<InOutAOE>()
             .ActivateOnEnter<FrigidStone2>()
             .ActivateOnEnter<HeavySmash2>()
-            .ActivateOnEnter<PillarPierce>();
+            .ActivateOnEnter<PillarPierce>()
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
         }
     }
 
@@ -154,21 +157,20 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-            foreach (var s in Enemies(OID.BossAdd))
-                Arena.Actor(s, ArenaColor.Object, false);
+            foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.BonusAdds_Lampas))
-                Arena.Actor(s, ArenaColor.Danger, false);
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
                     OID.BonusAdds_Lampas => 3,
-                    OID.BossAdd => 2,
+                    OID.BonusAdds_Lyssa => 2,
                     OID.Boss => 1,
                     _ => 0
                 };
