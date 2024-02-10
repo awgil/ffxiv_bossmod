@@ -28,90 +28,65 @@ public enum AID : uint
        RotationCCW = 168, // Boss
        RotationCW = 167, // Boss
     };
-    class GobspinWhooshdrops : Components.GenericAOEs
+    class GobspinSwipe : Components.GenericAOEs
     {
-        private bool casting;
+        private bool castingGobspin;
+        private bool castingGobswipe;
         private readonly AOEShapeCircle circle = new(8);
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (casting)
-                yield return new(circle, module.PrimaryActor.Position);
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-                casting = true;
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.GobspinWhooshdrops)
-                casting = false;
-        }
-    }
-    class GobswipeConklops : Components.GenericAOEs
-    {
-        private bool casting;
         private readonly AOEShapeDonut donut = new(7,30); //TODO: confirm
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (casting)
+            if (castingGobspin)
+                yield return new(circle, module.PrimaryActor.Position);
+            if (castingGobswipe)
                 yield return new(donut, module.PrimaryActor.Position);
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-                casting = true;
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.GobswipeConklops)
-                casting = false;
-        }
-    }
-    class GobspinWhooshdropsKB : Components.Knockback
-    {
-        private bool casting;
-        private readonly AOEShapeCircle circle = new(8);
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            if (casting)
-                yield return new(module.PrimaryActor.Position, 15, default, circle, module.PrimaryActor.Rotation, Kind.AwayFromOrigin);
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
             if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-                casting = true;
+                castingGobspin = true;
+            if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
+                castingGobswipe = true;
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.GobspinWhooshdrops)
-                casting = false;
+                castingGobspin = false;
+            if ((AID)spell.Action.ID == AID.GobswipeConklops)
+                castingGobswipe = false;
         }
     }
-    class GobswipeConklopsKB : Components.Knockback
+    class Knockbacks : Components.Knockback
     {
-        private bool casting;
+        private bool castingGobspin;
+        private bool castingGobswipe;
+        private readonly AOEShapeCircle circle = new(8);
         private readonly AOEShapeDonut donut = new(7,30); //TODO: confirm
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-            if (casting)
+            if (castingGobspin)
+                yield return new(module.PrimaryActor.Position, 15, default, circle, module.PrimaryActor.Rotation, Kind.AwayFromOrigin);
+            if (castingGobswipe)
                 yield return new(module.PrimaryActor.Position, 15, default, donut, module.PrimaryActor.Rotation, Kind.AwayFromOrigin);
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
+            if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
+                castingGobspin = true;
             if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-                casting = true;
+                castingGobswipe = true;
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
+            if ((AID)spell.Action.ID == AID.GobspinWhooshdrops)
+                castingGobspin = false;
             if ((AID)spell.Action.ID == AID.GobswipeConklops)
-                casting = false;
+                castingGobswipe = false;
         }
     }
+
     class GobfireShootypops : Components.SimpleRotationAOE
     {
         public GobfireShootypops() : base(ActionID.MakeSpell(AID.GobfireShootypopsStart), ActionID.MakeSpell(AID.GobfireShootypops), default, default, new AOEShapeRect(32,3), 6, 0.Degrees(), 0.Degrees(), true) { }
@@ -133,10 +108,8 @@ public enum AID : uint
         {
             TrivialPhase()
                 .ActivateOnEnter<IronKiss>()
-                .ActivateOnEnter<GobspinWhooshdrops>()
-                .ActivateOnEnter<GobspinWhooshdropsKB>()
-                .ActivateOnEnter<GobswipeConklops>()
-                .ActivateOnEnter<GobswipeConklopsKB>()
+                .ActivateOnEnter<GobspinSwipe>()
+                .ActivateOnEnter<Knockbacks>()
                 .ActivateOnEnter<GobfireShootypops>();
         }
     }
