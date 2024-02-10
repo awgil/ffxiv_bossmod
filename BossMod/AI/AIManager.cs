@@ -76,7 +76,7 @@ namespace BossMod.AI
             }
         }
 
-        public void SwitchToIdle()
+        private void SwitchToIdle()
         {
             _beh?.Dispose();
             _beh = null;
@@ -85,7 +85,7 @@ namespace BossMod.AI
             _controller.Clear();
         }
 
-        public void SwitchToFollow(int masterSlot)
+        private void SwitchToFollow(int masterSlot)
         {
             SwitchToIdle();
             _masterSlot = masterSlot;

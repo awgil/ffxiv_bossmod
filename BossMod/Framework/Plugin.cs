@@ -1,5 +1,4 @@
-﻿using BossMod.AI;
-using Dalamud.Common;
+﻿using Dalamud.Common;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
@@ -47,8 +46,8 @@ namespace BossMod
         private WorldStateGame _ws;
         private BossModuleManager _bossmod;
         private Autorotation _autorotation;
-        private AIManager _ai;
-        private Broadcast _broadcast;
+        private AI.AIManager _ai;
+        private AI.Broadcast _broadcast;
         private TimeSpan _prevUpdateTime;
 
         // windows
