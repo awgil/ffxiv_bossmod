@@ -74,7 +74,9 @@ namespace BossMod.AI
                     SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
                 }
                 else
+                {
                     SwitchToFollow(PartyState.PlayerSlot);
+                }
             }
         }
 
