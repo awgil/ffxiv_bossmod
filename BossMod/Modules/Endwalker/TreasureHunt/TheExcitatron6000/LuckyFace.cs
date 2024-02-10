@@ -59,120 +59,141 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         Paralysis = 17, // 380A->player, extra=0x0
         Slow = 9, // 380A->player, extra=0x0
         Heavy = 14, // 380A->player, extra=0x32
-
     };
+
     public enum IconID : uint
     {
         tankbuster = 218,
         spreadmarker = 194,
     };
+
     class LeftInTheDark1 : Components.SelfTargetedAOEs
     {
-        public LeftInTheDark1() : base(ActionID.MakeSpell(AID.LeftInTheDark), new AOEShapeCone(20,90.Degrees())) { } 
+        public LeftInTheDark1() : base(ActionID.MakeSpell(AID.LeftInTheDark), new AOEShapeCone(20, 90.Degrees())) { }
     }
+
     class LeftInTheDark2 : Components.SelfTargetedAOEs
     {
-        public LeftInTheDark2() : base(ActionID.MakeSpell(AID.LeftInTheDark2), new AOEShapeCone(20,90.Degrees())) { } 
+        public LeftInTheDark2() : base(ActionID.MakeSpell(AID.LeftInTheDark2), new AOEShapeCone(20, 90.Degrees())) { }
     }
+
     class RightInTheDark1 : Components.SelfTargetedAOEs
     {
-        public RightInTheDark1() : base(ActionID.MakeSpell(AID.RightInTheDark1), new AOEShapeCone(20,90.Degrees())) { } 
+        public RightInTheDark1() : base(ActionID.MakeSpell(AID.RightInTheDark1), new AOEShapeCone(20, 90.Degrees())) { }
     }
+
     class RightInTheDark2 : Components.SelfTargetedAOEs
     {
-        public RightInTheDark2() : base(ActionID.MakeSpell(AID.RightInTheDark2), new AOEShapeCone(20,90.Degrees())) { } 
+        public RightInTheDark2() : base(ActionID.MakeSpell(AID.RightInTheDark2), new AOEShapeCone(20, 90.Degrees())) { }
     }
+
     class QuakeInYourBoots1 : Components.SelfTargetedAOEs
     {
-        public QuakeInYourBoots1() : base(ActionID.MakeSpell(AID.QuakeInYourBoots), new AOEShapeCircle(10)) { } 
+        public QuakeInYourBoots1() : base(ActionID.MakeSpell(AID.QuakeInYourBoots), new AOEShapeCircle(10)) { }
     }
+
     class QuakeInYourBoots2 : Components.SelfTargetedAOEs
     {
-        public QuakeInYourBoots2() : base(ActionID.MakeSpell(AID.QuakeInYourBoots2), new AOEShapeCircle(10)) { } 
+        public QuakeInYourBoots2() : base(ActionID.MakeSpell(AID.QuakeInYourBoots2), new AOEShapeCircle(10)) { }
     }
+
     class QuakeMeAway1 : Components.SelfTargetedAOEs
     {
-        public QuakeMeAway1() : base(ActionID.MakeSpell(AID.QuakeMeAway), new AOEShapeDonut(10,20)) { } 
+        public QuakeMeAway1() : base(ActionID.MakeSpell(AID.QuakeMeAway), new AOEShapeDonut(10, 20)) { }
     }
+
     class QuakeMeAway2 : Components.SelfTargetedAOEs
     {
-        public QuakeMeAway2() : base(ActionID.MakeSpell(AID.QuakeMeAway2), new AOEShapeCircle(10)) { } 
+        public QuakeMeAway2() : base(ActionID.MakeSpell(AID.QuakeMeAway2), new AOEShapeCircle(10)) { }
     }
+
     class HeartOnFireII : Components.LocationTargetedAOEs
     {
-        public HeartOnFireII() : base(ActionID.MakeSpell(AID.HeartOnFireII), 6) {}
+        public HeartOnFireII() : base(ActionID.MakeSpell(AID.HeartOnFireII), 6) { }
     }
+
     class HeartOnFireIV : Components.SingleTargetCast
     {
         public HeartOnFireIV() : base(ActionID.MakeSpell(AID.HeartOnFireIV)) { }
     }
+
     class HeartOnFireIII : Components.UniformStackSpread
     {
         public HeartOnFireIII() : base(0, 6, alwaysShowSpreads: true) { }
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if(iconID == (uint)IconID.spreadmarker)
+            if (iconID == (uint)IconID.spreadmarker)
                 AddSpread(actor);
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.HeartOnFireIII)
                 Spreads.Clear();
         }
     }
+
     class TempersFlare : Components.RaidwideCast
     {
         public TempersFlare() : base(ActionID.MakeSpell(AID.TempersFlare)) { }
     }
+
     class PluckAndPrune : Components.SelfTargetedAOEs
     {
-        public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { } 
+        public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
     }
+
     class TearyTwirl : Components.SelfTargetedAOEs
     {
-        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { } 
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
     }
+
     class HeirloomScream : Components.SelfTargetedAOEs
     {
-        public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { } 
+        public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
     }
+
     class PungentPirouette : Components.SelfTargetedAOEs
     {
-        public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { } 
+        public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
     }
+
     class Pollen : Components.SelfTargetedAOEs
     {
-        public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { } 
+        public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
     }
+
     class LuckyFaceStates : StateMachineBuilder
     {
         public LuckyFaceStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<LeftInTheDark1>()
-            .ActivateOnEnter<LeftInTheDark2>()
-            .ActivateOnEnter<RightInTheDark1>()
-            .ActivateOnEnter<RightInTheDark2>()
-            .ActivateOnEnter<QuakeInYourBoots1>()
-            .ActivateOnEnter<QuakeInYourBoots2>()
-            .ActivateOnEnter<QuakeMeAway1>()
-            .ActivateOnEnter<QuakeMeAway2>()
-            .ActivateOnEnter<TempersFlare>()
-            .ActivateOnEnter<HeartOnFireII>()
-            .ActivateOnEnter<HeartOnFireIII>()
-            .ActivateOnEnter<HeartOnFireIV>()
-            .ActivateOnEnter<PluckAndPrune>()
-            .ActivateOnEnter<TearyTwirl>()
-            .ActivateOnEnter<HeirloomScream>()
-            .ActivateOnEnter<PungentPirouette>()
-            .ActivateOnEnter<Pollen>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.ExcitingEgg).All(e => e.IsDead) && module.Enemies(OID.ExcitingQueen).All(e => e.IsDead) && module.Enemies(OID.ExcitingOnion).All(e => e.IsDead) && module.Enemies(OID.ExcitingGarlic).All(e => e.IsDead) && module.Enemies(OID.ExcitingTomato).All(e => e.IsDead);
+                .ActivateOnEnter<LeftInTheDark1>()
+                .ActivateOnEnter<LeftInTheDark2>()
+                .ActivateOnEnter<RightInTheDark1>()
+                .ActivateOnEnter<RightInTheDark2>()
+                .ActivateOnEnter<QuakeInYourBoots1>()
+                .ActivateOnEnter<QuakeInYourBoots2>()
+                .ActivateOnEnter<QuakeMeAway1>()
+                .ActivateOnEnter<QuakeMeAway2>()
+                .ActivateOnEnter<TempersFlare>()
+                .ActivateOnEnter<HeartOnFireII>()
+                .ActivateOnEnter<HeartOnFireIII>()
+                .ActivateOnEnter<HeartOnFireIV>()
+                .ActivateOnEnter<PluckAndPrune>()
+                .ActivateOnEnter<TearyTwirl>()
+                .ActivateOnEnter<HeirloomScream>()
+                .ActivateOnEnter<PungentPirouette>()
+                .ActivateOnEnter<Pollen>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.ExcitingEgg).All(e => e.IsDead) && module.Enemies(OID.ExcitingQueen).All(e => e.IsDead) && module.Enemies(OID.ExcitingOnion).All(e => e.IsDead) && module.Enemies(OID.ExcitingGarlic).All(e => e.IsDead) && module.Enemies(OID.ExcitingTomato).All(e => e.IsDead);
         }
     }
+
     [ModuleInfo(CFCID = 819, NameID = 10831)]
     public class LuckyFace : BossModule
     {
-        public LuckyFace(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -460), 20)) {}
+        public LuckyFace(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -460), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

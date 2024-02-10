@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         Boss = 0x3D43, //R=5
         BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don#t seem to despawn
         BossHelper = 0x233C,
-        IcePillars = 0x3D44, 
+        IcePillars = 0x3D44,
         BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
     };
 
@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 
     class OutInAOE : Components.ConcentricAOEs
     {
-        private static readonly AOEShape[] _shapes = {new AOEShapeCircle(10), new AOEShapeDonut(10, 20)};
+        private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20) };
 
         public OutInAOE() : base(_shapes) { }
 
@@ -89,9 +89,10 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
             AdvanceSequence(order, module.Bounds.Center);
         }
     }
+
     class PillarPierce : Components.SelfTargetedAOEs
     {
-        public PillarPierce() : base(ActionID.MakeSpell(AID.PillarPierce), new AOEShapeRect(80,2)) { }
+        public PillarPierce() : base(ActionID.MakeSpell(AID.PillarPierce), new AOEShapeRect(80, 2)) { }
     }
 
     class SkullDasher : Components.SingleTargetCast
@@ -106,7 +107,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 
     class IcePillarSpawn : Components.GenericAOEs
     {
-        private bool activePillar; 
+        private bool activePillar;
         private readonly AOEShapeCircle circle = new(6);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -136,23 +137,23 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         public LyssaStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<IcePillarSpawn>()
-            .ActivateOnEnter<HeavySmash>()
-            .ActivateOnEnter<SkullDasher>()
-            .ActivateOnEnter<Howl>()
-            .ActivateOnEnter<OutInAOE>()
-            .ActivateOnEnter<InOutAOE>()
-            .ActivateOnEnter<FrigidStone2>()
-            .ActivateOnEnter<HeavySmash2>()
-            .ActivateOnEnter<PillarPierce>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
+                .ActivateOnEnter<IcePillarSpawn>()
+                .ActivateOnEnter<HeavySmash>()
+                .ActivateOnEnter<SkullDasher>()
+                .ActivateOnEnter<Howl>()
+                .ActivateOnEnter<OutInAOE>()
+                .ActivateOnEnter<InOutAOE>()
+                .ActivateOnEnter<FrigidStone2>()
+                .ActivateOnEnter<HeavySmash2>()
+                .ActivateOnEnter<PillarPierce>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
         }
     }
 
     [ModuleInfo(CFCID = 909, NameID = 12024)]
     public class Lyssa : BossModule
     {
-        public Lyssa(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) {}
+        public Lyssa(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

@@ -43,22 +43,56 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         TearyTwirl = 32301, // GymnasticOnion->self, 3,5s cast, range 7 circle
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
     };
-    class QuadrupleHammerCW : Components.SimpleRotationAOE
+
+    public enum IconID : uint
     {
-        public QuadrupleHammerCW() : base(ActionID.MakeSpell(AID.QuadrupleHammerA), ActionID.MakeSpell(AID.QuadrupleHammer2), ActionID.MakeSpell(AID.LeftHammer2), ActionID.MakeSpell(AID.RightHammer2), new AOEShapeCone(30,90.Degrees()), 4, -90.Degrees(), -90.Degrees()) { }
-    }
-    class QuadrupleHammerCCW : Components.SimpleRotationAOE
+        RotateCW = 167, // Boss
+        RotateCCW = 168, // Boss
+    };
+
+    class QuadrupleHammer : Components.GenericRotatingAOE
     {
-        public QuadrupleHammerCCW() : base(ActionID.MakeSpell(AID.QuadrupleHammerB), ActionID.MakeSpell(AID.QuadrupleHammer2), ActionID.MakeSpell(AID.LeftHammer2), ActionID.MakeSpell(AID.RightHammer2), new AOEShapeCone(30,90.Degrees()), 4, 90.Degrees(), 90.Degrees()) { }
+        private Angle _increment;
+
+        private static AOEShapeCone _shape = new(30, 90.Degrees());
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            // note that boss switches hands, so CW rotation means CCW aoe sequence and vice versa
+            var increment = (IconID)iconID switch
+            {
+                IconID.RotateCW => 90.Degrees(),
+                IconID.RotateCCW => -90.Degrees(),
+                _ => default
+            };
+            if (increment != default)
+                _increment = increment;
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
+            {
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3, 4));
+                _increment = default;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2)
+                AdvanceSequence(caster.Position, spell.Rotation, module.WorldState.CurrentTime);
+        }
     }
+
     class DoubleSlammer : Components.GenericAOEs
     {
         private int _remainingHits;
         private Angle _RotationDir;
         private bool doubleA;
-        private bool doubleB;       
+        private bool doubleB;
         private readonly AOEShapeCone cone = new(30, 90.Degrees());
- 
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_remainingHits == 2 && doubleA)
@@ -70,10 +104,10 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
             if (_remainingHits == 2 && doubleB)
                 yield return new(cone, module.PrimaryActor.Position, _RotationDir - 90.Degrees());
             if (_remainingHits == 0)
-                {
-                    doubleA = false;
-                    doubleB = false;
-                }
+            {
+                doubleA = false;
+                doubleB = false;
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -84,12 +118,12 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
                     doubleA = true;
                     _remainingHits = 2;
                     _RotationDir = spell.Rotation;
-                break;
+                    break;
                 case AID.DoubleHammerB:
                     doubleB = true;
                     _remainingHits = 2;
                     _RotationDir = spell.Rotation;
-                break;
+                    break;
             }
         }
 
@@ -105,72 +139,82 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
             }
         }
     }
+
     class VolcanicHowl : Components.RaidwideCast
     {
         public VolcanicHowl() : base(ActionID.MakeSpell(AID.VolcanicHowl)) { }
     }
+
     class Earthbreak : Components.LocationTargetedAOEs
     {
         public Earthbreak() : base(ActionID.MakeSpell(AID.Earthbreak2), 5) { }
     }
+
     class DeadlyHold : Components.SingleTargetCast
     {
         public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) { }
     }
+
     class TailSwing : Components.SelfTargetedAOEs
     {
-        public TailSwing() : base(ActionID.MakeSpell(AID.TailSwing), new AOEShapeCircle(13)) { } 
+        public TailSwing() : base(ActionID.MakeSpell(AID.TailSwing), new AOEShapeCircle(13)) { }
     }
+
     class CriticalBite : Components.SelfTargetedAOEs
     {
-        public CriticalBite() : base(ActionID.MakeSpell(AID.CriticalBite), new AOEShapeCone(10,60.Degrees())) { } 
+        public CriticalBite() : base(ActionID.MakeSpell(AID.CriticalBite), new AOEShapeCone(10, 60.Degrees())) { }
     }
+
     class PluckAndPrune : Components.SelfTargetedAOEs
     {
-        public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7)) { } 
+        public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7)) { }
     }
+
     class TearyTwirl : Components.SelfTargetedAOEs
     {
-        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7)) { } 
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7)) { }
     }
+
     class HeirloomScream : Components.SelfTargetedAOEs
     {
-        public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7)) { } 
+        public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7)) { }
     }
+
     class PungentPirouette : Components.SelfTargetedAOEs
     {
-        public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7)) { } 
+        public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7)) { }
     }
+
     class Pollen : Components.SelfTargetedAOEs
     {
-        public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { } 
+        public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
+
     class AcheloiosStates : StateMachineBuilder
     {
         public AcheloiosStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<QuadrupleHammerCW>()
-            .ActivateOnEnter<QuadrupleHammerCCW>()
-            .ActivateOnEnter<DoubleSlammer>()
-            .ActivateOnEnter<TailSwing>()
-            .ActivateOnEnter<CriticalBite>()
-            .ActivateOnEnter<DeadlyHold>()
-            .ActivateOnEnter<Earthbreak>()
-            .ActivateOnEnter<VolcanicHowl>()
-            .ActivateOnEnter<PluckAndPrune>()
-            .ActivateOnEnter<TearyTwirl>()
-            .ActivateOnEnter<HeirloomScream>()
-            .ActivateOnEnter<PungentPirouette>()
-            .ActivateOnEnter<Pollen>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
+                .ActivateOnEnter<QuadrupleHammer>()
+                .ActivateOnEnter<DoubleSlammer>()
+                .ActivateOnEnter<TailSwing>()
+                .ActivateOnEnter<CriticalBite>()
+                .ActivateOnEnter<DeadlyHold>()
+                .ActivateOnEnter<Earthbreak>()
+                .ActivateOnEnter<VolcanicHowl>()
+                .ActivateOnEnter<PluckAndPrune>()
+                .ActivateOnEnter<TearyTwirl>()
+                .ActivateOnEnter<HeirloomScream>()
+                .ActivateOnEnter<PungentPirouette>()
+                .ActivateOnEnter<Pollen>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
         }
     }
 
     [ModuleInfo(CFCID = 909, NameID = 12019)]
     public class Acheloios : BossModule
     {
-        public Acheloios(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) {}
+        public Acheloios(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
