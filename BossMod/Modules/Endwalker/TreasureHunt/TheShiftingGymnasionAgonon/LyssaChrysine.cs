@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 
     class OutInAOE : Components.ConcentricAOEs
     {
-        private static AOEShape[] _shapes = {new AOEShapeCircle(10), new AOEShapeDonut(10, 20)};
+        private static readonly AOEShape[] _shapes = {new AOEShapeCircle(10), new AOEShapeDonut(10, 20)};
 
         public OutInAOE() : base(_shapes) { }
 
@@ -107,7 +107,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
     class IcePillarSpawn : Components.GenericAOEs
     {
         private bool activePillar; 
-        private static readonly AOEShapeCircle circle = new(6);
+        private readonly AOEShapeCircle circle = new(6);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (activePillar)
@@ -165,7 +165,6 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch

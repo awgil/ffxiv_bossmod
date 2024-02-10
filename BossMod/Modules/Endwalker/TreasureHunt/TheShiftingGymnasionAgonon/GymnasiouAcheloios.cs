@@ -57,7 +57,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         private Angle _RotationDir;
         private bool doubleA;
         private bool doubleB;       
-        private static AOEShapeCone cone = new(30, 90.Degrees());
+        private readonly AOEShapeCone cone = new(30, 90.Degrees());
  
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -193,7 +193,6 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch
