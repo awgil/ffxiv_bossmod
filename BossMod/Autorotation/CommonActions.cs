@@ -474,7 +474,7 @@ namespace BossMod
         {
             var bestTarget = initial;
             var bestPrio = prioFunc(bestTarget);
-            foreach(var enemy in Autorot.Hints.PriorityTargets.Where(x => x != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer)))
+            foreach(var enemy in Autorot.Hints.PriorityTargets.Where(x => x != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer + x.Actor.HitboxRadius)))
             {
                 var newPrio = prioFunc(enemy);
                 if (newPrio > bestPrio) {

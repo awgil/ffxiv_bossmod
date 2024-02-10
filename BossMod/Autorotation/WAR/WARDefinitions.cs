@@ -96,8 +96,8 @@ namespace BossMod.WAR
         Holmgang = 23, // 240.0 max
         LowBlow = 41, // 25.0 max
         Provoke = 42, // 30.0 max
-        Reprisal = 43, // 30.0 max
-        Interject = 44, // 60.0 max
+        Interject = 43, // 60.0 max
+        Reprisal = 44, // 30.0 max
         Rampart = 46, // 90.0 max
         ArmsLength = 48, // 120.0 max
         Shirk = 49, // 120.0 max

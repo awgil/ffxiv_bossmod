@@ -34,8 +34,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
             _savage = savage;
             DeathPhase(0, SinglePhase)
                 .ActivateOnEnter<Hydroshot>()
-                .ActivateOnEnter<NTwister>(!_savage)
-                .ActivateOnEnter<STwister>(_savage);
+                .ActivateOnEnter<Twister>();
         }
 
         private void SinglePhase(uint id)

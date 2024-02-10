@@ -35,8 +35,7 @@
                 .ActivateOnEnter<SExpulsion>(_savage)
                 .ActivateOnEnter<NElectricWhorl>(!_savage)
                 .ActivateOnEnter<SElectricWhorl>(_savage)
-                .ActivateOnEnter<NTwister>(!_savage)
-                .ActivateOnEnter<STwister>(_savage);
+                .ActivateOnEnter<Twister>();
         }
 
         private void SinglePhase(uint id)

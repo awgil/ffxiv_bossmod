@@ -23,6 +23,7 @@ namespace BossMod.Endwalker.HuntS.Ker
         EternalDamnation2 = 27640, // Boss->self, 6,0s cast, range 40 circle gaze, applies doom
         WhispersManifest4 = 27654, // Boss->self, 6,0s cast, range 40 circle gaze, applies doom
         AncientFlare = 27704, // Boss->self, 6.0s cast, range 40 circle, applies pyretic
+        AncientFlare2 = 27638, // Boss->self, 6.0s cast, range 40 circle, applies pyretic
         WhispersManifest = 27706, // Boss->self, 6,0s cast, range 40 circle, applies pyretc (remembered skill from Whispered Incantation)
         AncientHoly = 27646, // Boss->self, 6,0s cast, range 40 circle, circle with dmg fall off, harmless after roundabout range 20
         AncientHoly2 = 27639, // Boss->self, 6,0s cast, range 40 circle, circle with dmg fall off, harmless after roundabout range 20
@@ -126,15 +127,20 @@ namespace BossMod.Endwalker.HuntS.Ker
     {
         private int Mirrorstacks;
         private bool casting;
+        private bool casting2;
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.MirroredIncantation)
                 casting = true;
+            if ((AID)spell.Action.ID == AID.MirroredIncantation2)
+                casting2 = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.MirroredIncantation)
+            if ((AID)spell.Action.ID == AID.MirroredIncantation || (AID)spell.Action.ID == AID.MirroredIncantation2)
                 casting = false;
+                casting2 = false;
+
         }
        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -168,12 +174,10 @@ namespace BossMod.Endwalker.HuntS.Ker
             if (Mirrorstacks > 0)
                   hints.Add($"Mirrored interments left: {Mirrorstacks}!");
             if (casting)
-                  hints.Add("The next three interments will be mirrored!");           
+                  hints.Add("The next three interments will be mirrored!");
+            if (casting2)
+                  hints.Add("The next four interments will be mirrored!");                 
         }
-    }
-      class MirroredIncantation2 : Components.CastHint
-    {
-        public MirroredIncantation2() : base(ActionID.MakeSpell(AID.MirroredIncantation2), "The next four interments will be mirrored!") { }
     }
     class AncientFlare : BossComponent
     {
@@ -182,12 +186,12 @@ namespace BossMod.Endwalker.HuntS.Ker
         private bool casting;
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.AncientFlare)
+            if ((AID)spell.Action.ID == AID.AncientFlare || (AID)spell.Action.ID == AID.AncientFlare2 || (AID)spell.Action.ID == AID.WhispersManifest)
                 casting = true;
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.AncientFlare)
+            if ((AID)spell.Action.ID == AID.AncientFlare || (AID)spell.Action.ID == AID.AncientFlare2 || (AID)spell.Action.ID == AID.WhispersManifest)
                 casting = false;
         }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -210,10 +214,6 @@ namespace BossMod.Endwalker.HuntS.Ker
             if (casting)
             hints.Add("Applies Pyretic - STOP everything until it runs out!");  
         }
-    }
-     class AncientFlareWhispersManifest : Components.CastHint
-    {
-        public AncientFlareWhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest), "Applies Pyretic - STOP everything until it runs out!") { }
     }
     class AncientHoly : Components.SelfTargetedAOEs
     {
@@ -247,15 +247,13 @@ namespace BossMod.Endwalker.HuntS.Ker
                 .ActivateOnEnter<Mirrored_RightInterment>()
                 .ActivateOnEnter<Mirrored_LeftInterment>()
                 .ActivateOnEnter<MirroredIncantation>()
-                .ActivateOnEnter<MirroredIncantation2>()
                 .ActivateOnEnter<EternalDamnation>()
                 .ActivateOnEnter<EternalDamnation2>()
                 .ActivateOnEnter<EternalDamnationWhispersManifest>()
                 .ActivateOnEnter<AncientFlare>()
                 .ActivateOnEnter<AncientHoly>()
                 .ActivateOnEnter<AncientHoly2>()
-                .ActivateOnEnter<AncientHolyWhispersManifest>()
-                .ActivateOnEnter<AncientFlareWhispersManifest>();
+                .ActivateOnEnter<AncientHolyWhispersManifest>();
         }
     }
 

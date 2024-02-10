@@ -8,7 +8,6 @@
         NMonk = 0x40CB, // R3.000, x1
         NRay = 0x40CC, // R3.200, x1
         NPaddleBiter = 0x40CD, // R1.650, x2
-        NTwister = 0x40CE, // R1.500, spawn during fight
 
         SKiwakin = 0x40D2, // R3.750, x1
         SSnipper = 0x40D3, // R3.600, x1
@@ -16,16 +15,17 @@
         SMonk = 0x40D5, // R3.000, x1
         SRay = 0x40D6, // R3.200, x1
         SPaddleBiter = 0x40D7, // R1.650, x2
-        STwister = 0x40D8, // R1.500, spawn during fight
 
         Helper = 0x233C, // R0.500, 523 type, spawn during fight
+        Twister = 0x40CE, // R1.500, spawn during fight
     };
 
     public enum AID : uint
     {
         AutoAttack1 = 31318, // *Kiwakin/*Crab/*Snipper->player, no cast, single-target
         AutoAttack2 = 31320, // *PaddleBiter/*Ray/*Monk->player, no cast, single-target
-        Twister = 35776, // Helper->self, 0.5s cast, range 6 circle
+        NTwister = 35776, // Helper->self, 0.5s cast, range 6 circle
+        STwister = 35791, // Helper->self, 0.5s cast, range 6 circle
         // kiwakin
         NLeadHook = 35950, // NKiwakin->player, 4.0s cast, single-target, 3-hit tankbuster
         NLeadHookAOE1 = 35938, // NKiwakin->player, no cast, single-target, tankbuster second hit
@@ -60,7 +60,7 @@
 
     class Twister : Components.Adds
     {
-        public Twister(OID oid) : base((uint)oid) { }
+        public Twister() : base((uint)OID.Twister) { }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
 
@@ -70,8 +70,6 @@
                 arena.ZoneCircle(twister.Position, 6, ArenaColor.AOE);
         }
     }
-    class NTwister : Twister { public NTwister() : base(OID.NTwister) { } }
-    class STwister : Twister { public STwister() : base(OID.STwister) { } }
 
     public abstract class C030Trash1 : BossModule
     {
