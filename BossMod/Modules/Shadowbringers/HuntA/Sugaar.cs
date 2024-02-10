@@ -1,7 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Shadowbringers.HuntA.Sugaar
 {
     public enum OID : uint
@@ -30,128 +27,26 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
     {
         public TailSnap() : base(ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18,60.Degrees())) { }
     }
-
-    class Rotation : Components.GenericAOEs
+    class TailSnapRotation : Components.SimpleRotationAOE
     {
-        private int _remainingHits;
-        private bool _numbingnoise;
-        private bool _tailsnap;
-        private Angle _RotationDir;
-        private Angle _RotationDirIncrement;
-
-        private static AOEShapeCone _shapeNumbingNoise = new(13, 60.Degrees());
-        private static AOEShapeCone _shapeTailSnap = new(18, 60.Degrees());
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_remainingHits > 0 && _numbingnoise)
-                yield return new(_shapeNumbingNoise, module.PrimaryActor.Position, _RotationDir);
-            if (_remainingHits > 0 && _tailsnap )
-                yield return new(_shapeTailSnap, module.PrimaryActor.Position, _RotationDir);
-            if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _numbingnoise)
-                yield return new(_shapeNumbingNoise, module.PrimaryActor.Position, _RotationDir + _RotationDirIncrement, default, ArenaColor.Danger);
-            if (_remainingHits > 1 && _RotationDirIncrement.Rad != MathF.PI && _tailsnap)
-                yield return new(_shapeTailSnap, module.PrimaryActor.Position, _RotationDir + _RotationDirIncrement, default, ArenaColor.Danger);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (caster != module.PrimaryActor)
-                return;
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.NumbingNoiseRotation:
-                    _tailsnap = false;
-                    _numbingnoise = true;
-                    _remainingHits = 3;
-                    _RotationDir = module.PrimaryActor.Rotation;
-                    _RotationDirIncrement = 120.Degrees();
-                    break;
-                case AID.NumbingNoiseDuringRotation:
-                    _RotationDirIncrement = 120.Degrees();
-                    break;
-                case AID.TailSnapRotation:
-                    _tailsnap = true;
-                    _numbingnoise = false;
-                    _remainingHits = 3;
-                    _RotationDir = module.PrimaryActor.Rotation+180.Degrees();
-                    _RotationDirIncrement = -120.Degrees();
-                    break;
-                case AID.TailSnapDuringRotation:
-                    _RotationDirIncrement = -120.Degrees();
-                    break;
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (caster != module.PrimaryActor)
-                return;
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.NumbingNoiseDuringRotation:
-                case AID.TailSnapDuringRotation:
-                    _RotationDir += _RotationDirIncrement;
-                    --_remainingHits;
-                    break;
-            }
-        }
+        public TailSnapRotation() : base(ActionID.MakeSpell(AID.TailSnapRotation), ActionID.MakeSpell(AID.TailSnapDuringRotation), default, default, new AOEShapeCone(18,60.Degrees()), 3, -120.Degrees(), 180.Degrees()) { }
     }
-
+    class NumbingNoiseRotation : Components.SimpleRotationAOE
+    {
+        public NumbingNoiseRotation() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation), ActionID.MakeSpell(AID.NumbingNoiseDuringRotation), default, default, new AOEShapeCone(13,60.Degrees()), 3, 120.Degrees()) { }
+    }
     class BodySlam : Components.SelfTargetedAOEs
     {
         public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11)) { }
     }
-
-    class RotationPull: Components.Knockback //TODO: pulls/attracts should probably have their own component to make this easier in future
+    class NumbingNoiseRotationAttract : Components.AttractBetweenHitboxes
     {
-        private float PullDistance;
-        private Angle Direction;
-        private float DistanceToBoss;
-        private bool activeTailSnap;
-        private bool activeNumbingNoise;
-        private readonly string hint = "Use anti knockback ability or get pulled into danger zone!";
-
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            var player = module.Raid.Player();
-            if (player != null)
-                DistanceToBoss = (player.Position - module.PrimaryActor.Position).Length();
-            if (player != null)
-                PullDistance = 30 - (module.PrimaryActor.HitboxRadius + player.HitboxRadius + (30 - DistanceToBoss));
-            if (player != null)
-                Direction = Angle.FromDirection(player.Position - module.PrimaryActor.Position);
-            if (activeNumbingNoise || activeTailSnap && PullDistance > 0 && PullDistance <= 25 && DistanceToBoss <= 30)
-                yield return new(new(), PullDistance, default, null, Direction, Kind.TowardsOrigin);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            base.OnCastStarted(module, caster, spell);
-            if ((AID)spell.Action.ID == AID.NumbingNoiseRotation)
-                activeNumbingNoise = true;
-            if ((AID)spell.Action.ID == AID.TailSnapRotation)
-                activeTailSnap = true;
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            base.OnCastFinished(module, caster, spell);
-            if ((AID)spell.Action.ID == AID.NumbingNoiseRotation)
-                activeNumbingNoise = false;
-            if ((AID)spell.Action.ID == AID.TailSnapDuringRotation)
-                activeTailSnap = false;
-        }
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (activeNumbingNoise && DistanceToBoss >= 13 && DistanceToBoss <=30)
-                hints.Add(hint);
-            if (activeTailSnap && DistanceToBoss >= 18 && DistanceToBoss <=30)
-                hints.Add(hint);
-        }
+        public NumbingNoiseRotationAttract() : base(ActionID.MakeSpell(AID.NumbingNoiseRotation), 30, 25, 13) { }
     }
-
+    class TailSnapRotationAttract : Components.AttractBetweenHitboxes
+    {
+        public TailSnapRotationAttract() : base(ActionID.MakeSpell(AID.TailSnapRotation), 30, 25, 18) { }
+    }
     class SugaarStates : StateMachineBuilder
     {
         public SugaarStates(BossModule module) : base(module)
@@ -159,8 +54,10 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
             TrivialPhase()
                 .ActivateOnEnter<NumbingNoise>()
                 .ActivateOnEnter<TailSnap>()
-                .ActivateOnEnter<RotationPull>()
-                .ActivateOnEnter<Rotation>()
+                .ActivateOnEnter<TailSnapRotationAttract>()
+                .ActivateOnEnter<NumbingNoiseRotationAttract>()
+                .ActivateOnEnter<TailSnapRotation>()
+                .ActivateOnEnter<NumbingNoiseRotation>()
                 .ActivateOnEnter<BodySlam>();
         }
     }
