@@ -163,10 +163,10 @@
         private void PartedPlumesPandaemoniacRay(uint id, float delay)
         {
             // overlaps with ray & circle/holy
-            Cast(id, AID.PartedPlumes, delay, 3)
-                .ActivateOnEnter<PartedPlumesVoidzone>();
+            Cast(id, AID.PartedPlumes, delay, 3);
             CastStartMulti(id + 0x10, new[] { AID.PandaemoniacRayL, AID.PandaemoniacRayR }, 7.3f)
-                .ActivateOnEnter<PartedPlumes>(); // first aoe cast start 3.8s after previous cast end, individual aoes are 0.3s apart
+                .ActivateOnEnter<PartedPlumes>() // first aoe cast start 3.8s after previous cast end, individual aoes are 0.3s apart
+                .ActivateOnEnter<PartedPlumesVoidzone>();
             ComponentCondition<PartedPlumes>(id + 0x20, 0.5f, comp => comp.NumCasts > 0, "Plumes start")
                 .ActivateOnEnter<PandaemoniacRay>();
             ComponentCondition<PartedPlumes>(id + 0x30, 2.4f, comp => comp.Casters.Count == 0, "Plumes end")
