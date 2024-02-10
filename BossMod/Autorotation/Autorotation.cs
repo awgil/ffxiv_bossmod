@@ -31,7 +31,7 @@ namespace BossMod
     // 1. we use cooldowns as reported by ActionManager API rather than parse network messages. This (1) allows us to not rely on randomized opcodes, (2) allows us not to handle things like CD resets on wipes, actor resets on zone changes, etc.
     // 2. we convert large negative status durations to their expected values
     // 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
-    public class Autorotation : IDisposable
+    class Autorotation : IDisposable
     {
         private AutorotationConfig _config;
         private BossModuleManager _bossmods;

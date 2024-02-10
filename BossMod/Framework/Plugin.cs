@@ -47,7 +47,7 @@ namespace BossMod
         private WorldStateGame _ws;
         private BossModuleManager _bossmod;
         private Autorotation _autorotation;
-        public static AIManager _ai;
+        private AIManager _ai;
         private Broadcast _broadcast;
         private TimeSpan _prevUpdateTime;
 
@@ -161,38 +161,6 @@ namespace BossMod
                     break;
                 case "r":
                     _wndReplay.SetVisible(!_wndReplay.IsOpen);
-                    break;
-                case "aion":
-                    //turn ai on
-                    _ai._config.Enabled = true;
-                    if (_ai._config.FollowLeader)
-                    {
-                        var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
-                        int leaderSlot = leader != null ? _ai._autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
-                        _ai.SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
-                    }
-                    else
-                        _ai.SwitchToFollow(PartyState.PlayerSlot);
-                    break;
-                case "aioff":
-                    //turn ai off
-                    _ai._config.Enabled = false;
-                    break;
-                case "floff":
-                    //turn follow leader off
-                    _ai._config.FollowLeader = false;
-                    break;
-                case "flon":
-                    //turn follow leader on
-                    _ai._config.FollowLeader = true;
-                    break;
-                case "ftoff":
-                    //turn focus target leader off
-                    _ai._config.FocusTargetLeader = false;
-                    break;
-                case "fton":
-                    //turn focus target leader on
-                    _ai._config.FocusTargetLeader = true;
                     break;
             }
         }

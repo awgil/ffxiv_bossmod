@@ -7,11 +7,11 @@ using System.Linq;
 
 namespace BossMod.AI
 {
-    public class AIManager : IDisposable
+    class AIManager : IDisposable
     {
-        public Autorotation _autorot;
+        private Autorotation _autorot;
         private AIController _controller;
-        public AIConfig _config;
+        private AIConfig _config;
         private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
         private AIBehaviour? _beh;
         private UISimpleWindow _ui;
