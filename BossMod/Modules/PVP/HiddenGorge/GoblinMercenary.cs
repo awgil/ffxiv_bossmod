@@ -16,14 +16,16 @@ public enum AID : uint
     GobfireShootypops = 14564, // 25FA->self, no cast, range 30+R width 6 rect
     unknown = 14567, // 233C->self, 1,0s cast, single-target
     Plannyplot = 14558, // 25FA->self, 4,0s cast, single-target
-    GobspinWhooshdrops = 14559, // 25FA->self, no cast, range 8 circle
+    GobspinWhooshdrops = 14559, // 25FA->self, no cast, range 8 circle, knockback 15 away from source
     unknown2 = 14568, // BossHelper->self, 1,0s cast, single-target
     GobswipeConklops = 14560, // Boss->self, no cast, range 30 circle, knockback 15 away from source
+    Discharge = 14561, // Boss->self, no cast, single-target
+
 };
     public enum IconID : uint
     {
-       RotationCW = 168, // Boss
-       RotationCCW = 167, // Boss
+       RotationCCW = 168, // Boss
+       RotationCW = 167, // Boss
     };
 
     class GobfireShootypops : Components.SimpleRotationAOE
