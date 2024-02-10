@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.PVP.HiddenGorge.GoblinMercenary
@@ -14,11 +15,11 @@ public enum AID : uint
     IronKiss = 14562, // 233C->location, 5,0s cast, range 7 circle
     GobfireShootypopsStart = 14563, // 25FA->self, 5,0s cast, range 30+R width 6 rect
     GobfireShootypops = 14564, // 25FA->self, no cast, range 30+R width 6 rect
-    unknown = 14567, // 233C->self, 1,0s cast, single-target
+    GobspinWhooshdropsTelegraph = 14567, // 233C->self, 1,0s cast, single-target
     Plannyplot = 14558, // 25FA->self, 4,0s cast, single-target
     GobspinWhooshdrops = 14559, // 25FA->self, no cast, range 8 circle, knockback 15 away from source
-    unknown2 = 14568, // BossHelper->self, 1,0s cast, single-target
-    GobswipeConklops = 14560, // Boss->self, no cast, range 30 circle, knockback 15 away from source
+    GobswipeConklopsTelegraph = 14568, // BossHelper->self, 1,0s cast, single-target
+    GobswipeConklops = 14560, // Boss->self, no cast, range 30 circle, knockback 15 away from source (note: this looks like ca. 7-30 donut, no idea why it gets detected as a circle)
     Discharge = 14561, // Boss->self, no cast, single-target
 
 };
@@ -27,10 +28,93 @@ public enum AID : uint
        RotationCCW = 168, // Boss
        RotationCW = 167, // Boss
     };
+    class GobspinWhooshdrops : Components.GenericAOEs
+    {
+        private bool casting;
+        private readonly AOEShapeCircle circle = new(8);
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (casting)
+                yield return new(circle, module.PrimaryActor.Position);
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
+                casting = true;
+        }
 
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobspinWhooshdrops)
+                casting = false;
+        }
+    }
+    class GobswipeConklops : Components.GenericAOEs
+    {
+        private bool casting;
+        private readonly AOEShapeDonut donut = new(7,30); //TODO: confirm
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (casting)
+                yield return new(donut, module.PrimaryActor.Position);
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
+                casting = true;
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobswipeConklops)
+                casting = false;
+        }
+    }
+    class GobspinWhooshdropsKB : Components.Knockback
+    {
+        private bool casting;
+        private readonly AOEShapeCircle circle = new(8);
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            if (casting)
+                yield return new(module.PrimaryActor.Position, 15, default, circle, module.PrimaryActor.Rotation, Kind.AwayFromOrigin);
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
+                casting = true;
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobspinWhooshdrops)
+                casting = false;
+        }
+    }
+    class GobswipeConklopsKB : Components.Knockback
+    {
+        private bool casting;
+        private readonly AOEShapeDonut donut = new(7,30); //TODO: confirm
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            if (casting)
+                yield return new(module.PrimaryActor.Position, 15, default, donut, module.PrimaryActor.Rotation, Kind.AwayFromOrigin);
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
+                casting = true;
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobswipeConklops)
+                casting = false;
+        }
+    }
     class GobfireShootypops : Components.SimpleRotationAOE
     {
-        public GobfireShootypops() : base(ActionID.MakeSpell(AID.GobfireShootypopsStart), ActionID.MakeSpell(AID.GobfireShootypops), default, default, new AOEShapeRect(32,3), 6, 60.Degrees(), 0.Degrees(), true) { }
+        public GobfireShootypops() : base(ActionID.MakeSpell(AID.GobfireShootypopsStart), ActionID.MakeSpell(AID.GobfireShootypops), default, default, new AOEShapeRect(32,3), 6, 0.Degrees(), 0.Degrees(), true) { }
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if(iconID == (uint)IconID.RotationCW)
@@ -49,6 +133,10 @@ public enum AID : uint
         {
             TrivialPhase()
                 .ActivateOnEnter<IronKiss>()
+                .ActivateOnEnter<GobspinWhooshdrops>()
+                .ActivateOnEnter<GobspinWhooshdropsKB>()
+                .ActivateOnEnter<GobswipeConklops>()
+                .ActivateOnEnter<GobswipeConklopsKB>()
                 .ActivateOnEnter<GobfireShootypops>();
         }
     }
@@ -63,7 +151,7 @@ public enum AID : uint
             if (Enemies(OID.Boss).Any(e => e.Position.AlmostEqual(new(0,-125),1)))
                 Arena.Bounds = new ArenaBoundsSquare(new(0,-124.5f), 16); //Note: the arena doesn't seem to be a perfect square, but it seems close enough
             if (Enemies(OID.Boss).Any(e => e.Position.AlmostEqual(new(0,144.5f),1)))
-                Arena.Bounds = new ArenaBoundsCircle(new(0,144.5f), 30);
+                Arena.Bounds = new ArenaBoundsCircle(new(0,144.5f), 30); //Note: the arena doesn't seem to be a perfect circle, but this seems good enough
         }
     }
 }

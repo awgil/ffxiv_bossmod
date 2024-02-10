@@ -42,9 +42,9 @@ namespace BossMod.MaskedCarnivale.Stage15
         private bool casting4;
         private Angle _rotation;
 
-        private static readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
-        private static readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
-        private static readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        private readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
+        private readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
+        private readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -112,9 +112,9 @@ namespace BossMod.MaskedCarnivale.Stage15
         private bool casting4;
         private Angle _rotation;
 
-        private static readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
-        private static readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
-        private static readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        private readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
+        private readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
+        private readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
