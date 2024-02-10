@@ -12,7 +12,7 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
 public enum AID : uint
 {
     IronKiss = 14562, // 233C->location, 5,0s cast, range 7 circle
-    GobfireShootypopsCCW = 14563, // 25FA->self, 5,0s cast, range 30+R width 6 rect
+    GobfireShootypopsStart = 14563, // 25FA->self, 5,0s cast, range 30+R width 6 rect
     GobfireShootypops = 14564, // 25FA->self, no cast, range 30+R width 6 rect
     unknown = 14567, // 233C->self, 1,0s cast, single-target
     Plannyplot = 14558, // 25FA->self, 4,0s cast, single-target
@@ -30,7 +30,7 @@ public enum AID : uint
 
     class GobfireShootypops : Components.SimpleRotationAOE
     {
-        public GobfireShootypops() : base(ActionID.MakeSpell(AID.GobfireShootypopsCCW), ActionID.MakeSpell(AID.GobfireShootypops), default, default, new AOEShapeRect(32,3), 6, 60.Degrees(), 0.Degrees(), true) { }
+        public GobfireShootypops() : base(ActionID.MakeSpell(AID.GobfireShootypopsStart), ActionID.MakeSpell(AID.GobfireShootypops), default, default, new AOEShapeRect(32,3), 6, 60.Degrees(), 0.Degrees(), true) { }
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if(iconID == (uint)IconID.RotationCW)
