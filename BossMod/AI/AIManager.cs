@@ -54,7 +54,7 @@ namespace BossMod.AI
             }
             _controller.Update(player);
 
-            _ui.IsOpen = _config.Enabled && player != null;
+            _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
         }
 
         private void DrawOverlay()
@@ -65,11 +65,16 @@ namespace BossMod.AI
             if (ImGui.Button("Reset"))
                 SwitchToIdle();
             ImGui.SameLine();
-            if (ImGui.Button("Follow leader"))
+            if (ImGui.Button("AI On - Follow leader"))
             {
-                var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
-                int leaderSlot = leader != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
-                SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
+                if (_config.FollowLeader)
+                {
+                    var leader = Service.PartyList[(int)Service.PartyList.PartyLeaderIndex];
+                    int leaderSlot = leader != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)leader.ContentId) : -1;
+                    SwitchToFollow(leaderSlot >= 0 ? leaderSlot : PartyState.PlayerSlot);
+                }
+                else
+                    SwitchToFollow(PartyState.PlayerSlot);
             }
         }
 
