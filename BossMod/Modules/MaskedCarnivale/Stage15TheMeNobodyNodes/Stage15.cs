@@ -58,7 +58,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast0)
             {
                 casting2 = true;
@@ -70,7 +69,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast2)
                 casting2 = false;
             if ((AID)spell.Action.ID == AID.Ballast3)
@@ -128,7 +126,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast0)
             {
                 casting2 = true;
@@ -140,7 +137,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast2)
                 casting2 = false;
             if ((AID)spell.Action.ID == AID.Ballast3)
@@ -195,7 +191,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch

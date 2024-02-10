@@ -64,15 +64,15 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.TheHand)
+            {
                 casting = true;
-            _caster = caster; //this works because left hand and right hand never cast The Hand at the same time. if left claw uses the hand right claw uses shred and vice versa
+                _caster = caster; //this works because left hand and right hand never cast The Hand at the same time. if left claw uses the hand right claw uses shred and vice versa
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.TheHand)
                 casting = false;
         }
@@ -133,7 +133,6 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch
