@@ -61,7 +61,7 @@ public enum AID : uint
         protected override void UpdateModule()
         {
             if (Enemies(OID.Boss).Any(e => e.Position.AlmostEqual(new(0,-125),1)))
-                Arena.Bounds = new ArenaBoundsSquare(new(0,-125), 16);
+                Arena.Bounds = new ArenaBoundsSquare(new(0,-124.5f), 16); //Note: the arena doesn't seem to be a perfect square, but it seems close enough
             if (Enemies(OID.Boss).Any(e => e.Position.AlmostEqual(new(0,144.5f),1)))
                 Arena.Bounds = new ArenaBoundsCircle(new(0,144.5f), 30);
         }
