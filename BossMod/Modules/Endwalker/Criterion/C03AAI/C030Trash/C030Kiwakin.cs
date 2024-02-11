@@ -28,8 +28,10 @@
             DeathPhase(0, SinglePhase)
                 .ActivateOnEnter<NTailScrew>(!_savage)
                 .ActivateOnEnter<STailScrew>(_savage)
-                .ActivateOnEnter<NTwister>(!_savage)
-                .ActivateOnEnter<STwister>(_savage);
+                .ActivateOnEnter<NWater>(!_savage) // note: second pack is often pulled together with first one
+                .ActivateOnEnter<SWater>(_savage)
+                .ActivateOnEnter<BubbleShowerCrabDribble>()
+                .ActivateOnEnter<Twister>();
         }
 
         private void SinglePhase(uint id)

@@ -10,6 +10,7 @@ namespace BossMod.AI
     {
         private Autorotation _autorot;
         private AIController _ctrl;
+        private AIConfig _config;
         private NavigationDecision _naviDecision;
         private bool _forbidMovement;
         private bool _forbidActions;
@@ -24,6 +25,7 @@ namespace BossMod.AI
         {
             _autorot = autorot;
             _ctrl = ctrl;
+            _config = Service.Config.Get<AIConfig>();
         }
 
         public void Dispose()
@@ -36,7 +38,8 @@ namespace BossMod.AI
                 return;
 
             // keep master in focus
-            FocusMaster(master);
+            if (_config.FocusTargetLeader)
+                FocusMaster(master);
 
             _afkMode = !master.InCombat && (_autorot.WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
             bool forbidActions = _forbidActions || _ctrl.IsMounted || _afkMode || _autorot.ClassActions == null || _autorot.ClassActions.AutoAction >= CommonActions.AutoActionFirstCustom;

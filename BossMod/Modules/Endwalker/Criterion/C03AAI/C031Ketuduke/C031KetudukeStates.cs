@@ -55,11 +55,13 @@
             CastMulti(id + 0x20, [AID.Hydrofall, AID.Hydrobullet], 2.2f, 4)
                 .ActivateOnEnter<HydrofallHydrobullet>();
             Cast(id + 0x30, AID.FlukeGale, 6.2f, 3);
-            ComponentCondition<FlukeGale>(id + 0x40, 2.1f, comp => comp.Gales.Count > 0);
+            ComponentCondition<FlukeGale>(id + 0x40, 2.1f, comp => comp.Gales.Count > 0)
+                .SetHint(StateMachine.StateHint.PositioningStart);
             ComponentCondition<FlukeGale>(id + 0x50, 8, comp => comp.NumCasts >= 2, "Knockbacks 1");
             ComponentCondition<FlukeGale>(id + 0x51, 2, comp => comp.NumCasts >= 4, "Knockbacks 2")
                 .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(Module, 0)) // TODO: consider activating earlier?..
-                .DeactivateOnExit<FlukeGale>();
+                .DeactivateOnExit<FlukeGale>()
+                .SetHint(StateMachine.StateHint.PositioningEnd);
             ComponentCondition<SpringCrystalsRect>(id + 0x60, 3.1f, comp => comp.NumCasts > 0)
                 .DeactivateOnExit<SpringCrystalsRect>();
             ComponentCondition<HydrofallHydrobullet>(id + 0x61, 0.2f, comp => comp.ActiveMechanic > 0, "Stack/spread")

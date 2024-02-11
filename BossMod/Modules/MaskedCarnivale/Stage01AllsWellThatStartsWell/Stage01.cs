@@ -41,7 +41,7 @@ namespace BossMod.MaskedCarnivale.Stage01
         }
     }
 
-    [ModuleInfo(CFCID = 611, NameID = 8077)]
+    [ModuleInfo(CFCID = 610, NameID = 8077)]
     public class Stage01 : BossModule
     {
         public Stage01(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))

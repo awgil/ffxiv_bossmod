@@ -1,4 +1,6 @@
 // CONTRIB: made by malediktus, not checked
+using System.Linq;
+
 namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
 {
     public enum OID : uint
@@ -7,6 +9,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
         BallOfLevin = 0x3E90,
         BossAdd = 0x3D2C, //R=4.2
         BossHelper = 0x233C,
+        BonusAdd_Lyssa = 0x3D4E, //R=3.75
     };
 
     public enum AID : uint
@@ -20,6 +23,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
         AutoAttack2 = 870, // BossAdds->player, no cast, single-target
         RockThrow = 32217, // BossAdds->location, 3,0s cast, range 6 circle
         SweepingGouge = 32211, // Boss->player, 5,0s cast, single-target
+        HeavySmash = 32317, // BossAdd_Lyssa -> location 3,0s cast, range 6 circle
     };
 
     public enum IconID : uint
@@ -29,7 +33,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
 
     class Spark : Components.SelfTargetedAOEs
     {
-        public Spark() : base(ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14,30)) { } 
+        public Spark() : base(ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30)) { }
     }
 
     class SweepingGouge : Components.SingleTargetCast
@@ -37,9 +41,9 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
         public SweepingGouge() : base(ActionID.MakeSpell(AID.SweepingGouge)) { }
     }
 
-   class Thundercall : Components.LocationTargetedAOEs
+    class Thundercall : Components.LocationTargetedAOEs
     {
-        public Thundercall() : base(ActionID.MakeSpell(AID.Thundercall), 3) {}
+        public Thundercall() : base(ActionID.MakeSpell(AID.Thundercall), 3) { }
     }
 
     class Thundercall2 : Components.UniformStackSpread
@@ -48,21 +52,21 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
         private bool targeted;
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if(iconID == (uint)IconID.Thundercall)
+            if (iconID == (uint)IconID.Thundercall)
                 AddSpread(actor);
-                targeted = true;
+            targeted = true;
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Thundercall)
                 Spreads.Clear();
-                targeted = false;
+            targeted = false;
         }
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-           var player = module.Raid.Player();
-            if(player == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+            var player = module.Raid.Player();
+            if (player == actor && targeted)
+                hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
         }
     }
 
@@ -81,40 +85,49 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
         public ThunderIV() : base(ActionID.MakeSpell(AID.ThunderIV), new AOEShapeCircle(18)) { }
     }
 
+    class HeavySmash : Components.LocationTargetedAOEs
+    {
+        public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
+    }
+
     class PithekosStates : StateMachineBuilder
     {
         public PithekosStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<Spark>()
-            .ActivateOnEnter<Thundercall>()
-            .ActivateOnEnter<Thundercall2>()
-            .ActivateOnEnter<RockThrow>()
-            .ActivateOnEnter<LightningBolt2>()
-            .ActivateOnEnter<SweepingGouge>()
-            .ActivateOnEnter<ThunderIV>();
+                .ActivateOnEnter<Spark>()
+                .ActivateOnEnter<Thundercall>()
+                .ActivateOnEnter<Thundercall2>()
+                .ActivateOnEnter<RockThrow>()
+                .ActivateOnEnter<LightningBolt2>()
+                .ActivateOnEnter<SweepingGouge>()
+                .ActivateOnEnter<ThunderIV>()
+                .ActivateOnEnter<HeavySmash>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_Lyssa).All(e => e.IsDead);
         }
     }
 
     [ModuleInfo(CFCID = 909, NameID = 12001)]
     public class Pithekos : BossModule
     {
-        public Pithekos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) {}
+        public Pithekos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in Enemies(OID.BossAdd))
                 Arena.Actor(s, ArenaColor.Object, false);
+            foreach (var s in Enemies(OID.BonusAdd_Lyssa))
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
+                    OID.BonusAdd_Lyssa => 3,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0

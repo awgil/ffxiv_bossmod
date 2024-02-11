@@ -1,4 +1,4 @@
-using Dalamud.Game.ClientState.JobGauge.Types;
+﻿using Dalamud.Game.ClientState.JobGauge.Types;
 using System;
 
 namespace BossMod.MNK
@@ -7,6 +7,7 @@ namespace BossMod.MNK
     {
         public const int AutoActionST = AutoActionFirstCustom + 0;
         public const int AutoActionAOE = AutoActionFirstCustom + 1;
+        public const int AutoActionFiller = AutoActionFirstCustom + 2;
 
         private MNKConfig _config;
         private Rotation.State _state;
@@ -41,7 +42,7 @@ namespace BossMod.MNK
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
             // TODO: multidotting support...
-            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy.NumPointBlankAOETargets, _strategy.ForbidDOTs) : AID.None) switch
+            var pos = (_state.Form == Rotation.Form.Coeurl ? Rotation.GetCoeurlFormAction(_state, _strategy) : AID.None) switch
             {
                 AID.SnapPunch => Positional.Flank,
                 AID.Demolish => Positional.Rear,
@@ -57,6 +58,13 @@ namespace BossMod.MNK
             _strategy.ApplyStrategyOverrides(Autorot.Bossmods.ActiveModule?.PlanExecution?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? new uint[0]);
             _strategy.NumPointBlankAOETargets = autoAction == AutoActionST ? 0 : NumTargetsHitByPBAOE();
             _strategy.NumEnlightenmentTargets = Autorot.PrimaryTarget != null && autoAction != AutoActionST && _state.Unlocked(AID.HowlingFist) ? NumTargetsHitByEnlightenment(Autorot.PrimaryTarget) : 0;
+            _strategy.UseAOE = _strategy.NumPointBlankAOETargets >= 3;
+            if (autoAction == AutoActionFiller)
+            {
+                _strategy.FireUse = Rotation.Strategy.FireStrategy.Delay;
+                _strategy.WindUse = CommonRotation.Strategy.OffensiveAbilityUse.Delay;
+                _strategy.BrotherhoodUse = CommonRotation.Strategy.OffensiveAbilityUse.Delay;
+            }
             FillStrategyPositionals(_strategy, Rotation.GetNextPositional(_state, _strategy), _state.TrueNorthLeft > _state.GCD);
         }
 
@@ -80,7 +88,7 @@ namespace BossMod.MNK
 
         protected override NextAction CalculateAutomaticOGCD(float deadline)
         {
-            if (Autorot.PrimaryTarget == null || AutoAction < AutoActionAIFight)
+            if (!Rotation.HaveTarget(_state, _strategy) || AutoAction < AutoActionAIFight)
                 return new();
 
             ActionID res = new();
@@ -129,10 +137,11 @@ namespace BossMod.MNK
         {
             // placeholders
             SupportedSpell(AID.Bootshine).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-            SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+            SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = SupportedSpell(AID.ShadowOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+            SupportedSpell(AID.SnapPunch).PlaceholderForAuto = _config.FullRotation ? AutoActionFiller : AutoActionNone;
 
             // combo replacement
-            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, 100, false, Rotation.Strategy.NadiChoice.Automatic)) : null;
+            SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, _strategy)) : null;
 
             SupportedSpell(AID.Thunderclap).Condition = _config.PreventCloseDash
                 ? ((act) => act == null || !act.Position.InCircle(Player.Position, 3))
