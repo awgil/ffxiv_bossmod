@@ -33,7 +33,7 @@ public enum AID : uint
         private bool castingGobspin;
         private bool castingGobswipe;
         private readonly AOEShapeCircle circle = new(8);
-        private readonly AOEShapeDonut donut = new(7,30); //TODO: confirm
+        private readonly AOEShapeDonut donut = new(5,30); //TODO: confirm
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (castingGobspin)
@@ -62,7 +62,7 @@ public enum AID : uint
         private bool castingGobspin;
         private bool castingGobswipe;
         private readonly AOEShapeCircle circle = new(8);
-        private readonly AOEShapeDonut donut = new(7,30); //TODO: confirm
+        private readonly AOEShapeDonut donut = new(5,30); //TODO: confirm
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (castingGobspin)
