@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod
 {
@@ -45,6 +46,17 @@ namespace BossMod
         {
             yield return center;
             foreach (var v in CircleArc(center, radius, angleStart, angleEnd, maxError))
+                yield return v;
+        }
+
+        // return polygon points approximating full donut; implicitly closed path - outer arc + inner arc
+        public static IEnumerable<WPos> Donut(WPos center, float innerRadius, float outerRadius, float maxError)
+        {
+            foreach (var v in Circle(center, outerRadius, maxError))
+                yield return v;
+            yield return PolarToCartesian(center, outerRadius, 0.0f.Radians());
+            yield return PolarToCartesian(center, innerRadius, 0.0f.Radians());
+            foreach (var v in Circle(center, innerRadius, maxError).Reverse())
                 yield return v;
         }
 

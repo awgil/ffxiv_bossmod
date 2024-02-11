@@ -12,13 +12,13 @@
         NSurprisingClaw = 0x4064, // R1.200, spawn during fight
 
         SBoss = 0x4065, // R3.960, x1
-        SHomingPattern = 0x4066, // R1.000, spawn during fight (TODO: verify OID)
-        SNeedle = 0x4067, // R1.000, spawn during fight (TODO: verify OID)
-        SBallOfFire = 0x4068, // R2.250, spawn during fight (TODO: verify OID)
-        SBomb = 0x4069, // R1.000, spawn during fight (TODO: verify OID)
-        SSurprisingMissile = 0x406A, // R1.000, spawn during fight (TODO: verify OID)
-        SSurprisingStaff = 0x406B, // R1.000, spawn during fight (TODO: verify OID)
-        SSurprisingClaw = 0x406C, // R1.200, spawn during fight (TODO: verify OID)
+        SHomingPattern = 0x4066, // R1.000, spawn during fight
+        SNeedle = 0x4067, // R1.000, spawn during fight
+        SBallOfFire = 0x4068, // R2.250, spawn during fight
+        SBomb = 0x4069, // R1.000, spawn during fight
+        SSurprisingMissile = 0x406A, // R1.000, spawn during fight
+        SSurprisingStaff = 0x406B, // R1.000, spawn during fight
+        SSurprisingClaw = 0x406C, // R1.200, spawn during fight
 
         Helper = 0x233C, // R0.500, x20, 523 type
         ConeSlice = 0x40C6, // R1.000, x6
@@ -96,7 +96,7 @@
         NFireSpread = 35202, // NBallOfFire->self, 8.0s cast, single-target, visual (rotating fire wall)
         NFireSpreadFirst = 35154, // Helper->self, 8.0s cast, range 12 width 5 rect
         NFireSpreadRest = 35321, // Helper->self, no cast, range 12 width 5 rect (x11, advance by 10 degrees every time)
-        SFireSpread = 35203, // SBallOfFire->self, 8.0s cast, single-target, visual (rotating fire wall) - TODO: verify aid
+        SFireSpread = 35203, // SBallOfFire->self, 8.0s cast, single-target, visual (rotating fire wall)
         SFireSpreadFirst = 35183, // Helper->self, 8.0s cast, range 12 width 5 rect
         SFireSpreadRest = 35323, // Helper->self, no cast, range 12 width 5 rect (x11, advance by 10 degrees every time)
         Enrage = 35875, // *Boss->self, 10.0s cast, range 60 circle, enrage

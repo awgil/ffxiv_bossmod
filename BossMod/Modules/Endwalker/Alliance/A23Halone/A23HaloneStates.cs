@@ -6,10 +6,12 @@ namespace BossMod.Endwalker.Alliance.A23Halone
     {
         public A23HaloneStates(BossModule module) : base(module)
         {
-            DeathPhase(0, SinglePhase);
+            SimplePhase(0, Phase1, "Before adds")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur < 1 || !Module.PrimaryActor.IsTargetable;
+            DeathPhase(1, Phase2);
         }
 
-        private void SinglePhase(uint id)
+        private void Phase1(uint id)
         {
             RainOfSpears(id, 8.2f);
             Tetrapagos(id + 0x10000, 7.0f);
@@ -20,17 +22,22 @@ namespace BossMod.Endwalker.Alliance.A23Halone
             ThousandfoldThrust(id + 0x60000, 6.3f);
             Lochos(id + 0x70000, 7.2f);
             WillOfTheFury(id + 0x80000, 4.4f);
-            AddPhase(id + 0x90000, 17.3f);
-            LochosThousandfoldThrust(id + 0x100000, 8.2f);
-            WillOfTheFury(id + 0x110000, 1.7f);
-            TetrapagosThrust(id + 0x120000, 4.1f);
-            DoomSpear(id + 0x130000, 1.4f);
-            RainOfSpears(id + 0x140000, 1.2f);
-            Chalaza(id + 0x150000, 9.9f);
-            SpearsThree(id + 0x160000, 1.3f);
-            LochosThousandfoldThrust(id + 0x170000, 6.9f);
-            WillOfTheFury(id + 0x180000, 1.7f);
-            RainOfSpears(id + 0x190000, 2.5f);
+            Targetable(id + 0x90000, false, 17.3f, "Boss disappears");
+        }
+
+        private void Phase2(uint id)
+        {
+            AddPhase(id, 3.1f);
+            LochosThousandfoldThrust(id + 0x10000, 8.2f);
+            WillOfTheFury(id + 0x20000, 1.7f);
+            TetrapagosThrust(id + 0x30000, 4.1f);
+            DoomSpear(id + 0x40000, 1.4f);
+            RainOfSpears(id + 0x50000, 1.2f);
+            Chalaza(id + 0x60000, 9.9f);
+            SpearsThree(id + 0x70000, 1.3f);
+            LochosThousandfoldThrust(id + 0x80000, 6.9f);
+            WillOfTheFury(id + 0x90000, 1.7f);
+            RainOfSpears(id + 0xA0000, 2.5f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -164,8 +171,7 @@ namespace BossMod.Endwalker.Alliance.A23Halone
 
         private void AddPhase(uint id, float delay)
         {
-            Targetable(id, false, delay, "Boss disappears");
-            ComponentCondition<GlacialSpearSmall>(id + 0x10, 3.1f, comp => comp.ActiveActors.Any(), "Adds appear")
+            ComponentCondition<GlacialSpearSmall>(id + 0x10, delay, comp => comp.ActiveActors.Any(), "Adds appear")
                 .ActivateOnEnter<GlacialSpearSmall>()
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
             ComponentCondition<GlacialSpearLarge>(id + 0x20, 7.5f, comp => comp.ActiveActors.Any())
