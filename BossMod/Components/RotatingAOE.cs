@@ -44,14 +44,9 @@ namespace BossMod.Components
                     yield return new(s.Shape, s.Origin, s.Rotation, s.NextActivation, ImminentColor);
         }
 
-        // return false if sequence was not found
-        public bool AdvanceSequence(WPos origin, Angle rotation, DateTime currentTime, bool removeWhenFinished = true)
+        public void AdvanceSequence(int index, DateTime currentTime, bool removeWhenFinished = true)
         {
             ++NumCasts;
-
-            var index = Sequences.FindIndex(s => s.Origin.AlmostEqual(origin, 1) && s.Rotation.AlmostEqual(rotation, 0.05f));
-            if (index < 0)
-                return false;
 
             ref var s = ref Sequences.AsSpan()[index];
             if (--s.NumRemainingCasts <= 0 && removeWhenFinished)
@@ -63,6 +58,15 @@ namespace BossMod.Components
                 s.Rotation += s.Increment;
                 s.NextActivation = currentTime.AddSeconds(s.SecondsBetweenActivations);
             }
+        }
+
+        // return false if sequence was not found
+        public bool AdvanceSequence(WPos origin, Angle rotation, DateTime currentTime, bool removeWhenFinished = true)
+        {
+            var index = Sequences.FindIndex(s => s.Origin.AlmostEqual(origin, 1) && s.Rotation.AlmostEqual(rotation, 0.05f));
+            if (index < 0)
+                return false;
+            AdvanceSequence(index, currentTime, removeWhenFinished);
             return true;
         }
     }
