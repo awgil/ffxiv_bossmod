@@ -79,6 +79,7 @@ namespace BossMod.Components
             foreach (var side in _tethers)
             {
                 arena.AddLine(side.Enemy.Position, side.Player.Position, side.Player.Role == Role.Tank ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(side.Player.Position, Radius, 0xFF000000, 2);
                 arena.AddCircle(side.Player.Position, Radius, ArenaColor.Danger);
             }
         }

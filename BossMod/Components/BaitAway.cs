@@ -125,8 +125,13 @@ namespace BossMod.Components
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (DrawTethers)
+            {
                 foreach (var b in ActiveBaits)
+                {
+                    arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
                     arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
+                }
+            }
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)

@@ -182,7 +182,10 @@ namespace BossMod.Components
                 foreach (var s in ActiveStacks)
                     arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Safe);
                 foreach (var s in ActiveSpreads)
+                {
+                    arena.AddCircle(s.Target.Position, s.Radius, 0xFF000000, 2);
                     arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Danger);
+                }
             }
         }
     }
