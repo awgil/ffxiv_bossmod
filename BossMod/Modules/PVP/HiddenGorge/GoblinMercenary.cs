@@ -25,8 +25,8 @@ public enum AID : uint
 };
     public enum IconID : uint
     {
-       RotationCCW = 168, // Boss
-       RotationCW = 167, // Boss
+       RotateCCW = 168, // Boss
+       RotateCW = 167, // Boss
     };
     class GobspinSwipe : Components.GenericAOEs
     {
@@ -87,15 +87,37 @@ public enum AID : uint
         }
     }
 
-    class GobfireShootypops : Components.SimpleRotationAOE
+   class GobfireShootypops : Components.GenericRotatingAOE
     {
-        public GobfireShootypops() : base(ActionID.MakeSpell(AID.GobfireShootypopsStart), ActionID.MakeSpell(AID.GobfireShootypops), default, default, new AOEShapeRect(32,3), 6, 0.Degrees(), 0.Degrees(), true) { }
+        private Angle _increment;
+
+        private static AOEShapeRect _shape =  new AOEShapeRect(32,3);
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if(iconID == (uint)IconID.RotationCW)
-                RotationDirIncrement = -60.Degrees();
-            if(iconID == (uint)IconID.RotationCCW)
-                RotationDirIncrement = 60.Degrees();
+            var increment = (IconID)iconID switch
+            {
+                IconID.RotateCW => -60.Degrees(),
+                IconID.RotateCCW => 60.Degrees(),
+                _ => default
+            };
+            if (increment != default)
+                _increment = increment;
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.GobfireShootypopsStart)
+            {
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 1, 6));
+                _increment = default;
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID is AID.GobfireShootypopsStart or AID.GobfireShootypops)
+                AdvanceSequence(0, module.WorldState.CurrentTime);
         }
     }
     class IronKiss : Components.LocationTargetedAOEs
