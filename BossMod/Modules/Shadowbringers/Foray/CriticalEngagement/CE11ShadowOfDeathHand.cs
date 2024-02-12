@@ -28,7 +28,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
         HardBeak = 20171, // Boss->player, 4.0s cast, single-target, tankbuster
         PiercingBarrageBoss = 20172, // Boss->self, 3.0s cast, range 40 width 8 rect aoe
         Helldive = 20173, // Boss->players, 5.0s cast, range 6 circle stack
-        BroadsideBarrage = 20174, // Boss->self, 5.0s cast, range 40 width 40 rect aoe
+        BroadsideBarrage = 20174, // Boss->self, 5.0s cast, range 40 width 40 rect aoe, 'knock-forward' 50 on failure
         BlindsideBarrage = 20175, // Boss->self, 4.0s cast, single-target, visual (raidwide + deathwall)
         BlindsideBarrageAOE = 20182, // Helper->self, 4.5s cast, range 30 circle, raidwide
         StrongWind = 20181, // Deathwall->self, no cast, range 20-30 donut, deathwall
@@ -79,27 +79,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
     {
         public BroadsideBarrage() : base(ActionID.MakeSpell(AID.BroadsideBarrage), new AOEShapeRect(40, 20)) { }
     }
-    class BroadsideBarrageKB : Components.Knockback
-    {
-        private bool casting;
 
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            if (casting)
-                yield return new(module.PrimaryActor.Position, 50, default, new AOEShapeRect(40, 20), module.PrimaryActor.Rotation, Kind.DirForward);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.BroadsideBarrage)
-                casting = true;
-        }
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.BroadsideBarrage)
-                casting = false;
-        }
-    }
     class BlindsideBarrage : Components.RaidwideCast
     {
         public BlindsideBarrage() : base(ActionID.MakeSpell(AID.BlindsideBarrage), "Raidwide + deathwall appears") { }
@@ -136,7 +116,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
                 .ActivateOnEnter<PiercingBarrageBoss>()
                 .ActivateOnEnter<Helldive>()
                 .ActivateOnEnter<BroadsideBarrage>()
-                .ActivateOnEnter<BroadsideBarrageKB>()
                 .ActivateOnEnter<BlindsideBarrage>()
                 .ActivateOnEnter<RollingBarrage>()
                 .ActivateOnEnter<Whirlwind>()

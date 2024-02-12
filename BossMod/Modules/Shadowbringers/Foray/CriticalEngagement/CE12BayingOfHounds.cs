@@ -24,54 +24,91 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
         Hellpounce = 20539, // Boss->location, 4.0s cast, width 10 rect charge aoe, knockback away from source, dist 5 (consider showing?)
         HellpounceSecond = 20540, // Boss->location, 1.0s cast, width 10 rect charge, knockback away from source, dist 5 (consider showing?)
         LionsBreath = 20541, // Boss->self, 4.0s cast, single-target, visual (frontal cone)
-        LionsBreathAOE = 20542, // Helper->self, 4.5s cast, range 60 30-degree cone aoe
+        LionsBreathAOE = 20542, // Helper->self, 4.5s cast, range 60 45-degree cone aoe
+        DragonsBreath = 20543, // Boss->self, 4,0s cast, single-target, visual (side cones)
+        DragonsBreathAOER = 20544, // Helper->self, 4,5s cast, range 60 30-degree cone
+        DragonsBreathAOEL = 20545, // Helper->self, 4,5s cast, range 60 30-degree cone
         VoidTornado = 20546, // Boss->self, 4.0s cast, single-target, visual (set hp to 1)
         VoidTornadoAOE = 20547, // Helper->self, no cast, range 30 circle, set hp to 1
         VoidQuake = 20548, // Boss->self, 3.0s cast, single-target, visual (staggered circle/donuts)
         VoidQuakeAOE1 = 20549, // Helper->self, 3.0s cast, range 10 circle aoe
         VoidQuakeAOE2 = 20550, // Helper->self, 3.0s cast, range 10-20 donut aoe
         VoidQuakeAOE3 = 20551, // Helper->self, 3.0s cast, range 20-30 donut aoe
-        TheDragonsBreath = 20543, // Boss->self, 4,0s cast, single-target
-        TheDragonsBreathA = 20544, // Helper->self, 4,5s cast, range 60 30-degree cone
-        TheDragonsBreathB = 20545, // Helper->self, 4,5s cast, range 60 30-degree cone
     };
-    class TheDragonsBreathA : Components.SelfTargetedAOEs
-    {
-        public TheDragonsBreathA() : base(ActionID.MakeSpell(AID.TheDragonsBreathA), new AOEShapeCone(60, 36.Degrees(), -10.Degrees())) { }
-    }
-    class TheDragonsBreathB : Components.SelfTargetedAOEs
-    {
-        public TheDragonsBreathB() : base(ActionID.MakeSpell(AID.TheDragonsBreathB), new AOEShapeCone(60, 36.Degrees(), 10.Degrees())) { }
-    }
+
     class Hellclaw : Components.SingleTargetCast
     {
         public Hellclaw() : base(ActionID.MakeSpell(AID.Hellclaw)) { }
     }
-    class LavaSpitAOE: Components.LocationTargetedAOEs
-    {
-        public LavaSpitAOE() : base(ActionID.MakeSpell(AID.LavaSpitAOE), 5) { }
-    }
+
     class TailBlow : Components.SelfTargetedAOEs
     {
         public TailBlow() : base(ActionID.MakeSpell(AID.TailBlow), new AOEShapeCone(19, 45.Degrees())) { }
+    }
+
+    class LavaSpit : Components.LocationTargetedAOEs
+    {
+        public LavaSpit() : base(ActionID.MakeSpell(AID.LavaSpitAOE), 5) { }
     }
 
     class ScorchingLash : Components.SelfTargetedAOEs
     {
         public ScorchingLash() : base(ActionID.MakeSpell(AID.ScorchingLash), new AOEShapeRect(50, 5)) { }
     }
-    class Hellpounce : Components.ChargeAOEs
+
+    class Hellpounce : Components.GenericAOEs
     {
-        public Hellpounce() : base(ActionID.MakeSpell(AID.Hellpounce), 5) { }
-    }
-    class HellpounceSecond : Components.ChargeAOEs
-    {
-        public HellpounceSecond() : base(ActionID.MakeSpell(AID.HellpounceSecond), 5) { }
+        private AOEInstance? _charge;
+
+        public Hellpounce() : base(ActionID.MakeSpell(AID.Hellpounce), "GTFO from charge!") { }
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_charge != null)
+                yield return _charge.Value;
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.Hellpounce or AID.HellpounceSecond)
+                Activate(caster.Position, spell.LocXZ, spell.FinishAt);
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.Hellpounce:
+                    var offset = spell.LocXZ - module.Bounds.Center;
+                    Activate(spell.LocXZ, module.Bounds.Center - offset, module.WorldState.CurrentTime.AddSeconds(3.7f));
+                    break;
+                case AID.HellpounceSecond:
+                    _charge = null;
+                    break;
+            }
+        }
+
+        private void Activate(WPos source, WPos target, DateTime activation)
+        {
+            var shape = new AOEShapeRect(0, 5);
+            shape.SetEndPoint(target, source, new());
+            _charge = new(shape, source, activation: activation);
+        }
     }
 
     class LionsBreath : Components.SelfTargetedAOEs
     {
         public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 45.Degrees())) { }
+    }
+
+    class DragonsBreathR : Components.SelfTargetedAOEs
+    {
+        public DragonsBreathR() : base(ActionID.MakeSpell(AID.DragonsBreathAOER), new AOEShapeCone(60, 36.Degrees(), -10.Degrees())) { } // TODO: verify; there should not be an offset in reality here...
+    }
+
+    class DragonsBreathL : Components.SelfTargetedAOEs
+    {
+        public DragonsBreathL() : base(ActionID.MakeSpell(AID.DragonsBreathAOEL), new AOEShapeCone(60, 36.Degrees(), 10.Degrees())) { } // TODO: verify; there should not be an offset in reality here...
     }
 
     class VoidTornado : Components.CastHint
@@ -114,14 +151,13 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
             TrivialPhase()
                 .ActivateOnEnter<Hellclaw>()
                 .ActivateOnEnter<TailBlow>()
+                .ActivateOnEnter<LavaSpit>()
                 .ActivateOnEnter<ScorchingLash>()
                 .ActivateOnEnter<Hellpounce>()
-                .ActivateOnEnter<HellpounceSecond>()
                 .ActivateOnEnter<LionsBreath>()
+                .ActivateOnEnter<DragonsBreathR>()
+                .ActivateOnEnter<DragonsBreathL>()
                 .ActivateOnEnter<VoidTornado>()
-                .ActivateOnEnter<LavaSpitAOE>()
-                .ActivateOnEnter<TheDragonsBreathA>()
-                .ActivateOnEnter<TheDragonsBreathB>()
                 .ActivateOnEnter<VoidQuake>();
         }
     }

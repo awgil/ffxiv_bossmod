@@ -58,10 +58,12 @@
     {
         public PlasmaField() : base(ActionID.MakeSpell(AID.PlasmaField)) { }
     }
+
     class Towers : Components.CastTowers
     {
         public Towers() : base(ActionID.MakeSpell(AID.Explosion), 6) { }
     }
+
     class MagitekRay : Components.SelfTargetedAOEs
     {
         public MagitekRay() : base(ActionID.MakeSpell(AID.MagitekRay), new AOEShapeRect(50, 2)) { }
