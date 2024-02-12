@@ -30,6 +30,7 @@ namespace BossMod.Components
         {
             public DateTime ArmsLengthSurecastExpire; // 0 if not active
             public DateTime InnerStrengthExpire; // 0 if not active
+            public DateTime ManawallExpire; // 0 if not active
 
             public bool ImmuneAt(DateTime time) => ArmsLengthSurecastExpire > time || InnerStrengthExpire > time;
         }
@@ -81,16 +82,23 @@ namespace BossMod.Components
         {
             switch (status.ID)
             {
+                case 3054: //Guard in PVP
                 case (uint)WHM.SID.Surecast:
                 case (uint)WAR.SID.ArmsLength:
                     var slot1 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot1 >= 0)
                         PlayerImmunes[slot1].ArmsLengthSurecastExpire = status.ExpireAt;
                     break;
+                case 1722: //Bluemage Diamondback
                 case (uint)WAR.SID.InnerStrength:
                     var slot2 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot2 >= 0)
                         PlayerImmunes[slot2].InnerStrengthExpire = status.ExpireAt;
+                    break;
+                case 2345: //Lost Manawall in Bozja
+                    var slot3 = module.Raid.FindSlot(actor.InstanceID);
+                    if (slot3 >= 0)
+                        PlayerImmunes[slot3].ManawallExpire = status.ExpireAt;
                     break;
             }
         }
@@ -99,16 +107,23 @@ namespace BossMod.Components
         {
             switch (status.ID)
             {
+                case 3054: //Guard in PVP
                 case (uint)WHM.SID.Surecast:
                 case (uint)WAR.SID.ArmsLength:
                     var slot1 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot1 >= 0)
                         PlayerImmunes[slot1].ArmsLengthSurecastExpire = new();
                     break;
+                case 1722: //Bluemage Diamondback
                 case (uint)WAR.SID.InnerStrength:
                     var slot2 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot2 >= 0)
                         PlayerImmunes[slot2].InnerStrengthExpire = new();
+                    break;
+                case 2345: //Lost Manawall in Bozja
+                    var slot3 = module.Raid.FindSlot(actor.InstanceID);
+                    if (slot3 >= 0)
+                        PlayerImmunes[slot3].ManawallExpire = new();
                     break;
             }
         }
