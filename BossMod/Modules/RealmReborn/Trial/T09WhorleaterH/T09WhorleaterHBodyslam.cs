@@ -33,7 +33,6 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID is AID.BodySlamNorth or AID.BodySlamSouth)
                 Distance = 0;
         }
@@ -44,7 +43,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
     {
         private bool active;
         private float LeviathanZ;
-        private static readonly AOEShapeRect rect = new(30, 5);
+        private readonly AOEShapeRect rect = new(30, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -68,7 +67,6 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.BodySlamRectAOE)
                 active = false;
         }

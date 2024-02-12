@@ -92,14 +92,12 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Reflect)
                 casting = true;
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Reflect)
             {
                 reflect = true;

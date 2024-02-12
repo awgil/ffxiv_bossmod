@@ -36,7 +36,6 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
         private bool HasteB;
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Haste)
                 HasteB = true;
         }
