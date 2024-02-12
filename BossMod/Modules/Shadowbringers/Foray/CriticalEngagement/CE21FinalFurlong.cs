@@ -20,7 +20,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
         HatefulMiasma = 20125, // Helper->players, 5.0s cast, range 6 circle stack
         PoisonedWords = 20126, // Helper->location, 5.0s cast, range 6 circle puddles
         TalonedGaze = 20127, // Boss->self, 4.0s cast, single-target, visual (front/back > sides)
-        // TODO: taloned wings
+        TalonedWings = 20128, // Boss->self, 4,0s cast, single-target, visual, (sides then front/back)
         CoffinNails = 20129, // Helper->self, 4.7s cast, range 60 90-degree cone aoe
         Stab = 20130, // Boss->player, 4.0s cast, single-target, tankbuster
         GripOfPoison = 20131, // Boss->self, 4.0s cast, range 60 circle, raidwide
@@ -41,6 +41,14 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
         Unfreezable = 17, // GraspingRancor->player (appears if hand wasn't hit by aoe)
     };
 
+    class TalonedGaze : Components.CastHint
+    {
+        public TalonedGaze() : base(ActionID.MakeSpell(AID.TalonedGaze), "AOE front/back --> sides") { }
+    }
+    class TalonedWings : Components.CastHint
+    {
+        public TalonedWings() : base(ActionID.MakeSpell(AID.TalonedWings), "AOE sides --> front/back") { }
+    }
     class GraspingRancor : Components.LocationTargetedAOEs
     {
         private List<Actor> _hands = new();
@@ -124,6 +132,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
                 .ActivateOnEnter<CoffinNails>()
                 .ActivateOnEnter<Stab>()
                 .ActivateOnEnter<GripOfPoison>()
+                .ActivateOnEnter<TalonedGaze>()
+                .ActivateOnEnter<TalonedWings>()
                 .ActivateOnEnter<StepsOfDestruction>();
         }
     }

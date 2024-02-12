@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
+﻿using System.Collections.Generic;
+
+namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
 {
     public enum OID : uint
     {
@@ -20,7 +22,7 @@
         RippingBlade = 20157, // Beastmaster->player, no cast, single-target, micro tankbuster
         BestialLoyalty = 20163, // Beastmaster->self, 3.0s cast, single-target, visual (summon crows)
         BestialLoyaltyAOE = 20164, // Helper->location, no cast, range 5 circle (aoe where crows appear)
-        RunWild = 20166, // Beastmaster->self, 4.0s cast, interruptible ???
+        RunWild = 20166, // Beastmaster->self, 4.0s cast, interruptible, buffs enemies with status effect Running Wild, seems to be some kind of damage buff
         Reward = 20169, // Beastmaster->Boss, 3.0s cast, single-target, heal
         WrathOfTheForsaken = 20170, // Boss->self, 3.0s cast, single-target, damage up after beastmaster death
         HardBeak = 20171, // Boss->player, 4.0s cast, single-target, tankbuster
@@ -53,7 +55,6 @@
         public BestialLoyalty() : base(ActionID.MakeSpell(AID.BestialLoyalty), "Summon crows") { }
     }
 
-    // TODO: dunno what it does if not interrrupted
     class RunWild : Components.CastHint
     {
         public RunWild() : base(ActionID.MakeSpell(AID.RunWild), "Interrupt beastmaster") { }
@@ -78,7 +79,27 @@
     {
         public BroadsideBarrage() : base(ActionID.MakeSpell(AID.BroadsideBarrage), new AOEShapeRect(40, 20)) { }
     }
+    class BroadsideBarrageKB : Components.Knockback
+    {
+        private bool casting;
 
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            if (casting)
+                yield return new(module.PrimaryActor.Position, 50, default, new AOEShapeRect(40, 20), module.PrimaryActor.Rotation, Kind.DirForward);
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.BroadsideBarrage)
+                casting = true;
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.BroadsideBarrage)
+                casting = false;
+        }
+    }
     class BlindsideBarrage : Components.RaidwideCast
     {
         public BlindsideBarrage() : base(ActionID.MakeSpell(AID.BlindsideBarrage), "Raidwide + deathwall appears") { }
@@ -115,6 +136,7 @@
                 .ActivateOnEnter<PiercingBarrageBoss>()
                 .ActivateOnEnter<Helldive>()
                 .ActivateOnEnter<BroadsideBarrage>()
+                .ActivateOnEnter<BroadsideBarrageKB>()
                 .ActivateOnEnter<BlindsideBarrage>()
                 .ActivateOnEnter<RollingBarrage>()
                 .ActivateOnEnter<Whirlwind>()

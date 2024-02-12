@@ -18,26 +18,39 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
         TailBlow = 20535, // Boss->self, 3.0s cast, range 19 90-degree cone aoe
         LavaSpit1 = 20536, // Boss->self, 3.0s cast, single-target, visual (summon hellsfires)
         LavaSpit2 = 20537, // Boss->self, no cast, single-target, visual (summon second set of hellsfires)
-        LavaSpitAOE = 20538, // Helper->location, 3.0s cast, range 5 circle (??? at hellsfire spawn locations)
+        LavaSpitAOE = 20538, // Helper->location, 3.0s cast, range 5 circle
         HellsfireActivate = 19647, // Hellsfire->self, no cast, range ?-50 donut, visual (prepare for activation)
         ScorchingLash = 20553, // Hellsfire->self, 4.0s cast, range 50 width 10 rect aoe
-        Hellpounce = 20539, // Boss->location, 4.0s cast, width 10 rect charge aoe
-        HellpounceSecond = 20540, // Boss->location, 1.0s cast, width 10 rect charge
+        Hellpounce = 20539, // Boss->location, 4.0s cast, width 10 rect charge aoe, knockback away from source, dist 5 (consider showing?)
+        HellpounceSecond = 20540, // Boss->location, 1.0s cast, width 10 rect charge, knockback away from source, dist 5 (consider showing?)
         LionsBreath = 20541, // Boss->self, 4.0s cast, single-target, visual (frontal cone)
-        LionsBreathAOE = 20542, // Helper->self, 4.5s cast, range 60 ?-degree cone aoe
+        LionsBreathAOE = 20542, // Helper->self, 4.5s cast, range 60 30-degree cone aoe
         VoidTornado = 20546, // Boss->self, 4.0s cast, single-target, visual (set hp to 1)
         VoidTornadoAOE = 20547, // Helper->self, no cast, range 30 circle, set hp to 1
         VoidQuake = 20548, // Boss->self, 3.0s cast, single-target, visual (staggered circle/donuts)
         VoidQuakeAOE1 = 20549, // Helper->self, 3.0s cast, range 10 circle aoe
         VoidQuakeAOE2 = 20550, // Helper->self, 3.0s cast, range 10-20 donut aoe
         VoidQuakeAOE3 = 20551, // Helper->self, 3.0s cast, range 20-30 donut aoe
+        TheDragonsBreath = 20543, // Boss->self, 4,0s cast, single-target
+        TheDragonsBreathA = 20544, // Helper->self, 4,5s cast, range 60 30-degree cone
+        TheDragonsBreathB = 20545, // Helper->self, 4,5s cast, range 60 30-degree cone
     };
-
+    class TheDragonsBreathA : Components.SelfTargetedAOEs
+    {
+        public TheDragonsBreathA() : base(ActionID.MakeSpell(AID.TheDragonsBreathA), new AOEShapeCone(60, 36.Degrees(), -10.Degrees())) { }
+    }
+    class TheDragonsBreathB : Components.SelfTargetedAOEs
+    {
+        public TheDragonsBreathB() : base(ActionID.MakeSpell(AID.TheDragonsBreathB), new AOEShapeCone(60, 36.Degrees(), 10.Degrees())) { }
+    }
     class Hellclaw : Components.SingleTargetCast
     {
         public Hellclaw() : base(ActionID.MakeSpell(AID.Hellclaw)) { }
     }
-
+    class LavaSpitAOE: Components.LocationTargetedAOEs
+    {
+        public LavaSpitAOE() : base(ActionID.MakeSpell(AID.LavaSpitAOE), 5) { }
+    }
     class TailBlow : Components.SelfTargetedAOEs
     {
         public TailBlow() : base(ActionID.MakeSpell(AID.TailBlow), new AOEShapeCone(19, 45.Degrees())) { }
@@ -47,61 +60,26 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
     {
         public ScorchingLash() : base(ActionID.MakeSpell(AID.ScorchingLash), new AOEShapeRect(50, 5)) { }
     }
-
-    class Hellpounce : Components.GenericAOEs
+    class Hellpounce : Components.ChargeAOEs
     {
-        private AOEInstance? _charge;
-
-        public Hellpounce() : base(ActionID.MakeSpell(AID.Hellpounce), "GTFO from charge!") { }
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_charge != null)
-                yield return _charge.Value;
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.Hellpounce or AID.HellpounceSecond)
-                Activate(caster.Position, spell.LocXZ, spell.FinishAt);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.Hellpounce:
-                    var offset = spell.LocXZ - module.Bounds.Center;
-                    Activate(spell.LocXZ, module.Bounds.Center - offset, module.WorldState.CurrentTime.AddSeconds(3.7f));
-                    break;
-                case AID.HellpounceSecond:
-                    _charge = null;
-                    break;
-            }
-        }
-
-        private void Activate(WPos source, WPos target, DateTime activation)
-        {
-            var shape = new AOEShapeRect(0, 5);
-            shape.SetEndPoint(target, source, new());
-            _charge = new(shape, source, activation: activation);
-        }
+        public Hellpounce() : base(ActionID.MakeSpell(AID.Hellpounce), 5) { }
+    }
+    class HellpounceSecond : Components.ChargeAOEs
+    {
+        public HellpounceSecond() : base(ActionID.MakeSpell(AID.HellpounceSecond), 5) { }
     }
 
     class LionsBreath : Components.SelfTargetedAOEs
     {
-        public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 30.Degrees())) { } // TODO: verify angle
+        public LionsBreath() : base(ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 45.Degrees())) { }
     }
-    // TODO: dragon's breath
 
     class VoidTornado : Components.CastHint
     {
         public VoidTornado() : base(ActionID.MakeSpell(AID.VoidTornado), "Set hp to 1") { }
     }
 
-    // next aoe starts casting slightly before previous, so use a custom component
-    // TODO: we should really generalize this shit
-    class VoidQuake : Components.GenericAOEs
+    class VoidQuake : Components.GenericAOEs //this concentric AOE can happen forwards or backwards in order with the same AID as the starter
     {
         private List<(Actor caster, AOEShape shape)> _active = new();
 
@@ -138,8 +116,12 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
                 .ActivateOnEnter<TailBlow>()
                 .ActivateOnEnter<ScorchingLash>()
                 .ActivateOnEnter<Hellpounce>()
+                .ActivateOnEnter<HellpounceSecond>()
                 .ActivateOnEnter<LionsBreath>()
                 .ActivateOnEnter<VoidTornado>()
+                .ActivateOnEnter<LavaSpitAOE>()
+                .ActivateOnEnter<TheDragonsBreathA>()
+                .ActivateOnEnter<TheDragonsBreathB>()
                 .ActivateOnEnter<VoidQuake>();
         }
     }

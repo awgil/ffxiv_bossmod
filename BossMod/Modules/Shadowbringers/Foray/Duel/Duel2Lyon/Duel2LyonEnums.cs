@@ -31,7 +31,7 @@ public enum AID : uint
     NaturesBlood2 = 20796, // Helper->self, no cast, range 4 circle
     TheKingsNotice = 20810, // Boss->self, 5,0s cast, range 50 circle
     SplittingRage = 20814, // Boss->self, 3,0s cast, range 50 circle
-    SkyrendingStrike = 20804, //enrage, 35s cast time, datamined from Godbert, needs confirmation
+    SkyrendingStrike = 20804, //enrage, 35s cast time
 };
 
 public enum IconID : uint
