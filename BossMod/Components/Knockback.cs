@@ -28,10 +28,11 @@ namespace BossMod.Components
 
         protected struct PlayerImmuneState
         {
-            public DateTime ArmsLengthSurecastExpire; // 0 if not active
-            public DateTime InnerStrengthExpire; // 0 if not active
+            public DateTime RoleBuffExpire; // 0 if not active
+            public DateTime JobBuffExpire; // 0 if not active
+            public DateTime DutyBuffExpire; // 0 if not active
 
-            public bool ImmuneAt(DateTime time) => ArmsLengthSurecastExpire > time || InnerStrengthExpire > time;
+            public bool ImmuneAt(DateTime time) => RoleBuffExpire > time || JobBuffExpire > time || DutyBuffExpire > time;
         }
 
         public bool IgnoreImmunes { get; private init; }
@@ -81,16 +82,23 @@ namespace BossMod.Components
         {
             switch (status.ID)
             {
+                case 3054: //Guard in PVP
                 case (uint)WHM.SID.Surecast:
                 case (uint)WAR.SID.ArmsLength:
                     var slot1 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot1 >= 0)
-                        PlayerImmunes[slot1].ArmsLengthSurecastExpire = status.ExpireAt;
+                        PlayerImmunes[slot1].RoleBuffExpire = status.ExpireAt;
                     break;
+                case 1722: //Bluemage Diamondback
                 case (uint)WAR.SID.InnerStrength:
                     var slot2 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot2 >= 0)
-                        PlayerImmunes[slot2].InnerStrengthExpire = status.ExpireAt;
+                        PlayerImmunes[slot2].JobBuffExpire = status.ExpireAt;
+                    break;
+                case 2345: //Lost Manawall in Bozja
+                    var slot3 = module.Raid.FindSlot(actor.InstanceID);
+                    if (slot3 >= 0)
+                        PlayerImmunes[slot3].DutyBuffExpire = status.ExpireAt;
                     break;
             }
         }
@@ -99,16 +107,23 @@ namespace BossMod.Components
         {
             switch (status.ID)
             {
+                case 3054: //Guard in PVP
                 case (uint)WHM.SID.Surecast:
                 case (uint)WAR.SID.ArmsLength:
                     var slot1 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot1 >= 0)
-                        PlayerImmunes[slot1].ArmsLengthSurecastExpire = new();
+                        PlayerImmunes[slot1].RoleBuffExpire = new();
                     break;
+                case 1722: //Bluemage Diamondback
                 case (uint)WAR.SID.InnerStrength:
                     var slot2 = module.Raid.FindSlot(actor.InstanceID);
                     if (slot2 >= 0)
-                        PlayerImmunes[slot2].InnerStrengthExpire = new();
+                        PlayerImmunes[slot2].JobBuffExpire = new();
+                    break;
+                case 2345: //Lost Manawall in Bozja
+                    var slot3 = module.Raid.FindSlot(actor.InstanceID);
+                    if (slot3 >= 0)
+                        PlayerImmunes[slot3].DutyBuffExpire = new();
                     break;
             }
         }
