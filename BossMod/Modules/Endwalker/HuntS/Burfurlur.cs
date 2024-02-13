@@ -27,25 +27,17 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
         private Angle _referenceAngle;
         private List<Angle> _pendingOffsets = new();
         private static AOEShapeCone _shape = new(40, 45.Degrees());
-        private bool _sneezing;
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_sneezing)
+            foreach (var s in Sequences)
             {
-                if (_pendingOffsets.Count > 0)
-                foreach (var s in Sequences)
-                {
-                    int num = Math.Min(s.NumRemainingCasts, s.MaxShownAOEs);
-                    var time = s.NextActivation > module.WorldState.CurrentTime ? s.NextActivation : module.WorldState.CurrentTime;
-                    for (int i = 1; i < num; ++i)
+                var time = s.NextActivation > module.WorldState.CurrentTime ? s.NextActivation : module.WorldState.CurrentTime;
+                if (s.NumRemainingCasts > 0)
                     {
                         time = time.AddSeconds(s.SecondsBetweenActivations);
                         yield return new(s.Shape, s.Origin, _referenceAngle + _pendingOffsets[0], time, ImminentColor);
                     }
-                }
-                if (_pendingOffsets.Count > 1)
-                foreach (var s in Sequences)
-                    if (s.NumRemainingCasts > 0)
+                if (s.NumRemainingCasts > 1)
                         yield return new(s.Shape, s.Origin, _referenceAngle + _pendingOffsets[1], s.NextActivation, FutureColor);
             }
         }
@@ -57,27 +49,23 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
                     _referenceAngle = spell.Rotation;
                     _pendingOffsets.Clear();
                     _pendingOffsets.Add(new());
-                    _sneezing = false;
                     break;
                 case AID.QuintupleInhale24:
                 case AID.QuintupleInhale35:
                     _pendingOffsets.Add(spell.Rotation - _referenceAngle);
                     break;
                 case AID.QuintupleSneeze1:
-                    _sneezing = true;
-                    Sequences.Add(new(_shape, caster.Position, default, default, spell.FinishAt, 2.2f, 6));
+                    Sequences.Add(new(_shape, caster.Position, default, default, spell.FinishAt, 2.2f, 5));
                     _referenceAngle = spell.Rotation;
                     break;
             }
         }
-
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (_pendingOffsets.Count > 0 && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
             {
                 AdvanceSequence(0, module.WorldState.CurrentTime);
                 _pendingOffsets.RemoveAt(0);
-                _sneezing = _pendingOffsets.Count > 0;
             }
         }
     }
