@@ -25,100 +25,41 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
         BoneShaker = 27512, // Boss->self, 4.0s cast, range 30 circle
     };
 
-    class Slammer : Components.GenericAOEs
+    class Slammer : Components.GenericRotatingAOE
     {
-        private int _remainingSlams = 0;
-        private Angle _slamDir;
-        private Angle _slamDirIncrement;
+        private Angle _increment;
 
         private static AOEShapeCone _shape = new(30, 90.Degrees());
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_remainingSlams > 0)
-                yield return new(_shape, module.PrimaryActor.Position, _slamDir); // TODO: activation
-        }
-
-        // TODO: this shouldn't be necessary...
-        public override void Update(BossModule module)
-        {
-            if (module.PrimaryActor.CastInfo == null || !module.PrimaryActor.CastInfo.IsSpell())
-                return;
-            switch ((AID)module.PrimaryActor.CastInfo.Action.ID)
-            {
-                case AID.LeftHammerSlammer:
-                case AID.OctupleSlammerLCW:
-                case AID.OctupleSlammerLCCW:
-                    _slamDir = module.PrimaryActor.Rotation + 90.Degrees();
-                    break;
-                case AID.RightHammerSlammer:
-                case AID.OctupleSlammerRCW:
-                case AID.OctupleSlammerRCCW:
-                    _slamDir = module.PrimaryActor.Rotation - 90.Degrees();
-                    break;
-            }
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            base.DrawArenaBackground(module, pcSlot, pc, arena);
-            if (_remainingSlams > 0 && _slamDirIncrement.Rad != MathF.PI)
-                arena.ZoneCone(module.PrimaryActor.Position, 0, _shape.Radius, _slamDir - _slamDirIncrement * 3 / 2, 45.Degrees(), ArenaColor.SafeFromAOE);
-        }
-
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (caster != module.PrimaryActor)
-                return;
-            switch ((AID)spell.Action.ID)
+            var increment = (AID)spell.Action.ID switch
             {
-                case AID.LeftHammerSlammer:
-                    _remainingSlams = 2;
-                    _slamDirIncrement = 180.Degrees();
-                    break;
-                case AID.RightHammerSlammer:
-                    _remainingSlams = 2;
-                    _slamDirIncrement = 180.Degrees();
-                    break;
-                case AID.OctupleSlammerLCW:
-                    _remainingSlams = 8;
-                    _slamDirIncrement = 90.Degrees();
-                    break;
-                case AID.OctupleSlammerRCW:
-                    _remainingSlams = 8;
-                    _slamDirIncrement = 90.Degrees();
-                    break;
-                case AID.OctupleSlammerLCCW:
-                    _remainingSlams = 8;
-                    _slamDirIncrement = -90.Degrees();
-                    break;
-                case AID.OctupleSlammerRCCW:
-                    _remainingSlams = 8;
-                    _slamDirIncrement = -90.Degrees();
-                    break;
+                AID.OctupleSlammerLCW or AID.OctupleSlammerRCW => 90.Degrees(),
+                AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW => -90.Degrees(),
+                AID.LeftHammerSecond or AID.RightHammerSlammer => 180.Degrees(),
+                _ => default
+            };
+            if (increment != default)
+                _increment = increment;
+            if ((AID)spell.Action.ID is AID.OctupleSlammerLCW or AID.OctupleSlammerRCW or AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW)
+            {
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.7f, 8));
+                _increment = default;
+                ImminentColor = ArenaColor.Danger;
+            }
+            if ((AID)spell.Action.ID is AID.LeftHammerSlammer or AID.RightHammerSlammer)
+            {
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.6f, 2, 1));
+                _increment = default;
+                ImminentColor = ArenaColor.AOE;
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (caster != module.PrimaryActor)
-                return;
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.LeftHammerSlammer:
-                case AID.RightHammerSlammer:
-                case AID.LeftHammerSecond:
-                case AID.RightHammerSecond:
-                case AID.OctupleSlammerLCW:
-                case AID.OctupleSlammerRCW:
-                case AID.OctupleSlammerRestL:
-                case AID.OctupleSlammerRestR:
-                case AID.OctupleSlammerLCCW:
-                case AID.OctupleSlammerRCCW:
-                    _slamDir += _slamDirIncrement;
-                    --_remainingSlams;
-                    break;
-            }
+            if ((AID)spell.Action.ID is AID.OctupleSlammerLCW or AID.OctupleSlammerRCW or AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW or AID.OctupleSlammerRestL or AID.OctupleSlammerRestR or AID.LeftHammerSlammer or AID.LeftHammerSecond or AID.RightHammerSlammer or AID.RightHammerSecond)
+                AdvanceSequence(0, module.WorldState.CurrentTime);
         }
     }
 
