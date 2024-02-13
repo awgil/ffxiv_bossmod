@@ -42,24 +42,42 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
             };
             if (increment != default)
                 _increment = increment;
-            if ((AID)spell.Action.ID is AID.OctupleSlammerLCW or AID.OctupleSlammerRCW or AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW)
+            switch ((AID)spell.Action.ID)
             {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.7f, 8));
-                _increment = default;
-                ImminentColor = ArenaColor.Danger;
-            }
-            if ((AID)spell.Action.ID is AID.LeftHammerSlammer or AID.RightHammerSlammer)
-            {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.6f, 2, 1));
-                _increment = default;
-                ImminentColor = ArenaColor.AOE;
+                case AID.OctupleSlammerLCW:
+                case AID.OctupleSlammerRCW:
+                case AID.OctupleSlammerLCCW:
+                case AID.OctupleSlammerRCCW:
+                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.7f, 8));
+                    _increment = default;
+                    ImminentColor = ArenaColor.Danger;
+                    break;
+                case AID.LeftHammerSlammer:
+                case AID.RightHammerSlammer:
+                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.6f, 2, 1));
+                    _increment = default;
+                    ImminentColor = ArenaColor.AOE;
+                    break;
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.OctupleSlammerLCW or AID.OctupleSlammerRCW or AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW or AID.OctupleSlammerRestL or AID.OctupleSlammerRestR or AID.LeftHammerSlammer or AID.LeftHammerSecond or AID.RightHammerSlammer or AID.RightHammerSecond)
-                AdvanceSequence(0, module.WorldState.CurrentTime);
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.LeftHammerSlammer:
+                case AID.RightHammerSlammer:
+                case AID.LeftHammerSecond:
+                case AID.RightHammerSecond:
+                case AID.OctupleSlammerLCW:
+                case AID.OctupleSlammerRCW:
+                case AID.OctupleSlammerRestL:
+                case AID.OctupleSlammerRestR:
+                case AID.OctupleSlammerLCCW:
+                case AID.OctupleSlammerRCCW:
+                    AdvanceSequence(0, module.WorldState.CurrentTime);
+                    break;
+            }
         }
     }
 
