@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
     {
         private Angle _referenceAngle;
         private List<Angle> _pendingOffsets = new();
-        private static AOEShapeCone _shape = new(40, 45.Degrees());
+        private readonly AOEShapeCone _shape = new(40, 45.Degrees());
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var s in Sequences)
@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
         {
         //_pendingOffsets.Count > 0 is required or replays fail to load if the recording started while doing his sneeze rotation
         //unfortunately, being late also causes the ongoing rotation to not draw since vbm was unable to record the required angle offsets, but any upcoming rotation will show as expected
-            if (_pendingOffsets.Count > 0 && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
+            if (_pendingOffsets.Count > 0 && Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
             {
                 AdvanceSequence(0, module.WorldState.CurrentTime);
                 _pendingOffsets.RemoveAt(0);
