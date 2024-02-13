@@ -129,7 +129,7 @@ namespace BossMod.Components
         }
 
         protected IEnumerable<(WPos from, WPos to)> CalculateMovements(BossModule module, int slot, Actor actor)
-        {
+        {   
             if (MaxCasts <= 0)
                 yield break;
 
