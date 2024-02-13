@@ -65,7 +65,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
                     break;
                 case AID.QuintupleSneeze1:
                     _sneezing = true;
-                    Sequences.Add(new(_shape, caster.Position, _referenceAngle, _pendingOffsets[1], spell.FinishAt, 2.2f, 6));
+                    Sequences.Add(new(_shape, caster.Position, default, default, spell.FinishAt, 2.2f, 6));
                     _referenceAngle = spell.Rotation;
                     break;
             }
@@ -73,7 +73,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (caster == module.PrimaryActor && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
+            if ((AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
             {
                 AdvanceSequence(0, module.WorldState.CurrentTime);
                 _pendingOffsets.RemoveAt(0);
