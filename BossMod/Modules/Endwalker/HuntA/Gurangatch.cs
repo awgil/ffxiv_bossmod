@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
             {
                 AID.OctupleSlammerLCW or AID.OctupleSlammerRCW => 90.Degrees(),
                 AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW => -90.Degrees(),
-                AID.LeftHammerSecond or AID.RightHammerSlammer => 180.Degrees(),
+                AID.LeftHammerSlammer or AID.RightHammerSlammer => 180.Degrees(),
                 _ => default
             };
             if (increment != default)
