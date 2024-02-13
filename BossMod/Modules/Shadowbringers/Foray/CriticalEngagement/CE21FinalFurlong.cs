@@ -19,8 +19,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
         SpiteWave = 20124, // Boss->self, 3.0s cast, single-target, visual (stack + puddles)
         HatefulMiasma = 20125, // Helper->players, 5.0s cast, range 6 circle stack
         PoisonedWords = 20126, // Helper->location, 5.0s cast, range 6 circle puddles
-        TalonedGaze = 20127, // Boss->self, 4.0s cast, single-target, visual (front/back > sides)
-        // TODO: taloned wings
+        TalonedGaze = 20127, // Boss->self, 4.0s cast, single-target, visual (front/back then sides)
+        TalonedWings = 20128, // Boss->self, 4,0s cast, single-target, visual, (sides then front/back)
         CoffinNails = 20129, // Helper->self, 4.7s cast, range 60 90-degree cone aoe
         Stab = 20130, // Boss->player, 4.0s cast, single-target, tankbuster
         GripOfPoison = 20131, // Boss->self, 4.0s cast, range 60 circle, raidwide
@@ -93,6 +93,16 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
         public PoisonedWords() : base(ActionID.MakeSpell(AID.PoisonedWords), 6) { }
     }
 
+    class TalonedGaze : Components.CastHint
+    {
+        public TalonedGaze() : base(ActionID.MakeSpell(AID.TalonedGaze), "AOE front/back --> sides") { }
+    }
+
+    class TalonedWings : Components.CastHint
+    {
+        public TalonedWings() : base(ActionID.MakeSpell(AID.TalonedWings), "AOE sides --> front/back") { }
+    }
+
     class CoffinNails : Components.SelfTargetedAOEs
     {
         public CoffinNails() : base(ActionID.MakeSpell(AID.CoffinNails), new AOEShapeCone(60, 45.Degrees()), 2) { }
@@ -121,6 +131,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
                 .ActivateOnEnter<GraspingRancor>()
                 .ActivateOnEnter<HatefulMiasma>()
                 .ActivateOnEnter<PoisonedWords>()
+                .ActivateOnEnter<TalonedGaze>()
+                .ActivateOnEnter<TalonedWings>()
                 .ActivateOnEnter<CoffinNails>()
                 .ActivateOnEnter<Stab>()
                 .ActivateOnEnter<GripOfPoison>()

@@ -1,4 +1,4 @@
-﻿namespace BossMod.RealmReborn.Raid.T00ADS
+﻿namespace BossMod.RealmReborn.Raid.T01ADS
 {
     public enum OID : uint
     {
@@ -51,9 +51,9 @@
 
     // TODO: chain lightning?..
 
-    class T00ADSStates : StateMachineBuilder
+    class T01ADSStates : StateMachineBuilder
     {
-        public T00ADSStates(BossModule module) : base(module)
+        public T01ADSStates(BossModule module) : base(module)
         {
             // adds spawn: at ~40.3, ~80.3, ~120.3, ~160.3, ~200.3 (2x)
             // enrage: first cast at ~245.2, then repeat every 5s
@@ -67,9 +67,9 @@
     }
 
     [ModuleInfo(CFCID = 93, NameID = 1459)]
-    public class T00ADS : BossModule
+    public class T01ADS : BossModule
     {
-        public T00ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-3, 27), 7, 28)) { }
+        public T01ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-3, 27), 7, 28)) { }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {

@@ -42,9 +42,9 @@ namespace BossMod.MaskedCarnivale.Stage15
         private bool casting4;
         private Angle _rotation;
 
-        private static readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
-        private static readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
-        private static readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        private readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
+        private readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
+        private readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -58,7 +58,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast0)
             {
                 casting2 = true;
@@ -70,7 +69,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast2)
                 casting2 = false;
             if ((AID)spell.Action.ID == AID.Ballast3)
@@ -112,9 +110,9 @@ namespace BossMod.MaskedCarnivale.Stage15
         private bool casting4;
         private Angle _rotation;
 
-        private static readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
-        private static readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
-        private static readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        private readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
+        private readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
+        private readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
@@ -128,7 +126,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast0)
             {
                 casting2 = true;
@@ -140,7 +137,6 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.Ballast2)
                 casting2 = false;
             if ((AID)spell.Action.ID == AID.Ballast3)

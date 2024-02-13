@@ -8,12 +8,12 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
     {
         private Actor? SpinningDiveHelper;
         private bool dived;
-        private static readonly AOEShapeRect rect = new(46, 8);
+        private readonly AOEShapeRect rect = new(46, 8);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
             if (SpinningDiveHelper != null && !dived)
-                yield return new(rect, SpinningDiveHelper.Position, SpinningDiveHelper.Rotation, new());
+                yield return new(rect, SpinningDiveHelper.Position, SpinningDiveHelper.Rotation);
         }
         public override void OnActorCreated(BossModule module, Actor actor)
         {
@@ -22,7 +22,6 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         }
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.SpinningDiveSnapshot)
                 dived = true;
         }
@@ -32,7 +31,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
     {
         private Actor? SpinningDiveHelper;
         private bool dived;
-        private static readonly AOEShapeRect rect = new(46, 8);
+        private readonly AOEShapeRect rect = new(46, 8);
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
@@ -46,7 +45,6 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         }
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.SpinningDiveEffect)
                 dived = true;
         }

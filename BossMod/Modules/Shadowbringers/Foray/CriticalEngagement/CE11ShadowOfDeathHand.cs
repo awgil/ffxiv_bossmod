@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
+﻿using System.Collections.Generic;
+
+namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
 {
     public enum OID : uint
     {
@@ -20,13 +22,13 @@
         RippingBlade = 20157, // Beastmaster->player, no cast, single-target, micro tankbuster
         BestialLoyalty = 20163, // Beastmaster->self, 3.0s cast, single-target, visual (summon crows)
         BestialLoyaltyAOE = 20164, // Helper->location, no cast, range 5 circle (aoe where crows appear)
-        RunWild = 20166, // Beastmaster->self, 4.0s cast, interruptible ???
+        RunWild = 20166, // Beastmaster->self, 4.0s cast, interruptible, buffs enemies with status effect Running Wild, seems to be some kind of damage buff
         Reward = 20169, // Beastmaster->Boss, 3.0s cast, single-target, heal
         WrathOfTheForsaken = 20170, // Boss->self, 3.0s cast, single-target, damage up after beastmaster death
         HardBeak = 20171, // Boss->player, 4.0s cast, single-target, tankbuster
         PiercingBarrageBoss = 20172, // Boss->self, 3.0s cast, range 40 width 8 rect aoe
         Helldive = 20173, // Boss->players, 5.0s cast, range 6 circle stack
-        BroadsideBarrage = 20174, // Boss->self, 5.0s cast, range 40 width 40 rect aoe
+        BroadsideBarrage = 20174, // Boss->self, 5.0s cast, range 40 width 40 rect aoe, 'knock-forward' 50 on failure
         BlindsideBarrage = 20175, // Boss->self, 4.0s cast, single-target, visual (raidwide + deathwall)
         BlindsideBarrageAOE = 20182, // Helper->self, 4.5s cast, range 30 circle, raidwide
         StrongWind = 20181, // Deathwall->self, no cast, range 20-30 donut, deathwall
@@ -53,7 +55,6 @@
         public BestialLoyalty() : base(ActionID.MakeSpell(AID.BestialLoyalty), "Summon crows") { }
     }
 
-    // TODO: dunno what it does if not interrrupted
     class RunWild : Components.CastHint
     {
         public RunWild() : base(ActionID.MakeSpell(AID.RunWild), "Interrupt beastmaster") { }

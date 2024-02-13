@@ -32,6 +32,7 @@ namespace BossMod.MaskedCarnivale.Stage08.Act2
 
     class Selfdetonations : GenericStackSpread
     {
+        private string hint = "In bomb explosion radius!";
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in module.Enemies(OID.Bomb).Where(x => x.HP.Cur > 0))
@@ -48,12 +49,12 @@ namespace BossMod.MaskedCarnivale.Stage08.Act2
                 foreach (var p in module.Enemies(OID.Bomb).Where(x => x.HP.Cur > 0))
                     if (player.Position.InCircle(p.Position, 10))
                     {
-                        hints.Add("In bomb explosion radius!");
+                        hints.Add(hint);
                     }
                 foreach (var p in module.Enemies(OID.Snoll).Where(x => x.HP.Cur > 0))
                     if (player.Position.InCircle(p.Position, 6))
                     {
-                        hints.Add("In bomb explosion radius!");
+                        hints.Add(hint);
                     }
             }
         }

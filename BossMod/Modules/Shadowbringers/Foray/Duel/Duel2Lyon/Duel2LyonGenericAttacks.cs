@@ -138,12 +138,11 @@ class WindsPeakKB : Knockback
     public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
     {
         if (watched && module.WorldState.CurrentTime < Time.AddSeconds(4.4f))
-            yield return new(module.PrimaryActor.Position, 15, default, default, module.PrimaryActor.Rotation, new());
+            yield return new(module.PrimaryActor.Position, 15, default, default, module.PrimaryActor.Rotation);
     }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        base.OnCastStarted(module, caster, spell);
         if ((AID)spell.Action.ID == AID.WindsPeak1)
         {
             watched = true;
@@ -223,7 +222,6 @@ class SpitefulFlameCircleVoidzone : GenericAOEs
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
         if ((AID)spell.Action.ID == AID.SpitefulFlame1)
             casts++;
         if (casts == 12)
@@ -258,7 +256,6 @@ class DynasticFlame : UniformStackSpread
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
         if ((AID)spell.Action.ID is AID.DynasticFlame1 or AID.DynasticFlame2)
             casts++;
         if (casts == 4)
@@ -301,7 +298,7 @@ class SkyrendingStrike : CastHint
 
     public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
-        if (casting)
+        if (casting && module.PrimaryActor.IsTargetable)
             hints.Add($"Enrage! {Math.Max(35 - (module.WorldState.CurrentTime - enragestart).TotalSeconds, 0.0f):f1}s left.");
     }
 }

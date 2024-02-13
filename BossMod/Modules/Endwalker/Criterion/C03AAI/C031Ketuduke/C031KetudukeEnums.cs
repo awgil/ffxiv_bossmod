@@ -37,7 +37,7 @@
         SSpringCrystalSphereAppear = 35545, // SSpringCrystalSphere->self, no cast, single-target, visual
         SSpringCrystalRectAppear = 35546, // SSpringCrystalRect->self, no cast, single-target, visual
         NSaturateRect = 35500, // NSpringCrystalRect->self, 1.0s cast, range 76 width 10 rect aoe
-        SSaturateRect = 35548, // SSpringCrystalRect->self, 1.0s cast, range 76 width 10 rect aoe (TODO: verify AID)
+        SSaturateRect = 35548, // SSpringCrystalRect->self, 1.0s cast, range 76 width 10 rect aoe
         BubbleNet1 = 35501, // *Boss->self, 4.1s cast, single-target, visual (raidwide + debuffs)
         NBubbleNet1AOE = 35502, // Helper->self, 5.0s cast, range 65 circle, raidwide
         SBubbleNet1AOE = 35549, // Helper->self, 5.0s cast, range 65 circle, raidwide
@@ -60,11 +60,11 @@
         BlowingBubblesFetters = 35519, // *AiryBubbleExaflare->player, no cast, single-target, kill?
         Hydrobomb = 35536, // *Boss->self, 2.2s cast, single-target, visual (puddles)
         NHydrobombAOE = 35537, // Helper->location, 3.0s cast, range 5 circle puddle
-        SHydrobombAOE = 35563, // Helper->location, 3.0s cast, range 5 circle puddle (TODO: verify AID)
+        SHydrobombAOE = 35563, // Helper->location, 3.0s cast, range 5 circle puddle
 
         StrewnBubbles = 35515, // *Boss->self, 2.2s cast, single-target, visual (half-arena lines)
         NSphereShatter = 35516, // Helper->self, no cast, range 20 width 10 rect
-        SSphereShatter = 35552, // Helper->self, no cast, range 20 width 10 rect (TODO: verify AID)
+        SSphereShatter = 35552, // Helper->self, no cast, range 20 width 10 rect
         NRecedingTwintides = 35532, // NBoss->self, 5.0s cast, range 14 circle
         NFarTide = 35535, // NBoss->self, 1.0s cast, range 8-60 donut
         NEncroachingTwintides = 35534, // NBoss->self, 5.0s cast, range 8-60 donut

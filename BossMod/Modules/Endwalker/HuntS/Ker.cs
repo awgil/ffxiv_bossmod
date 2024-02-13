@@ -25,9 +25,9 @@ namespace BossMod.Endwalker.HuntS.Ker
         AncientFlare = 27704, // Boss->self, 6.0s cast, range 40 circle, applies pyretic
         AncientFlare2 = 27638, // Boss->self, 6.0s cast, range 40 circle, applies pyretic
         WhispersManifest = 27706, // Boss->self, 6,0s cast, range 40 circle, applies pyretc (remembered skill from Whispered Incantation)
-        AncientHoly = 27646, // Boss->self, 6,0s cast, range 40 circle, circle with dmg fall off, harmless after roundabout range 20
-        AncientHoly2 = 27639, // Boss->self, 6,0s cast, range 40 circle, circle with dmg fall off, harmless after roundabout range 20
-        WhispersManifest2 = 27653, // Boss->self, 6,0s cast, range 40 circle (Ancient Holy? to be verified)
+        AncientHoly = 27646, // Boss->self, 6,0s cast, range 40 circle, circle with dmg fall off, harmless after ca. range 20 (it is hard to say because people accumulate vuln stacks which skews the damage fall off with distance from source)
+        AncientHoly2 = 27639, // Boss->self, 6,0s cast, range 40 circle, circle with dmg fall off, harmless after around range 20
+        WhispersManifest2 = 27653, // Boss->self, 6,0s cast, range 40 circle, circle with dmg fall off, harmless after around range 20
         MirroredIncantation = 27927, // Boss->self, 3,0s cast, single-target, mirrors the next 3 interments
         MirroredIncantation2 = 27928, // Boss->self, 3,0s cast, single-target, mirrors the next 4 interments
         Mirrored_RightInterment = 27663, // Boss->self, 6,0s cast, range 40 180-degree cone
@@ -219,13 +219,13 @@ namespace BossMod.Endwalker.HuntS.Ker
     {
         public AncientHoly() : base(ActionID.MakeSpell(AID.AncientHoly), new AOEShapeCircle(20)) { }
     }
-        class AncientHoly2 : Components.SelfTargetedAOEs
+    class AncientHoly2 : Components.SelfTargetedAOEs
     {
         public AncientHoly2() : base(ActionID.MakeSpell(AID.AncientHoly2), new AOEShapeCircle(20)) { }
     }
     class AncientHolyWhispersManifest : Components.SelfTargetedAOEs
     {
-        public AncientHolyWhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest2), new AOEShapeCircle(40)) { } //this can hit for over 100k, I will make it the maximum range until I know what exactly it is based on
+        public AncientHolyWhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest2), new AOEShapeCircle(20)) { }
     }
     // TODO: wicked swipe, check if there are even more skills missing
     class KerStates : StateMachineBuilder

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE14VigilForLost
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE14VigilForLost
 {
     public enum OID : uint
     {
@@ -62,35 +59,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE14VigilForLost
         public PlasmaField() : base(ActionID.MakeSpell(AID.PlasmaField)) { }
     }
 
-    // TODO: generalize towers
-    class Towers : BossComponent
+    class Towers : Components.CastTowers
     {
-        private List<Actor> _towers = new();
-        private static float _radius = 6;
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (_towers.Count > 0 && !_towers.Any(t => t.Position.InCircle(actor.Position, _radius)))
-                hints.Add("Soak the tower!", true);
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var t in _towers)
-                arena.AddCircle(t.Position, _radius, ArenaColor.Safe, 2);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.Explosion)
-                _towers.Add(caster);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.Explosion)
-                _towers.Remove(caster);
-        }
+        public Towers() : base(ActionID.MakeSpell(AID.Explosion), 6) { }
     }
 
     class MagitekRay : Components.SelfTargetedAOEs

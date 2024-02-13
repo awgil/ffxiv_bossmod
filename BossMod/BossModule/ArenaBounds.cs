@@ -60,7 +60,7 @@ namespace BossMod
                 (false, false) => CurveApprox.CircleSector(center, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
                 (false,  true) => CurveApprox.Circle(center, outerRadius, MaxApproxError),
                 ( true, false) => CurveApprox.DonutSector(center, innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
-                ( true,  true) => CurveApprox.DonutSector(center, innerRadius, outerRadius, 0.0f.Radians(), (2 * MathF.PI).Radians(), MaxApproxError),
+                ( true,  true) => CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError),
             };
             return ClipAndTriangulate(points);
         }
@@ -74,7 +74,7 @@ namespace BossMod
         {
             if (innerRadius >= outerRadius || innerRadius < 0)
                 return new();
-            return ClipAndTriangulate(CurveApprox.DonutSector(center, innerRadius, outerRadius, 0.0f.Radians(), (2 * MathF.PI).Radians(), MaxApproxError));
+            return ClipAndTriangulate(CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError));
         }
 
         public List<(WPos, WPos, WPos)> ClipAndTriangulateTri(WPos a, WPos b, WPos c)

@@ -71,14 +71,12 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
                 casting = true;
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
                 casting = false;
         }
@@ -122,7 +120,6 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.ZoomIn)
             {
                 watched = true;
