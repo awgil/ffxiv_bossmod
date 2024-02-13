@@ -88,7 +88,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.NumbingNoiseRotating or AID.TailSnapRotating)
-                AdvanceSequence(caster.Position, spell.Rotation, module.WorldState.CurrentTime);
+                AdvanceSequence(0, module.WorldState.CurrentTime);
         }
 
         private void InitIfReady(BossModule module, Actor source)
