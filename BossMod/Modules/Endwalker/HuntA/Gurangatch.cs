@@ -27,9 +27,7 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
 
     class Slammer : Components.GenericRotatingAOE
     {
-        private Angle _increment;
-
-        private static AOEShapeCone _shape = new(30, 90.Degrees());
+        private readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -40,22 +38,18 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
                 AID.LeftHammerSlammer or AID.RightHammerSlammer => 180.Degrees(),
                 _ => default
             };
-            if (increment != default)
-                _increment = increment;
             switch ((AID)spell.Action.ID)
             {
                 case AID.OctupleSlammerLCW:
                 case AID.OctupleSlammerRCW:
                 case AID.OctupleSlammerLCCW:
                 case AID.OctupleSlammerRCCW:
-                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.7f, 8));
-                    _increment = default;
+                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, increment, spell.FinishAt, 3.7f, 8));
                     ImminentColor = ArenaColor.Danger;
                     break;
                 case AID.LeftHammerSlammer:
                 case AID.RightHammerSlammer:
-                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.6f, 2, 1));
-                    _increment = default;
+                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, increment, spell.FinishAt, 3.6f, 2, 1));
                     ImminentColor = ArenaColor.AOE;
                     break;
             }
@@ -63,21 +57,22 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.LeftHammerSlammer:
-                case AID.RightHammerSlammer:
-                case AID.LeftHammerSecond:
-                case AID.RightHammerSecond:
-                case AID.OctupleSlammerLCW:
-                case AID.OctupleSlammerRCW:
-                case AID.OctupleSlammerRestL:
-                case AID.OctupleSlammerRestR:
-                case AID.OctupleSlammerLCCW:
-                case AID.OctupleSlammerRCCW:
-                    AdvanceSequence(0, module.WorldState.CurrentTime);
-                    break;
-            }
+            if (Sequences.Count > 0)
+                switch ((AID)spell.Action.ID)
+                {
+                    case AID.LeftHammerSlammer:
+                    case AID.RightHammerSlammer:
+                    case AID.LeftHammerSecond:
+                    case AID.RightHammerSecond:
+                    case AID.OctupleSlammerLCW:
+                    case AID.OctupleSlammerRCW:
+                    case AID.OctupleSlammerRestL:
+                    case AID.OctupleSlammerRestR:
+                    case AID.OctupleSlammerLCCW:
+                    case AID.OctupleSlammerRCCW:
+                        AdvanceSequence(0, module.WorldState.CurrentTime);
+                        break;
+                }
         }
     }
 
