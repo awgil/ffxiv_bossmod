@@ -26,14 +26,16 @@ namespace BossMod.Network
         public event ServerIPCReceivedDelegate? ServerIPCReceived;
 
         private unsafe delegate bool FetchReceivedPacketDelegate(void* self, ReceivedPacket* outData);
-        private Hook<FetchReceivedPacketDelegate> _fetchHook;
+        private Hook<FetchReceivedPacketDelegate>? _fetchHook;
 
         public bool Active
         {
-            get => _fetchHook.IsEnabled;
+            get => _fetchHook?.IsEnabled ?? false;
             set
             {
-                if (value)
+                if (_fetchHook == null)
+                    Service.Log($"[NPI] Hook not found!");
+                else if (value)
                     _fetchHook.Enable();
                 else
                     _fetchHook.Disable();
@@ -45,8 +47,11 @@ namespace BossMod.Network
             // alternative signatures - seem to be changing from build to build:
             // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35
             // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24
-            _fetchHook = Service.Hook.HookFromSignature<FetchReceivedPacketDelegate>("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35", FetchReceivedPacketDetour);
-            Service.Log($"[NPI] FetchReceivedPacket address = 0x{_fetchHook.Address:X}");
+            nint fetchAddress = 0;
+            var foundFetchAddress = Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35", out fetchAddress) || Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24", out fetchAddress);
+            Service.Log($"[NPI] FetchReceivedPacket address = 0x{fetchAddress:X}");
+            if (fetchAddress != 0)
+                _fetchHook = Service.Hook.HookFromAddress<FetchReceivedPacketDelegate>(fetchAddress, FetchReceivedPacketDetour);
 
             // potentially useful sigs from dalamud:
             // server ipc handler: 40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 8B F2 --- void(void* self, uint targetId, void* dataPtr)
@@ -55,12 +60,12 @@ namespace BossMod.Network
 
         public void Dispose()
         {
-            _fetchHook.Dispose();
+            _fetchHook?.Dispose();
         }
 
         private unsafe bool FetchReceivedPacketDetour(void* self, ReceivedPacket* outData)
         {
-            var res = _fetchHook.Original(self, outData);
+            var res = _fetchHook!.Original(self, outData);
             if (outData->IPC != null)
             {
                 ServerIPCReceived?.Invoke(
