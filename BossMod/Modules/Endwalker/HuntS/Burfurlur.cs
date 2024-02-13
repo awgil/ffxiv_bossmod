@@ -73,7 +73,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
+            if (_pendingOffsets.Count > 0 && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
             {
                 AdvanceSequence(0, module.WorldState.CurrentTime);
                 _pendingOffsets.RemoveAt(0);
