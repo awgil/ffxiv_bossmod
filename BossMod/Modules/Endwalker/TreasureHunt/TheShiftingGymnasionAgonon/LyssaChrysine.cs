@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
     public enum OID : uint
     {
         Boss = 0x3D43, //R=5
-        BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don#t seem to despawn
+        BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don't seem to despawn
         BossHelper = 0x233C,
         IcePillars = 0x3D44,
         BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
@@ -166,6 +166,7 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
+            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch

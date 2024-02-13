@@ -53,14 +53,18 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Thundercall)
+            {
                 AddSpread(actor);
-            targeted = true;
+                targeted = true;
+            }
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Thundercall)
+            {
                 Spreads.Clear();
-            targeted = false;
+                targeted = false;
+            }
         }
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
@@ -123,6 +127,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
+            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch
