@@ -1,12 +1,12 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.GymnasiouTigris
+namespace BossMod.Endwalker.TreasureHunt.GymnasiouMandragoras
 {
     public enum OID : uint
     {
-        Boss = 0x3D29, //R=5.75
-        BossAdd = 0x3D42, //R=3.5
+        Boss = 0x3D41, //R=2.85
+        BossAdd = 0x3D42, //R=0.85
         BossHelper = 0x233C,
         GymnasticGarlic = 0x3D51, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
         GymnasticQueen = 0x3D53, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
@@ -16,12 +16,10 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouTigris
     };
     public enum AID : uint
     {
-        AutoAttack = 870, // Boss/BossAdd->player, no cast, single-target
-        AbsoluteZero = 32208, // Boss->self, 4,0s cast, range 45 90-degree cone
-        BlizzardIII = 32209, // Boss->location, 3,0s cast, range 6 circle
-        FrumiousJaws = 32206, // Boss->player, 5,0s cast, single-target
-        Eyeshine = 32207, // Boss->self, 4,0s cast, range 35 circle
-        CatchingClaws = 32210, // BossAdd->self, 3,0s cast, range 12 90-degree cone
+        Attack = 872, // Boss/3D42->player, no cast, single-target
+        Ram = 32297, // Boss->player, 5,0s cast, single-target
+        LeafDagger = 32299, // Boss->location, 2,5s cast, range 3 circle
+        SaibaiMandragora = 32300, // Boss->self, 3,0s cast, single-target, calls adds
         PluckAndPrune = 32302, // GymnasticEggplant->self, 3,5s cast, range 7 circle
         Pollen = 32305, // GymnasticQueen->self, 3,5s cast, range 7 circle
         HeirloomScream = 32304, // GymnasticTomato->self, 3,5s cast, range 7 circle
@@ -30,30 +28,21 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouTigris
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
     };
 
-    class AbsoluteZero : Components.SelfTargetedAOEs
+    class Ram : Components.SingleTargetCast
     {
-        public AbsoluteZero() : base(ActionID.MakeSpell(AID.AbsoluteZero), new AOEShapeCone(45, 45.Degrees())) { }
+        public Ram() : base(ActionID.MakeSpell(AID.Ram)) { }
     }
 
-    class FrumiousJaws : Components.SingleTargetCast
+    class SaibaiMandragora : Components.CastHint
     {
-        public FrumiousJaws() : base(ActionID.MakeSpell(AID.FrumiousJaws)) { }
+        public SaibaiMandragora() : base(ActionID.MakeSpell(AID.SaibaiMandragora), "Calls adds") { }
     }
 
-    class BlizzardIII : Components.LocationTargetedAOEs
+    class LeafDagger : Components.LocationTargetedAOEs
     {
-        public BlizzardIII() : base(ActionID.MakeSpell(AID.BlizzardIII), 6) { }
+        public LeafDagger() : base(ActionID.MakeSpell(AID.LeafDagger), 3) { }
     }
 
-    class Eyeshine : Components.CastGaze
-    {
-        public Eyeshine() : base(ActionID.MakeSpell(AID.Eyeshine)) { }
-    }
-
-    class CatchingClaws : Components.SelfTargetedAOEs
-    {
-        public CatchingClaws() : base(ActionID.MakeSpell(AID.CatchingClaws), new AOEShapeCone(12,45.Degrees())) { }
-    }
     class PluckAndPrune : Components.SelfTargetedAOEs
     {
         public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7)) { }
@@ -79,16 +68,14 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouTigris
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
   
-    class TigrisStates : StateMachineBuilder
+    class MandragorasStates : StateMachineBuilder
     {
-        public TigrisStates(BossModule module) : base(module)
+        public MandragorasStates(BossModule module) : base(module)
         {
             TrivialPhase()
-                .ActivateOnEnter<AbsoluteZero>()
-                .ActivateOnEnter<FrumiousJaws>()
-                .ActivateOnEnter<BlizzardIII>()
-                .ActivateOnEnter<Eyeshine>()
-                .ActivateOnEnter<CatchingClaws>()
+                .ActivateOnEnter<Ram>()
+                .ActivateOnEnter<SaibaiMandragora>()
+                .ActivateOnEnter<LeafDagger>()
                 .ActivateOnEnter<PluckAndPrune>()
                 .ActivateOnEnter<TearyTwirl>()
                 .ActivateOnEnter<HeirloomScream>()
@@ -98,10 +85,10 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouTigris
         }
     }
 
-    [ModuleInfo(CFCID = 909, NameID = 11999)]
-    public class Tigris : BossModule
+    [ModuleInfo(CFCID = 909, NameID = 12022)]
+    public class Mandragoras : BossModule
     {
-        public Tigris(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Mandragoras(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
