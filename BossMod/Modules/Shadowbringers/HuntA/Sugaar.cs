@@ -53,9 +53,9 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                 _ => default
             };
             if ((AID)spell.Action.ID == AID.NumbingNoiseAttract)
-                Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, increment, spell.FinishAt, 2.8f, 3));
+                Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, increment, spell.FinishAt.AddSeconds(1.1f), 2.8f, 3));
             if ((AID)spell.Action.ID == AID.TailSnapAttract)
-                Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), increment, spell.FinishAt, 2.8f, 3));
+                Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), increment, spell.FinishAt.AddSeconds(1.1f), 2.8f, 3));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
