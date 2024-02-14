@@ -81,7 +81,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)
+            if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)
                 AdvanceSequence(0, module.WorldState.CurrentTime);
         }
     }
@@ -158,7 +158,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
                 .ActivateOnEnter<PungentPirouette>()
                 .ActivateOnEnter<Pollen>()
                 .ActivateOnEnter<HeavySmash>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
         }
     }
 
