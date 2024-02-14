@@ -35,13 +35,13 @@ namespace BossMod.Components
         {
             if (safe)
             {
-                if (BossModuleConfig.ShowOutlinesAndShadows)
+                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
                     arena.AddCircle(pos, radius, 0xFF000000, 3);    
                 arena.AddCircle(pos, radius, ArenaColor.Safe, 2);
             }
             else
             {   
-                if (BossModuleConfig.ShowOutlinesAndShadows)
+                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
                     arena.AddCircle(pos, radius, 0xFF000000, 3);
                 arena.AddCircle(pos, radius, ArenaColor.Danger, 2);
             }

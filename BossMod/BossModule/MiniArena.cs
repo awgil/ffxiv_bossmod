@@ -227,7 +227,7 @@ namespace BossMod
             var normal = dir.OrthoR();
             if (Bounds.Contains(position))
             {
-                if (BossModuleConfig.ShowOutlinesAndShadows)
+                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
                     AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, 0xFF000000, 2);
                 AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
             }

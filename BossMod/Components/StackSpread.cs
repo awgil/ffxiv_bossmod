@@ -181,13 +181,13 @@ namespace BossMod.Components
                 // draw spread and stack circles
                 foreach (var s in ActiveStacks)
                 {
-                    if (BossModuleConfig.ShowOutlinesAndShadows)
+                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
                         arena.AddCircle(s.Target.Position, s.Radius, 0xFF000000, 2);
                     arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Safe);
                 }
                 foreach (var s in ActiveSpreads)
                 {
-                    if (BossModuleConfig.ShowOutlinesAndShadows)
+                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
                         arena.AddCircle(s.Target.Position, s.Radius, 0xFF000000, 2);
                     arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Danger);
                 }
