@@ -23,7 +23,7 @@
             Service.Log($"IDScramble address = 0x{scrambleAddr:X}");
             OffsetBaseChanging = (int*)scrambleAddr;
             OffsetAdjusted = OffsetBaseChanging + 1;
-            OffsetBaseFixed = OffsetBaseChanging + 2;
+            OffsetBaseFixed = OffsetBaseChanging + 3;
         }
     }
 }

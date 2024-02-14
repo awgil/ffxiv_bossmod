@@ -15,6 +15,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
         GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
         BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
+        BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don't seem to despawn
     };
 
     public enum AID : uint
@@ -42,6 +43,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         PungentPirouette = 32303, // GymnasticGarlic->self, 3,5s cast, range 7 circle
         TearyTwirl = 32301, // GymnasticOnion->self, 3,5s cast, range 7 circle
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
+        HeavySmash = 32317, // BonusAdd_Lyssa->location, 3,0s cast, range 6 circle
     };
 
     public enum IconID : uint
@@ -50,93 +52,37 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         RotateCCW = 168, // Boss
     };
 
-    class QuadrupleHammer : Components.GenericRotatingAOE
+    class Slammer : Components.GenericRotatingAOE
     {
         private Angle _increment;
-
         private static AOEShapeCone _shape = new(30, 90.Degrees());
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             // note that boss switches hands, so CW rotation means CCW aoe sequence and vice versa
-            var increment = (IconID)iconID switch
-            {
-                IconID.RotateCW => 90.Degrees(),
-                IconID.RotateCCW => -90.Degrees(),
-                _ => default
-            };
-            if (increment != default)
-                _increment = increment;
+            if (iconID == (uint)IconID.RotateCW)           
+                _increment = 90.Degrees();
+            if (iconID == (uint)IconID.RotateCCW)
+                _increment = -90.Degrees();
         }
-
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
+            if ((AID)spell.Action.ID is AID.DoubleHammer)
+            {
+                _increment = 180.Degrees();
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.9f, 2, 1));
+                ImminentColor = ArenaColor.AOE;
+            }
             if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
             {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3, 4));
-                _increment = default;
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.3f, 4));
+                ImminentColor = ArenaColor.Danger;
             }
         }
-
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2)
-                AdvanceSequence(caster.Position, spell.Rotation, module.WorldState.CurrentTime);
-        }
-    }
-
-    class DoubleSlammer : Components.GenericAOEs
-    {
-        private int _remainingHits;
-        private Angle _RotationDir;
-        private bool doubleA;
-        private bool doubleB;
-        private readonly AOEShapeCone cone = new(30, 90.Degrees());
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_remainingHits == 2 && doubleA)
-                yield return new(cone, module.PrimaryActor.Position, _RotationDir + 90.Degrees());
-            if (_remainingHits == 1 && doubleB)
-                yield return new(cone, module.PrimaryActor.Position, _RotationDir + 90.Degrees());
-            if (_remainingHits == 1 && doubleA)
-                yield return new(cone, module.PrimaryActor.Position, _RotationDir - 90.Degrees());
-            if (_remainingHits == 2 && doubleB)
-                yield return new(cone, module.PrimaryActor.Position, _RotationDir - 90.Degrees());
-            if (_remainingHits == 0)
-            {
-                doubleA = false;
-                doubleB = false;
-            }
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.DoubleHammerA:
-                    doubleA = true;
-                    _remainingHits = 2;
-                    _RotationDir = spell.Rotation;
-                    break;
-                case AID.DoubleHammerB:
-                    doubleB = true;
-                    _remainingHits = 2;
-                    _RotationDir = spell.Rotation;
-                    break;
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.LeftHammer2:
-                case AID.RightHammer2:
-                case AID.DoubleHammer:
-                    --_remainingHits;
-                    break;
-            }
+            if ((AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)
+                AdvanceSequence(0, module.WorldState.CurrentTime);
         }
     }
 
@@ -190,13 +136,17 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
 
+    class HeavySmash : Components.LocationTargetedAOEs
+    {
+        public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
+    }
+
     class AcheloiosStates : StateMachineBuilder
     {
         public AcheloiosStates(BossModule module) : base(module)
         {
             TrivialPhase()
-                .ActivateOnEnter<QuadrupleHammer>()
-                .ActivateOnEnter<DoubleSlammer>()
+                .ActivateOnEnter<Slammer>()
                 .ActivateOnEnter<TailSwing>()
                 .ActivateOnEnter<CriticalBite>()
                 .ActivateOnEnter<DeadlyHold>()
@@ -207,7 +157,8 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
                 .ActivateOnEnter<HeirloomScream>()
                 .ActivateOnEnter<PungentPirouette>()
                 .ActivateOnEnter<Pollen>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
+                .ActivateOnEnter<HeavySmash>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
         }
     }
 
@@ -233,10 +184,13 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
                 Arena.Actor(s, ArenaColor.Vulnerable, false);
             foreach (var s in Enemies(OID.BonusAdds_Lampas))
                 Arena.Actor(s, ArenaColor.Vulnerable, false);
+            foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+                Arena.Actor(s, ArenaColor.Vulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
+            base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
                 e.Priority = (OID)e.Actor.OID switch
@@ -245,7 +199,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
                     OID.GymnasticEggplant => 6,
                     OID.GymnasticGarlic => 5,
                     OID.GymnasticTomato => 4,
-                    OID.GymnasticQueen or OID.BonusAdds_Lampas => 3,
+                    OID.GymnasticQueen or OID.BonusAdds_Lampas or OID.BonusAdds_Lyssa => 3,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0
