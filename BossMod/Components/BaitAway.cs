@@ -128,7 +128,8 @@ namespace BossMod.Components
             {
                 foreach (var b in ActiveBaits)
                 {
-                    arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
+                    if (BossModuleConfig.ShowOutlinesAndShadows)
+                        arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
                     arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
                 }
             }
