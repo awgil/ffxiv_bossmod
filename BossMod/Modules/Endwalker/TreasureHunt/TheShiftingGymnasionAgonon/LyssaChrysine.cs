@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
         BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don't seem to despawn
         BossHelper = 0x233C,
         IcePillars = 0x3D44,
-        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
+        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
     };
 
     public enum AID : uint

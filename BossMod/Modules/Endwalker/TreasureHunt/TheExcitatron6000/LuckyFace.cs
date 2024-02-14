@@ -7,11 +7,11 @@ namespace BossMod.Endwalker.TreasureHunt.Excitatron6000.LuckyFace
     {
         Boss = 0x377F, // R3,240
         BossHelper = 0x233C, // R0,500
-        ExcitingQueen = 0x380C, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        ExcitingTomato = 0x380B, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        ExcitingGarlic = 0x380A, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        ExcitingEgg = 0x3809, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        ExcitingOnion = 0x3808, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
+        ExcitingQueen = 0x380C, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+        ExcitingTomato = 0x380B, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+        ExcitingGarlic = 0x380A, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+        ExcitingEgg = 0x3809, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+        ExcitingOnion = 0x3808, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     };
 
     public enum AID : uint

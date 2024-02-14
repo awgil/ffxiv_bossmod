@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
         BallOfLevin = 0x3E90,
         BossAdd = 0x3D2C, //R=4.2
         BossHelper = 0x233C,
-        BonusAdd_Lyssa = 0x3D4E, //R=3.75
+        BonusAdd_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
     };
 
     public enum AID : uint

@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouLeon
         Boss = 0x3D27, //R=5.95
         BossAdd = 0x3D28, //R=3.5
         BossHelper = 0x233C,
-        BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don't seem to despawn
+        BonusAdds_Lyssa = 0x3D4E, //R=3.75
     };
     public enum AID : uint
     {
