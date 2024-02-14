@@ -1,7 +1,7 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.LuckyFace
+namespace BossMod.Endwalker.TreasureHunt.Excitatron6000.LuckyFace
 {
     public enum OID : uint
     {

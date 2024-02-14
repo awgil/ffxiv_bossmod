@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
+namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
 {
     public enum OID : uint
     {

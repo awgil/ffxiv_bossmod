@@ -1,7 +1,7 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.GymnasiouMandragoras
+namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMandragoras
 {
     public enum OID : uint
     {
