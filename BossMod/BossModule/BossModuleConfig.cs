@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace BossMod
 {
     [ConfigDisplay(Name = "Boss module window settings", Order = 1)]
@@ -64,7 +63,7 @@ namespace BossMod
         public bool ShowIrrelevantPlayers = false;
         [PropertyDisplay("In world curve accuracy (lower is better, but processing time goes up)")]
         [PropertySlider(0.001f, 1, Speed = 0.001f)]
-        public float WorldCurveError = 0.3f;
+        public float WorldCurveError = 1;
         [PropertyDisplay("Radar curve accuracy (lower is better, but processing time goes up)")]
         [PropertySlider(0.001f, 0.3f, Speed = 0.001f)]
         public float RadarCurveError = 0.3f;
