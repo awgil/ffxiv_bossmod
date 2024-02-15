@@ -60,19 +60,23 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
     class OneOneOneTonzeSwingKB : Knockback //actual knockback happens a whole 1,462s after snapshot
     {
         private bool casting;
+        private DateTime _activation;
 
         private readonly AOEShapeCircle circle = new(12);
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (casting)
-                yield return new(module.PrimaryActor.Position, 20, default, circle, module.PrimaryActor.Rotation, new());
+                yield return new(module.PrimaryActor.Position, 20, _activation, circle);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
+            {
+                _activation = spell.FinishAt;
                 casting = true;
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -107,24 +111,29 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
         }
     }
 
-    class ZoomInKB : Knockback
+    class ZoomInKB : Knockback //actual knockback happens about 0,7s after snapshot
     {
-        private DateTime Time;
-        private bool watched;
+        private DateTime _activation;
+        private bool casting;
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-            if (watched && module.WorldState.CurrentTime < Time.AddSeconds(4.5f))
-                yield return new(module.PrimaryActor.Position, 20, default, default, module.PrimaryActor.Rotation, new());
+            if (casting)
+                yield return new(module.PrimaryActor.Position, 20, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ZoomIn)
             {
-                watched = true;
-                Time = module.WorldState.CurrentTime;
+                casting = true;
+                _activation = spell.FinishAt;
             }
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.ZoomIn)
+                casting = false;
         }
     }
 
