@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -31,6 +32,7 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
 
     class GobspinSwipe : Components.GenericAOEs
     {
+        private DateTime _activation;
         private bool castingGobspin;
         private bool castingGobswipe;
         private readonly AOEShapeCircle circle = new(8);
@@ -39,17 +41,23 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (castingGobspin)
-                yield return new(circle, module.PrimaryActor.Position);
+                yield return new(circle, module.PrimaryActor.Position, default, _activation);
             if (castingGobswipe)
-                yield return new(donut, module.PrimaryActor.Position);
+                yield return new(donut, module.PrimaryActor.Position, default, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
+            {
                 castingGobspin = true;
+                _activation = spell.FinishAt.AddSeconds(4);
+            }
             if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
+            {
                 castingGobswipe = true;
+                _activation = spell.FinishAt.AddSeconds(4);
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -63,6 +71,7 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
 
     class Knockbacks : Components.Knockback
     {
+        private DateTime _activation;
         private bool castingGobspin;
         private bool castingGobswipe;
         private readonly AOEShapeCircle circle = new(8);
@@ -71,17 +80,23 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (castingGobspin)
-                yield return new(module.PrimaryActor.Position, 15, default, circle, module.PrimaryActor.Rotation, Kind.AwayFromOrigin);
+                yield return new(module.PrimaryActor.Position, 15, _activation, circle);
             if (castingGobswipe)
-                yield return new(module.PrimaryActor.Position, 15, default, donut, module.PrimaryActor.Rotation, Kind.AwayFromOrigin);
+                yield return new(module.PrimaryActor.Position, 15, _activation, donut);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
+            {
                 castingGobspin = true;
+                _activation = spell.FinishAt.AddSeconds(4);
+            }
             if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
+            {
                 castingGobswipe = true;
+                _activation = spell.FinishAt.AddSeconds(4);
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
