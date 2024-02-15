@@ -1,4 +1,6 @@
-﻿namespace BossMod
+﻿using System;
+
+namespace BossMod
 {
     [ConfigDisplay(Name = "Boss module window settings", Order = 1)]
     public class BossModuleConfig : ConfigNode
@@ -60,5 +62,14 @@
 
         [PropertyDisplay("Always show all alive party members")]
         public bool ShowIrrelevantPlayers = false;
+        [PropertyDisplay("In world curve accuracy (lower is better, but processing time goes up)")]
+        [PropertySlider(0.001f, 1, Speed = 0.001f)]
+        public float WorldCurveError = 0.3f;
+        [PropertyDisplay("Radar curve accuracy (lower is better, but processing time goes up)")]
+        [PropertySlider(0.001f, 0.3f, Speed = 0.001f)]
+        public float RadarCurveError = 0.3f;
+        [PropertyDisplay("AI grid resolution (lower is better, but processing time goes up)")]
+        [PropertySlider(0.05f, 0.5f, Speed = 0.01f)]
+        public float AIGridResolution = 0.5f;
     }
 }
