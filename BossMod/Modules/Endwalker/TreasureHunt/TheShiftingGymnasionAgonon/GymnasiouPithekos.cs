@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
         LightningBolt = 32214, // Boss->self, 3,0s cast, single-target
         LightningBolt2 = 32215, // BossHelper->location, 3,0s cast, range 6 circle
         ThunderIV = 32213, // BallOfLevin->self, 7,0s cast, range 18 circle
-        Spark = 32216, // Boss->self, 4,0s cast, range 14-30 donut --> TODO: confirm inner circle size
+        Spark = 32216, // Boss->self, 4,0s cast, range 14-30 donut
         AutoAttack2 = 870, // BossAdds->player, no cast, single-target
         RockThrow = 32217, // BossAdds->location, 3,0s cast, range 6 circle
         SweepingGouge = 32211, // Boss->player, 5,0s cast, single-target

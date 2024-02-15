@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouLeon
     };
     public enum AID : uint
     {
-        Attack = 870, // 3D27/3D4E/3D28->player, no cast, single-target
+        AutoAttack = 870, // 3D27/3D4E/3D28->player, no cast, single-target
         InfernoBlast = 32204, // 3D27->self, 3,5s cast, range 46 width 20 rect
         Roar = 32201, // 3D27->self, 3,0s cast, range 12 circle
         Pounce = 32200, // 3D27->player, 5,0s cast, single-target

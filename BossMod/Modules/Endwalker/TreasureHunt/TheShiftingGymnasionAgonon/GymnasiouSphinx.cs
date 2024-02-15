@@ -1,12 +1,13 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAcheloios
+namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
 {
     public enum OID : uint
     {
-        Boss = 0x3D3E, //R=4.0
-        BossAdd = 0x3D3F, //R=2.7
+        Boss = 0x3D3B, //R=4.83
+        BossAdd = 0x3D3C, //R=2.3
+        VerdantPlume = 0x3D3D, //R=0.65
         BossHelper = 0x233C,
         GymnasticGarlic = 0x3D51, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
         GymnasticQueen = 0x3D53, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
@@ -16,98 +17,87 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
         BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
         BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
     };
-
     public enum AID : uint
     {
-        AutoAttack = 870, // Boss/BossAdd->player, no cast, single-target
-        DoubleHammerA = 32284, // Boss->self, 4,2s cast, single-target
-        DoubleHammerB = 32281, // Boss->self, 4,2s cast, single-target
-        DoubleHammer = 32859, // BossHelper->self, 5,0s cast, range 30 180-degree cone
-        RightHammer1 = 32282, // Boss->self, 0,5s cast, single-target
-        RightHammer2 = 32860, // BossHelper->self, 1,0s cast, range 30 180-degree cone
-        TailSwing = 32279, // Boss->self, 3,5s cast, range 13 circle
-        QuadrupleHammerA = 32280, // Boss->self, 4,2s cast, single-target
-        QuadrupleHammerB = 32283, // Boss->self, 4,2s cast, single-target
-        QuadrupleHammer2 = 32858, // BossHelper->self, 5,0s cast, range 30 180-degree cone
-        LeftHammer1 = 32285, // Boss->self, 0,5s cast, single-target
-        LeftHammer2 = 32861, // BossHelper->self, 1,0s cast, range 30 180-degree cone
-        CriticalBite = 32286, // BossAdd->self, 3,0s cast, range 10 120-degree cone
-        DeadlyHold = 32275, // Boss->player, 5,0s cast, single-target
-        Earthbreak = 32277, // Boss->self, 2,1s cast, single-target
-        Earthbreak2 = 32278, // BossHelper->location, 3,0s cast, range 5 circle
-        VolcanicHowl = 32276, // Boss->self, 5,0s cast, range 40 circle
+        AutoAttack = 870, // Boss->player, no cast, single-target
+        AutoAttack2 = 872, // BossAdd->player, no cast, single-target
+        FeatherWind = 32267, // Boss->self, 4,0s cast, single-target, spawns Verdant Plumes
+        Explosion = 32273, // 3D3D->self, 5,0s cast, range 3-12 donut
+        Scratch = 32265, // Boss->player, 5,0s cast, single-target
+        AeroII = 32268, // Boss->self, 3,0s cast, single-target
+        AeroII2 = 32269, // BossHelper->location, 3,0s cast, range 4 circle
+        FervidPulse = 32272, // Boss->self, 5,0s cast, range 50 width 14 cross
+        Spreadmarkers = 32199, // Boss->self, no cast, single-target
+        FeatherRain = 32271, // BossHelper->player, 5,0s cast, range 6 circle
+        FrigidPulse = 32270, // Boss->self, 5,0s cast, range 12-60 donut
+        AlpineDraft = 32274, // BossAdd->self, 3,0s cast, range 45 width 5 rect
+        MoltingPlumage = 32266, // Boss->self, 5,0s cast, range 60 circle
         PluckAndPrune = 32302, // GymnasticEggplant->self, 3,5s cast, range 7 circle
         Pollen = 32305, // GymnasticQueen->self, 3,5s cast, range 7 circle
         HeirloomScream = 32304, // GymnasticTomato->self, 3,5s cast, range 7 circle
         PungentPirouette = 32303, // GymnasticGarlic->self, 3,5s cast, range 7 circle
         TearyTwirl = 32301, // GymnasticOnion->self, 3,5s cast, range 7 circle
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
-        HeavySmash = 32317, // BonusAdd_Lyssa->location, 3,0s cast, range 6 circle
+        HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
     };
-
     public enum IconID : uint
     {
-        RotateCW = 167, // Boss
-        RotateCCW = 168, // Boss
+        Tankbuster = 218, // player
+        Spread = 140, // player
     };
 
-    class Slammer : Components.GenericRotatingAOE
+    class Scratch : Components.SingleTargetCast
     {
-        private Angle _increment;
-        private static AOEShapeCone _shape = new(30, 90.Degrees());
+        public Scratch() : base(ActionID.MakeSpell(AID.Scratch)) { }
+    }
 
+    class Explosion : Components.SelfTargetedAOEs
+    {
+        public Explosion() : base(ActionID.MakeSpell(AID.Explosion), new AOEShapeDonut(3, 12)) { }
+    }
+
+    class FrigidPulse : Components.SelfTargetedAOEs
+    {
+        public FrigidPulse() : base(ActionID.MakeSpell(AID.FrigidPulse), new AOEShapeDonut(12, 60)) { }
+    }
+
+    class FervidPulse : Components.SelfTargetedAOEs
+    {
+        public FervidPulse() : base(ActionID.MakeSpell(AID.FervidPulse), new AOEShapeCross(50, 7)) { }
+    }
+
+    class MoltingPlumage : Components.RaidwideCast
+    {
+        public MoltingPlumage() : base(ActionID.MakeSpell(AID.MoltingPlumage)) { }
+    }
+
+    class AlpineDraft : Components.SelfTargetedAOEs
+    {
+        public AlpineDraft() : base(ActionID.MakeSpell(AID.AlpineDraft), new AOEShapeRect(45, 2.5f)) { }
+    }
+
+    class FeatherRain : Components.UniformStackSpread
+    {
+        public FeatherRain() : base(0, 6, alwaysShowSpreads: true) { }
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            // note that boss switches hands, so CW rotation means CCW aoe sequence and vice versa
-            if (iconID == (uint)IconID.RotateCW)           
-                _increment = 90.Degrees();
-            if (iconID == (uint)IconID.RotateCCW)
-                _increment = -90.Degrees();
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.DoubleHammer)
+            if (iconID == (uint)IconID.Spread)
             {
-                _increment = 180.Degrees();
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.9f, 2, 1));
-                ImminentColor = ArenaColor.AOE;
-            }
-            if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
-            {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.3f, 4));
-                ImminentColor = ArenaColor.Danger;
+                AddSpread(actor);
             }
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)
-                AdvanceSequence(0, module.WorldState.CurrentTime);
+            if ((AID)spell.Action.ID == AID.FeatherRain)
+            {
+                Spreads.Clear();
+            }
         }
     }
-
-    class VolcanicHowl : Components.RaidwideCast
+    
+    class AeroII : Components.LocationTargetedAOEs
     {
-        public VolcanicHowl() : base(ActionID.MakeSpell(AID.VolcanicHowl)) { }
-    }
-
-    class Earthbreak : Components.LocationTargetedAOEs
-    {
-        public Earthbreak() : base(ActionID.MakeSpell(AID.Earthbreak2), 5) { }
-    }
-
-    class DeadlyHold : Components.SingleTargetCast
-    {
-        public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) { }
-    }
-
-    class TailSwing : Components.SelfTargetedAOEs
-    {
-        public TailSwing() : base(ActionID.MakeSpell(AID.TailSwing), new AOEShapeCircle(13)) { }
-    }
-
-    class CriticalBite : Components.SelfTargetedAOEs
-    {
-        public CriticalBite() : base(ActionID.MakeSpell(AID.CriticalBite), new AOEShapeCone(10, 60.Degrees())) { }
+        public AeroII() : base(ActionID.MakeSpell(AID.AeroII2), 4) { }
     }
 
     class PluckAndPrune : Components.SelfTargetedAOEs
@@ -134,23 +124,24 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
-
-    class HeavySmash : Components.LocationTargetedAOEs
+     class HeavySmash : Components.LocationTargetedAOEs
     {
         public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
     }
-
-    class AcheloiosStates : StateMachineBuilder
+  
+    class SphinxStates : StateMachineBuilder
     {
-        public AcheloiosStates(BossModule module) : base(module)
+        public SphinxStates(BossModule module) : base(module)
         {
             TrivialPhase()
-                .ActivateOnEnter<Slammer>()
-                .ActivateOnEnter<TailSwing>()
-                .ActivateOnEnter<CriticalBite>()
-                .ActivateOnEnter<DeadlyHold>()
-                .ActivateOnEnter<Earthbreak>()
-                .ActivateOnEnter<VolcanicHowl>()
+                .ActivateOnEnter<Scratch>()
+                .ActivateOnEnter<Explosion>()
+                .ActivateOnEnter<FrigidPulse>()
+                .ActivateOnEnter<FervidPulse>()
+                .ActivateOnEnter<MoltingPlumage>()
+                .ActivateOnEnter<AlpineDraft>()
+                .ActivateOnEnter<FeatherRain>()
+                .ActivateOnEnter<AeroII>()
                 .ActivateOnEnter<PluckAndPrune>()
                 .ActivateOnEnter<TearyTwirl>()
                 .ActivateOnEnter<HeirloomScream>()
@@ -161,10 +152,10 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
         }
     }
 
-    [ModuleInfo(CFCID = 909, NameID = 12019)]
-    public class Acheloios : BossModule
+    [ModuleInfo(CFCID = 909, NameID = 12016)]
+    public class Sphinx : BossModule
     {
-        public Acheloios(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Sphinx(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
