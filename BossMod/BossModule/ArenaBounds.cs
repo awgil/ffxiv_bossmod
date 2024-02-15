@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using SharpDX.Win32;
+using BossMod.AI;
 
 namespace BossMod
 {
@@ -40,7 +40,7 @@ namespace BossMod
             Center = center;
             HalfSize = halfSize;
         }
-        public float _resolution = Math.Clamp(Service.Config.Get<BossModuleConfig>().AIGridResolution, 0.05f, 0.5f);
+        public float _resolution = Math.Clamp(Service.Config.Get<AIConfig>().AIGridResolution, 0.05f, 0.5f);
         public abstract IEnumerable<WPos> BuildClipPoly(float offset = 0); // positive offset increases area, negative decreases
         public abstract Pathfinding.Map BuildMap(float resolution = 0.5f);
         public abstract bool Contains(WPos p);

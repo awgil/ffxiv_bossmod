@@ -67,8 +67,5 @@ namespace BossMod
         [PropertyDisplay("Radar curve accuracy (lower is better, but processing time goes up)")]
         [PropertySlider(0.001f, 0.3f, Speed = 0.001f)]
         public float RadarCurveError = 0.3f;
-        [PropertyDisplay("AI grid resolution (lower is better, but processing time goes up)")]
-        [PropertySlider(0.05f, 0.5f, Speed = 0.01f)]
-        public float AIGridResolution = 0.5f;
     }
 }
