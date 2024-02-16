@@ -81,30 +81,35 @@ class RavenousGale : GenericAOEs
 {
     private bool activeTwister;
     private bool casting;
+    private DateTime _activation;
     private static readonly AOEShapeCircle circle = new(0.5f);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
-        var player = module.Raid.Player();
-        if (casting && player != null)
-            yield return new(circle, player.Position, player.Rotation, new());
+        if (casting)
+            yield return new(circle, actor.Position, default, _activation);
         if (activeTwister)
             foreach (var p in module.Enemies(OID.RavenousGaleVoidzone))
-                yield return new(circle, p.Position, p.Rotation, new());
+                yield return new(circle, p.Position, default, _activation);
     }
 
     public override void OnActorCreated(BossModule module, Actor actor)
     {
         if ((OID)actor.OID == OID.RavenousGaleVoidzone)
+            {
             activeTwister = true;
             casting = false;
+            _activation = module.WorldState.CurrentTime.AddSeconds(4.6f);
+            }
     }
 
     public override void OnActorDestroyed(BossModule module, Actor actor)
     {
         if ((OID)actor.OID == OID.RavenousGaleVoidzone)
+            {
             activeTwister = false;
             casting = false;
+            }
     }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -115,6 +120,7 @@ class RavenousGale : GenericAOEs
 
     public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
+        base.AddGlobalHints(module, hints);
         if (casting)
             hints.Add("Move a little to avoid voidzone spawning under you");
     }
@@ -134,11 +140,12 @@ class WindsPeakKB : Knockback
 {
     private DateTime Time;
     private bool watched;
+    private DateTime _activation;
 
     public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
     {
         if (watched && module.WorldState.CurrentTime < Time.AddSeconds(4.4f))
-            yield return new(module.PrimaryActor.Position, 15, default, default, module.PrimaryActor.Rotation);
+            yield return new(module.PrimaryActor.Position, 15, _activation);
     }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -147,6 +154,7 @@ class WindsPeakKB : Knockback
         {
             watched = true;
             Time = module.WorldState.CurrentTime;
+            _activation = spell.FinishAt;
         }
     }
 }
@@ -205,7 +213,7 @@ class SpitefulFlameCircleVoidzone : GenericAOEs
 {
     private bool activeOrb; 
     private int casts;
-    private static readonly AOEShapeCircle circle = new(10);
+    private readonly AOEShapeCircle circle = new(10);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
@@ -280,12 +288,10 @@ class DynasticFlame : UniformStackSpread
     }
 }
 
-class SkyrendingStrike : CastHint
+class SkyrendingStrike : BossComponent
 {
     private bool casting;
     private DateTime enragestart;
-
-    public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), "") { }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
