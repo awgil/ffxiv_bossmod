@@ -61,8 +61,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-        //_pendingOffsets.Count > 0 is required or replays fail to load if the recording started while doing his sneeze rotation
-        //unfortunately, being late also causes the ongoing rotation to not draw since vbm was unable to record the required angle offsets, but any upcoming rotation will show as expected
+
             if (_pendingOffsets.Count > 0 && Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
             {
                 AdvanceSequence(0, module.WorldState.CurrentTime);
