@@ -22,6 +22,8 @@ namespace BossMod.SAM
             _state = new(autorot.Cooldowns);
             _strategy = new();
 
+            SupportedSpell(AID.Iaijutsu).TransformAction = () => ActionID.MakeSpell(_state.BestIai);
+
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
         }
@@ -32,20 +34,32 @@ namespace BossMod.SAM
 
         public override Targeting SelectBetterTarget(AIHints.Enemy initial)
         {
-            // TODO
-            // - fuga and ogi namikiri - range 8, angle 120deg
-            // - hissatsu: guren - range 10, width (XAxisModifier) 4
-            return new(initial);
+            if (_state.Kenki >= 50)
+            {
+                (var target, var prio) = FindBetterTargetBy(initial, 10, x => NumGurenTargets(x.Actor));
+                if (prio >= 3)
+                    return new(target, 10);
+            }
+
+            if (_state.OgiNamikiriLeft > 0 || !_state.Unlocked(AID.Fuko))
+            {
+                (var target, var prio) = FindBetterTargetBy(initial, 8, x => NumConeTargets(x.Actor));
+                if (prio >= 3)
+                    return new(target, 8);
+            }
+
+            return new(
+                initial,
+                _state.SenCount == 3 ? 6 : 3,
+                _strategy.NextPositionalImminent ? _strategy.NextPositional : Positional.Any
+            );
         }
 
         private void OnConfigModified(object? sender, EventArgs args)
         {
-            SupportedSpell(AID.Hakaze).PlaceholderForAuto = _config.FullRotation
-                ? AutoActionST
-                : AutoActionNone;
-            SupportedSpell(AID.Fuga).PlaceholderForAuto = SupportedSpell(
-                AID.Fuko
-            ).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+            SupportedSpell(AID.Hakaze).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
+            SupportedSpell(AID.Fuga).PlaceholderForAuto = SupportedSpell(AID.Fuko).PlaceholderForAuto =
+                _config.FullRotation ? AutoActionAOE : AutoActionNone;
         }
 
         public override void Dispose()
@@ -90,7 +104,15 @@ namespace BossMod.SAM
                     Player,
                     Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f
                 );
-            // TODO: true north...
+            if (_state.Unlocked(AID.MeikyoShisui))
+                SimulateManualActionForAI(
+                    ActionID.MakeSpell(AID.MeikyoShisui),
+                    Player,
+                    !_state.HasCombatBuffs
+                        && _strategy.CombatTimer > 0
+                        && _strategy.CombatTimer < 5
+                        && _state.MeikyoLeft == 0
+                );
         }
 
         protected override void UpdateInternalState(int autoAction)
@@ -102,19 +124,41 @@ namespace BossMod.SAM
                     .Bossmods.ActiveModule?.PlanExecution
                     ?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? []
             );
-            _strategy.UseAOERotation = autoAction switch
-            {
-                AutoActionST => false,
-                AutoActionAOE => true,
-                AutoActionAIFight => false, // TODO: detect
-                _ => false,
-            };
+
+            _strategy.NumAOETargets = autoAction == AutoActionST ? 0 : NumAOETargets();
+            _strategy.NumTenkaTargets =
+                autoAction == AutoActionST ? 0 : Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 8);
+            _strategy.NumOgiTargets = autoAction == AutoActionST ? 0 : NumConeTargets(Autorot.PrimaryTarget);
+            _strategy.NumGurenTargets = autoAction == AutoActionST ? 0 : NumGurenTargets(Autorot.PrimaryTarget);
+
             FillStrategyPositionals(
                 _strategy,
                 Rotation.GetNextPositional(_state, _strategy),
                 _state.TrueNorthLeft > _state.GCD
             );
         }
+
+        private int NumAOETargets() => Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+
+        private int NumGurenTargets(Actor? enemy) =>
+            enemy == null
+                ? 0
+                : Autorot.Hints.NumPriorityTargetsInAOERect(
+                    Player.Position,
+                    (enemy.Position - Player.Position).Normalized(),
+                    10,
+                    4
+                );
+
+        private int NumConeTargets(Actor? enemy) =>
+            enemy == null
+                ? 0
+                : Autorot.Hints.NumPriorityTargetsInAOECone(
+                    Player.Position,
+                    8,
+                    (enemy.Position - Player.Position).Normalized(),
+                    60.Degrees()
+                );
 
         private void UpdatePlayerState()
         {
@@ -138,16 +182,11 @@ namespace BossMod.SAM
             _state.FugetsuLeft = StatusDetails(Player, SID.Fugetsu, Player.InstanceID).Left;
             _state.TrueNorthLeft = StatusDetails(Player, SID.TrueNorth, Player.InstanceID).Left;
             _state.MeikyoLeft = StatusDetails(Player, SID.MeikyoShisui, Player.InstanceID).Left;
-            _state.OgiNamikiriLeft = StatusDetails(
-                Player,
-                SID.OgiNamikiriReady,
-                Player.InstanceID
-            ).Left;
+            _state.OgiNamikiriLeft = StatusDetails(Player, SID.OgiNamikiriReady, Player.InstanceID).Left;
 
-            _state.TargetHiganbanaLeft =
-                (_strategy.ForbidDOTs || _strategy.UseAOERotation)
-                    ? float.MaxValue
-                    : StatusDetails(Autorot.PrimaryTarget, SID.Higanbana, Player.InstanceID).Left;
+            _state.TargetHiganbanaLeft = _strategy.ForbidDOTs
+                ? float.MaxValue
+                : StatusDetails(Autorot.PrimaryTarget, SID.Higanbana, Player.InstanceID).Left;
 
             _state.GCDTime = _state.AttackGCDTime;
             _state.LastTsubame =
@@ -164,9 +203,7 @@ namespace BossMod.SAM
             if (tar == null)
                 return Positional.Any;
 
-            return (Player.Position - tar.Position)
-                .Normalized()
-                .Dot(tar.Rotation.ToDirection()) switch
+            return (Player.Position - tar.Position).Normalized().Dot(tar.Rotation.ToDirection()) switch
             {
                 < -0.707167f => Positional.Rear,
                 < 0.707167f => Positional.Flank,
