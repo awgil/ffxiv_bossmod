@@ -41,16 +41,13 @@ namespace BossMod.Endwalker.HuntS.Armstrong
                     
                     if (s.NumRemainingCasts > 5)
                         rot += s.Increment;
-                    if (s.NumRemainingCasts == 5)
-                    {
-                        rot -= s.Increment;
-                        time = time.AddSeconds(3.6f);
-                    }
-                    if (s.NumRemainingCasts < 5)
-                        rot -= s.Increment;
-                    if (s.NumRemainingCasts != 5)
-                        time = time.AddSeconds(s.SecondsBetweenActivations);                
-                        yield return new(s.Shape, s.Origin, rot, time, FutureColor);
+                        if (s.NumRemainingCasts == 6)
+                            time = time.AddSeconds(3.6f);
+                        else
+                            time = time.AddSeconds(s.SecondsBetweenActivations);     
+                    if (s.NumRemainingCasts <= 5)
+                        rot -= s.Increment;        
+                    yield return new(s.Shape, s.Origin, rot, time, FutureColor);
                 }          
                 if (s.NumRemainingCasts > 0)
                     yield return new(s.Shape, s.Origin, s.Rotation, s.NextActivation, ImminentColor);
@@ -58,7 +55,6 @@ namespace BossMod.Endwalker.HuntS.Armstrong
         }
         public void AdvanceSequenceAltered(int index, DateTime currentTime, bool removeWhenFinished = true)
         {
-            ++NumCasts;
 
             ref var s = ref Sequences.AsSpan()[index];
             if (--s.NumRemainingCasts <= 0 && removeWhenFinished)
