@@ -57,13 +57,16 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            var order = (AID)spell.Action.ID switch
+            if (Sequences.Count > 0)
             {
-                AID.FrigidNeedle2 => 0,
-                AID.CircleOfIce2 => 1,
-                _ => -1
-            };
-            AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+                var order = (AID)spell.Action.ID switch
+                {
+                    AID.FrigidNeedle2 => 0,
+                    AID.CircleOfIce2 => 1,
+                    _ => -1
+                };
+                AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+            }
         }
     }
 
@@ -81,13 +84,16 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            var order = (AID)spell.Action.ID switch
+            if (Sequences.Count > 0)
             {
-                AID.CircleOfIce2 => 0,
-                AID.FrigidNeedle2 => 1,
-                _ => -1
-            };
-            AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+                var order = (AID)spell.Action.ID switch
+                {
+                    AID.CircleOfIce2 => 0,
+                    AID.FrigidNeedle2 => 1,
+                    _ => -1
+                };
+                AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+            }
         }
     }
 

@@ -73,13 +73,16 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            var order = (AID)spell.Action.ID switch
+            if (Sequences.Count > 0)
             {
-                AID.EarthQuaker1 => 0,
-                AID.EarthQuaker2 => 1,
-                _ => -1
-            };
-            AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+                var order = (AID)spell.Action.ID switch
+                {
+                    AID.EarthQuaker1 => 0,
+                    AID.EarthQuaker2 => 1,
+                    _ => -1
+                };
+                AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+            }
         }
     }
 
