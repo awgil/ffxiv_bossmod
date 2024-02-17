@@ -1,4 +1,5 @@
 // CONTRIB: made by taurenkey, changed by malediktus, not checked
+using System.Linq;
 using BossMod.Components;
 
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
@@ -56,14 +57,37 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
             base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
-                e.Priority = (OID)e.Actor.OID switch
+                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer)
                 {
-                    OID.DangerousSahagins => 4,
-                    OID.Spume => 3,
-                    OID.Sahagin => 2,
-                    OID.Boss or OID.Tail => 1,
-                    _ => 0
-                };
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.DangerousSahagins => 4,
+                        OID.Spume => 3,
+                        OID.Sahagin => 2,
+                        OID.Boss => 1,
+                        _ => 0
+                    };
+                }
+            if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged)
+                {
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.DangerousSahagins => 4,
+                        OID.Spume => 3,
+                        OID.Sahagin => 2,
+                        OID.Tail => 1,
+                        _ => 0
+                    };
+                }
+            else
+                e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.DangerousSahagins => 4,
+                        OID.Spume => 3,
+                        OID.Sahagin => 2,
+                        OID.Boss or OID.Tail => 1,
+                        _ => 0
+                    };            
             }
         }
     }
