@@ -58,14 +58,17 @@ class HeartOfNatureConcentric : ConcentricAOEs
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        var order = (AID)spell.Action.ID switch
+        if (Sequences.Count > 0)
         {
-            AID.NaturesPulse1 => 0,
-            AID.NaturesPulse2 => 1,
-            AID.NaturesPulse3 => 2,
-            _ => -1
-        };
-        AdvanceSequence(order, caster.Position);
+            var order = (AID)spell.Action.ID switch
+            {
+                AID.NaturesPulse1 => 0,
+                AID.NaturesPulse2 => 1,
+                AID.NaturesPulse3 => 2,
+                _ => -1
+            };
+            AdvanceSequence(order, caster.Position);
+        }
     }
 }
 
@@ -201,7 +204,7 @@ class NaturesBlood : Exaflare
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
+        if (Lines.Count > 0 && (AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
         {
             int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
             AdvanceLine(module, Lines[index], caster.Position);
