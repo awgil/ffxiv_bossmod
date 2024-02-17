@@ -197,17 +197,17 @@ namespace BossMod.Endwalker.TreasureHunt.Excitatron6000.LuckyFace
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.ExcitingEgg))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.ExcitingTomato))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.ExcitingQueen))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.ExcitingGarlic))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.ExcitingOnion))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

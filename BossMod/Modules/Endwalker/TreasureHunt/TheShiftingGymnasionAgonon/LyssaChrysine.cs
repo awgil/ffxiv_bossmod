@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FrigidNeedle)
-                AddSequence(module.Bounds.Center, spell.FinishAt);
+                AddSequence(module.Bounds.Center, spell.FinishAt.AddSeconds(0.7f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
                 AID.CircleOfIce2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, module.Bounds.Center);
+            AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
         }
     }
 
@@ -76,7 +76,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.CircleOfIce)
-                AddSequence(module.Bounds.Center, spell.FinishAt);
+                AddSequence(module.Bounds.Center, spell.FinishAt.AddSeconds(0.7f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -87,7 +87,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
                 AID.FrigidNeedle2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, module.Bounds.Center);
+            AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
         }
     }
 
@@ -162,11 +162,11 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BonusAdds_Lyssa))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdds_Lampas))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

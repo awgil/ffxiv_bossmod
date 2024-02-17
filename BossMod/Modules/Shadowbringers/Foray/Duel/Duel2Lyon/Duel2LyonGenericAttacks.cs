@@ -1,6 +1,8 @@
 using BossMod.Components;
+using BossMod.Network.ServerIPC;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
 
@@ -245,45 +247,23 @@ class SpitefulFlameRect : SelfTargetedAOEs
     public SpitefulFlameRect() : base(ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80,2)) { }
 }
 
-class DynasticFlame : UniformStackSpread
-{
-    private bool tethered;
-    private int casts;
-
-    public DynasticFlame() : base(0, 10, alwaysShowSpreads: true) { }
-
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+class DynasticFlame : BaitAwayTethers
     {
-        var player = module.Raid.Player();
-        if ((TetherID)tether.ID == TetherID.fireorbs && player != null)
-        {
-            AddSpread(player);
-            tethered = true;
-        }
-    }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        public DynasticFlame() : base(new AOEShapeCircle(10), (uint)TetherID.fireorbs) 
     {
-        if ((AID)spell.Action.ID is AID.DynasticFlame1 or AID.DynasticFlame2)
-            casts++;
-        if (casts == 4)
-        {
-            casts = 0;
-            Spreads.Clear();
-            tethered = false;
-        }
+        CenterAtTarget = true;
     }
-
     public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var player = module.Raid.Player();
-        if(player == actor && tethered)
+        if(player == actor && CurrentBaits.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
     {
-        if (tethered)
+        var player = module.Raid.Player();
+        if(player == actor && CurrentBaits.Count > 0)
             hints.Add("Go to the edge and run until 4 orbs are spawned");
     }
 }
