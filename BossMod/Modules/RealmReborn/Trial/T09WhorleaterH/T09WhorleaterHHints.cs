@@ -9,9 +9,10 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
             var converter = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
             if (converter != null)
                 hints.Add($"Activate the {converter.Name} or wipe!");
-
             if (module.Enemies(OID.DangerousSahagins).Any(x => x.IsTargetable && !x.IsDead))
                 hints.Add("Kill Sahagins or lose control!");
+            if (module.Enemies(OID.Spume).Any(x => x.IsTargetable && !x.IsDead))
+                hints.Add("Destroy the spumes!");
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -19,10 +20,10 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
             var tail = module.Enemies(OID.Tail).Where(x => x.IsTargetable && x.FindStatus(775) == null && x.FindStatus(477) != null).FirstOrDefault();
             if (tail != null)
             {
-                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer)
-                    hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)",false);
-                if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged)
-                    hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)",false);
+                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer && actor.TargetID == module.Enemies(OID.Tail).FirstOrDefault()?.InstanceID)
+                    hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
+                if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && (actor.TargetID == module.PrimaryActor.InstanceID))
+                    hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
             }
         }
 

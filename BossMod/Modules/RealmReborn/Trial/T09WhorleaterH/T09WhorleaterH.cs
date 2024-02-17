@@ -40,15 +40,15 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in Enemies(OID.Spume))
-                Arena.Actor(s, ArenaColor.PlayerInteresting, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var e in Enemies(OID.Tail))
-                Arena.Actor(e, ArenaColor.Enemy, false);
+                Arena.Actor(e, ArenaColor.Enemy);
             foreach (var e in Enemies(OID.Sahagin))
-                Arena.Actor(e, ArenaColor.Enemy, false);
+                Arena.Actor(e, ArenaColor.Enemy);
             foreach (var e in Enemies(OID.DangerousSahagins))
-                Arena.Actor(e, ArenaColor.Enemy, false);
+                Arena.Actor(e, ArenaColor.Enemy);
             foreach (var c in Enemies(OID.Converter))
-                Arena.Actor(c, ArenaColor.Object, false);
+                Arena.Actor(c, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
