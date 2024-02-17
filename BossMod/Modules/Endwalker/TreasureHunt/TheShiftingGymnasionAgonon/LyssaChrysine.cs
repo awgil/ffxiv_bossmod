@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -108,17 +109,21 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
     class IcePillarSpawn : Components.GenericAOEs
     {
         private bool activePillar;
+        private DateTime _activation;
         private readonly AOEShapeCircle circle = new(6);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (activePillar)
                 foreach (var p in module.Enemies(OID.IcePillars))
-                    yield return new(circle, p.Position, p.Rotation, new());
+                    yield return new(circle, p.Position, default, _activation);
         }
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.IcePillars)
+            {
                 activePillar = true;
+                _activation = module.WorldState.CurrentTime.AddSeconds(3.8f);
+            }
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
