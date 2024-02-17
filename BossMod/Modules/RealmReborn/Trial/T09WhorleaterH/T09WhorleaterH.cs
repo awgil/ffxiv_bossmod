@@ -57,7 +57,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
             base.CalculateAIHints(slot, actor, assignment, hints);
             foreach (var e in hints.PotentialTargets)
             {
-                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer)
+                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer or ClassCategory.Limited)
                 {
                     e.Priority = (OID)e.Actor.OID switch
                     {
@@ -68,7 +68,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                         _ => 0
                     };
                 }
-            if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged)
+                if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged)
                 {
                     e.Priority = (OID)e.Actor.OID switch
                     {
@@ -79,15 +79,17 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                         _ => 0
                     };
                 }
-            else
-                e.Priority = (OID)e.Actor.OID switch
+                if (actor.Class.GetClassCategory() is ClassCategory.Tank or ClassCategory.Melee)
+                {
+                    e.Priority = (OID)e.Actor.OID switch
                     {
                         OID.DangerousSahagins => 4,
                         OID.Spume => 3,
                         OID.Sahagin => 2,
                         OID.Boss or OID.Tail => 1,
                         _ => 0
-                    };            
+                    };
+                }            
             }
         }
     }
