@@ -31,7 +31,6 @@ namespace BossMod.Endwalker.HuntS.Armstrong
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-
             foreach (var s in Sequences)
             {
                 if (s.NumRemainingCasts > 1)
@@ -41,12 +40,12 @@ namespace BossMod.Endwalker.HuntS.Armstrong
                     
                     if (s.NumRemainingCasts > 5)
                         rot += s.Increment;
-                        if (s.NumRemainingCasts == 6)
-                            time = time.AddSeconds(3.6f);
-                        else
-                            time = time.AddSeconds(s.SecondsBetweenActivations);     
-                    if (s.NumRemainingCasts <= 5)
-                        rot -= s.Increment;        
+                    else
+                        rot -= s.Increment;
+                    if (s.NumRemainingCasts == 6)
+                        time = time.AddSeconds(3.6f);
+                    else
+                        time = time.AddSeconds(s.SecondsBetweenActivations);               
                     yield return new(s.Shape, s.Origin, rot, time, FutureColor);
                 }          
                 if (s.NumRemainingCasts > 0)
@@ -63,21 +62,14 @@ namespace BossMod.Endwalker.HuntS.Armstrong
             }
             else
             {
-                if(s.NumRemainingCasts > 5)
-                {
+                if(s.NumRemainingCasts >= 5)
                    s.Rotation += s.Increment;
-                   s.NextActivation = currentTime.AddSeconds(s.SecondsBetweenActivations);
-                }
-                if(s.NumRemainingCasts == 5)
-                {
-                   s.Rotation += s.Increment;
-                   s.NextActivation = currentTime.AddSeconds(3.6f);
-                }
-                if(s.NumRemainingCasts < 5)
-                {
+                else
                    s.Rotation -= s.Increment;
-                   s.NextActivation = currentTime.AddSeconds(s.SecondsBetweenActivations);
-                }
+                if (s.NumRemainingCasts == 5)
+                    s.NextActivation = currentTime.AddSeconds(3.6f);   
+                else
+                    s.NextActivation = currentTime.AddSeconds(s.SecondsBetweenActivations);   
             }
         }
 
