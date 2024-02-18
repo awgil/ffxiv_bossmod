@@ -8,7 +8,7 @@
     public enum AID : uint
     {
         AutoAttack = 872, // Boss->player, no cast, single-target
-        LayOfMislaidMemory = 27073, // Boss->self, 5.0s cast, range 30 120-degree cone
+        LayOfMislaidMemory = 27073, // Boss->self, 5.0s cast, range 30 120-degree cone, dmg + vulnerability up + makes player dance for 15s
         TempestuousWrath = 27075, // Boss->location, 3.0s cast, width 8 rect charge
         RottingElegy = 27076, // Boss->self, 5.0s cast, range 5-50 donut
         OdeToLostLove = 27077, // Boss->self, 5.0s cast, range 60 circle

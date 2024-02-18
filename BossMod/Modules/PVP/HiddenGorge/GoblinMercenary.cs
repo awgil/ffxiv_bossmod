@@ -20,7 +20,7 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
         Plannyplot = 14558, // 25FA->self, 4,0s cast, single-target
         GobspinWhooshdrops = 14559, // 25FA->self, no cast, range 8 circle, knockback 15 away from source
         GobswipeConklopsTelegraph = 14568, // BossHelper->self, 1,0s cast, single-target
-        GobswipeConklops = 14560, // Boss->self, no cast, range 30 circle, knockback 15 away from source (note: this looks like ca. 5-30 donut, no idea why it gets detected as a circle)
+        GobswipeConklops = 14560, // Boss->self, no cast, range 5-30 donut, knockback 15 away from source
         Discharge = 14561, // Boss->self, no cast, single-target
     };
 
