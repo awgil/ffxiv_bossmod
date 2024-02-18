@@ -25,6 +25,7 @@ namespace BossMod
             DisposeOnClose = detached;
             Size = initialSize;
             SizeCondition = ImGuiCond.FirstUseEver;
+            AllowClickthrough = AllowPinning = false; // this breaks uidev
 
             var existingWindow = Service.WindowSystem!.Windows.FirstOrDefault(w => w.WindowName == WindowName);
             if (existingWindow == null)
