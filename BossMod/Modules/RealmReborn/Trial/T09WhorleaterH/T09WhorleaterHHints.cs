@@ -18,21 +18,24 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             var tail = module.Enemies(OID.Tail).Where(x => x.IsTargetable && x.FindStatus(775) == null && x.FindStatus(477) != null).FirstOrDefault();
+            var DPSMimikry = actor.FindStatus(2125);
+            var HealerMimikry = actor.FindStatus(2126);
+            var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
             if (tail != null)
             {
-                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer && actor.TargetID == module.Enemies(OID.Tail).FirstOrDefault()?.InstanceID)
+                if ((actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || (actor.Class is Class.BLU && TankMimikry == null)) && actor.TargetID == module.Enemies(OID.Tail).FirstOrDefault()?.InstanceID)
                     hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
-                if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && (actor.TargetID == module.PrimaryActor.InstanceID))
+                if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && actor.TargetID == module.PrimaryActor.InstanceID)
                     hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
             }
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var converter1 = module.Enemies(OID.Converter).FirstOrDefault();
+            var converter = module.Enemies(OID.Converter).FirstOrDefault();
             var convertertargetable = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
-            if (converter1 != null && convertertargetable != null)
-                arena.AddCircle(converter1.Position, 1.4f, ArenaColor.Safe);
+            if (converter != null && convertertargetable != null)
+                arena.AddCircle(converter.Position, 1.4f, ArenaColor.Safe);
         }
     }
 }

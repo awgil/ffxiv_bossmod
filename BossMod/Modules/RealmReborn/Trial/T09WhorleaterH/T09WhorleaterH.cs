@@ -55,9 +55,10 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
+            var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
             foreach (var e in hints.PotentialTargets)
             {
-                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer or ClassCategory.Limited)
+                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || (actor.Class is Class.BLU && TankMimikry == null))
                 {
                     e.Priority = (OID)e.Actor.OID switch
                     {
@@ -79,7 +80,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                         _ => 0
                     };
                 }
-                if (actor.Class.GetClassCategory() is ClassCategory.Tank or ClassCategory.Melee)
+                if (actor.Class.GetClassCategory() is ClassCategory.Tank or ClassCategory.Melee || (actor.Class is Class.BLU && TankMimikry != null))
                 {
                     e.Priority = (OID)e.Actor.OID switch
                     {
