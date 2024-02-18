@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.HuntA.Sugriva
@@ -60,9 +59,15 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         public ScytheTail() : base(ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(17)) { }
     }
 
-    class Butcher : Components.SelfTargetedAOEs
+    class Butcher : Components.BaitAwayCast
     {
         public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 45.Degrees())) { } // TODO: verify angle, too few data points so far...
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { }
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if (spell.Action == WatchedAction)
+                CurrentBaits.RemoveAll(b => b.Source == caster);
+        }    
     }
 
     class Rip : Components.SelfTargetedAOEs
@@ -81,7 +86,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (Active(module))
-                yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, new(), module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, default, module.PrimaryActor.CastInfo.FinishAt);
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -101,7 +106,10 @@ namespace BossMod.Endwalker.HuntA.Sugriva
             {
                 case AID.ApplyPrey:
                     _target = module.WorldState.Actors.Find(spell.TargetID);
+                    var target = _target;
                     NumCasts = 0;
+                    if (target?.OID == 0x3B8) //Player Chocobos are immune against prey, so mechanic doesn't happen if a chocobo gets selected
+                        _target = null;
                     break;
                 case AID.RockThrowRest:
                     if (NumCasts >= 1)
