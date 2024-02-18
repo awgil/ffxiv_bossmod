@@ -1,5 +1,4 @@
 // CONTRIB: made by taurenkey, changed by malediktus, not checked
-using System.Linq;
 using BossMod.Components;
 
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
