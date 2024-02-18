@@ -21,7 +21,7 @@
 
     class Butcher : Components.SelfTargetedAOEs
     {
-        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(11.4f, 60.Degrees())) { } // TODO: verify angle, too few data points so far...
+        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(11.4f, 60.Degrees())) { }
     }
 
     class RockThrow : Components.LocationTargetedAOEs
