@@ -1,8 +1,6 @@
 using BossMod.Components;
-using BossMod.Network.ServerIPC;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
 
