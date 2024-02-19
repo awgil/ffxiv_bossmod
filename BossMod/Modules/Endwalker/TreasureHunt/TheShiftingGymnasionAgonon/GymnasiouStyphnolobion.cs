@@ -19,6 +19,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
     public enum AID : uint
     {
         AutoAttack = 870, // Boss->player, no cast, single-target
+        AutoAttack2 = 872, // BossAdd->player, no cast, single-target
         EarthQuakerCombo = 32199, // Boss->self, no cast, single-target
         EarthQuaker = 32247, // Boss->self, 3,5s cast, single-target
         EarthQuaker1 = 32248, // BossHelper->self, 4,0s cast, range 10 circle
