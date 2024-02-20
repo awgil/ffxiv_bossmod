@@ -329,6 +329,7 @@ namespace BossMod
                 case "ESTA": ParseActorEventObjectStateChange(); break;
                 case "EANM": ParseActorEventObjectAnimation(); break;
                 case "PATE": ParseActorPlayActionTimelineEvent(); break;
+                case "NYEL": ParseActorEventNpcYell(); break;
                 case "PAR ": ParsePartyModify(); break;
                 case "PAR+": ParsePartyJoin(); break; // legacy (up to v3)
                 case "PAR-": ParsePartyLeave(); break; // legacy (up to v3)
@@ -665,6 +666,11 @@ namespace BossMod
         private void ParseActorPlayActionTimelineEvent()
         {
             AddOp(new ActorState.OpPlayActionTimelineEvent() { InstanceID = _input.ReadActorID(), ActionTimelineID = _input.ReadUShort(true) });
+        }
+
+        private void ParseActorEventNpcYell()
+        {
+            AddOp(new ActorState.OpEventNpcYell() { InstanceID = _input.ReadActorID(), Message = _input.ReadUShort(false) });
         }
 
         private void ParsePartyModify()

@@ -25,6 +25,9 @@ namespace BossMod
         private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
         private Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
 
+        private unsafe delegate void ProcessPacketNpcYellDelegate(Network.ServerIPC.NpcYell* packet);
+        private Hook<ProcessPacketNpcYellDelegate> _processPacketNpcYellHook;
+
         private unsafe delegate void ProcessEnvControlDelegate(void* self, uint index, ushort s1, ushort s2);
         private Hook<ProcessEnvControlDelegate> _processEnvControlHook;
 
@@ -44,6 +47,11 @@ namespace BossMod
             _processPacketActorControlHook.Enable();
             Service.Log($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
 
+            // alt sig - impl: "45 33 D2 48 8D 41 48"
+            _processPacketNpcYellHook = Service.Hook.HookFromSignature<ProcessPacketNpcYellDelegate>("48 83 EC 58 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 0F 10 41 10", ProcessPacketNpcYellDetour);
+            _processPacketNpcYellHook.Enable();
+            Service.Log($"[WSG] ProcessPacketNpcYell address = 0x{_processPacketNpcYellHook.Address:X}");
+
             _processEnvControlHook = Service.Hook.HookFromSignature<ProcessEnvControlDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessEnvControlDetour);
             _processEnvControlHook.Enable();
             Service.Log($"[WSG] ProcessEnvControl address = 0x{_processEnvControlHook.Address:X}");
@@ -59,6 +67,7 @@ namespace BossMod
             ActionManagerEx.Instance!.ActionEffectReceived -= OnActionEffect;
             ActionManagerEx.Instance!.EffectResultReceived -= OnEffectResult;
             _processPacketActorControlHook.Dispose();
+            _processPacketNpcYellHook.Dispose();
             _processEnvControlHook.Dispose();
             _processPacketRSVDataHook.Dispose();
         }
@@ -429,6 +438,12 @@ namespace BossMod
                     _globalOps.Add(new OpDirectorUpdate() { DirectorID = p1, UpdateID = p2, Param1 = p3, Param2 = p4, Param3 = p5, Param4 = p6 });
                     break;
             }
+        }
+
+        private unsafe void ProcessPacketNpcYellDetour(Network.ServerIPC.NpcYell* packet)
+        {
+            _processPacketNpcYellHook.Original(packet);
+            _actorOps.GetOrAdd(packet->SourceID).Add(new ActorState.OpEventNpcYell() { InstanceID = packet->SourceID, Message = packet->Message });
         }
 
         private unsafe void ProcessEnvControlDetour(void* self, uint index, ushort s1, ushort s2)

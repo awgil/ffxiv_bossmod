@@ -463,5 +463,18 @@ namespace BossMod
 
             public override void Write(ReplayRecorder.Output output) => WriteTag(output, "PATE").EmitActor(InstanceID).Emit(ActionTimelineID, "X4");
         }
+
+        public event EventHandler<(Actor, ushort)>? EventNpcYell;
+        public class OpEventNpcYell : Operation
+        {
+            public ushort Message;
+
+            protected override void ExecActor(WorldState ws, Actor actor)
+            {
+                ws.Actors.EventNpcYell?.Invoke(ws, (actor, Message));
+            }
+
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "NYEL").EmitActor(InstanceID).Emit(Message);
+        }
     }
 }

@@ -134,6 +134,7 @@ namespace BossMod.Network
             PacketID.EventPlay128 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 128)),
             PacketID.EventPlay255 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 255)),
             PacketID.EnvControl when (EnvControl*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
+            PacketID.NpcYell when (NpcYell*)payload is var p => new($"{Utils.ObjectString(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
             PacketID.WaymarkPreset when (WaymarkPreset*)payload is var p => DecodeWaymarkPreset(p),
             PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),
             PacketID.ActorGauge when (ActorGauge*)payload is var p => new($"{p->ClassJobID} = {p->Payload:X16}"),
