@@ -8,13 +8,12 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         Boss = 0x2BA5, //R=5.25
         BossAdd = 0x2BA6, //R=2.1
         BossHelper = 0x233C,
-        DungeonQueen = 0x2A0A, // R0,840, spawn during fight, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-        DungeonGarlic = 0x2A08, // R0,840, spawn during fight, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-        DungeonTomato = 0x2A09, // R0,840, spawn during fight, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-        DungeonOnion = 0x2A06, // R0,840, spawn during fight, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-        DungeonEgg = 0x2A07, // R0,840, spawn during fight, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+        DungeonQueen = 0x2A0A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+        DungeonGarlic = 0x2A08, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+        DungeonTomato = 0x2A09, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+        DungeonOnion = 0x2A06, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+        DungeonEgg = 0x2A07, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     };
-
     public enum AID : uint
     {
         AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
@@ -31,7 +30,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
         PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
         PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
-        Spell_Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
+        Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 
     };
     class Wellbore : Components.SelfTargetedAOEs
