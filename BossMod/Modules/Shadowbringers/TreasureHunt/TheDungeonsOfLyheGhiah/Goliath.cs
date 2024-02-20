@@ -13,6 +13,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         DungeonTomato = 0x2A09, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
         DungeonOnion = 0x2A06, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
         DungeonEgg = 0x2A07, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+        BonusAdd_TheKeeperOfTheKeys = 0x2A05, // R3.230
     };
     public enum AID : uint
     {
@@ -31,6 +32,10 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
         PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
+        Mash = 17852, // 2A05->self, 2,5s cast, range 12+R width 4 rect
+        Scoop = 17853, // 2A05->self, 4,0s cast, range 15 120-degree cone
+        Inhale = 17855, // 2A05->self, no cast, range 20 ?-degree cone, attract 25 between hitboxes, shortly before Spin
+        Spin = 17854, // 2A05->self, 2,5s cast, range 11 circle
 
     };
     class Wellbore : Components.SelfTargetedAOEs
@@ -48,7 +53,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         public Compress2() : base(ActionID.MakeSpell(AID.Compress2), new AOEShapeRect(102.1f, 3.5f)) { }
     }    
 
-    class Accelerate : Components.StackWithCastTargets
+    class Accelerate : Components.StackWithCastTargets //not sure if this is always a stack, in one replay the icon is a spread marker, need to investigate, but since this is a rare boss it is hard to test
     {
         public Accelerate() : base(ActionID.MakeSpell(AID.Accelerate), 6) { }
     }
@@ -93,6 +98,21 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
     }
 
+    class Spin : Components.SelfTargetedAOEs
+    {
+        public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
+    }
+
+    class Mash : Components.SelfTargetedAOEs
+    {
+        public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(15.23f, 2)) { }
+    }
+
+    class Scoop : Components.SelfTargetedAOEs
+    {
+        public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
+    }
+
     class GoliathStates : StateMachineBuilder
     {
         public GoliathStates(BossModule module) : base(module)
@@ -109,7 +129,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
                 .ActivateOnEnter<HeirloomScream>()
                 .ActivateOnEnter<PungentPirouette>()
                 .ActivateOnEnter<Pollen>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.DungeonEgg).All(e => e.IsDead) && module.Enemies(OID.DungeonQueen).All(e => e.IsDead) && module.Enemies(OID.DungeonOnion).All(e => e.IsDead) && module.Enemies(OID.DungeonGarlic).All(e => e.IsDead) && module.Enemies(OID.DungeonTomato).All(e => e.IsDead);
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.DungeonEgg).All(e => e.IsDead) && module.Enemies(OID.DungeonQueen).All(e => e.IsDead) && module.Enemies(OID.DungeonOnion).All(e => e.IsDead) && module.Enemies(OID.DungeonGarlic).All(e => e.IsDead) && module.Enemies(OID.DungeonTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
         }
     }
 
@@ -133,6 +153,8 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
                 Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.DungeonOnion))
                 Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -146,7 +168,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
                     OID.DungeonEgg => 6,
                     OID.DungeonGarlic => 5,
                     OID.DungeonTomato => 4,
-                    OID.DungeonQueen => 3,
+                    OID.DungeonQueen or OID.BonusAdd_TheKeeperOfTheKeys => 3,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0
