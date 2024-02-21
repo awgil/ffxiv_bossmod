@@ -74,15 +74,18 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         public Fireball() : base(0, 6, alwaysShowSpreads: true) { }
         private bool targeted;
         private int numcasts;
+        private Actor? target;
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Baitaway)
             {
                 AddSpread(actor);
                 targeted = true;
+                target = actor;
             }
         }
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Fireball)
                 ++numcasts;
@@ -92,13 +95,21 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
                 numcasts = 0;
                 targeted = false;
             }
-            
         }
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             var player = module.Raid.Player();
             if (player == actor && targeted)
                 hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (target == actor && targeted)
+            {
+                hints.Add("Bait away (3 times!)");
+            }
         }
     }
 
