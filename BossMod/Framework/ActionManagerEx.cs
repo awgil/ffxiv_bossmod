@@ -283,7 +283,7 @@ namespace BossMod
                     _restoreRotation = null;
             }
 
-            if (EffectiveAnimationLock <= 0 && AutoQueue.Command != CommandID.None)
+            if (AutoQueue.Command != CommandID.None && (EffectiveAnimationLock <= 0 || !AutoQueue.Command.CausesAnimationLock()))
             {
                 var delay = DateTime.Now - _lastExecCommandRequest;
                 if (delay.TotalMilliseconds > EXEC_COMMAND_RATELIMIT_MS) {
