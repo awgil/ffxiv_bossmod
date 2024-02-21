@@ -24,6 +24,10 @@ namespace BossMod.BLM
             _strategy = new();
             _prevMP = player.CurMP;
 
+            SupportedSpell(AID.Triplecast).Condition = _ => _state.TriplecastLeft == 0;
+            SupportedSpell(AID.Sharpcast).Condition = _ => _state.SharpcastLeft == 0;
+            SupportedSpell(AID.Manafont).Condition = _ => _state.CurMP <= 7000;
+
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
         }

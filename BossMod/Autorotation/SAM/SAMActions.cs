@@ -23,6 +23,7 @@ namespace BossMod.SAM
             _strategy = new();
 
             SupportedSpell(AID.Iaijutsu).TransformAction = () => ActionID.MakeSpell(_state.BestIai);
+            SupportedSpell(AID.MeikyoShisui).Condition = _ => _state.MeikyoLeft == 0;
 
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);
