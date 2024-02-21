@@ -41,7 +41,7 @@ namespace BossMod.SAM
             public float NextMeikyoCharge => CD(CDGroup.MeikyoShisui) - 55;
             public float NextTsubameCharge => CD(CDGroup.TsubameGaeshi) - 60;
 
-            public int GCDsUntilNextTsubame => (int)MathF.Ceiling((NextTsubameCharge - GCD) / AttackGCDTime);
+            public int GCDsUntilNextTsubame => (int)MathF.Ceiling(NextTsubameCharge / AttackGCDTime);
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
 
