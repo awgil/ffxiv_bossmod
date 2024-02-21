@@ -27,7 +27,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         Fireball = 13219, // Boss->location, 3,0s cast, range 6 circle
 
         unknown = 9636, // BonusAdd_AltarMatanga->self, no cast, single-target
-        Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R ?-degree cone
+        Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 90-degree cone
         RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
         Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
@@ -126,6 +126,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
     {
         public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
     }
+    class Spin : Components.Cleave
+    {
+        public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 45.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
+    }
 
     class DiresaurStates : StateMachineBuilder
     {
@@ -142,6 +146,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
                 .ActivateOnEnter<FireballVoidzone>()
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()
+                .ActivateOnEnter<Spin>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
         }
     }

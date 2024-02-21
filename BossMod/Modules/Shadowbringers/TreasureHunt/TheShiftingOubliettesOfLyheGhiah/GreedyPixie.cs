@@ -38,7 +38,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
         PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
         Mash = 21767, // 3034->self, 3,0s cast, range 13 width 4 rect
-        Inhale = 21770, // 3034->self, no cast, range 20 ?-degree cone, attract 25 between hitboxes, shortly before Spin
+        Inhale = 21770, // 3034->self, no cast, range 20 90-degree cone, attract 25 between hitboxes, shortly before Spin
         Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
         Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
     };
@@ -117,6 +117,10 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
     {
         public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
     }
+    class Inhale : Components.Cleave
+    {
+        public Inhale() : base(ActionID.MakeSpell(AID.Inhale), new AOEShapeCone(20, 45.Degrees()), (uint)OID.BonusAdd_TheKeeperOfTheKeys) { }
+    }
 
     class GreedyPixieStates : StateMachineBuilder
     {
@@ -138,6 +142,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
                 .ActivateOnEnter<Spin>()
                 .ActivateOnEnter<Mash>()
                 .ActivateOnEnter<Scoop>()
+                .ActivateOnEnter<Inhale>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.SecretEgg).All(e => e.IsDead) && module.Enemies(OID.SecretQueen).All(e => e.IsDead) && module.Enemies(OID.SecretOnion).All(e => e.IsDead) && module.Enemies(OID.SecretGarlic).All(e => e.IsDead) && module.Enemies(OID.SecretTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_FuathTrickster).All(e => e.IsDead);
         }
     }
