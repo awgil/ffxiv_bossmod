@@ -1,6 +1,5 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
-using BossMod.Stormblood.HuntA.Gajasura;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarArachne
 {
