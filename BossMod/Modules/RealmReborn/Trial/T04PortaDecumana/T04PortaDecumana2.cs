@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SharpDX;
 
 namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
 {
@@ -42,7 +41,7 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         CitadelBuster = 29020, // Boss->self, 5.0s cast, range 40 width 12 rect aoe
         Explosion = 29021, // Helper->self, 7.0s cast, raidwide with ? falloff
 
-        //??? = 28542, // Helper->self, no cast, range 40 circle - apply damage up buff?..
+        unknown = 28542, // Helper->self, no cast, range 40 circle - apply damage up buff?..
         Ultima = 29024, // Boss->self, 71.0s cast, enrage
     };
 
