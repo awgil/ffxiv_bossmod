@@ -50,12 +50,14 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
     {
         public Thundercall2() : base(0, 18, alwaysShowSpreads: true) { }
         private bool targeted;
+        private Actor? target;
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Thundercall)
             {
                 AddSpread(actor);
                 targeted = true;
+                target = actor;
             }
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -68,9 +70,15 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
         }
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            var player = module.Raid.Player();
-            if (player == actor && targeted)
+            if (target == actor && targeted)
                 hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+        }
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (target == actor && targeted)
+            {
+                hints.Add("Bait away!");
+            }
         }
     }
 

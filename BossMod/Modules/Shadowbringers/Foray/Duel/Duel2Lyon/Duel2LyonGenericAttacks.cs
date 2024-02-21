@@ -250,22 +250,37 @@ class SpitefulFlameRect : SelfTargetedAOEs
 
 class DynasticFlame : BaitAwayTethers
     {
+        private ulong target;
+        private int orbcount;
         public DynasticFlame() : base(new AOEShapeCircle(10), (uint)TetherID.fireorbs) 
     {
         CenterAtTarget = true;
     }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.DynasticFlame1)
+                target = spell.TargetID;
+        }
     public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var player = module.Raid.Player();
-        if(player == actor && CurrentBaits.Count > 0)
+          if(target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
     }
 
     public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
     {
-        var player = module.Raid.Player();
-        if(player == actor && CurrentBaits.Count > 0)
+        if(target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.Add("Go to the edge and run until 4 orbs are spawned");
+    }
+    public override void OnActorCreated(BossModule module, Actor actor)
+    {
+        if ((OID)actor.OID == OID.VermillionFlame)
+            ++orbcount;
+        if (orbcount == 4)
+        {
+            CurrentBaits.Clear();
+            orbcount = 0;
+        }
     }
 }
 

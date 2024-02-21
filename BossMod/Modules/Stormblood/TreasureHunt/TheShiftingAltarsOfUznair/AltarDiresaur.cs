@@ -99,8 +99,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            var player = module.Raid.Player();
-            if (player == actor && targeted)
+            if (target == actor && targeted)
                 hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
         }
 
