@@ -150,7 +150,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         }
     }
 
-    [ModuleInfo(CFCID = 586, NameID = 7624)]
+    [ModuleInfo(CFCID = 586, NameID = 7627)]
     public class Diresaur : BossModule
     {
         public Diresaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
