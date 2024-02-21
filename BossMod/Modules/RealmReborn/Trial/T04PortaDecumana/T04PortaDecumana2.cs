@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using SharpDX;
 
@@ -45,11 +46,67 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         Ultima = 29024, // Boss->self, 71.0s cast, enrage
     };
 
-    class Orbs : BossComponent
+    class AethericBoom : Components.Knockback
     {
-        Random rnd = new Random();
+        private bool active;
+        private DateTime _activation;
+        private Actor? _caster;
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+             if (active && _caster != null)
+                yield return new(_caster.Position, 20 - (actor.Position - module.Bounds.Center).Length(), _activation);
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.AethericBoom)
+            {
+                _activation = spell.FinishAt;
+                active = true;
+                _caster = caster;
+            }
+        }
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.AethericBoom)
+                active = false;
+        }
+    }
+
+    class OrbsHint : BossComponent
+    {
+        private bool casting;
+        private bool orbsspawned;
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.AethericBoom)
+                casting = true;
+        }
+        
+        public override void OnActorCreated(BossModule module, Actor actor)
+        {
+            if ((OID)actor.OID == OID.Aetheroplasm)
+            {
+                orbsspawned = true;
+                casting = false;
+            }
+        }
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (casting || (orbsspawned && !module.Enemies(OID.Aetheroplasm).All(e => e.IsDead)))
+            hints.Add("Soak the orbs!");  
+        }
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var p in module.Enemies(OID.Aetheroplasm).Where(x => x.HP.Cur > 0))
+                arena.AddCircle(p.Position, 1.4f, ArenaColor.Safe);
+        }
+    }
+    class OrbsAI : BossComponent
+    {
         private bool starting;
         private bool finished;
+        private int soaks;
+        private readonly float maxError = 20 * (MathF.PI / 180);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -61,9 +118,18 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
             if ((AID)spell.Action.ID is AID.AethericBoom)
                 finished = true;
         }
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-
+            if ((AID)spell.Action.ID is AID.AethericBoom)
+                starting = false;
+            if ((AID)spell.Action.ID is AID.AetheroplasmCollide)
+                finished = false;
+            if ((AID)spell.Action.ID is AID.AetheroplasmSoak)
+                ++soaks;
+            if (soaks == 2)
+                finished = false;
+        }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (starting)
             {
@@ -74,19 +140,28 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
             {
                     hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
             }
-        }
             if (module.Enemies(OID.Aetheroplasm).Where(x => x.HP.Cur > 0).LastOrDefault() != null)
             {
-            var orb = module.Enemies(OID.Aetheroplasm).Where(x => x.HP.Cur > 0).LastOrDefault();
-            var orbX = orb!.Position.X;
-            var orbZ = orb!.Position.Z;
+                var orb = module.Enemies(OID.Aetheroplasm).Where(x => x.HP.Cur > 0).LastOrDefault();
+                var orbX = orb!.Position.X;
+                var orbZ = orb!.Position.Z;
             
-            if ((orb.Position - module.Bounds.Center).Length() < 19.9f)
-            {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX+rnd.NextFloat(-2,2),orbZ+rnd.NextFloat(-2,2)), 1.2f));
-            }
-            if (orb == null)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, 20));
+                if (orb.Rotation.AlmostEqual(-135.Degrees(), maxError))
+                {
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX-0.5f,orbZ-0.5f), 1.2f));
+                }
+                if (orb.Rotation.AlmostEqual(-45.Degrees(), maxError))
+                {
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX-0.5f,orbZ+0.5f), 1.2f));
+                }
+                if (orb.Rotation.AlmostEqual(45.Degrees(), maxError))
+                {
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX+0.5f,orbZ+0.5f), 1.2f));
+                }
+                if (orb.Rotation.AlmostEqual(135.Degrees(), maxError))
+                {
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX+0.5f,orbZ-0.5f), 1.2f));
+                }
             }
         }
     }
@@ -162,7 +237,9 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
                 .ActivateOnEnter<LaserFocus>()
                 .ActivateOnEnter<AssaultCannon>()
                 .ActivateOnEnter<CitadelBuster>()
-                .ActivateOnEnter<Orbs>()
+                .ActivateOnEnter<OrbsAI>()
+                .ActivateOnEnter<AethericBoom>()
+                .ActivateOnEnter<OrbsHint>()
                 .ActivateOnEnter<Explosion>();
         }
     }
