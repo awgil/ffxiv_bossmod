@@ -21,6 +21,8 @@ namespace BossMod
             public Actor? Target;
             public Vector3 TargetPos;
             public ActionSource Source;
+            public CommandID Command;
+            public (uint, uint, uint, int) Arguments;
 
             public NextAction(ActionID action, Actor? target, Vector3 targetPos, ActionSource source)
             {
@@ -28,6 +30,14 @@ namespace BossMod
                 Target = target;
                 TargetPos = targetPos;
                 Source = source;
+            }
+
+            public static NextAction ExecuteCommand(CommandID id, uint arg1, uint arg2, uint arg3, int arg4)
+            {
+                return new NextAction() {
+                    Command = id, 
+                    Arguments = (arg1, arg2, arg3, arg4)
+                };
             }
         }
 
@@ -483,6 +493,16 @@ namespace BossMod
                 }
             }
             return (bestTarget, bestPrio);
+        }
+
+        protected unsafe NextAction StatusOff(uint statusId)
+        {
+            var p = Service.ObjectTable[Player.SpawnIndex] as Dalamud.Game.ClientState.Objects.Types.BattleChara;
+            if (p == null) return new();
+            var s = (FFXIVGame.StatusManager*)p.StatusList.Address;
+            var i = s->GetStatusIndex(statusId);
+            if (i < 0) return new();
+            return NextAction.ExecuteCommand(CommandID.StatusOff, statusId, 0, s->GetSourceId(i), 0);
         }
     }
 }

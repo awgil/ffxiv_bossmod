@@ -111,6 +111,12 @@ namespace BossMod
         private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
         private int _restoreCntr;
 
+        private DateTime _lastExecCommandRequest;
+        private static readonly uint EXEC_COMMAND_RATELIMIT_MS = 100;
+
+        private delegate byte ExecuteCommandDelegate(int commandId, uint a1, uint a2, uint a3, int a4);
+        private readonly ExecuteCommandDelegate _executeCommand;
+
         private delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
         private GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
 
@@ -137,6 +143,10 @@ namespace BossMod
 
             _inst = ActionManager.Instance();
             Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
+
+            var executeCommandAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8D 43 0A");
+            _executeCommand = Marshal.GetDelegateForFunctionPointer<ExecuteCommandDelegate>(executeCommandAddress);
+            Service.Log($"[AMEx] ExecuteCommand address = 0x{executeCommandAddress:X}");
 
             var getGroundTargetPositionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 44 8B 84 24 80 00 00 00 33 C0");
             _getGroundTargetPositionFunc = Marshal.GetDelegateForFunctionPointer<GetGroundTargetPositionDelegate>(getGroundTargetPositionAddress);
@@ -273,8 +283,22 @@ namespace BossMod
                     _restoreRotation = null;
             }
 
+            if (EffectiveAnimationLock <= 0 && AutoQueue.Command != CommandID.None)
+            {
+                var delay = DateTime.Now - _lastExecCommandRequest;
+                if (delay.TotalMilliseconds > EXEC_COMMAND_RATELIMIT_MS) {
+                    _lastExecCommandRequest = DateTime.Now;
+                    (var a1, var a2, var a3, var a4) = AutoQueue.Arguments;
+                    Service.Log(
+                        $"[AMEx] ExecuteCommand({AutoQueue.Command} = {(int)AutoQueue.Command}, {a1}, {a2}, {a3}, {a4})"
+                    );
+                    _executeCommand.Invoke((int)AutoQueue.Command, a1, a2, a3, a4);
+                } else {
+                    // Service.Log($"[AMEx] ExecuteCommand throttled - last request was {delay.TotalMilliseconds}ms ago");
+                }
+            }
             // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
-            if (EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && InputOverride.IsMoving()))
+            else if (EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && InputOverride.IsMoving()))
             {
                 // extra safety checks (should no longer be needed, but leaving them for now)
                 // hack for sprint support
