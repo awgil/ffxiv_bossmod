@@ -112,7 +112,7 @@ namespace BossMod
         private int _restoreCntr;
 
         private DateTime _lastExecCommandRequest;
-        private static readonly uint EXEC_COMMAND_RATELIMIT_MS = 100;
+        private static readonly uint EXEC_COMMAND_RATELIMIT_MS = 250;
 
         private delegate byte ExecuteCommandDelegate(int commandId, uint a1, uint a2, uint a3, int a4);
         private readonly ExecuteCommandDelegate _executeCommand;

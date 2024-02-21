@@ -304,7 +304,7 @@ namespace BossMod
 
             // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
             var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : new();
-            if (nextOGCD.Action)
+            if (nextOGCD.Action || nextOGCD.Command != CommandID.None)
                 return nextOGCD;
 
             // finally see whether there are any low-priority planned actions
@@ -386,6 +386,9 @@ namespace BossMod
             // regardless of current class
             s.AttackGCDTime = FFXIVGame.ActionManager.GetAdjustedRecastTime(FFXIVGame.ActionType.Action, 9) / 1000f;
             s.SpellGCDTime = FFXIVGame.ActionManager.GetAdjustedRecastTime(FFXIVGame.ActionType.Action, 119) / 1000f;
+
+            s.DutyAction1 = FFXIVGame.ActionManager.GetDutyActionId(0);
+            s.DutyAction2 = FFXIVGame.ActionManager.GetDutyActionId(1);
 
             s.RaidBuffsLeft = vuln.Item1 ? vuln.Item2 : 0;
             foreach (var status in Player.Statuses.Where(s => IsDamageBuff(s.ID)))
@@ -503,6 +506,16 @@ namespace BossMod
             var i = s->GetStatusIndex(statusId);
             if (i < 0) return new();
             return NextAction.ExecuteCommand(CommandID.StatusOff, statusId, 0, s->GetSourceId(i), 0);
+        }
+
+        protected NextAction LostActionSwap(LostActionID actionID, uint slot) {
+            var ix = Service.LostActionsHolster.IndexOf((uint)actionID);
+            if (ix < 0) {
+                Service.Log($"[CommonActions] Tried to swap action {actionID} into duty slot {slot}, but it is not in the holster");
+                return new();
+            }
+
+            return NextAction.ExecuteCommand(CommandID.UseLostAction, (uint)ix, slot, Service.ObjectTable[Player.SpawnIndex]!.ObjectId, 0);
         }
     }
 }
