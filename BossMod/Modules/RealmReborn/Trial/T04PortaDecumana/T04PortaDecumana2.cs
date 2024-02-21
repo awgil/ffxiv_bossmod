@@ -148,19 +148,19 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
             
                 if (orb.Rotation.AlmostEqual(-135.Degrees(), maxError))
                 {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX-0.5f,orbZ-0.5f), 1.2f));
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX - 0.5f,orbZ - 0.5f), 1.2f));
                 }
                 if (orb.Rotation.AlmostEqual(-45.Degrees(), maxError))
                 {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX-0.5f,orbZ+0.5f), 1.2f));
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX - 0.5f,orbZ + 0.5f), 1.2f));
                 }
                 if (orb.Rotation.AlmostEqual(45.Degrees(), maxError))
                 {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX+0.5f,orbZ+0.5f), 1.2f));
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX + 0.5f,orbZ + 0.5f), 1.2f));
                 }
                 if (orb.Rotation.AlmostEqual(135.Degrees(), maxError))
                 {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX+0.5f,orbZ-0.5f), 1.2f));
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX + 0.5f,orbZ - 0.5f), 1.2f));
                 }
             }
         }
