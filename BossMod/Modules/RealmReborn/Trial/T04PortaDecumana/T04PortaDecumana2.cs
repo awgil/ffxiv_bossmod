@@ -133,13 +133,11 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         {
             if (starting)
             {
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1, false));
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1, false));
+                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1, false));
+                hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1, false));
             }
             if (finished)
-            {
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
-            }
+                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
             if (module.Enemies(OID.Aetheroplasm).Where(x => x.HP.Cur > 0).LastOrDefault() != null)
             {
                 var orb = module.Enemies(OID.Aetheroplasm).Where(x => x.HP.Cur > 0).LastOrDefault();
