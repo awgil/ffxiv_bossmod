@@ -38,7 +38,6 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         Baitaway = 23, // player
     };
 
-
     class DeadlyHold : Components.SingleTargetCast
     {
         public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) { }
@@ -147,7 +146,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()
                 .ActivateOnEnter<Spin>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead)  && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
         }
     }
 
@@ -159,6 +158,8 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            foreach (var s in Enemies(OID.BossAdd))
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdd_GoldWhisker))
                 Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
@@ -172,8 +173,9 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
-                    OID.BonusAdd_GoldWhisker => 3,
-                    OID.BonusAdd_AltarMatanga => 2,
+                    OID.BonusAdd_GoldWhisker => 4,
+                    OID.BonusAdd_AltarMatanga => 3,
+                    OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0
                 };
