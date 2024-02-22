@@ -53,29 +53,11 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
     {
         public Ceras() : base(ActionID.MakeSpell(AID.Ceras)) { }
     }
-    class WaveOfTurmoil : Components.Knockback
+    class WaveOfTurmoil : Components.KnockbackFromCastTarget
     {
-        private bool active;
-        private DateTime _activation;
-        private Actor? _caster;
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-             if (active && _caster != null)
-                yield return new(_caster.Position, 20 - (actor.Position - module.Bounds.Center).Length(), _activation);
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.WaveOfTurmoil2)
-            {
-                _activation = spell.FinishAt;
-                active = true;
-                _caster = caster;
-            }
-        }
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.WaveOfTurmoil2)
-                active = false;
+        public WaveOfTurmoil() : base(ActionID.MakeSpell(AID.WaveOfTurmoil), 20) 
+        { 
+            StopAtWall = true;
         }
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<Hydrobomb>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }

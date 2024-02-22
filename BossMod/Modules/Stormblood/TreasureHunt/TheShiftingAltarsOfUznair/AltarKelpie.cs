@@ -57,51 +57,19 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
         public RisingSeas() : base(ActionID.MakeSpell(AID.RisingSeas)) { }
     }
 
-    class HydroPushKB : Components.Knockback
+    class HydroPushKB : Components.KnockbackFromCastTarget
     {
-        private bool active;
-        private DateTime _activation;
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-             if (active)
-                yield return new(module.PrimaryActor.Position, 20 - (actor.Position - module.Bounds.Center).Length(), _activation, new AOEShapeRect(49.4f, 22), module.PrimaryActor.Rotation, Kind.DirForward);
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.HydroPush)
-            {
-                _activation = spell.FinishAt;
-                active = true;
-            }
-        }
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.HydroPush)
-                active = false;
+        public HydroPushKB() : base(ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22), kind : Kind.DirForward) 
+        { 
+            StopAtWall = true;
         }
     }
 
-    class RisingSeasKB : Components.Knockback
+    class RisingSeasKB : Components.KnockbackFromCastTarget
     {
-        private bool active;
-        private DateTime _activation;
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-             if (active)
-                yield return new(module.PrimaryActor.Position, 20 - (actor.Position - module.Bounds.Center).Length(), _activation);
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.RisingSeas)
-            {
-                _activation = spell.FinishAt;
-                active = true;
-            }
-        }
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.RisingSeas)
-                active = false;
+        public RisingSeasKB() : base(ActionID.MakeSpell(AID.RisingSeas), 20) 
+        { 
+            StopAtWall = true;
         }
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<BloodyPuddle>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }

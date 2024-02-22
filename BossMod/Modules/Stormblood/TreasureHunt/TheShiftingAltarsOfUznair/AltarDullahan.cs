@@ -48,7 +48,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
 
     class StygianReleaseKB : Components.KnockbackFromCastTarget
     {
-        public StygianReleaseKB() : base(ActionID.MakeSpell(AID.StygianRelease), 20) { } //TODO: find way to make knockback stop at the arena border since the wall is not a deathwall, knockback originates from boss and not from center
+        public StygianReleaseKB() : base(ActionID.MakeSpell(AID.StygianRelease), 20) 
+        { 
+            StopAtWall = true;
+        }
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<TerrorEye>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }
 

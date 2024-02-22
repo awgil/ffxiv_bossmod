@@ -15,6 +15,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
+            StopAtWall = true;
             if (Distance > 0)
                 yield return new(module.Bounds.Center, Distance, _activation, null, Direction, Kind.DirForward);
         }
