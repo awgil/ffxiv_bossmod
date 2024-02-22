@@ -973,6 +973,17 @@ public struct EnvControl
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct NpcYell
+{
+    public ulong SourceID;
+    public int u8;
+    public ushort Message;
+    public ushort uE;
+    public ulong u10;
+    public ulong u18;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public unsafe struct WaymarkPreset
 {
     public byte Mask;
