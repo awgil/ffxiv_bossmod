@@ -80,7 +80,6 @@ namespace BossMod
             Service.Config.LoadFromFile(dalamud.ConfigFile);
             Service.Config.Modified += (_, _) => Service.Config.SaveToFile(dalamud.ConfigFile);
 
-            BossModIPC.Initialize();
             ActionManagerEx.Instance = new(); // needs config
 
             _commandManager = commandManager;
@@ -114,6 +113,8 @@ namespace BossMod
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
+
+            BossModIPC.Initialize(_autorotation);
         }
 
         public void Dispose()
