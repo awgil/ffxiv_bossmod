@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
