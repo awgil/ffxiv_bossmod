@@ -203,7 +203,7 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         }
     }
 
-    class Ultima : Components.Enrage
+    class Ultima : Components.EnrageCastHint
     {
         public Ultima() : base(ActionID.MakeSpell(AID.Ultima), 72) { }
     }

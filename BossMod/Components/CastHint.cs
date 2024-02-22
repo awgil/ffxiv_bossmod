@@ -35,7 +35,7 @@ namespace BossMod.Components
         }
     }
 
-    public class Enrage : CastCounter
+    public class EnrageCastHint : CastCounter
     {
         private DateTime enragestart;
         public float Casttime;
@@ -43,7 +43,7 @@ namespace BossMod.Components
         public IReadOnlyList<Actor> Casters => _casters;
         public bool Active => _casters.Count > 0;
 
-        public Enrage(ActionID action, float casttime) : base(action) 
+        public EnrageCastHint(ActionID action, float casttime) : base(action) 
         {
             Casttime = casttime;
         }
