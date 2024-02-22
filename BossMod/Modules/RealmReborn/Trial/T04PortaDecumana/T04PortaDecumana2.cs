@@ -137,9 +137,9 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
             }
             if (finished)
                 hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
-            if (module.Enemies(OID.Aetheroplasm).Where(x => x.HP.Cur > 0).LastOrDefault() != null)
+            if (module.Enemies(OID.Aetheroplasm).Where(x => !x.IsDead).LastOrDefault() != null)
             {
-                var orb = module.Enemies(OID.Aetheroplasm).Where(x => x.HP.Cur > 0).LastOrDefault();
+                var orb = module.Enemies(OID.Aetheroplasm).Where(x => !x.IsDead).LastOrDefault();
                 var orbX = orb!.Position.X;
                 var orbZ = orb!.Position.Z;
             
@@ -236,7 +236,7 @@ class Ultima : BossComponent
 
     public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
-        if (casting && module.PrimaryActor.IsTargetable)
+        if (casting && !module.PrimaryActor.IsDead)
             hints.Add($"Enrage! {Math.Max(72 - (module.WorldState.CurrentTime - enragestart).TotalSeconds, 0.0f):f1}s left.");
     }
 }
@@ -270,7 +270,7 @@ class Ultima : BossComponent
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-            foreach (var s in Enemies(OID.Aetheroplasm))
+            foreach (var s in Enemies(OID.Aetheroplasm).Where(x => !x.IsDead))
                 Arena.Actor(s, ArenaColor.Object, true);
         }
     }
