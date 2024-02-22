@@ -38,9 +38,9 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(SerAdelphel(), ArenaColor.Enemy);
-            Arena.Actor(SerGrinnaux(), ArenaColor.Enemy);
-            Arena.Actor(SerCharibert(), ArenaColor.Enemy);
+            Arena.Actor(SerAdelphel(), ComponentType.ActorEnemy);
+            Arena.Actor(SerGrinnaux(), ComponentType.ActorEnemy);
+            Arena.Actor(SerCharibert(), ComponentType.ActorEnemy);
         }
     }
 }

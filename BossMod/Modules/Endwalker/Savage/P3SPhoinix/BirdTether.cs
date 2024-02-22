@@ -101,7 +101,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                 {
                     var fromTo = nextTarget.Position - bird.Position;
                     float len = fromTo.Length();
-                    arena.ZoneRect(bird.Position, fromTo / len, len, 0, _chargeHalfWidth, ArenaColor.AOE);
+                    arena.ZoneRect(bird.Position, fromTo / len, len, 0, _chargeHalfWidth, ComponentType.AOE);
                 }
             }
         }
@@ -111,9 +111,9 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             // draw all birds and all players
             var birdsLarge = module.Enemies(OID.SunbirdLarge);
             foreach (var bird in birdsLarge)
-                arena.Actor(bird, ArenaColor.Enemy);
+                arena.Actor(bird, ComponentType.ActorEnemy);
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.Actor(player, _playersInAOE[i] ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
 
             // draw chains containing player
             foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
@@ -126,16 +126,16 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                     // bird -> pc -> other
                     if (numCharges == 0)
                     {
-                        arena.AddLine(bird.Position, pc.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
+                        arena.AddLine(bird.Position, pc.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? ComponentType.Safe : ComponentType.Danger);
                         if (p2 != null)
                         {
-                            arena.AddLine(pc.Position, p2.Position, (pc.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
+                            arena.AddLine(pc.Position, p2.Position, (pc.Tether.ID == (uint)TetherID.LargeBirdFar) ? ComponentType.Safe : ComponentType.Danger);
                         }
 
                         if (bird.Position != module.Bounds.Center)
                         {
                             var safespot = bird.Position + (module.Bounds.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
-                            arena.AddCircle(safespot, 1, ArenaColor.Safe);
+                            arena.AddCircle(safespot, 1, ComponentType.Safe);
                         }
                     }
                     // else: don't care, charge to pc already happened
@@ -145,19 +145,19 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                     // bird -> other -> pc
                     if (numCharges == 0)
                     {
-                        arena.AddLine(bird.Position, p1.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
-                        arena.AddLine(p1.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
+                        arena.AddLine(bird.Position, p1.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? ComponentType.Safe : ComponentType.Danger);
+                        arena.AddLine(p1.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? ComponentType.Safe : ComponentType.Danger);
 
-                        arena.AddCircle(bird.Position, 1, ArenaColor.Safe); // draw safespot near bird
+                        arena.AddCircle(bird.Position, 1, ComponentType.Safe); // draw safespot near bird
                     }
                     else
                     {
-                        arena.AddLine(bird.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
+                        arena.AddLine(bird.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? ComponentType.Safe : ComponentType.Danger);
 
                         if (bird.Position != module.Bounds.Center)
                         {
                             var safespot = bird.Position + (module.Bounds.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
-                            arena.AddCircle(safespot, 1, ArenaColor.Safe);
+                            arena.AddCircle(safespot, 1, ComponentType.Safe);
                         }
                     }
                 }

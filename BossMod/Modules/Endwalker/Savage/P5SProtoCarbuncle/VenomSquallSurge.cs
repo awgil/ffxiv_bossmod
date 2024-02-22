@@ -36,7 +36,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             hints.Add(_reverse ? "Order: stack -> mid -> spread" : "Order: spread -> mid -> stack");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return NextMechanic == Mechanic.Pool && player.Role == Role.Healer ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
@@ -46,15 +46,15 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             switch (NextMechanic)
             {
                 case Mechanic.Rain: // spreads
-                    arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
+                    arena.AddCircle(pc.Position, _radius, ComponentType.Danger);
                     break;
                 case Mechanic.Drops: // bait
                     foreach (var p in module.Raid.WithoutSlot())
-                        arena.AddCircle(p.Position, _radius, ArenaColor.Danger);
+                        arena.AddCircle(p.Position, _radius, ComponentType.Danger);
                     break;
                 case Mechanic.Pool: // party stacks
                     foreach (var p in module.Raid.WithoutSlot().Where(p => p.Role == Role.Healer))
-                        arena.AddCircle(p.Position, _radius, ArenaColor.Danger);
+                        arena.AddCircle(p.Position, _radius, ComponentType.Danger);
                     break;
             }
         }

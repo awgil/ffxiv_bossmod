@@ -9,7 +9,7 @@
                 hints.Add("Hint", false);
                 hints.Add("Risk");
                 if (movementHints != null)
-                    movementHints.Add(actor.Position, actor.Position + new WDir(10, 10), ArenaColor.Danger);
+                    movementHints.Add(actor.Position, actor.Position + new WDir(10, 10), ComponentType.Danger);
             }
 
             public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -19,12 +19,12 @@
 
             public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                arena.ZoneCircle(module.Bounds.Center, 10, ArenaColor.AOE);
+                arena.ZoneCircle(module.Bounds.Center, 10, ComponentType.AOE);
             }
 
             public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
             {
-                arena.Actor(module.Bounds.Center, 0.Degrees(), ArenaColor.PC);
+                arena.Actor(module.Bounds.Center, 0.Degrees(), ComponentType.ActorYou);
             }
         }
 

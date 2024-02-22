@@ -32,7 +32,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _kiters[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -41,11 +41,11 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
         {
             foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(a => !_explodedOrbs.Contains(a.InstanceID)))
             {
-                arena.Actor(orb, ArenaColor.Object, true);
-                arena.AddCircle(orb.Position, _explosionRadius, ArenaColor.Danger);
+                arena.Actor(orb, ComponentType.ActorObject, true);
+                arena.AddCircle(orb.Position, _explosionRadius, ComponentType.Danger);
                 var kiter = MostLikelyKiter(module, orb);
                 if (kiter != null)
-                    arena.AddLine(orb.Position, kiter.Position, ArenaColor.Danger);
+                    arena.AddLine(orb.Position, kiter.Position, ComponentType.Danger);
             }
         }
 

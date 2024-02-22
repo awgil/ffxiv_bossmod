@@ -127,7 +127,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (NumTowers < NumCasts)
-                arena.AddCircle(_explodeOrder[NumTowers], 3, _soakerOrder[NumTowers] == pc ? ArenaColor.Safe : ArenaColor.Danger, 2);
+                arena.AddCircle(_explodeOrder[NumTowers], 3, _soakerOrder[NumTowers] == pc ? ComponentType.Safe : ComponentType.Danger, 2);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

@@ -7,7 +7,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         public BitMask PendingFetters;
         public DateTime ResolveAt;
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return PendingFetters[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }

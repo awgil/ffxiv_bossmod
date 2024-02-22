@@ -79,14 +79,14 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 return;
 
             foreach (var aoe in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsAOE))
-                arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
+                arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             // draw players
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                arena.Actor(player, ArenaColor.PlayerGeneric);
+                arena.Actor(player, ComponentType.PlayerGeneric);
 
             // draw pc's tether
             var pcPartner = pc.Tether.Target != 0
@@ -95,9 +95,9 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             if (pcPartner != null)
             {
                 var tetherColor = _playerIcons[pcSlot] switch {
-                    IconID.AkanthaiFire => 0xff00ffff,
-                    IconID.AkanthaiWind => 0xff00ff00,
-                    _ => 0xffff00ff
+                    IconID.AkanthaiFire => ComponentType.TetherMoveAway,
+                    IconID.AkanthaiWind => ComponentType.Safe,
+                    _ => ComponentType.TetherDontMove
                 };
                 arena.AddLine(pc.Position, pcPartner.Position, tetherColor);
             }
@@ -106,7 +106,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             bool isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
             if (isTowerSoaker && CurState != State.Done)
                 foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
-                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ?  ArenaColor.Danger : ArenaColor.Safe);
+                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ?  ComponentType.Danger : ComponentType.Safe);
 
             // draw circles around next imminent fire explosion
             if (CurState != State.DarkDesign)
@@ -114,8 +114,8 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 var curFirePair = (_fireTH.Item1 != null && _fireTH.Item1.Tether.ID != 0) ? _fireTH : ((_fireDD.Item1 != null && _fireDD.Item1.Tether.ID != 0) ? _fireDD : (null, null));
                 if (curFirePair.Item1 != null)
                 {
-                    arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? ArenaColor.Danger : ArenaColor.Safe);
-                    arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? ArenaColor.Danger : ArenaColor.Safe);
+                    arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? ComponentType.Danger : ComponentType.Safe);
+                    arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? ComponentType.Danger : ComponentType.Safe);
                 }
             }
         }

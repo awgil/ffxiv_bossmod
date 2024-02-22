@@ -73,8 +73,8 @@
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.MagitekBit), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.MagitekBit), ComponentType.ActorEnemy);
         }
     }
 }

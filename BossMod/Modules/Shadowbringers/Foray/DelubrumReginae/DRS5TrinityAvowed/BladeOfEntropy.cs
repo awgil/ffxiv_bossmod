@@ -35,7 +35,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
                     if (numClips > 1)
                         yield return new(_shapeCell, cellCenter, new(), activation);
                     else if (activation != default && temperature == -playerTemp)
-                        yield return new(_shapeCell, cellCenter, new(), activation, ArenaColor.SafeFromAOE, false);
+                        yield return new(_shapeCell, cellCenter, new(), activation, ComponentType.SafeFromAOE, false);
                 }
             }
         }

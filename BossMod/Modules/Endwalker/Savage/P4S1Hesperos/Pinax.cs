@@ -77,20 +77,20 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         {
             if (_acid != null)
             {
-                arena.ZoneRect(_acid.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
+                arena.ZoneRect(_acid.Position, new WDir(1, 0), 10, 10, 10, ComponentType.AOE);
             }
             if (_fire != null)
             {
-                arena.ZoneRect(_fire.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
+                arena.ZoneRect(_fire.Position, new WDir(1, 0), 10, 10, 10, ComponentType.AOE);
             }
             if (_water != null)
             {
-                arena.ZoneRect(_water.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
+                arena.ZoneRect(_water.Position, new WDir(1, 0), 10, 10, 10, ComponentType.AOE);
             }
             if (_lighting != null)
             {
-                arena.ZoneRect(_lighting.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
-                arena.ZoneRect(module.Bounds.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, ArenaColor.AOE);
+                arena.ZoneRect(_lighting.Position, new WDir(1, 0), 10, 10, 10, ComponentType.AOE);
+                arena.ZoneRect(module.Bounds.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, ComponentType.AOE);
             }
         }
 
@@ -98,9 +98,9 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         {
             if (_acid != null)
             {
-                arena.AddCircle(pc.Position, _acidAOERadius, ArenaColor.Danger);
+                arena.AddCircle(pc.Position, _acidAOERadius, ComponentType.Danger);
                 foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(player, player.Position.InCircle(pc.Position, _acidAOERadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(pc.Position, _acidAOERadius) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             }
             if (_fire != null)
             {
@@ -108,12 +108,12 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                 {
                     if (player.Role == Role.Healer)
                     {
-                        arena.Actor(player, ArenaColor.Danger);
-                        arena.AddCircle(player.Position, _fireAOERadius, ArenaColor.Danger);
+                        arena.Actor(player, ComponentType.Danger);
+                        arena.AddCircle(player.Position, _fireAOERadius, ComponentType.Danger);
                     }
                     else
                     {
-                        arena.Actor(player, ArenaColor.PlayerGeneric);
+                        arena.Actor(player, ComponentType.PlayerGeneric);
                     }
                 }
             }
@@ -122,8 +122,8 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                 var adjPos = Components.Knockback.AwayFromSource(pc.Position, module.Bounds.Center, _knockbackRadius);
                 if (adjPos != pc.Position)
                 {
-                    arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-                    arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
+                    arena.AddLine(pc.Position, adjPos, ComponentType.Danger);
+                    arena.Actor(adjPos, pc.Rotation, ComponentType.Danger);
                 }
             }
         }

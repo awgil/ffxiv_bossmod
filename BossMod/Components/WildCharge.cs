@@ -75,7 +75,7 @@ namespace BossMod.Components
                 var dir = target.Position - Source.Position;
                 var length = FixedLength > 0 ? FixedLength : dir.Length();
                 dir = dir.Normalized();
-                arena.ZoneRect(Source.Position, dir, length, 0, HalfWidth, PlayerRoles[pcSlot] == PlayerRole.Avoid ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+                arena.ZoneRect(Source.Position, dir, length, 0, HalfWidth, PlayerRoles[pcSlot] == PlayerRole.Avoid ? ComponentType.AOE : ComponentType.SafeFromAOE);
             }
         }
 

@@ -39,7 +39,7 @@ namespace BossMod.MaskedCarnivale.Stage12.Act1
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ComponentType.ActorEnemy, false);
         }
     }
 }

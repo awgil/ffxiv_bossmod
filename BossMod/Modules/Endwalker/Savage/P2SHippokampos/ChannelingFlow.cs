@@ -56,7 +56,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
         {
             foreach (var (player, dir) in ActiveArrows(module))
             {
-                arena.ZoneRect(player.Position, dir, 50, 0, _typhoonHalfWidth, ArenaColor.AOE);
+                arena.ZoneRect(player.Position, dir, 50, 0, _typhoonHalfWidth, ComponentType.AOE);
             }
         }
 

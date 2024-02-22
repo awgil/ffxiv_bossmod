@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return (_condensed ? module.PrimaryActor.TargetID == player.InstanceID : player.Role == Role.Tank) ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -52,12 +52,12 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             {
                 var tank = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
                 if (tank != null)
-                    arena.AddCircle(tank.Position, _radiusCondensed, ArenaColor.Danger);
+                    arena.AddCircle(tank.Position, _radiusCondensed, ComponentType.Danger);
             }
             else
             {
                 foreach (var tank in module.Raid.WithoutSlot().Where(a => a.Role == Role.Tank))
-                    arena.AddCircle(tank.Position, _radiusDispersed, ArenaColor.Danger);
+                    arena.AddCircle(tank.Position, _radiusDispersed, ComponentType.Danger);
             }
         }
 

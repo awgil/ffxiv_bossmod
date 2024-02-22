@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         private static float _kbDistance = 15;
         private static float _flareRange = 24; // max range is 50, but it has distance falloff - linear up to ~24, then constant ~3k
         private static float _holyRange = 6;
-        private static uint _colorAOETarget = 0xff8080ff;
+        private static ComponentType _typeAOETarget = ComponentType.ActorA;
 
         public override void Init(BossModule module)
         {
@@ -103,8 +103,8 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         {
             if (module.PrimaryActor.CastInfo != null && pc == _knockbackTarget && pc.Position != _knockbackPos)
             {
-                arena.AddLine(pc.Position, _knockbackPos, ArenaColor.Danger);
-                arena.Actor(_knockbackPos, pc.Rotation, ArenaColor.Danger);
+                arena.AddLine(pc.Position, _knockbackPos, ComponentType.Danger);
+                arena.Actor(_knockbackPos, pc.Rotation, ComponentType.Danger);
             }
 
             var target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
@@ -117,18 +117,18 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             {
                 // there will be AOE around me, draw all players to help with positioning - note that we use position adjusted for knockback
                 foreach (var player in module.Raid.WithoutSlot())
-                    arena.Actor(player, player.Position.InCircle(targetPos, aoeRange) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(targetPos, aoeRange) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             }
             else
             {
                 // draw AOE source
-                arena.Actor(targetPos, target.Rotation, _colorAOETarget);
+                arena.Actor(targetPos, target.Rotation, _typeAOETarget);
             }
-            arena.AddCircle(targetPos, aoeRange, ArenaColor.Danger);
+            arena.AddCircle(targetPos, aoeRange, ComponentType.Danger);
 
             // draw vulnerable target
             if (_knockbackTarget != pc && _knockbackTarget != target)
-                arena.Actor(_knockbackTarget, ArenaColor.Vulnerable);
+                arena.Actor(_knockbackTarget, ComponentType.ActorVulnerable);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

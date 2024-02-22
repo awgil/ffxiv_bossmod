@@ -40,7 +40,7 @@
         private void DrawPlatform(MiniArena arena, WPos center, WDir cornerOffset)
         {
             var otherCorner = new WDir(cornerOffset.X, -cornerOffset.Z);
-            arena.AddQuad(center - cornerOffset, center - otherCorner, center + cornerOffset, center + otherCorner, ArenaColor.Border);
+            arena.AddQuad(center - cornerOffset, center - otherCorner, center + cornerOffset, center + otherCorner, ComponentType.Border);
         }
 
         private void DrawBridge(MiniArena arena, float dir)
@@ -48,8 +48,8 @@
             var p1 = arena.Bounds.Center + new WDir(MainPlatformHalfSize.X * dir, 0);
             var p2 = arena.Bounds.Center + new WDir((SidePlatformOffsetX - SidePlatformHalfSize.X) * dir, 0);
             var o = new WDir(0, 1);
-            arena.AddLine(p1 + o, p2 + o, ArenaColor.Border);
-            arena.AddLine(p1 - o, p2 - o, ArenaColor.Border);
+            arena.AddLine(p1 + o, p2 + o, ComponentType.Border);
+            arena.AddLine(p1 - o, p2 - o, ComponentType.Border);
         }
     }
 }

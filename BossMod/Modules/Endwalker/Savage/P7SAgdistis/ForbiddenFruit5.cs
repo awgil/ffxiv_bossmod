@@ -20,10 +20,10 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         {
             var tetherSource = TetherSources[pcSlot];
             if (tetherSource != null)
-                arena.AddLine(tetherSource.Position, pc.Position, TetherColor(tetherSource));
+                arena.AddLine(tetherSource.Position, pc.Position, TetherType(tetherSource));
 
             foreach (var tower in _towers)
-                arena.AddCircle(tower.Position, _towerRadius, tetherSource == null ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(tower.Position, _towerRadius, tetherSource == null ? ComponentType.Safe : ComponentType.Danger);
         }
     }
 }

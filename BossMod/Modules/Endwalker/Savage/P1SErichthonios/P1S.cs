@@ -13,11 +13,11 @@
             {
                 // cells mode
                 float diag = Bounds.HalfSize / 1.414214f;
-                Arena.AddCircle(Bounds.Center, InnerCircleRadius, ArenaColor.Border);
-                Arena.AddLine(Bounds.Center + new WDir(Bounds.HalfSize, 0), Bounds.Center - new WDir(Bounds.HalfSize, 0), ArenaColor.Border);
-                Arena.AddLine(Bounds.Center + new WDir(0, Bounds.HalfSize), Bounds.Center - new WDir(0, Bounds.HalfSize), ArenaColor.Border);
-                Arena.AddLine(Bounds.Center + new WDir(diag,  diag), Bounds.Center - new WDir(diag,  diag), ArenaColor.Border);
-                Arena.AddLine(Bounds.Center + new WDir(diag, -diag), Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
+                Arena.AddCircle(Bounds.Center, InnerCircleRadius, ComponentType.Border);
+                Arena.AddLine(Bounds.Center + new WDir(Bounds.HalfSize, 0), Bounds.Center - new WDir(Bounds.HalfSize, 0), ComponentType.Border);
+                Arena.AddLine(Bounds.Center + new WDir(0, Bounds.HalfSize), Bounds.Center - new WDir(0, Bounds.HalfSize), ComponentType.Border);
+                Arena.AddLine(Bounds.Center + new WDir(diag,  diag), Bounds.Center - new WDir(diag,  diag), ComponentType.Border);
+                Arena.AddLine(Bounds.Center + new WDir(diag, -diag), Bounds.Center - new WDir(diag, -diag), ComponentType.Border);
             }
         }
     }

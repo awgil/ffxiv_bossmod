@@ -19,7 +19,7 @@
                 hints.Add(_lightCamp[slot] ? "Go to light camp" : "GTFO from light camp");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return player == _lightRay || player == _darkRay ? PlayerPriority.Interesting : PlayerPriority.Normal;
         }
@@ -64,7 +64,7 @@
         private void DrawOutline(BossModule module, Actor? target, bool safe)
         {
             if (target != null)
-                _shape.Outline(module.Arena, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), safe ? ArenaColor.Safe : ArenaColor.Danger);
+                _shape.Outline(module.Arena, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), safe ? ComponentType.Safe : ComponentType.Danger);
         }
     }
 

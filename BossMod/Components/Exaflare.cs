@@ -18,8 +18,8 @@ namespace BossMod.Components
         }
 
         public AOEShape Shape { get; private init; }
-        public uint ImminentColor = ArenaColor.Danger;
-        public uint FutureColor = ArenaColor.AOE;
+        public ComponentType ImminentType = ComponentType.Danger;
+        public ComponentType FutureType = ComponentType.AOE;
         protected List<Line> Lines = new();
 
         public bool Active => Lines.Count > 0;
@@ -33,9 +33,9 @@ namespace BossMod.Components
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var (c, t) in FutureAOEs(module.WorldState.CurrentTime))
-                yield return new(Shape, c, activation: t, color: FutureColor);
+                yield return new(Shape, c, activation: t, type: FutureType);
             foreach (var (c, t) in ImminentAOEs())
-                yield return new(Shape, c, activation: t, color: ImminentColor);
+                yield return new(Shape, c, activation: t, type: ImminentType);
         }
 
         protected IEnumerable<(WPos, DateTime)> ImminentAOEs() => Lines.Where(l => l.ExplosionsLeft > 0).Select(l => (l.Next, l.NextExplosion));

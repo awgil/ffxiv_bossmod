@@ -84,10 +84,10 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             for (int i = 0; i < _tears.Count; ++i)
-                arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? ComponentType.Danger : ComponentType.Safe);
 
             if (_laserTargets[pcSlot])
-                arena.AddLine(module.Bounds.Center, TearPosition(module, pc), ArenaColor.Danger);
+                arena.AddLine(module.Bounds.Center, TearPosition(module, pc), ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

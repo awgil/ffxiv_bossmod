@@ -52,11 +52,11 @@
             if (pc == _target)
             {
                 foreach (var (slot, player) in module.Raid.WithSlot().Exclude(_target))
-                    arena.Actor(player, _otherHit[slot] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(player, _otherHit[slot] ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             }
             else
             {
-                arena.Actor(_target, ArenaColor.Danger);
+                arena.Actor(_target, ComponentType.Danger);
             }
         }
     }

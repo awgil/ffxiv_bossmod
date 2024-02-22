@@ -36,13 +36,13 @@
         {
             if (_singlePos != null)
             {
-                arena.ZoneCircle(_singlePos.Value, _singleRadius, ArenaColor.AOE);
+                arena.ZoneCircle(_singlePos.Value, _singleRadius, ComponentType.AOE);
             }
 
             if (_multiStartedCasts > _multiFinishedCasts)
             {
                 if (_multiFinishedCasts > 0) // don't draw center aoe before first explosion, it's confusing - but start drawing it immediately after first explosion, to simplify positioning
-                    arena.ZoneCircle(module.Bounds.Center, _multiRadius, _multiFinishedCasts >= 6 ? ArenaColor.Danger : ArenaColor.AOE);
+                    arena.ZoneCircle(module.Bounds.Center, _multiRadius, _multiFinishedCasts >= 6 ? ComponentType.Danger : ComponentType.AOE);
 
                 // don't draw more than two next pairs
                 if (_multiFinishedCasts < 8)
@@ -97,8 +97,8 @@
         private void DrawPair(MiniArena arena, Angle direction, bool imminent)
         {
             var offset = _multiPairOffset * direction.ToDirection();
-            arena.ZoneCircle(arena.Bounds.Center + offset, _multiRadius, imminent ? ArenaColor.Danger : ArenaColor.AOE);
-            arena.ZoneCircle(arena.Bounds.Center - offset, _multiRadius, imminent ? ArenaColor.Danger : ArenaColor.AOE);
+            arena.ZoneCircle(arena.Bounds.Center + offset, _multiRadius, imminent ? ComponentType.Danger : ComponentType.AOE);
+            arena.ZoneCircle(arena.Bounds.Center - offset, _multiRadius, imminent ? ComponentType.Danger : ComponentType.AOE);
         }
     }
 }

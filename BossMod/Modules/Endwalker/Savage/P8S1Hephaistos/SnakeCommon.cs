@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var g in module.Enemies(OID.Gorgon).Where(g => !g.IsDead))
-                arena.Actor(g, ArenaColor.Enemy, true);
+                arena.Actor(g, ComponentType.ActorEnemy, true);
             base.DrawArenaForeground(module, pcSlot, pc, arena);
         }
 
@@ -74,7 +74,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             }
         }
 
-        public void DrawPetrify(Actor source, bool delayed, MiniArena arena) => arena.AddCone(source.Position, 25, source.Rotation, 45.Degrees(), delayed ? ArenaColor.Safe : ArenaColor.Danger);
-        public void DrawExplode(Actor source, bool delayed, MiniArena arena) => arena.AddCircle(source.Position, 5, delayed ? ArenaColor.Safe : ArenaColor.Danger);
+        public void DrawPetrify(Actor source, bool delayed, MiniArena arena) => arena.AddCone(source.Position, 25, source.Rotation, 45.Degrees(), delayed ? ComponentType.Safe : ComponentType.Danger);
+        public void DrawExplode(Actor source, bool delayed, MiniArena arena) => arena.AddCircle(source.Position, 5, delayed ? ComponentType.Safe : ComponentType.Danger);
     }
 }

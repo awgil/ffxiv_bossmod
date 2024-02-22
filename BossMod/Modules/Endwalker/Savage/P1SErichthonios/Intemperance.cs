@@ -236,17 +236,17 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
                 return pos1; // others return to initial spot
         }
 
-        private IEnumerable<(WPos, WPos, uint)> EnumMovementHints(BossModule module, WPos startingPosition, int assignment)
+        private IEnumerable<(WPos, WPos, ComponentType)> EnumMovementHints(BossModule module, WPos startingPosition, int assignment)
         {
             switch (NumExplosions)
             {
                 case 1:
                     var mid = PosCenter(module, Position2(module, assignment));
-                    yield return (mid, PosCenter(module, Position3(module, assignment)), ArenaColor.Danger);
-                    yield return (startingPosition, mid, ArenaColor.Safe);
+                    yield return (mid, PosCenter(module, Position3(module, assignment)), ComponentType.Danger);
+                    yield return (startingPosition, mid, ComponentType.Safe);
                     break;
                 case 2:
-                    yield return (startingPosition, PosCenter(module, Position3(module, assignment)), ArenaColor.Safe);
+                    yield return (startingPosition, PosCenter(module, Position3(module, assignment)), ComponentType.Safe);
                     break;
             }
         }

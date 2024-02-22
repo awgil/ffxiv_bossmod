@@ -45,7 +45,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.AddCircle(pc.Position, 7, ArenaColor.Danger);
+            arena.AddCircle(pc.Position, 7, ComponentType.Danger);
         }
     }
 
@@ -120,13 +120,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (Active && movementHints != null && _players[slot].AssignedQuadrant >= 0)
             {
                 var from = actor.Position;
-                var color = ArenaColor.Safe;
+                var color = ComponentType.Safe;
                 if (!_stormsDone)
                 {
                     var stormPos = StormPlacementPosition(module, _players[slot].AssignedQuadrant);
                     movementHints.Add(from, stormPos, color);
                     from = stormPos;
-                    color = ArenaColor.Danger;
+                    color = ComponentType.Danger;
                 }
 
                 foreach (var tower in Towers.Where(t => !t.ForbiddenSoakers[slot]))
@@ -144,7 +144,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _preyTargets[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
@@ -156,8 +156,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (Active)
             {
                 float diag = module.Bounds.HalfSize / 1.414214f;
-                arena.AddLine(module.Bounds.Center + new WDir(diag, diag), module.Bounds.Center - new WDir(diag, diag), ArenaColor.Border);
-                arena.AddLine(module.Bounds.Center + new WDir(diag, -diag), module.Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
+                arena.AddLine(module.Bounds.Center + new WDir(diag, diag), module.Bounds.Center - new WDir(diag, diag), ComponentType.Border);
+                arena.AddLine(module.Bounds.Center + new WDir(diag, -diag), module.Bounds.Center - new WDir(diag, -diag), ComponentType.Border);
             }
 
             // TODO: move to separate comet component...
@@ -165,8 +165,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 foreach (var comet in module.Enemies(OID.HolyComet))
                 {
-                    arena.Actor(comet, ArenaColor.Object, true);
-                    arena.AddCircle(comet.Position, _cometLinkRange, ArenaColor.Object);
+                    arena.Actor(comet, ComponentType.ActorObject, true);
+                    arena.AddCircle(comet.Position, _cometLinkRange, ComponentType.ActorObject);
                 }
             }
         }

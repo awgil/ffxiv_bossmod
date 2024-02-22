@@ -75,13 +75,13 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Monoliths.Where(a => !a.IsDead), ArenaColor.Object, true);
-            Arena.Actors(RazorPlumes, ArenaColor.Enemy);
-            Arena.Actors(SpinyPlumes, ArenaColor.Enemy);
-            Arena.Actors(SatinPlumes, ArenaColor.Enemy);
-            Arena.Actors(Chirada, ArenaColor.Enemy);
-            Arena.Actors(Suparna, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Monoliths.Where(a => !a.IsDead), ComponentType.ActorObject, true);
+            Arena.Actors(RazorPlumes, ComponentType.ActorEnemy);
+            Arena.Actors(SpinyPlumes, ComponentType.ActorEnemy);
+            Arena.Actors(SatinPlumes, ComponentType.ActorEnemy);
+            Arena.Actors(Chirada, ComponentType.ActorEnemy);
+            Arena.Actors(Suparna, ComponentType.ActorEnemy);
         }
     }
 }

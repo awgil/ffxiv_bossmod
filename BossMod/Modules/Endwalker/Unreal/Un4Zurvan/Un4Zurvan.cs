@@ -87,8 +87,8 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(_bossP2, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actor(_bossP2, ComponentType.ActorEnemy);
         }
     }
 }

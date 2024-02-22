@@ -40,8 +40,8 @@ namespace BossMod.Endwalker.Alliance.A10Lions
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(_lioness, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actor(_lioness, ComponentType.ActorEnemy);
         }
     }
 }

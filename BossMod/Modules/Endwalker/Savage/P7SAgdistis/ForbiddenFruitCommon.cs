@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
                 hints.Add("Clipped by other tethers!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _tetherClips[playerSlot, pcSlot] || _tetherClips[pcSlot, playerSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
@@ -67,10 +67,10 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         {
             var tetherSource = TetherSources[pcSlot];
             if (tetherSource != null)
-                arena.AddLine(tetherSource.Position, pc.Position, TetherColor(tetherSource));
+                arena.AddLine(tetherSource.Position, pc.Position, TetherType(tetherSource));
 
             foreach (var platform in SafePlatforms[pcSlot].SetBits())
-                arena.AddCircle(module.Bounds.Center + PlatformDirection(platform).ToDirection() * Border.SmallPlatformOffset, Border.SmallPlatformRadius, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + PlatformDirection(platform).ToDirection() * Border.SmallPlatformOffset, Border.SmallPlatformRadius, ComponentType.Safe);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
@@ -143,12 +143,12 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             return -1;
         }
 
-        protected uint TetherColor(Actor source) => (OID)source.OID switch
+        protected ComponentType TetherType(Actor source) => (OID)source.OID switch
         {
-            OID.ImmatureMinotaur => 0xffff00ff,
-            OID.BullTetherSource => 0xffffff00,
-            OID.ImmatureStymphalide => 0xff00ffff,
-            _ => 0
+            OID.ImmatureMinotaur => ComponentType.TetherDontMove,
+            OID.BullTetherSource => ComponentType.TetherMoveToward,
+            OID.ImmatureStymphalide => ComponentType.TetherMoveAway,
+            _ => ComponentType.Unspecified,
         };
 
         protected int PlatformIDFromOffset(WDir offset) => offset.Z > 0 ? 1 : offset.X > 0 ? 2 : 0;

@@ -71,7 +71,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             foreach (var a in _angles.Skip(1).Take(2))
                 yield return new(_shape, module.PrimaryActor.Position, a.rot, a.activation);
             if (_angles.Count > 0)
-                yield return new(_shape, module.PrimaryActor.Position, _angles[0].rot, _angles[0].activation, ArenaColor.Danger);
+                yield return new(_shape, module.PrimaryActor.Position, _angles[0].rot, _angles[0].activation, ComponentType.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

@@ -61,7 +61,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             hints.Add($"Petrify order: {(state.LongPetrify ? 2 : 1)}, {(state.HasCrown ? "hide behind snake" : "stack between snakes")}", false);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return NumCrownCasts == 0 && _players[playerSlot].HasCrown ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -81,11 +81,11 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             {
                 // show circle around assigned snake
                 if (_players[pcSlot].AssignedSnake >= 0)
-                    arena.AddCircle(ActiveGorgons[_players[pcSlot].AssignedSnake].caster.Position, 2, ArenaColor.Safe);
+                    arena.AddCircle(ActiveGorgons[_players[pcSlot].AssignedSnake].caster.Position, 2, ComponentType.Safe);
 
                 foreach (var (slot, player) in module.Raid.WithSlot())
                     if (_players[slot].HasBreath)
-                        arena.AddCircle(player.Position, _breathRadius, ArenaColor.Safe);
+                        arena.AddCircle(player.Position, _breathRadius, ComponentType.Safe);
             }
         }
 

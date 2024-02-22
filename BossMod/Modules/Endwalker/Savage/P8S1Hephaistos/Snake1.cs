@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             {
                 // show circle around assigned snake
                 if (state.AssignedSnake >= 0)
-                    arena.AddCircle(ActiveGorgons[state.AssignedSnake].caster.Position, 2, ArenaColor.Safe);
+                    arena.AddCircle(ActiveGorgons[state.AssignedSnake].caster.Position, 2, ComponentType.Safe);
 
                 if (state.IsExplode)
                     DrawExplode(pc, state.Order == 1 && NumCasts < 2, arena);

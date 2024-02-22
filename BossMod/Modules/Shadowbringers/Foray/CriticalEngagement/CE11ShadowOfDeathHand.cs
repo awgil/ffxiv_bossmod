@@ -132,8 +132,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             base.DrawEnemies(pcSlot, pc);
-            Arena.Actors(Enemies(OID.Beastmaster), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.TamedCarrionCrow), ArenaColor.Enemy);
+            Arena.Actors(Enemies(OID.Beastmaster), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.TamedCarrionCrow), ComponentType.ActorEnemy);
         }
     }
 }

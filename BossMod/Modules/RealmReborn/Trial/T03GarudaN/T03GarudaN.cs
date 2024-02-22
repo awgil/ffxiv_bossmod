@@ -115,9 +115,9 @@ namespace BossMod.RealmReborn.Trial.T03GarudaN
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
             foreach (var m in Enemies(OID.Monolith))
-                Arena.Actor(m, ArenaColor.Danger, true);
+                Arena.Actor(m, ComponentType.Danger, true);
         }
     }
 }

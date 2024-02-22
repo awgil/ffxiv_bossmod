@@ -70,7 +70,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
                 hints.Add("Break tether!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _partners[pcSlot] == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
@@ -79,7 +79,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
         {
             var partner = module.Raid[_partners[pcSlot]];
             if (partner != null)
-                arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+                arena.AddLine(pc.Position, partner.Position, ComponentType.Danger);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)

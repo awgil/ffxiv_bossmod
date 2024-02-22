@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 hints.Add($"Order: {ps.Order}, group: {ps.Group}", false);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             var playerOrder = PlayerStates[playerSlot].Order;
             return playerOrder == 0 ? PlayerPriority.Irrelevant : playerOrder == PlayerStates[pcSlot].Order ? PlayerPriority.Danger : PlayerPriority.Normal;

@@ -64,12 +64,12 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             {
                 if (_targets[i])
                 {
-                    arena.Actor(player, ArenaColor.Danger);
-                    arena.AddCircle(player.Position, _aoeRadius, ArenaColor.Danger);
+                    arena.Actor(player, ComponentType.Danger);
+                    arena.AddCircle(player.Position, _aoeRadius, ComponentType.Danger);
                 }
                 else
                 {
-                    arena.Actor(player, _inAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(player, _inAOE[i] ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
                 }
             }
         }

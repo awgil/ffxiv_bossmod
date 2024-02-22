@@ -19,8 +19,8 @@ namespace BossMod.Components
         );
 
         public List<Sequence> Sequences = new();
-        public uint ImminentColor = ArenaColor.Danger;
-        public uint FutureColor = ArenaColor.AOE;
+        public ComponentType ImminentType = ComponentType.Danger;
+        public ComponentType FutureType = ComponentType.AOE;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -34,14 +34,14 @@ namespace BossMod.Components
                 {
                     rot += s.Increment;
                     time = time.AddSeconds(s.SecondsBetweenActivations);
-                    yield return new(s.Shape, s.Origin, rot, time, FutureColor);
+                    yield return new(s.Shape, s.Origin, rot, time, FutureType);
                 }
             }
 
             // imminent AOEs
             foreach (var s in Sequences)
                 if (s.NumRemainingCasts > 0)
-                    yield return new(s.Shape, s.Origin, s.Rotation, s.NextActivation, ImminentColor);
+                    yield return new(s.Shape, s.Origin, s.Rotation, s.NextActivation, ImminentType);
         }
 
         public void AdvanceSequence(int index, DateTime currentTime, bool removeWhenFinished = true)

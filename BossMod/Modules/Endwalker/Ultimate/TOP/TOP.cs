@@ -55,12 +55,12 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(_omegaM, ArenaColor.Enemy);
-            Arena.Actor(_omegaF, ArenaColor.Enemy);
-            Arena.Actor(_bossP3, ArenaColor.Enemy);
-            Arena.Actor(_bossP5, ArenaColor.Enemy);
-            Arena.Actor(_bossP6, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actor(_omegaM, ComponentType.ActorEnemy);
+            Arena.Actor(_omegaF, ComponentType.ActorEnemy);
+            Arena.Actor(_bossP3, ComponentType.ActorEnemy);
+            Arena.Actor(_bossP5, ComponentType.ActorEnemy);
+            Arena.Actor(_bossP6, ComponentType.ActorEnemy);
         }
     }
 }

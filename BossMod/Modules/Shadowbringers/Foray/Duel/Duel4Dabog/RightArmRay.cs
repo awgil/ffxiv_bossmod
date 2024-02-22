@@ -41,7 +41,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
             foreach (var s in _spheres.Where(s => s.NumCastsLeft > 1))
                 yield return new(_shape, s.Sphere.Position, s.RotNext + s.RotIncrement, _activation, risky: false);
             foreach (var s in _spheres)
-                yield return new(_shape, s.Sphere.Position, s.RotNext, _activation, ArenaColor.Danger);
+                yield return new(_shape, s.Sphere.Position, s.RotNext, _activation, ComponentType.Danger);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -61,7 +61,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
                             var midpointOffset = (ccwOffset + cwOffset) * 0.5f;
                             if (midpointOffset.OrthoL().Dot(ccwOffset) < 0)
                             {
-                                arena.AddCircle(module.Bounds.Center + midpointOffset, 1, ArenaColor.Safe);
+                                arena.AddCircle(module.Bounds.Center + midpointOffset, 1, ComponentType.Safe);
                             }
                         }
                     }

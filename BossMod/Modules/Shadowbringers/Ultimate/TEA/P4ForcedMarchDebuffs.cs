@@ -36,7 +36,7 @@
             }
 
             if (movementHints != null)
-                movementHints.Add(actor.Position, module.Bounds.Center + SafeSpotDirection(slot), ArenaColor.Safe);
+                movementHints.Add(actor.Position, module.Bounds.Center + SafeSpotDirection(slot), ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -62,7 +62,7 @@
                     break;
             }
 
-            arena.AddCircle(module.Bounds.Center + SafeSpotDirection(pcSlot), 1, ArenaColor.Safe);
+            arena.AddCircle(module.Bounds.Center + SafeSpotDirection(pcSlot), 1, ComponentType.Safe);
         }
 
         protected abstract WDir SafeSpotDirection(int slot);

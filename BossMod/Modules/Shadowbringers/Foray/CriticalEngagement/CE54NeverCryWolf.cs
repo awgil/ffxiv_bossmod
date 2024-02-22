@@ -197,7 +197,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             base.DrawEnemies(pcSlot, pc);
-            Arena.Actors(_adds, ArenaColor.Enemy);
+            Arena.Actors(_adds, ComponentType.ActorEnemy);
         }
     }
 }

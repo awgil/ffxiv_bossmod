@@ -39,8 +39,8 @@
             var adjPos = _vulcanBurstImminent ? arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, _mistralSong, 30)) : pc.Position;
             if (adjPos != pc.Position)
             {
-                arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-                arena.Actor(adjPos, 0.Degrees(), ArenaColor.Danger);
+                arena.AddLine(pc.Position, adjPos, ComponentType.Danger);
+                arena.Actor(adjPos, 0.Degrees(), ComponentType.Danger);
             }
         }
 

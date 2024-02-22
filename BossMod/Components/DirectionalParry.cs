@@ -90,16 +90,16 @@ namespace BossMod.Components
         private void DrawParry(MiniArena arena, Actor actor, Angle offset, Side active, Side imminent, Side check)
         {
             if (active.HasFlag(check))
-                DrawParry(arena, actor, offset, ArenaColor.Enemy);
+                DrawParry(arena, actor, offset, ComponentType.ActorEnemy);
             else if (imminent.HasFlag(check))
-                DrawParry(arena, actor, offset, ArenaColor.Danger);
+                DrawParry(arena, actor, offset, ComponentType.Danger);
         }
 
-        private void DrawParry(MiniArena arena, Actor actor, Angle offset, uint color)
+        private void DrawParry(MiniArena arena, Actor actor, Angle offset, ComponentType type)
         {
             var dir = actor.Rotation + offset;
             arena.PathArcTo(actor.Position, 1.5f, (dir - 45.Degrees()).Rad, (dir + 45.Degrees()).Rad);
-            arena.PathStroke(false, color);
+            arena.PathStroke(false, type);
         }
 
         private int ActorState(ulong instanceID) => _actorStates.GetValueOrDefault(instanceID, 0);

@@ -133,13 +133,13 @@ namespace BossMod.RealmReborn.Trial.T06GarudaH
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
             foreach (var m in ActiveMonoliths)
-                Arena.Actor(m, ArenaColor.Object, true);
+                Arena.Actor(m, ComponentType.ActorObject, true);
             foreach (var e in Enemies(OID.Suparna))
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
             foreach (var e in Enemies(OID.Chirada))
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
         }
     }
 }

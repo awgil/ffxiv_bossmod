@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _targets.Contains(player) ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }

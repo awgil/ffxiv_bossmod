@@ -184,7 +184,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             if (module.PrimaryActor.TargetID == pc.InstanceID)
             {
                 // cone to help mt with proper positioning
-                arena.AddCone(module.PrimaryActor.Position, 2, Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center), Incinerate.CleaveShape.HalfAngle, ArenaColor.Safe);
+                arena.AddCone(module.PrimaryActor.Position, 2, Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center), Incinerate.CleaveShape.HalfAngle, ComponentType.Safe);
             }
         }
     }
@@ -304,7 +304,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             var nextNail = NailKillOrder.FirstOrDefault();
             if (nextNail != null)
-                arena.AddCircle(nextNail.Position, 2, ArenaColor.Safe);
+                arena.AddCircle(nextNail.Position, 2, ComponentType.Safe);
         }
 
         private (float, float) NailDirDist(WDir offset, Angle startingDir)
@@ -409,7 +409,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.AddCircle(module.Bounds.Center + _safespotOffset, 2, ArenaColor.Safe);
+            arena.AddCircle(module.Bounds.Center + _safespotOffset, 2, ComponentType.Safe);
         }
     }
     class Ex4IfritAIHellfire1 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire1() : base(150.Degrees(), PartyRolesConfig.Assignment.MT) { } }

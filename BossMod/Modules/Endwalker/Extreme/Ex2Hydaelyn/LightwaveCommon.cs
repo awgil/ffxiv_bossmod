@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
             var dist = toBlock.Length();
             var center = Angle.FromDirection(toBlock);
             var halfAngle = Angle.Asin(_losRadius / dist);
-            arena.ZoneCone(origin, dist, 40, center, halfAngle, ArenaColor.SafeFromAOE);
+            arena.ZoneCone(origin, dist, 40, center, halfAngle, ComponentType.SafeFromAOE);
         }
     }
 }

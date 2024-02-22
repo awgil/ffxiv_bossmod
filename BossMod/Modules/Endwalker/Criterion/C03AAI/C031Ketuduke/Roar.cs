@@ -30,9 +30,9 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var s in _snakes)
             {
-                arena.Actor(s.actor, ArenaColor.Object, true);
+                arena.Actor(s.actor, ComponentType.ActorObject, true);
                 if (_highlightSnakes && s.bubble != _playerBubbles[pcSlot])
-                    arena.AddCircle(s.actor.Position, 1, ArenaColor.Safe);
+                    arena.AddCircle(s.actor.Position, 1, ComponentType.Safe);
             }
         }
 

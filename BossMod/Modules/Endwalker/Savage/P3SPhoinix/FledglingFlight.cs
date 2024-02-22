@@ -55,18 +55,18 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
 
             // draw all players
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
 
             var eyePos = GetEyePlacementPosition(module, pcSlot, pc);
             if (eyePos != null)
-                arena.AddCircle(eyePos.Value, 1, ArenaColor.Safe);
+                arena.AddCircle(eyePos.Value, 1, ComponentType.Safe);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach ((var source, var dir) in _sources)
             {
-                arena.ZoneIsoscelesTri(source.Position, dir, _coneHalfAngle, 50, ArenaColor.AOE);
+                arena.ZoneIsoscelesTri(source.Position, dir, _coneHalfAngle, 50, ComponentType.AOE);
             }
         }
 

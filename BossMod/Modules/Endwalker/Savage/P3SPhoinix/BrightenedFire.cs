@@ -36,17 +36,17 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                 return;
 
             var pos = PositionForOrder(module, _playerOrder[pcSlot]);
-            arena.AddCircle(pos, 1, ArenaColor.Safe);
+            arena.AddCircle(pos, 1, ComponentType.Safe);
 
             // draw all adds
             int addIndex = 0;
             foreach (var fire in module.Enemies(OID.DarkenedFire).SortedByRange(pos))
             {
-                arena.Actor(fire, addIndex++ < 2 ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+                arena.Actor(fire, addIndex++ < 2 ? ComponentType.Danger : ComponentType.PlayerGeneric);
             }
 
             // draw range circle
-            arena.AddCircle(pc.Position, _aoeRange, ArenaColor.Danger);
+            arena.AddCircle(pc.Position, _aoeRange, ComponentType.Danger);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

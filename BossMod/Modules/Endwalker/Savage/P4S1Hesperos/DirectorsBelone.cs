@@ -96,7 +96,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             var failingPlayers = _debuffForbidden & _debuffTargets;
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
-                arena.Actor(player, failingPlayers[i] ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+                arena.Actor(player, failingPlayers[i] ? ComponentType.Danger : ComponentType.PlayerGeneric);
             }
         }
 

@@ -51,7 +51,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             }
 
             if (movementHints != null && (!shouldSoak || !_chakramsDone))
-                movementHints.Add(actor.Position, module.Bounds.Center + SafeSpotOffset(order, dirToAlex, dirToSide), ArenaColor.Safe);
+                movementHints.Add(actor.Position, module.Bounds.Center + SafeSpotOffset(order, dirToAlex, dirToSide), ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -69,10 +69,10 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             var shouldSoak = ShouldSoakWormhole(pcOrder);
 
             foreach (var w in _wormholes)
-                arena.AddCircle(w, _radiuses[NumSoaks], shouldSoak && dirToSide.Dot(w - module.Bounds.Center) > 0 ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(w, _radiuses[NumSoaks], shouldSoak && dirToSide.Dot(w - module.Bounds.Center) > 0 ? ComponentType.Safe : ComponentType.Danger);
 
             if (!shouldSoak || !_chakramsDone)
-                arena.AddCircle(module.Bounds.Center + SafeSpotOffset(pcOrder, dirToAlex, dirToSide), 1, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + SafeSpotOffset(pcOrder, dirToAlex, dirToSide), 1, ComponentType.Safe);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)

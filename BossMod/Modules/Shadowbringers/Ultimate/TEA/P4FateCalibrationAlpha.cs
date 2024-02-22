@@ -123,14 +123,14 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         {
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null && _safespots != null)
-                movementHints.Add(actor.Position, _safespots[slot], ArenaColor.Safe);
+                movementHints.Add(actor.Position, _safespots[slot], ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (_safespots != null)
-                arena.AddCircle(_safespots[pcSlot], 1, ArenaColor.Safe);
+                arena.AddCircle(_safespots[pcSlot], 1, ComponentType.Safe);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

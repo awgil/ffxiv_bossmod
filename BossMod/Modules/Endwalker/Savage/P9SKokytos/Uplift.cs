@@ -14,7 +14,7 @@
                 {
                     var center = WallDirection.Value + i * 90.Degrees();
                     arena.PathArcTo(module.Bounds.Center, module.Bounds.HalfSize - 0.5f, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);
-                    arena.PathStroke(false, ArenaColor.Border, 2);
+                    arena.PathStroke(false, ComponentType.Border, 2);
                 }
             }
         }

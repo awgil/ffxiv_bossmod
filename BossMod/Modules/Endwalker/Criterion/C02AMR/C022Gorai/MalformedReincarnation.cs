@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (!_baitsDone)
                 foreach (var p in module.Raid.WithoutSlot())
-                    arena.AddCircle(p.Position, TowerRadius, ArenaColor.Danger);
+                    arena.AddCircle(p.Position, TowerRadius, ComponentType.Danger);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)

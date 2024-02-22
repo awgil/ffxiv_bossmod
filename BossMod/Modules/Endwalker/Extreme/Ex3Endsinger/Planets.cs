@@ -48,8 +48,8 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
             if (_planetsAzure.Count > 0)
             {
                 var offsetLocation = Components.Knockback.AwayFromSource(pc.Position, _planetsAzure[0], _knockbackDistance);
-                arena.AddLine(pc.Position, offsetLocation, ArenaColor.Danger);
-                arena.Actor(offsetLocation, pc.Rotation, ArenaColor.Danger);
+                arena.AddLine(pc.Position, offsetLocation, ComponentType.Danger);
+                arena.Actor(offsetLocation, pc.Rotation, ComponentType.Danger);
             }
         }
 

@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
                 hints.Add("Stack and knockback");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return Casters.FirstOrDefault()?.CastInfo?.TargetID == player.InstanceID ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
@@ -84,7 +84,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
                 yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, new(), module.PrimaryActor.CastInfo.FinishAt);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return player == _target ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_target != null)
-                arena.AddCircle(_target.Position, _shape.Radius, ArenaColor.Danger);
+                arena.AddCircle(_target.Position, _shape.Radius, ComponentType.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

@@ -34,8 +34,8 @@ namespace BossMod.Stormblood.Ultimate.UCOB
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(Twintania(), ArenaColor.Enemy);
-            Arena.Actor(Nael(), ArenaColor.Enemy);
+            Arena.Actor(Twintania(), ComponentType.ActorEnemy);
+            Arena.Actor(Nael(), ComponentType.ActorEnemy);
         }
     }
 }

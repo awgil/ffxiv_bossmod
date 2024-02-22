@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         {
             if (CurState == State.FirstAOEs || CurState == State.LastAOEs)
                 foreach (var aoe in CurState == State.FirstAOEs ? _firstAOEs : _lastAOEs)
-                    arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
+                    arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -60,9 +60,9 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             if (CurState == State.Towers)
             {
                 foreach (var tower in _towers)
-                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
+                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ComponentType.Safe);
                 foreach (var player in module.Raid.WithoutSlot())
-                    arena.Actor(player, ArenaColor.PlayerGeneric);
+                    arena.Actor(player, ComponentType.PlayerGeneric);
             }
         }
 

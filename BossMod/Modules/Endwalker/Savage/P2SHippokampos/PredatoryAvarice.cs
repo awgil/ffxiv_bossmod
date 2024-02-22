@@ -75,20 +75,20 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
                 if (_playersWithTides[i])
                 {
                     // tides are always drawn
-                    arena.AddCircle(actor.Position, _tidesRadius, ArenaColor.Danger);
-                    arena.Actor(actor, ArenaColor.Danger);
+                    arena.AddCircle(actor.Position, _tidesRadius, ComponentType.Danger);
+                    arena.Actor(actor, ComponentType.Danger);
                 }
                 else if (_playersWithDepths[i] && !pcHasTides)
                 {
                     // depths are drawn only if pc has no tides - otherwise it is to be considered a generic player
-                    arena.AddCircle(actor.Position, _tidesRadius, ArenaColor.Safe);
-                    arena.Actor(actor, ArenaColor.Danger);
+                    arena.AddCircle(actor.Position, _tidesRadius, ComponentType.Safe);
+                    arena.Actor(actor, ComponentType.Danger);
                 }
                 else if (pcHasTides || pcHasDepths)
                 {
                     // other players are only drawn if pc has some debuff
                     bool playerInteresting = pcHasTides ? _playersInTides[i] : _playersInDepths[i];
-                    arena.Actor(actor.Position, actor.Rotation, playerInteresting ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(actor.Position, actor.Rotation, playerInteresting ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
                 }
             }
         }

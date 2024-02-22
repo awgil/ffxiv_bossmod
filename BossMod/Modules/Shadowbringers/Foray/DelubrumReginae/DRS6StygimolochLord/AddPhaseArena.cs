@@ -12,9 +12,9 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Zone(module.Bounds.ClipAndTriangulate(InDanger(module)), ArenaColor.AOE);
-            arena.Zone(module.Bounds.ClipAndTriangulate(MidDanger(module)), ArenaColor.AOE);
-            arena.Zone(module.Bounds.ClipAndTriangulate(OutDanger(module)), ArenaColor.AOE);
+            arena.Zone(module.Bounds.ClipAndTriangulate(InDanger(module)), ComponentType.AOE);
+            arena.Zone(module.Bounds.ClipAndTriangulate(MidDanger(module)), ComponentType.AOE);
+            arena.Zone(module.Bounds.ClipAndTriangulate(OutDanger(module)), ComponentType.AOE);
         }
 
         private IEnumerable<WPos> RingBorder(BossModule module, Angle centerOffset, float ringRadius, bool innerBorder)

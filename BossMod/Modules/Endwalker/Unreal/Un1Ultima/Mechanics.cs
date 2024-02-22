@@ -97,9 +97,9 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         {
             var mt = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                arena.Actor(player, _orbKiters.Contains(player.InstanceID) ? ArenaColor.Danger : player == mt ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.Actor(player, _orbKiters.Contains(player.InstanceID) ? ComponentType.Danger : player == mt ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             if (mt != null)
-                arena.AddCircle(mt.Position, _aoeCleave.Radius, ArenaColor.Danger);
+                arena.AddCircle(mt.Position, _aoeCleave.Radius, ComponentType.Danger);
 
             //if (pc.Role is Role.Healer or Role.Ranged)
             //    arena.AddCircle(module.PrimaryActor.Position, _ceruleumVentRange, ArenaColor.Danger);
@@ -107,20 +107,20 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
             foreach (var orb in module.Enemies(OID.Ultimaplasm).Where(orb => !_orbsSharedExploded.Contains(orb.InstanceID)))
             {
                 // TODO: line between paired orbs
-                arena.Actor(orb, ArenaColor.Danger, true);
-                arena.AddCircle(orb.Position, _orbSharedRange, ArenaColor.Safe);
+                arena.Actor(orb, ComponentType.Danger, true);
+                arena.AddCircle(orb.Position, _orbSharedRange, ComponentType.Safe);
             }
 
             foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(orb => !_orbsKitedExploded.Contains(orb.InstanceID)))
             {
                 // TODO: line from corresponding target
-                arena.Actor(orb, ArenaColor.Danger, true);
-                arena.AddCircle(orb.Position, _orbFixateRange, ArenaColor.Danger);
+                arena.Actor(orb, ComponentType.Danger, true);
+                arena.AddCircle(orb.Position, _orbFixateRange, ComponentType.Danger);
             }
 
             foreach (var bit in module.Enemies(OID.MagitekBit))
             {
-                arena.Actor(bit, ArenaColor.Danger);
+                arena.Actor(bit, ComponentType.Danger);
             }
         }
 

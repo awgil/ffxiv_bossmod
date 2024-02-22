@@ -76,11 +76,11 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             float aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
             {
-                arena.Actor(player, player.Position.InCircle(pc.Position, aoeRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.Actor(player, player.Position.InCircle(pc.Position, aoeRadius) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             }
 
             // draw circle around pc
-            arena.AddCircle(pc.Position, aoeRadius, ArenaColor.Danger);
+            arena.AddCircle(pc.Position, aoeRadius, ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

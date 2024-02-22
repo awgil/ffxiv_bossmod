@@ -87,7 +87,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var m in GetSafeSpotMoves(module, pc))
-                arena.AddLine(m.from, m.to, m.color);
+                arena.AddLine(m.from, m.to, m.type);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -131,7 +131,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
                 _safespotZOffset = index == 0x1D ? 2 : -2;
         }
 
-        private IEnumerable<(WPos from, WPos to, uint color)> GetSafeSpotMoves(BossModule module, Actor actor)
+        private IEnumerable<(WPos from, WPos to, ComponentType type)> GetSafeSpotMoves(BossModule module, Actor actor)
         {
             var state = _playerStates.GetValueOrDefault(actor.InstanceID);
             if (state == null)
@@ -162,13 +162,13 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
                 }
             }
 
-            uint color = ArenaColor.Safe;
+            ComponentType type = ComponentType.Safe;
             var from = actor.Position;
             foreach (var p in state.Safespots.Skip(NumCasts / 2))
             {
-                yield return (from, p, color);
+                yield return (from, p, type);
                 from = p;
-                color = ArenaColor.Danger;
+                type = ComponentType.Danger;
             }
         }
 

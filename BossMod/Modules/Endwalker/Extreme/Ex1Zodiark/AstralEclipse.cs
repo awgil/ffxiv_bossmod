@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
 
             if (movementHints != null)
                 foreach (var (from, to) in EnumMovementHints(module, actor.Position))
-                    movementHints.Add(from, to, ArenaColor.Safe);
+                    movementHints.Add(from, to, ComponentType.Safe);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var (from, to) in EnumMovementHints(module, pc.Position))
-                arena.AddLine(from, to, ArenaColor.Safe);
+                arena.AddLine(from, to, ComponentType.Safe);
         }
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)

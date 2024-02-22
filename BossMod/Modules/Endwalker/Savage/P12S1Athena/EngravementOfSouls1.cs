@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
 
             var safespot = CalculateSafeSpot(module, pcSlot);
             if (safespot != default)
-                arena.AddCircle(safespot, 1, ArenaColor.Safe);
+                arena.AddCircle(safespot, 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

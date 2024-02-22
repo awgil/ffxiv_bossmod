@@ -133,8 +133,8 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var s in _slimes)
             {
-                arena.Actor(s.source, ArenaColor.Object, true);
-                arena.AddLine(s.source.Position, s.target.Position, ArenaColor.Danger);
+                arena.Actor(s.source, ComponentType.ActorObject, true);
+                arena.AddLine(s.source.Position, s.target.Position, ComponentType.Danger);
             }
         }
 

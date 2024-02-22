@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
             ref var p = ref Players[pcSlot];
             if (p.StartingOffsets != null)
                 foreach (var off in p.StartingOffsets)
-                    arena.AddCircle(module.Bounds.Center + off, 1, ArenaColor.Safe);
+                    arena.AddCircle(module.Bounds.Center + off, 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

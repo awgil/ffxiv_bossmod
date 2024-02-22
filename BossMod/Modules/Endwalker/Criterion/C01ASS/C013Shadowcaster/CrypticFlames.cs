@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             {
                 var dir = l.laser.Rotation.ToDirection();
                 var extent = 2 * dir * dir.Dot(module.Bounds.Center - l.laser.Position);
-                var color = l.order != _playerOrder[pcSlot] ? ArenaColor.Enemy : order == CurrentBreakOrder ? ArenaColor.Safe : ArenaColor.Danger;
+                var color = l.order != _playerOrder[pcSlot] ? ComponentType.ActorEnemy : order == CurrentBreakOrder ? ComponentType.Safe : ComponentType.Danger;
                 arena.AddLine(l.laser.Position, l.laser.Position + extent, color, 2);
             }
         }

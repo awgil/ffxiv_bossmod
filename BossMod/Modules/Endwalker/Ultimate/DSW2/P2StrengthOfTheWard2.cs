@@ -38,16 +38,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null)
                 foreach (var safespot in EnumSafeSpots(module, actor))
-                    movementHints.Add(actor.Position, safespot, ArenaColor.Safe);
+                    movementHints.Add(actor.Position, safespot, ComponentType.Safe);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PlayerPriority.Normal;
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type) => PlayerPriority.Normal;
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var safespot in EnumSafeSpots(module, pc))
-                arena.AddCircle(safespot, 1, ArenaColor.Safe);
+                arena.AddCircle(safespot, 1, ComponentType.Safe);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -150,7 +150,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 var target = module.WorldState.Actors.Find(source.Tether.Target);
                 if (target != null)
                 {
-                    arena.ZoneRect(source.Position, target.Position, _chargeHalfWidth, ArenaColor.AOE);
+                    arena.ZoneRect(source.Position, target.Position, _chargeHalfWidth, ComponentType.AOE);
                 }
             }
         }
@@ -160,10 +160,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             // draw tethers
             foreach (var source in _chargeSources)
             {
-                module.Arena.Actor(source, ArenaColor.Enemy, true);
+                module.Arena.Actor(source, ComponentType.ActorEnemy, true);
                 var target = module.WorldState.Actors.Find(source.Tether.Target);
                 if (target != null)
-                    module.Arena.AddLine(source.Position, target.Position, ArenaColor.Danger);
+                    module.Arena.AddLine(source.Position, target.Position, ComponentType.Danger);
             }
         }
 

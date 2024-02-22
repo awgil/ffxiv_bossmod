@@ -35,7 +35,7 @@ namespace BossMod.Endwalker.Savage.P8S2
 
             if (NumDeformations >= 4 && ShouldSoak(pcSlot))
                 foreach (var tower in ActiveTowers())
-                    arena.AddCircle(tower.Position, _towerRadius, ArenaColor.Danger, 2);
+                    arena.AddCircle(tower.Position, _towerRadius, ComponentType.Danger, 2);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

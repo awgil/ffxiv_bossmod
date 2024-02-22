@@ -69,7 +69,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
 
             var xOffset = _pattern is Pattern.EWNormal or Pattern.EWInverted ? -20 : +20;
             var zOffset = 10 * (cell - 2);
-            yield return new(_shapeCell, module.Bounds.Center + new WDir(xOffset, zOffset), new(), _activation, ArenaColor.SafeFromAOE, false);
+            yield return new(_shapeCell, module.Bounds.Center + new WDir(xOffset, zOffset), new(), _activation, ComponentType.SafeFromAOE, false);
         }
 
         public override void Update(BossModule module)

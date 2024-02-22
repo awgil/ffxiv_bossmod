@@ -93,11 +93,11 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         {
             foreach (var a in ActiveHygieia)
             {
-                arena.Actor(a, ArenaColor.Enemy);
-                arena.AddCircle(a.Position, _explosionRadius, ArenaColor.Danger);
+                arena.Actor(a, ComponentType.ActorEnemy);
+                arena.AddCircle(a.Position, _explosionRadius, ComponentType.Danger);
             }
             foreach (var a in Asclepius)
-                arena.Actor(a, ArenaColor.Enemy);
+                arena.Actor(a, ComponentType.ActorEnemy);
         }
     }
 
@@ -139,7 +139,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var neurolink in module.Enemies(OID.Neurolink))
-                arena.AddCircle(neurolink.Position, T05Twintania.NeurolinkRadius, ArenaColor.Safe);
+                arena.AddCircle(neurolink.Position, T05Twintania.NeurolinkRadius, ComponentType.Safe);
         }
     }
 }

@@ -106,7 +106,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (movementHints != null)
                 foreach (var p in SafeSpots(module, actor))
-                    movementHints.Add(actor.Position, p, ArenaColor.Safe);
+                    movementHints.Add(actor.Position, p, ComponentType.Safe);
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -119,7 +119,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var p in SafeSpots(module, pc))
-                arena.AddCircle(p, 1, ArenaColor.Safe);
+                arena.AddCircle(p, 1, ComponentType.Safe);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

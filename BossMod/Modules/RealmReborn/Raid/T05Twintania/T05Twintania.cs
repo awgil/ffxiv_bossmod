@@ -157,9 +157,9 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy, true);
             foreach (var a in ScourgeOfMeracydia)
-                Arena.Actor(a, ArenaColor.Enemy);
+                Arena.Actor(a, ComponentType.ActorEnemy);
         }
     }
 }

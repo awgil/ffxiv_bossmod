@@ -47,7 +47,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
 
         public GraspingRancor() : base(ActionID.MakeSpell(AID.PurifyingLight), 12)
         {
-            Color = ArenaColor.SafeFromAOE;
+            Type = ComponentType.SafeFromAOE;
             Risky = false;
         }
 
@@ -77,8 +77,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
             if (hand != null)
             {
                 bool isFrozen = hand.Tether.ID == (uint)TetherID.Frozen;
-                arena.Actor(hand, ArenaColor.Object, true);
-                arena.AddLine(hand.Position, pc.Position, isFrozen ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.Actor(hand, ComponentType.ActorObject, true);
+                arena.AddLine(hand.Position, pc.Position, isFrozen ? ComponentType.Safe : ComponentType.Danger);
             }
         }
     }

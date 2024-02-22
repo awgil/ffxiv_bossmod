@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return player == Baiter ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -38,13 +38,13 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (Voidzone != null)
-                arena.ZoneCircle(Voidzone.Position, _growthStart == default ? _startingRadius : Math.Min(_maxRadius, _startingRadius + _growthPerSecond * (float)(module.WorldState.CurrentTime - _growthStart).TotalSeconds), ArenaColor.AOE);
+                arena.ZoneCircle(Voidzone.Position, _growthStart == default ? _startingRadius : Math.Min(_maxRadius, _startingRadius + _growthPerSecond * (float)(module.WorldState.CurrentTime - _growthStart).TotalSeconds), ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (Baiter != null)
-                arena.AddCircle(Baiter.Position, _startingRadius, ArenaColor.Danger);
+                arena.AddCircle(Baiter.Position, _startingRadius, ComponentType.Danger);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)
@@ -98,7 +98,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             for (int i = NumCasts + 1; i < _maxCasts; ++i)
                 yield return new(_shape, _source.Position, _startingRotation + i * _increment, _startingActivation.AddSeconds(0.5f * i));
             if (NumCasts < _maxCasts)
-                yield return new(_shape, _source.Position, _startingRotation + NumCasts * _increment, _startingActivation.AddSeconds(0.5f * NumCasts), ArenaColor.Danger);
+                yield return new(_shape, _source.Position, _startingRotation + NumCasts * _increment, _startingActivation.AddSeconds(0.5f * NumCasts), ComponentType.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

@@ -79,7 +79,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null)
                 foreach (var p in SafeSpots(module))
-                    movementHints.Add(actor.Position, p, ArenaColor.Safe);
+                    movementHints.Add(actor.Position, p, ComponentType.Safe);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

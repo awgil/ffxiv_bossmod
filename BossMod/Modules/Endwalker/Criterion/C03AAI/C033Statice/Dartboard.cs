@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return Bullseye[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Interesting;
         }
@@ -35,12 +35,12 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (ForbiddenColor != Color.None)
-                DrawSegmentsOfColor(module, ForbiddenColor, ArenaColor.AOE);
+                DrawSegmentsOfColor(module, ForbiddenColor, ComponentType.AOE);
             if (Bullseye[pcSlot])
             {
                 var color = PosToColor(module, pc.Position);
                 if (color != ForbiddenColor)
-                    DrawSegmentsOfColor(module, color, ArenaColor.SafeFromAOE);
+                    DrawSegmentsOfColor(module, color, ComponentType.SafeFromAOE);
             }
         }
 
@@ -81,14 +81,14 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
             return DirToColor(Angle.FromDirection(off), off.LengthSq() < 144);
         }
 
-        private void DrawSegmentsOfColor(BossModule module, Color color, uint zoneColor)
+        private void DrawSegmentsOfColor(BossModule module, Color color, ComponentType zoneType)
         {
             int index = (int)color - 1;
             var dirOut = (15 + index * 30).Degrees();
             for (int i = 0; i < 4; ++i)
             {
-                module.Arena.ZoneCone(module.Bounds.Center, 0, 12, dirOut + 30.Degrees(), 15.Degrees(), zoneColor);
-                module.Arena.ZoneCone(module.Bounds.Center, 12, module.Bounds.HalfSize, dirOut, 15.Degrees(), zoneColor);
+                module.Arena.ZoneCone(module.Bounds.Center, 0, 12, dirOut + 30.Degrees(), 15.Degrees(), zoneType);
+                module.Arena.ZoneCone(module.Bounds.Center, 12, module.Bounds.HalfSize, dirOut, 15.Degrees(), zoneType);
                 dirOut += 90.Degrees();
             }
         }

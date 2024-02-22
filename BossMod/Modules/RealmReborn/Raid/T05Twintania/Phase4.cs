@@ -44,7 +44,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var twister in ActiveTwisters)
-                arena.AddCircle(twister.Position, twister.HitboxRadius, ArenaColor.Danger);
+                arena.AddCircle(twister.Position, twister.HitboxRadius, ComponentType.Danger);
         }
     }
 
@@ -91,9 +91,9 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         {
             foreach (var a in ActiveDreadknights)
             {
-                arena.Actor(a, ArenaColor.Enemy);
+                arena.Actor(a, ComponentType.ActorEnemy);
                 if (_target != null)
-                    arena.AddLine(a.Position, _target.Position, ArenaColor.Danger);
+                    arena.AddLine(a.Position, _target.Position, ComponentType.Danger);
             }
         }
 

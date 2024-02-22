@@ -26,16 +26,16 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         {
             if (!_threePlatforms)
             {
-                arena.AddCircle(module.Bounds.Center, LargePlatformRadius, ArenaColor.Border);
+                arena.AddCircle(module.Bounds.Center, LargePlatformRadius, ComponentType.Border);
             }
             else
             {
                 var cs = module.Bounds.Center + PlatformSOffset;
                 var ce = module.Bounds.Center + PlatformEOffset;
                 var cw = module.Bounds.Center + PlatformWOffset;
-                arena.AddCircle(cs, SmallPlatformRadius, ArenaColor.Border);
-                arena.AddCircle(ce, SmallPlatformRadius, ArenaColor.Border);
-                arena.AddCircle(cw, SmallPlatformRadius, ArenaColor.Border);
+                arena.AddCircle(cs, SmallPlatformRadius, ComponentType.Border);
+                arena.AddCircle(ce, SmallPlatformRadius, ComponentType.Border);
+                arena.AddCircle(cw, SmallPlatformRadius, ComponentType.Border);
                 if (_bridgeN)
                 {
                     DrawBridge(arena, ce, cw, false);
@@ -96,8 +96,8 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             var p1adj = p1 + dir * BridgeStartOffset;
             var p2adj = p2 - dir * (p2center ? BridgeCenterOffset : BridgeStartOffset);
             var ortho = dir.OrthoL() * BridgeHalfWidth;
-            arena.AddLine(p1adj + ortho, p2adj + ortho, ArenaColor.Border);
-            arena.AddLine(p1adj - ortho, p2adj - ortho, ArenaColor.Border);
+            arena.AddLine(p1adj + ortho, p2adj + ortho, ComponentType.Border);
+            arena.AddLine(p1adj - ortho, p2adj - ortho, ComponentType.Border);
         }
 
         private void BridgeEnvControl(ref bool bridge, uint state)

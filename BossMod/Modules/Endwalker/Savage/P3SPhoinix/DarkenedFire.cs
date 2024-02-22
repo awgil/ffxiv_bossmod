@@ -38,12 +38,12 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             {
                 bool tooClose = player.Position.InCircle(pc.Position, _minRange);
                 bool inRange = player.Position.InCircle(pc.Position, _maxRange);
-                arena.Actor(player, tooClose ? ArenaColor.Danger : (inRange ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
+                arena.Actor(player, tooClose ? ComponentType.Danger : (inRange ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric));
             }
 
             // draw circles around pc
-            arena.AddCircle(pc.Position, _minRange, ArenaColor.Danger);
-            arena.AddCircle(pc.Position, _maxRange, ArenaColor.Safe);
+            arena.AddCircle(pc.Position, _minRange, ComponentType.Danger);
+            arena.AddCircle(pc.Position, _maxRange, ComponentType.Safe);
         }
 
         private bool CanBothBeTargets(Actor one, Actor two)

@@ -8,13 +8,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         public P7ExaflaresEdge() : base(6)
         {
-            ImminentColor = ArenaColor.AOE;
+            ImminentType = ComponentType.AOE;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in SafeSpots(module))
-                arena.AddCircle(p, 1, ArenaColor.Safe);
+                arena.AddCircle(p, 1, ComponentType.Safe);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

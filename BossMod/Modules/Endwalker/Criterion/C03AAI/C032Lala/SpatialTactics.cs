@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
             bool wantMore = _remainingStacks[slot] > (NumCasts == 0 ? 1 : 0);
             foreach (var f in NextFonts().Take(2))
                 foreach (var p in _array.SafeZoneCenters.Where(p => _shape.Check(p, f.actor)))
-                    yield return new(ArcaneArrayPlot.Shape, p, default, f.activation, wantMore ? ArenaColor.SafeFromAOE : ArenaColor.AOE, !wantMore);
+                    yield return new(ArcaneArrayPlot.Shape, p, default, f.activation, wantMore ? ComponentType.SafeFromAOE : ComponentType.AOE, !wantMore);
         }
 
         public override void Init(BossModule module)

@@ -51,9 +51,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
-            return PlayerStates[playerSlot].Order == PlayerStates[pcSlot].Order % 4 + 1 ? PlayerPriority.Interesting : base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref customColor);
+            return PlayerStates[playerSlot].Order == PlayerStates[pcSlot].Order % 4 + 1 ? PlayerPriority.Interesting : base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref type);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
             var towerToSoak = soakTowers ? SelectTowerForGroup(module, ps.Group) : null;
             foreach (var t in _towers.Skip(NumTowersDone).Take(2))
             {
-                arena.AddCircle(t.Position, _towerRadius, soakTowers && (towerToSoak == null || towerToSoak == t) ? ArenaColor.Safe : ArenaColor.Danger, 2);
+                arena.AddCircle(t.Position, _towerRadius, soakTowers && (towerToSoak == null || towerToSoak == t) ? ComponentType.Safe : ComponentType.Danger, 2);
             }
 
             if (ps.Order == NextTowersOrder(1))
@@ -71,7 +71,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 // show next tower to soak if possible
                 var futureTowerToSoak = SelectTowerForGroup(module, ps.Group, 1);
                 if (futureTowerToSoak != null)
-                    arena.AddCircle(futureTowerToSoak.Position, _towerRadius, ArenaColor.Safe);
+                    arena.AddCircle(futureTowerToSoak.Position, _towerRadius, ComponentType.Safe);
             }
 
             bool grabThisTether = ps.Order == NextTethersOrder();
@@ -81,8 +81,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 var ts = PlayerStates[s];
                 bool correctSoaker = ts.Order == NextTethersOrder();
                 bool tetherToGrab = ts.Group == ps.Group && (grabNextTether ? correctSoaker : grabThisTether ? NumTethersDone > 0 && ts.Order == NextTethersOrder(-1) : false);
-                arena.AddCircle(t.Position, _tetherRadius, t == pc ? ArenaColor.Safe : ArenaColor.Danger);
-                arena.AddLine(t.Position, module.PrimaryActor.Position, correctSoaker ? ArenaColor.Safe : ArenaColor.Danger, tetherToGrab ? 2 : 1);
+                arena.AddCircle(t.Position, _tetherRadius, t == pc ? ComponentType.Safe : ComponentType.Danger);
+                arena.AddLine(t.Position, module.PrimaryActor.Position, correctSoaker ? ComponentType.Safe : ComponentType.Danger, tetherToGrab ? 2 : 1);
             }
 
             if (grabThisTether && NumTethersDone == NumTowersDone)
@@ -90,7 +90,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 // show hint for tether position
                 var spot = GetTetherDropSpot(module, ps.Group);
                 if (spot != null)
-                    arena.AddCircle(spot.Value, 1, ArenaColor.Safe);
+                    arena.AddCircle(spot.Value, 1, ComponentType.Safe);
             }
         }
 

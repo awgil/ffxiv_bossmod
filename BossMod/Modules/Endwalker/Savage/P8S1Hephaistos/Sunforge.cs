@@ -8,8 +8,8 @@
         {
             if (Active)
             {
-                arena.ZoneRect(module.Bounds.Center, new WDir(1, 0), 21, -7, 21, ArenaColor.SafeFromAOE);
-                arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), 21, -7, 21, ArenaColor.SafeFromAOE);
+                arena.ZoneRect(module.Bounds.Center, new WDir(1, 0), 21, -7, 21, ComponentType.SafeFromAOE);
+                arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), 21, -7, 21, ComponentType.SafeFromAOE);
             }
         }
     }
@@ -22,7 +22,7 @@
         {
             if (Active)
             {
-                arena.ZoneRect(module.Bounds.Center, new WDir(0, 1), 21, 21, 7, ArenaColor.SafeFromAOE);
+                arena.ZoneRect(module.Bounds.Center, new WDir(0, 1), 21, 21, 7, ComponentType.SafeFromAOE);
             }
         }
     }

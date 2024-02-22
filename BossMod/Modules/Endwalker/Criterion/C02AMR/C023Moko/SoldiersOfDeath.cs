@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
                     var safespot = module.Bounds.Center + 19 * dir;
                     if (!AOEs.Any(aoe => aoe.Check(safespot)))
                     {
-                        arena.AddCircle(safespot + offset * dir.OrthoR(), 1, ArenaColor.Safe);
+                        arena.AddCircle(safespot + offset * dir.OrthoR(), 1, ComponentType.Safe);
                     }
                 }
             }

@@ -96,7 +96,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 hints.Add("Aim to break tether!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _playerIcons[pcSlot] == 0 ? PlayerPriority.Irrelevant :
                 !_brokenTethers[pcSlot] && _playerIcons[pcSlot] == _playerIcons[playerSlot] ? PlayerPriority.Interesting
@@ -109,16 +109,16 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 return;
 
             foreach (var hint in PositionHints(module, pcSlot))
-                module.Arena.AddCircle(hint, 1, ArenaColor.Safe);
+                module.Arena.AddCircle(hint, 1, ComponentType.Safe);
 
             int partner = FindTetheredPartner(pcSlot);
             if (partner >= 0)
-                arena.AddLine(pc.Position, module.Raid[partner]!.Position, ArenaColor.Safe);
+                arena.AddLine(pc.Position, module.Raid[partner]!.Position, ComponentType.Safe);
 
             DrawKnockback(pc, _playerAdjustedPositions[pcSlot], arena);
 
             foreach (var (slot, _) in module.Raid.WithSlot().Exclude(pc))
-                arena.AddCircle(_playerAdjustedPositions[slot], _aoeRadius, ArenaColor.Danger);
+                arena.AddCircle(_playerAdjustedPositions[slot], _aoeRadius, ComponentType.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

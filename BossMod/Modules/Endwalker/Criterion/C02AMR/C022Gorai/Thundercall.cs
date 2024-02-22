@@ -17,11 +17,11 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Actors(_orbs, ArenaColor.Object, true);
+            arena.Actors(_orbs, ComponentType.ActorObject, true);
             if (_miniTarget != null)
-                arena.AddCircle(_miniTarget.Position, 3, ArenaColor.Danger);
+                arena.AddCircle(_miniTarget.Position, 3, ComponentType.Danger);
             if (_safeOrb != null)
-                arena.AddCircle(_safeOrb.Position, 1, ArenaColor.Safe);
+                arena.AddCircle(_safeOrb.Position, 1, ComponentType.Safe);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

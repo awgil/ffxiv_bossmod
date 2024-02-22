@@ -19,9 +19,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in Casters.Skip(2))
-                yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, ArenaColor.AOE, false);
+                yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, ComponentType.AOE, false);
             foreach (var c in Casters.Take(2))
-                yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, ArenaColor.Danger, true);
+                yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, ComponentType.Danger, true);
         }
 
         public override void Init(BossModule module)
@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 };
                 var offset = 12 * (module.PrimaryActor.Rotation + dir).ToDirection();
                 var pos = group == 1 ? module.Bounds.Center + offset : module.Bounds.Center - offset;
-                arena.AddCircle(pos, 1, ArenaColor.Safe);
+                arena.AddCircle(pos, 1, ComponentType.Safe);
             }
         }
 
@@ -117,11 +117,11 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 var order = PlayerStates[i].Order;
                 if (order == spreadOrder)
                 {
-                    arena.AddCircle(p.Position, _spreadRadius, i == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
+                    arena.AddCircle(p.Position, _spreadRadius, i == pcSlot ? ComponentType.Safe : ComponentType.Danger);
                 }
                 else if (order == stackOrder)
                 {
-                    _stackShape.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(p.Position - module.PrimaryActor.Position), i == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
+                    _stackShape.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(p.Position - module.PrimaryActor.Position), i == pcSlot ? ComponentType.Safe : ComponentType.Danger);
                 }
             }
         }

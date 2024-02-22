@@ -117,17 +117,17 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         {
             foreach (var twister in module.Enemies(OID.DarkblazeTwister))
             {
-                arena.Actor(twister, ArenaColor.Enemy, true);
+                arena.Actor(twister, ComponentType.ActorEnemy, true);
             }
 
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 bool tethered = _tetherTargets[i];
                 if (tethered)
-                    arena.AddLine(module.PrimaryActor.Position, player.Position, player.Role == Role.Tank ? ArenaColor.Safe : ArenaColor.Danger);
+                    arena.AddLine(module.PrimaryActor.Position, player.Position, player.Role == Role.Tank ? ComponentType.Safe : ComponentType.Danger);
                 bool active = tethered || _bossTargets[i] || _twisterTargets.Contains(player);
                 bool failing = (_hitByMultipleAOEs | _closeToTetherTarget)[i];
-                arena.Actor(player, active ? ArenaColor.Danger : (failing ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
+                arena.Actor(player, active ? ComponentType.Danger : (failing ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric));
             }
         }
 

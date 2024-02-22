@@ -18,8 +18,8 @@ namespace BossMod.Stormblood.Ultimate.UWU
         {
             foreach (var orb in _orbs.Where(o => !o.IsDead))
             {
-                arena.Actor(orb, ArenaColor.Object, true);
-                arena.AddCircle(orb.Position, _radius, ArenaColor.Object);
+                arena.Actor(orb, ComponentType.ActorObject, true);
+                arena.AddCircle(orb.Position, _radius, ComponentType.ActorObject);
             }
         }
     }

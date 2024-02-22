@@ -23,12 +23,12 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             {
                 if (player.Role == Role.Healer)
                 {
-                    arena.Actor(player, ArenaColor.Danger);
-                    arena.AddCircle(player.Position, _radius, ArenaColor.Danger);
+                    arena.Actor(player, ComponentType.Danger);
+                    arena.AddCircle(player.Position, _radius, ComponentType.Danger);
                 }
                 else
                 {
-                    arena.Actor(player, ArenaColor.PlayerGeneric);
+                    arena.Actor(player, ComponentType.PlayerGeneric);
                 }
             }
         }

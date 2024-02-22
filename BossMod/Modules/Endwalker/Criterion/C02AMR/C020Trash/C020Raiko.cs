@@ -96,9 +96,9 @@
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.NFurutsubaki), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.NYuki), ArenaColor.Object);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.NFurutsubaki), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.NYuki), ComponentType.ActorObject);
         }
     }
 
@@ -109,9 +109,9 @@
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.SFurutsubaki), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.SYuki), ArenaColor.Object);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.SFurutsubaki), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.SYuki), ComponentType.ActorObject);
         }
     }
 }

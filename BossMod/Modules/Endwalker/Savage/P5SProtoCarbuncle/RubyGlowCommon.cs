@@ -69,14 +69,14 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             switch (State)
             {
                 case ArenaState.Cells:
-                    arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, 0), module.Bounds.Center + new WDir(module.Bounds.HalfSize, 0), ArenaColor.Border);
-                    arena.AddLine(module.Bounds.Center - new WDir(0, module.Bounds.HalfSize), module.Bounds.Center + new WDir(0, module.Bounds.HalfSize), ArenaColor.Border);
+                    arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, 0), module.Bounds.Center + new WDir(module.Bounds.HalfSize, 0), ComponentType.Border);
+                    arena.AddLine(module.Bounds.Center - new WDir(0, module.Bounds.HalfSize), module.Bounds.Center + new WDir(0, module.Bounds.HalfSize), ComponentType.Border);
                     break;
                 case ArenaState.DiagNW:
-                    arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, module.Bounds.HalfSize), module.Bounds.Center + new WDir(module.Bounds.HalfSize, module.Bounds.HalfSize), ArenaColor.Border);
+                    arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, module.Bounds.HalfSize), module.Bounds.Center + new WDir(module.Bounds.HalfSize, module.Bounds.HalfSize), ComponentType.Border);
                     break;
                 case ArenaState.DiagNE:
-                    arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, -module.Bounds.HalfSize), module.Bounds.Center + new WDir(module.Bounds.HalfSize, -module.Bounds.HalfSize), ArenaColor.Border);
+                    arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, -module.Bounds.HalfSize), module.Bounds.Center + new WDir(module.Bounds.HalfSize, -module.Bounds.HalfSize), ComponentType.Border);
                     break;
             }
         }
@@ -161,7 +161,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
                 hints.Add("Stack with healer!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return VenomPoolActive && player.Role == Role.Healer ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
@@ -173,11 +173,11 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             if (CurRecolorState == RecolorState.BeforeRecolor)
                 foreach (var o in MagicStones)
                     if (QuadrantForPosition(module, o.Position) != AOEQuadrant)
-                        arena.Actor(o, ArenaColor.Vulnerable, true);
+                        arena.Actor(o, ComponentType.ActorVulnerable, true);
 
             if (VenomPoolActive)
                 foreach (var a in module.Raid.WithoutSlot().Where(a => a.Role == Role.Healer))
-                    arena.AddCircle(a.Position, _recolorRadius, ArenaColor.Safe);
+                    arena.AddCircle(a.Position, _recolorRadius, ComponentType.Safe);
         }
 
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)

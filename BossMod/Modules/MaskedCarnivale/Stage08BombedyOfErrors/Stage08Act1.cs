@@ -24,11 +24,11 @@ namespace BossMod.MaskedCarnivale.Stage08.Act1
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
-                arena.AddCircle(p.Position, 10, ArenaColor.Danger);
+                arena.AddCircle(p.Position, 10, ComponentType.Danger);
             foreach (var p in module.Enemies(OID.Bomb).Where(x => x.HP.Cur > 0))
-                arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+                arena.AddCircle(p.Position, 6, ComponentType.Danger);
             foreach (var p in module.Enemies(OID.Snoll).Where(x => x.HP.Cur > 0))
-                arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+                arena.AddCircle(p.Position, 6, ComponentType.Danger);
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -96,11 +96,11 @@ namespace BossMod.MaskedCarnivale.Stage08.Act1
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ComponentType.ActorEnemy, false);
             foreach (var s in Enemies(OID.Bomb))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ComponentType.ActorEnemy, false);
             foreach (var s in Enemies(OID.Snoll))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ComponentType.ActorEnemy, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

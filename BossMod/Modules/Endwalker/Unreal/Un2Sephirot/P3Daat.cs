@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.AddCircle(pc.Position, radius, ArenaColor.Danger);
+            arena.AddCircle(pc.Position, radius, ComponentType.Danger);
         }
     }
 }

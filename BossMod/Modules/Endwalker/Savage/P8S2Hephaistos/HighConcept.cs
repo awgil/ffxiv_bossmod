@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         protected static float SpliceRadius = 6;
         protected static float TowerRadius = 3;
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return NumAssignedRoles < 8 ? PlayerPriority.Irrelevant : PlayerPriority.Normal;
         }
@@ -122,10 +122,10 @@ namespace BossMod.Endwalker.Savage.P8S2
         {
             var source = module.Raid[slot];
             if (source != null)
-                module.Arena.AddCircle(source.Position, radius, safe ? ArenaColor.Safe : ArenaColor.Danger);
+                module.Arena.AddCircle(source.Position, radius, safe ? ComponentType.Safe : ComponentType.Danger);
         }
 
-        protected void DrawTower(BossModule module, WPos pos, bool assigned) => module.Arena.AddCircle(pos, TowerRadius, assigned ? ArenaColor.Safe : ArenaColor.Danger, 2);
+        protected void DrawTower(BossModule module, WPos pos, bool assigned) => module.Arena.AddCircle(pos, TowerRadius, assigned ? ComponentType.Safe : ComponentType.Danger, 2);
         protected void DrawTower(BossModule module, float offsetZ, bool assigned) => DrawTower(module, module.Bounds.Center + new WDir(0, offsetZ), assigned);
 
         protected void DrawTether(BossModule module, int slot1, int slot2, int pcSlot)
@@ -133,7 +133,7 @@ namespace BossMod.Endwalker.Savage.P8S2
             var a1 = module.Raid[slot1];
             var a2 = module.Raid[slot2];
             if (a1 != null && a2 != null)
-                module.Arena.AddLine(a1.Position, a2.Position, pcSlot == slot1 || pcSlot == slot2 ? ArenaColor.Safe : ArenaColor.Danger);
+                module.Arena.AddLine(a1.Position, a2.Position, pcSlot == slot1 || pcSlot == slot2 ? ComponentType.Safe : ComponentType.Danger);
         }
     }
 

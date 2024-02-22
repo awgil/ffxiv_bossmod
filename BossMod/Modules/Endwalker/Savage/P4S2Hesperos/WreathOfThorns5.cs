@@ -40,19 +40,19 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         {
             int order = _playersOrder.IndexOf(pc.InstanceID);
             if (order >= _castsDone && order < _towersOrder.Count)
-                arena.AddCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
+                arena.AddCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius, ComponentType.Safe);
 
             var pcTetherTarget = module.WorldState.Actors.Find(pc.Tether.Target);
             if (pcTetherTarget != null)
             {
-                arena.AddLine(pc.Position, pcTetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddLine(pc.Position, pcTetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ComponentType.Danger : ComponentType.Safe);
             }
 
             if (_playersOrder.Count < 8)
             {
-                arena.AddCircle(pc.Position, _impulseAOERadius, ArenaColor.Danger);
+                arena.AddCircle(pc.Position, _impulseAOERadius, ComponentType.Danger);
                 foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(player, player.Position.InCircle(pc.Position, _impulseAOERadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(pc.Position, _impulseAOERadius) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             }
         }
 

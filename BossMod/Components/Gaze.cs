@@ -70,14 +70,14 @@ namespace BossMod.Components
                 var dl = ImGui.GetWindowDrawList();
                 dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR, MathF.PI / 2 + _eyeHalfAngle, MathF.PI / 2 - _eyeHalfAngle);
                 dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
-                dl.PathFillConvex(danger ? ArenaColor.Enemy : ArenaColor.PC);
-                dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
+                dl.PathFillConvex(ArenaColor.ForType(danger ? ComponentType.ActorEnemy : ComponentType.ActorYou));
+                dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.ForType(ComponentType.Border));
 
                 if (eye.Risky)
                 {
                     var (min, max) = Inverted ? (45, 315) : (-45, 45);
                     arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward + min.Degrees()).Rad, (pc.Rotation + eye.Forward + max.Degrees()).Rad);
-                    arena.PathStroke(false, ArenaColor.Enemy);
+                    arena.PathStroke(false, ComponentType.ActorEnemy);
                 }
             }
         }

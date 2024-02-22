@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var (_, player) in module.Raid.WithSlot(true).IncludedInMask(_tethers))
-                arena.AddLine(player.Position, module.PrimaryActor.Position, ArenaColor.Danger);
+                arena.AddLine(player.Position, module.PrimaryActor.Position, ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

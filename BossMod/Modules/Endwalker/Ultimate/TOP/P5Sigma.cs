@@ -43,11 +43,11 @@ namespace BossMod.Endwalker.Ultimate.TOP
             {
                 var distSq = (partner.Position - pc.Position).LengthSq();
                 var range = DistanceRange;
-                arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ComponentType.Danger : ComponentType.Safe);
             }
 
             foreach (var safeSpot in SafeSpotOffsets(module, pcSlot))
-                arena.AddCircle(module.Bounds.Center + safeSpot, 1, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + safeSpot, 1, ComponentType.Safe);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
@@ -216,7 +216,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var b in CurrentBaits)
-                arena.Actor(b.Source, ArenaColor.Object, true);
+                arena.Actor(b.Source, ComponentType.ActorObject, true);
             base.DrawArenaForeground(module, pcSlot, pc, arena);
         }
     }
@@ -337,7 +337,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
             for (int i = NumCasts + 1; i < 14; ++i)
                 yield return new(_shape, module.Bounds.Center, StartingDir + i * Rotation, _activation.AddSeconds(0.6 * i), risky: false);
             if (NumCasts < 14)
-                yield return new(_shape, module.Bounds.Center, StartingDir + NumCasts * Rotation, _activation.AddSeconds(0.6 * NumCasts), ArenaColor.Danger);
+                yield return new(_shape, module.Bounds.Center, StartingDir + NumCasts * Rotation, _activation.AddSeconds(0.6 * NumCasts), ComponentType.Danger);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -405,7 +405,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var p in SafeSpots(module, pcSlot, pc))
-                arena.AddCircle(p, 1, ArenaColor.Safe);
+                arena.AddCircle(p, 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

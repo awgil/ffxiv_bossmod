@@ -36,8 +36,8 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         {
             foreach (var twister in BurningTwisters(module))
             {
-                arena.ZoneCircle(twister.Position, _aoeInnerRadius, ArenaColor.AOE);
-                arena.ZoneDonut(twister.Position, _aoeMiddleRadius, _aoeOuterRadius, ArenaColor.AOE);
+                arena.ZoneCircle(twister.Position, _aoeInnerRadius, ComponentType.AOE);
+                arena.ZoneDonut(twister.Position, _aoeMiddleRadius, _aoeOuterRadius, ComponentType.AOE);
             }
         }
 
@@ -50,8 +50,8 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             var adjPos = Components.Knockback.AwayFromSource(pc.Position, darkTwister, _knockbackRange);
             if (adjPos != pc.Position)
             {
-                arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-                arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
+                arena.AddLine(pc.Position, adjPos, ComponentType.Danger);
+                arena.Actor(adjPos, pc.Rotation, ComponentType.Danger);
             }
 
             var safeOffset = _knockbackRange + (_aoeInnerRadius + _aoeMiddleRadius) / 2;
@@ -61,7 +61,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                 var dir = burningTwister.Position - darkTwister.Position;
                 var len = dir.Length();
                 dir /= len;
-                arena.AddCircle(darkTwister.Position + dir * (len - safeOffset), safeRadius, ArenaColor.Safe);
+                arena.AddCircle(darkTwister.Position + dir * (len - safeOffset), safeRadius, ComponentType.Safe);
             }
         }
     }

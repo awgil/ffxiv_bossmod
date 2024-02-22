@@ -128,17 +128,17 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-            Arena.Actor(_bossP3, ArenaColor.Enemy);
-            Arena.Actor(_leftEyeP4, ArenaColor.Enemy);
-            Arena.Actor(_rightEyeP4, ArenaColor.Enemy);
-            Arena.Actor(_nidhoggP4, ArenaColor.Enemy);
-            Arena.Actor(_serCharibert, ArenaColor.Enemy);
-            Arena.Actor(_spear, ArenaColor.Enemy);
-            Arena.Actor(_bossP5, ArenaColor.Enemy);
-            Arena.Actor(_nidhoggP6, ArenaColor.Enemy);
-            Arena.Actor(_hraesvelgrP6, ArenaColor.Enemy);
-            Arena.Actor(_bossP7, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy, true);
+            Arena.Actor(_bossP3, ComponentType.ActorEnemy);
+            Arena.Actor(_leftEyeP4, ComponentType.ActorEnemy);
+            Arena.Actor(_rightEyeP4, ComponentType.ActorEnemy);
+            Arena.Actor(_nidhoggP4, ComponentType.ActorEnemy);
+            Arena.Actor(_serCharibert, ComponentType.ActorEnemy);
+            Arena.Actor(_spear, ComponentType.ActorEnemy);
+            Arena.Actor(_bossP5, ComponentType.ActorEnemy);
+            Arena.Actor(_nidhoggP6, ComponentType.ActorEnemy);
+            Arena.Actor(_hraesvelgrP6, ComponentType.ActorEnemy);
+            Arena.Actor(_bossP7, ComponentType.ActorEnemy);
             //Arena.Actor(Enemies(OID.SerJanlenoux).FirstOrDefault(), 0xffffffff);
             //Arena.Actor(Enemies(OID.SerVellguine).FirstOrDefault(), 0xff0000ff);
             //Arena.Actor(Enemies(OID.SerPaulecrain).FirstOrDefault(), 0xff00ff00);

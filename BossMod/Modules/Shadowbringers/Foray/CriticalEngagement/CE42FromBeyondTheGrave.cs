@@ -168,7 +168,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
     {
         public PurifyingLight() : base(ActionID.MakeSpell(AID.PurifyingLight), 12)
         {
-            Color = ArenaColor.SafeFromAOE;
+            Type = ComponentType.SafeFromAOE;
             Risky = false;
         }
     }
@@ -201,9 +201,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             base.DrawEnemies(pcSlot, pc);
-            Arena.Actors(Enemies(OID.WarWraith), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.HernaisTheTenacious), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.DyunbuTheAccursed), ArenaColor.Enemy);
+            Arena.Actors(Enemies(OID.WarWraith), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.HernaisTheTenacious), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.DyunbuTheAccursed), ComponentType.ActorEnemy);
         }
     }
 }

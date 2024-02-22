@@ -126,21 +126,21 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             {
                 case -1:
                 case 0:
-                    Arena.Actor(BossP1(), ArenaColor.Enemy);
-                    Arena.Actor(LiquidHand(), ArenaColor.Enemy);
+                    Arena.Actor(BossP1(), ComponentType.ActorEnemy);
+                    Arena.Actor(LiquidHand(), ComponentType.ActorEnemy);
                     break;
                 case 1:
-                    Arena.Actor(_bruteJustice, ArenaColor.Enemy, true);
-                    Arena.Actor(_cruiseChaser, ArenaColor.Enemy, true);
+                    Arena.Actor(_bruteJustice, ComponentType.ActorEnemy, true);
+                    Arena.Actor(_cruiseChaser, ComponentType.ActorEnemy, true);
                     break;
                 case 2:
-                    Arena.Actor(_alexPrime, ArenaColor.Enemy);
-                    Arena.Actor(TrueHeart(), ArenaColor.Enemy);
-                    Arena.Actor(_bruteJustice, ArenaColor.Enemy);
-                    Arena.Actor(_cruiseChaser, ArenaColor.Enemy);
+                    Arena.Actor(_alexPrime, ComponentType.ActorEnemy);
+                    Arena.Actor(TrueHeart(), ComponentType.ActorEnemy);
+                    Arena.Actor(_bruteJustice, ComponentType.ActorEnemy);
+                    Arena.Actor(_cruiseChaser, ComponentType.ActorEnemy);
                     break;
                 case 3:
-                    Arena.Actor(_perfectAlex, ArenaColor.Enemy);
+                    Arena.Actor(_perfectAlex, ComponentType.ActorEnemy);
                     break;
             }
         }

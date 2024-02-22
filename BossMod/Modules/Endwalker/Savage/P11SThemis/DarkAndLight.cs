@@ -26,10 +26,10 @@ namespace BossMod.Endwalker.Savage.P11SThemis
             if (state.Tether != TetherType.None)
                 hints.Add($"{state.Tether} tether", state.TetherBad);
             if (movementHints != null && Safespot(module, slot, actor) is var safespot && safespot != null)
-                movementHints.Add(actor.Position, safespot.Value, ArenaColor.Safe);
+                movementHints.Add(actor.Position, safespot.Value, ComponentType.Safe);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             var pcState = _states[pcSlot];
             return pcState.Tether != TetherType.None && pcState.PartnerSlot == playerSlot ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
@@ -39,9 +39,9 @@ namespace BossMod.Endwalker.Savage.P11SThemis
         {
             var pcState = _states[pcSlot];
             if (pcState.Tether != TetherType.None && module.Raid[pcState.PartnerSlot] is var partner && partner != null)
-                arena.AddLine(pc.Position, partner.Position, pcState.TetherBad ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddLine(pc.Position, partner.Position, pcState.TetherBad ? ComponentType.Danger : ComponentType.Safe);
             if (Safespot(module, pcSlot, pc) is var safespot && safespot != null)
-                arena.AddCircle(safespot.Value, 1, ArenaColor.Safe);
+                arena.AddCircle(safespot.Value, 1, ComponentType.Safe);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)

@@ -74,7 +74,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
                 {
                     var potentialSafespot = module.Bounds.Center + baitDistance * dir;
                     if (!_clearout.AOEs.Any(aoe => aoe.Check(potentialSafespot)))
-                        arena.AddCircle(potentialSafespot, 1, ArenaColor.Safe);
+                        arena.AddCircle(potentialSafespot, 1, ComponentType.Safe);
                 }
             }
         }

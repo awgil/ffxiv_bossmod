@@ -60,7 +60,7 @@ namespace BossMod.Components
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             if (_tetheredPlayers[playerSlot])
                 return PlayerPriority.Danger;
@@ -78,8 +78,8 @@ namespace BossMod.Components
             // show tethered targets with circles
             foreach (var side in _tethers)
             {
-                arena.AddLine(side.Enemy.Position, side.Player.Position, side.Player.Role == Role.Tank ? ArenaColor.Safe : ArenaColor.Danger);
-                arena.AddCircle(side.Player.Position, Radius, ArenaColor.Danger);
+                arena.AddLine(side.Enemy.Position, side.Player.Position, side.Player.Role == Role.Tank ? ComponentType.Safe : ComponentType.Danger);
+                arena.AddCircle(side.Player.Position, Radius, ComponentType.Danger);
             }
         }
 

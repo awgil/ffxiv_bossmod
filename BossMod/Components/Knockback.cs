@@ -49,8 +49,8 @@ namespace BossMod.Components
         {
             if (from != to)
             {
-                arena.Actor(to, rot, ArenaColor.Danger);
-                arena.AddLine(from, to, ArenaColor.Danger);
+                arena.Actor(to, rot, ComponentType.Danger);
+                arena.AddLine(from, to, ComponentType.Danger);
             }
         }
         public static void DrawKnockback(Actor actor, WPos adjPos, MiniArena arena) => DrawKnockback(actor.Position, adjPos, actor.Rotation, arena);

@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             bool validSoaker = IsValidSoaker(pc);
             foreach (var tower in _activeTowers)
             {
-                arena.AddCircle(tower.Position, _towerRadius, validSoaker ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(tower.Position, _towerRadius, validSoaker ? ComponentType.Safe : ComponentType.Danger);
             }
         }
 

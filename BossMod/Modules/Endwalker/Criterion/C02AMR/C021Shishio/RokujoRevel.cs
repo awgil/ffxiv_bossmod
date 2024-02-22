@@ -37,10 +37,10 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
                     firstFutureIndex = _pendingCircles.Count;
                 }
                 foreach (var p in _pendingCircles.Take(firstFutureIndex))
-                    yield return new(shapeCircle, p.origin, default, p.activation, ArenaColor.Danger);
+                    yield return new(shapeCircle, p.origin, default, p.activation, ComponentType.Danger);
             }
             if (_pendingLines.Count > 0)
-                yield return new(_shapeLine, module.Bounds.Center, _pendingLines[0].dir, _pendingLines[0].activation, ArenaColor.Danger);
+                yield return new(_shapeLine, module.Bounds.Center, _pendingLines[0].dir, _pendingLines[0].activation, ComponentType.Danger);
         }
 
         public override void Init(BossModule module)

@@ -26,8 +26,8 @@ namespace BossMod.MaskedCarnivale
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.AddPolygon(Wall1(),ArenaColor.Border);
-            arena.AddPolygon(Wall2(),ArenaColor.Border);
+            arena.AddPolygon(Wall1(),ComponentType.Border);
+            arena.AddPolygon(Wall2(),ComponentType.Border);
         }
     }
 
@@ -35,10 +35,10 @@ namespace BossMod.MaskedCarnivale
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.AddQuad(new(107,110),new(110,113),new(113,110),new(110,107), ArenaColor.Border, 2);
-            arena.AddQuad(new(93,110),new(90,107),new(87,110),new(90,113), ArenaColor.Border, 2);
-            arena.AddQuad(new(90,93),new(93,90),new(90,87),new(87,90), ArenaColor.Border, 2);
-            arena.AddQuad(new(110,93),new(113,90),new(110,87),new(107,90), ArenaColor.Border, 2);
+            arena.AddQuad(new(107,110),new(110,113),new(113,110),new(110,107), ComponentType.Border, 2);
+            arena.AddQuad(new(93,110),new(90,107),new(87,110),new(90,113), ComponentType.Border, 2);
+            arena.AddQuad(new(90,93),new(93,90),new(90,87),new(87,90), ComponentType.Border, 2);
+            arena.AddQuad(new(110,93),new(113,90),new(110,87),new(107,90), ComponentType.Border, 2);
         }
     }
  
@@ -46,7 +46,7 @@ namespace BossMod.MaskedCarnivale
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.AddQuad(new(100,107),new(107,100),new(100,93),new(93,100), ArenaColor.Border, 2);
+            arena.AddQuad(new(100,107),new(107,100),new(100,93),new(93,100), ComponentType.Border, 2);
         }
     }
 }

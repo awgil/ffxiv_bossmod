@@ -33,9 +33,9 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in module.Raid.WithSlot().IncludedInMask(_players1).Exclude(pc))
-                arena.AddCircle(p.Item2.Position, _radius, _players1[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddCircle(p.Item2.Position, _radius, _players1[pcSlot] ? ComponentType.Danger : ComponentType.Safe);
             foreach (var p in module.Raid.WithSlot().IncludedInMask(_players2).Exclude(pc))
-                arena.AddCircle(p.Item2.Position, _radius, _players2[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddCircle(p.Item2.Position, _radius, _players2[pcSlot] ? ComponentType.Danger : ComponentType.Safe);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

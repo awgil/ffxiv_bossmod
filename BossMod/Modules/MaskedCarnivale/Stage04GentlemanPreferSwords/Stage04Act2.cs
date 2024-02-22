@@ -73,9 +73,9 @@ namespace BossMod.MaskedCarnivale.Stage04.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy, true);
             foreach (var s in Enemies(OID.Beetle))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ComponentType.ActorObject, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

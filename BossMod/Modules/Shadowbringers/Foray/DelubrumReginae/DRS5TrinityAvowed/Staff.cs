@@ -21,7 +21,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
         {
             var playerTemp = Temperature(actor);
             foreach (var o in _orbs)
-                yield return new(_shape, o.orb.Position, o.orb.Rotation, _activation, o.temperature == -playerTemp ? ArenaColor.SafeFromAOE : ArenaColor.AOE, _risky);
+                yield return new(_shape, o.orb.Position, o.orb.Rotation, _activation, o.temperature == -playerTemp ? ComponentType.SafeFromAOE : ComponentType.AOE, _risky);
         }
 
         public override void Init(BossModule module)

@@ -100,7 +100,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 return;
             var nextAOE = NextAOE();
             if (nextAOE != null)
-                arena.ZoneCircle(nextAOE.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
+                arena.ZoneCircle(nextAOE.Position, P4S2.WreathAOERadius, ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -110,7 +110,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
             {
                 var icon = _playerIcons[slot];
                 bool nextBreaking = _doneTowers < 4 ? icon == IconID.AkanthaiWater : (icon == IconID.AkanthaiDark && NextAOE()?.Tether.Target == player.InstanceID);
-                arena.Actor(player, nextBreaking ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+                arena.Actor(player, nextBreaking ? ComponentType.Danger : ComponentType.PlayerGeneric);
             }
 
             // tether
@@ -119,15 +119,15 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                 return; // pc is not tethered anymore, nothing to draw...
 
             var pcIcon = _playerIcons[pcSlot];
-            arena.AddLine(pc.Position, pcTetherSource.Position, pcIcon == IconID.AkanthaiWater ? 0xffff8000 : 0xffff00ff);
+            arena.AddLine(pc.Position, pcTetherSource.Position, pcIcon == IconID.AkanthaiWater ? ComponentType.TetherMoveToward : ComponentType.TetherMoveAway);
 
             if (_doneTowers < 4)
             {
                 if (pcIcon == IconID.AkanthaiWater)
                 {
                     // if player has blue => show AOE radius around him and single safe spot
-                    arena.AddCircle(pc.Position, _waterExplosionRange, ArenaColor.Danger);
-                    arena.AddCircle(DetermineWaterSafeSpot(module, pcTetherSource), 1, ArenaColor.Safe);
+                    arena.AddCircle(pc.Position, _waterExplosionRange, ComponentType.Danger);
+                    arena.AddCircle(DetermineWaterSafeSpot(module, pcTetherSource), 1, ComponentType.Safe);
                 }
                 else
                 {
@@ -136,13 +136,13 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
                     {
                         if (icon == IconID.AkanthaiWater && player != null)
                         {
-                            arena.AddCircle(player.Position, _waterExplosionRange, ArenaColor.Danger);
+                            arena.AddCircle(player.Position, _waterExplosionRange, ComponentType.Danger);
                         }
                     }
                     var tower = DetermineTowerToSoak(module, pcTetherSource);
                     if (tower != null)
                     {
-                        arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
+                        arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ComponentType.Safe);
                     }
                 }
             }

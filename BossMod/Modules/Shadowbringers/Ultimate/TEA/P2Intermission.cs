@@ -23,7 +23,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             foreach (var c in FutureBlasterCenters(module))
                 yield return new(_blasterShape, c, risky: false);
             foreach (var c in ImminentBlasterCenters(module))
-                yield return new(_blasterShape, c, color: ArenaColor.Danger);
+                yield return new(_blasterShape, c, type: ComponentType.Danger);
         }
 
         // TODO: reconsider
@@ -31,14 +31,14 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         {
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null && SafeSpotHint(module, slot) is var safespot && safespot != null)
-                movementHints.Add(actor.Position, safespot.Value, ArenaColor.Safe);
+                movementHints.Add(actor.Position, safespot.Value, ComponentType.Safe);
         }
 
         // TODO: reconsider
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (SafeSpotHint(module, pcSlot) is var safespot && safespot != null)
-                arena.AddCircle(safespot.Value, 1, ArenaColor.Safe);
+                arena.AddCircle(safespot.Value, 1, ComponentType.Safe);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

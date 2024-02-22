@@ -51,11 +51,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         if (numcasts < 5 && p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180)))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180)))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 9 && p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                     }
@@ -64,11 +64,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         if (numcasts < 5 && p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180)))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180)))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 9 && p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                     }
@@ -77,11 +77,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         if (numcasts < 5 && p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180)))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180)))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 9 && p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                     }
@@ -90,11 +90,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         if (numcasts < 5 && p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180)))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180)))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 9 && p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                     }
@@ -103,11 +103,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         if (numcasts < 5 && p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180)))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180)))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 9 && p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                     }
@@ -116,11 +116,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         if (numcasts < 5 && p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180)))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180)))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 9 && p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                     }
@@ -129,11 +129,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         if (numcasts < 5 && p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180)))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180)))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 9 && p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                     }
@@ -142,11 +142,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         if (numcasts < 5 && p.Rotation.AlmostEqual(180.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180)))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(), MathF.PI / 180) || p.Rotation.AlmostEqual(-90.Degrees(), MathF.PI / 180)))
                             yield return new(rect, p.Position, p.Rotation, new());
                         if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180))
-                            yield return new(rect, p.Position, p.Rotation, default, ArenaColor.Danger);
+                            yield return new(rect, p.Position, p.Rotation, default, ComponentType.Danger);
                         if (numcasts >= 9 && p.Rotation.AlmostEqual(0.Degrees(), MathF.PI / 180))
                             yield return new(rect, p.Position, p.Rotation, new());
                     }
@@ -267,9 +267,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ComponentType.ActorEnemy, false);
             foreach (var s in Enemies(OID.MagitekBit))
-                Arena.Actor(s, ArenaColor.Vulnerable, true);
+                Arena.Actor(s, ComponentType.ActorVulnerable, true);
         }
     }
 }

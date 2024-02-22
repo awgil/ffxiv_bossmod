@@ -81,7 +81,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 hints.Add($"Defamation color: {_defamationTowerColor}");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             var initialPCRole = _initialRoles[pcSlot];
             var initialPlayerRole = _initialRoles[playerSlot];
@@ -89,7 +89,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 return PlayerPriority.Irrelevant; // mechanic not started yet
             if (initialPCRole == initialPlayerRole)
             {
-                customColor = ArenaColor.Vulnerable;
+                type = ComponentType.ActorVulnerable;
                 return PlayerPriority.Interesting; // partner
             }
             var avoidPlayer = (RoleForNextTowers(initialPCRole), RoleForNextTowers(initialPlayerRole)) switch
@@ -120,19 +120,19 @@ namespace BossMod.Endwalker.Ultimate.TOP
                         _ => (0, PlayerRole.None)
                     };
                     if (radius != 0)
-                        arena.AddCircle(p.Position, radius, pcRole == share ? ArenaColor.Safe : ArenaColor.Danger);
+                        arena.AddCircle(p.Position, radius, pcRole == share ? ComponentType.Safe : ComponentType.Danger);
                 }
 
                 // draw safespots for next towers
                 foreach (var p in PositionsForTowers(module, pcSlot))
-                    arena.AddCircle(p, 1, ArenaColor.Safe);
+                    arena.AddCircle(p, 1, ComponentType.Safe);
             }
             else if (NumRotExplodes < NumCasts)
             {
                 // draw rot 'spreads' (rots will explode on players who used to have defamation/stack role and thus now have one of the tether roles)
                 foreach (var (i, p) in module.Raid.WithSlot(true))
                     if (PendingRot(i))
-                        arena.AddCircle(p.Position, 5, ArenaColor.Danger);
+                        arena.AddCircle(p.Position, 5, ComponentType.Danger);
             }
 
             if (NumTetherBreaks < 16)
@@ -144,7 +144,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 //    arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
                 var partner = module.Raid[PartnerSlot(pcSlot)];
                 if (partner != null && (pc.Tether.Target == partner.InstanceID || partner.Tether.Target == pc.InstanceID))
-                    arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+                    arena.AddLine(pc.Position, partner.Position, ComponentType.Danger);
             }
         }
 

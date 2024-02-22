@@ -124,9 +124,9 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
             foreach (var n in ActiveNails)
-                Arena.Actor(n, ArenaColor.Enemy);
+                Arena.Actor(n, ComponentType.ActorEnemy);
         }
     }
 }

@@ -79,7 +79,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return player == _target ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -146,11 +146,11 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
             foreach (var add in Enemies(OID.DarkHelot))
-                Arena.Actor(add, ArenaColor.Enemy);
+                Arena.Actor(add, ComponentType.ActorEnemy);
             foreach (var p in ActivePillars())
-                Arena.Actor(p, ArenaColor.Object, true);
+                Arena.Actor(p, ComponentType.ActorObject, true);
         }
 
         // TODO: blocker coordinates are slightly different, find out correct coords...

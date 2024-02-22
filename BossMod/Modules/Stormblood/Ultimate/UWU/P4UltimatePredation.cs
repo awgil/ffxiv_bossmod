@@ -26,7 +26,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var h in EnumerateHints(pc.Position))
-                arena.AddLine(h.from, h.to, h.color);
+                arena.AddLine(h.from, h.to, h.type);
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
@@ -66,14 +66,14 @@ namespace BossMod.Stormblood.Ultimate.UWU
             }
         }
 
-        private IEnumerable<(WPos from, WPos to, uint color)> EnumerateHints(WPos starting)
+        private IEnumerable<(WPos from, WPos to, ComponentType type)> EnumerateHints(WPos starting)
         {
-            uint color = ArenaColor.Safe;
+            ComponentType type = ComponentType.Safe;
             foreach (var p in _hints)
             {
-                yield return (starting, p, color);
+                yield return (starting, p, type);
                 starting = p;
-                color = ArenaColor.Danger;
+                type = ComponentType.Danger;
             }
         }
 

@@ -31,8 +31,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (Stacks.Count == 2 && Source != null)
             {
-                arena.Actor(Source, ArenaColor.Enemy, true);
-                arena.AddLine(Source.Position, Stacks[NumCasts % 2].Target.Position, ArenaColor.Danger);
+                arena.Actor(Source, ComponentType.ActorEnemy, true);
+                arena.AddLine(Source.Position, Stacks[NumCasts % 2].Target.Position, ComponentType.Danger);
             }
         }
 
@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Actors(Charges.Where(c => c.ChargeAOEs.Count > 0).Select(c => c.Source), ArenaColor.Enemy, true);
+            arena.Actors(Charges.Where(c => c.ChargeAOEs.Count > 0).Select(c => c.Source), ComponentType.ActorEnemy, true);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -255,13 +255,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (movementHints != null && _groupEast.Any())
             {
                 var from = actor.Position;
-                var color = ArenaColor.Safe;
+                var color = ComponentType.Safe;
                 foreach (var safespot in MovementHintOffsets(slot))
                 {
                     var to = module.Bounds.Center + safespot;
                     movementHints.Add(from, to, color);
                     from = to;
-                    color = ArenaColor.Danger;
+                    color = ComponentType.Danger;
                 }
             }
         }
@@ -270,9 +270,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var safespot in MovementHintOffsets(pcSlot).Take(1))
             {
-                arena.AddCircle(module.Bounds.Center + safespot, 1, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + safespot, 1, ComponentType.Safe);
                 if (_groupEast.None())
-                    arena.AddCircle(module.Bounds.Center - safespot, 1, ArenaColor.Safe); // if there are no valid assignments, draw spots for both groups
+                    arena.AddCircle(module.Bounds.Center - safespot, 1, ComponentType.Safe); // if there are no valid assignments, draw spots for both groups
             }
         }
 

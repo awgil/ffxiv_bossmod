@@ -22,7 +22,7 @@ namespace BossMod.Components
                 hints.Add("GTFO from protean!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             var playerProteanSource = player != pc ? ActiveAOEs(module).FirstOrDefault(st => st.target == player).source : null;
             return playerProteanSource == null ? PlayerPriority.Irrelevant : IsPlayerClipped(playerProteanSource, player, pc) ? PlayerPriority.Danger : PlayerPriority.Normal;

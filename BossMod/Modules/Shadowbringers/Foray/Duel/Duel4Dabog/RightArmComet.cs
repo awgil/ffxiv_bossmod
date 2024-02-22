@@ -19,7 +19,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var c in Casters)
-                arena.AddCircle(c.Position, _radius, pc.Position.InCircle(c.Position, _radius) ? ArenaColor.Safe : ArenaColor.Danger, 2);
+                arena.AddCircle(c.Position, _radius, pc.Position.InCircle(c.Position, _radius) ? ComponentType.Safe : ComponentType.Danger, 2);
         }
     }
 

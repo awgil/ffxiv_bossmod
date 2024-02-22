@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
-            arena.Actors(_sources, ArenaColor.Object, true);
+            arena.Actors(_sources, ComponentType.ActorObject, true);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

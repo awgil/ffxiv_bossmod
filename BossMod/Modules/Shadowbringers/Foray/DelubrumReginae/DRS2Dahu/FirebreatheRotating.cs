@@ -15,7 +15,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
             if (_increment != default && _nextActivation != default)
             {
                 if (NumCasts < 5)
-                    yield return new(_shape, module.PrimaryActor.Position, _nextRotation, _nextActivation, ArenaColor.Danger);
+                    yield return new(_shape, module.PrimaryActor.Position, _nextRotation, _nextActivation, ComponentType.Danger);
                 if (NumCasts < 4)
                     yield return new(_shape, module.PrimaryActor.Position, _nextRotation + _increment, _nextActivation.AddSeconds(2));
             }

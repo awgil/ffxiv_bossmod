@@ -234,7 +234,7 @@ namespace BossMod
 
             // draw borders
             if (WindowConfig.ShowBorder)
-                Arena.Border(haveRisks && WindowConfig.ShowBorderRisk ? ArenaColor.Enemy : ArenaColor.Border);
+                Arena.Border(haveRisks && WindowConfig.ShowBorderRisk ? ComponentType.ActorEnemy : ComponentType.Border);
             if (WindowConfig.ShowCardinals)
                 Arena.CardinalNames();
             if (WindowConfig.ShowWaymarks)
@@ -250,7 +250,7 @@ namespace BossMod
 
             // draw enemies & player
             DrawEnemies(pcSlot, pc);
-            Arena.Actor(pc, ArenaColor.PC, true);
+            Arena.Actor(pc, ComponentType.ActorYou, true);
         }
 
         public BossComponent.TextHints CalculateHintsForRaidMember(int slot, Actor actor, BossComponent.MovementHints? movementHints = null)
@@ -295,7 +295,7 @@ namespace BossMod
         // called at the very end to draw important enemies, default implementation draws primary actor
         protected virtual void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
         }
 
         private void DrawGlobalHints(BossComponent.GlobalHints hints)
@@ -314,7 +314,8 @@ namespace BossMod
         {
             foreach ((var hint, bool risk) in hints)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
+                ComponentType type = risk ? ComponentType.Danger : ComponentType.Safe;
+                ImGui.PushStyleColor(ImGuiCol.Text, ArenaColor.ForType(type));
                 ImGui.TextUnformatted(hint);
                 ImGui.PopStyleColor();
                 ImGui.SameLine();
@@ -324,21 +325,21 @@ namespace BossMod
 
         private void DrawWaymarks()
         {
-            DrawWaymark(WorldState.Waymarks[Waymark.A], "A", 0xff964ee5);
-            DrawWaymark(WorldState.Waymarks[Waymark.B], "B", 0xff11a2c6);
-            DrawWaymark(WorldState.Waymarks[Waymark.C], "C", 0xffe29f30);
-            DrawWaymark(WorldState.Waymarks[Waymark.D], "D", 0xffbc567a);
-            DrawWaymark(WorldState.Waymarks[Waymark.N1], "1", 0xff964ee5);
-            DrawWaymark(WorldState.Waymarks[Waymark.N2], "2", 0xff11a2c6);
-            DrawWaymark(WorldState.Waymarks[Waymark.N3], "3", 0xffe29f30);
-            DrawWaymark(WorldState.Waymarks[Waymark.N4], "4", 0xffbc567a);
+            DrawWaymark(WorldState.Waymarks[Waymark.A], "A", ComponentType.WaymarkA1);
+            DrawWaymark(WorldState.Waymarks[Waymark.B], "B", ComponentType.WaymarkB2);
+            DrawWaymark(WorldState.Waymarks[Waymark.C], "C", ComponentType.WaymarkC3);
+            DrawWaymark(WorldState.Waymarks[Waymark.D], "D", ComponentType.WaymarkD4);
+            DrawWaymark(WorldState.Waymarks[Waymark.N1], "1", ComponentType.WaymarkA1);
+            DrawWaymark(WorldState.Waymarks[Waymark.N2], "2", ComponentType.WaymarkB2);
+            DrawWaymark(WorldState.Waymarks[Waymark.N3], "3", ComponentType.WaymarkC3);
+            DrawWaymark(WorldState.Waymarks[Waymark.N4], "4", ComponentType.WaymarkD4);
         }
 
-        private void DrawWaymark(Vector3? pos, string text, uint color)
+        private void DrawWaymark(Vector3? pos, string text, ComponentType type)
         {
             if (pos != null)
             {
-                Arena.TextWorld(new(pos.Value.XZ()), text, color, 22);
+                Arena.TextWorld(new(pos.Value.XZ()), text, type, 22);
             }
         }
 
@@ -346,39 +347,39 @@ namespace BossMod
         {
             foreach (var (slot, player) in Raid.WithSlot().Exclude(pcSlot))
             {
-                var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
+                var (prio, type) = CalculateHighestPriority(pcSlot, pc, slot, player);
                 if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers)
                     continue;
 
-                if (color == 0)
+                if (type == 0)
                 {
-                    color = prio switch
+                    type = prio switch
                     {
-                        BossComponent.PlayerPriority.Interesting => ArenaColor.PlayerInteresting,
-                        BossComponent.PlayerPriority.Danger => ArenaColor.Danger,
-                        BossComponent.PlayerPriority.Critical => ArenaColor.Vulnerable, // TODO: select some better color...
-                        _ => ArenaColor.PlayerGeneric
+                        BossComponent.PlayerPriority.Interesting => ComponentType.PlayerInteresting,
+                        BossComponent.PlayerPriority.Danger => ComponentType.Danger,
+                        BossComponent.PlayerPriority.Critical => ComponentType.ActorVulnerable, // TODO: select some better color...
+                        _ => ComponentType.PlayerGeneric
                     };
                 }
-                Arena.Actor(player, color);
+                Arena.Actor(player, type);
             }
         }
 
-        private (BossComponent.PlayerPriority, uint) CalculateHighestPriority(int pcSlot, Actor pc, int playerSlot, Actor player)
+        private (BossComponent.PlayerPriority, ComponentType) CalculateHighestPriority(int pcSlot, Actor pc, int playerSlot, Actor player)
         {
-            uint color = 0;
+            ComponentType type = ComponentType.Unspecified;
             var highestPrio = BossComponent.PlayerPriority.Irrelevant;
             foreach (var s in _components)
             {
-                uint subColor = 0;
-                var subPrio = s.CalcPriority(this, pcSlot, pc, playerSlot, player, ref subColor);
+                ComponentType subType = 0;
+                var subPrio = s.CalcPriority(this, pcSlot, pc, playerSlot, player, ref subType);
                 if (subPrio > highestPrio)
                 {
                     highestPrio = subPrio;
-                    color = subColor;
+                    type = subType;
                 }
             }
-            return (highestPrio, color);
+            return (highestPrio, type);
         }
 
         private void OnPlanModified(object? sender, EventArgs args)

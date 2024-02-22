@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
                 hints.Add("Spread on different squares!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return PlayerPriority.Interesting;
         }
@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
                 return;
             var spot = CurrentSafeSpot(pc.Position);
             if (spot != null)
-                ArcaneArrayPlot.Shape.Draw(arena, spot.Value, default, ArenaColor.SafeFromAOE);
+                ArcaneArrayPlot.Shape.Draw(arena, spot.Value, default, ComponentType.SafeFromAOE);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

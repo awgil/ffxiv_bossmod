@@ -31,8 +31,8 @@ namespace BossMod.Endwalker.Alliance.A22AlthykNymeia
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(_nymeia, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actor(_nymeia, ComponentType.ActorEnemy);
         }
     }
 }

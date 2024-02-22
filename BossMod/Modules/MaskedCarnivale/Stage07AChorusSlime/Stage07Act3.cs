@@ -27,7 +27,7 @@ namespace BossMod.MaskedCarnivale.Stage07.Act3
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in module.Enemies(OID.Slime).Where(x => x.HP.Cur > 0))
-                arena.AddCircle(p.Position, 7.5f, ArenaColor.Danger);
+                arena.AddCircle(p.Position, 7.5f, ComponentType.Danger);
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -75,9 +75,9 @@ namespace BossMod.MaskedCarnivale.Stage07.Act3
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ComponentType.ActorEnemy, false);
             foreach (var s in Enemies(OID.Slime))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ComponentType.ActorEnemy, false);
         }
     }
 }

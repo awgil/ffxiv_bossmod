@@ -66,8 +66,8 @@
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.NPaddleBiter), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.NPaddleBiter), ComponentType.ActorEnemy);
         }
     }
 
@@ -78,8 +78,8 @@
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.SPaddleBiter), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.SPaddleBiter), ComponentType.ActorEnemy);
         }
     }
 }

@@ -27,11 +27,11 @@
             base.DrawArenaForeground(module, pcSlot, pc, arena);
 
             foreach (var b in CurrentBaits)
-                arena.Actor(b.Source, ArenaColor.Object, true);
+                arena.Actor(b.Source, ComponentType.ActorObject, true);
 
             // TODO: consider drawing safespot based on configured strategy and mechanic order
             if (NumCasts == 0 && States[pcSlot] is var state && state.Source != null)
-                arena.AddLine(state.Source.Position, pc.Position, state.TooClose ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddLine(state.Source.Position, pc.Position, state.TooClose ? ComponentType.Danger : ComponentType.Safe);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)

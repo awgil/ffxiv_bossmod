@@ -24,7 +24,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_baiters[pcSlot])
-                arena.AddCircle(pc.Position, Shape.Radius, ArenaColor.Safe);
+                arena.AddCircle(pc.Position, Shape.Radius, ComponentType.Safe);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

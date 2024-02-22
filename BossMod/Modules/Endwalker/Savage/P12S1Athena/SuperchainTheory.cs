@@ -101,7 +101,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return PlayerPriority.Normal;
         }
@@ -141,7 +141,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
                         _shapeSpread.Outline(arena, c.Origin.Position, Angle.FromDirection(pc.Position - c.Origin.Position));
                         break;
                     case Shape.Pairs:
-                        _shapePair.Outline(arena, c.Origin.Position, Angle.FromDirection(pc.Position - c.Origin.Position), ArenaColor.Safe);
+                        _shapePair.Outline(arena, c.Origin.Position, Angle.FromDirection(pc.Position - c.Origin.Position), ComponentType.Safe);
                         break;
                 }
             }

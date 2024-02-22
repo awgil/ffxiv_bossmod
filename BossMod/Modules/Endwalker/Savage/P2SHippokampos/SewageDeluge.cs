@@ -23,23 +23,23 @@
                 return;
 
             // central area + H additionals
-            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), _connectInner, _connectInner, _cornerInner, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), _connectInner, _connectInner, _cornerInner, ComponentType.AOE);
             // central V additionals
-            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), _connectInner, -_cornerInner, _cornerInner, ArenaColor.AOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), _connectInner, -_cornerInner, _cornerInner, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), _connectInner, -_cornerInner, _cornerInner, ComponentType.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), _connectInner, -_cornerInner, _cornerInner, ComponentType.AOE);
             // outer additionals
-            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), _cornerOuter, -_connectOuter, _cornerInner, ComponentType.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), _cornerOuter, -_connectOuter, _cornerInner, ComponentType.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), _cornerOuter, -_connectOuter, _cornerInner, ComponentType.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), _cornerOuter, -_connectOuter, _cornerInner, ComponentType.AOE);
             // outer area
-            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), module.Bounds.HalfSize, -_cornerOuter, module.Bounds.HalfSize, ArenaColor.AOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), module.Bounds.HalfSize, -_cornerOuter, module.Bounds.HalfSize, ArenaColor.AOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, ArenaColor.AOE);
-            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, ArenaColor.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir( 1, 0), module.Bounds.HalfSize, -_cornerOuter, module.Bounds.HalfSize, ComponentType.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(-1, 0), module.Bounds.HalfSize, -_cornerOuter, module.Bounds.HalfSize, ComponentType.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0,  1), module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, ComponentType.AOE);
+            arena.ZoneRect(module.Bounds.Center, new WDir(0, -1), module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, ComponentType.AOE);
 
             var corner = module.Bounds.Center + _corners[(int)_blockedCorner] * _offsetCorner;
-            arena.ZoneRect(corner, new WDir(1, 0), _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, ArenaColor.AOE);
+            arena.ZoneRect(corner, new WDir(1, 0), _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -57,7 +57,7 @@
             arena.PathLineTo(module.Bounds.Center + new WDir(-_cornerInner, +_cornerInner));
             arena.PathLineTo(module.Bounds.Center + new WDir(-_connectInner, +_cornerInner));
             arena.PathLineTo(module.Bounds.Center + new WDir(-_connectInner, -_cornerInner));
-            arena.PathStroke(true, ArenaColor.Border);
+            arena.PathStroke(true, ComponentType.Border);
 
             // outer border
             arena.PathLineTo(module.Bounds.Center + new WDir(-_cornerOuter, -_cornerOuter));
@@ -80,7 +80,7 @@
             arena.PathLineTo(module.Bounds.Center + new WDir(-_connectOuter, +_cornerInner));
             arena.PathLineTo(module.Bounds.Center + new WDir(-_connectOuter, -_cornerInner));
             arena.PathLineTo(module.Bounds.Center + new WDir(-_cornerOuter, -_cornerInner));
-            arena.PathStroke(true, ArenaColor.Border);
+            arena.PathStroke(true, ComponentType.Border);
         }
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)

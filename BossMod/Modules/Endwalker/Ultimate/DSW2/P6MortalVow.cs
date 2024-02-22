@@ -36,14 +36,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null && _vow != null && _target != null && (actor == _vow || actor == _target))
-                movementHints.Add(actor.Position, (actor == _vow ? _target : _vow).Position, ArenaColor.Safe);
+                movementHints.Add(actor.Position, (actor == _vow ? _target : _vow).Position, ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (_vow != null && _target != null && (pc == _vow || pc == _target))
-                arena.AddCircle(module.Bounds.Center, 1, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center, 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

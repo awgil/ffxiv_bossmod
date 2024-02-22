@@ -38,7 +38,7 @@ class SwordShieldOfTheHeavens : BossComponent
     public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
     {
         foreach (var a in _adds)
-            arena.Actor(a.actor, ArenaColor.Enemy);
+            arena.Actor(a.actor, ComponentType.ActorEnemy);
     }
 
     public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

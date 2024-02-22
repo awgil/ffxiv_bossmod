@@ -72,13 +72,13 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(Knight(), ArenaColor.Enemy);
-            Arena.Actor(Warrior(), ArenaColor.Enemy);
-            Arena.Actor(Soldier(), ArenaColor.Enemy);
-            Arena.Actor(Gunner(), ArenaColor.Enemy);
-            Arena.Actors(GunTurrets, ArenaColor.Enemy);
-            Arena.Actors(AuraSpheres, ArenaColor.Enemy);
-            Arena.Actors(SpiritualSpheres, ArenaColor.Object);
+            Arena.Actor(Knight(), ComponentType.ActorEnemy);
+            Arena.Actor(Warrior(), ComponentType.ActorEnemy);
+            Arena.Actor(Soldier(), ComponentType.ActorEnemy);
+            Arena.Actor(Gunner(), ComponentType.ActorEnemy);
+            Arena.Actors(GunTurrets, ComponentType.ActorEnemy);
+            Arena.Actors(AuraSpheres, ComponentType.ActorEnemy);
+            Arena.Actors(SpiritualSpheres, ComponentType.ActorObject);
         }
     }
 }

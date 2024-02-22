@@ -62,7 +62,7 @@ namespace BossMod.Endwalker.Alliance.A14Naldthal
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _casters.Select(c => new AOEInstance(_shape, c.CastInfo!.LocXZ, default, c.CastInfo.FinishAt));
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _real && _targets.Contains(player) ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -71,7 +71,7 @@ namespace BossMod.Endwalker.Alliance.A14Naldthal
         {
             if (_real)
                 foreach (var t in _targets)
-                    arena.AddCircle(t.Position, _shape.Radius, ArenaColor.Danger);
+                    arena.AddCircle(t.Position, _shape.Radius, ComponentType.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

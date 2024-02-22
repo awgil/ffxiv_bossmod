@@ -10,9 +10,9 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Actors(BracingPuffs, 0xff80ff80, true);
-            arena.Actors(ChillingPuffs, 0xffff8040, true);
-            arena.Actors(FizzlingPuffs, 0xff40c0c0, true);
+            arena.Actors(BracingPuffs, ComponentType.ActorE, true);
+            arena.Actors(ChillingPuffs, ComponentType.ActorC, true);
+            arena.Actors(FizzlingPuffs, ComponentType.ActorB, true);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

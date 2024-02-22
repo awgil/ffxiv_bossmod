@@ -77,7 +77,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in _eruptionSafeSpots)
-                _shapeEruption.Draw(arena, p, new(), ArenaColor.SafeFromAOE);
+                _shapeEruption.Draw(arena, p, new(), ComponentType.SafeFromAOE);
             base.DrawArenaBackground(module, pcSlot, pc, arena);
         }
 

@@ -106,7 +106,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
             ForbiddenPlayers = _oddSoakers;
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _oddSoakers[playerSlot] != _oddSoakers[pcSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
         }

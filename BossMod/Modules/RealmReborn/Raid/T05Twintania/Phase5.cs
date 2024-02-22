@@ -44,7 +44,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                 hints.Add("Go to neurolink!", !Neurolinks.InRadius(actor.Position, T05Twintania.NeurolinkRadius).Any());
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return player == Target ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -53,9 +53,9 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         {
             if (Target != null)
                 foreach (var orb in Orbs)
-                    arena.AddLine(orb.Position, Target.Position, ArenaColor.Danger);
+                    arena.AddLine(orb.Position, Target.Position, ComponentType.Danger);
             foreach (var neurolink in Neurolinks)
-                arena.AddCircle(neurolink.Position, T05Twintania.NeurolinkRadius, Target == pc ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(neurolink.Position, T05Twintania.NeurolinkRadius, Target == pc ? ComponentType.Safe : ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

@@ -23,8 +23,8 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
-            arena.Actors(_second, ArenaColor.Enemy);
-            arena.Actors(_third, ArenaColor.Enemy);
+            arena.Actors(_second, ComponentType.ActorEnemy);
+            arena.Actors(_third, ComponentType.ActorEnemy);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

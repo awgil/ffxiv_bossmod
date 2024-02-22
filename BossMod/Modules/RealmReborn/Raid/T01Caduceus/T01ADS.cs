@@ -94,13 +94,13 @@
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
             foreach (var e in Enemies(OID.PatrolNode))
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
             foreach (var e in Enemies(OID.AttackNode))
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
             foreach (var e in Enemies(OID.DefenseNode))
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
         }
     }
 }

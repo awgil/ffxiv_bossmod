@@ -19,17 +19,17 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         {
             if (_directions[0] != null)
             {
-                DrawZone(arena, _directions[0], ArenaColor.Danger);
-                DrawZone(arena, _directions[1], ArenaColor.AOE);
+                DrawZone(arena, _directions[0], ComponentType.Danger);
+                DrawZone(arena, _directions[1], ComponentType.AOE);
             }
             else if (_directions[1] != null)
             {
-                DrawZone(arena, _directions[1], ArenaColor.Danger);
-                DrawZone(arena, _directions[2], ArenaColor.AOE);
+                DrawZone(arena, _directions[1], ComponentType.Danger);
+                DrawZone(arena, _directions[2], ComponentType.AOE);
             }
             else
             {
-                DrawZone(arena, _directions[2], ArenaColor.Danger);
+                DrawZone(arena, _directions[2], ComponentType.Danger);
             }
         }
 
@@ -65,12 +65,12 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
             }
         }
 
-        private void DrawZone(MiniArena arena, Angle? dir, uint color)
+        private void DrawZone(MiniArena arena, Angle? dir, ComponentType type)
         {
             if (dir != null)
             {
-                arena.ZoneIsoscelesTri(arena.Bounds.Center, dir.Value, 30.Degrees(), 50, color);
-                arena.ZoneIsoscelesTri(arena.Bounds.Center, dir.Value + 180.Degrees(), 30.Degrees(), 50, color);
+                arena.ZoneIsoscelesTri(arena.Bounds.Center, dir.Value, 30.Degrees(), 50, type);
+                arena.ZoneIsoscelesTri(arena.Bounds.Center, dir.Value + 180.Degrees(), 30.Degrees(), 50, type);
             }
         }
 

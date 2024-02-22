@@ -13,16 +13,16 @@ namespace BossMod.Components
             public WPos Origin;
             public Angle Rotation;
             public DateTime Activation;
-            public uint Color;
+            public ComponentType Type;
             public bool Risky;
 
-            public AOEInstance(AOEShape shape, WPos origin, Angle rotation = new(), DateTime activation = new(), uint color = ArenaColor.AOE, bool risky = true)
+            public AOEInstance(AOEShape shape, WPos origin, Angle rotation = new(), DateTime activation = new(), ComponentType type = ComponentType.AOE, bool risky = true)
             {
                 Shape = shape;
                 Origin = origin;
                 Rotation = rotation;
                 Activation = activation;
-                Color = color;
+                Type = type;
                 Risky = risky;
             }
 
@@ -54,7 +54,7 @@ namespace BossMod.Components
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in ActiveAOEs(module, pcSlot, pc))
-                c.Shape.Draw(arena, c.Origin, c.Rotation, c.Color);
+                c.Shape.Draw(arena, c.Origin, c.Rotation, c.Type);
         }
     }
 
@@ -63,7 +63,7 @@ namespace BossMod.Components
     {
         public AOEShape Shape { get; private init; }
         public int MaxCasts; // used for staggered aoes, when showing all active would be pointless
-        public uint Color = ArenaColor.AOE; // can be customized if needed
+        public ComponentType Type = ComponentType.AOE; // can be customized if needed
         public bool Risky = true; // can be customized if needed
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
@@ -77,7 +77,7 @@ namespace BossMod.Components
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, Color, Risky));
+            return ActiveCasters.Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, Type, Risky));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -131,7 +131,7 @@ namespace BossMod.Components
     {
         public AOEShapeCircle Shape { get; private init; }
         public int MaxCasts { get; private init; } // used for staggered aoes, when showing all active would be pointless
-        public uint Color = ArenaColor.AOE; // can be customized if needed
+        public ComponentType Type = ComponentType.AOE; // can be customized if needed
         public bool Risky = true; // can be customized if needed
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
@@ -146,7 +146,7 @@ namespace BossMod.Components
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in ActiveCasters)
-                yield return new(Shape, c.CastInfo!.LocXZ, c.CastInfo.Rotation, c.CastInfo.FinishAt, Color, Risky);
+                yield return new(Shape, c.CastInfo!.LocXZ, c.CastInfo.Rotation, c.CastInfo.FinishAt, Type, Risky);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

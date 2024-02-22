@@ -66,7 +66,7 @@ namespace BossMod.Components
                 hints.Add("GTFO from baited aoe!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return ActiveBaitsOn(player).Any() ? BaiterPriority : PlayerPriority.Irrelevant;
         }
@@ -126,7 +126,7 @@ namespace BossMod.Components
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (DrawTethers)
                 foreach (var b in ActiveBaits)
-                    arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
+                    arena.AddLine(b.Source.Position, b.Target.Position, ComponentType.Danger);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)

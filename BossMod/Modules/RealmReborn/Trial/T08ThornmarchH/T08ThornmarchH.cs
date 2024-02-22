@@ -165,14 +165,14 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.RuffletuftKuptaKapa), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.WoolywartKupquKogi), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.FurryfootKupliKipp), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.PuksiPikoTheShaggysong), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.PuklaPukiThePomburner), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.PuknaPakoTheTailturner), ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.GoodKingMoggleMogXII), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.RuffletuftKuptaKapa), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.WoolywartKupquKogi), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.FurryfootKupliKipp), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.PuksiPikoTheShaggysong), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.PuklaPukiThePomburner), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.PuknaPakoTheTailturner), ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.GoodKingMoggleMogXII), ComponentType.ActorEnemy);
         }
     }
 }

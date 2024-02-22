@@ -163,9 +163,9 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ComponentType.ActorEnemy, false);
             foreach (var s in Enemies(OID.HotHip))
-                Arena.Actor(s, ArenaColor.Enemy, true);
+                Arena.Actor(s, ComponentType.ActorEnemy, true);
         }
     }
 }

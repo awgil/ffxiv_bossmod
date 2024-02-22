@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
         {
             if (Active)
                 foreach (var c in SafeCenters(module, _debuffs[pcSlot]))
-                    arena.ZoneRect(c, new WDir(1, 0), _shape.HalfWidth, _shape.HalfWidth, _shape.HalfWidth, ArenaColor.SafeFromAOE);
+                    arena.ZoneRect(c, new WDir(1, 0), _shape.HalfWidth, _shape.HalfWidth, _shape.HalfWidth, ComponentType.SafeFromAOE);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

@@ -123,17 +123,17 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var e in P1Bugs)
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
             foreach (var e in Bugs)
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
             foreach (var e in Soldiers)
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
             foreach (var e in Knights)
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
             foreach (var e in Rooks)
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
             foreach (var e in Dreadnaughts)
-                Arena.Actor(e, ArenaColor.Enemy);
+                Arena.Actor(e, ComponentType.ActorEnemy);
         }
     }
 }

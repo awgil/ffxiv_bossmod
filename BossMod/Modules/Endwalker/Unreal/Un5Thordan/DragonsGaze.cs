@@ -14,7 +14,7 @@ class DragonsGaze : Components.GenericGaze
     {
         base.DrawArenaForeground(module, pcSlot, pc, arena);
         if (_posHint != default)
-            arena.AddCircle(_posHint, 1, ArenaColor.Safe);
+            arena.AddCircle(_posHint, 1, ComponentType.Safe);
     }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

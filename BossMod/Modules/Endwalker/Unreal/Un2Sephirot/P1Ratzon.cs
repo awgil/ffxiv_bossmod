@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
             hints.Add($"Spread! (debuff: {(_greenTargets[slot] ? "green" : _purpleTargets[slot] ? "purple" : "none")})", clippedByGreen || clippedByPurple);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return (_greenTargets | _purpleTargets)[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
@@ -29,9 +29,9 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var (slot, actor) in module.Raid.WithSlot().IncludedInMask(_greenTargets))
-                arena.AddCircle(actor.Position, _greenRadius, 0xff00ff00, slot == pcSlot ? 2 : 1);
+                arena.AddCircle(actor.Position, _greenRadius, ComponentType.Safe, slot == pcSlot ? 2 : 1);
             foreach (var (slot, actor) in module.Raid.WithSlot().IncludedInMask(_purpleTargets))
-                arena.AddCircle(actor.Position, _purpleRadius, 0xffff00ff, slot == pcSlot ? 2 : 1);
+                arena.AddCircle(actor.Position, _purpleRadius, ComponentType.ActorVulnerable, slot == pcSlot ? 2 : 1);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

@@ -45,7 +45,7 @@
             {
                 var center = (45 + i * 90).Degrees();
                 Arena.PathArcTo(Bounds.Center, BarricadeRadius, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);
-                Arena.PathStroke(false, ArenaColor.Border, 2);
+                Arena.PathStroke(false, ComponentType.Border, 2);
             }
         }
     }

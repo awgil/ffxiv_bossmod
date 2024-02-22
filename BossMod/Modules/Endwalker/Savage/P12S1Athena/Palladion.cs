@@ -77,7 +77,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         {
             for (int i = 0; i < 8; ++i)
                 arena.PathLineTo(module.Bounds.Center + 14 * (i * 45).Degrees().ToDirection());
-            arena.PathStroke(true, ArenaColor.Border, 2);
+            arena.PathStroke(true, ComponentType.Border, 2);
         }
     }
 
@@ -111,7 +111,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_palladion != null && NumCasts < _palladion.JumpTargets.Length && _palladion.JumpTargets[NumCasts] is var target && target != null && (pc == target || pc == _palladion.Partners[NumCasts]))
-                BuildShape(target.Position).Outline(arena, _origin, default, ArenaColor.Safe);
+                BuildShape(target.Position).Outline(arena, _origin, default, ComponentType.Safe);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -146,7 +146,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
             UpdateStack(module, module.PrimaryActor.CastInfo?.FinishAt.AddSeconds(0.3f) ?? default);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return IsStackTarget(player) ? PlayerPriority.Interesting : PlayerPriority.Normal;
         }
@@ -223,7 +223,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (CurrentBaits.Count > 0)
-                arena.Actor(module.Bounds.Center, default, ArenaColor.Object);
+                arena.Actor(module.Bounds.Center, default, ComponentType.ActorObject);
             base.DrawArenaForeground(module, pcSlot, pc, arena);
         }
 

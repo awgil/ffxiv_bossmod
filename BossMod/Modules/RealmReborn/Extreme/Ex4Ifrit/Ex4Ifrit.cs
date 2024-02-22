@@ -34,9 +34,9 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(SmallNails, ArenaColor.Object);
-            Arena.Actors(LargeNails, ArenaColor.Object);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(SmallNails, ComponentType.ActorObject);
+            Arena.Actors(LargeNails, ComponentType.ActorObject);
         }
     }
 }

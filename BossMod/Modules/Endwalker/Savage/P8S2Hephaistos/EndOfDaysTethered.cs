@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var t in _tethers)
-                arena.AddLine(t.source.Position, t.target.Position, ArenaColor.Danger);
+                arena.AddLine(t.source.Position, t.target.Position, ComponentType.Danger);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)

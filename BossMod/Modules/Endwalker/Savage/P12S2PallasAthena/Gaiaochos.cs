@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
                 hints.Add("Break the tether!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _partner[pcSlot] == playerSlot ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -35,7 +35,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (module.Raid[_partner[pcSlot]] is var partner && partner != null)
-                arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+                arena.AddLine(pc.Position, partner.Position, ComponentType.Danger);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
@@ -175,7 +175,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _tethers.Any(t => t.target == player) ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -191,10 +191,10 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
         {
             foreach (var t in _tethers)
             {
-                arena.Actor(t.source, ArenaColor.Object, true);
-                arena.AddLine(t.source.Position, t.target.Position, ArenaColor.Danger);
+                arena.Actor(t.source, ComponentType.ActorObject, true);
+                arena.AddLine(t.source.Position, t.target.Position, ComponentType.Danger);
                 if (t.target == pc || !_vulnerable[pcSlot])
-                    _shape.Outline(arena, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position), t.target == pc ? ArenaColor.Safe : ArenaColor.Danger); // TODO: reconsider...
+                    _shape.Outline(arena, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position), t.target == pc ? ComponentType.Safe : ComponentType.Danger); // TODO: reconsider...
             }
         }
 

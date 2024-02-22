@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _targets[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var target in module.Raid.WithSlot(true).IncludedInMask(_targets))
-                arena.AddCircle(target.Item2.Position, _range, ArenaColor.Danger);
+                arena.AddCircle(target.Item2.Position, _range, ComponentType.Danger);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

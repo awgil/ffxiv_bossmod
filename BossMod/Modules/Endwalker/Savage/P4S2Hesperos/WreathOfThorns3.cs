@@ -93,24 +93,24 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.Actor(player, _playersInAOE[i] ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
 
             if (CurState != State.Done)
             {
                 foreach (var tower in (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers))
-                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
+                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ComponentType.Safe);
             }
 
             if (NumCones != NumJumps)
             {
                 foreach ((_, var player) in module.Raid.WithSlot().IncludedInMask(_coneTargets))
-                    arena.Actor(player, ArenaColor.Danger);
-                arena.Actor(_jumpTarget, ArenaColor.Vulnerable);
+                    arena.Actor(player, ComponentType.Danger);
+                arena.Actor(_jumpTarget, ComponentType.ActorVulnerable);
             }
             else if (_jumpTarget != null)
             {
-                arena.Actor(_jumpTarget, ArenaColor.Danger);
-                arena.AddCircle(_jumpTarget.Position, _jumpAOERadius, ArenaColor.Danger);
+                arena.Actor(_jumpTarget, ComponentType.Danger);
+                arena.AddCircle(_jumpTarget.Position, _jumpAOERadius, ComponentType.Danger);
             }
         }
 

@@ -30,13 +30,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null && ShowStartingSpot)
-                movementHints.Add(actor.Position, _startingSpot, ArenaColor.Safe);
+                movementHints.Add(actor.Position, _startingSpot, ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (ShowStartingSpot)
-                arena.AddCircle(_startingSpot, 1, ArenaColor.Safe);
+                arena.AddCircle(_startingSpot, 1, ComponentType.Safe);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)
@@ -104,14 +104,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null)
                 foreach (var p in SafeSpots(module, actor))
-                    movementHints.Add(actor.Position, p, ArenaColor.Safe);
+                    movementHints.Add(actor.Position, p, ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var p in SafeSpots(module, pc))
-                arena.AddCircle(p, 1, ArenaColor.Safe);
+                arena.AddCircle(p, 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

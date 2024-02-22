@@ -100,7 +100,7 @@ namespace BossMod.Endwalker.Extreme.Ex6Golbez
         private void DrawTower(MiniArena arena, Actor? tower, bool safe)
         {
             if (tower != null)
-                arena.AddCircle(tower.Position, 4, safe ? ArenaColor.Safe : ArenaColor.Danger, 2);
+                arena.AddCircle(tower.Position, 4, safe ? ComponentType.Safe : ComponentType.Danger, 2);
         }
     }
 

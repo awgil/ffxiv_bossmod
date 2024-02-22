@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Savage.P8S2
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return IsTarget(player) ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var target in module.Raid.WithoutSlot().Where(IsTarget))
-                arena.AddCircle(target.Position, _radius, ArenaColor.Danger);
+                arena.AddCircle(target.Position, _radius, ComponentType.Danger);
         }
     }
 }

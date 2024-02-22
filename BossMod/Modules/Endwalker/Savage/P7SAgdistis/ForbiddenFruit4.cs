@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (NumAssignedTethers > 0 && !MinotaursBaited && TetherSources[pcSlot] == null)
             {
-                arena.AddCircle(module.Bounds.Center - 2 * PlatformDirection(_bullPlatform).ToDirection(), 2, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center - 2 * PlatformDirection(_bullPlatform).ToDirection(), 2, ComponentType.Safe);
             }
         }
 

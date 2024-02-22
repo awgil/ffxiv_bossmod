@@ -84,8 +84,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.NCrab), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.NCrab), ComponentType.ActorEnemy);
         }
     }
 
@@ -96,8 +96,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.SCrab), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.SCrab), ComponentType.ActorEnemy);
         }
     }
 }

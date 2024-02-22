@@ -210,7 +210,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         {
             var doomOrder = _dooms.FindIndex(d => d.player == pc);
             if (doomOrder >= 0 && !_dooms[doomOrder].cleansed && doomOrder < _cleanses.Count)
-                arena.AddCircle(_cleanses[doomOrder].voidzone?.Position ?? _cleanses[doomOrder].predicted, 1, ArenaColor.Safe);
+                arena.AddCircle(_cleanses[doomOrder].voidzone?.Position ?? _cleanses[doomOrder].predicted, 1, ComponentType.Safe);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)

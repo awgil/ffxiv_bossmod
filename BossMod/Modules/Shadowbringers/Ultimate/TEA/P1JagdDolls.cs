@@ -37,17 +37,17 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         {
             foreach (var doll in ActiveDolls)
             {
-                arena.Actor(doll, doll.HP.Cur < doll.HP.Max / 4 ? ArenaColor.Enemy : ArenaColor.Vulnerable);
+                arena.Actor(doll, doll.HP.Cur < doll.HP.Max / 4 ? ComponentType.ActorEnemy : ComponentType.ActorVulnerable);
 
                 var tether = module.WorldState.Actors.Find(doll.Tether.Target);
                 if (tether != null)
                 {
-                    arena.AddLine(doll.Position, tether.Position, ArenaColor.Danger);
+                    arena.AddLine(doll.Position, tether.Position, ComponentType.Danger);
                 }
 
                 if (NumExhausts < 2)
                 {
-                    arena.AddCircle(doll.Position, _exhaustRadius, ArenaColor.Safe);
+                    arena.AddCircle(doll.Position, _exhaustRadius, ComponentType.Safe);
                 }
             }
         }

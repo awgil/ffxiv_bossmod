@@ -141,7 +141,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (NextTarget == pc)
-                _shape.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(pc.Position - module.PrimaryActor.Position), ArenaColor.Danger);
+                _shape.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(pc.Position - module.PrimaryActor.Position), ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -206,8 +206,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             base.DrawEnemies(pcSlot, pc);
-            Arena.Actors(_dimCrystals.Where(c => !c.IsDead), ArenaColor.Object, true);
-            Arena.Actors(_corruptedCrystals.Where(c => !c.IsDead), ArenaColor.Object, true);
+            Arena.Actors(_dimCrystals.Where(c => !c.IsDead), ComponentType.ActorObject, true);
+            Arena.Actors(_corruptedCrystals.Where(c => !c.IsDead), ComponentType.ActorObject, true);
         }
     }
 }

@@ -91,7 +91,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             foreach (var c in _chasers)
             {
                 if (c.Pos != null)
-                    arena.AddLine(c.Pos.Value, c.Player.Position, ArenaColor.Danger);
+                    arena.AddLine(c.Pos.Value, c.Player.Position, ComponentType.Danger);
                 //else
                 //    _shape.Outline(arena, c.Player.Position);
             }

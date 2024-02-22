@@ -17,7 +17,7 @@
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_target != null)
-                arena.AddCircle(_target.Position, _radius, ArenaColor.Danger);
+                arena.AddCircle(_target.Position, _radius, ComponentType.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

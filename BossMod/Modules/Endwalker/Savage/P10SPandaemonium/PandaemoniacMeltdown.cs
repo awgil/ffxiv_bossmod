@@ -35,7 +35,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return player == _stackTarget ? PlayerPriority.Interesting : _spreadTargets.Contains(player) ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -44,17 +44,17 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         {
             bool isSpread = _spreadTargets.Contains(pc);
             if (_stackTarget != null && _stackTarget != pc)
-                _shapeStack.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(_stackTarget.Position - module.PrimaryActor.Position), isSpread ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+                _shapeStack.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(_stackTarget.Position - module.PrimaryActor.Position), isSpread ? ComponentType.AOE : ComponentType.SafeFromAOE);
             foreach (var t in _spreadTargets.Exclude(pc))
-                _shapeStack.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(t.Position - module.PrimaryActor.Position), ArenaColor.AOE);
+                _shapeStack.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(t.Position - module.PrimaryActor.Position), ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (pc == _stackTarget)
-                _shapeStack.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(pc.Position - module.PrimaryActor.Position), ArenaColor.Safe);
+                _shapeStack.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(pc.Position - module.PrimaryActor.Position), ComponentType.Safe);
             else if (_spreadTargets.Contains(pc))
-                _shapeSpread.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(pc.Position - module.PrimaryActor.Position), ArenaColor.Danger);
+                _shapeSpread.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(pc.Position - module.PrimaryActor.Position), ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

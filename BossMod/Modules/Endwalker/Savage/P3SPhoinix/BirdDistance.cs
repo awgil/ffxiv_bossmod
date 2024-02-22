@@ -55,11 +55,11 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                 var bird = watchedBirds[i];
                 if (bird.IsDead)
                 {
-                    arena.AddCircle(bird.Position, _radius, ArenaColor.Danger);
+                    arena.AddCircle(bird.Position, _radius, ComponentType.Danger);
                 }
                 else if (bird.TargetID == pc.InstanceID)
                 {
-                    arena.Actor(bird, _birdsAtRisk[i] ? ArenaColor.Enemy : ArenaColor.PlayerGeneric);
+                    arena.Actor(bird, _birdsAtRisk[i] ? ComponentType.ActorEnemy : ComponentType.PlayerGeneric);
                 }
             }
         }

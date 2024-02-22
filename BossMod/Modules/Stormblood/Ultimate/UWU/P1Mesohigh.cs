@@ -23,13 +23,13 @@ namespace BossMod.Stormblood.Ultimate.UWU
                 var tetherTarget = module.WorldState.Actors.Find(s.Tether.Target);
                 if (tetherTarget != null)
                 {
-                    arena.AddLine(s.Position, tetherTarget.Position, ArenaColor.Danger);
-                    arena.AddCircle(tetherTarget.Position, _radius, ArenaColor.Danger);
+                    arena.AddLine(s.Position, tetherTarget.Position, ComponentType.Danger);
+                    arena.AddCircle(tetherTarget.Position, _radius, ComponentType.Danger);
                 }
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _sisters.Any(s => s.Tether.Target == player.InstanceID) ? PlayerPriority.Danger : PlayerPriority.Normal;
         }

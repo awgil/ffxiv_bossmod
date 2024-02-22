@@ -119,9 +119,9 @@ namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
             foreach (var add in Enemies(OID.PhantomGaiusAdd))
-                Arena.Actor(add, ArenaColor.Enemy);
+                Arena.Actor(add, ComponentType.ActorEnemy);
         }
     }
 }

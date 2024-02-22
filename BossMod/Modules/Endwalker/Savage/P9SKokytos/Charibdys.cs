@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
         {
             foreach (var c in Actors.Where(a => !IsFinished(a)))
             {
-                arena.Actor(c, IsActive(c) ? ArenaColor.Enemy : ArenaColor.Object, true);
+                arena.Actor(c, IsActive(c) ? ComponentType.ActorEnemy : ComponentType.ActorObject, true);
             }
         }
     }

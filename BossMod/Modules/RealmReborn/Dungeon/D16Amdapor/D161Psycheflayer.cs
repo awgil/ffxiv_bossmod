@@ -119,8 +119,8 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D161Psycheflayer
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actor(_bossP2, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actor(_bossP2, ComponentType.ActorEnemy);
         }
     }
 }

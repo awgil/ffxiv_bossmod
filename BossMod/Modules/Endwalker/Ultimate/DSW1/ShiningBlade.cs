@@ -38,7 +38,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in _tears)
-                arena.ZoneCircle(p.Position, _tearRadius, ArenaColor.AOE);
+                arena.ZoneCircle(p.Position, _tearRadius, ComponentType.AOE);
         }
     }
 
@@ -122,7 +122,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return player == _target ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -130,7 +130,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_target != null)
-                arena.AddCircle(_target.Position, _executionRadius, ArenaColor.Danger);
+                arena.AddCircle(_target.Position, _executionRadius, ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

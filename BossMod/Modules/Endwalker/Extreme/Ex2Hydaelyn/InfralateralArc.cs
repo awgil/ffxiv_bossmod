@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
             var pcRole = EffectiveRole(pc);
             var pcDir = Angle.FromDirection(pc.Position - module.PrimaryActor.Position);
             foreach (var actor in module.Raid.WithoutSlot().Where(a => EffectiveRole(a) != pcRole))
-                arena.Actor(actor, actor.Position.InCone(module.PrimaryActor.Position, pcDir, _coneHalfAngle) ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+                arena.Actor(actor, actor.Position.InCone(module.PrimaryActor.Position, pcDir, _coneHalfAngle) ? ComponentType.Danger : ComponentType.PlayerGeneric);
         }
 
         private Role EffectiveRole(Actor a) =>  a.Role == Role.Ranged ? Role.Melee : a.Role;

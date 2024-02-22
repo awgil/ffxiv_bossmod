@@ -35,7 +35,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
             {
                 // TODO: activation
                 if (_pendingOffsets.Count > 0)
-                    yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[0], color: ArenaColor.Danger);
+                    yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[0], type: ComponentType.Danger);
                 if (_pendingOffsets.Count > 1)
                     yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[1]);
             }

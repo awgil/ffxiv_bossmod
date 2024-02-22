@@ -57,7 +57,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             base.DrawArenaForeground(module, pcSlot, pc, arena);
 
             if (_tethered[pcSlot] && FindPartner(module, pcSlot) is var partner && partner != null)
-                arena.AddLine(pc.Position, partner.Position, (partner.Position - pc.Position).LengthSq() < 30 * 30 ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddLine(pc.Position, partner.Position, (partner.Position - pc.Position).LengthSq() < 30 * 30 ? ComponentType.Danger : ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

@@ -20,7 +20,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
             for (int i = 0; i < 4; ++i)
             {
                 var center = (45 + i * 90).Degrees();
-                shape.Draw(arena, module.Bounds.Center, center, ArenaColor.SafeFromAOE);
+                shape.Draw(arena, module.Bounds.Center, center, ComponentType.SafeFromAOE);
             }
         }
 

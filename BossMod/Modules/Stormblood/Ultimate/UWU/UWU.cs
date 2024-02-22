@@ -155,11 +155,11 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(Garuda(), ArenaColor.Enemy);
-            Arena.Actor(Ifrit(), ArenaColor.Enemy);
-            Arena.Actor(Titan(), ArenaColor.Enemy);
-            Arena.Actor(Lahabrea(), ArenaColor.Enemy);
-            Arena.Actor(Ultima(), ArenaColor.Enemy);
+            Arena.Actor(Garuda(), ComponentType.ActorEnemy);
+            Arena.Actor(Ifrit(), ComponentType.ActorEnemy);
+            Arena.Actor(Titan(), ComponentType.ActorEnemy);
+            Arena.Actor(Lahabrea(), ComponentType.ActorEnemy);
+            Arena.Actor(Ultima(), ComponentType.ActorEnemy);
         }
     }
 }

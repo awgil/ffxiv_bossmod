@@ -84,8 +84,9 @@ namespace BossMod
             if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
                 return;
 
-            foreach ((var start, var end, uint color) in arrows)
+            foreach ((var start, var end, ComponentType type) in arrows)
             {
+                uint color = ArenaColor.ForType(type);
                 Vector3 start3 = new(start.X, y, start.Z);
                 Vector3 end3 = new(end.X, y, end.Z);
                 Camera.Instance.DrawWorldLine(start3, end3, color);

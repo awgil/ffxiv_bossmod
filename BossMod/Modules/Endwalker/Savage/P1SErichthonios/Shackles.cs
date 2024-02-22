@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
 
         private static float _blueExplosionRadius = 4;
         private static float _redExplosionRadius = 8;
-        private static uint TetherColor(bool blue, bool red) => blue ? (red ? 0xff00ffff : 0xffff0080) : (red ? 0xff8080ff : 0xff808080);
+        private static ComponentType TetherType(bool blue, bool red) => blue ? (red ? ComponentType.TetherMoveAway : ComponentType.TetherDontMove) : (red ? ComponentType.ActorA : ComponentType.PlayerGeneric);
 
         public override void Update(BossModule module)
         {
@@ -76,7 +76,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
 
             if (movementHints != null && _preferredPositions[slot] != new WPos())
             {
-                movementHints.Add(actor.Position, _preferredPositions[slot], ArenaColor.Safe);
+                movementHints.Add(actor.Position, _preferredPositions[slot], ComponentType.Safe);
             }
         }
 
@@ -91,17 +91,17 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             {
                 var blueTetheredTo = _blueTetherMatrix[i];
                 var redTetheredTo = _redTetherMatrix[i];
-                arena.Actor(actor, TetherColor(blueTetheredTo.Any(), redTetheredTo.Any()));
+                arena.Actor(actor, TetherType(blueTetheredTo.Any(), redTetheredTo.Any()));
 
                 // draw tethers
                 foreach ((int j, var target) in module.Raid.WithSlot(true).Exclude(i).IncludedInMask(blueTetheredTo | redTetheredTo))
-                    arena.AddLine(actor.Position, target.Position, TetherColor(blueTetheredTo[j], redTetheredTo[j]));
+                    arena.AddLine(actor.Position, target.Position, TetherType(blueTetheredTo[j], redTetheredTo[j]));
 
                 // draw explosion circles that hit me
                 if (_blueExplosionMatrix[pcSlot, i])
-                    arena.AddCircle(actor.Position, _blueExplosionRadius, ArenaColor.Danger);
+                    arena.AddCircle(actor.Position, _blueExplosionRadius, ComponentType.Danger);
                 if (_redExplosionMatrix[pcSlot, i])
-                    arena.AddCircle(actor.Position, _redExplosionRadius, ArenaColor.Danger);
+                    arena.AddCircle(actor.Position, _redExplosionRadius, ComponentType.Danger);
 
                 drawBlueAroundMe |= _blueExplosionMatrix[i, pcSlot];
                 drawRedAroundMe |= _redExplosionMatrix[i, pcSlot];
@@ -109,13 +109,13 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
 
             // draw explosion circles if I hit anyone
             if (drawBlueAroundMe)
-                arena.AddCircle(pc.Position, _blueExplosionRadius, ArenaColor.Danger);
+                arena.AddCircle(pc.Position, _blueExplosionRadius, ComponentType.Danger);
             if (drawRedAroundMe)
-                arena.AddCircle(pc.Position, _redExplosionRadius, ArenaColor.Danger);
+                arena.AddCircle(pc.Position, _redExplosionRadius, ComponentType.Danger);
 
             // draw assigned spot, if any
             if (_preferredPositions[pcSlot] != new WPos())
-                arena.AddCircle(_preferredPositions[pcSlot], 2, ArenaColor.Safe);
+                arena.AddCircle(_preferredPositions[pcSlot], 2, ComponentType.Safe);
 
         }
 

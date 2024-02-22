@@ -36,7 +36,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private List<(int, int)> _localTethers = new();
         private List<(int, int)> _remoteTethers = new();
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             var pcState = Players[pcSlot];
             var playerState = Players[playerSlot];
@@ -50,10 +50,10 @@ namespace BossMod.Endwalker.Ultimate.TOP
             var p = Players[pcSlot];
             var partner = p.TetherBroken ? null : module.Raid[p.PartnerSlot];
             if (partner != null)
-                arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+                arena.AddLine(pc.Position, partner.Position, ComponentType.Danger);
 
             foreach (var safeSpot in SafeSpotOffsets(module, pcSlot))
-                arena.AddCircle(module.Bounds.Center + safeSpot, 1, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + safeSpot, 1, ComponentType.Safe);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)
@@ -395,7 +395,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
             var ps = _delta.Players[pcSlot];
             var partner = module.Raid.WithSlot(true).WhereSlot(i => _delta.Players[i].IsLocal == ps.IsLocal && i != ps.PartnerSlot && _delta.Players[i].RocketPunch?.OID != ps.RocketPunch?.OID).FirstOrDefault().Item2;
             if (partner != null)
-                arena.AddCircle(partner.Position, Shape.Radius, ArenaColor.Safe);
+                arena.AddCircle(partner.Position, Shape.Radius, ComponentType.Safe);
         }
     }
 
@@ -502,9 +502,9 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_boss != null)
-                _shape.Draw(arena, _boss.Position, _boss.Rotation + _bossAngle, _bossIntendedTargets[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+                _shape.Draw(arena, _boss.Position, _boss.Rotation + _bossAngle, _bossIntendedTargets[pcSlot] ? ComponentType.SafeFromAOE : ComponentType.AOE);
             if (_player != null)
-                _shape.Draw(arena, _player.Position, _player.Rotation + _playerAngle, _playerIntendedTargets[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+                _shape.Draw(arena, _player.Position, _player.Rotation + _playerAngle, _playerIntendedTargets[pcSlot] ? ComponentType.SafeFromAOE : ComponentType.AOE);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

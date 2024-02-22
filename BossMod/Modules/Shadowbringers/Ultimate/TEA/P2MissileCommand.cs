@@ -71,7 +71,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var m in _mines)
-                arena.Actor(m, default, ArenaColor.Object);
+                arena.Actor(m, default, ComponentType.ActorObject);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

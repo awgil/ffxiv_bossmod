@@ -53,7 +53,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _states[pcSlot].PartnerSlot == playerSlot ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -62,16 +62,16 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
         {
             if (PlayerShapes(pcSlot) is var shapes && shapes.hexa != default && shapes.linked != default)
             {
-                arena.Actor(shapes.hexa, default, ArenaColor.Object);
-                arena.Actor(shapes.linked, default, ArenaColor.Object);
+                arena.Actor(shapes.hexa, default, ComponentType.ActorObject);
+                arena.Actor(shapes.linked, default, ComponentType.ActorObject);
                 var safespot = shapes.hexa + (shapes.linked - shapes.hexa) / 3;
-                arena.AddCircle(safespot, 1, ArenaColor.Safe);
+                arena.AddCircle(safespot, 1, ComponentType.Safe);
                 if (_invert)
-                    arena.AddCircle(InvertedPos(safespot), 1, ArenaColor.Danger);
+                    arena.AddCircle(InvertedPos(safespot), 1, ComponentType.Danger);
             }
             if (_showTethers && module.Raid[_states[pcSlot].PartnerSlot] is var partner && partner != null)
             {
-                arena.AddLine(pc.Position, partner.Position, ArenaColor.Safe);
+                arena.AddLine(pc.Position, partner.Position, ComponentType.Safe);
             }
         }
 

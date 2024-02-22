@@ -17,7 +17,7 @@ class BurningChains : Components.CastCounter
     {
         var partner = module.Raid[_tetherPartners[pcSlot]];
         if (partner != null)
-            arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+            arena.AddLine(pc.Position, partner.Position, ComponentType.Danger);
     }
 
     public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)

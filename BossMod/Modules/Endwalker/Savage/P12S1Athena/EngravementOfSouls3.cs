@@ -56,12 +56,12 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
             _tethers = module.FindComponent<EngravementOfSoulsTethers>();
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             if (IsSpreadTarget(pc))
                 return _tethers?.States[playerSlot].Tether == _soakers ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
             else
-                return base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref customColor);
+                return base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref type);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -115,13 +115,13 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
                 foreach (var chain in PositionHints(slot))
                 {
                     var from = actor.Position;
-                    var color = ArenaColor.Safe;
+                    var color = ComponentType.Safe;
                     foreach (var offset in chain)
                     {
                         var to = module.Bounds.Center + offset;
                         movementHints.Add(from, to, color);
                         from = to;
-                        color = ArenaColor.Danger;
+                        color = ComponentType.Danger;
                     }
                 }
             }
@@ -131,7 +131,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         {
             foreach (var chain in PositionHints(pcSlot))
                 foreach (var offset in chain.Take(1))
-                    arena.AddCircle(module.Bounds.Center + offset, 1, ArenaColor.Safe);
+                    arena.AddCircle(module.Bounds.Center + offset, 1, ComponentType.Safe);
         }
 
         // note: these statuses are assigned before any tethers

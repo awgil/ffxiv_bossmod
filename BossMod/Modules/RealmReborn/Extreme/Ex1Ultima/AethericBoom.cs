@@ -109,8 +109,8 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
         {
             foreach (var orb in _activeOrbs)
             {
-                arena.Actor(orb, ArenaColor.Object, true);
-                arena.AddCircle(orb.Position, _explosionRadius, ArenaColor.Danger);
+                arena.Actor(orb, ComponentType.ActorObject, true);
+                arena.AddCircle(orb.Position, _explosionRadius, ComponentType.Danger);
             }
         }
 

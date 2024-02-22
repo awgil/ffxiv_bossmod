@@ -55,12 +55,12 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                     continue; // this orb has already exploded
 
                 bool lethal = IsOrbLethal(pcSlot, pc, orbRole);
-                arena.Actor(orb, lethal ? ArenaColor.Enemy : ArenaColor.Danger, true);
+                arena.Actor(orb, lethal ? ComponentType.ActorEnemy : ComponentType.Danger, true);
 
                 var target = module.WorldState.Actors.Find(orb.Tether.Target);
                 if (target != null)
                 {
-                    arena.AddLine(orb.Position, target.Position, ArenaColor.Danger);
+                    arena.AddLine(orb.Position, target.Position, ComponentType.Danger);
                 }
 
                 int goodInRange = 0, badInRange = 0;
@@ -73,13 +73,13 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
                 }
 
                 bool goodToExplode = goodInRange == 2 && badInRange == 0;
-                arena.AddCircle(orb.Position, _burstRadius, goodToExplode ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(orb.Position, _burstRadius, goodToExplode ? ComponentType.Safe : ComponentType.Danger);
             }
 
             foreach ((int i, var player) in module.Raid.WithSlot())
             {
                 bool nearLethalOrb = orbs.Where(orb => IsOrbLethal(i, player, OrbTarget(orb.InstanceID))).InRadius(player.Position, _burstRadius).Any();
-                arena.Actor(player, nearLethalOrb ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.Actor(player, nearLethalOrb ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             }
         }
 

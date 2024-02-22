@@ -18,9 +18,9 @@
                 base.AddAIHints(module, slot, actor, assignment, hints);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
-            return ResolveImminent ? base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref customColor) : PlayerPriority.Irrelevant;
+            return ResolveImminent ? base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref type) : PlayerPriority.Irrelevant;
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)

@@ -25,7 +25,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (Target != null)
-                arena.AddCircle(Target.Position, Radius, ArenaColor.Safe);
+                arena.AddCircle(Target.Position, Radius, ComponentType.Safe);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

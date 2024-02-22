@@ -4,7 +4,7 @@ class HolyShieldBash : Components.GenericWildCharge
 {
     public HolyShieldBash() : base(5) { } // TODO: width could be smaller...
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
     {
         return PlayerRoles[playerSlot] == PlayerRole.Target ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
     }

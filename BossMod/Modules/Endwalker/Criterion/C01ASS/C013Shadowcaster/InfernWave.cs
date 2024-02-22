@@ -97,7 +97,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var b in ActiveBeacons())
-                arena.Actor(b.Source, ArenaColor.Object, true);
+                arena.Actor(b.Source, ComponentType.ActorObject, true);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

@@ -48,15 +48,15 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             {
                 foreach ((_, var actor) in module.Raid.WithSlot().ExcludedFromMask(_ignoredTargets))
                 {
-                    arena.Actor(actor, ArenaColor.Danger);
-                    arena.AddCircle(actor.Position, _radius, ArenaColor.Danger);
+                    arena.Actor(actor, ComponentType.Danger);
+                    arena.AddCircle(actor.Position, _radius, ComponentType.Danger);
                 }
             }
             else
             {
-                arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
+                arena.AddCircle(pc.Position, _radius, ComponentType.Danger);
                 foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             }
         }
     }

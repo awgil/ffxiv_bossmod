@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
             var tether = _tethers[pcSlot];
             if (tether != null)
             {
-                arena.AddCircle(tether.Position, 8, ArenaColor.Object);
+                arena.AddCircle(tether.Position, 8, ComponentType.ActorObject);
             }
         }
 

@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var p in _predicted)
             {
-                arena.Actor(p, ArenaColor.Object, true);
+                arena.Actor(p, ComponentType.ActorObject, true);
                 var target = module.Raid.WithoutSlot().Closest(p.Position);
                 if (target != null)
                     Shape.Outline(arena, p.Position, Angle.FromDirection(target.Position - p.Position));
@@ -123,7 +123,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
             if (movementHints != null)
                 foreach (var s in SafeSpots(module, slot))
-                    movementHints.Add(actor.Position, s, ArenaColor.Safe);
+                    movementHints.Add(actor.Position, s, ComponentType.Safe);
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
@@ -132,7 +132,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 hints.Add($"Arrows for: {(_ordersWithArrows.Any() ? string.Join(", ", _ordersWithArrows.SetBits()) : "none")}");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _playerStates[playerSlot].JumpOrder == CurrentBaitOrder() ? PlayerPriority.Interesting : PlayerPriority.Normal;
         }
@@ -148,14 +148,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             foreach (var (slot, player) in module.Raid.WithSlot(true).WhereSlot(i => _playerStates[i].JumpOrder == baitOrder))
             {
                 var pos = player.Position + _playerStates[slot].JumpDirection * player.Rotation.ToDirection() * _towerOffset;
-                arena.AddCircle(pos, Radius, ArenaColor.Object);
+                arena.AddCircle(pos, Radius, ComponentType.ActorObject);
                 if (slot == pcSlot)
-                    arena.AddLine(pc.Position, pos, ArenaColor.Object);
+                    arena.AddLine(pc.Position, pos, ComponentType.ActorObject);
             }
 
             // safe spots
             foreach (var s in SafeSpots(module, pcSlot))
-                arena.AddCircle(s, 1, ArenaColor.Safe);
+                arena.AddCircle(s, 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

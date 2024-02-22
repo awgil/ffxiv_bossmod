@@ -14,9 +14,9 @@ namespace BossMod
         }
 
         // list of actor-specific "movement hints" (arrow start/end pos + color)
-        public class MovementHints : List<(WPos, WPos, uint)>
+        public class MovementHints : List<(WPos, WPos, ComponentType)>
         {
-            public void Add(WPos from, WPos to, uint color) => base.Add((from, to, color));
+            public void Add(WPos from, WPos to, ComponentType type) => base.Add((from, to, type));
         }
 
         // list of global hints
@@ -39,7 +39,7 @@ namespace BossMod
         public virtual void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // gather any relevant pieces of advice for specified raid member
         public virtual void AddGlobalHints(BossModule module, GlobalHints hints) { } // gather any relevant pieces of advice for whole raid
         public virtual void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // gather AI hints for specified raid member
-        public virtual PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PlayerPriority.Irrelevant; // determine how particular party member should be drawn; if custom color is left untouched, standard color is selected
+        public virtual PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType customType) => PlayerPriority.Irrelevant; // determine how particular party member should be drawn; if custom color is left untouched, standard color is selected
         public virtual void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called at the beginning of arena draw, good place to draw aoe zones
         public virtual void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { } // called after arena background and borders are drawn, good place to draw actors, tethers, etc.
 

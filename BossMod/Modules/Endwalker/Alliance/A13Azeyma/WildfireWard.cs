@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.Alliance.A13Azeyma
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.ZoneTri(_tri[0], _tri[1], _tri[2], ArenaColor.SafeFromAOE);
+            arena.ZoneTri(_tri[0], _tri[1], _tri[2], ComponentType.SafeFromAOE);
         }
     }
 }

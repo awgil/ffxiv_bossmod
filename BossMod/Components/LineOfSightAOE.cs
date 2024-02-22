@@ -82,9 +82,9 @@ namespace BossMod.Components
             // TODO: reconsider, this looks like shit...
             if (Origin != null)
             {
-                arena.ZoneDonut(Origin.Value, MaxRange, 1000, ArenaColor.SafeFromAOE);
+                arena.ZoneDonut(Origin.Value, MaxRange, 1000, ComponentType.SafeFromAOE);
                 foreach (var v in Visibility)
-                    arena.ZoneCone(Origin.Value, v.Distance, 1000, v.Dir, v.HalfWidth, ArenaColor.SafeFromAOE);
+                    arena.ZoneCone(Origin.Value, v.Distance, 1000, v.Dir, v.HalfWidth, ComponentType.SafeFromAOE);
             }
         }
     }

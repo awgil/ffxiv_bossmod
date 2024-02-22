@@ -52,10 +52,10 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-            Arena.Actors(Gaolers, ArenaColor.Enemy);
-            Arena.Actors(Gaols, ArenaColor.Object);
-            Arena.Actors(Bombs, ArenaColor.Object);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy, true);
+            Arena.Actors(Gaolers, ComponentType.ActorEnemy);
+            Arena.Actors(Gaols, ComponentType.ActorObject);
+            Arena.Actors(Bombs, ComponentType.ActorObject);
         }
     }
 }

@@ -25,19 +25,19 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
             if (movementHints != null)
                 foreach (var p in SafeSpots(module, slot).Where(p => p.assigned))
-                    movementHints.Add(actor.Position, p.pos, ArenaColor.Safe);
+                    movementHints.Add(actor.Position, p.pos, ComponentType.Safe);
         }
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var a in AOEs(module, pcSlot))
-                _shape.Draw(arena, a.origin, a.rot, a.safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+                _shape.Draw(arena, a.origin, a.rot, a.safe ? ComponentType.SafeFromAOE : ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var p in SafeSpots(module, pcSlot))
-                arena.AddCircle(p.pos, 1, p.assigned ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(p.pos, 1, p.assigned ? ComponentType.Safe : ComponentType.Danger);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

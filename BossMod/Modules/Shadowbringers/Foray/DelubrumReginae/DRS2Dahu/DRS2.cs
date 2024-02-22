@@ -33,7 +33,7 @@
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             base.DrawEnemies(pcSlot, pc);
-            Arena.Actors(Enemies(OID.CrownedMarchosias), ArenaColor.Enemy);
+            Arena.Actors(Enemies(OID.CrownedMarchosias), ComponentType.ActorEnemy);
         }
     }
 }

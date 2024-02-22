@@ -38,7 +38,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
                 hints.Add("GTFO from raid!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _baiters[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var (_, player) in module.Raid.WithSlot().IncludedInMask(_baiters))
-                arena.AddCircle(player.Position, _radius, ArenaColor.Danger);
+                arena.AddCircle(player.Position, _radius, ComponentType.Danger);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

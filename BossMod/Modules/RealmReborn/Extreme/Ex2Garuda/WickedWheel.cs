@@ -31,7 +31,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_expectedNext != default && (_expectedNext - module.WorldState.CurrentTime).TotalSeconds < 3)
-                arena.AddCircle(module.PrimaryActor.Position, _radius, ArenaColor.Danger);
+                arena.AddCircle(module.PrimaryActor.Position, _radius, ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

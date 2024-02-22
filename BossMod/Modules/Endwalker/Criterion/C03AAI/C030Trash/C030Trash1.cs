@@ -67,7 +67,7 @@
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var twister in Actors)
-                arena.ZoneCircle(twister.Position, 6, ArenaColor.AOE);
+                arena.ZoneCircle(twister.Position, 6, ComponentType.AOE);
         }
     }
 

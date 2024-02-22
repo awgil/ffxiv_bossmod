@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var t in _towers)
-                arena.AddCircle(t.Position, _radius, ArenaColor.Danger);
+                arena.AddCircle(t.Position, _radius, ComponentType.Danger);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

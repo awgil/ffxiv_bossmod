@@ -118,11 +118,11 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouPithekos
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy, true);
             foreach (var s in Enemies(OID.BossAdd))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ComponentType.ActorObject, false);
             foreach (var s in Enemies(OID.BonusAdd_Lyssa))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ComponentType.ActorVulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

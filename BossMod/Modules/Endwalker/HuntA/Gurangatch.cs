@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
         {
             base.DrawArenaBackground(module, pcSlot, pc, arena);
             if (_remainingSlams > 0 && _slamDirIncrement.Rad != MathF.PI)
-                arena.ZoneCone(module.PrimaryActor.Position, 0, _shape.Radius, _slamDir - _slamDirIncrement * 3 / 2, 45.Degrees(), ArenaColor.SafeFromAOE);
+                arena.ZoneCone(module.PrimaryActor.Position, 0, _shape.Radius, _slamDir - _slamDirIncrement * 3 / 2, 45.Degrees(), ComponentType.SafeFromAOE);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

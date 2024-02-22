@@ -83,7 +83,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             {
                 foreach (var p in _portals)
                 {
-                    arena.AddCircle(dir > 0 ? p.s : p.n, 1, ArenaColor.Safe, 2);
+                    arena.AddCircle(dir > 0 ? p.s : p.n, 1, ComponentType.Safe, 2);
                 }
             }
         }

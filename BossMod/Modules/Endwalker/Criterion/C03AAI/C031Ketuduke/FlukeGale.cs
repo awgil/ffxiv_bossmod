@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var c in SafeZones(pcSlot))
-                _safeZone.Draw(arena, c, default, ArenaColor.SafeFromAOE);
+                _safeZone.Draw(arena, c, default, ComponentType.SafeFromAOE);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

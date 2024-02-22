@@ -71,12 +71,12 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
             {
                 _increment = 180.Degrees();
                 Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.9f, 2, 1));
-                ImminentColor = ArenaColor.AOE;
+                ImminentType = ComponentType.AOE;
             }
             if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
             {
                 Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.3f, 4));
-                ImminentColor = ArenaColor.Danger;
+                ImminentType = ComponentType.Danger;
             }
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -169,23 +169,23 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy, true);
             foreach (var s in Enemies(OID.BossAdd))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ComponentType.ActorObject, false);
             foreach (var s in Enemies(OID.GymnasticEggplant))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ComponentType.ActorVulnerable, false);
             foreach (var s in Enemies(OID.GymnasticTomato))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ComponentType.ActorVulnerable, false);
             foreach (var s in Enemies(OID.GymnasticQueen))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ComponentType.ActorVulnerable, false);
             foreach (var s in Enemies(OID.GymnasticGarlic))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ComponentType.ActorVulnerable, false);
             foreach (var s in Enemies(OID.GymnasticOnion))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ComponentType.ActorVulnerable, false);
             foreach (var s in Enemies(OID.BonusAdds_Lampas))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ComponentType.ActorVulnerable, false);
             foreach (var s in Enemies(OID.BonusAdds_Lyssa))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ComponentType.ActorVulnerable, false);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

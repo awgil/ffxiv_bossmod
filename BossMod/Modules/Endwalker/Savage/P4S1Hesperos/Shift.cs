@@ -30,13 +30,13 @@
         {
             if (_cloakCaster != null)
             {
-                arena.AddCircle(_cloakCaster.Position, 5, ArenaColor.Safe);
+                arena.AddCircle(_cloakCaster.Position, 5, ComponentType.Safe);
 
                 var adjPos = Components.Knockback.AwayFromSource(pc.Position, _cloakCaster, _knockbackRange);
                 if (adjPos != pc.Position)
                 {
-                    arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-                    arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
+                    arena.AddLine(pc.Position, adjPos, ComponentType.Danger);
+                    arena.Actor(adjPos, pc.Rotation, ComponentType.Danger);
                 }
             }
         }

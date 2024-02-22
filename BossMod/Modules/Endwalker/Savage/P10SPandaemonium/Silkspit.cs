@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaBackground(module, pcSlot, pc, arena);
-            arena.Actors(_pillars, ArenaColor.Object, true);
+            arena.Actors(_pillars, ComponentType.ActorObject, true);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

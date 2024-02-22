@@ -31,7 +31,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
             var converter1 = module.Enemies(OID.Converter).FirstOrDefault();
             var convertertargetable = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
             if (converter1 != null && convertertargetable != null)
-                arena.AddCircle(converter1.Position, 1.4f, ArenaColor.Safe);
+                arena.AddCircle(converter1.Position, 1.4f, ComponentType.Safe);
         }
     }
 }

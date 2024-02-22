@@ -37,17 +37,17 @@ namespace UIDev
 
             _arena.Begin((float)(Math.PI * _azimuth / 180));
             if (_coneEnabled)
-                _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), ArenaColor.Safe);
-            _arena.Border(ArenaColor.Border);
+                _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), ComponentType.Safe);
+            _arena.Border(ComponentType.Border);
             if (_lineEnabled)
-                _arena.AddLine(new(_lineEnds.X, _lineEnds.Y), new(_lineEnds.Z, _lineEnds.W), 0xffff0000);
+                _arena.AddLine(new(_lineEnds.X, _lineEnds.Y), new(_lineEnds.Z, _lineEnds.W), ComponentType.TetherMoveToward);
             if (_kbContourEnabled)
             {
                 foreach (var p in KBContour())
                     _arena.PathLineTo(p);
-                _arena.PathStroke(true, 0xffff00ff);
+                _arena.PathStroke(true, ComponentType.ActorVulnerable);
             }
-            _arena.Actor(new(_playerPos), 0.Degrees(), 0xff00ff00);
+            _arena.Actor(new(_playerPos), 0.Degrees(), ComponentType.ActorYou);
             _arena.End();
 
             // arena config

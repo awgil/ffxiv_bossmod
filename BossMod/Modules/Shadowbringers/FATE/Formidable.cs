@@ -133,8 +133,8 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         {
             foreach (var m in _activeMissiles)
             {
-                arena.Actor(m, ArenaColor.Object, true);
-                arena.AddCircle(m.Position, 6, ArenaColor.Danger);
+                arena.Actor(m, ComponentType.ActorObject, true);
+                arena.AddCircle(m.Position, 6, ComponentType.Danger);
             }
         }
 

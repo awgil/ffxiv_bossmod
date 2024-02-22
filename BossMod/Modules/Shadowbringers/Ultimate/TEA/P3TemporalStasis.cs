@@ -40,7 +40,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             }
 
             if (movementHints != null)
-                movementHints.Add(actor.Position, SafeSpot(module, slot, actor), ArenaColor.Safe);
+                movementHints.Add(actor.Position, SafeSpot(module, slot, actor), ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -51,17 +51,17 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             {
                 case Mechanic.StayClose:
                     if (FindPartner(module, pcSlot) is var partner1 && partner1 != null)
-                        arena.AddLine(pc.Position, partner1.Position, (partner1.Position - pc.Position).LengthSq() > 5 * 5 ? ArenaColor.Danger : ArenaColor.Safe);
+                        arena.AddLine(pc.Position, partner1.Position, (partner1.Position - pc.Position).LengthSq() > 5 * 5 ? ComponentType.Danger : ComponentType.Safe);
                     break;
                 case Mechanic.StayFar:
                     if (FindPartner(module, pcSlot) is var partner2 && partner2 != null)
-                        arena.AddLine(pc.Position, partner2.Position, (partner2.Position - pc.Position).LengthSq() < 30 * 30 ? ArenaColor.Danger : ArenaColor.Safe);
+                        arena.AddLine(pc.Position, partner2.Position, (partner2.Position - pc.Position).LengthSq() < 30 * 30 ? ComponentType.Danger : ComponentType.Safe);
                     break;
             }
 
-            arena.Actor(BJ(module), ArenaColor.Enemy, true);
-            arena.Actor(CC(module), ArenaColor.Enemy, true);
-            arena.AddCircle(SafeSpot(module, pcSlot, pc), 1, ArenaColor.Safe);
+            arena.Actor(BJ(module), ComponentType.ActorEnemy, true);
+            arena.Actor(CC(module), ComponentType.ActorEnemy, true);
+            arena.AddCircle(SafeSpot(module, pcSlot, pc), 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

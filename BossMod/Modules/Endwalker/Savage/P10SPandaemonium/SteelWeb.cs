@@ -36,18 +36,18 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
 
     class SteelWebTethers : BossComponent
     {
-        private List<(Actor from, Actor to, uint color)> _webs = new();
+        private List<(Actor from, Actor to, ComponentType type)> _webs = new();
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var w in _webs)
-                arena.AddLine(w.from.Position, w.to.Position, w.color);
+                arena.AddLine(w.from.Position, w.to.Position, w.type);
         }
 
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             if ((TetherID)tether.ID is TetherID.Web or TetherID.WebFail && module.WorldState.Actors.Find(tether.Target) is var target && target != null)
-                _webs.Add((source, target, (TetherID)tether.ID == TetherID.Web ? ArenaColor.Danger : ArenaColor.Enemy));
+                _webs.Add((source, target, (TetherID)tether.ID == TetherID.Web ? ComponentType.Danger : ComponentType.ActorEnemy));
         }
 
         public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)

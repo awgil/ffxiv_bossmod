@@ -41,13 +41,13 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
             foreach (var s in RotatedSnakes(module))
                 _snakeAOE.Draw(arena, s.Item1, s.Item2);
             foreach (var c in _fireLine)
-                arena.ZoneTri(module.Bounds.Center + c, RotatedPosition(module, c), module.Bounds.Center, ArenaColor.AOE);
+                arena.ZoneTri(module.Bounds.Center + c, RotatedPosition(module, c), module.Bounds.Center, ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_fireLine.Count == 2)
-                arena.AddLine(module.Bounds.Center + _fireLine[0], module.Bounds.Center + _fireLine[1], ArenaColor.Danger);
+                arena.AddLine(module.Bounds.Center + _fireLine[0], module.Bounds.Center + _fireLine[1], ComponentType.Danger);
         }
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)

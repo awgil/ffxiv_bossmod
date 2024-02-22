@@ -26,9 +26,9 @@
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
+            arena.AddCircle(pc.Position, _radius, ComponentType.Danger);
             foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
         }
     }
 }

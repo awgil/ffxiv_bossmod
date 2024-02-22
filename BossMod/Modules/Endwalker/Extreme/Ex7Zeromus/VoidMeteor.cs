@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
                 hints.Add("GTFO from charges!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return SourceIfActive(playerSlot) != null ? PlayerPriority.Interesting : PlayerPriority.Normal;
         }
@@ -55,14 +55,14 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             {
                 ref var state = ref _playerStates.AsSpan()[pcSlot];
                 state.DangerZone ??= arena.Bounds.ClipAndTriangulate(new Clip2D().Union(_meteors.Select(m => BuildShadowPolygon(source.Position, m))));
-                arena.Zone(state.DangerZone, ArenaColor.AOE);
+                arena.Zone(state.DangerZone, ComponentType.AOE);
             }
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var m in _meteors)
-                arena.AddCircle(m, _radius, ArenaColor.Object);
+                arena.AddCircle(m, _radius, ComponentType.ActorObject);
 
             foreach (var (slot, target) in module.Raid.WithSlot(true))
             {
@@ -76,15 +76,15 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
                         arena.PathArcTo(target.Position, 2, (rot + 90.Degrees()).Rad, (rot - 90.Degrees()).Rad);
                         arena.PathLineTo(source.Position - norm);
                         arena.PathLineTo(source.Position + norm);
-                        arena.PathStroke(true, _playerStates[slot].NonClipping ? ArenaColor.Safe : ArenaColor.Danger, thickness);
-                        arena.AddLine(source.Position, target.Position, _playerStates[slot].Stretched ? ArenaColor.Safe : ArenaColor.Danger, thickness);
+                        arena.PathStroke(true, _playerStates[slot].NonClipping ? ComponentType.Safe : ComponentType.Danger, thickness);
+                        arena.AddLine(source.Position, target.Position, _playerStates[slot].Stretched ? ComponentType.Safe : ComponentType.Danger, thickness);
                     }
                 }
             }
 
             // circle showing approximate min stretch distance; for second order, we might be forced to drop meteor there and die to avoid wipe
             if (SourceIfActive(pcSlot) is var pcSource && pcSource != null)
-                arena.AddCircle(pcSource.Position, 26, ArenaColor.Danger);
+                arena.AddCircle(pcSource.Position, 26, ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

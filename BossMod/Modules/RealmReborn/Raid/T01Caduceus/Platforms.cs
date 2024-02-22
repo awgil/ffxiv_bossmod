@@ -118,9 +118,9 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (int i in (ActivePlatforms ^ AllPlatforms).SetBits())
-                arena.AddPolygon(PlatformPoly(i), ArenaColor.Border);
+                arena.AddPolygon(PlatformPoly(i), ComponentType.Border);
             foreach (int i in ActivePlatforms.SetBits())
-                arena.AddPolygon(PlatformPoly(i), ArenaColor.Enemy);
+                arena.AddPolygon(PlatformPoly(i), ComponentType.ActorEnemy);
         }
 
         public override void OnActorEState(BossModule module, Actor actor, ushort state)

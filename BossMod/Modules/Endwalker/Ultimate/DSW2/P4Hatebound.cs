@@ -28,9 +28,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             foreach (var o in _orbs.Where(o => !o.exploded))
             {
-                arena.Actor(o.orb, ArenaColor.Object, true);
+                arena.Actor(o.orb, ComponentType.ActorObject, true);
                 if (OrbReady(o.orb))
-                    arena.AddCircle(o.orb.Position, 6, _playerColors[pcSlot] == Color.Red ? ArenaColor.Safe : ArenaColor.Danger);
+                    arena.AddCircle(o.orb.Position, 6, _playerColors[pcSlot] == Color.Red ? ComponentType.Safe : ComponentType.Danger);
             }
         }
 
@@ -96,7 +96,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _baiters[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Normal;
         }
@@ -107,7 +107,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             foreach (var (slot, player) in module.Raid.WithSlot(true).IncludedInMask(_baiters))
             {
                 bool canSwap = pcCanSwap && _forbidden[slot];
-                arena.AddCircle(player.Position, _radius, canSwap ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(player.Position, _radius, canSwap ? ComponentType.Safe : ComponentType.Danger);
             }
         }
 

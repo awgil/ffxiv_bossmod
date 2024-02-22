@@ -11,14 +11,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null && IsSpreadTarget(actor) && SafeSpot(module) is var safespot && safespot != default)
-                movementHints.Add(actor.Position, safespot, ArenaColor.Safe);
+                movementHints.Add(actor.Position, safespot, ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (IsSpreadTarget(pc) && SafeSpot(module) is var safespot && safespot != default)
-                arena.AddCircle(safespot, 1, ArenaColor.Safe);
+                arena.AddCircle(safespot, 1, ComponentType.Safe);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -52,14 +52,14 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             base.AddHints(module, slot, actor, hints, movementHints);
             if (movementHints != null && SafeSpot(module, actor) is var safespot && safespot != default)
-                movementHints.Add(actor.Position, safespot, ArenaColor.Safe);
+                movementHints.Add(actor.Position, safespot, ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (SafeSpot(module, pc) is var safespot && safespot != default)
-                arena.AddCircle(safespot, 1, ArenaColor.Safe);
+                arena.AddCircle(safespot, 1, ComponentType.Safe);
         }
 
         private WPos SafeSpot(BossModule module, Actor actor)
@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             base.AddHints(module, slot, actor, hints, movementHints);
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return Targets[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -157,13 +157,13 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 return;
             hints.Add("Prepare for divebomb!", false);
             if (movementHints != null)
-                movementHints.Add(actor.Position, SafeSpot(module), ArenaColor.Safe);
+                movementHints.Add(actor.Position, SafeSpot(module), ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_target == pc)
-                arena.AddCircle(SafeSpot(module), 1, ArenaColor.Safe);
+                arena.AddCircle(SafeSpot(module), 1, ComponentType.Safe);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -215,7 +215,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (Casters.Count == 0 && KnowPosition)
-                arena.AddCircle(_predicted, 6, ArenaColor.Safe, 2);
+                arena.AddCircle(_predicted, 6, ComponentType.Safe, 2);
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)

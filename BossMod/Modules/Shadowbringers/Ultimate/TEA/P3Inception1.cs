@@ -47,14 +47,14 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
                 {
                     if (!sphere.IsDead)
                     {
-                        arena.Actor(sphere, ArenaColor.Object, true);
-                        arena.AddLine(sphere.Position, player.Position, slot == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
-                        arena.AddCircle(player.Position, _sphereRadius, ArenaColor.Danger);
+                        arena.Actor(sphere, ComponentType.ActorObject, true);
+                        arena.AddLine(sphere.Position, player.Position, slot == pcSlot ? ComponentType.Safe : ComponentType.Danger);
+                        arena.AddCircle(player.Position, _sphereRadius, ComponentType.Danger);
                     }
                 }
                 else if (!CrystalsDone)
                 {
-                    arena.AddCircle(player.Position, _crystalRadius, ArenaColor.Danger);
+                    arena.AddCircle(player.Position, _crystalRadius, ComponentType.Danger);
                 }
             }
 
@@ -63,15 +63,15 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
             {
                 if (!pcSphere.IsDead)
                 {
-                    arena.AddCircle(_assignedPositions[pcSlot], 1, ArenaColor.Safe);
+                    arena.AddCircle(_assignedPositions[pcSlot], 1, ComponentType.Safe);
                 }
             }
             else if (!CrystalsDone)
             {
-                arena.AddCircle(_assignedPositions[pcSlot] + new WDir(-5, -5), 1, ArenaColor.Safe);
-                arena.AddCircle(_assignedPositions[pcSlot] + new WDir(-5, +5), 1, ArenaColor.Safe);
-                arena.AddCircle(_assignedPositions[pcSlot] + new WDir(+5, -5), 1, ArenaColor.Safe);
-                arena.AddCircle(_assignedPositions[pcSlot] + new WDir(+5, +5), 1, ArenaColor.Safe);
+                arena.AddCircle(_assignedPositions[pcSlot] + new WDir(-5, -5), 1, ComponentType.Safe);
+                arena.AddCircle(_assignedPositions[pcSlot] + new WDir(-5, +5), 1, ComponentType.Safe);
+                arena.AddCircle(_assignedPositions[pcSlot] + new WDir(+5, -5), 1, ComponentType.Safe);
+                arena.AddCircle(_assignedPositions[pcSlot] + new WDir(+5, +5), 1, ComponentType.Safe);
             }
         }
 

@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         private Actor? _memberWithSOT = null; // if not null, then every update exploding cells are recalculated based on this raid member's position
         private Cell _explodingCells = Cell.None;
 
-        private static uint _colorSOTActor = 0xff8080ff;
+        private static ComponentType _typeSOTActor = ComponentType.ActorA;
 
         public bool SOTActive => _memberWithSOT != null;
 
@@ -42,8 +42,8 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             var start = _explodingCells == Cell.Blue ? 0.Degrees() : 45.Degrees();
             for (int i = 0; i < 4; ++i)
             {
-                arena.ZoneCone(module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
-                arena.ZoneCone(module.Bounds.Center, P1S.InnerCircleRadius, module.Bounds.HalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
+                arena.ZoneCone(module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ComponentType.AOE);
+                arena.ZoneCone(module.Bounds.Center, P1S.InnerCircleRadius, module.Bounds.HalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), ComponentType.AOE);
                 start += 90.Degrees();
             }
         }
@@ -51,7 +51,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_memberWithSOT != pc)
-                arena.Actor(_memberWithSOT, _colorSOTActor);
+                arena.Actor(_memberWithSOT, _typeSOTActor);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

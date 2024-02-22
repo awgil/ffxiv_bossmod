@@ -27,8 +27,8 @@
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.ZoneDonut(module.Bounds.Center, _radius, 25, ArenaColor.AOE);
-            arena.ZoneDonut(module.Bounds.Center, _radius - _ringWidth, _radius, ArenaColor.SafeFromAOE);
+            arena.ZoneDonut(module.Bounds.Center, _radius, 25, ComponentType.AOE);
+            arena.ZoneDonut(module.Bounds.Center, _radius - _ringWidth, _radius, ComponentType.SafeFromAOE);
         }
     }
 

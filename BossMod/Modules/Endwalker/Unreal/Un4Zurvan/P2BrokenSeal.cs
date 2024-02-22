@@ -45,7 +45,7 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
                 hints.Add("Soak the tower!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _playerStates[pcSlot].Color != Color.None && _playerStates[pcSlot].Partner == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
@@ -59,13 +59,13 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
             var partner = state.Color != Color.None && state.Partner >= 0 ? module.Raid[state.Partner] : null;
             if (partner != null)
             {
-                arena.AddLine(pc.Position, partner.Position, state.Color == Color.Fire ? 0xff0080ff : 0xffff8000, state.TooFar ? 2 : 1);
+                arena.AddLine(pc.Position, partner.Position, state.Color == Color.Fire ? ComponentType.TetherMoveAway : ComponentType.TetherMoveToward, state.TooFar ? 2 : 1);
             }
 
             foreach (var t in _fireTowers)
-                arena.AddCircle(t.Position, 2, state.Color == Color.Fire ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(t.Position, 2, state.Color == Color.Fire ? ComponentType.Safe : ComponentType.Danger);
             foreach (var t in _iceTowers)
-                arena.AddCircle(t.Position, 2, state.Color == Color.Ice ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(t.Position, 2, state.Color == Color.Ice ? ComponentType.Safe : ComponentType.Danger);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

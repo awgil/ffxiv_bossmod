@@ -20,9 +20,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Actors(_razor, ArenaColor.Enemy);
-            arena.Actors(_spiny, ArenaColor.Enemy);
-            arena.Actors(_satin, ArenaColor.Enemy);
+            arena.Actors(_razor, ComponentType.ActorEnemy);
+            arena.Actors(_spiny, ComponentType.ActorEnemy);
+            arena.Actors(_satin, ComponentType.ActorEnemy);
         }
     }
 }

@@ -164,7 +164,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             base.DrawEnemies(pcSlot, pc);
-            Arena.Actors(Enemies(OID.Cavalry), ArenaColor.Enemy);
+            Arena.Actors(Enemies(OID.Cavalry), ComponentType.ActorEnemy);
         }
     }
 }

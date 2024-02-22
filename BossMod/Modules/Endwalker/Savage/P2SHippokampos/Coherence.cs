@@ -77,17 +77,17 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
             {
                 if (head?.Tether.Target == player.InstanceID)
                 {
-                    arena.AddLine(player.Position, module.PrimaryActor.Position, ArenaColor.Danger);
-                    arena.Actor(player, ArenaColor.Danger);
-                    arena.AddCircle(player.Position, _aoeRadius, ArenaColor.Danger);
+                    arena.AddLine(player.Position, module.PrimaryActor.Position, ComponentType.Danger);
+                    arena.Actor(player, ComponentType.Danger);
+                    arena.AddCircle(player.Position, _aoeRadius, ComponentType.Danger);
                 }
                 else if (player == _rayTarget)
                 {
-                    arena.Actor(player, ArenaColor.Danger);
+                    arena.Actor(player, ComponentType.Danger);
                 }
                 else if (player != _tetherTarget)
                 {
-                    arena.Actor(player, _inRay[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(player, _inRay[i] ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
                 }
             }
         }

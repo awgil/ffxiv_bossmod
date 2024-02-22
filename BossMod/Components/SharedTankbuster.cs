@@ -54,7 +54,7 @@ namespace BossMod.Components
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return Target == player ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }

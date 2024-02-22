@@ -50,9 +50,9 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             base.DrawEnemies(pcSlot, pc);
-            Arena.Actors(_monks, ArenaColor.Enemy);
-            Arena.Actors(_ballsEarth, ArenaColor.Object);
-            Arena.Actors(_ballsFire, ArenaColor.Object);
+            Arena.Actors(_monks, ComponentType.ActorEnemy);
+            Arena.Actors(_ballsEarth, ComponentType.ActorObject);
+            Arena.Actors(_ballsFire, ComponentType.ActorObject);
         }
     }
 }

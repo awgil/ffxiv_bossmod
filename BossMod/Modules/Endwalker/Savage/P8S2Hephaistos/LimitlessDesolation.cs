@@ -38,7 +38,7 @@ namespace BossMod.Endwalker.Savage.P8S2
 
             var towerIndex = _towerAssignments[pcSlot];
             if (towerIndex >= 0)
-                arena.AddCircle(module.Bounds.Center + _towerOffsets[towerIndex], _towerRadius, ArenaColor.Safe, 2);
+                arena.AddCircle(module.Bounds.Center + _towerOffsets[towerIndex], _towerRadius, ComponentType.Safe, 2);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

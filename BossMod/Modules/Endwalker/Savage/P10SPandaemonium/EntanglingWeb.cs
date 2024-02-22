@@ -38,9 +38,9 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Actors(_pillars, ArenaColor.Object, true);
+            arena.Actors(_pillars, ComponentType.ActorObject, true);
             foreach (var t in _targets)
-                arena.AddCircle(t.Position, _radius, ArenaColor.Danger);
+                arena.AddCircle(t.Position, _radius, ComponentType.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

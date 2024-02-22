@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return Target(module)?.InstanceID == player.InstanceID ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (Target(module) is var target && target != default)
-                _shape.Draw(arena, Origin(module, target), default, pc.InstanceID == target.InstanceID ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+                _shape.Draw(arena, Origin(module, target), default, pc.InstanceID == target.InstanceID ? ComponentType.SafeFromAOE : ComponentType.AOE);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

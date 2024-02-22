@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.Savage.P11SThemis
                 if (_aoes.Count > 0)
                     _aoes.RemoveAt(0);
                 if (_aoes.Count > 2)
-                    _aoes.AsSpan()[2].Color = ArenaColor.Danger;
+                    _aoes.AsSpan()[2].Type = ComponentType.Danger;
             }
         }
 
@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Savage.P11SThemis
                 for (int i = 0; i < 8; ++i)
                 {
                     var offset = 13 * (startingAngle + i * rotation).ToDirection();
-                    var color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE;
+                    var color = i == 0 ? ComponentType.Danger : ComponentType.AOE;
                     _aoes.Add(new(_shape, module.Bounds.Center, default, module.WorldState.CurrentTime.AddSeconds(7.1f + i * 1.1f), color));
                     _aoes.Add(new(_shape, module.Bounds.Center + offset, default, module.WorldState.CurrentTime.AddSeconds(7.1f + i * 1.1f), color));
                     _aoes.Add(new(_shape, module.Bounds.Center - offset, default, module.WorldState.CurrentTime.AddSeconds(7.1f + i * 1.1f), color));

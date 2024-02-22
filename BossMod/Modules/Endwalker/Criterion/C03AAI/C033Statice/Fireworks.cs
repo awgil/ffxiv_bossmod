@@ -22,8 +22,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
         {
             if (TetheredAdds[pcSlot] is var add && add != null)
             {
-                arena.Actor(add, ArenaColor.Object, true);
-                arena.AddLine(add.Position, pc.Position, ArenaColor.Danger);
+                arena.Actor(add, ComponentType.ActorObject, true);
+                arena.AddLine(add.Position, pc.Position, ComponentType.Danger);
             }
             base.DrawArenaForeground(module, pcSlot, pc, arena);
         }
@@ -81,7 +81,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
             {
                 var partner = module.Raid[_chains.WithoutBit(pcSlot).LowestSetBit()];
                 if (partner != null)
-                    arena.AddLine(pc.Position, partner.Position, ArenaColor.Safe, 1);
+                    arena.AddLine(pc.Position, partner.Position, ComponentType.Safe, 1);
             }
         }
 
@@ -134,7 +134,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
             {
                 if (s.RemainingExplosions > 0)
                 {
-                    yield return new(_shape, module.Bounds.Center, s.NextRotation, s.NextActivation, ArenaColor.Danger);
+                    yield return new(_shape, module.Bounds.Center, s.NextRotation, s.NextActivation, ComponentType.Danger);
                 }
             }
         }
@@ -284,12 +284,12 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
             {
                 var safeSpots = (OID)add.OID is OID.NSurprisingClaw or OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
                 foreach (var p in safeSpots)
-                    arena.AddCircle(p, 1, ArenaColor.Safe);
+                    arena.AddCircle(p, 1, ComponentType.Safe);
             }
             else
             {
                 foreach (var p in _safeSpotsClaw)
-                    arena.AddCircle(p, 1, ArenaColor.Enemy);
+                    arena.AddCircle(p, 1, ComponentType.ActorEnemy);
             }
         }
 
@@ -325,12 +325,12 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
             if (_fireworks?.Spreads.Count > 0)
             {
                 foreach (var dir in SafeSpots(module, pcSlot, pc))
-                    arena.AddCircle(module.Bounds.Center + 19 * dir.ToDirection(), 1, ArenaColor.Safe);
+                    arena.AddCircle(module.Bounds.Center + 19 * dir.ToDirection(), 1, ComponentType.Safe);
             }
             else if (_relNorth != null)
             {
                 // show rel north before assignments are done
-                arena.AddCircle(module.Bounds.Center + 19 * _relNorth.Value.ToDirection(), 1, ArenaColor.Enemy);
+                arena.AddCircle(module.Bounds.Center + 19 * _relNorth.Value.ToDirection(), 1, ComponentType.ActorEnemy);
             }
         }
 

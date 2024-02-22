@@ -41,7 +41,7 @@
             Arena.PathLineTo(new(-45.5f, 297));
             Arena.PathLineTo(new(-34, 271.5f));
             Arena.PathLineTo(new(-37, 245));
-            Arena.PathStroke(true, ArenaColor.Border);
+            Arena.PathStroke(true, ComponentType.Border);
         }
     }
 }

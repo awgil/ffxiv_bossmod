@@ -45,7 +45,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
                 hints.Add("About to be knocked off platform!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return ImminentTurretsWithTargets(module).Any(t => t.target == player) ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }
@@ -54,13 +54,13 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         {
             foreach (var t in ImminentTurretsWithTargets(module))
             {
-                arena.Actor(t.source, ArenaColor.Enemy, true);
+                arena.Actor(t.source, ComponentType.ActorEnemy, true);
                 if (t.source != null && t.target != null)
                     _shape.Outline(arena, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position));
             }
 
             foreach (var t in FutureTurrets())
-                arena.Actor(t, ArenaColor.Object, true);
+                arena.Actor(t, ComponentType.ActorObject, true);
 
             base.DrawArenaForeground(module, pcSlot, pc, arena);
         }

@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             if (!IsSpreadTarget(pc))
                 foreach (var t in ActiveTowers(_second[pcSlot]))
-                    arena.AddCircle(t.Position, _towerRadius, ArenaColor.Safe, 2);
+                    arena.AddCircle(t.Position, _towerRadius, ComponentType.Safe, 2);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

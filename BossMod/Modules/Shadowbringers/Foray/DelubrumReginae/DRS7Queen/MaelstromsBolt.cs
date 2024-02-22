@@ -21,12 +21,12 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
         {
             foreach (var b in _ballLightnings.Where(b => !b.IsDead))
             {
-                arena.Actor(b, ArenaColor.Object, true);
-                arena.AddCircle(b.Position, 8, ArenaColor.Object);
+                arena.Actor(b, ComponentType.ActorObject, true);
+                arena.AddCircle(b.Position, 8, ComponentType.ActorObject);
             }
             foreach (var d in _domes)
             {
-                arena.AddCircle(d.Position, 8, ArenaColor.Safe);
+                arena.AddCircle(d.Position, 8, ComponentType.Safe);
             }
         }
     }

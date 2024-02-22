@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var s in EnumerateSafeSpots(module, pcSlot))
-                arena.AddCircle(s, 1, ArenaColor.Safe);
+                arena.AddCircle(s, 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

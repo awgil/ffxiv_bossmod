@@ -45,10 +45,10 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
         {
             foreach (var g in _ghosts)
             {
-                arena.Actor(g, ArenaColor.Object, true);
+                arena.Actor(g, ComponentType.ActorObject, true);
                 var target = module.WorldState.Actors.Find(g.Tether.Target);
                 if (target != null)
-                    arena.AddLine(g.Position, target.Position, ArenaColor.Danger);
+                    arena.AddLine(g.Position, target.Position, ComponentType.Danger);
             }
         }
 

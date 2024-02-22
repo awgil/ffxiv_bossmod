@@ -92,9 +92,9 @@
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
             foreach (var claw in Enemies(OID.MagitekDeathClaw))
-                Arena.Actor(claw, ArenaColor.Danger);
+                Arena.Actor(claw, ComponentType.Danger);
         }
     }
 }

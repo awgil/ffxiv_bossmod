@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             foreach (var t in _activeTowerOffsets)
             {
                 var origin = module.Bounds.Center + t;
-                arena.AddCircle(origin, _radius, module.Raid.WithoutSlot().InRadius(origin, _radius).Any() ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(origin, _radius, module.Raid.WithoutSlot().InRadius(origin, _radius).Any() ? ComponentType.Safe : ComponentType.Danger);
             }
         }
 

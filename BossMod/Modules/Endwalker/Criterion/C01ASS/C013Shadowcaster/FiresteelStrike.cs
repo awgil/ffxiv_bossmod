@@ -34,10 +34,10 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             if (NumJumps < 2)
-                return base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref customColor);
+                return base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref type);
             else if (NumCleaves < _jumpTargets.Count)
                 return player == _jumpTargets[NumCleaves] ? PlayerPriority.Danger : PlayerPriority.Normal;
             else
@@ -49,7 +49,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             if (NumJumps >= 2 && NumCleaves < _jumpTargets.Count)
             {
                 var target = _jumpTargets[NumCleaves];
-                _cleaveShape.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), target == pc || _interceptors.Contains(pc) ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+                _cleaveShape.Draw(arena, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), target == pc || _interceptors.Contains(pc) ? ComponentType.SafeFromAOE : ComponentType.AOE);
             }
         }
 

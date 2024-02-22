@@ -60,7 +60,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                 if (target != null && target.Position != bird.Position)
                 {
                     var dir = (target.Position - bird.Position).Normalized();
-                    arena.ZoneRect(bird.Position, dir, 50, 0, _chargeHalfWidth, ArenaColor.AOE);
+                    arena.ZoneRect(bird.Position, dir, 50, 0, _chargeHalfWidth, ComponentType.AOE);
                 }
             }
         }
@@ -72,14 +72,14 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
 
             // draw all players
             foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                arena.Actor(player, _playersInAOE[i] ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
 
             // draw my tether
             var myBird = module.Enemies(OID.Sunshadow).Find(bird => BirdTarget(bird) == pc.InstanceID);
             if (myBird != null && !_chargedSunshadows.Contains(myBird.InstanceID))
             {
-                arena.AddLine(myBird.Position, pc.Position, myBird.Tether.ID != (uint)TetherID.LargeBirdFar ? ArenaColor.Danger : ArenaColor.Safe);
-                arena.Actor(myBird, ArenaColor.Enemy);
+                arena.AddLine(myBird.Position, pc.Position, myBird.Tether.ID != (uint)TetherID.LargeBirdFar ? ComponentType.Danger : ComponentType.Safe);
+                arena.Actor(myBird, ComponentType.ActorEnemy);
             }
         }
 

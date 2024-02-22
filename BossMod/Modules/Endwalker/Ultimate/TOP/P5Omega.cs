@@ -145,14 +145,14 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (_boss != null)
-                _shape.Draw(arena, _boss.Position, _boss.Rotation + _bossAngle, ArenaColor.AOE);
+                _shape.Draw(arena, _boss.Position, _boss.Rotation + _bossAngle, ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var p in SafeSpots(module, pcSlot, pc))
-                arena.AddCircle(p, 1, ArenaColor.Safe);
+                arena.AddCircle(p, 1, ComponentType.Safe);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -222,7 +222,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         {
             base.DrawArenaForeground(module, pcSlot, pc, arena);
             foreach (var p in SafeSpots(module, pcSlot, pc))
-                arena.AddCircle(p, 1, ArenaColor.Safe);
+                arena.AddCircle(p, 1, ComponentType.Safe);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

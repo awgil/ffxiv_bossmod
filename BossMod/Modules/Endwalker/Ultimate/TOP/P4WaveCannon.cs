@@ -64,18 +64,18 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 hints.Add(clips == 0 ? "Share the stack!" : "GTFO from second stack!");
 
             if (movementHints != null && SafeDir(slot) is var safeDir && safeDir != default)
-                movementHints.Add(actor.Position, module.Bounds.Center + 12 * safeDir.ToDirection(), ArenaColor.Safe);
+                movementHints.Add(actor.Position, module.Bounds.Center + 12 * safeDir.ToDirection(), ComponentType.Safe);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (Imminent)
                 foreach (var (_, p) in module.Raid.WithSlot(true).IncludedInMask(_targets))
-                    _shape.Outline(arena, module.Bounds.Center, Angle.FromDirection(p.Position - module.Bounds.Center), ArenaColor.Safe);
+                    _shape.Outline(arena, module.Bounds.Center, Angle.FromDirection(p.Position - module.Bounds.Center), ComponentType.Safe);
 
             var safeDir = SafeDir(pcSlot);
             if (safeDir != default)
-                arena.AddCircle(module.Bounds.Center + 12 * safeDir.ToDirection(), 1, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + 12 * safeDir.ToDirection(), 1, ComponentType.Safe);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

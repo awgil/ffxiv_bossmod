@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             };
             if (rot != default)
             {
-                _aoes.Add(new(_aoe, caster.Position, spell.Rotation + rot, spell.FinishAt.AddSeconds(0.8f), ArenaColor.Danger));
+                _aoes.Add(new(_aoe, caster.Position, spell.Rotation + rot, spell.FinishAt.AddSeconds(0.8f), ComponentType.Danger));
                 _aoes.Add(new(_aoe, caster.Position, spell.Rotation - rot, spell.FinishAt.AddSeconds(1.8f)));
                 _aoes.Add(new(_aoe, caster.Position, spell.Rotation + 180.Degrees(), spell.FinishAt.AddSeconds(2.8f)));
             }
@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 if (_aoes.Count > 0)
                     _aoes.RemoveAt(0);
                 if (_aoes.Count > 0)
-                    _aoes.AsSpan()[0].Color = ArenaColor.Danger;
+                    _aoes.AsSpan()[0].Type = ComponentType.Danger;
             }
         }
     }

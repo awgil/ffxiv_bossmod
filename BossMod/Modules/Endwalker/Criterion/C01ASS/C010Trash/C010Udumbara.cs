@@ -77,8 +77,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.NSapria), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.NSapria), ComponentType.ActorEnemy);
         }
     }
 
@@ -89,8 +89,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.SSapria), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.SSapria), ComponentType.ActorEnemy);
         }
     }
 }

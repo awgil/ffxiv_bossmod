@@ -37,15 +37,15 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
             if (_target == null)
                 return;
 
-            arena.AddCircle(_target.Position, _aoeRadius, ArenaColor.Danger);
+            arena.AddCircle(_target.Position, _aoeRadius, ComponentType.Danger);
             if (pc == _target)
             {
                 foreach (var a in module.Raid.WithoutSlot().Exclude(pc))
-                    arena.Actor(a, a.Position.InCircle(_target.Position, _aoeRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                    arena.Actor(a, a.Position.InCircle(_target.Position, _aoeRadius) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
             }
             else
             {
-                arena.Actor(_target, ArenaColor.Danger);
+                arena.Actor(_target, ComponentType.Danger);
             }
         }
 

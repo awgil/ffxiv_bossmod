@@ -27,7 +27,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 hints.Add("GTFO from neurolink!");
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _targets[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         }
@@ -35,13 +35,13 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var o in _orbs.Where(o => !o.IsDead))
-                arena.ZoneCircle(o.Position, 1, ArenaColor.AOE);
+                arena.ZoneCircle(o.Position, 1, ComponentType.AOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             foreach (var neurolink in _neurolinks)
-                arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? ArenaColor.Safe : ArenaColor.Danger);
+                arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? ComponentType.Safe : ComponentType.Danger);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

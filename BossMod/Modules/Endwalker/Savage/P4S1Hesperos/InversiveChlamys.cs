@@ -111,12 +111,12 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
             {
                 bool failing = failingPlayers[i];
                 bool inAOE = _tetherInAOE[i];
-                arena.Actor(player, failing ? ArenaColor.Danger : (inAOE ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
+                arena.Actor(player, failing ? ComponentType.Danger : (inAOE ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric));
 
                 if (player.Tether.ID == (uint)TetherID.Chlamys)
                 {
-                    arena.AddLine(player.Position, module.PrimaryActor.Position, failing ? ArenaColor.Danger : ArenaColor.Safe);
-                    arena.AddCircle(player.Position, _aoeRange, ArenaColor.Danger);
+                    arena.AddLine(player.Position, module.PrimaryActor.Position, failing ? ComponentType.Danger : ComponentType.Safe);
+                    arena.AddCircle(player.Position, _aoeRange, ComponentType.Danger);
                 }
             }
         }

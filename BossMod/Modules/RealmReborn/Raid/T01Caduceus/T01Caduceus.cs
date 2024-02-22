@@ -98,7 +98,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Actor(Clone, ArenaColor.Enemy);
+            arena.Actor(Clone, ComponentType.ActorEnemy);
         }
     }
 

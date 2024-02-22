@@ -69,24 +69,24 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
                     {
                         if (player.Role == Role.Healer)
                         {
-                            arena.Actor(player, ArenaColor.Danger);
-                            arena.AddCircle(player.Position, _waterRadius, ArenaColor.Safe);
+                            arena.Actor(player, ComponentType.Danger);
+                            arena.AddCircle(player.Position, _waterRadius, ComponentType.Safe);
                         }
                         else
                         {
-                            arena.Actor(player, ArenaColor.PlayerGeneric);
+                            arena.Actor(player, ComponentType.PlayerGeneric);
                         }
                     }
                     break;
                 case Element.Earth:
-                    arena.AddCircle(pc.Position, _earthRadius, ArenaColor.Safe);
+                    arena.AddCircle(pc.Position, _earthRadius, ComponentType.Safe);
                     foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(player, player.Position.InCircle(pc.Position, _earthRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                        arena.Actor(player, player.Position.InCircle(pc.Position, _earthRadius) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
                     break;
                 case Element.Ice:
-                    arena.AddCircle(pc.Position, _iceRadius, ArenaColor.Danger);
+                    arena.AddCircle(pc.Position, _iceRadius, ComponentType.Danger);
                     foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                        arena.Actor(player, player.Position.InCircle(pc.Position, _iceRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                        arena.Actor(player, player.Position.InCircle(pc.Position, _iceRadius) ? ComponentType.PlayerInteresting : ComponentType.PlayerGeneric);
                     break;
             }
         }

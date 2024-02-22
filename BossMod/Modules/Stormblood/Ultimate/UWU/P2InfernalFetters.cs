@@ -5,7 +5,7 @@
         public BitMask Fetters;
         private int _fettersStrength;
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return Fetters[playerSlot] ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
         }
@@ -17,7 +17,7 @@
                 var from = module.Raid[Fetters.LowestSetBit()];
                 var to = module.Raid[Fetters.HighestSetBit()];
                 if (from != null && to != null)
-                    arena.AddLine(from.Position, to.Position, _fettersStrength > 1 ? ArenaColor.Danger : ArenaColor.Safe);
+                    arena.AddLine(from.Position, to.Position, _fettersStrength > 1 ? ComponentType.Danger : ComponentType.Safe);
             }
         }
 

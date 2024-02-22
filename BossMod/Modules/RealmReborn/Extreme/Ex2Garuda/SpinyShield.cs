@@ -33,7 +33,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
         {
             var shield = ActiveShield;
             if (shield != null)
-                arena.ZoneCircle(shield.Position, _radius, ArenaColor.SafeFromAOE);
+                arena.ZoneCircle(shield.Position, _radius, ComponentType.SafeFromAOE);
         }
     }
 }

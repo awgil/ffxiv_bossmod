@@ -42,7 +42,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
                 // see whether there is a safezone for two contiguous aoes
                 var mid = dir.ToDirection() + _aoes.Last().Rotation.ToDirection(); // length should be either ~sqrt(2) or ~0
                 if (mid.LengthSq() > 1)
-                    _safezones.Add(new(_shapeSafe, actor.Position, Angle.FromDirection(-mid), new(), ArenaColor.SafeFromAOE, false));
+                    _safezones.Add(new(_shapeSafe, actor.Position, Angle.FromDirection(-mid), new(), ComponentType.SafeFromAOE, false));
                 else
                     _safezones.Add(null);
             }

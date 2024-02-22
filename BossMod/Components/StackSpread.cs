@@ -157,13 +157,13 @@ namespace BossMod.Components
             }
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             var shouldSpread = IsSpreadTarget(player);
             var shouldStack = IsStackTarget(player);
             var shouldAvoid = !shouldSpread && !shouldStack && ActiveStacks.Any(s => s.ForbiddenPlayers[playerSlot]);
             if (shouldAvoid)
-                customColor = ArenaColor.Vulnerable;
+                type = ComponentType.ActorVulnerable;
             return shouldAvoid || shouldSpread ? PlayerPriority.Danger
                 : shouldStack ? PlayerPriority.Interesting
                 : Active ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
@@ -174,15 +174,15 @@ namespace BossMod.Components
             if (!AlwaysShowSpreads && Spreads.FindIndex(s => s.Target == pc) is var iSpread && iSpread >= 0)
             {
                 // draw only own circle - no one should be inside, this automatically resolves mechanic for us
-                arena.AddCircle(pc.Position, Spreads[iSpread].Radius, ArenaColor.Danger);
+                arena.AddCircle(pc.Position, Spreads[iSpread].Radius, ComponentType.Danger);
             }
             else
             {
                 // draw spread and stack circles
                 foreach (var s in ActiveStacks)
-                    arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Safe);
+                    arena.AddCircle(s.Target.Position, s.Radius, ComponentType.Safe);
                 foreach (var s in ActiveSpreads)
-                    arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Danger);
+                    arena.AddCircle(s.Target.Position, s.Radius, ComponentType.Danger);
             }
         }
     }

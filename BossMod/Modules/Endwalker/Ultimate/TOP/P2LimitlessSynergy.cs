@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Actor(_source, ArenaColor.Object, true);
+            arena.Actor(_source, ComponentType.ActorObject, true);
             base.DrawArenaForeground(module, pcSlot, pc, arena);
         }
 

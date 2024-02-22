@@ -14,7 +14,7 @@
             if (doubleOffset == new WDir())
                 return;
 
-            arena.AddCircle(module.Bounds.Center + 9 * doubleOffset, 2, ArenaColor.Safe);
+            arena.AddCircle(module.Bounds.Center + 9 * doubleOffset, 2, ComponentType.Safe);
         }
     }
 }

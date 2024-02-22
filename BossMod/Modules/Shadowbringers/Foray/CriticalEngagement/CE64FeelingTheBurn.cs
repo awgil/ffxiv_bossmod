@@ -202,7 +202,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             base.DrawEnemies(pcSlot, pc);
-            Arena.Actors(Escorts, ArenaColor.Enemy);
+            Arena.Actors(Escorts, ComponentType.ActorEnemy);
         }
     }
 }

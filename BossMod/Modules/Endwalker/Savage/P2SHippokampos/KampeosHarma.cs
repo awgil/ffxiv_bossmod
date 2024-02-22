@@ -17,7 +17,7 @@
                 hints.Add("Go to safe zone!");
                 if (movementHints != null)
                 {
-                    movementHints.Add(actor.Position, safePos.Value, ArenaColor.Danger);
+                    movementHints.Add(actor.Position, safePos.Value, ComponentType.Danger);
                 }
             }
         }
@@ -26,7 +26,7 @@
         {
             var pos = GetSafeZone(module, pcSlot);
             if (pos != null)
-                arena.AddCircle(pos.Value, 1, ArenaColor.Safe);
+                arena.AddCircle(pos.Value, 1, ComponentType.Safe);
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

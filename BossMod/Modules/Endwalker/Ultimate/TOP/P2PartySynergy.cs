@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
             {
                 var distSq = (partner.Position - pc.Position).LengthSq();
                 var range = DistanceRange;
-                arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ArenaColor.Danger : ArenaColor.Safe);
+                arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ComponentType.Danger : ComponentType.Safe);
             }
         }
 
@@ -175,10 +175,10 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            arena.Actor(_source, ArenaColor.Object, true);
+            arena.Actor(_source, ComponentType.ActorObject, true);
             var pos = AssignedPosition(module, pcSlot);
             if (pos != default)
-                arena.AddCircle(module.Bounds.Center + pos, 1, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + pos, 1, ComponentType.Safe);
         }
 
         private WDir AssignedPosition(BossModule module, int slot)
@@ -251,7 +251,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         {
             var pos = AssignedPosition(module, pcSlot);
             if (pos != default)
-                arena.AddCircle(module.Bounds.Center + pos, 1, ArenaColor.Safe);
+                arena.AddCircle(module.Bounds.Center + pos, 1, ComponentType.Safe);
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)

@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
                 yield return new(_shape, origin.Position, Angle.FromDirection(target.Item2.Position - origin.Position));
         }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref ComponentType type)
         {
             return _targets[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
         }

@@ -31,7 +31,7 @@ namespace BossMod.Components
         public List<Tower> Towers = new();
 
         // default tower styling
-        public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe) => arena.AddCircle(pos, radius, safe ? ArenaColor.Safe : ArenaColor.Danger, 2);
+        public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe) => arena.AddCircle(pos, radius, safe ? ComponentType.Safe : ComponentType.Danger, 2);
 
         public GenericTowers(ActionID aid = default) : base(aid) { }
 

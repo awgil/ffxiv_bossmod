@@ -55,7 +55,7 @@ namespace BossMod
             {
                 foreach (var p in Bounds.ClipPoly)
                     PathLineTo(p);
-                PathFillConvex(ArenaColor.Background);
+                PathFillConvex(ComponentType.Background);
             }
         }
 
@@ -83,66 +83,66 @@ namespace BossMod
         }
 
         // unclipped primitive rendering that accept world-space positions; thin convenience wrappers around drawlist api
-        public void AddLine(WPos a, WPos b, uint color, float thickness = 1)
+        public void AddLine(WPos a, WPos b, ComponentType componentType, float thickness = 1)
         {
-            ImGui.GetWindowDrawList().AddLine(WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), color, thickness);
+            ImGui.GetWindowDrawList().AddLine(WorldPositionToScreenPosition(a), WorldPositionToScreenPosition(b), ArenaColor.ForType(componentType), thickness);
         }
 
-        public void AddTriangle(WPos p1, WPos p2, WPos p3, uint color, float thickness = 1)
+        public void AddTriangle(WPos p1, WPos p2, WPos p3, ComponentType componentType, float thickness = 1)
         {
-            ImGui.GetWindowDrawList().AddTriangle(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), color, thickness);
+            ImGui.GetWindowDrawList().AddTriangle(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), ArenaColor.ForType(componentType), thickness);
         }
 
-        public void AddTriangleFilled(WPos p1, WPos p2, WPos p3, uint color)
+        public void AddTriangleFilled(WPos p1, WPos p2, WPos p3, ComponentType componentType)
         {
-            ImGui.GetWindowDrawList().AddTriangleFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), color);
+            ImGui.GetWindowDrawList().AddTriangleFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), ArenaColor.ForType(componentType));
         }
 
-        public void AddQuad(WPos p1, WPos p2, WPos p3, WPos p4, uint color, float thickness = 1)
+        public void AddQuad(WPos p1, WPos p2, WPos p3, WPos p4, ComponentType componentType, float thickness = 1)
         {
-            ImGui.GetWindowDrawList().AddQuad(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), WorldPositionToScreenPosition(p4), color, thickness);
+            ImGui.GetWindowDrawList().AddQuad(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), WorldPositionToScreenPosition(p4), ArenaColor.ForType(componentType), thickness);
         }
 
-        public void AddQuadFilled(WPos p1, WPos p2, WPos p3, WPos p4, uint color)
+        public void AddQuadFilled(WPos p1, WPos p2, WPos p3, WPos p4, ComponentType componentType)
         {
-            ImGui.GetWindowDrawList().AddQuadFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), WorldPositionToScreenPosition(p4), color);
+            ImGui.GetWindowDrawList().AddQuadFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), WorldPositionToScreenPosition(p4), ArenaColor.ForType(componentType));
         }
 
-        public void AddCircle(WPos center, float radius, uint color, float thickness = 1)
+        public void AddCircle(WPos center, float radius, ComponentType componentType, float thickness = 1)
         {
-            ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, color, 0, thickness);
+            ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, ArenaColor.ForType(componentType), 0, thickness);
         }
 
-        public void AddCircleFilled(WPos center, float radius, uint color)
+        public void AddCircleFilled(WPos center, float radius, ComponentType componentType)
         {
-            ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, color);
+            ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, ArenaColor.ForType(componentType));
         }
 
-        public void AddCone(WPos center, float radius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
+        public void AddCone(WPos center, float radius, Angle centerDirection, Angle halfAngle, ComponentType componentType, float thickness = 1)
         {
             var sCenter = WorldPositionToScreenPosition(center);
             float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
             var drawlist = ImGui.GetWindowDrawList();
             drawlist.PathLineTo(sCenter);
             drawlist.PathArcTo(sCenter, radius / Bounds.HalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
-            drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
+            drawlist.PathStroke(ArenaColor.ForType(componentType), ImDrawFlags.Closed, thickness);
         }
 
-        public void AddDonutCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
+        public void AddDonutCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, ComponentType componentType, float thickness = 1)
         {
             var sCenter = WorldPositionToScreenPosition(center);
             float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
             var drawlist = ImGui.GetWindowDrawList();
             drawlist.PathArcTo(sCenter, innerRadius / Bounds.HalfSize * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
             drawlist.PathArcTo(sCenter, outerRadius / Bounds.HalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
-            drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
+            drawlist.PathStroke(ArenaColor.ForType(componentType), ImDrawFlags.Closed, thickness);
         }
 
-        public void AddPolygon(IEnumerable<WPos> vertices, uint color, float thickness = 1)
+        public void AddPolygon(IEnumerable<WPos> vertices, ComponentType componentType, float thickness = 1)
         {
             foreach (var p in vertices)
                 PathLineTo(p);
-            PathStroke(true, color, thickness);
+            PathStroke(true, componentType, thickness);
         }
 
         // path api: add new point to path; this adds new edge from last added point, or defines first vertex if path is empty
@@ -157,56 +157,56 @@ namespace BossMod
             ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth, MathF.PI / 2 - amax + _cameraAzimuth);
         }
 
-        public void PathStroke(bool closed, uint color, float thickness = 1)
+        public void PathStroke(bool closed, ComponentType componentType, float thickness = 1)
         {
-            ImGui.GetWindowDrawList().PathStroke(color, closed ? ImDrawFlags.Closed : ImDrawFlags.None, thickness);
+            ImGui.GetWindowDrawList().PathStroke(ArenaColor.ForType(componentType), closed ? ImDrawFlags.Closed : ImDrawFlags.None, thickness);
         }
 
-        public void PathFillConvex(uint color)
+        public void PathFillConvex(ComponentType componentType)
         {
-            ImGui.GetWindowDrawList().PathFillConvex(color);
+            ImGui.GetWindowDrawList().PathFillConvex(ArenaColor.ForType(componentType));
         }
 
         // draw clipped & triangulated zone
-        public void Zone(List<(WPos, WPos, WPos)> triangulation, uint color)
+        public void Zone(List<(WPos, WPos, WPos)> triangulation, ComponentType componentType)
         {
             var drawlist = ImGui.GetWindowDrawList();
             var restoreFlags = drawlist.Flags;
             drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
             foreach (var (p1, p2, p3) in triangulation)
-                drawlist.AddTriangleFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), color);
+                drawlist.AddTriangleFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), ArenaColor.ForType(componentType));
             drawlist.Flags = restoreFlags;
         }
 
         // draw zones - these are filled primitives clipped to various borders
-        public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color) => Zone(Bounds.ClipAndTriangulateCone(center, innerRadius, outerRadius, centerDirection, halfAngle), color);
-        public void ZoneCircle(WPos center, float radius, uint color) => Zone(Bounds.ClipAndTriangulateCircle(center, radius), color);
-        public void ZoneDonut(WPos center, float innerRadius, float outerRadius, uint color) => Zone(Bounds.ClipAndTriangulateDonut(center, innerRadius, outerRadius), color);
-        public void ZoneTri(WPos a, WPos b, WPos c, uint color) => Zone(Bounds.ClipAndTriangulateTri(a, b, c), color);
-        public void ZoneIsoscelesTri(WPos apex, WDir height, WDir halfBase, uint color) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex, height, halfBase), color);
-        public void ZoneIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height, uint color) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex, direction, halfAngle, height), color);
-        public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), color);
-        public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), color);
-        public void ZoneRect(WPos start, WPos end, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(start, end, halfWidth), color);
+        public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateCone(center, innerRadius, outerRadius, centerDirection, halfAngle), componentType);
+        public void ZoneCircle(WPos center, float radius, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateCircle(center, radius), componentType);
+        public void ZoneDonut(WPos center, float innerRadius, float outerRadius, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateDonut(center, innerRadius, outerRadius), componentType);
+        public void ZoneTri(WPos a, WPos b, WPos c, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateTri(a, b, c), componentType);
+        public void ZoneIsoscelesTri(WPos apex, WDir height, WDir halfBase, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex, height, halfBase), componentType);
+        public void ZoneIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex, direction, halfAngle, height), componentType);
+        public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), componentType);
+        public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), componentType);
+        public void ZoneRect(WPos start, WPos end, float halfWidth, ComponentType componentType) => Zone(Bounds.ClipAndTriangulateRect(start, end, halfWidth), componentType);
 
-        public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
+        public void TextScreen(Vector2 center, string text, ComponentType componentType, float fontSize = 17)
         {
             var size = ImGui.CalcTextSize(text) * Config.ArenaScale;
-            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize * Config.ArenaScale, center - size / 2, color, text);
+            ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize * Config.ArenaScale, center - size / 2, ArenaColor.ForType(componentType), text);
         }
 
-        public void TextWorld(WPos center, string text, uint color, float fontSize = 17)
+        public void TextWorld(WPos center, string text, ComponentType componentType, float fontSize = 17)
         {
-            TextScreen(WorldPositionToScreenPosition(center), text, color, fontSize);
+            TextScreen(WorldPositionToScreenPosition(center), text, componentType, fontSize);
         }
 
         // high level utilities
         // draw arena border
-        public void Border(uint color)
+        public void Border(ComponentType componentType)
         {
             foreach (var p in Bounds.ClipPoly)
                 PathLineTo(p);
-            PathStroke(true, color, 2);
+            PathStroke(true, componentType, 2);
         }
 
         public void CardinalNames()
@@ -214,38 +214,38 @@ namespace BossMod
             var offCenter = ScreenHalfSize + ScreenMarginSize / 2;
             var offS = RotatedCoords(new(0, offCenter));
             var offE = RotatedCoords(new(offCenter, 0));
-            TextScreen(ScreenCenter - offS, "N", ArenaColor.Border);
-            TextScreen(ScreenCenter + offS, "S", ArenaColor.Border);
-            TextScreen(ScreenCenter + offE, "E", ArenaColor.Border);
-            TextScreen(ScreenCenter - offE, "W", ArenaColor.Border);
+            TextScreen(ScreenCenter - offS, "N", ComponentType.Border);
+            TextScreen(ScreenCenter + offS, "S", ComponentType.Border);
+            TextScreen(ScreenCenter + offE, "E", ComponentType.Border);
+            TextScreen(ScreenCenter - offE, "W", ComponentType.Border);
         }
 
         // draw actor representation
-        public void Actor(WPos position, Angle rotation, uint color)
+        public void Actor(WPos position, Angle rotation, ComponentType componentType)
         {
             var dir = rotation.ToDirection();
             var normal = dir.OrthoR();
             if (Bounds.Contains(position))
             {
-                AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
+                AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, componentType);
             }
             else
             {
                 position = Bounds.ClampToBounds(position);
-                AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
+                AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, componentType);
             }
         }
 
-        public void Actor(Actor? actor, uint color, bool allowDeadAndUntargetable = false)
+        public void Actor(Actor? actor, ComponentType componentType, bool allowDeadAndUntargetable = false)
         {
             if (actor != null && !actor.IsDestroyed && (allowDeadAndUntargetable || actor.IsTargetable && !actor.IsDead))
-                Actor(actor.Position, actor.Rotation, color);
+                Actor(actor.Position, actor.Rotation, componentType);
         }
 
-        public void Actors(IEnumerable<Actor> actors, uint color, bool allowDeadAndUntargetable = false)
+        public void Actors(IEnumerable<Actor> actors, ComponentType componentType, bool allowDeadAndUntargetable = false)
         {
             foreach (var a in actors)
-                Actor(a, color, allowDeadAndUntargetable);
+                Actor(a, componentType, allowDeadAndUntargetable);
         }
 
         public void End()

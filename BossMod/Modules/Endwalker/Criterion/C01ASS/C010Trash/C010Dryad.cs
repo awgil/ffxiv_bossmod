@@ -77,8 +77,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.NOdqan), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.NOdqan), ComponentType.ActorEnemy);
         }
     }
 
@@ -89,8 +89,8 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            Arena.Actors(Enemies(OID.SOdqan), ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ComponentType.ActorEnemy);
+            Arena.Actors(Enemies(OID.SOdqan), ComponentType.ActorEnemy);
         }
     }
 }
