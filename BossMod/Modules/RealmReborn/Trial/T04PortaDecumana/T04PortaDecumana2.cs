@@ -45,27 +45,11 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         Ultima = 29024, // Boss->self, 71.0s cast, enrage
     };
 
-    class AethericBoom : Components.Knockback
+    class AethericBoom : Components.KnockbackFromCastTarget
     {
-        private bool active;
-        private DateTime _activation;
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-             if (active)
-                yield return new(module.PrimaryActor.Position, 20 - (actor.Position - module.Bounds.Center).Length(), _activation);
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.AethericBoom)
-            {
-                _activation = spell.FinishAt;
-                active = true;
-            }
-        }
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.AethericBoom)
-                active = false;
+        public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), 20) 
+        { 
+            StopAtWall = true;
         }
     }
 
@@ -220,26 +204,10 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         }
     }
 
-class Ultima : BossComponent
-{
-    private bool casting;
-    private DateTime enragestart;
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    class Ultima : Components.Enrage
     {
-        if ((AID)spell.Action.ID == AID.Ultima)
-        {
-            casting = true;
-            enragestart = module.WorldState.CurrentTime;
-        }
+        public Ultima() : base(ActionID.MakeSpell(AID.Ultima), 72) { }
     }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
-    {
-        if (casting && !module.PrimaryActor.IsDead)
-            hints.Add($"Enrage! {Math.Max(72 - (module.WorldState.CurrentTime - enragestart).TotalSeconds, 0.0f):f1}s left.");
-    }
-}
 
     class T04PortaDecumana2States : StateMachineBuilder
     {
