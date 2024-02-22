@@ -284,7 +284,7 @@ class DynasticFlame : BaitAwayTethers
     }
 }
 
-class SkyrendingStrike : Enrage
+class SkyrendingStrike : EnrageCastHint
 {
     public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), 35) { }
 }
