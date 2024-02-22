@@ -284,23 +284,7 @@ class DynasticFlame : BaitAwayTethers
     }
 }
 
-class SkyrendingStrike : BossComponent
+class SkyrendingStrike : Enrage
 {
-    private bool casting;
-    private DateTime enragestart;
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.SkyrendingStrike)
-        {
-            casting = true;
-            enragestart = module.WorldState.CurrentTime;
-        }
-    }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
-    {
-        if (casting && module.PrimaryActor.IsTargetable)
-            hints.Add($"Enrage! {Math.Max(35 - (module.WorldState.CurrentTime - enragestart).TotalSeconds, 0.0f):f1}s left.");
-    }
+    public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), 35) { }
 }
