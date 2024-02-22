@@ -43,11 +43,13 @@
 
         AutoAttackP2 = 9908, // NaelDeusDarnus->player, no cast, single-target
         BahamutsClaw = 9909, // NaelDeusDarnus->player, no cast, single-target, 5-hit tankbuster
+        Ravensbeak = 9910, // NaelDeusDarnus->player, 4.0s cast, single-target, tankbuster forcing swap
         Heavensfall = 9912, // Helper->self, no cast, range 80 circle, knockback 11 from center
         ThermionicBurst = 9913, // Helper->self, 3.0s cast, range 24+R 22.5-degree cone
         IronChariot = 9915, // NaelDeusDarnus->self, no cast, range 6+R circle aoe
         LunarDynamo = 9916, // NaelDeusDarnus->self, no cast, range ?-22 donut aoe
         ThermionicBeam = 9917, // NaelDeusDarnus->players, no cast, range 4 circle stack
+        RavenDive = 9918, // NaelDeusDarnus->players, no cast, range 3 circle, knockback 50 on secondary targets
         MeteorStream = 9920, // NaelGeminus->players, no cast, range 4 circle
         DalamudDive = 9921, // NaelDeusDarnus->location, no cast, range 5 circle tankbuster
         BahamutsFavor = 9922, // NaelDeusDarnus->self, 3.0s cast, single-target, visual (damage-up on self, spawn dragons)
@@ -57,6 +59,14 @@
         ChainLightningAOE = 9928, // Helper->self, no cast, ???, paralysis on targets within radius 5 except main target
         Deathstorm = 9929, // TailOfDarkness->self, no cast, ???, applies dooms on 2-3 players
         WingsOfSalvation = 9930, // FangOfLight->location, 3.0s cast, range 4 circle aoe that leaves cleanse voidzone
+    };
+
+    public enum SID : uint
+    {
+        Doom = 210, // none->player, extra=0x0
+        Firescorched = 464, // Firehorn->player, extra=0x0
+        Icebitten = 465, // Iceclaw->player, extra=0x0
+        Thunderstruck = 466, // none->player, extra=0x0
     };
 
     public enum TetherID : uint
