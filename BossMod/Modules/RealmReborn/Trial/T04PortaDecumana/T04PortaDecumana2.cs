@@ -41,7 +41,7 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         CitadelBuster = 29020, // Boss->self, 5.0s cast, range 40 width 12 rect aoe
         Explosion = 29021, // Helper->self, 7.0s cast, raidwide with ? falloff
 
-        unknown = 28542, // Helper->self, no cast, range 40 circle - apply damage up buff?..
+        BlessingOfLight = 28542, // Helper->self, no cast, range 40 circle - initiates the Prayer of Light/Blessing of Light buff sequence
         Ultima = 29024, // Boss->self, 71.0s cast, enrage
     };
 
@@ -220,6 +220,27 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         }
     }
 
+class Ultima : BossComponent
+{
+    private bool casting;
+    private DateTime enragestart;
+
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.Ultima)
+        {
+            casting = true;
+            enragestart = module.WorldState.CurrentTime;
+        }
+    }
+
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    {
+        if (casting && module.PrimaryActor.IsTargetable)
+            hints.Add($"Enrage! {Math.Max(72 - (module.WorldState.CurrentTime - enragestart).TotalSeconds, 0.0f):f1}s left.");
+    }
+}
+
     class T04PortaDecumana2States : StateMachineBuilder
     {
         public T04PortaDecumana2States(BossModule module) : base(module)
@@ -237,7 +258,8 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
                 .ActivateOnEnter<OrbsAI>()
                 .ActivateOnEnter<AethericBoom>()
                 .ActivateOnEnter<OrbsHint>()
-                .ActivateOnEnter<Explosion>();
+                .ActivateOnEnter<Explosion>()
+                .ActivateOnEnter<Ultima>();
         }
     }
 
