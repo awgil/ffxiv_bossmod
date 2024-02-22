@@ -80,6 +80,7 @@ namespace BossMod
             Service.Config.LoadFromFile(dalamud.ConfigFile);
             Service.Config.Modified += (_, _) => Service.Config.SaveToFile(dalamud.ConfigFile);
 
+            BossModIPC.Initialize();
             ActionManagerEx.Instance = new(); // needs config
 
             _commandManager = commandManager;
@@ -129,6 +130,7 @@ namespace BossMod
             _autorotation.Dispose();
             _ws.Dispose();
             ActionManagerEx.Instance?.Dispose();
+            BossModIPC.Dispose();
             _commandManager.RemoveHandler("/vbm");
         }
 
