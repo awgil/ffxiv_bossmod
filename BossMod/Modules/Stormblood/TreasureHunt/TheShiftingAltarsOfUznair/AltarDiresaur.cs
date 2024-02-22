@@ -159,7 +159,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BossAdd))
-                Arena.Actor(s, ArenaColor.Vulnerable);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.BonusAdd_GoldWhisker))
                 Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))

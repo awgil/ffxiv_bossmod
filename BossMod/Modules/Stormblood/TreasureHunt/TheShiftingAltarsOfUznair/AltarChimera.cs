@@ -134,7 +134,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BossAdd))
-                Arena.Actor(s, ArenaColor.Vulnerable);
+                Arena.Actor(s, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
