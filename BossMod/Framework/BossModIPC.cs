@@ -5,7 +5,7 @@ namespace BossMod
     {
         private static Autorotation _auto;
 
-        internal unsafe static void Initialize(Autorotation autorotation)
+        internal static void Initialize(Autorotation autorotation)
         {
             Service.PluginInterface.GetIpcProvider<bool>("BossMod.IsMoving").RegisterFunc(IsMoving);
             Service.PluginInterface.GetIpcProvider<int>("BossMod.ForbiddenZonesCount").RegisterFunc(ForbiddenZonesCount);
