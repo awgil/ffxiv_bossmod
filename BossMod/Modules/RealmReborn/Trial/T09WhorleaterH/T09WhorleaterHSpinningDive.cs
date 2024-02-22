@@ -38,9 +38,12 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         private Actor? SpinningDiveHelper;
         private bool dived;
         private readonly AOEShapeRect rect = new(46, 8);
+        public SpinningDiveKB()
+        { 
+            StopAtWall = true;
+        }
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-            StopAtWall = true;
             SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
             if (SpinningDiveHelper != null && !dived)
                 yield return new(SpinningDiveHelper.Position, 10, _activation, rect, SpinningDiveHelper.Rotation);
