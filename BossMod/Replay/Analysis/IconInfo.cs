@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using Lumina.Excel.GeneratedSheets2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,9 +42,10 @@ namespace BossMod.ReplayAnalysis
                 var name = _iidType?.GetEnumName(kv.Key);
                 return new($"{kv.Key} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);
             };
-            foreach (var (tid, data) in tree.Nodes(_data, map))
+            foreach (var (iid, data) in tree.Nodes(_data, map))
             {
                 tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
+                tree.LeafNode($"VFX: {Service.LuminaRow<Lockon>(iid)?.Unknown0}");
             }
         }
 
