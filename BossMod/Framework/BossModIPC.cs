@@ -16,6 +16,7 @@ namespace BossMod
         internal static void Dispose()
         {
             Service.PluginInterface.GetIpcProvider<bool>("BossMod.IsMoving").UnregisterFunc();
+            Service.PluginInterface.GetIpcProvider<int>("BossMod.ForbiddenZonesCount").UnregisterFunc();
         }
 
         private static bool IsMoving()
