@@ -1,4 +1,5 @@
-﻿using BossMod.Pathfinding;
+﻿using BossMod.IPC;
+using BossMod.Pathfinding;
 using ImGuiNET;
 using System;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace BossMod.AI
         private Autorotation _autorot;
         private AIController _ctrl;
         private AIConfig _config;
+        private BossModIPC _ipc;
         private NavigationDecision _naviDecision;
         private bool _forbidMovement;
         private bool _forbidActions;
@@ -26,10 +28,12 @@ namespace BossMod.AI
             _autorot = autorot;
             _ctrl = ctrl;
             _config = Service.Config.Get<AIConfig>();
+            _ipc = new(Service.PluginInterface, autorot);
         }
 
         public void Dispose()
         {
+            _ipc.Dispose();
         }
 
         public void Execute(Actor player, Actor master)
@@ -179,9 +183,11 @@ namespace BossMod.AI
                 _ctrl.NaviTargetVertical = null;
                 _ctrl.ForceCancelCast = true;
                 _ctrl.ForceFacing = true;
+                _ipc.Moving = false;
             }
             else
             {
+                _ipc.Moving = true;
                 var toDest = _naviDecision.Destination != null ? _naviDecision.Destination.Value - player.Position : new();
                 var distSq = toDest.LengthSq();
                 _ctrl.NaviTargetPos = _naviDecision.Destination;

@@ -1,4 +1,5 @@
-﻿using Dalamud.Common;
+﻿using BossMod.IPC;
+using Dalamud.Common;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
@@ -49,6 +50,7 @@ namespace BossMod
         private AI.AIManager _ai;
         private AI.Broadcast _broadcast;
         private TimeSpan _prevUpdateTime;
+        private BossModIPC _ipc;
 
         // windows
         private BossModuleMainWindow _wndBossmod;
@@ -67,6 +69,7 @@ namespace BossMod
             var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
 
             dalamud.Create<Service>();
+            Service.Init(dalamud);
             Service.LogHandler = (string msg) => Service.Logger.Debug(msg);
             Service.LuminaGameData = Service.DataManager.GameData;
             Service.WindowSystem = new("vbm");
@@ -103,6 +106,7 @@ namespace BossMod
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);
             _broadcast = new();
+            _ipc = new(dalamud, _autorotation);
 
             _wndBossmod = new(_bossmod);
             _wndBossmodPlan = new(_bossmod);
@@ -128,6 +132,7 @@ namespace BossMod
             _ai.Dispose();
             _autorotation.Dispose();
             _ws.Dispose();
+            _ipc.Dispose();
             ActionManagerEx.Instance?.Dispose();
             _commandManager.RemoveHandler("/vbm");
         }

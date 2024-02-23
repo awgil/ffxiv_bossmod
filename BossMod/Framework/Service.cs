@@ -2,6 +2,7 @@
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System;
 
@@ -10,6 +11,7 @@ namespace BossMod
     public class Service
     {
 #pragma warning disable CS8618
+        [PluginService] public static DalamudPluginInterface PluginInterface { get; private set; }
         [PluginService] public static IPluginLog Logger { get; private set; }
         [PluginService] public static IDataManager DataManager { get; private set; }
         [PluginService] public static IClientState ClientState { get; private set; }
@@ -43,5 +45,23 @@ namespace BossMod
         public static ConfigRoot Config = new();
 
         //public static SharpDX.Direct3D11.Device? Device = null;
+
+        internal static bool IsInitialized = false;
+        public static void Init(DalamudPluginInterface pi)
+        {
+            if (IsInitialized)
+            {
+                Logger.Debug("Services already initialized, skipping");
+            }
+            IsInitialized = true;
+            try
+            {
+                pi.Create<Service>();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error initalising {nameof(Service)}", ex);
+            }
+        }
     }
 }
