@@ -4,7 +4,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
 {
     class P2Heavensfall : Components.Knockback
     {
-        public P2Heavensfall() : base(ActionID.MakeSpell(AID.Heavensfall)) { } // TODO: verify whether it ignores immunes
+        public P2Heavensfall() : base(ActionID.MakeSpell(AID.Heavensfall), true) { }
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
