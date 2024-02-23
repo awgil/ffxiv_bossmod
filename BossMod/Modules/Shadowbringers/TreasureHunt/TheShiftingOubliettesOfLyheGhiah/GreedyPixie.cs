@@ -17,7 +17,6 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
         SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
         BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
         BonusAdd_FuathTrickster = 0x3033, // R0.750
-
     };
 
     public enum AID : uint
@@ -31,6 +30,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
         BushBash2 = 21683, // Boss->self, 5,0s cast, range 12 circle
         NatureCall = 22780, // PixieDouble->self, 7,0s cast, range 30 120-degree cone, turns player into a plant
         NatureCall2 = 21685, // Boss->self, 5,0s cast, range 30 120-degree cone, turns player into a plant
+
         Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
         TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
         HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle

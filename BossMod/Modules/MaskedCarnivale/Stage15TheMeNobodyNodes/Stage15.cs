@@ -53,11 +53,18 @@ namespace BossMod.MaskedCarnivale.Stage15
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (casting2)
-                yield return new(cone1, module.PrimaryActor.Position, _rotation, _activation1);
-            if (casting3)
+            {
+                yield return new(cone1, module.PrimaryActor.Position, _rotation, _activation1, ArenaColor.Danger);
                 yield return new(cone2, module.PrimaryActor.Position, _rotation, _activation2);
-            if (casting4)
                 yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3);
+            }
+            if (casting3 && !casting2)
+            {
+                yield return new(cone2, module.PrimaryActor.Position, _rotation, _activation2, ArenaColor.Danger);
+                yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3);
+            }
+            if (casting4 && !casting3)
+                yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3, ArenaColor.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
