@@ -50,6 +50,8 @@ namespace BossMod.Components
             if (from != to)
             {
                 arena.Actor(to, rot, ArenaColor.Danger);
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddLine(from, to, 0xFF000000, 2);
                 arena.AddLine(from, to, ArenaColor.Danger);
             }
         }
