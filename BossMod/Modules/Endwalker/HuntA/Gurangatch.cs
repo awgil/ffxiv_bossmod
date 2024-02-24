@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntA.Gurangatch
+﻿namespace BossMod.Endwalker.HuntA.Gurangatch
 {
     public enum OID : uint
     {
@@ -31,25 +28,21 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            var increment = (AID)spell.Action.ID switch
-            {
-                AID.OctupleSlammerLCW or AID.OctupleSlammerRCW => 90.Degrees(),
-                AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW => -90.Degrees(),
-                AID.LeftHammerSlammer or AID.RightHammerSlammer => 180.Degrees(),
-                _ => default
-            };
             switch ((AID)spell.Action.ID)
             {
                 case AID.OctupleSlammerLCW:
                 case AID.OctupleSlammerRCW:
+                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, 90.Degrees(), spell.FinishAt, 3.7f, 8));
+                    ImminentColor = ArenaColor.Danger;
+                    break;
                 case AID.OctupleSlammerLCCW:
                 case AID.OctupleSlammerRCCW:
-                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, increment, spell.FinishAt, 3.7f, 8));
+                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, -90.Degrees(), spell.FinishAt, 3.7f, 8));
                     ImminentColor = ArenaColor.Danger;
                     break;
                 case AID.LeftHammerSlammer:
                 case AID.RightHammerSlammer:
-                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, increment, spell.FinishAt, 3.6f, 2, 1));
+                    Sequences.Add(new(_shape, caster.Position, spell.Rotation, 180.Degrees(), spell.FinishAt, 3.6f, 2, 1));
                     ImminentColor = ArenaColor.AOE;
                     break;
             }
@@ -57,22 +50,11 @@ namespace BossMod.Endwalker.HuntA.Gurangatch
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (Sequences.Count > 0)
-                switch ((AID)spell.Action.ID)
-                {
-                    case AID.LeftHammerSlammer:
-                    case AID.RightHammerSlammer:
-                    case AID.LeftHammerSecond:
-                    case AID.RightHammerSecond:
-                    case AID.OctupleSlammerLCW:
-                    case AID.OctupleSlammerRCW:
-                    case AID.OctupleSlammerRestL:
-                    case AID.OctupleSlammerRestR:
-                    case AID.OctupleSlammerLCCW:
-                    case AID.OctupleSlammerRCCW:
-                        AdvanceSequence(0, module.WorldState.CurrentTime);
-                        break;
-                }
+            if (Sequences.Count > 0 && caster == module.PrimaryActor && (AID)spell.Action.ID is AID.LeftHammerSlammer or AID.RightHammerSlammer or AID.LeftHammerSecond or AID.RightHammerSecond
+                or AID.OctupleSlammerLCW or AID.OctupleSlammerRCW or AID.OctupleSlammerRestL or AID.OctupleSlammerRestR or AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW)
+            {
+                AdvanceSequence(0, module.WorldState.CurrentTime);
+            }
         }
     }
 

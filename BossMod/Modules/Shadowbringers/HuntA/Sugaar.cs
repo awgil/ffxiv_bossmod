@@ -41,21 +41,20 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
 
     class NumbingNoiseTailSnapRotating : Components.GenericRotatingAOE
     {
-        private readonly AOEShapeCone _shapeNumbingNoise = new(13, 60.Degrees());
-        private readonly AOEShapeCone _shapeTailSnap = new(18, 60.Degrees());
+        private static readonly AOEShapeCone _shapeNumbingNoise = new(13, 60.Degrees());
+        private static readonly AOEShapeCone _shapeTailSnap = new(18, 60.Degrees());
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {            
-            var increment = (AID)spell.Action.ID switch
+        {
+            switch ((AID)spell.Action.ID)
             {
-                AID.NumbingNoiseAttract => 120.Degrees(), // NN always seems to go CCW
-                AID.TailSnapAttract => -120.Degrees(), // TS always seems to go CW
-                _ => default
-            };
-            if ((AID)spell.Action.ID == AID.NumbingNoiseAttract)
-                Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, increment, spell.FinishAt.AddSeconds(1.1f), 2.8f, 3));
-            if ((AID)spell.Action.ID == AID.TailSnapAttract)
-                Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), increment, spell.FinishAt.AddSeconds(1.1f), 2.8f, 3));
+                case AID.NumbingNoiseAttract: // NN always seems to go CCW
+                    Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.FinishAt.AddSeconds(1.1f), 2.8f, 3));
+                    break;
+                case AID.TailSnapAttract: // TS always seems to go CW
+                    Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.FinishAt.AddSeconds(1.1f), 2.8f, 3));
+                    break;
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

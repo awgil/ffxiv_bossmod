@@ -62,6 +62,6 @@
         public bool ShowIrrelevantPlayers = false;
 
         [PropertyDisplay("Show outlines and shadows on various radar markings")]
-        public bool ShowOutlinesAndShadows = true;
+        public bool ShowOutlinesAndShadows = false;
     }
 }
