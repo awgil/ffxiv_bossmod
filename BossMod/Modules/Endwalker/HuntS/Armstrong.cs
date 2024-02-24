@@ -27,7 +27,7 @@ namespace BossMod.Endwalker.HuntS.Armstrong
     {
         private Angle _starting;
         private Angle _increment;
-        private static AOEShapeCross _shape = new(50, 3.5f);
+        private static readonly AOEShapeCross _shape = new(50, 3.5f);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

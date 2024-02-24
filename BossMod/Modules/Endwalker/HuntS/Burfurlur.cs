@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
     {
         private Angle _referenceAngle;
         private List<Angle> _pendingOffsets = new();
-        private readonly AOEShapeCone _shape = new(40, 45.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 45.Degrees());
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var s in Sequences)
