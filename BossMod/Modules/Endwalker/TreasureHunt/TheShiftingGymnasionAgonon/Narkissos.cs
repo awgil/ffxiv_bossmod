@@ -26,6 +26,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
         Brainstorm = 32334, // Boss->self, 5,0s cast, range 40 circle, Forced March debuffs
         PutridBreath = 32338, // Boss->self, 4,0s cast, range 25 90-degree cone
     };
+
     public enum SID : uint
     {
         VegetalVapours = 3467, // Boss/BossHelper->player, extra=0x2162 (description: Overcome and quite unable to act.)
@@ -36,11 +37,13 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
         AboutFace = 1959, // Boss->player, extra=0x0
         LeftFace = 1960, // Boss->player, extra=0x0
     };
+
     public enum IconID : uint
     {
         Tankbuster = 218, // player
         Spread = 140, // player
     };
+
     class Brainstorm : Components.StatusDrivenForcedMarch
     {
         public Brainstorm() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
@@ -61,10 +64,12 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
     {
         public PotentPerfume() : base(ActionID.MakeSpell(AID.PotentPerfume), 8) { }
     }
+
     class SapShowerTendrilsHint : Components.CastHint
     {
         public SapShowerTendrilsHint() : base(ActionID.MakeSpell(AID.SapShower2), "Circles resolve before cross, aim forced march into cross") { }
     }
+
     class SapShower : Components.LocationTargetedAOEs
     {
         public SapShower() : base(ActionID.MakeSpell(AID.SapShower2), 8) 
@@ -72,14 +77,17 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
             Color = ArenaColor.Danger;
         }
     }
+
     class ExtensibleTendrils : Components.SelfTargetedAOEs
     {
         public ExtensibleTendrils() : base(ActionID.MakeSpell(AID.ExtensibleTendrils), new AOEShapeCross(25, 3)) { }
     }
+
     class PutridBreath : Components.SelfTargetedAOEs
     {
         public PutridBreath() : base(ActionID.MakeSpell(AID.PutridBreath), new AOEShapeCone(25, 45.Degrees())) { }
     }
+
     class RockHard : Components.UniformStackSpread
     {
         public RockHard() : base(0, 6, alwaysShowSpreads: true) { }
@@ -98,10 +106,12 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
             }
         }
     }
+
     class BeguilingGas : Components.CastHint
     {
         public BeguilingGas() : base(ActionID.MakeSpell(AID.BeguilingGas), "Raidwide + Temporary Misdirection") { }
     }
+
      class HeavySmash : Components.LocationTargetedAOEs
     {
         public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
