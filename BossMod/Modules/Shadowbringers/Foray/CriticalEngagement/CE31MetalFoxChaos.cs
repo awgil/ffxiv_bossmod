@@ -222,28 +222,18 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
         }
     }
 
-    class Rush : Components.GenericWildCharge //TODO: component only works if target player is in party, component needs to be more generalized for non party players and NPCs
+    class Rush : Components.BaitAwayCast
     {
-        public Rush() : base(7, ActionID.MakeSpell(AID.Rush)) { }
-
+        public Rush() : base(ActionID.MakeSpell(AID.Rush), new AOEShapeRect(0, 7)) { }
+        public override void Update(BossModule module)
+        {
+            foreach (var b in CurrentBaits)
+            ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
+        }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (spell.Action == WatchedAction)
-            {
-                Source = caster;
-                foreach (var (slot, player) in module.Raid.WithSlot())
-                {
-                    PlayerRoles[slot] = player.InstanceID == spell.TargetID ? PlayerRole.Target : PlayerRole.Avoid;
-                }
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-            {
-                Source = null;
-            }
+            if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+                CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, 7)));
         }
     }
 
