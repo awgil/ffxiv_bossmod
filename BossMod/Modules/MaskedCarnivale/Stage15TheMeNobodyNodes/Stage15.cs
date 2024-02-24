@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BossMod.Components;
 
@@ -41,19 +42,29 @@ namespace BossMod.MaskedCarnivale.Stage15
         private bool casting3;
         private bool casting4;
         private Angle _rotation;
+        private DateTime _activation1;
+        private DateTime _activation2;
+        private DateTime _activation3;
 
-        private readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
-        private readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
-        private readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        private static readonly AOEShapeCone cone1 = new(5.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone2 = new(5.5f, 10.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone3 = new(10.5f, 15.5f, 135.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (casting2)
-                yield return new(cone2, module.PrimaryActor.Position, _rotation, new());
-            if (casting3)
-                yield return new(cone3, module.PrimaryActor.Position, _rotation, new());
-            if (casting4)
-                yield return new(cone4, module.PrimaryActor.Position, _rotation, new());
+            {
+                yield return new(cone1, module.PrimaryActor.Position, _rotation, _activation1, ArenaColor.Danger);
+                yield return new(cone2, module.PrimaryActor.Position, _rotation, _activation2);
+                yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3);
+            }
+            if (casting3 && !casting2)
+            {
+                yield return new(cone2, module.PrimaryActor.Position, _rotation, _activation2, ArenaColor.Danger);
+                yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3);
+            }
+            if (casting4 && !casting3)
+                yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3, ArenaColor.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -64,6 +75,9 @@ namespace BossMod.MaskedCarnivale.Stage15
                 casting3 = true;
                 casting4 = true;
                 _rotation = module.PrimaryActor.Rotation;
+                _activation1 = module.WorldState.CurrentTime.AddSeconds(4.6f);
+                _activation2 = module.WorldState.CurrentTime.AddSeconds(5.2f);
+                _activation3 = module.WorldState.CurrentTime.AddSeconds(5.8f);
             }
         }
 
@@ -108,20 +122,23 @@ namespace BossMod.MaskedCarnivale.Stage15
         private bool casting2;
         private bool casting3;
         private bool casting4;
+        private DateTime _activation1;
+        private DateTime _activation2;
+        private DateTime _activation3;
         private Angle _rotation;
 
-        private readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
-        private readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
-        private readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        private static readonly AOEShapeCone cone1 = new(5.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone2 = new(5.5f, 10.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone3 = new(10.5f, 15.5f, 135.Degrees());
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (casting2)
-                yield return new(module.PrimaryActor.Position, 20, default, cone2, _rotation, new());
+                yield return new(module.PrimaryActor.Position, 20, _activation1, cone1, _rotation);
             if (casting3)
-                yield return new(module.PrimaryActor.Position, 20, default, cone3, _rotation, new());
+                yield return new(module.PrimaryActor.Position, 20, _activation2, cone2, _rotation);
             if (casting4)
-                yield return new(module.PrimaryActor.Position, 20, default, cone4, _rotation, new());
+                yield return new(module.PrimaryActor.Position, 20, _activation3, cone3, _rotation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -132,6 +149,9 @@ namespace BossMod.MaskedCarnivale.Stage15
                 casting3 = true;
                 casting4 = true;
                 _rotation = module.PrimaryActor.Rotation;
+                _activation1 = module.WorldState.CurrentTime.AddSeconds(4.6f);
+                _activation2 = module.WorldState.CurrentTime.AddSeconds(5.2f);
+                _activation3 = module.WorldState.CurrentTime.AddSeconds(5.8f);
             }
         }
 

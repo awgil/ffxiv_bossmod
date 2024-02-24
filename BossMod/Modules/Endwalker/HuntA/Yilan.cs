@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod.Endwalker.HuntA.Yilan
 {
@@ -42,18 +43,27 @@ namespace BossMod.Endwalker.HuntA.Yilan
     class MiniLight : Components.GenericAOEs
     {
         private bool _active;
+        private DateTime _activation;
         public static AOEShapeCircle Shape = new(18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_active)
-                yield return new(Shape, module.PrimaryActor.Position); // TODO: activation
+                yield return new(Shape, module.PrimaryActor.Position, default, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.Soundstorm or AID.MiniLight)
+            if ((AID)spell.Action.ID == AID.Soundstorm)
+            {
                 _active = true;
+                _activation = module.WorldState.CurrentTime.AddSeconds(17.2f); //timing varies, have seen delays between 17.2s and 17.8s, but 2nd AID should correct any incorrectness
+            }
+            if ((AID)spell.Action.ID == AID.MiniLight)
+            {
+                _active = true;
+                _activation = module.WorldState.CurrentTime.AddSeconds(5.95f);
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

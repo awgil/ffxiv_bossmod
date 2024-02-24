@@ -1,12 +1,12 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAcheloios
+namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMeganereis
 {
     public enum OID : uint
     {
-        Boss = 0x3D3E, //R=4.0
-        BossAdd = 0x3D3F, //R=2.7
+        Boss = 0x3D39, //R=6.0
+        BossAdd = 0x3D3A, //R=2.0
         BossHelper = 0x233C,
         GymnasticGarlic = 0x3D51, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
         GymnasticQueen = 0x3D53, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
@@ -16,98 +16,92 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
         BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
         BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
     };
-
     public enum AID : uint
     {
-        AutoAttack = 870, // Boss/BossAdd->player, no cast, single-target
-        DoubleHammerA = 32284, // Boss->self, 4,2s cast, single-target
-        DoubleHammerB = 32281, // Boss->self, 4,2s cast, single-target
-        DoubleHammer = 32859, // BossHelper->self, 5,0s cast, range 30 180-degree cone
-        RightHammer1 = 32282, // Boss->self, 0,5s cast, single-target
-        RightHammer2 = 32860, // BossHelper->self, 1,0s cast, range 30 180-degree cone
-        TailSwing = 32279, // Boss->self, 3,5s cast, range 13 circle
-        QuadrupleHammerA = 32280, // Boss->self, 4,2s cast, single-target
-        QuadrupleHammerB = 32283, // Boss->self, 4,2s cast, single-target
-        QuadrupleHammer2 = 32858, // BossHelper->self, 5,0s cast, range 30 180-degree cone
-        LeftHammer1 = 32285, // Boss->self, 0,5s cast, single-target
-        LeftHammer2 = 32861, // BossHelper->self, 1,0s cast, range 30 180-degree cone
-        CriticalBite = 32286, // BossAdd->self, 3,0s cast, range 10 120-degree cone
-        DeadlyHold = 32275, // Boss->player, 5,0s cast, single-target
-        Earthbreak = 32277, // Boss->self, 2,1s cast, single-target
-        Earthbreak2 = 32278, // BossHelper->location, 3,0s cast, range 5 circle
-        VolcanicHowl = 32276, // Boss->self, 5,0s cast, range 40 circle
+        WaveOfTurmoil = 32257, // 3D39->self, 5,0s cast, single-target
+        WaveOfTurmoil2 = 32258, // 233C->self, 5,0s cast, range 40 circle, knockback 20 away from source
+        AutoAttack1 = 870, // 3D4E->player, no cast, single-target
+        AutoAttack2 = 871, // 3D3A->player, no cast, single-target
+        AutoAttack3 = 872, // 3D39->player, no cast, single-target
+        Hydrobomb = 32259, // 233C->location, 6,5s cast, range 10 circle
+        Ceras = 32255, // 3D39->player, 5,0s cast, single-target
+        Waterspout = 32261, // 3D39->self, 3,0s cast, single-target
+        Waterspout2 = 32262, // 233C->location, 3,0s cast, range 8 circle
+        unknown = 32199, // 3D39->self, no cast, single-target
+        FallingWater = 32260, // 233C->player, 5,0s cast, range 8 circle
+        Hydrocannon = 32264, // 3D3A->self, 3,6s cast, range 17 width 3 rect
+        Hydrocannon2 = 32256, // 3D39->self, 3,0s cast, range 27 width 6 rect
+        Immersion = 32263, // 3D39->self, 5,0s cast, range 50 circle
+
         PluckAndPrune = 32302, // GymnasticEggplant->self, 3,5s cast, range 7 circle
         Pollen = 32305, // GymnasticQueen->self, 3,5s cast, range 7 circle
         HeirloomScream = 32304, // GymnasticTomato->self, 3,5s cast, range 7 circle
         PungentPirouette = 32303, // GymnasticGarlic->self, 3,5s cast, range 7 circle
         TearyTwirl = 32301, // GymnasticOnion->self, 3,5s cast, range 7 circle
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
-        HeavySmash = 32317, // BonusAdd_Lyssa->location, 3,0s cast, range 6 circle
+        HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
     };
-
     public enum IconID : uint
     {
-        RotateCW = 167, // Boss
-        RotateCCW = 168, // Boss
+        Tankbuster = 218, // player
+        Spread = 135, // player
     };
 
-    class Slammer : Components.GenericRotatingAOE
+    class Ceras : Components.SingleTargetCast
     {
-        private Angle _increment;
-        private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
+        public Ceras() : base(ActionID.MakeSpell(AID.Ceras)) { }
+    }
+    class WaveOfTurmoil : Components.KnockbackFromCastTarget
+    {
+        public WaveOfTurmoil() : base(ActionID.MakeSpell(AID.WaveOfTurmoil), 20) 
+        { 
+            StopAtWall = true;
+        }
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<Hydrobomb>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
+    }
 
+    class Hydrobomb : Components.LocationTargetedAOEs
+    {
+        public Hydrobomb() : base(ActionID.MakeSpell(AID.Hydrobomb), 10) { }
+    }
+
+    class Waterspout : Components.LocationTargetedAOEs
+    {
+        public Waterspout() : base(ActionID.MakeSpell(AID.Waterspout2), 8) { }
+    }
+
+    class Hydrocannon : Components.SelfTargetedAOEs
+    {
+        public Hydrocannon() : base(ActionID.MakeSpell(AID.Hydrocannon), new AOEShapeRect(17, 1.5f)) { }
+    }
+
+    class Hydrocannon2 : Components.SelfTargetedAOEs
+    {
+        public Hydrocannon2() : base(ActionID.MakeSpell(AID.Hydrocannon2), new AOEShapeRect(27, 3)) { }
+    }
+
+    class FallingWater : Components.UniformStackSpread
+    {
+        public FallingWater() : base(0, 8, alwaysShowSpreads: true) { }
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            // note that boss switches hands, so CW rotation means CCW aoe sequence and vice versa
-            if (iconID == (uint)IconID.RotateCW)           
-                _increment = 90.Degrees();
-            if (iconID == (uint)IconID.RotateCCW)
-                _increment = -90.Degrees();
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.DoubleHammer)
+            if (iconID == (uint)IconID.Spread)
             {
-                _increment = 180.Degrees();
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.9f, 2, 1));
-                ImminentColor = ArenaColor.AOE;
-            }
-            if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
-            {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.3f, 4));
-                ImminentColor = ArenaColor.Danger;
+                AddSpread(actor);
             }
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)
-                AdvanceSequence(0, module.WorldState.CurrentTime);
+            if ((AID)spell.Action.ID == AID.FallingWater)
+            {
+                Spreads.Clear();
+            }
         }
     }
-
-    class VolcanicHowl : Components.RaidwideCast
+    
+    class Immersion : Components.RaidwideCast
     {
-        public VolcanicHowl() : base(ActionID.MakeSpell(AID.VolcanicHowl)) { }
-    }
-
-    class Earthbreak : Components.LocationTargetedAOEs
-    {
-        public Earthbreak() : base(ActionID.MakeSpell(AID.Earthbreak2), 5) { }
-    }
-
-    class DeadlyHold : Components.SingleTargetCast
-    {
-        public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) { }
-    }
-
-    class TailSwing : Components.SelfTargetedAOEs
-    {
-        public TailSwing() : base(ActionID.MakeSpell(AID.TailSwing), new AOEShapeCircle(13)) { }
-    }
-
-    class CriticalBite : Components.SelfTargetedAOEs
-    {
-        public CriticalBite() : base(ActionID.MakeSpell(AID.CriticalBite), new AOEShapeCone(10, 60.Degrees())) { }
+        public Immersion() : base(ActionID.MakeSpell(AID.Immersion)) { }
     }
 
     class PluckAndPrune : Components.SelfTargetedAOEs
@@ -134,23 +128,24 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
-
-    class HeavySmash : Components.LocationTargetedAOEs
+     class HeavySmash : Components.LocationTargetedAOEs
     {
         public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
     }
-
-    class AcheloiosStates : StateMachineBuilder
+  
+    class MeganereisStates : StateMachineBuilder
     {
-        public AcheloiosStates(BossModule module) : base(module)
+        public MeganereisStates(BossModule module) : base(module)
         {
             TrivialPhase()
-                .ActivateOnEnter<Slammer>()
-                .ActivateOnEnter<TailSwing>()
-                .ActivateOnEnter<CriticalBite>()
-                .ActivateOnEnter<DeadlyHold>()
-                .ActivateOnEnter<Earthbreak>()
-                .ActivateOnEnter<VolcanicHowl>()
+                .ActivateOnEnter<Ceras>()
+                .ActivateOnEnter<WaveOfTurmoil>()
+                .ActivateOnEnter<Hydrobomb>()
+                .ActivateOnEnter<Waterspout>()
+                .ActivateOnEnter<Hydrocannon>()
+                .ActivateOnEnter<Hydrocannon2>()
+                .ActivateOnEnter<FallingWater>()
+                .ActivateOnEnter<Immersion>()
                 .ActivateOnEnter<PluckAndPrune>()
                 .ActivateOnEnter<TearyTwirl>()
                 .ActivateOnEnter<HeirloomScream>()
@@ -161,10 +156,10 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
         }
     }
 
-    [ModuleInfo(CFCID = 909, NameID = 12019)]
-    public class Acheloios : BossModule
+    [ModuleInfo(CFCID = 909, NameID = 12014)]
+    public class Meganereis : BossModule
     {
-        public Acheloios(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Meganereis(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

@@ -24,7 +24,7 @@
 
     class Slammer : Components.GenericRotatingAOE
     {
-        private readonly AOEShapeCone _shape = new(30, 90.Degrees());
+        private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

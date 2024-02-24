@@ -56,14 +56,17 @@ class HeartOfNatureConcentric : ConcentricAOEs
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        var order = (AID)spell.Action.ID switch
+        if (Sequences.Count > 0)
         {
-            AID.NaturesPulse1 => 0,
-            AID.NaturesPulse2 => 1,
-            AID.NaturesPulse3 => 2,
-            _ => -1
-        };
-        AdvanceSequence(order, caster.Position);
+            var order = (AID)spell.Action.ID switch
+            {
+                AID.NaturesPulse1 => 0,
+                AID.NaturesPulse2 => 1,
+                AID.NaturesPulse3 => 2,
+                _ => -1
+            };
+            AdvanceSequence(order, caster.Position);
+        }
     }
 }
 
@@ -81,30 +84,35 @@ class RavenousGale : GenericAOEs
 {
     private bool activeTwister;
     private bool casting;
+    private DateTime _activation;
     private static readonly AOEShapeCircle circle = new(0.5f);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
-        var player = module.Raid.Player();
-        if (casting && player != null)
-            yield return new(circle, player.Position, player.Rotation, new());
+        if (casting)
+            yield return new(circle, actor.Position, default, _activation);
         if (activeTwister)
             foreach (var p in module.Enemies(OID.RavenousGaleVoidzone))
-                yield return new(circle, p.Position, p.Rotation, new());
+                yield return new(circle, p.Position, default, _activation);
     }
 
     public override void OnActorCreated(BossModule module, Actor actor)
     {
         if ((OID)actor.OID == OID.RavenousGaleVoidzone)
+            {
             activeTwister = true;
             casting = false;
+            _activation = module.WorldState.CurrentTime.AddSeconds(4.6f);
+            }
     }
 
     public override void OnActorDestroyed(BossModule module, Actor actor)
     {
         if ((OID)actor.OID == OID.RavenousGaleVoidzone)
+            {
             activeTwister = false;
             casting = false;
+            }
     }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -115,6 +123,7 @@ class RavenousGale : GenericAOEs
 
     public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
+        base.AddGlobalHints(module, hints);
         if (casting)
             hints.Add("Move a little to avoid voidzone spawning under you");
     }
@@ -134,11 +143,12 @@ class WindsPeakKB : Knockback
 {
     private DateTime Time;
     private bool watched;
+    private DateTime _activation;
 
     public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
     {
         if (watched && module.WorldState.CurrentTime < Time.AddSeconds(4.4f))
-            yield return new(module.PrimaryActor.Position, 15, default, default, module.PrimaryActor.Rotation);
+            yield return new(module.PrimaryActor.Position, 15, _activation);
     }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -147,6 +157,7 @@ class WindsPeakKB : Knockback
         {
             watched = true;
             Time = module.WorldState.CurrentTime;
+            _activation = spell.FinishAt;
         }
     }
 }
@@ -191,7 +202,7 @@ class NaturesBlood : Exaflare
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
+        if (Lines.Count > 0 && (AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
         {
             int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
             AdvanceLine(module, Lines[index], caster.Position);
@@ -237,68 +248,43 @@ class SpitefulFlameRect : SelfTargetedAOEs
     public SpitefulFlameRect() : base(ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80,2)) { }
 }
 
-class DynasticFlame : UniformStackSpread
-{
-    private bool tethered;
-    private int casts;
-
-    public DynasticFlame() : base(0, 10, alwaysShowSpreads: true) { }
-
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+class DynasticFlame : BaitAwayTethers
     {
-        var player = module.Raid.Player();
-        if ((TetherID)tether.ID == TetherID.fireorbs && player != null)
-        {
-            AddSpread(player);
-            tethered = true;
-        }
-    }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        private ulong target;
+        private int orbcount;
+        public DynasticFlame() : base(new AOEShapeCircle(10), (uint)TetherID.fireorbs) 
     {
-        if ((AID)spell.Action.ID is AID.DynasticFlame1 or AID.DynasticFlame2)
-            casts++;
-        if (casts == 4)
-        {
-            casts = 0;
-            Spreads.Clear();
-            tethered = false;
-        }
+        CenterAtTarget = true;
     }
-
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.DynasticFlame1)
+                target = spell.TargetID;
+        }
     public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var player = module.Raid.Player();
-        if(player == actor && tethered)
+          if(target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
     {
-        if (tethered)
+        if(target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.Add("Go to the edge and run until 4 orbs are spawned");
+    }
+    public override void OnActorCreated(BossModule module, Actor actor)
+    {
+        if ((OID)actor.OID == OID.VermillionFlame)
+            ++orbcount;
+        if (orbcount == 4)
+        {
+            CurrentBaits.Clear();
+            orbcount = 0;
+        }
     }
 }
 
-class SkyrendingStrike : CastHint
+class SkyrendingStrike : EnrageCastHint
 {
-    private bool casting;
-    private DateTime enragestart;
-
-    public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), "") { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.SkyrendingStrike)
-        {
-            casting = true;
-            enragestart = module.WorldState.CurrentTime;
-        }
-    }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
-    {
-        if (casting && module.PrimaryActor.IsTargetable)
-            hints.Add($"Enrage! {Math.Max(35 - (module.WorldState.CurrentTime - enragestart).TotalSeconds, 0.0f):f1}s left.");
-    }
+    public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), 35) { }
 }

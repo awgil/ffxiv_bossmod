@@ -1,17 +1,17 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.LuckyFace
+namespace BossMod.Endwalker.TreasureHunt.Excitatron6000.LuckyFace
 {
     public enum OID : uint
     {
         Boss = 0x377F, // R3,240
         BossHelper = 0x233C, // R0,500
-        ExcitingQueen = 0x380C, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        ExcitingTomato = 0x380B, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        ExcitingGarlic = 0x380A, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        ExcitingEgg = 0x3809, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        ExcitingOnion = 0x3808, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
+        ExcitingQueen = 0x380C, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+        ExcitingTomato = 0x380B, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+        ExcitingGarlic = 0x380A, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+        ExcitingEgg = 0x3809, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+        ExcitingOnion = 0x3808, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     };
 
     public enum AID : uint
@@ -35,8 +35,8 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         RightInTheDark1 = 27992, // BossHelper->self, 4,0s cast, range 20 180-degree cone
         MerryGoRound4 = 27985, // Boss->self, no cast, single-target, boss animation
         applyspreadmarkers = 28045, // Boss->self, no cast, single-target
-        FakeQuakeInYourBoots2 = 28189, // BossHelper->self, 4,0s cast, range 10-20 donut
-        QuakeInYourBoots2 = 28090, // Boss->self, 4,0s cast, range 10 circle
+        FakeQuakeInYourBoots2 = 28090, // Boss->self, 4,0s cast, range 10 circle
+        QuakeInYourBoots2 = 28189, // BossHelper->self, 4,0s cast, range 10-20 donut
         HeartOnFireIII = 28002, // BossHelper->player, 5,0s cast, range 6 circle
         TempersFlare = 27982, // Boss->self, 5,0s cast, range 60 circle
         FakeRightInTheDark2 = 27995, // Boss->self, 4,0s cast, range 20 180-degree cone
@@ -51,14 +51,6 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
         HeirloomScream = 6451, // 380B->self, 3,5s cast, range 6+R circle
         PungentPirouette = 6450, // 380A->self, 3,5s cast, range 6+R circle
         Pollen = 6452, // 380C->self, 3,5s cast, range 6+R circle
-    };
-
-    public enum SID : uint
-    {
-        Revolutionary = 2905, // Boss->Boss, extra=0x0
-        Paralysis = 17, // 380A->player, extra=0x0
-        Slow = 9, // 380A->player, extra=0x0
-        Heavy = 14, // 380A->player, extra=0x32
     };
 
     public enum IconID : uint
@@ -94,7 +86,7 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
 
     class QuakeInYourBoots2 : Components.SelfTargetedAOEs
     {
-        public QuakeInYourBoots2() : base(ActionID.MakeSpell(AID.QuakeInYourBoots2), new AOEShapeCircle(10)) { }
+        public QuakeInYourBoots2() : base(ActionID.MakeSpell(AID.QuakeInYourBoots2), new AOEShapeDonut(10, 20)) { }
     }
 
     class QuakeMeAway1 : Components.SelfTargetedAOEs
@@ -197,17 +189,17 @@ namespace BossMod.Endwalker.TreasureHunt.LuckyFace
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.ExcitingEgg))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.ExcitingTomato))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.ExcitingQueen))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.ExcitingGarlic))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.ExcitingOnion))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
