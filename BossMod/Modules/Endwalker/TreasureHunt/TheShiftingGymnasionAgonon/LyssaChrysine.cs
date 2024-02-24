@@ -116,7 +116,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
     {
         private bool activePillar;
         private DateTime _activation;
-        private readonly AOEShapeCircle circle = new(6);
+        private static readonly AOEShapeCircle circle = new(6);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (activePillar)

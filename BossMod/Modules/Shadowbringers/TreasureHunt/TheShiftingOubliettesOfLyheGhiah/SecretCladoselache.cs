@@ -70,8 +70,8 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     {
         public ProtolithicPuncture() : base(ActionID.MakeSpell(AID.ProtolithicPuncture)) { }
     }
-
-    // class BiteAndRun : Components.ChargeAOEs //TODO: this isn't working. 4 charges at the same time with length from caster to target, none of the existing components seem to work for this
+    //TODO: this isn't working. 4 charges at the same time with length from caster to target, none of the existing components seem to work for this
+    // class BiteAndRun : Components.ChargeAOEs 
     // {
     //     public BiteAndRun() : base(ActionID.MakeSpell(AID.BiteAndRun), 2.5f) { }
     // }

@@ -69,7 +69,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegaka
         private bool activeBreath;
         private Actor? _caster;
         private DateTime _activation;
-        private readonly AOEShapeCone cone = new(40, 90.Degrees());
+        private static readonly AOEShapeCone cone = new(40, 90.Degrees());
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (activeBreath && _caster != null)

@@ -216,7 +216,7 @@ class SpitefulFlameCircleVoidzone : GenericAOEs
 {
     private bool activeOrb; 
     private int casts;
-    private readonly AOEShapeCircle circle = new(10);
+    private static readonly AOEShapeCircle circle = new(10);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {

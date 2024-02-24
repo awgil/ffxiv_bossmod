@@ -34,7 +34,7 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
         private Angle _offset;
         private bool casting;
         private DateTime _activation;
-        private readonly AOEShapeCone _shape = new(40, 60.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 60.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

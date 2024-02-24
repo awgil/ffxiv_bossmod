@@ -62,7 +62,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
         private bool casting;
         private DateTime _activation;
 
-        private readonly AOEShapeCircle circle = new(12);
+        private static readonly AOEShapeCircle circle = new(12);
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {

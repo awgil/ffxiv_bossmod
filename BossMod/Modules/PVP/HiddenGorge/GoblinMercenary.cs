@@ -35,8 +35,8 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
         private DateTime _activation;
         private bool castingGobspin;
         private bool castingGobswipe;
-        private readonly AOEShapeCircle circle = new(8);
-        private readonly AOEShapeDonut donut = new(5, 30);
+        private static readonly AOEShapeCircle circle = new(8);
+        private static readonly AOEShapeDonut donut = new(5, 30);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -74,8 +74,8 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
         private DateTime _activation;
         private bool castingGobspin;
         private bool castingGobswipe;
-        private readonly AOEShapeCircle circle = new(8);
-        private readonly AOEShapeDonut donut = new(5, 30);
+        private static readonly AOEShapeCircle circle = new(8);
+        private static readonly AOEShapeDonut donut = new(5, 30);
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {

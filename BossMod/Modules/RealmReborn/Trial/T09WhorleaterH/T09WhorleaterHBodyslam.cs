@@ -54,7 +54,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         private bool active;
         private float LeviathanZ;
         private DateTime _activation;
-        private readonly AOEShapeRect rect = new(30, 5);
+        private static readonly AOEShapeRect rect = new(30, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
