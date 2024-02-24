@@ -49,17 +49,38 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
 
     class HeavyStrike1 : Components.SelfTargetedAOEs
     {
-        public HeavyStrike1() : base(ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(1, 6.5f, 135.Degrees())) { }
+        public HeavyStrike1() : base(ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(1, 6.5f, 135.Degrees())) 
+        {
+            Color = ArenaColor.Danger;
+        }
     }
 
     class HeavyStrike2 : Components.SelfTargetedAOEs
     {
         public HeavyStrike2() : base(ActionID.MakeSpell(AID.HeavyStrike2), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees())) { }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastFinished(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.HeavyStrike1)
+                Color = ArenaColor.Danger;
+            else
+                Color = ArenaColor.AOE; 
+        }
+
     }    
 
     class HeavyStrike3 : Components.SelfTargetedAOEs
     {
         public HeavyStrike3() : base(ActionID.MakeSpell(AID.HeavyStrike3), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees())) { }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastFinished(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.HeavyStrike2)
+                Color = ArenaColor.Danger;
+            else
+                Color = ArenaColor.AOE; 
+        }
     }   
 
     class PollenCorona : Components.SelfTargetedAOEs
