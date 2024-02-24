@@ -78,10 +78,10 @@ namespace BossMod.Components
             // show tethered targets with circles
             foreach (var side in _tethers)
             {
-                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
+                if (arena.Config.ShowOutlinesAndShadows)
                     arena.AddLine(side.Enemy.Position, side.Player.Position, 0xFF000000, 2);
                 arena.AddLine(side.Enemy.Position, side.Player.Position, side.Player.Role == Role.Tank ? ArenaColor.Safe : ArenaColor.Danger);
-                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
+                if (arena.Config.ShowOutlinesAndShadows)
                     arena.AddCircle(side.Player.Position, Radius, 0xFF000000, 2);
                 arena.AddCircle(side.Player.Position, Radius, ArenaColor.Danger);
             }

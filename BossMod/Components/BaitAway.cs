@@ -128,7 +128,7 @@ namespace BossMod.Components
             {
                 foreach (var b in ActiveBaits)
                 {
-                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
+                    if (arena.Config.ShowOutlinesAndShadows)
                         arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
                     arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
                 }
