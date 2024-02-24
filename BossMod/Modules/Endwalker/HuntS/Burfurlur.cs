@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace BossMod.Endwalker.HuntS.Burfurlur
 {
@@ -21,25 +22,25 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
         RottenSpores = 27313, // Boss->location, 3.0s cast, range 6 circle
     };
 
-    class QuintupleSneeze : Components.GenericRotatingAOE
+    class QuintupleSneeze : Components.GenericAOEs
     {
         private Angle _referenceAngle;
         private List<Angle> _pendingOffsets = new();
+        private DateTime _nextSneeze;
+
         private static readonly AOEShapeCone _shape = new(40, 45.Degrees());
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            foreach (var s in Sequences)
+            if (_nextSneeze != default)
             {
-                var time = s.NextActivation > module.WorldState.CurrentTime ? s.NextActivation : module.WorldState.CurrentTime;
-                if (s.NumRemainingCasts > 0)
-                    {
-                        time = time.AddSeconds(s.SecondsBetweenActivations);
-                        yield return new(s.Shape, s.Origin, _referenceAngle + _pendingOffsets[0], time, ImminentColor);
-                    }
-                if (s.NumRemainingCasts > 1)
-                        yield return new(s.Shape, s.Origin, _referenceAngle + _pendingOffsets[1], s.NextActivation, FutureColor);
+                if (_pendingOffsets.Count > 1)
+                    yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[1], _nextSneeze.AddSeconds(2.2f));
+                if (_pendingOffsets.Count > 0)
+                    yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[0], _nextSneeze, ArenaColor.Danger);
             }
         }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
@@ -48,24 +49,25 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
                     _referenceAngle = spell.Rotation;
                     _pendingOffsets.Clear();
                     _pendingOffsets.Add(new());
+                    _nextSneeze = default;
                     break;
                 case AID.QuintupleInhale24:
                 case AID.QuintupleInhale35:
                     _pendingOffsets.Add(spell.Rotation - _referenceAngle);
                     break;
                 case AID.QuintupleSneeze1:
-                    Sequences.Add(new(_shape, caster.Position, default, default, spell.FinishAt, 2.2f, 5));
                     _referenceAngle = spell.Rotation;
+                    _nextSneeze = spell.FinishAt;
                     break;
             }
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-
-            if (_pendingOffsets.Count > 0 && Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
+            if (_pendingOffsets.Count > 0 && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
             {
-                AdvanceSequence(0, module.WorldState.CurrentTime);
                 _pendingOffsets.RemoveAt(0);
+                _nextSneeze = module.WorldState.CurrentTime.AddSeconds(2.2f);
             }
         }
     }

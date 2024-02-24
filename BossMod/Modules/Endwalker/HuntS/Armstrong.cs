@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 
 namespace BossMod.Endwalker.HuntS.Armstrong
 {
@@ -25,84 +24,44 @@ namespace BossMod.Endwalker.HuntS.Armstrong
 
     class MagitekCompressor : Components.GenericRotatingAOE
     {
-        private Angle _starting;
         private Angle _increment;
+
         private static readonly AOEShapeCross _shape = new(50, 3.5f);
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            foreach (var s in Sequences)
-            {
-                if (s.NumRemainingCasts > 1)
-                {
-                    var rot = s.Rotation;
-                    var time = s.NextActivation > module.WorldState.CurrentTime ? s.NextActivation : module.WorldState.CurrentTime;
-                    
-                    if (s.NumRemainingCasts > 5)
-                        rot += s.Increment;
-                    else
-                        rot -= s.Increment;
-                    if (s.NumRemainingCasts == 6)
-                        time = time.AddSeconds(3.6f);
-                    else
-                        time = time.AddSeconds(s.SecondsBetweenActivations);               
-                    yield return new(s.Shape, s.Origin, rot, time, FutureColor);
-                }          
-                if (s.NumRemainingCasts > 0)
-                    yield return new(s.Shape, s.Origin, s.Rotation, s.NextActivation, ImminentColor);
-            }
-        }
-        public void AdvanceSequenceAltered(int index, DateTime currentTime, bool removeWhenFinished = true)
-        {
-
-            ref var s = ref Sequences.AsSpan()[index];
-            if (--s.NumRemainingCasts <= 0 && removeWhenFinished)
-            {
-                Sequences.RemoveAt(index);
-            }
-            else
-            {
-                if(s.NumRemainingCasts >= 5)
-                   s.Rotation += s.Increment;
-                else
-                   s.Rotation -= s.Increment;
-                if (s.NumRemainingCasts == 5)
-                    s.NextActivation = currentTime.AddSeconds(3.6f);   
-                else
-                    s.NextActivation = currentTime.AddSeconds(s.SecondsBetweenActivations);   
-            }
-        }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.MagitekCompressorFirst)
             {
-                _starting = spell.Rotation;
-                Sequences.Add(new(_shape, caster.Position, _starting, _increment, spell.FinishAt, 2.1f, 10));
+                NumCasts = 0;
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 2.1f, 10));
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if (Sequences.Count == 0)
-                switch ((AID)spell.Action.ID)
-                {
-                    case AID.RotateCW:
-                        _increment = -30.Degrees();
-                        break;
-                    case AID.RotateCCW:
-                        _increment = 30.Degrees();
-                        break;
-                }
-            if (Sequences.Count > 0)
-                switch ((AID)spell.Action.ID)
-                {
-                    case AID.MagitekCompressorFirst:
-                    case AID.MagitekCompressorReverse:
-                    case AID.MagitekCompressorNext:
-                        AdvanceSequenceAltered(0, module.WorldState.CurrentTime);
-                        break;
-                }
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.RotateCW:
+                    _increment = -30.Degrees();
+                    break;
+                case AID.RotateCCW:
+                    _increment = 30.Degrees();
+                    break;
+                case AID.MagitekCompressorFirst:
+                case AID.MagitekCompressorReverse:
+                case AID.MagitekCompressorNext:
+                    if (Sequences.Count > 0)
+                    {
+                        AdvanceSequence(0, module.WorldState.CurrentTime);
+                        if (NumCasts == 5)
+                        {
+                            ref var s = ref Sequences.Ref(0);
+                            s.Increment = -s.Increment;
+                            s.NextActivation = module.WorldState.CurrentTime.AddSeconds(3.6f);
+                        }
+                    }
+                    break;
+            }
         }
     }
 
