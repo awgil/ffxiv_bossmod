@@ -338,6 +338,8 @@ namespace BossMod
         {
             if (pos != null)
             {
+                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
+                    Arena.TextWorld(new(pos.Value.XZ()), text, 0xFF000000, 25);
                 Arena.TextWorld(new(pos.Value.XZ()), text, color, 22);
             }
         }

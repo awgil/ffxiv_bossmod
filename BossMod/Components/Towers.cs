@@ -31,7 +31,21 @@ namespace BossMod.Components
         public List<Tower> Towers = new();
 
         // default tower styling
-        public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe) => arena.AddCircle(pos, radius, safe ? ArenaColor.Safe : ArenaColor.Danger, 2);
+        public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe)
+        {
+            if (safe)
+            {
+                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
+                    arena.AddCircle(pos, radius, 0xFF000000, 3);    
+                arena.AddCircle(pos, radius, ArenaColor.Safe, 2);
+            }
+            else
+            {   
+                if (Service.Config.Get<BossModuleConfig>().ShowOutlinesAndShadows)
+                    arena.AddCircle(pos, radius, 0xFF000000, 3);
+                arena.AddCircle(pos, radius, ArenaColor.Danger, 2);
+            }
+        }
 
         public GenericTowers(ActionID aid = default) : base(aid) { }
 
