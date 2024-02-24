@@ -88,7 +88,7 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         private bool starting;
         private bool finished;
         private int soaks;
-        private readonly float maxError = 20 * (MathF.PI / 180);
+        private static readonly float maxError = 20 * (MathF.PI / 180);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
