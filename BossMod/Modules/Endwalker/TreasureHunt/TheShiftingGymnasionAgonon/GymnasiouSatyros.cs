@@ -13,7 +13,8 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyro
     public enum AID : uint
     {
         AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
-        StormWing = 32220, // Boss->self, 5,0s cast, single-target
+        StormWingA = 32220, // Boss->self, 5,0s cast, single-target
+        StormWingB = 32219, // Boss->self, 5,0s cast, single-target
         StormWing2 = 32221, // BossHelper->self, 5,0s cast, range 40 90-degree cone
         DreadDive = 32218, // Boss->player, 5,0s cast, single-target
         FlashGale = 32222, // Boss->location, 3,0s cast, range 6 circle

@@ -34,7 +34,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
         Mash = 17852, // 2A05->self, 2,5s cast, range 12+R width 4 rect
         Scoop = 17853, // 2A05->self, 4,0s cast, range 15 120-degree cone
-        Inhale = 17855, // 2A05->self, no cast, range 20 90-degree cone, attract 25 between hitboxes, shortly before Spin
+        Inhale = 17855, // 2A05->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
         Spin = 17854, // 2A05->self, 2,5s cast, range 11 circle
 
     };
@@ -113,11 +113,6 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
     }
 
-    class Inhale : Components.Cleave
-    {
-        public Inhale() : base(ActionID.MakeSpell(AID.Inhale), new AOEShapeCone(20, 45.Degrees()), (uint)OID.BonusAdd_TheKeeperOfTheKeys) { }
-    }
-
     class GoliathStates : StateMachineBuilder
     {
         public GoliathStates(BossModule module) : base(module)
@@ -134,7 +129,6 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
                 .ActivateOnEnter<HeirloomScream>()
                 .ActivateOnEnter<PungentPirouette>()
                 .ActivateOnEnter<Pollen>()
-                .ActivateOnEnter<Inhale>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.DungeonEgg).All(e => e.IsDead) && module.Enemies(OID.DungeonQueen).All(e => e.IsDead) && module.Enemies(OID.DungeonOnion).All(e => e.IsDead) && module.Enemies(OID.DungeonGarlic).All(e => e.IsDead) && module.Enemies(OID.DungeonTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
         }
     }
