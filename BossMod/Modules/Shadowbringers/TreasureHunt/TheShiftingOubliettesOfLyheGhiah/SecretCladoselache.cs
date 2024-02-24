@@ -68,11 +68,21 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     {
         public ProtolithicPuncture() : base(ActionID.MakeSpell(AID.ProtolithicPuncture)) { }
     }
-    //TODO: this isn't working. 4 charges at the same time with length from caster to target, none of the existing components seem to work for this
-    // class BiteAndRun : Components.ChargeAOEs 
-    // {
-    //     public BiteAndRun() : base(ActionID.MakeSpell(AID.BiteAndRun), 2.5f) { }
-    // }
+
+    class BiteAndRun : Components.BaitAwayCast
+    {
+        public BiteAndRun() : base(ActionID.MakeSpell(AID.BiteAndRun), new AOEShapeRect(0, 2.5f)) { }
+        public override void Update(BossModule module)
+        {
+            foreach (var b in CurrentBaits)
+            ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
+        }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+                CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, 2.5f)));
+        }
+    }
 
     class AquaticLance : Components.UniformStackSpread
     {
@@ -102,7 +112,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
                 .ActivateOnEnter<PelagicCleaverRotation>()
                 .ActivateOnEnter<TidalGuillotine>()
                 .ActivateOnEnter<ProtolithicPuncture>()
-                // .ActivateOnEnter<BiteAndRun>()
+                .ActivateOnEnter<BiteAndRun>()
                 .ActivateOnEnter<AquaticLance>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
         }
