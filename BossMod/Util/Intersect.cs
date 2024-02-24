@@ -21,7 +21,8 @@ namespace BossMod
         {
             // rayOrigin + t * rayDir = a + u * (b - a)
             // mul by n = (b - a).normal: t * rayDir.dot(n) = (a - rayOrigin).dot(n)
-            var n = (b - a).OrthoL(); // don't bother with normalization here
+            var lineDir = b - a;
+            var n = lineDir.OrthoL(); // don't bother with normalization here
             var ddn = rayDir.Dot(n);
             var oan = (a - rayOrigin).Dot(n);
             if (ddn == 0)
@@ -30,8 +31,8 @@ namespace BossMod
             if (t < 0)
                 return float.MaxValue;
             var p = rayOrigin + t * rayDir;
-            var u = (p - a).Dot(b - a);
-            return u >= 0 && u <= 1 ? t : float.MaxValue;
+            var u = lineDir.Dot(p - a);
+            return u >= 0 && u <= lineDir.LengthSq() ? t : float.MaxValue;
         }
 
         public static float RayQuad(WPos rayOrigin, WDir rayDir, WPos a, WPos b, WPos c, WPos d)
