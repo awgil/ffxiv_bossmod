@@ -526,6 +526,12 @@ namespace BossMod.MNK
             if (strategy.PerfectBalanceUse == Strategy.OffensiveAbilityUse.Force)
                 return true;
 
+            // with enough haste/low enough GCD (< 1.6, currently exclusive to bozja), double lunar is possible without dropping buffs
+            // via lunar -> opo -> snakes -> pb -> lunar
+            // this is the only time PB use is not directly after an opo GCD
+            if (state.Form == Form.Coeurl && state.FireLeft > deadline + state.AttackGCDTime * 3)
+                return !WillDFExpire(state, 5) && !WillDemolishExpire(state, strategy, 3);
+
             if (state.Form != Form.Raptor)
                 return false;
 
@@ -537,6 +543,10 @@ namespace BossMod.MNK
             {
                 if (!CanSolar(state, strategy))
                     return !WillDFExpire(state, 5) && !WillDemolishExpire(state, strategy, 6);
+
+                // see haste note above; delay standard even window PB2 in favor of double lunar
+                if (WillDFExpire(state, 3) && !WillDemolishExpire(state, strategy, 5))
+                    return false;
 
                 return true;
             }

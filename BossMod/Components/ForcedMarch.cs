@@ -36,6 +36,8 @@ namespace BossMod.Components
         {
             foreach (var m in ForcedMovements(module, pc))
             {
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddLine(m.from, m.to, 0xFF000000, 2);
                 arena.AddLine(m.from, m.to, ArenaColor.Danger);
                 arena.Actor(m.to, m.dir, ArenaColor.Danger);
             }
