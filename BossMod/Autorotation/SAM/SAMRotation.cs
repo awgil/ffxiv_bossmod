@@ -23,6 +23,10 @@ namespace BossMod.SAM
             public bool HasMoonSen;
             public bool HasFlowerSen;
 
+            public float LostExcellenceLeft; // 60(?) max
+            public float FoPLeft; // 30 max
+            public float HsacLeft; // 15 max
+
             public float GCDTime; // TODO: should be moved to base state
             public float LastTsubame; // can be infinite
 

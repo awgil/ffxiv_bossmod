@@ -185,6 +185,13 @@ namespace BossMod.SAM
             _state.MeikyoLeft = StatusDetails(Player, SID.MeikyoShisui, Player.InstanceID).Left;
             _state.OgiNamikiriLeft = StatusDetails(Player, SID.OgiNamikiriReady, Player.InstanceID).Left;
 
+            _state.LostExcellenceLeft = MathF.Max(
+                StatusDetails(Player, SID.LostExcellence, Player.InstanceID).Left,
+                StatusDetails(Player, SID.Memorable, Player.InstanceID).Left
+            );
+            _state.FoPLeft = StatusDetails(Player, SID.LostFontofPower, Player.InstanceID).Left;
+            _state.HsacLeft = StatusDetails(Player, SID.BannerHonoredSacrifice, Player.InstanceID).Left;
+
             _state.TargetHiganbanaLeft = _strategy.ForbidDOTs
                 ? float.MaxValue
                 : StatusDetails(Autorot.PrimaryTarget, SID.Higanbana, Player.InstanceID).Left;
