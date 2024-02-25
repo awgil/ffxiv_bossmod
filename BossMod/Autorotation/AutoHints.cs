@@ -7,6 +7,8 @@ namespace BossMod
     // this is used e.g. in outdoor or on trash, where we have no active bossmodules
     public class AutoHints : IDisposable
     {
+        static readonly float RAIDWIDE_SIZE = 40;
+
         private WorldState _ws;
         private Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = new();
 
@@ -50,7 +52,9 @@ namespace BossMod
                 return;
             AOEShape? shape = data.CastType switch
             {
-                2 => new AOEShapeCircle(data.EffectRange), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
+                // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
+                // dungeon boss raidwides are usually 50y range; we shouldn't try to run out of these
+                2 => data.EffectRange >= RAIDWIDE_SIZE ? null : new AOEShapeCircle(data.EffectRange),
                 3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
                 4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
                 5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
