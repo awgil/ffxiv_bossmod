@@ -21,7 +21,7 @@ namespace BossMod.Components
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (Active && Hint.Length > 0)
-                hints.Add(ShowCastTimeLeft ? $"{Hint} {((Casters.First().CastInfo?.FinishAt.AddSeconds(0.3f) ?? module.WorldState.CurrentTime) - module.WorldState.CurrentTime).TotalSeconds:f1}s left" : Hint);
+                hints.Add(ShowCastTimeLeft ? $"{Hint} {((Casters.First().CastInfo?.FinishAt ?? module.WorldState.CurrentTime) - module.WorldState.CurrentTime).TotalSeconds:f1}s left" : Hint);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
