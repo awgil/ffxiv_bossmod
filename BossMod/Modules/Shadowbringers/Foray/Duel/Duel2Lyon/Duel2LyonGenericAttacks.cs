@@ -51,7 +51,7 @@ class HeartOfNatureConcentric : ConcentricAOEs
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.NaturesPulse1)
-            AddSequence(caster.Position, spell.FinishAt);
+            AddSequence(caster.Position, spell.NPCFinishAt);
     }
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -157,7 +157,7 @@ class WindsPeakKB : Knockback
         {
             watched = true;
             Time = module.WorldState.CurrentTime;
-            _activation = spell.FinishAt;
+            _activation = spell.NPCFinishAt;
         }
     }
 }
@@ -184,7 +184,7 @@ class NaturesBlood : Exaflare
         {
             Next = caster.Position;
             Advance = 6 * caster.Rotation.ToDirection();
-            NextExplosion = caster.CastInfo!.FinishAt;
+            NextExplosion = caster.CastInfo!.NPCFinishAt;
             TimeToMove = 1.1f; //note the actual time between exaflare moves seems to vary by upto 100ms, but all 4 exaflares move at the same time
             ExplosionsLeft = 7;
             MaxShownExplosions = 3;

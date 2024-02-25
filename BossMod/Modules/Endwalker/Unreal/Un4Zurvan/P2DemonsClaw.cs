@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (_caster?.CastInfo?.TargetID == actor.InstanceID)
-                yield return new(_caster.Position, 17, _caster.CastInfo.FinishAt);
+                yield return new(_caster.Position, 17, _caster.CastInfo.NPCFinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

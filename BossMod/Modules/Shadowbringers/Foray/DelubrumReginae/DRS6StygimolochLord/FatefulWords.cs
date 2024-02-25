@@ -12,7 +12,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
         {
             var dist = _playerDistances.GetValueOrDefault(actor.InstanceID);
             if (dist != 0)
-                yield return new(module.Bounds.Center, dist, module.PrimaryActor.CastInfo?.FinishAt ?? new());
+                yield return new(module.Bounds.Center, dist, module.PrimaryActor.CastInfo?.NPCFinishAt ?? new());
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

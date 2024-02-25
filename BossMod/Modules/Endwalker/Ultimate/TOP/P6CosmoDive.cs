@@ -36,7 +36,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
             if ((AID)spell.Action.ID == AID.CosmoDive)
             {
                 _source = caster;
-                _activation = spell.FinishAt.AddSeconds(2.5f);
+                _activation = spell.NPCFinishAt.AddSeconds(2.5f);
             }
         }
 

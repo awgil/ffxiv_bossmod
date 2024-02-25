@@ -63,7 +63,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.FinishAt ?? module.WorldState.CurrentTime.AddSeconds(4)));
+            return _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime.AddSeconds(4)));
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)

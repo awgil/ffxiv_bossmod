@@ -59,7 +59,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
             if (spell.Action == WatchedAction)
             {
                 _garuda = caster;
-                _resolve = spell.FinishAt;
+                _resolve = spell.NPCFinishAt;
                 _burstImminent = true;
             }
         }

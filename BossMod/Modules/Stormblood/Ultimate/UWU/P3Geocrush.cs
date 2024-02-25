@@ -21,7 +21,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_caster != null)
-                yield return new(_shapeCrush, _caster.Position, _caster.CastInfo!.Rotation, _caster.CastInfo.FinishAt);
+                yield return new(_shapeCrush, _caster.Position, _caster.CastInfo!.Rotation, _caster.CastInfo.NPCFinishAt);
             if (_shapeReduced != null)
                 yield return new(_shapeReduced, module.Bounds.Center);
         }

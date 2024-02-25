@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.Alliance.A24Menphina
                 AID.MidnightFrostLongDismountedFrontAOE or AID.MidnightFrostLongDismountedBackAOE or
                 AID.WaxingClawRight or AID.WaxingClawLeft)
             {
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
             }
         }
 

@@ -8,7 +8,7 @@
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var c in Casters)
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo!.FinishAt));
+                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo!.NPCFinishAt));
         }
     }
 
@@ -23,7 +23,7 @@
             {
                 BitMask targets = new();
                 targets.Set(module.Raid.FindSlot(c.CastInfo!.TargetID));
-                hints.PredictedDamage.Add((targets, c.CastInfo!.FinishAt));
+                hints.PredictedDamage.Add((targets, c.CastInfo!.NPCFinishAt));
             }
         }
     }

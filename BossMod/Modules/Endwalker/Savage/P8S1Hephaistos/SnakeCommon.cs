@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             {
                 var dir = Angle.FromDirection(caster.Position - module.Bounds.Center);
                 var priority = (int)MathF.Round((180 - dir.Deg) / 45) % 8;
-                ActiveGorgons.Add((caster, spell.FinishAt.AddSeconds(1.1f), priority));
+                ActiveGorgons.Add((caster, spell.NPCFinishAt.AddSeconds(1.1f), priority));
             }
         }
 

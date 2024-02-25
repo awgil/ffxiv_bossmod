@@ -25,7 +25,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
             if (spell.Action == WatchedAction)
             {
                 _ifrit = caster;
-                _resolve = spell.FinishAt;
+                _resolve = spell.NPCFinishAt;
             }
         }
 

@@ -16,7 +16,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
             foreach (var t in _turrets)
                 yield return new(t.shape, t.turret.Position, t.turret.Rotation, _activation);
             foreach (var c in _casters)
-                yield return new(c.shape, c.caster.Position, c.caster.CastInfo!.Rotation, c.caster.CastInfo.FinishAt);
+                yield return new(c.shape, c.caster.Position, c.caster.CastInfo!.Rotation, c.caster.CastInfo.NPCFinishAt);
         }
 
         public override void Init(BossModule module)
@@ -39,7 +39,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
                 var shape = new AOEShapeRect(0, 3);
                 shape.SetEndPoint(spell.LocXZ, caster.Position, spell.Rotation);
                 _casters.Add((caster, shape));
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
             }
         }
 

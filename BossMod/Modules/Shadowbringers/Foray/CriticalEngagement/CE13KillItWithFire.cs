@@ -59,10 +59,10 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE13KillItWithFire
         {
             if (_tenderStatuses[slot])
                 foreach (var c in _tenderCasters)
-                    yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                    yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
             if (_jealousStatuses[slot])
                 foreach (var c in _jealousCasters)
-                    yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                    yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)

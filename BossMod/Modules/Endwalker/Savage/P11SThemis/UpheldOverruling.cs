@@ -11,12 +11,12 @@
                 case AID.UpheldOverrulingLight:
                 case AID.UpheldRulingLight:
                     if (module.WorldState.Actors.Find(caster.Tether.Target) is var stackTarget && stackTarget != null)
-                        AddStack(stackTarget, spell.FinishAt.AddSeconds(0.3f));
+                        AddStack(stackTarget, spell.NPCFinishAt.AddSeconds(0.3f));
                     break;
                 case AID.UpheldOverrulingDark:
                 case AID.UpheldRulingDark:
                     if (module.WorldState.Actors.Find(caster.Tether.Target) is var spreadTarget && spreadTarget != null)
-                        AddSpread(spreadTarget, spell.FinishAt.AddSeconds(0.3f));
+                        AddSpread(spreadTarget, spell.NPCFinishAt.AddSeconds(0.3f));
                     break;
             }
         }

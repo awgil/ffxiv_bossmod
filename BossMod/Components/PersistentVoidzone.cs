@@ -61,7 +61,7 @@ namespace BossMod.Components
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                _predictedByCast.Add((caster, spell.FinishAt.AddSeconds(CastEventToSpawn)));
+                _predictedByCast.Add((caster, spell.NPCFinishAt.AddSeconds(CastEventToSpawn)));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

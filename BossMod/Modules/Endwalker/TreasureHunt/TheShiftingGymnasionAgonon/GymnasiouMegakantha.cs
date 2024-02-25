@@ -84,7 +84,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegaka
             {
                 activeBreath = true;
                 _caster = caster;
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
             }
         }
 

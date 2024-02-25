@@ -108,11 +108,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
             {
                 case AID.AgeOfEndlessFrostFirstCW:
                     _increment = -40.Degrees();
-                    _nextActivation = spell.FinishAt;
+                    _nextActivation = spell.NPCFinishAt;
                     break;
                 case AID.AgeOfEndlessFrostFirstCCW:
                     _increment = 40.Degrees();
-                    _nextActivation = spell.FinishAt;
+                    _nextActivation = spell.NPCFinishAt;
                     break;
                 case AID.AgeOfEndlessFrostFirstAOE:
                     NumCasts = 0;

@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.Alliance.A22AlthykNymeia
             if ((AID)spell.Action.ID == AID.HydrorythmosFirst)
             {
                 _dir = spell.Rotation;
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
             }
         }
 

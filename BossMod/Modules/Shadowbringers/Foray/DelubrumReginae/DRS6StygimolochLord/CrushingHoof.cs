@@ -17,7 +17,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.CrushingHoof)
-                _aoe = new(new AOEShapeCircle(25), spell.LocXZ, activation: spell.FinishAt.AddSeconds(1));
+                _aoe = new(new AOEShapeCircle(25), spell.LocXZ, activation: spell.NPCFinishAt.AddSeconds(1));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

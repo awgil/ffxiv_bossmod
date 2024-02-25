@@ -23,22 +23,22 @@ namespace BossMod.Endwalker.Savage.P11SThemis
                 case AID.DivisiveOverrulingSoloAOE: // first aoe
                 case AID.DivisiveRulingAOE:
                 case AID.DivisiveOverrulingBossAOE:
-                    AddAOE(new(_shapeNarrow, caster.Position, spell.Rotation, spell.FinishAt));
+                    AddAOE(new(_shapeNarrow, caster.Position, spell.Rotation, spell.NPCFinishAt));
                     break;
                 case AID.DivineRuinationSolo:
                 case AID.DivineRuinationClone:
                 case AID.DivineRuinationBoss:
-                    AddAOE(new(_shapeWide, caster.Position, spell.Rotation, spell.FinishAt));
+                    AddAOE(new(_shapeWide, caster.Position, spell.Rotation, spell.NPCFinishAt));
                     break;
                 case AID.RipplesOfGloomSoloR:
                 case AID.RipplesOfGloomCloneR:
                 case AID.RipplesOfGloomBossR:
-                    AddAOE(new(_shapeNarrow, caster.Position + 2 * _shapeNarrow.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.FinishAt));
+                    AddAOE(new(_shapeNarrow, caster.Position + 2 * _shapeNarrow.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.NPCFinishAt));
                     break;
                 case AID.RipplesOfGloomSoloL:
                 case AID.RipplesOfGloomCloneL:
                 case AID.RipplesOfGloomBossL:
-                    AddAOE(new(_shapeNarrow, caster.Position + 2 * _shapeNarrow.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.FinishAt));
+                    AddAOE(new(_shapeNarrow, caster.Position + 2 * _shapeNarrow.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.NPCFinishAt));
                     break;
             }
         }

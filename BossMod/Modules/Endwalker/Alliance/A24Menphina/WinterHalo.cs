@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.Alliance.A24Menphina
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.WinterHaloShortAOE or AID.WinterHaloLongMountedAOE or AID.WinterHaloLongDismountedAOE)
-                _aoe = new(_shape, caster.Position, spell.Rotation, spell.FinishAt);
+                _aoe = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

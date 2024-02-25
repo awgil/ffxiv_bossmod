@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
                 _ => null
             };
             if (shape != null)
-                _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
         }
 
         // note: we don't remove aoe's, since that is used e.g. by spreads component

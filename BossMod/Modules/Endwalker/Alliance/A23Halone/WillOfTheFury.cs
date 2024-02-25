@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Alliance.A23Halone
         {
             if ((AID)spell.Action.ID == AID.WillOfTheFuryAOE1)
             {
-                UpdateAOE(module.Bounds.Center, spell.FinishAt);
+                UpdateAOE(module.Bounds.Center, spell.NPCFinishAt);
             }
         }
 

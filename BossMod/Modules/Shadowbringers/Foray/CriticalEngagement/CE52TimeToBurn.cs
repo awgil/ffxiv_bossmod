@@ -60,7 +60,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn
             else if (_cycloneCasters.Count > 0)
             {
                 foreach (var c in _cycloneCasters)
-                    yield return new(_shapeCyclone, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                    yield return new(_shapeCyclone, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
             }
             else if (_eruptionStart != default)
             {

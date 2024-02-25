@@ -23,7 +23,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
                     DateTime activation = new();
                     foreach (var c in _casters)
                     {
-                        activation = c.caster.CastInfo!.FinishAt;
+                        activation = c.caster.CastInfo!.NPCFinishAt;
                         if (c.dir.Dot(cellCenter - c.caster.Position) > 0)
                         {
                             temperature = c.temperature;

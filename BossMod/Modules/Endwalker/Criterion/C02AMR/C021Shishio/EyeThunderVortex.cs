@@ -18,13 +18,13 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
             {
                 case AID.NEyeOfTheThunderVortexFirst:
                 case AID.SEyeOfTheThunderVortexFirst:
-                    _aoes.Add(new(_shapeCircle, caster.Position, default, spell.FinishAt));
-                    _aoes.Add(new(_shapeDonut, caster.Position, default, spell.FinishAt.AddSeconds(4)));
+                    _aoes.Add(new(_shapeCircle, caster.Position, default, spell.NPCFinishAt));
+                    _aoes.Add(new(_shapeDonut, caster.Position, default, spell.NPCFinishAt.AddSeconds(4)));
                     break;
                 case AID.NVortexOfTheThunderEyeFirst:
                 case AID.SVortexOfTheThunderEyeFirst:
-                    _aoes.Add(new(_shapeDonut, caster.Position, default, spell.FinishAt));
-                    _aoes.Add(new(_shapeCircle, caster.Position, default, spell.FinishAt.AddSeconds(4)));
+                    _aoes.Add(new(_shapeDonut, caster.Position, default, spell.NPCFinishAt));
+                    _aoes.Add(new(_shapeCircle, caster.Position, default, spell.NPCFinishAt.AddSeconds(4)));
                     break;
             }
         }

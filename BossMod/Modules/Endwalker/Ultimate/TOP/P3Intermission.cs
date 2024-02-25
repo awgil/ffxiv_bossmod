@@ -113,7 +113,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.WaveRepeater1)
-                AddSequence(caster.Position, spell.FinishAt);
+                AddSequence(caster.Position, spell.NPCFinishAt);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         {
             if ((AID)spell.Action.ID is AID.GigaflaresEdgeAOE1 or AID.GigaflaresEdgeAOE2 or AID.GigaflaresEdgeAOE3)
             {
-                _aoes.Add(new(_shape, caster.Position, default, spell.FinishAt));
+                _aoes.Add(new(_shape, caster.Position, default, spell.NPCFinishAt));
                 _aoes.SortBy(aoe => aoe.Activation);
             }
         }

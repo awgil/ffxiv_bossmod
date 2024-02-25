@@ -240,11 +240,11 @@ namespace BossMod.Components
         {
             if (spell.Action == StackAction && module.WorldState.Actors.Find(spell.TargetID) is var stackTarget && stackTarget != null)
             {
-                AddStack(stackTarget, spell.FinishAt);
+                AddStack(stackTarget, spell.NPCFinishAt);
             }
             else if (spell.Action == SpreadAction && module.WorldState.Actors.Find(spell.TargetID) is var spreadTarget && spreadTarget != null)
             {
-                AddSpread(spreadTarget, spell.FinishAt);
+                AddSpread(spreadTarget, spell.NPCFinishAt);
             }
         }
 

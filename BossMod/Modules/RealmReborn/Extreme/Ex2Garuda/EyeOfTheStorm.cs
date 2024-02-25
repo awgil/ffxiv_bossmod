@@ -24,7 +24,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
             if (spell.Action == WatchedAction)
             {
                 _caster = caster;
-                _nextCastAt = caster.CastInfo!.FinishAt;
+                _nextCastAt = caster.CastInfo!.NPCFinishAt;
             }
         }
 

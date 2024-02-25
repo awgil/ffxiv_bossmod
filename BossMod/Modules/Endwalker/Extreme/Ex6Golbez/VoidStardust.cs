@@ -23,10 +23,10 @@ namespace BossMod.Endwalker.Extreme.Ex6Golbez
             switch ((AID)spell.Action.ID)
             {
                 case AID.VoidStardustFirst:
-                    _aoes.Add((caster.Position, spell.FinishAt));
+                    _aoes.Add((caster.Position, spell.NPCFinishAt));
                     break;
                 case AID.VoidStardustRestVisual:
-                    _aoes.Add((caster.Position, spell.FinishAt.AddSeconds(2.9f)));
+                    _aoes.Add((caster.Position, spell.NPCFinishAt.AddSeconds(2.9f)));
                     break;
             }
         }
