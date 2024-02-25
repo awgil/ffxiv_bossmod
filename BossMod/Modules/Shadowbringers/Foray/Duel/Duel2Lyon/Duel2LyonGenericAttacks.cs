@@ -263,6 +263,7 @@ class DynasticFlame : BaitAwayTethers
     }
     public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        base.AddAIHints(module, slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
     }
