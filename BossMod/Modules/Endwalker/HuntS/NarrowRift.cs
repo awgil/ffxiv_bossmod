@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_pendingShapes.Count > 0)
-                yield return new(_pendingShapes.First(), module.PrimaryActor.Position, new(), module.PrimaryActor.CastInfo?.FinishAt ?? module.WorldState.CurrentTime); // TODO: activation
+                yield return new(_pendingShapes.First(), module.PrimaryActor.Position, new(), module.PrimaryActor.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime); // TODO: activation
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

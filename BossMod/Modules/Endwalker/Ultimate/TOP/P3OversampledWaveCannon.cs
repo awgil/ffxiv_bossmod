@@ -136,7 +136,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.OversampledWaveCannonR or AID.OversampledWaveCannonL)
-                AddSpreads(module.Raid.WithoutSlot(true), spell.FinishAt);
+                AddSpreads(module.Raid.WithoutSlot(true), spell.NPCFinishAt);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

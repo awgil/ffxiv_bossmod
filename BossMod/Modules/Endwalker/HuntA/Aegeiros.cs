@@ -27,10 +27,10 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.Leafstorm) ?? false)
-                yield return new(_leafstorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_leafstorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
 
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.Rimestorm) ?? false)
-                yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
             else if (_rimestormExpected != default)
                 yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _rimestormExpected);
         }

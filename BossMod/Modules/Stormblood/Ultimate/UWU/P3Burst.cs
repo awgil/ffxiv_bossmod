@@ -19,7 +19,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
             {
                 var activation = _bombActivation.GetValueOrDefault(b.InstanceID);
                 if (activation != null)
-                    yield return new(_shape, b.Position, b.Rotation, b.CastInfo?.FinishAt ?? activation.Value);
+                    yield return new(_shape, b.Position, b.Rotation, b.CastInfo?.NPCFinishAt ?? activation.Value);
             }
         }
 

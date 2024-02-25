@@ -30,7 +30,7 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                _remainInPosition = spell.FinishAt.AddSeconds(1); // TODO: just wait for effectresult instead...
+                _remainInPosition = spell.NPCFinishAt.AddSeconds(1); // TODO: just wait for effectresult instead...
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

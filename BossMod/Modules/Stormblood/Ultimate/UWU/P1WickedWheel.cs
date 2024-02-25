@@ -31,12 +31,12 @@ namespace BossMod.Stormblood.Ultimate.UWU
                     // if wheel was predicted, keep the shape, but update the activation time
                     var predictedIndex = Sources.FindIndex(s => s.source == caster);
                     if (predictedIndex >= 0)
-                        Sources[predictedIndex] = (caster, Sources[predictedIndex].shape, spell.FinishAt);
+                        Sources[predictedIndex] = (caster, Sources[predictedIndex].shape, spell.NPCFinishAt);
                     else
-                        Sources.Add((caster, ShapeWheel, spell.FinishAt));
+                        Sources.Add((caster, ShapeWheel, spell.NPCFinishAt));
                     break;
                 case AID.WickedWheelSister:
-                    Sources.Add((caster, ShapeSister, spell.FinishAt));
+                    Sources.Add((caster, ShapeSister, spell.NPCFinishAt));
                     break;
             };
         }

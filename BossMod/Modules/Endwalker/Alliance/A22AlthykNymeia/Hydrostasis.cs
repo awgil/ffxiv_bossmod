@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Alliance.A22AlthykNymeia
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.HydrostasisAOE1 or AID.HydrostasisAOE2 or AID.HydrostasisAOE3 or AID.HydrostasisAOEDelayed)
-                AddSource(caster.Position, spell.FinishAt);
+                AddSource(caster.Position, spell.NPCFinishAt);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

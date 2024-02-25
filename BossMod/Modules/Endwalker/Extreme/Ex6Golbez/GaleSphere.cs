@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Extreme.Ex6Golbez
         {
             if (NumCasts < _spheres.Length)
                 foreach (var s in _spheres[NumCasts])
-                    yield return new(_shape, s.Position, s.CastInfo?.Rotation ?? s.Rotation, s.CastInfo?.FinishAt ?? module.WorldState.CurrentTime);
+                    yield return new(_shape, s.Position, s.CastInfo?.Rotation ?? s.Rotation, s.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime);
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)

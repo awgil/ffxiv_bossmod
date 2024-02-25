@@ -94,8 +94,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
             {
                 _sources.Clear();
                 // charge always happens through center, so create two sources with origin at center looking orthogonally
-                _sources.Add(new(module.Bounds.Center, 12, spell.FinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
-                _sources.Add(new(module.Bounds.Center, 12, spell.FinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+                _sources.Add(new(module.Bounds.Center, 12, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+                _sources.Add(new(module.Bounds.Center, 12, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
             }
         }
 

@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Alliance.A12Rhalgr
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.HandOfTheDestroyerWrathAOE or AID.HandOfTheDestroyerJudgmentAOE)
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.Alliance.A12Rhalgr
                 _ => null
             };
             if (locs != null)
-                _aoes.AddRange(locs.Select(p => new AOEInstance(_shape, p, default, spell.FinishAt)));
+                _aoes.AddRange(locs.Select(p => new AOEInstance(_shape, p, default, spell.NPCFinishAt)));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

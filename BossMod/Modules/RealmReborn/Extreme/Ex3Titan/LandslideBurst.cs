@@ -18,9 +18,9 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var l in _landslides)
-                yield return new(_shapeLandslide, l.Position, l.CastInfo!.Rotation, l.CastInfo.FinishAt);
+                yield return new(_shapeLandslide, l.Position, l.CastInfo!.Rotation, l.CastInfo.NPCFinishAt);
             foreach (var b in _bursts.Take(MaxBombs))
-                yield return new(_shapeBurst, b.Position, b.CastInfo!.Rotation, b.CastInfo.FinishAt);
+                yield return new(_shapeBurst, b.Position, b.CastInfo!.Rotation, b.CastInfo.NPCFinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

@@ -50,17 +50,17 @@ namespace BossMod.Endwalker.HuntS.Ophioneus
             {
                 case AID.PyricCircle:
                 case AID.LeapingPyricCircleAOE:
-                    _aoe = new(_shapeDonut, caster.Position, spell.Rotation, spell.FinishAt);
+                    _aoe = new(_shapeDonut, caster.Position, spell.Rotation, spell.NPCFinishAt);
                     break;
                 case AID.PyricBurst:
                 case AID.LeapingPyricBurstAOE:
-                    _aoe = new(_shapeCircle, caster.Position, spell.Rotation, spell.FinishAt);
+                    _aoe = new(_shapeCircle, caster.Position, spell.Rotation, spell.NPCFinishAt);
                     break;
                 case AID.LeapingPyricCircle:
-                    _aoe = new(_shapeDonut, spell.LocXZ, spell.Rotation, spell.FinishAt.AddSeconds(5));
+                    _aoe = new(_shapeDonut, spell.LocXZ, spell.Rotation, spell.NPCFinishAt.AddSeconds(5));
                     break;
                 case AID.LeapingPyricBurst:
-                    _aoe = new(_shapeCircle, spell.LocXZ, spell.Rotation, spell.FinishAt.AddSeconds(5));
+                    _aoe = new(_shapeCircle, spell.LocXZ, spell.Rotation, spell.NPCFinishAt.AddSeconds(5));
                     break;
             }
         }

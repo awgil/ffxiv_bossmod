@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Alliance.A10Lions
         {
             if ((AID)spell.Action.ID is AID.RoaringBlazeFirst or AID.RoaringBlazeSecond or AID.RoaringBlazeSolo)
             {
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
                 _aoes.SortBy(aoe => aoe.Activation);
             }
         }

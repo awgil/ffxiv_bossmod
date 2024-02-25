@@ -25,7 +25,7 @@ abstract class SpiralThrust : Components.GenericAOEs
                 _predictionDelay = 0;
                 _aoes.Clear();
             }
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
         }
     }
 

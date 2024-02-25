@@ -24,7 +24,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                AOE = new(new AOEShapeRect(45, 25), caster.Position, spell.Rotation, spell.FinishAt, risky: _risky);
+                AOE = new(new AOEShapeRect(45, 25), caster.Position, spell.Rotation, spell.NPCFinishAt, risky: _risky);
         }
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)

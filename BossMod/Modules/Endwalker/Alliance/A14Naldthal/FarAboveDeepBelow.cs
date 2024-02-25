@@ -60,7 +60,7 @@ namespace BossMod.Endwalker.Alliance.A14Naldthal
 
         public DeepestPit() : base(default, "GTFO from puddle!") { }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _casters.Select(c => new AOEInstance(_shape, c.CastInfo!.LocXZ, default, c.CastInfo.FinishAt));
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _casters.Select(c => new AOEInstance(_shape, c.CastInfo!.LocXZ, default, c.CastInfo.NPCFinishAt));
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {

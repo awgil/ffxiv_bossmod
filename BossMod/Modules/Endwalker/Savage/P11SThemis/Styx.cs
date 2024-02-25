@@ -9,7 +9,7 @@
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Styx && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                AddStack(target, spell.FinishAt);
+                AddStack(target, spell.NPCFinishAt);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

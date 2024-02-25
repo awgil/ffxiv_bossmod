@@ -107,7 +107,7 @@ namespace BossMod.Endwalker.Alliance.A14Naldthal
             {
                 module.ReportError(this, $"Several cast-start for #{order}");
             }
-            m.activation = spell.FinishAt;
+            m.activation = spell.NPCFinishAt;
         }
     }
 

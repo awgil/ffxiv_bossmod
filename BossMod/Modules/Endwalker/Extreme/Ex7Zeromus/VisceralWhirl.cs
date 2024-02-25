@@ -22,13 +22,13 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             {
                 case AID.VisceralWhirlRAOE1:
                 case AID.VisceralWhirlLAOE1:
-                    _aoes.Add(new(_shapeNormal, caster.Position, spell.Rotation, spell.FinishAt));
+                    _aoes.Add(new(_shapeNormal, caster.Position, spell.Rotation, spell.NPCFinishAt));
                     break;
                 case AID.VisceralWhirlRAOE2:
-                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.FinishAt));
+                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.NPCFinishAt));
                     break;
                 case AID.VisceralWhirlLAOE2:
-                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.FinishAt));
+                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.NPCFinishAt));
                     break;
             }
         }

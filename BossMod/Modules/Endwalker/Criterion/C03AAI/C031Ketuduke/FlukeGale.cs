@@ -60,7 +60,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
             {
                 case AID.FlukeGaleAOE1:
                 case AID.FlukeGaleAOE2:
-                    Gales.Add(new(caster.Position, 20, spell.FinishAt, _shape, spell.Rotation, Kind.DirForward));
+                    Gales.Add(new(caster.Position, 20, spell.NPCFinishAt, _shape, spell.Rotation, Kind.DirForward));
                     Gales.SortBy(s => s.Activation);
                     break;
                 case AID.Hydrofall:

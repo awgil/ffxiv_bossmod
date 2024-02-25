@@ -18,7 +18,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
                 if (c.caster.CastInfo == null)
                     yield return new(_shape, c.caster.Position, c.caster.Rotation, c.finish);
                 else
-                    yield return new(_shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
+                    yield return new(_shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.NPCFinishAt);
             }
         }
 

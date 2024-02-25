@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.FrontFirestrikes or AID.RearFirestrikes)
-                _jumpActivation = spell.FinishAt.AddSeconds(0.4f);
+                _jumpActivation = spell.NPCFinishAt.AddSeconds(0.4f);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

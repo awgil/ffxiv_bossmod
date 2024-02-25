@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.HuntS.Armstrong
             if ((AID)spell.Action.ID is AID.MagitekCompressorFirst)
             {
                 NumCasts = 0;
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 2.1f, 10));
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 2.1f, 10));
             }
         }
 

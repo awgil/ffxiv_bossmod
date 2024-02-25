@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt, i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
+            return ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
         }
     }
 

@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return (FirstAOECasters.Count > 0 ? FirstAOECasters : SecondAOECasters).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt));
+            return (FirstAOECasters.Count > 0 ? FirstAOECasters : SecondAOECasters).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

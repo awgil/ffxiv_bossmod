@@ -151,7 +151,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ArchaicDemolish)
-                AddStacks(module.Raid.WithoutSlot(true).Where(a => a.Role == Role.Healer), spell.FinishAt.AddSeconds(1.2f));
+                AddStacks(module.Raid.WithoutSlot(true).Where(a => a.Role == Role.Healer), spell.NPCFinishAt.AddSeconds(1.2f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

@@ -442,7 +442,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 var rot = _delta.ArmRotations[_delta.ArmIndex(caster.Position - module.Bounds.Center)];
                 for (int i = 0; i < _numRepeats; ++i)
                 {
-                    _aoes.Add(new(_shape, caster.Position, (spell.Rotation + i * rot).Normalized(), spell.FinishAt.AddSeconds(i * 0.6)));
+                    _aoes.Add(new(_shape, caster.Position, (spell.Rotation + i * rot).Normalized(), spell.NPCFinishAt.AddSeconds(i * 0.6)));
                 }
             }
         }
@@ -542,7 +542,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 var ps = _delta.Players[i];
                 if (ps.IsLocal)
                 {
-                    AddSpread(p, spell.FinishAt); // assume only intended targets will be hit, otherwise chances are it will be all random
+                    AddSpread(p, spell.NPCFinishAt); // assume only intended targets will be hit, otherwise chances are it will be all random
                     if (ps.SideAssignment == bossSide)
                         _bossIntendedTargets.Set(i);
                     else
@@ -573,7 +573,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.SwivelCannonR or AID.SwivelCannonL)
-                AOE = new(_shape, caster.Position, spell.Rotation, spell.FinishAt);
+                AOE = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

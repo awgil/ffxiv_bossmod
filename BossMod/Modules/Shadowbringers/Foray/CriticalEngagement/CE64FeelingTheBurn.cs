@@ -133,7 +133,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ChainCannonBoss)
-                _instance = new(_shape, caster.Position, spell.Rotation, spell.FinishAt.AddSeconds(1));
+                _instance = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt.AddSeconds(1));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

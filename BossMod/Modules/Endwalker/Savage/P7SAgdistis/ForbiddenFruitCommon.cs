@@ -32,7 +32,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
             foreach (var (source, shape, time) in _predictedAOEs)
                 yield return new(shape, source.Position, source.Rotation, time);
             foreach (var (source, shape) in _activeAOEs)
-                yield return new(shape, source.Position, source.CastInfo!.Rotation, source.CastInfo.FinishAt);
+                yield return new(shape, source.Position, source.CastInfo!.Rotation, source.CastInfo.NPCFinishAt);
         }
 
         public override void Update(BossModule module)

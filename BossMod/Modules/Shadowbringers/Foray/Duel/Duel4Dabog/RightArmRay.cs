@@ -72,7 +72,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.RightArmRayAOEFirst)
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

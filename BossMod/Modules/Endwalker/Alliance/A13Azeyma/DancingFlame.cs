@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Alliance.A13Azeyma
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.HauteAirFlare)
-                AOEs.Add(new(_shape, caster.Position + 40 * caster.Rotation.ToDirection(), default, spell.FinishAt.AddSeconds(1)));
+                AOEs.Add(new(_shape, caster.Position + 40 * caster.Rotation.ToDirection(), default, spell.NPCFinishAt.AddSeconds(1)));
         }
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)

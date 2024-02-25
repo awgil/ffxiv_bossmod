@@ -21,7 +21,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
                 _ => 0
             };
             if (offset != 0)
-                _aoe = new(new AOEShapeRect(70, 15), caster.Position + offset * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.FinishAt);
+                _aoe = new(new AOEShapeRect(70, 15), caster.Position + offset * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.NPCFinishAt);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

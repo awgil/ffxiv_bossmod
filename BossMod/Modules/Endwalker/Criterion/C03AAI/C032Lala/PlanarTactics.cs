@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
         {
             if ((AID)spell.Action.ID is AID.NArcaneMineAOE or AID.SArcaneMineAOE)
             {
-                Mines.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
+                Mines.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
                 if (Mines.Count == 8)
                 {
                     InitSafespots(module);

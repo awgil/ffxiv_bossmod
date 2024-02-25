@@ -18,7 +18,7 @@
         {
             if ((AID)spell.Action.ID is AID.EkpyrosisExaflareFirst)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 2.1f, ExplosionsLeft = 5, MaxShownExplosions = 2 });
+                Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 2.1f, ExplosionsLeft = 5, MaxShownExplosions = 2 });
             }
         }
 

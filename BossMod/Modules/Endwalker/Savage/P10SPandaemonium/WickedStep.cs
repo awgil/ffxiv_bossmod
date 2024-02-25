@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             foreach (var s in _towers.Where(s => s?.Position.InCircle(actor.Position, _towerRadius) ?? false))
-                yield return new(s!.Position, _knockbackRadius, s!.CastInfo!.FinishAt);
+                yield return new(s!.Position, _knockbackRadius, s!.CastInfo!.NPCFinishAt);
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)

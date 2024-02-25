@@ -71,7 +71,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.Hellpounce or AID.HellpounceSecond)
-                Activate(caster.Position, spell.LocXZ, spell.FinishAt);
+                Activate(caster.Position, spell.LocXZ, spell.NPCFinishAt);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -122,7 +122,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.FinishAt));
+            return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.NPCFinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

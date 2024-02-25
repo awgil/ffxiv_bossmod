@@ -27,11 +27,11 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
                 // we want to stand in a small ring near inner edge of aoe
                 var inner = ShapeDistance.Circle(_eotsCaster.Position, _aoeEOTS.InnerRadius - 2);
                 var outer = ShapeDistance.InvertedCircle(_eotsCaster.Position, _aoeEOTS.InnerRadius);
-                hints.AddForbiddenZone(p => Math.Min(inner(p), outer(p)), _eotsCaster.CastInfo!.FinishAt);
+                hints.AddForbiddenZone(p => Math.Min(inner(p), outer(p)), _eotsCaster.CastInfo!.NPCFinishAt);
             }
             else if (_geocrushCaster != null)
             {
-                hints.AddForbiddenZone(_aoeGeocrush, _geocrushCaster.Position, new(), _geocrushCaster.CastInfo!.FinishAt);
+                hints.AddForbiddenZone(_aoeGeocrush, _geocrushCaster.Position, new(), _geocrushCaster.CastInfo!.NPCFinishAt);
             }
         }
 
