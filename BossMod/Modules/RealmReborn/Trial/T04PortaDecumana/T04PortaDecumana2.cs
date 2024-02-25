@@ -203,9 +203,9 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         }
     }
 
-    class Ultima : Components.EnrageCastHint
+    class Ultima : Components.CastHint
     {
-        public Ultima() : base(ActionID.MakeSpell(AID.Ultima), 72) { }
+        public Ultima() : base(ActionID.MakeSpell(AID.Ultima), "Enrage!", true) { }
     }
 
     class T04PortaDecumana2States : StateMachineBuilder
