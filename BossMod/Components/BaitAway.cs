@@ -178,22 +178,45 @@ namespace BossMod.Components
     public class BaitAwayCast : GenericBaitAway
     {
         public AOEShape Shape;
+        public bool ResolvesAtCastEvent;
+        public bool IsCharge;
+        public float HalfWidthCharge;
 
-        public BaitAwayCast(ActionID aid, AOEShape shape, bool centerAtTarget = false) : base(aid, centerAtTarget: centerAtTarget)
+        public BaitAwayCast(ActionID aid, AOEShape shape, bool centerAtTarget = false, bool isCharge = false, float halfWidthCharge = 0, bool resolvessAtCastEvent = false) : base(aid, centerAtTarget: centerAtTarget)
         {
             Shape = shape;
+            IsCharge = isCharge;
+            HalfWidthCharge = halfWidthCharge;
+            ResolvesAtCastEvent = resolvessAtCastEvent;
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                CurrentBaits.Add(new(caster, target, Shape));
+            {
+                if (!IsCharge)
+                    CurrentBaits.Add(new(caster, target, Shape));
+                if (IsCharge)
+                    CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, HalfWidthCharge)));
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (spell.Action == WatchedAction)
+            if (spell.Action == WatchedAction && !ResolvesAtCastEvent)
                 CurrentBaits.RemoveAll(b => b.Source == caster);
+        }
+       public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if (spell.Action == WatchedAction && ResolvesAtCastEvent)
+                CurrentBaits.RemoveAll(b => b.Source == caster);
+        }
+
+        public override void Update(BossModule module)
+        {
+            if (IsCharge)
+                foreach (var b in CurrentBaits)
+                    ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
         }
     }
 }

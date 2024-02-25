@@ -71,17 +71,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
 
     class BiteAndRun : Components.BaitAwayCast
     {
-        public BiteAndRun() : base(ActionID.MakeSpell(AID.BiteAndRun), new AOEShapeRect(0, 2.5f)) { }
-        public override void Update(BossModule module)
-        {
-            foreach (var b in CurrentBaits)
-                ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, 2.5f)));
-        }
+        public BiteAndRun() : base(ActionID.MakeSpell(AID.BiteAndRun), new AOEShapeRect(0, 0), false, true, 2.5f) { }
     }
 
     class AquaticLance : Components.UniformStackSpread

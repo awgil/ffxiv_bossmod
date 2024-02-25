@@ -61,14 +61,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
 
     class Butcher : Components.BaitAwayCast
     {
-        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees())) { }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { }
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if (spell.Action == WatchedAction)
-                CurrentBaits.RemoveAll(b => b.Source == caster);
-        }
+        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees()), resolvessAtCastEvent: true) { }
     }
 
     class Rip : Components.SelfTargetedAOEs
