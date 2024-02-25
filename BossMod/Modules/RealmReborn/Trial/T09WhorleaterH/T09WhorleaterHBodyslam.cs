@@ -14,7 +14,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         private float LeviathanZ;
 
         public BodySlamKB()
-        { 
+        {
             StopAtWall = true;
         }
 
@@ -69,11 +69,11 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                 if (LeviathanZ == default)
                     LeviathanZ = module.PrimaryActor.Position.Z;
                 if (module.PrimaryActor.Position.Z != LeviathanZ && module.PrimaryActor.Position.Z != 0)
-                    {
-                        LeviathanZ = module.PrimaryActor.Position.Z;
-                        active = true;
-                        _activation = module.WorldState.CurrentTime.AddSeconds(2.6f);
-                    }
+                {
+                    LeviathanZ = module.PrimaryActor.Position.Z;
+                    active = true;
+                    _activation = module.WorldState.CurrentTime.AddSeconds(2.6f);
+                }
             }
         }
 

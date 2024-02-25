@@ -10,6 +10,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
         BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
         BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
     };
+
     public enum AID : uint
     {
         Attack = 872, // Boss->player, no cast, single-target
@@ -50,6 +51,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
 
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<SapShower>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }
+
     class FetchingFulgence : Components.CastGaze
     {
         public FetchingFulgence() : base(ActionID.MakeSpell(AID.FetchingFulgence)) { }
@@ -72,7 +74,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
 
     class SapShower : Components.LocationTargetedAOEs
     {
-        public SapShower() : base(ActionID.MakeSpell(AID.SapShower2), 8) 
+        public SapShower() : base(ActionID.MakeSpell(AID.SapShower2), 8)
         {
             Color = ArenaColor.Danger;
         }
@@ -112,7 +114,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
         public BeguilingGas() : base(ActionID.MakeSpell(AID.BeguilingGas), "Raidwide + Temporary Misdirection") { }
     }
 
-     class HeavySmash : Components.LocationTargetedAOEs
+    class HeavySmash : Components.LocationTargetedAOEs
     {
         public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
     }

@@ -64,17 +64,20 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegaka
     {
         public VineWhip() : base(ActionID.MakeSpell(AID.VineWhip)) { }
     }
+
     class OdiousAtmosphere : Components.GenericAOEs
     {
         private bool activeBreath;
         private Actor? _caster;
         private DateTime _activation;
         private static readonly AOEShapeCone cone = new(40, 90.Degrees());
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (activeBreath && _caster != null)
-                    yield return new(cone, _caster.Position, _caster.Rotation, _activation);
+                yield return new(cone, _caster.Position, _caster.Rotation, _activation);
         }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.OdiousAtmosphere0)
@@ -84,6 +87,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegaka
                 _activation = spell.FinishAt;
             }
         }
+
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             switch ((AID)spell.Action.ID)
@@ -101,6 +105,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegaka
             }
         }
     }
+
     class MegakanthaStates : StateMachineBuilder
     {
         public MegakanthaStates(BossModule module) : base(module)

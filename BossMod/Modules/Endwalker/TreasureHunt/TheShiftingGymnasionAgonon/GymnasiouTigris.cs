@@ -14,6 +14,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouTigris
         GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
         GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     };
+
     public enum AID : uint
     {
         AutoAttack = 870, // Boss/BossAdd->player, no cast, single-target
@@ -52,8 +53,9 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouTigris
 
     class CatchingClaws : Components.SelfTargetedAOEs
     {
-        public CatchingClaws() : base(ActionID.MakeSpell(AID.CatchingClaws), new AOEShapeCone(12,45.Degrees())) { }
+        public CatchingClaws() : base(ActionID.MakeSpell(AID.CatchingClaws), new AOEShapeCone(12, 45.Degrees())) { }
     }
+
     class PluckAndPrune : Components.SelfTargetedAOEs
     {
         public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7)) { }
@@ -78,7 +80,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouTigris
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
-  
+
     class TigrisStates : StateMachineBuilder
     {
         public TigrisStates(BossModule module) : base(module)

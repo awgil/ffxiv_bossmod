@@ -62,12 +62,13 @@ namespace BossMod.Endwalker.HuntA.Sugriva
     class Butcher : Components.BaitAwayCast
     {
         public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees())) { }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { }
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if (spell.Action == WatchedAction)
                 CurrentBaits.RemoveAll(b => b.Source == caster);
-        }    
+        }
     }
 
     class Rip : Components.SelfTargetedAOEs
@@ -105,10 +106,9 @@ namespace BossMod.Endwalker.HuntA.Sugriva
             switch ((AID)spell.Action.ID)
             {
                 case AID.ApplyPrey:
-                    _target = module.WorldState.Actors.Find(spell.TargetID);
-                    var target = _target;
                     NumCasts = 0;
-                    if (target?.OID == 0x3B8) //Player Chocobos are immune against prey, so mechanic doesn't happen if a chocobo gets selected
+                    _target = module.WorldState.Actors.Find(spell.TargetID);
+                    if (_target?.Type == ActorType.Chocobo) //Player Chocobos are immune against prey, so mechanic doesn't happen if a chocobo gets selected
                         _target = null;
                     break;
                 case AID.RockThrowRest:

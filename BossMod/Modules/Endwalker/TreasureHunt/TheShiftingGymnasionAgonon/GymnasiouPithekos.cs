@@ -51,6 +51,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
         public Thundercall2() : base(0, 18, alwaysShowSpreads: true) { }
         private bool targeted;
         private Actor? target;
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Thundercall)
@@ -60,6 +61,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
                 target = actor;
             }
         }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Thundercall)
@@ -68,11 +70,13 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
                 targeted = false;
             }
         }
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             if (target == actor && targeted)
                 hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
         }
+
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (target == actor && targeted)

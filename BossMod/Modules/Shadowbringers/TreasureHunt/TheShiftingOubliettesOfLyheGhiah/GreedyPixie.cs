@@ -8,7 +8,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
         Boss = 0x3018, //R=1.6
         BossAdd = 0x3019, //R=1.8
         PixieDouble = 0x304C, //R=1.6
-        PixieDouble2 = 0x304D, //R=1.6        
+        PixieDouble2 = 0x304D, //R=1.6
         BossHelper = 0x233C,
         SecretQueen = 0x3021, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
         SecretGarlic = 0x301F, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards

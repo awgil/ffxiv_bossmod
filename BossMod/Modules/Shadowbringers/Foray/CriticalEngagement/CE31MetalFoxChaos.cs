@@ -228,7 +228,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
         public override void Update(BossModule module)
         {
             foreach (var b in CurrentBaits)
-            ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
+                ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

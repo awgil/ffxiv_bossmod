@@ -1,4 +1,5 @@
-﻿namespace BossMod.Stormblood.HuntA.Angada
+﻿// CONTRIB: made by malediktus, not checked
+namespace BossMod.Stormblood.HuntA.Angada
 {
     public enum OID : uint
     {

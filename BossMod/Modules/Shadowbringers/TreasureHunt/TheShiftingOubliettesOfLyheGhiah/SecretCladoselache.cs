@@ -37,7 +37,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if (iconID == (uint)IconID.RotateCW)           
+            if (iconID == (uint)IconID.RotateCW)
                 _increment = -60.Degrees();
             if (iconID == (uint)IconID.RotateCCW)
                 _increment = 60.Degrees();
@@ -75,7 +75,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public override void Update(BossModule module)
         {
             foreach (var b in CurrentBaits)
-            ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
+                ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
         }
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

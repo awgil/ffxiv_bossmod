@@ -15,6 +15,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         DungeonEgg = 0x2A07, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
         BonusAdd_TheKeeperOfTheKeys = 0x2A05, // R3.230
     };
+
     public enum AID : uint
     {
         AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
@@ -36,8 +37,8 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         Scoop = 17853, // 2A05->self, 4,0s cast, range 15 120-degree cone
         Inhale = 17855, // 2A05->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
         Spin = 17854, // 2A05->self, 2,5s cast, range 11 circle
-
     };
+
     class Wellbore : Components.SelfTargetedAOEs
     {
         public Wellbore() : base(ActionID.MakeSpell(AID.Wellbore), new AOEShapeCircle(15)) { }
@@ -51,7 +52,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
     class Compress2 : Components.SelfTargetedAOEs
     {
         public Compress2() : base(ActionID.MakeSpell(AID.Compress2), new AOEShapeRect(102.1f, 3.5f)) { }
-    }    
+    }
 
     class Accelerate : Components.StackWithCastTargets //not sure if this is always a stack, in one replay the icon is a spread marker, need to investigate, but since this is a rare boss it is hard to test
     {

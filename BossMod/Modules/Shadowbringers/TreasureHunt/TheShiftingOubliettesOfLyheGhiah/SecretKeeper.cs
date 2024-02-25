@@ -6,7 +6,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     public enum OID : uint
     {
         Boss = 0x3023, //R=3.99
-        BossAdd = 0x3019, //R=1.8   
+        BossAdd = 0x3019, //R=1.8
         BossHelper = 0x233C,
         ResinVoidzone = 0x1E8FC7,
         BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230

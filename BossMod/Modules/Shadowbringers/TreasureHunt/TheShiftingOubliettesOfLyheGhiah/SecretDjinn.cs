@@ -6,7 +6,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     public enum OID : uint
     {
         Boss = 0x300F, //R=3.48
-        BossAdd = 0x3010, //R=1.32  
+        BossAdd = 0x3010, //R=1.32
         BossHelper = 0x233C,
     };
 
@@ -20,7 +20,6 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         Whipwind = 21656, // Boss->self, 5,0s cast, range 55 width 40 rect
         GentleBreeze = 21653, // BossAdd->self, 3,0s cast, range 15 width 4 rect
     };
-
 
     class Gust : Components.LocationTargetedAOEs
     {

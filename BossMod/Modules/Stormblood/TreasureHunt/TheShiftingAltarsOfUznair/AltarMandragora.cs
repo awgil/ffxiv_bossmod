@@ -14,6 +14,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarMandragora
         AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
         AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     };
+
     public enum AID : uint
     {
         AutoAttack = 872, // Boss->player, no cast, single-target
@@ -75,7 +76,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarMandragora
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
     }
-  
+
     class MandragoraStates : StateMachineBuilder
     {
         public MandragoraStates(BossModule module) : base(module)

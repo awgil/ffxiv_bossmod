@@ -16,6 +16,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
         BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
         BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
     };
+
     public enum AID : uint
     {
         WaveOfTurmoil = 32257, // 3D39->self, 5,0s cast, single-target
@@ -41,6 +42,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
         HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
     };
+
     public enum IconID : uint
     {
         Tankbuster = 218, // player
@@ -51,10 +53,11 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
     {
         public Ceras() : base(ActionID.MakeSpell(AID.Ceras)) { }
     }
+
     class WaveOfTurmoil : Components.KnockbackFromCastTarget
     {
-        public WaveOfTurmoil() : base(ActionID.MakeSpell(AID.WaveOfTurmoil), 20) 
-        { 
+        public WaveOfTurmoil() : base(ActionID.MakeSpell(AID.WaveOfTurmoil), 20)
+        {
             StopAtWall = true;
         }
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<Hydrobomb>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
@@ -83,6 +86,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
     class FallingWater : Components.UniformStackSpread
     {
         public FallingWater() : base(0, 8, alwaysShowSpreads: true) { }
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Spread)
@@ -90,6 +94,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
                 AddSpread(actor);
             }
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FallingWater)
@@ -98,7 +103,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
             }
         }
     }
-    
+
     class Immersion : Components.RaidwideCast
     {
         public Immersion() : base(ActionID.MakeSpell(AID.Immersion)) { }
@@ -128,11 +133,12 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
-     class HeavySmash : Components.LocationTargetedAOEs
+
+    class HeavySmash : Components.LocationTargetedAOEs
     {
         public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
     }
-  
+
     class MeganereisStates : StateMachineBuilder
     {
         public MeganereisStates(BossModule module) : base(module)

@@ -47,7 +47,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
 
     class HeavyStrike1 : Components.SelfTargetedAOEs
     {
-        public HeavyStrike1() : base(ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(1, 6.5f, 135.Degrees())) 
+        public HeavyStrike1() : base(ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(1, 6.5f, 135.Degrees()))
         {
             Color = ArenaColor.Danger;
         }
@@ -63,10 +63,10 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
             if ((AID)spell.Action.ID == AID.HeavyStrike1)
                 Color = ArenaColor.Danger;
             else
-                Color = ArenaColor.AOE; 
+                Color = ArenaColor.AOE;
         }
 
-    }    
+    }
 
     class HeavyStrike3 : Components.SelfTargetedAOEs
     {
@@ -77,9 +77,9 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
             if ((AID)spell.Action.ID == AID.HeavyStrike2)
                 Color = ArenaColor.Danger;
             else
-                Color = ArenaColor.AOE; 
+                Color = ArenaColor.AOE;
         }
-    }   
+    }
 
     class PollenCorona : Components.SelfTargetedAOEs
     {

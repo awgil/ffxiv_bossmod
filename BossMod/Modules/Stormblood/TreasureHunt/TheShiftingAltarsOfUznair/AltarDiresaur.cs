@@ -6,7 +6,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
     public enum OID : uint
     {
         Boss = 0x253A, //R=6.6
-        BossAdd = 0x256F, //R=4.0    
+        BossAdd = 0x256F, //R=4.0
         BossHelper = 0x233C,
         BonusAdd_AltarMatanga = 0x2545, // R3.420
         BonusAdd_GoldWhisker = 0x2544, // R0.540
@@ -125,6 +125,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
     {
         public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
     }
+
     class Spin : Components.Cleave
     {
         public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
@@ -146,7 +147,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()
                 .ActivateOnEnter<Spin>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead)  && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
         }
     }
 

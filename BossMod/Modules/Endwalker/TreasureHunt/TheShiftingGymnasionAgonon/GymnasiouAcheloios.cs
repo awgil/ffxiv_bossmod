@@ -59,11 +59,12 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             // note that boss switches hands, so CW rotation means CCW aoe sequence and vice versa
-            if (iconID == (uint)IconID.RotateCW)           
+            if (iconID == (uint)IconID.RotateCW)
                 _increment = 90.Degrees();
             if (iconID == (uint)IconID.RotateCCW)
                 _increment = -90.Degrees();
         }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.DoubleHammer)
@@ -78,6 +79,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
                 ImminentColor = ArenaColor.Danger;
             }
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)

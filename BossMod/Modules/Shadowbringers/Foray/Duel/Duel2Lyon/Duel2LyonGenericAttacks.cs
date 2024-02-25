@@ -44,7 +44,7 @@ class Enaero : BossComponent
 
 class HeartOfNatureConcentric : ConcentricAOEs
 {
-    private static AOEShape[] _shapes = {new AOEShapeCircle(10), new AOEShapeDonut(10,20), new AOEShapeDonut(20,30)};
+    private static AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30) };
 
     public HeartOfNatureConcentric() : base(_shapes) { }
 
@@ -72,7 +72,7 @@ class HeartOfNatureConcentric : ConcentricAOEs
 
 class TasteOfBlood : SelfTargetedAOEs
 {
-    public TasteOfBlood() : base(ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40,90.Degrees())) { } 
+    public TasteOfBlood() : base(ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40, 90.Degrees())) { }
 }
 
 class TasteOfBloodHint : CastHint
@@ -99,20 +99,20 @@ class RavenousGale : GenericAOEs
     public override void OnActorCreated(BossModule module, Actor actor)
     {
         if ((OID)actor.OID == OID.RavenousGaleVoidzone)
-            {
+        {
             activeTwister = true;
             casting = false;
             _activation = module.WorldState.CurrentTime.AddSeconds(4.6f);
-            }
+        }
     }
 
     public override void OnActorDestroyed(BossModule module, Actor actor)
     {
         if ((OID)actor.OID == OID.RavenousGaleVoidzone)
-            {
+        {
             activeTwister = false;
             casting = false;
-            }
+        }
     }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -136,7 +136,7 @@ class TwinAgonies : SingleTargetCast
 
 class WindsPeak : SelfTargetedAOEs
 {
-    public WindsPeak() : base(ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5)) { } 
+    public WindsPeak() : base(ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5)) { }
 }
 
 class WindsPeakKB : Knockback
@@ -214,7 +214,7 @@ class NaturesBlood : Exaflare
 
 class SpitefulFlameCircleVoidzone : GenericAOEs
 {
-    private bool activeOrb; 
+    private bool activeOrb;
     private int casts;
     private static readonly AOEShapeCircle circle = new(10);
 
@@ -245,31 +245,31 @@ class SpitefulFlameCircleVoidzone : GenericAOEs
 
 class SpitefulFlameRect : SelfTargetedAOEs
 {
-    public SpitefulFlameRect() : base(ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80,2)) { }
+    public SpitefulFlameRect() : base(ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80, 2)) { }
 }
 
 class DynasticFlame : BaitAwayTethers
-    {
-        private ulong target;
-        private int orbcount;
-        public DynasticFlame() : base(new AOEShapeCircle(10), (uint)TetherID.fireorbs) 
+{
+    private ulong target;
+    private int orbcount;
+    public DynasticFlame() : base(new AOEShapeCircle(10), (uint)TetherID.fireorbs)
     {
         CenterAtTarget = true;
     }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.DynasticFlame1)
-                target = spell.TargetID;
-        }
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.DynasticFlame1)
+            target = spell.TargetID;
+    }
     public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-          if(target == actor.InstanceID && CurrentBaits.Count > 0)
+        if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
     }
 
     public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
     {
-        if(target == actor.InstanceID && CurrentBaits.Count > 0)
+        if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.Add("Go to the edge and run until 4 orbs are spawned");
     }
     public override void OnActorCreated(BossModule module, Actor actor)
@@ -284,7 +284,7 @@ class DynasticFlame : BaitAwayTethers
     }
 }
 
-class SkyrendingStrike : EnrageCastHint
+class SkyrendingStrike : CastHint
 {
-    public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), 35) { }
+    public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), "Enrage!", true) { }
 }

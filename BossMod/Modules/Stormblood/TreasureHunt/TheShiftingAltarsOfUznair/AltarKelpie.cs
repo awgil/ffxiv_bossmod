@@ -57,16 +57,16 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
 
     class HydroPushKB : Components.KnockbackFromCastTarget
     {
-        public HydroPushKB() : base(ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22), kind : Kind.DirForward) 
-        { 
+        public HydroPushKB() : base(ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22), kind: Kind.DirForward)
+        {
             StopAtWall = true;
         }
     }
 
     class RisingSeasKB : Components.KnockbackFromCastTarget
     {
-        public RisingSeasKB() : base(ActionID.MakeSpell(AID.RisingSeas), 20) 
-        { 
+        public RisingSeasKB() : base(ActionID.MakeSpell(AID.RisingSeas), 20)
+        {
             StopAtWall = true;
         }
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<BloodyPuddle>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
@@ -81,10 +81,11 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
     {
         public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
     }
+
     class Spin : Components.Cleave
     {
         public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
-    }    
+    }
 
     class KelpieStates : StateMachineBuilder
     {
@@ -100,7 +101,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
                 .ActivateOnEnter<HydroPushKB>()
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()
-                .ActivateOnEnter<Spin>()  
+                .ActivateOnEnter<Spin>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
         }
     }

@@ -6,7 +6,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarBeast
     public enum OID : uint
     {
         Boss = 0x2536, //R=4.6
-        BossAdd = 0x2567, //R=1.25 
+        BossAdd = 0x2567, //R=1.25
         BossHelper = 0x233C,
         AltarQueen = 0x254A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
         AltarGarlic = 0x2548, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
@@ -104,6 +104,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarBeast
     {
         public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
     }
+
     class Spin : Components.Cleave
     {
         public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
@@ -127,7 +128,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarBeast
                 .ActivateOnEnter<Pollen>()
                 .ActivateOnEnter<RaucousScritch>()
                 .ActivateOnEnter<Hurl>()
-                .ActivateOnEnter<Spin>()      
+                .ActivateOnEnter<Spin>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
         }
     }

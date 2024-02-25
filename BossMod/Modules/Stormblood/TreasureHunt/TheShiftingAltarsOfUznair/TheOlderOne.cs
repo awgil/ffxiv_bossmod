@@ -9,7 +9,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheOlderOne
         BossAdd = 0x2572, //R=1.72, untargetable
         BossAdd2 = 0x2540, //R=1.72, untargetable
         BossAdd3 = 0x2573, //R=1.72, untargetable
-        BossAdd4 = 0x2574, //R=1.72, untargetable    
+        BossAdd4 = 0x2574, //R=1.72, untargetable
         BossHelper = 0x233C,
         BonusAdd_GoldWhisker = 0x2544, // R0.540
         AltarQueen = 0x254A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
@@ -38,7 +38,6 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheOlderOne
         HeirloomScream = 6451, // AltarTomato->self, 3,5s cast, range 6+R circle
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
     };
-
 
     class MysticLight : Components.SelfTargetedAOEs
     {
@@ -94,7 +93,6 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheOlderOne
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
     }
-  
 
     class TheOlderOneStates : StateMachineBuilder
     {

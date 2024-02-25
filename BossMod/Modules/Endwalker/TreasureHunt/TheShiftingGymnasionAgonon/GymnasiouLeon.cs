@@ -10,6 +10,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouLeon
         BossHelper = 0x233C,
         BonusAdds_Lyssa = 0x3D4E, //R=3.75
     };
+
     public enum AID : uint
     {
         AutoAttack = 870, // 3D27/3D4E/3D28->player, no cast, single-target
@@ -28,18 +29,22 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouLeon
     {
         public InfernoBlast() : base(ActionID.MakeSpell(AID.InfernoBlast), new AOEShapeRect(46, 20)) { }
     }
+
     class Roar : Components.SelfTargetedAOEs
     {
         public Roar() : base(ActionID.MakeSpell(AID.Roar), new AOEShapeCircle(12)) { }
     }
+
     class FlareStar : Components.SelfTargetedAOEs
     {
         public FlareStar() : base(ActionID.MakeSpell(AID.FlareStar), new AOEShapeCircle(12)) { }
     }
+
     class MarkOfTheBeast : Components.SelfTargetedAOEs
     {
         public MarkOfTheBeast() : base(ActionID.MakeSpell(AID.MarkOfTheBeast), new AOEShapeCone(8, 60.Degrees())) { }
     }
+
     class Pounce : Components.SingleTargetCast
     {
         public Pounce() : base(ActionID.MakeSpell(AID.Pounce)) { }
@@ -53,7 +58,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouLeon
     class HeavySmash : Components.LocationTargetedAOEs
     {
         public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-    }  
+    }
 
     class LeonStates : StateMachineBuilder
     {

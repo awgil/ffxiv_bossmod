@@ -14,6 +14,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMandra
         GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
         GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     };
+
     public enum AID : uint
     {
         Attack = 872, // Boss/3D42->player, no cast, single-target
@@ -67,7 +68,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMandra
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
-  
+
     class MandragorasStates : StateMachineBuilder
     {
         public MandragorasStates(BossModule module) : base(module)

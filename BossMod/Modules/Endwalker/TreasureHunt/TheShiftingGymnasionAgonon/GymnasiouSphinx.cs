@@ -17,6 +17,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
         BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
         BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
     };
+
     public enum AID : uint
     {
         AutoAttack = 870, // Boss->player, no cast, single-target
@@ -40,6 +41,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
         HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
     };
+
     public enum IconID : uint
     {
         Tankbuster = 218, // player
@@ -79,6 +81,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
     class FeatherRain : Components.UniformStackSpread
     {
         public FeatherRain() : base(0, 6, alwaysShowSpreads: true) { }
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Spread)
@@ -86,6 +89,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
                 AddSpread(actor);
             }
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FeatherRain)
@@ -94,7 +98,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
             }
         }
     }
-    
+
     class AeroII : Components.LocationTargetedAOEs
     {
         public AeroII() : base(ActionID.MakeSpell(AID.AeroII2), 4) { }
@@ -124,11 +128,12 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
     {
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
     }
-     class HeavySmash : Components.LocationTargetedAOEs
+
+    class HeavySmash : Components.LocationTargetedAOEs
     {
         public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
     }
-  
+
     class SphinxStates : StateMachineBuilder
     {
         public SphinxStates(BossModule module) : base(module)

@@ -7,11 +7,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarArachne
     {
         Boss = 0x253B, //R=7.0
         Helper = 0x253C, //R=0.5
-        Helper2 = 0x2565, //R=0.5       
+        Helper2 = 0x2565, //R=0.5
         BossHelper = 0x233C,
         BonusAdd_AltarMatanga = 0x2545, // R3.420
         BonusAdd_GoldWhisker = 0x2544, // R0.540
-
     };
 
     public enum AID : uint
@@ -76,6 +75,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarArachne
     {
         public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
     }
+
     class Spin : Components.Cleave
     {
         public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }

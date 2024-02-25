@@ -6,7 +6,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
     public enum OID : uint
     {
         Boss = 0x2533, //R=3.8
-        BossAdd = 0x2563, //R=1.8 
+        BossAdd = 0x2563, //R=1.8
         BossHelper = 0x233C,
     };
 
@@ -48,8 +48,8 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
 
     class StygianReleaseKB : Components.KnockbackFromCastTarget
     {
-        public StygianReleaseKB() : base(ActionID.MakeSpell(AID.StygianRelease), 20) 
-        { 
+        public StygianReleaseKB() : base(ActionID.MakeSpell(AID.StygianRelease), 20)
+        {
             StopAtWall = true;
         }
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<TerrorEye>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
@@ -65,7 +65,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
                 .ActivateOnEnter<TerrorEye>()
                 .ActivateOnEnter<VillainousRebuke>()
                 .ActivateOnEnter<StygianRelease>()
-                .ActivateOnEnter<StygianReleaseKB>() 
+                .ActivateOnEnter<StygianReleaseKB>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
         }
     }

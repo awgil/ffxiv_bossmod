@@ -16,6 +16,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
         GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
         BonusAdds_Lyssa = 0x3D4E, //R=3.75
     };
+
     public enum AID : uint
     {
         AutoAttack = 870, // Boss->player, no cast, single-target
@@ -45,6 +46,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
     {
         public Rake() : base(ActionID.MakeSpell(AID.Rake)) { }
     }
+
     class Tiiimbeeer : Components.RaidwideCast
     {
         public Tiiimbeeer() : base(ActionID.MakeSpell(AID.Tiiimbeeer)) { }
@@ -115,7 +117,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
     class HeavySmash : Components.LocationTargetedAOEs
     {
         public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-    }  
+    }
 
     class StyphnolobionStates : StateMachineBuilder
     {

@@ -31,42 +31,45 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
     class PrincessThrenody : Components.GenericAOEs
     {
         private Angle _direction;
-        private Angle _offset;
-        private bool casting;
         private DateTime _activation;
+
         private static readonly AOEShapeCone _shape = new(40, 60.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (casting)
-                yield return new(_shape, module.PrimaryActor.Position, _direction + _offset, _activation);
+            if (_activation != default)
+                yield return new(_shape, module.PrimaryActor.Position, _direction, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
             {
-                foreach (var s in module.PrimaryActor.Statuses)
-                {
-                    if ((SID)s.ID == SID.RightwardWhimsy)
-                        _offset = -90.Degrees();
-                    if ((SID)s.ID == SID.LeftwardWhimsy)
-                        _offset = 90.Degrees();
-                    if ((SID)s.ID == SID.BackwardWhimsy)
-                        _offset = 180.Degrees();
-                    if ((SID)s.ID == SID.ForwardWhimsy)
-                        _offset = 0.Degrees();                    
-                }
-                casting = true;
-                _direction = spell.Rotation;
-                _activation = module.WorldState.CurrentTime.AddSeconds(6); //times observed between 6.07s and 6.2s
+                _direction = spell.Rotation + ThrenodyDirection(module);
+                _activation = spell.FinishAt.AddSeconds(2.4f);
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {          
+        {
             if ((AID)spell.Action.ID == AID.PrincessThrenodyResolve)
-                casting = false;
+                _activation = default;
+        }
+
+        private Angle ThrenodyDirection(BossModule module)
+        {
+            foreach (var s in module.PrimaryActor.Statuses)
+            {
+                switch ((SID)s.ID)
+                {
+                    case SID.RightwardWhimsy: return -90.Degrees();
+                    case SID.LeftwardWhimsy: return 90.Degrees();
+                    case SID.BackwardWhimsy: return 180.Degrees();
+                    case SID.ForwardWhimsy: return 0.Degrees();
+                }
+            }
+            module.ReportError(this, "Failed to find whimsy status");
+            return default;
         }
     }
 

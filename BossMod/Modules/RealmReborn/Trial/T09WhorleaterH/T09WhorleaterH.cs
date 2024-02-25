@@ -89,7 +89,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
                         OID.Boss or OID.Tail => 1,
                         _ => 0
                     };
-                }            
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyro
         BossHelper = 0x233C,
         StormsGrip = 0x3D2F, //R=1.0
     };
+
     public enum AID : uint
     {
         AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
@@ -24,7 +25,6 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyro
         Wingblow = 32224, // Boss->self, 4,0s cast, single-target
         Wingblow2 = 32225, // BossHelper->self, 4,0s cast, range 15 circle
     };
-
 
     class StormWing : Components.SelfTargetedAOEs
     {

@@ -10,6 +10,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouTriton
         BossHelper = 0x233C,
         Bubble = 0x3D32, //R=1.0
     };
+
     public enum AID : uint
     {
         AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target

@@ -5,7 +5,7 @@ namespace BossMod.Stormblood.TreasureHunt.LostCanalsOfUznair.CanalIcebeast
 {
     public enum OID : uint
     {
-        Boss = 0x1F15, //R=7.5   
+        Boss = 0x1F15, //R=7.5
         BossHelper = 0x233C,
         BossAdd1 = 0x1F0E, // R1.560
         BossAdd2 = 0x1F0F, // R1.600
@@ -59,6 +59,7 @@ namespace BossMod.Stormblood.TreasureHunt.LostCanalsOfUznair.CanalIcebeast
     {
         public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
     }
+
     class Spin : Components.Cleave
     {
         public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_Abharamu) { }

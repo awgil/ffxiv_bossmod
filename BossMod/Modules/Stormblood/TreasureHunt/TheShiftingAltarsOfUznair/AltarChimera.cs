@@ -6,7 +6,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
     public enum OID : uint
     {
         Boss = 0x2539, //R=5.92
-        BossAdd = 0x256A, //R=2.07   
+        BossAdd = 0x256A, //R=2.07
         BossHelper = 0x233C,
         IceVoidzone = 0x1E8D9C,
     };

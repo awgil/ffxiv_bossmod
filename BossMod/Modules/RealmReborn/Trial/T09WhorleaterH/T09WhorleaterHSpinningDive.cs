@@ -39,7 +39,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         private bool dived;
         private static readonly AOEShapeRect rect = new(46, 8);
         public SpinningDiveKB()
-        { 
+        {
             StopAtWall = true;
         }
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
