@@ -64,6 +64,7 @@ namespace BossMod.MNK
                 _strategy.FireUse = Rotation.Strategy.FireStrategy.Delay;
                 _strategy.WindUse = CommonRotation.Strategy.OffensiveAbilityUse.Delay;
                 _strategy.BrotherhoodUse = CommonRotation.Strategy.OffensiveAbilityUse.Delay;
+                _strategy.PerfectBalanceUse = CommonRotation.Strategy.OffensiveAbilityUse.Delay;
             }
             FillStrategyPositionals(_strategy, Rotation.GetNextPositional(_state, _strategy), _state.TrueNorthLeft > _state.GCD);
         }
@@ -138,7 +139,7 @@ namespace BossMod.MNK
             // placeholders
             SupportedSpell(AID.Bootshine).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
             SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = SupportedSpell(AID.ShadowOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
-            SupportedSpell(AID.SnapPunch).PlaceholderForAuto = _config.FullRotation ? AutoActionFiller : AutoActionNone;
+            SupportedSpell(AID.TrueStrike).PlaceholderForAuto = _config.FillerRotation ? AutoActionFiller : AutoActionNone;
 
             // combo replacement
             SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, _strategy)) : null;

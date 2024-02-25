@@ -1,16 +1,17 @@
 // CONTRIB: made by malediktus, not checked
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
+namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
 {
     public enum OID : uint
     {
         Boss = 0x3D43, //R=5
-        BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don't seem to despawn
+        BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
         BossHelper = 0x233C,
         IcePillars = 0x3D44,
-        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
+        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
     };
 
     public enum AID : uint
@@ -51,18 +52,21 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FrigidNeedle)
-                AddSequence(module.Bounds.Center, spell.FinishAt);
+                AddSequence(module.Bounds.Center, spell.FinishAt.AddSeconds(0.7f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            var order = (AID)spell.Action.ID switch
+            if (Sequences.Count > 0)
             {
-                AID.FrigidNeedle2 => 0,
-                AID.CircleOfIce2 => 1,
-                _ => -1
-            };
-            AdvanceSequence(order, module.Bounds.Center);
+                var order = (AID)spell.Action.ID switch
+                {
+                    AID.FrigidNeedle2 => 0,
+                    AID.CircleOfIce2 => 1,
+                    _ => -1
+                };
+                AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+            }
         }
     }
 
@@ -75,18 +79,21 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.CircleOfIce)
-                AddSequence(module.Bounds.Center, spell.FinishAt);
+                AddSequence(module.Bounds.Center, spell.FinishAt.AddSeconds(0.7f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            var order = (AID)spell.Action.ID switch
+            if (Sequences.Count > 0)
             {
-                AID.CircleOfIce2 => 0,
-                AID.FrigidNeedle2 => 1,
-                _ => -1
-            };
-            AdvanceSequence(order, module.Bounds.Center);
+                var order = (AID)spell.Action.ID switch
+                {
+                    AID.CircleOfIce2 => 0,
+                    AID.FrigidNeedle2 => 1,
+                    _ => -1
+                };
+                AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+            }
         }
     }
 
@@ -108,17 +115,21 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
     class IcePillarSpawn : Components.GenericAOEs
     {
         private bool activePillar;
-        private readonly AOEShapeCircle circle = new(6);
+        private DateTime _activation;
+        private static readonly AOEShapeCircle circle = new(6);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (activePillar)
                 foreach (var p in module.Enemies(OID.IcePillars))
-                    yield return new(circle, p.Position, p.Rotation, new());
+                    yield return new(circle, p.Position, default, _activation);
         }
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.IcePillars)
+            {
                 activePillar = true;
+                _activation = module.WorldState.CurrentTime.AddSeconds(3.8f);
+            }
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -157,11 +168,11 @@ namespace BossMod.Endwalker.TreasureHunt.LyssaChrysine
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BonusAdds_Lyssa))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdds_Lampas))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

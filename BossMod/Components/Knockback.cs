@@ -36,6 +36,7 @@ namespace BossMod.Components
         }
 
         public bool IgnoreImmunes { get; private init; }
+        public bool StopAtWall; // use if wall is solid rather than deadly
         public int MaxCasts; // use to limit number of drawn knockbacks
         protected PlayerImmuneState[] PlayerImmunes = new PlayerImmuneState[PartyState.MaxAllianceSize];
 
@@ -49,6 +50,8 @@ namespace BossMod.Components
             if (from != to)
             {
                 arena.Actor(to, rot, ArenaColor.Danger);
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddLine(from, to, 0xFF000000, 2);
                 arena.AddLine(from, to, ArenaColor.Danger);
             }
         }
@@ -64,7 +67,7 @@ namespace BossMod.Components
         public abstract IEnumerable<Source> Sources(BossModule module, int slot, Actor actor);
 
         // called to determine whether we need to show hint
-        public virtual bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !module.Bounds.Contains(pos);
+        public virtual bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => StopAtWall ? false : !module.Bounds.Contains(pos);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -159,6 +162,9 @@ namespace BossMod.Components
                     distance = Math.Min(s.Distance, (s.Origin - from).Length() - s.MinDistance);
                 if (distance <= 0)
                     continue; // this could happen if attract starts from < min distance
+
+                if (StopAtWall)
+                    distance = Math.Min(distance, module.Bounds.IntersectRay(from, dir) - 0.001f);
 
                 var to = from + distance * dir;
                 yield return (from, to);

@@ -40,30 +40,56 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
             foreach (var s in Enemies(OID.Spume))
-                Arena.Actor(s, ArenaColor.PlayerInteresting, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var e in Enemies(OID.Tail))
-                Arena.Actor(e, ArenaColor.Enemy, false);
+                Arena.Actor(e, ArenaColor.Enemy);
             foreach (var e in Enemies(OID.Sahagin))
-                Arena.Actor(e, ArenaColor.Enemy, false);
+                Arena.Actor(e, ArenaColor.Enemy);
             foreach (var e in Enemies(OID.DangerousSahagins))
-                Arena.Actor(e, ArenaColor.Enemy, false);
+                Arena.Actor(e, ArenaColor.Enemy);
             foreach (var c in Enemies(OID.Converter))
-                Arena.Actor(c, ArenaColor.Object, false);
+                Arena.Actor(c, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
+            var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
             foreach (var e in hints.PotentialTargets)
             {
-                e.Priority = (OID)e.Actor.OID switch
+                if (actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || (actor.Class is Class.BLU && TankMimikry == null))
                 {
-                    OID.DangerousSahagins => 4,
-                    OID.Spume => 3,
-                    OID.Sahagin => 2,
-                    OID.Boss or OID.Tail => 1,
-                    _ => 0
-                };
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.DangerousSahagins => 4,
+                        OID.Spume => 3,
+                        OID.Sahagin => 2,
+                        OID.Boss => 1,
+                        _ => 0
+                    };
+                }
+                if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged)
+                {
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.DangerousSahagins => 4,
+                        OID.Spume => 3,
+                        OID.Sahagin => 2,
+                        OID.Tail => 1,
+                        _ => 0
+                    };
+                }
+                if (actor.Class.GetClassCategory() is ClassCategory.Tank or ClassCategory.Melee || (actor.Class is Class.BLU && TankMimikry != null))
+                {
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.DangerousSahagins => 4,
+                        OID.Spume => 3,
+                        OID.Sahagin => 2,
+                        OID.Boss or OID.Tail => 1,
+                        _ => 0
+                    };
+                }
             }
         }
     }

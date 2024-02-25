@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using Lumina.Excel.GeneratedSheets2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +48,7 @@ namespace BossMod.ReplayAnalysis
             {
                 tree.LeafNode($"Source IDs: {OIDListString(data.SourceOIDs)}");
                 tree.LeafNode($"Target IDs: {OIDListString(data.TargetOIDs)}");
+                tree.LeafNode($"VFX: {Service.LuminaRow<Channeling>(tid)?.File}");
             }
         }
 

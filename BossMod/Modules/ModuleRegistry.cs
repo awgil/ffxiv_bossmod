@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace BossMod
@@ -48,6 +47,29 @@ namespace BossMod
             }
 
             public bool CooldownPlanningSupported => ConfigType?.IsSubclassOf(typeof(CooldownPlanningConfigNode)) ?? false;
+
+            public bool IsFate() => !FateName!.RawString.IsNullOrEmpty();
+            public bool IsHunt() => !HuntRank.IsNullOrEmpty();
+            public bool IsCarnivale() => CarnivaleStage != 0;
+            public bool IsCriticalEngagement() => !ForayName!.RawString.IsNullOrEmpty();
+
+            // AFAIK, unreals are the only piece of content that regularly get removed. Their CFCID stays but the properties are all reverted to default.
+            public bool IsRemovedContent()
+            {
+                var cfcRow = _cfcSheet.GetRow(CFCID);
+
+                if (cfcRow == null)
+                    return true;
+
+                foreach (var prop in cfcRow.GetType().GetProperties())
+                {
+                    var propValue = prop.GetValue(cfcRow);
+                    if (propValue != null && !propValue.Equals(default(PropertyInfo)))
+                        return false; // Property has a non-default value, module is not removed content
+                }
+
+                return true; // All properties have default values, module is considered removed content
+            }
 
             public static Info? Build(Type module)
             {
@@ -230,7 +252,8 @@ namespace BossMod
         private static readonly ExcelSheet<DynamicEvent> _dynamicEventSheet;
         private static readonly ExcelSheet<BNpcName> _npcNamesSheet;
 
-        private static readonly Dictionary<uint, Info> _uncatalogued;
+        private static readonly List<Info> _catalogued;
+        private static readonly List<Info> _uncatalogued;
         private static readonly List<uint> _expacs;
 
         static ModuleRegistry()
@@ -256,43 +279,20 @@ namespace BossMod
                 _modules[info.PrimaryActorOID] = info;
             }
 
-            _modules = RegisteredModules
-                .Where(x => !x.Value.IsUncatalogued)
-                .OrderBy(x => x.Value.ExVersion)
-                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.ClassJobLevelSync)
-                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.ItemLevelRequired)
-                .ThenBy(x => _cfcSheet.GetRow(x.Value.CFCID)?.SortKey)
-                .ToDictionary(x => x.Key, x => x.Value);
-            _uncatalogued = _modules.Where(x => x.Value.IsUncatalogued || x.Value.ExVersion == 69).Select(x => x).ToDictionary(x => x.Key, x => x.Value);
-            _expacs = _modules.Where(x => x.Value.ExVersion != 69).Select(x => x.Value.ExVersion).Distinct().ToList()!;
+            _catalogued = _modules.Values
+                .Where(x => !x.IsUncatalogued)
+                .OrderBy(x => x.ExVersion)
+                .ThenBy(x => _cfcSheet.GetRow(x.CFCID)?.ClassJobLevelSync)
+                .ThenBy(x => _cfcSheet.GetRow(x.CFCID)?.ItemLevelRequired)
+                .ThenBy(x => _cfcSheet.GetRow(x.CFCID)?.SortKey)
+                .ToList();
+            _uncatalogued = _modules.Values.Where(x => x.IsUncatalogued || x.ExVersion == 69).Select(x => x).ToList();
+            _expacs = _modules.Where(x => x.Value.ExVersion != 69).Select(x => x.Value.ExVersion).Distinct().ToList();
         }
 
-        public static bool IsFate(this KeyValuePair<uint, Info> module) => !module.Value.FateName!.RawString.IsNullOrEmpty();
-        public static bool IsHunt(this KeyValuePair<uint, Info> module) => !module.Value.HuntRank.IsNullOrEmpty();
-        public static bool IsCarnivale(this KeyValuePair<uint, Info> module) => module.Value.CarnivaleStage != 0;
-        public static bool IsCriticalEngagement(this KeyValuePair<uint, Info> module) => !module.Value.ForayName!.RawString.IsNullOrEmpty();
-
-        // AFAIK, unreals are the only piece of content that regularly get removed. Their CFCID stays but the properties are all reverted to default.
-        public static bool IsRemovedContent(this KeyValuePair<uint, Info> module)
-        {
-            var cfcRow = _cfcSheet.GetRow(module.Value.CFCID);
-
-            if (cfcRow == null)
-                return true;
-
-            foreach (var prop in cfcRow.GetType().GetProperties())
-            {
-                var propValue = prop.GetValue(cfcRow);
-                if (propValue != null && !propValue.Equals(default(PropertyInfo)))
-                    return false; // Property has a non-default value, module is not removed content
-            }
-
-            return true; // All properties have default values, module is considered removed content
-        }
-
-        public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modules;
+        public static IReadOnlyList<Info> CataloguedModules => _catalogued;
+        public static IReadOnlyList<Info> UncataloguedModules => _uncatalogued;
         public static IReadOnlyList<uint> AvailableExpansions => _expacs;
-        public static IReadOnlyDictionary<uint, Info> UncataloguedModules => _uncatalogued;
 
         public static Info? FindByOID(uint oid) => _modules.GetValueOrDefault(oid);
 
