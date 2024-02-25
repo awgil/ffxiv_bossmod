@@ -134,6 +134,7 @@ namespace BossMod
             WorldState.Actors.EventObjectStateChange += OnActorEState;
             WorldState.Actors.EventObjectAnimation += OnActorEAnim;
             WorldState.Actors.PlayActionTimelineEvent += OnActorPlayActionTimelineEvent;
+            WorldState.Actors.EventNpcYell += OnActorNpcYell;
             WorldState.EnvControl += OnEnvControl;
             foreach (var v in WorldState.Actors)
                 OnActorCreated(null, v);
@@ -168,6 +169,7 @@ namespace BossMod
                 WorldState.Actors.EventObjectStateChange -= OnActorEState;
                 WorldState.Actors.EventObjectAnimation -= OnActorEAnim;
                 WorldState.Actors.PlayActionTimelineEvent -= OnActorPlayActionTimelineEvent;
+                WorldState.Actors.EventNpcYell -= OnActorNpcYell;
                 WorldState.EnvControl -= OnEnvControl;
             }
         }
@@ -336,6 +338,8 @@ namespace BossMod
         {
             if (pos != null)
             {
+                if (WindowConfig.ShowOutlinesAndShadows)
+                    Arena.TextWorld(new(pos.Value.XZ()), text, 0xFF000000, 25);
                 Arena.TextWorld(new(pos.Value.XZ()), text, color, 22);
             }
         }
@@ -469,6 +473,12 @@ namespace BossMod
         {
             foreach (var comp in _components)
                 comp.OnActorPlayActionTimelineEvent(this, arg.actor, arg.id);
+        }
+
+        private void OnActorNpcYell(object? sender, (Actor actor, ushort id) arg)
+        {
+            foreach (var comp in _components)
+                comp.OnActorNpcYell(this, arg.actor, arg.id);
         }
 
         private void OnEnvControl(object? sender, WorldState.OpEnvControl op)

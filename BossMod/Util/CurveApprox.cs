@@ -8,7 +8,7 @@ namespace BossMod
     // we need them, since clipping and rendering works with polygons
     public static class CurveApprox
     {
-        public const float ScreenError = 0.3f; // typical maximal screen-space error; tradeoff between performance and fidelity
+        public const float ScreenError = 0.1f; // typical maximal screen-space error; tradeoff between performance and fidelity
 
         public static int CalculateCircleSegments(float radius, Angle angularLength, float maxError)
         {

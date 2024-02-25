@@ -1,41 +1,14 @@
 ﻿using Dalamud.Common;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
-using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using ImGuiNET;
 using System;
 using System.Reflection;
 
 namespace BossMod
 {
-    class RepoMigrateWindow : Window
-    {
-        public static string OldURL = "https://raw.githubusercontent.com/awgil/ffxiv_plugin_distribution/master/pluginmaster.json";
-        public static string NewURL = "https://puni.sh/api/repository/veyn";
-
-        public RepoMigrateWindow() : base("Warning! Plugin home repository was changed")
-        {
-            IsOpen = true;
-        }
-
-        public override void Draw()
-        {
-            ImGui.TextUnformatted("The home repository of Boss Mod (vbm) plugin was recently changed.");
-            ImGui.TextUnformatted("Please update your dalamud settings to point to the new repository:");
-            if (ImGui.Button("Click here to copy new url into clipboard"))
-                ImGui.SetClipboardText(NewURL);
-            ImGui.TextUnformatted("1. Go to repo settings (esc -> dalamud settings -> experimental).");
-            ImGui.TextUnformatted($"2. Replace '{OldURL}' with '{NewURL}' (use button above and just ctrl-V -> enter).");
-            ImGui.TextUnformatted("3. Press save-and-close button.");
-            ImGui.TextUnformatted("4. Go to dalamud plugins (esc -> dalamud plugins -> installed plugins).");
-            ImGui.TextUnformatted("5. Uninstall and reinstall this plugin (you might need to restart the game before dalamud allows you to reinstall).");
-            ImGui.TextUnformatted("Don't worry, you won't lose any settings. Sorry for bother and enjoy the plugin!");
-        }
-    }
-
     public sealed class Plugin : IDalamudPlugin
     {
         public string Name => "Boss Mod";
@@ -48,6 +21,7 @@ namespace BossMod
         private Autorotation _autorotation;
         private AI.AIManager _ai;
         private AI.Broadcast _broadcast;
+        private IPCProvider _ipc;
         private TimeSpan _prevUpdateTime;
 
         // windows
@@ -83,19 +57,7 @@ namespace BossMod
             ActionManagerEx.Instance = new(); // needs config
 
             _commandManager = commandManager;
-            if (dalamud.SourceRepository == RepoMigrateWindow.OldURL)
-            {
-                var migrateWindow = new RepoMigrateWindow();
-                migrateWindow.IsOpen = true;
-                _commandManager.AddHandler("/vbm", new((_, _) => migrateWindow.IsOpen = true));
-                Service.WindowSystem.AddWindow(migrateWindow);
-                Service.Config.Get<BossModuleConfig>().Enable = false;
-                Service.Config.Get<AutorotationConfig>().Enabled = false;
-            }
-            else
-            {
-                _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
-            }
+            _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
             _network = new(dalamud.ConfigDirectory);
             _ws = new(dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
@@ -103,6 +65,7 @@ namespace BossMod
             _autorotation = new(_bossmod);
             _ai = new(_autorotation);
             _broadcast = new();
+            _ipc = new(_autorotation);
 
             _wndBossmod = new(_bossmod);
             _wndBossmodPlan = new(_bossmod);
@@ -123,6 +86,7 @@ namespace BossMod
             _wndBossmodHints.Dispose();
             _wndBossmodPlan.Dispose();
             _wndBossmod.Dispose();
+            _ipc.Dispose();
             _bossmod.Dispose();
             _network.Dispose();
             _ai.Dispose();

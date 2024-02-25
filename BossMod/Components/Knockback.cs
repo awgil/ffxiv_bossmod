@@ -50,6 +50,8 @@ namespace BossMod.Components
             if (from != to)
             {
                 arena.Actor(to, rot, ArenaColor.Danger);
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddLine(from, to, 0xFF000000, 2);
                 arena.AddLine(from, to, ArenaColor.Danger);
             }
         }
@@ -162,7 +164,7 @@ namespace BossMod.Components
                     continue; // this could happen if attract starts from < min distance
 
                 if (StopAtWall)
-                    distance = Math.Min(distance, module.Bounds.IntersectRay(from, dir));
+                    distance = Math.Min(distance, module.Bounds.IntersectRay(from, dir) - 0.001f);
 
                 var to = from + distance * dir;
                 yield return (from, to);

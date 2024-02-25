@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.HuntA.Petalodus
+﻿namespace BossMod.Endwalker.HuntA.Petalodus
 {
     public enum OID : uint
     {
@@ -11,15 +8,17 @@ namespace BossMod.Endwalker.HuntA.Petalodus
     public enum AID : uint
     {
         AutoAttack = 872, // Boss->player, no cast, single-target
-        MarineMayhem = 27063,
-        Waterga = 27067, // Boss->players, 5.0s cast, range 6 circle
+        MarineMayhem = 27063, // Boss->self, 5,0s cast, range 40 circle, triple raidwide + damage up
+        MarineMayhemAOE1 = 27064, // Boss->self, no cast, range 40 circle, second raidwide hit
+        MarineMayhemAOE2 = 27065, // Boss->self, no cast, range 40 circle, third raidwide hit
+        Waterga = 27067, // Boss->players, 5.0s cast, range 6 circle, applies magic vulnerability up (2nd hit deadly even for tanks)
         TidalGuillotine = 27068, // Boss->self, 4.0s cast, range 13 circle
         AncientBlizzard = 27069, // Boss->self, 4.0s cast, range 40 45-degree cone
     }
 
-    class MarineMayhem : Components.CastHint // TODO: find out what this spell does...
+    class MarineMayhem : Components.CastHint
     {
-        public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), "Interruptible raidwide") { }
+        public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), "Interruptible 3x raidwide") { }
     }
 
     class Waterga : Components.SpreadFromCastTargets

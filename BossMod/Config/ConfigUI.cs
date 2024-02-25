@@ -207,7 +207,7 @@ namespace BossMod
                 var flags = ImGuiSliderFlags.None;
                 if (slider.Logarithmic)
                     flags |= ImGuiSliderFlags.Logarithmic;
-                if (ImGui.DragFloat(props.Label, ref v, slider.Speed, slider.Min, slider.Max, "%.1f", flags))
+                if (ImGui.DragFloat(props.Label, ref v, slider.Speed, slider.Min, slider.Max, "%.3f", flags))
                 {
                     member.SetValue(node, v);
                     node.NotifyModified();

@@ -54,7 +54,7 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
         private bool casting;
         private Actor? _caster;
 
-        private readonly AOEShapeCone cone = new(8, 60.Degrees());
+        private static readonly AOEShapeCone cone = new(8, 60.Degrees());
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
