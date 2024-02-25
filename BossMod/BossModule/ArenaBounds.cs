@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using BossMod.AI;
 
 namespace BossMod
 {
@@ -18,7 +19,6 @@ namespace BossMod
         public IEnumerable<WPos> ClipPoly => _clipper.ClipPoly;
         public List<(WPos, WPos, WPos)> ClipAndTriangulate(ClipperLib.PolyTree poly) => _clipper.ClipAndTriangulate(poly);
         public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> poly) => _clipper.ClipAndTriangulate(poly);
-
         private float _screenHalfSize;
         public float ScreenHalfSize
         {
@@ -27,8 +27,9 @@ namespace BossMod
             {
                 if (_screenHalfSize != value)
                 {
+
                     _screenHalfSize = value;
-                    MaxApproxError = CurveApprox.ScreenError / value * HalfSize;
+                    MaxApproxError =  Math.Clamp(Service.Config.Get<BossModuleConfig>().RadarCurveError, 0.001f, 0.3f) / value * HalfSize;
                     _clipper.ClipPoly = BuildClipPoly();
                 }
             }
@@ -39,7 +40,7 @@ namespace BossMod
             Center = center;
             HalfSize = halfSize;
         }
-
+        public float _resolution = Math.Clamp(Service.Config.Get<AIConfig>().AIGridResolution, 0.05f, 0.5f);
         public abstract IEnumerable<WPos> BuildClipPoly(float offset = 0); // positive offset increases area, negative decreases
         public abstract Pathfinding.Map BuildMap(float resolution = 0.5f);
         public abstract bool Contains(WPos p);
@@ -124,7 +125,7 @@ namespace BossMod
 
         public override Pathfinding.Map BuildMap(float resolution)
         {
-            var map = new Pathfinding.Map(resolution, Center, HalfSize, HalfSize, new());
+            var map = new Pathfinding.Map(_resolution, Center, HalfSize, HalfSize, new());
             map.BlockPixelsInside(ShapeDistance.InvertedCircle(Center, HalfSize), 0, 0);
             return map;
         }
@@ -154,7 +155,7 @@ namespace BossMod
             yield return Center + new WDir(-s, -s);
         }
 
-        public override Pathfinding.Map BuildMap(float resolution) => new Pathfinding.Map(resolution, Center, HalfSize, HalfSize);
+        public override Pathfinding.Map BuildMap(float resolution) => new Pathfinding.Map(_resolution, Center, HalfSize, HalfSize);
         public override bool Contains(WPos position) => WPos.AlmostEqual(position, Center, HalfSize);
         public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, new(0, 1), HalfSize, HalfSize);
 
@@ -193,7 +194,7 @@ namespace BossMod
             yield return Center - dx - dz;
         }
 
-        public override Pathfinding.Map BuildMap(float resolution) => new Pathfinding.Map(resolution, Center, HalfWidth, HalfHeight, Rotation);
+        public override Pathfinding.Map BuildMap(float resolution) => new Pathfinding.Map(_resolution, Center, HalfWidth, HalfHeight, Rotation);
         public override bool Contains(WPos position) => position.InRect(Center, Rotation, HalfHeight, HalfHeight, HalfWidth);
         public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, Rotation.ToDirection(), HalfWidth, HalfHeight);
 

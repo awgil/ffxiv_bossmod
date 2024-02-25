@@ -1,4 +1,5 @@
-﻿namespace BossMod
+﻿
+namespace BossMod
 {
     [ConfigDisplay(Name = "Boss module window settings", Order = 1)]
     public class BossModuleConfig : ConfigNode

@@ -24,7 +24,6 @@ namespace BossMod
         public float CameraAzimuth { get; private set; } // facing north = 0, facing west = pi/4, facing south = +-pi/2, facing east = -pi/4
         public float CameraAltitude { get; private set; } // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
         public SharpDX.Vector2 ViewportSize { get; private set; }
-
         private List<(Vector2 from, Vector2 to, uint col)> _worldDrawLines = new();
 
         public Camera()
@@ -81,7 +80,7 @@ namespace BossMod
 
         public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color)
         {
-            int numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, 1);
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, Math.Clamp(Service.Config.Get<BossModuleConfig>().WorldCurveError, 0.001f, 1));
             var delta = halfWidth / numSegments;
 
             var prev = center + radius * (direction - delta * numSegments).ToDirection().ToVec3();
@@ -97,7 +96,7 @@ namespace BossMod
 
         public void DrawWorldCircle(Vector3 center, float radius, uint color)
         {
-            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1);
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), Math.Clamp(Service.Config.Get<BossModuleConfig>().WorldCurveError, 0.001f, 1));
             var prev = center + new Vector3(0, 0, radius);
             for (int i = 1; i <= numSegments; ++i)
             {
@@ -109,7 +108,7 @@ namespace BossMod
 
         public void DrawWorldSphere(Vector3 center, float radius, uint color)
         {
-            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 0.1f);
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), Math.Clamp(Service.Config.Get<BossModuleConfig>().WorldCurveError, 0.001f, 1));
             var prev1 = center + new Vector3(0, 0, radius);
             var prev2 = center + new Vector3(0, radius, 0);
             var prev3 = center + new Vector3(radius, 0, 0);
@@ -130,7 +129,7 @@ namespace BossMod
 
         public void DrawWorldUnitCylinder(SharpDX.Matrix transform, uint color)
         {
-            int numSegments = CurveApprox.CalculateCircleSegments(transform.Row1.Length(), 360.Degrees(), 0.1f);
+            int numSegments = CurveApprox.CalculateCircleSegments(transform.Row1.Length(), 360.Degrees(), Math.Clamp(Service.Config.Get<BossModuleConfig>().WorldCurveError, 0.001f, 1));
             var prev1 = SharpDX.Vector3.TransformCoordinate(new(0, +1, 1), transform).ToSystem();
             var prev2 = SharpDX.Vector3.TransformCoordinate(new(0, -1, 1), transform).ToSystem();
             for (int i = 1; i <= numSegments; ++i)
