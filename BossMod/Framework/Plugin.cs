@@ -113,6 +113,8 @@ namespace BossMod
             dalamud.UiBuilder.DisableAutomaticUiHide = true;
             dalamud.UiBuilder.Draw += DrawUI;
             dalamud.UiBuilder.OpenConfigUi += OpenConfigUI;
+
+            BossModIPC.Initialize(_autorotation);
         }
 
         public void Dispose()
@@ -129,6 +131,7 @@ namespace BossMod
             _autorotation.Dispose();
             _ws.Dispose();
             ActionManagerEx.Instance?.Dispose();
+            BossModIPC.Dispose();
             _commandManager.RemoveHandler("/vbm");
         }
 
