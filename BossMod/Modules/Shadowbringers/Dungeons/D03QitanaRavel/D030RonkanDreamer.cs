@@ -49,30 +49,30 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
         private static readonly AOEShapeRect RectLong = new(35, 4);
         private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-    {
-        foreach (var c in _casters)
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (module.PrimaryActor.Position.AlmostEqual(new (0, 634), 1))
+            foreach (var c in _casters)
             {
-                if (c.Position.AlmostEqual(new(-17, 657), 1) || c.Position.AlmostEqual(new(-17, 650), 1) || c.Position.AlmostEqual(new(-17, 635), 1) || c.Position.AlmostEqual(new(-17, 620), 1) || c.Position.AlmostEqual(new(17, 657), 1) || c.Position.AlmostEqual(new(17, 650), 1) || c.Position.AlmostEqual(new(17, 635), 1) || c.Position.AlmostEqual(new(17, 620), 1))
-                    yield return new(RectLong, c.Position, c.Rotation, _activation);
-                if (c.Position.AlmostEqual(new(-17, 627), 1) || c.Position.AlmostEqual(new(17, 642), 1))
-                    yield return new(RectMedium, c.Position, c.Rotation, _activation);
-                if (c.Position.AlmostEqual(new(-17, 642), 1) || c.Position.AlmostEqual(new(17, 627), 1))
-                    yield return new(RectShort, c.Position, c.Rotation, _activation);
-            }
-            if (module.PrimaryActor.Position.AlmostEqual(new (0, 428), 1))
-            {
-                if (c.Position.AlmostEqual(new(17, 451), 1) || c.Position.AlmostEqual(new(17, 444), 1) || c.Position.AlmostEqual(new(17, 414), 1) || c.Position.AlmostEqual(new(17, 429), 1) || c.Position.AlmostEqual(new(-17, 451), 1) || c.Position.AlmostEqual(new(-17, 444), 1) || c.Position.AlmostEqual(new(-17, 414), 1) || c.Position.AlmostEqual(new(-17, 429), 1))
-                    yield return new(RectLong, c.Position, c.Rotation, _activation);
-                if (c.Position.AlmostEqual(new(-17, 436), 1) || c.Position.AlmostEqual(new(17, 421), 1))
-                    yield return new(RectMedium, c.Position, c.Rotation, _activation);
-                if (c.Position.AlmostEqual(new(17, 436), 1) || c.Position.AlmostEqual(new(-17, 421), 1))
-                    yield return new(RectShort, c.Position, c.Rotation, _activation);
+                if (module.PrimaryActor.Position.AlmostEqual(new (0, 634), 1))
+                {
+                    if (c.Position.AlmostEqual(new(-17, 657), 1) || c.Position.AlmostEqual(new(-17, 650), 1) || c.Position.AlmostEqual(new(-17, 635), 1) || c.Position.AlmostEqual(new(-17, 620), 1) || c.Position.AlmostEqual(new(17, 657), 1) || c.Position.AlmostEqual(new(17, 650), 1) || c.Position.AlmostEqual(new(17, 635), 1) || c.Position.AlmostEqual(new(17, 620), 1))
+                        yield return new(RectLong, c.Position, c.Rotation, _activation);
+                    if (c.Position.AlmostEqual(new(-17, 627), 1) || c.Position.AlmostEqual(new(17, 642), 1))
+                        yield return new(RectMedium, c.Position, c.Rotation, _activation);
+                    if (c.Position.AlmostEqual(new(-17, 642), 1) || c.Position.AlmostEqual(new(17, 627), 1))
+                        yield return new(RectShort, c.Position, c.Rotation, _activation);
+                }
+                if (module.PrimaryActor.Position.AlmostEqual(new (0, 428), 1))
+                {
+                    if (c.Position.AlmostEqual(new(17, 451), 1) || c.Position.AlmostEqual(new(17, 444), 1) || c.Position.AlmostEqual(new(17, 414), 1) || c.Position.AlmostEqual(new(17, 429), 1) || c.Position.AlmostEqual(new(-17, 451), 1) || c.Position.AlmostEqual(new(-17, 444), 1) || c.Position.AlmostEqual(new(-17, 414), 1) || c.Position.AlmostEqual(new(-17, 429), 1))
+                        yield return new(RectLong, c.Position, c.Rotation, _activation);
+                    if (c.Position.AlmostEqual(new(-17, 436), 1) || c.Position.AlmostEqual(new(17, 421), 1))
+                        yield return new(RectMedium, c.Position, c.Rotation, _activation);
+                    if (c.Position.AlmostEqual(new(17, 436), 1) || c.Position.AlmostEqual(new(-17, 421), 1))
+                        yield return new(RectShort, c.Position, c.Rotation, _activation);
+                }
             }
         }
-    }
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             if (tether.ID == (uint)TetherID.StatueActivate)
@@ -88,7 +88,6 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
                 ++NumCasts;
                 if (NumCasts == 6)
                 {
-                    _activation = default;
                     NumCasts = 0;
                     _casters.Clear();
                 }
@@ -163,9 +162,9 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
         public BurningBeam() : base(ActionID.MakeSpell(AID.BurningBeam), new AOEShapeRect(15, 2)) { }
     }
 
-    class D03RonkanDreamerStates : StateMachineBuilder
+    class D030RonkanDreamerStates : StateMachineBuilder
     {
-        public D03RonkanDreamerStates(BossModule module) : base(module)
+        public D030RonkanDreamerStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<Layout>()
@@ -177,9 +176,9 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
     }
 
     [ModuleInfo(CFCID = 651, NameID = 8639)]
-    public class D03RonkanDreamer : BossModule
+    public class D030RonkanDreamer : BossModule
     {
-        public D03RonkanDreamer(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 0)) { }
+        public D030RonkanDreamer(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 0)) { }
         protected override void UpdateModule()
         {
             if (PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
