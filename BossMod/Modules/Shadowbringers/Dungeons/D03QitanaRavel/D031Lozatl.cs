@@ -63,6 +63,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Lozatl
             if (castingLeft)
                 yield return new(rect, module.Bounds.Center, -90.Degrees(), _activation);
         }
+        
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)
         {
             if (state == 0x00040008)
@@ -74,6 +75,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Lozatl
                 _activation = module.WorldState.CurrentTime.AddSeconds(8);
             }
         }
+
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.RonkanLightLeft or AID.RonkanLightRight)
@@ -83,7 +85,6 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Lozatl
             }
         }
     }
-
 
     class D031LozatlStates : StateMachineBuilder
     {

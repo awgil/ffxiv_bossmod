@@ -73,6 +73,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
                 }
             }
         }
+
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             if (tether.ID == (uint)TetherID.StatueActivate)
@@ -81,6 +82,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
                     _activation = module.WorldState.CurrentTime.AddSeconds(6);
                 }
         }
+
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.WrathOfTheRonkaShort or AID.WrathOfTheRonkaMedium or AID.WrathOfTheRonkaLong)
@@ -141,6 +143,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
                 arena.AddPolygon(Wall4(),ArenaColor.Border, 2);
             }
         }
+        
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         { //Note: this isn't looking natural because the AI is trying to dodge the lasers and the wall at the same time, consider not activating the AI in partyfinder until the AI is improved, for multiboxing it should do ok
             base.AddAIHints(module, slot, actor, assignment, hints);
