@@ -7,7 +7,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
     {
         Boss = 0x2A40, //R=1.8
         Helper = 0x2E8, //R=0.5
-//trash that can be pulled into miniboss room
+        //trash that can be pulled into miniboss room
         RonkanVessel = 0x28DD, //R=3.0
         RonkanIdol = 0x28DC, //R=2.04
         RonkanThorn = 0x28E3, //R=2.4
@@ -98,17 +98,62 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
 
     public class Layout : BossComponent
     {
+        private static IEnumerable<WPos> Wall1()
+        {
+            yield return new WPos(-4, 646.4f);
+            yield return new WPos(-6, 646.4f);
+            yield return new WPos(-6, 639);
+            yield return new WPos(-4, 639);
+        }
+
+        private static IEnumerable<WPos> Wall2()
+        {
+            yield return new WPos(4, 631.4f);
+            yield return new WPos(6, 631.4f);
+            yield return new WPos(6, 624);
+            yield return new WPos(4, 624);
+        }
+
+        private static IEnumerable<WPos> Wall3()
+        {
+            yield return new WPos(4, 440);
+            yield return new WPos(6, 440);
+            yield return new WPos(6, 433);
+            yield return new WPos(4, 433);
+        }
+
+        private static IEnumerable<WPos> Wall4()
+        {
+            yield return new WPos(-4, 425);
+            yield return new WPos(-6, 425);
+            yield return new WPos(-6, 418);
+            yield return new WPos(-4, 418);
+        }
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
             {
-                arena.AddQuad(new(-4, 646.4f), new(-6, 646.4f), new(-6, 639), new(-4, 639), ArenaColor.Border, 2);
-                arena.AddQuad(new(4, 631.4f), new(6, 631.4f), new(6, 624), new(4, 624), ArenaColor.Border, 2);
+                arena.AddPolygon(Wall1(),ArenaColor.Border, 2);
+                arena.AddPolygon(Wall2(),ArenaColor.Border, 2);
             }
             if (module.PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
             {
-                arena.AddQuad(new(4, 440), new(6, 440), new(6, 433), new(4, 433), ArenaColor.Border, 2);
-                arena.AddQuad(new(-4, 425), new(-6, 425), new(-6, 418), new(-4, 418), ArenaColor.Border, 2);
+                arena.AddPolygon(Wall3(),ArenaColor.Border, 2);
+                arena.AddPolygon(Wall4(),ArenaColor.Border, 2);
+            }
+        }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        { //Note: this isn't looking natural because the AI is trying to dodge the lasers and the wall at the same time, consider not activating the AI in partyfinder until the AI is improved, for multiboxing it should do ok
+            base.AddAIHints(module, slot, actor, assignment, hints);
+            if (module.PrimaryActor.Position.AlmostEqual(new (0, 634), 1))
+            {
+                hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1(), true));
+                hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2(), false));
+            }
+            if (module.PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
+            {
+                hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall3(), false));
+                hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall4(), true));
             }
         }
     }
