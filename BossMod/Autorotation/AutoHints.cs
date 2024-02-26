@@ -32,11 +32,11 @@ namespace BossMod
                 var rot = aoe.Caster.CastInfo!.Rotation;
                 if (aoe.IsCharge)
                 {
-                    hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth));
+                    hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth), aoe.Caster.CastInfo.NPCFinishAt);
                 }
                 else
                 {
-                    hints.AddForbiddenZone(aoe.Shape, target, rot, aoe.Caster.CastInfo.FinishAt);
+                    hints.AddForbiddenZone(aoe.Shape, target, rot, aoe.Caster.CastInfo.NPCFinishAt);
                 }
             }
         }

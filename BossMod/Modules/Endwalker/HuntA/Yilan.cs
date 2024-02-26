@@ -56,8 +56,8 @@ namespace BossMod.Endwalker.HuntA.Yilan
         {
             var activation = (AID)spell.Action.ID switch
             {
-                AID.Soundstorm => spell.FinishAt.AddSeconds(12.2f), // timing varies, have seen delays between 17.2s and 17.8s, but 2nd AID should correct any incorrectness
-                AID.MiniLight => spell.FinishAt,
+                AID.Soundstorm => spell.NPCFinishAt.AddSeconds(12.2f), // timing varies, have seen delays between 17.2s and 17.8s, but 2nd AID should correct any incorrectness
+                AID.MiniLight => spell.NPCFinishAt,
                 _ => default
             };
             if (activation != default)

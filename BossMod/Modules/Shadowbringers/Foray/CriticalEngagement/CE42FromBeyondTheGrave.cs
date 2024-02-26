@@ -113,10 +113,10 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
                     _dualcast = true;
                     break;
                 case AID.SoulPurgeCircle:
-                    SetupImminentAOEs(_shapeCircle, _shapeDonut, caster.Position, spell.FinishAt);
+                    SetupImminentAOEs(_shapeCircle, _shapeDonut, caster.Position, spell.NPCFinishAt);
                     break;
                 case AID.SoulPurgeDonut:
-                    SetupImminentAOEs(_shapeDonut, _shapeCircle, caster.Position, spell.FinishAt);
+                    SetupImminentAOEs(_shapeDonut, _shapeCircle, caster.Position, spell.NPCFinishAt);
                     break;
             }
         }

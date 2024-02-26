@@ -78,7 +78,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
         {
             if ((AID)spell.Action.ID is AID.ChasmicNailsAOE1 or AID.ChasmicNailsAOE2 or AID.ChasmicNailsAOE3 or AID.ChasmicNailsAOE4 or AID.ChasmicNailsAOE5)
             {
-                _angles.Add((spell.Rotation, spell.FinishAt));
+                _angles.Add((spell.Rotation, spell.NPCFinishAt));
                 _angles.SortBy(a => a.activation);
             }
         }

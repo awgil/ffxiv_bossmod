@@ -71,7 +71,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.EarthQuaker)
-                AddSequence(module.Bounds.Center, spell.FinishAt.AddSeconds(0.9f));
+                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.9f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

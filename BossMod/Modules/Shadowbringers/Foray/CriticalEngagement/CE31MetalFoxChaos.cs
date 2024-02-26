@@ -164,7 +164,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
             {
                 SatelliteLaser = true;
                 time = module.WorldState.CurrentTime;
-                _activation1 = spell.FinishAt.AddSeconds(12.3f);
+                _activation1 = spell.NPCFinishAt.AddSeconds(12.3f);
             }
             if ((AID)spell.Action.ID == AID.DiffractiveLaser)
             {
@@ -179,9 +179,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                         DiffractiveLaserAngle180 = true;
                 }
                 time = module.WorldState.CurrentTime;
-                _activation1 = spell.FinishAt.AddSeconds(8.8f);
-                _activation2 = spell.FinishAt.AddSeconds(10.6f);
-                _activation3 = spell.FinishAt.AddSeconds(12.4f);
+                _activation1 = spell.NPCFinishAt.AddSeconds(8.8f);
+                _activation2 = spell.NPCFinishAt.AddSeconds(10.6f);
+                _activation3 = spell.NPCFinishAt.AddSeconds(12.4f);
             }
             if ((AID)spell.Action.ID == AID.LaserShower2)
             {
@@ -195,9 +195,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                     if (caster.Rotation.AlmostEqual(-90.Degrees(), maxError))
                         LaserShowerAngleM90 = true;
                 }
-                _activation1 = spell.FinishAt.AddSeconds(6.6f);
-                _activation2 = spell.FinishAt.AddSeconds(8.4f);
-                _activation2 = spell.FinishAt.AddSeconds(10.2f);
+                _activation1 = spell.NPCFinishAt.AddSeconds(6.6f);
+                _activation2 = spell.NPCFinishAt.AddSeconds(8.4f);
+                _activation2 = spell.NPCFinishAt.AddSeconds(10.2f);
             }
         }
 

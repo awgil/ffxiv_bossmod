@@ -43,7 +43,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
             if ((AID)spell.Action.ID == AID.QuadrupedalCrush)
             {
                 _source = spell.LocXZ;
-                _activation = spell.FinishAt.AddSeconds(0.9f);
+                _activation = spell.NPCFinishAt.AddSeconds(0.9f);
             }
         }
     }

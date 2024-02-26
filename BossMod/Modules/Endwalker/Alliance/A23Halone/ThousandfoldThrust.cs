@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Alliance.A23Halone
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ThousandfoldThrustAOEFirst)
-                _aoe = new(new AOEShapeCone(30, 90.Degrees()), caster.Position, spell.Rotation, spell.FinishAt);
+                _aoe = new(new AOEShapeCone(30, 90.Degrees()), caster.Position, spell.Rotation, spell.NPCFinishAt);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

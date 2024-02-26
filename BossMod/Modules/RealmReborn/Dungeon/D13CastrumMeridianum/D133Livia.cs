@@ -63,9 +63,9 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_castersRoundhouse.Count > 0)
-                return _castersRoundhouse.Select(c => new AOEInstance(_shapeRoundhouse, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+                return _castersRoundhouse.Select(c => new AOEInstance(_shapeRoundhouse, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
             else
-                return _castersDischarge.Select(c => new AOEInstance(_shapeDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+                return _castersDischarge.Select(c => new AOEInstance(_shapeDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -107,18 +107,18 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
             foreach (var c in _castersRect.Skip(currentSet).Take(1).OfType<Actor>())
             {
                 haveSets = true;
-                yield return new(_shapeRect, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                yield return new(_shapeRect, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt);
             }
             foreach (var c in _castersDischarge.Skip(currentSet * 6).Take(6).OfType<Actor>())
             {
                 haveSets = true;
-                yield return new(_shapeDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                yield return new(_shapeDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt);
             }
             if (!haveSets)
             {
                 foreach (var c in _castersSalamander.OfType<Actor>())
                 {
-                    yield return new(_shapeSalamander, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                    yield return new(_shapeSalamander, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt);
                 }
             }
         }
@@ -161,9 +161,9 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_castersSweepDischarge.Count > 0)
-                return _castersSweepDischarge.Select(c => new AOEInstance(_shapeSweepDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+                return _castersSweepDischarge.Select(c => new AOEInstance(_shapeSweepDischarge, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
             else
-                return _castersThermobaric.Select(c => new AOEInstance(_shapeThermobaric, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+                return _castersThermobaric.Select(c => new AOEInstance(_shapeThermobaric, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -197,9 +197,9 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _castersSalamander)
-                yield return new(_shapeSalamander, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                yield return new(_shapeSalamander, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt);
             foreach (var c in _castersThermobaric)
-                yield return new(_shapeThermobaric, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt);
+                yield return new(_shapeThermobaric, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

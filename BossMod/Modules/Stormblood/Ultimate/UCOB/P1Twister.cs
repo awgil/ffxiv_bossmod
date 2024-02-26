@@ -49,7 +49,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Twister)
-                _predictStart = spell.FinishAt.AddSeconds(-PredictBeforeCastEnd);
+                _predictStart = spell.NPCFinishAt.AddSeconds(-PredictBeforeCastEnd);
         }
     }
 }

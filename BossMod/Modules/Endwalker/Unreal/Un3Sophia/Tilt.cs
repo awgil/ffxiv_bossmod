@@ -86,7 +86,7 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
                     _ => DistanceLong
                 };
                 Direction = (WeightLeft > WeightRight ? -90 : 90).Degrees();
-                Activation = spell.FinishAt.AddSeconds(0.7f);
+                Activation = spell.NPCFinishAt.AddSeconds(0.7f);
             }
         }
     }

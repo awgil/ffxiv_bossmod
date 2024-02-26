@@ -17,15 +17,15 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
                 var distance = (caster.Position - module.Bounds.Center).Length();
                 if (distance is <3 or >9 and <11 or >17 and <19) // tiles
                 {
-                    _aoes.Add(new(new AOEShapeCircle(4), module.Bounds.Center, new(), spell.FinishAt));
-                    _aoes.Add(new(new AOEShapeDonut(8, 12), module.Bounds.Center, new(), spell.FinishAt));
-                    _aoes.Add(new(new AOEShapeDonut(16, 20), module.Bounds.Center, new(), spell.FinishAt));
+                    _aoes.Add(new(new AOEShapeCircle(4), module.Bounds.Center, new(), spell.NPCFinishAt));
+                    _aoes.Add(new(new AOEShapeDonut(8, 12), module.Bounds.Center, new(), spell.NPCFinishAt));
+                    _aoes.Add(new(new AOEShapeDonut(16, 20), module.Bounds.Center, new(), spell.NPCFinishAt));
                 }
                 else
                 {
-                    _aoes.Add(new(new AOEShapeDonut(4, 8), module.Bounds.Center, new(), spell.FinishAt));
-                    _aoes.Add(new(new AOEShapeDonut(12, 16), module.Bounds.Center, new(), spell.FinishAt));
-                    _aoes.Add(new(new AOEShapeDonut(20, 25), module.Bounds.Center, new(), spell.FinishAt));
+                    _aoes.Add(new(new AOEShapeDonut(4, 8), module.Bounds.Center, new(), spell.NPCFinishAt));
+                    _aoes.Add(new(new AOEShapeDonut(12, 16), module.Bounds.Center, new(), spell.NPCFinishAt));
+                    _aoes.Add(new(new AOEShapeDonut(20, 25), module.Bounds.Center, new(), spell.NPCFinishAt));
                 }
             }
         }

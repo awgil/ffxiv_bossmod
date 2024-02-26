@@ -14,10 +14,10 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
         {
             if (_casters.Count > 0)
             {
-                var deadline = _casters[0].caster.CastInfo!.FinishAt.AddSeconds(1);
+                var deadline = _casters[0].caster.CastInfo!.NPCFinishAt.AddSeconds(1);
                 foreach (var c in _casters)
-                    if (c.caster.CastInfo!.FinishAt < deadline)
-                        yield return new(c.shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
+                    if (c.caster.CastInfo!.NPCFinishAt < deadline)
+                        yield return new(c.shape, c.caster.Position, c.caster.CastInfo.Rotation, c.caster.CastInfo.NPCFinishAt);
             }
         }
 

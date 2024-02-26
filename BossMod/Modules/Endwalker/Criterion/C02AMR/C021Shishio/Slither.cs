@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_caster?.CastInfo != null)
-                yield return new(_shape, _caster.Position, _caster.CastInfo.Rotation, _caster.CastInfo.FinishAt);
+                yield return new(_shape, _caster.Position, _caster.CastInfo.Rotation, _caster.CastInfo.NPCFinishAt);
             else if (_predictedActivation != default)
                 yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation + 180.Degrees(), _predictedActivation);
         }
@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
                     break;
                 case AID.NSplittingCry:
                 case AID.SSplittingCry:
-                    _predictedActivation = spell.FinishAt.AddSeconds(4.2f);
+                    _predictedActivation = spell.NPCFinishAt.AddSeconds(4.2f);
                     break;
             }
         }

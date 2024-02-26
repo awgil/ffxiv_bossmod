@@ -11,7 +11,7 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casters.Take(2).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+            return _casters.Take(2).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -23,7 +23,7 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
             {
                 var f1 = ShapeDistance.InvertedCircle(_casters[0].Position, 23);
                 var f2 = ShapeDistance.Circle(_casters[2].Position, 10);
-                hints.AddForbiddenZone(p => Math.Min(f1(p), f2(p)), _casters[1].CastInfo!.FinishAt);
+                hints.AddForbiddenZone(p => Math.Min(f1(p), f2(p)), _casters[1].CastInfo!.NPCFinishAt);
             }
         }
 

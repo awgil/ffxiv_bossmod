@@ -50,8 +50,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
             if ((AID)spell.Action.ID is AID.NUpwellFirst or AID.SUpwellFirst)
             {
                 var advance = spell.Rotation.ToDirection().OrthoR() * 5;
-                _lines.Add(new() { NextOrigin = caster.Position, Advance = advance, Rotation = spell.Rotation, NextActivation = spell.FinishAt, NextShape = _shapeWide });
-                _lines.Add(new() { NextOrigin = caster.Position, Advance = -advance, Rotation = (spell.Rotation + 180.Degrees()).Normalized(), NextActivation = spell.FinishAt });
+                _lines.Add(new() { NextOrigin = caster.Position, Advance = advance, Rotation = spell.Rotation, NextActivation = spell.NPCFinishAt, NextShape = _shapeWide });
+                _lines.Add(new() { NextOrigin = caster.Position, Advance = -advance, Rotation = (spell.Rotation + 180.Degrees()).Normalized(), NextActivation = spell.NPCFinishAt });
             }
         }
 

@@ -81,7 +81,7 @@ namespace BossMod.Shadowbringers.FATE.Formidable
             if ((AID)spell.Action.ID == AID.FiresOfMtGulg)
             {
                 _caster = caster;
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
                 NumCasts = 0;
             }
         }
@@ -173,7 +173,7 @@ namespace BossMod.Shadowbringers.FATE.Formidable
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var (caster, activation) in _casters)
-                yield return new(_shape, caster.Position, default, caster.CastInfo?.FinishAt ?? activation);
+                yield return new(_shape, caster.Position, default, caster.CastInfo?.NPCFinishAt ?? activation);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)

@@ -93,7 +93,7 @@ namespace BossMod.Components
     public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
     {
         private List<Actor> _casters = new();
-        public Actor? ActiveCaster => _casters.MinBy(c => c.CastInfo!.FinishAt);
+        public Actor? ActiveCaster => _casters.MinBy(c => c.CastInfo!.NPCFinishAt);
 
         public CastLineOfSightAOE(ActionID aid, float maxRange, bool blockersImpassable) : base(aid, maxRange, blockersImpassable) { }
 

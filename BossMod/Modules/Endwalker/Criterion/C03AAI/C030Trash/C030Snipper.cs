@@ -24,8 +24,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
             if ((AID)spell.Action.ID is AID.NBubbleShower or AID.SBubbleShower)
             {
                 _aoes.Clear();
-                _aoes.Add(new(_shape1, caster.Position, spell.Rotation, spell.FinishAt));
-                _aoes.Add(new(_shape2, caster.Position, spell.Rotation + 180.Degrees(), spell.FinishAt.AddSeconds(3.6f)));
+                _aoes.Add(new(_shape1, caster.Position, spell.Rotation, spell.NPCFinishAt));
+                _aoes.Add(new(_shape2, caster.Position, spell.Rotation + 180.Degrees(), spell.NPCFinishAt.AddSeconds(3.6f)));
             }
         }
 

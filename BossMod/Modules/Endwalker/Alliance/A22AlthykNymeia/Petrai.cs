@@ -10,7 +10,7 @@
             {
                 Source = caster;
                 Target = module.WorldState.Actors.Find(spell.TargetID);
-                Activation = spell.FinishAt.AddSeconds(1);
+                Activation = spell.NPCFinishAt.AddSeconds(1);
             }
         }
 

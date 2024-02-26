@@ -46,13 +46,13 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
             {
                 case AID.NRecedingTwintides:
                 case AID.SRecedingTwintides:
-                    _aoes.Add(new(_shapeOut, caster.Position, default, spell.FinishAt));
-                    _aoes.Add(new(_shapeIn, caster.Position, default, spell.FinishAt.AddSeconds(3.1f)));
+                    _aoes.Add(new(_shapeOut, caster.Position, default, spell.NPCFinishAt));
+                    _aoes.Add(new(_shapeIn, caster.Position, default, spell.NPCFinishAt.AddSeconds(3.1f)));
                     break;
                 case AID.NEncroachingTwintides:
                 case AID.SEncroachingTwintides:
-                    _aoes.Add(new(_shapeIn, caster.Position, default, spell.FinishAt));
-                    _aoes.Add(new(_shapeOut, caster.Position, default, spell.FinishAt.AddSeconds(3.1f)));
+                    _aoes.Add(new(_shapeIn, caster.Position, default, spell.NPCFinishAt));
+                    _aoes.Add(new(_shapeOut, caster.Position, default, spell.NPCFinishAt.AddSeconds(3.1f)));
                     break;
             }
         }

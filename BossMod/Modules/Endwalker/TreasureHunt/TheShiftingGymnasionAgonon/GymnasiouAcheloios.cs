@@ -70,12 +70,12 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
             if ((AID)spell.Action.ID is AID.DoubleHammer)
             {
                 _increment = 180.Degrees();
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.9f, 2, 1));
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 3.9f, 2, 1));
                 ImminentColor = ArenaColor.AOE;
             }
             if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
             {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.3f, 4));
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 3.3f, 4));
                 ImminentColor = ArenaColor.Danger;
             }
         }

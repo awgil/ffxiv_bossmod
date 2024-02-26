@@ -8,7 +8,7 @@ class DragonsGaze : Components.GenericGaze
     private List<Actor> _casters = new();
     private WPos _posHint;
 
-    public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.FinishAt));
+    public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.NPCFinishAt));
 
     public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
     {

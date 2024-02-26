@@ -30,7 +30,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
                 foreach (var p in _predicted)
                     yield return new(p.shape, p.pos, p.rot, p.activation);
             foreach (var c in _casters)
-                yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)

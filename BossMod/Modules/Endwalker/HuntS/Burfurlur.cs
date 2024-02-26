@@ -57,7 +57,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
                     break;
                 case AID.QuintupleSneeze1:
                     _referenceAngle = spell.Rotation;
-                    _nextSneeze = spell.FinishAt;
+                    _nextSneeze = spell.NPCFinishAt;
                     break;
             }
         }

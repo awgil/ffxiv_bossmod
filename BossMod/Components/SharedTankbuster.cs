@@ -85,7 +85,7 @@ namespace BossMod.Components
             {
                 Source = caster;
                 Target = module.WorldState.Actors.Find(spell.TargetID);
-                Activation = spell.FinishAt;
+                Activation = spell.NPCFinishAt;
             }
         }
 

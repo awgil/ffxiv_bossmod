@@ -10,7 +10,7 @@
             {
                 Next = caster.Position;
                 Advance = 7 * caster.Rotation.ToDirection();
-                NextExplosion = caster.CastInfo!.FinishAt;
+                NextExplosion = caster.CastInfo!.NPCFinishAt;
                 TimeToMove = 2;
                 ExplosionsLeft = 8;
                 MaxShownExplosions = 8;

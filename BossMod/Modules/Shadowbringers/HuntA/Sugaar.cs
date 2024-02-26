@@ -49,10 +49,10 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
             switch ((AID)spell.Action.ID)
             {
                 case AID.NumbingNoiseAttract: // NN always seems to go CCW
-                    Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.FinishAt.AddSeconds(1.1f), 2.8f, 3));
+                    Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.8f, 3));
                     break;
                 case AID.TailSnapAttract: // TS always seems to go CW
-                    Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.FinishAt.AddSeconds(1.1f), 2.8f, 3));
+                    Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.8f, 3));
                     break;
             }
         }
@@ -84,7 +84,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (caster == module.PrimaryActor && (AID)spell.Action.ID is AID.NumbingNoiseAttract or AID.TailSnapAttract)
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

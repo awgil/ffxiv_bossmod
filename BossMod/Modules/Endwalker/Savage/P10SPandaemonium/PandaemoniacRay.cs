@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _spheres.Where(s => !s.IsDead).Select(s => new AOEInstance(_shape, s.Position, s.Rotation, s.CastInfo?.FinishAt ?? _activation));
+            return _spheres.Where(s => !s.IsDead).Select(s => new AOEInstance(_shape, s.Position, s.Rotation, s.CastInfo?.NPCFinishAt ?? _activation));
         }
     }
 }

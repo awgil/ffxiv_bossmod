@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Alliance.A14Naldthal
         {
             var shape = ShapeForAction(spell.Action);
             if (shape != null)
-                _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

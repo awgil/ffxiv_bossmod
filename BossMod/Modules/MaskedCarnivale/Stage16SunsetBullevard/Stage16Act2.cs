@@ -74,7 +74,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
         {
             if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
             {
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
                 casting = true;
             }
         }
@@ -127,7 +127,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
             if ((AID)spell.Action.ID == AID.ZoomIn)
             {
                 casting = true;
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
             }
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
