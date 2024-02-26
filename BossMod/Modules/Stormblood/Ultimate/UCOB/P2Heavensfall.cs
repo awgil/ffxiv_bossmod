@@ -38,13 +38,13 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         }
     }
 
-    class P2DalamudDive : Components.GenericBaitAway
+    class P2HeavensfallDalamudDive : Components.GenericBaitAway
     {
         private Actor? _target;
 
         private static AOEShapeCircle _shape = new(5);
 
-        public P2DalamudDive() : base(ActionID.MakeSpell(AID.DalamudDive), true, true) { }
+        public P2HeavensfallDalamudDive() : base(ActionID.MakeSpell(AID.DalamudDive), true, true) { }
 
         public void Show()
         {

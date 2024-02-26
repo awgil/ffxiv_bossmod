@@ -1,12 +1,19 @@
-﻿using FFXIVClientStructs.FFXIV.Client.UI;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 
 namespace BossMod.Stormblood.Ultimate.UCOB
 {
     class UCOBStates : StateMachineBuilder
     {
         private UCOB _module;
+
+        private bool Phase2End()
+        {
+            var nael = _module.Nael();
+            if (nael == null || nael.IsTargetable || nael.HP.Cur > 1)
+                return false;
+            var comp = _module.FindComponent<P2BahamutsFavor>();
+            return comp == null || comp.PendingMechanics.Count == 0/* || comp.PendingMechanics[0] != AID.DalamudDive*/;
+        }
 
         public UCOBStates(UCOB module) : base(module)
         {
@@ -21,7 +28,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             SimplePhase(2, Phase1Twintania3, "Twintania pre neurolink 3 (44%-0%)")
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
             SimplePhase(3, Phase2, "Nael")
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed;
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Phase2End();
             DeathPhase(4, PhaseX);
         }
 
@@ -45,8 +52,15 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P1LiquidHell(id + 0x20000, 3.3f);
             P1DeathSentence(id + 0x30000, 3.2f);
             P1GenerateTwister(id + 0x40000, 4.2f);
-            // TODO: plummet?
-            // sequence repeats from start until 44% ?
+            P1Plummet(id + 0x50000, 5.8f);
+            // repeat
+            P1LiquidHell(id + 0x60000, 5.4f);
+            P1Generate(id + 0x70000, 1.2f); // not sure about timing...
+            P1LiquidHell(id + 0x80000, 3.3f);
+            P1DeathSentence(id + 0x90000, 3.2f);
+            P1GenerateTwister(id + 0xA0000, 4.2f);
+            P1Plummet(id + 0xB0000, 5.8f);
+            // hell > generate > hell > death sentence > generate+twister > plummet sequence repeats until 44%
             SimpleState(id + 0xFF0000, 10, "???");
         }
 
@@ -75,6 +89,11 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         {
             P2Heavensfall(id, 8.4f);
             P2BahamutsFavor(id + 0x10000, 2.9f);
+            P2Divebombs(id + 0x20000, 5.2f);
+            P2BahamutsFavorQuote(id + 0x30000, 8.8f);
+            P2BahamutsFavorQuote(id + 0x40000, 3.0f);
+            P2Ravensbeak(id + 0x50000, 4.1f);
+            // TODO: bahamut claw > enrage
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -146,10 +165,26 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P1Twister(id + 0x10, 1.1f);
         }
 
+        private State P2BahamutsClaw(uint id, float delay)
+        {
+            ComponentCondition<P2BahamutsClaw>(id, delay, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P2BahamutsClaw>();
+            return ComponentCondition<P2BahamutsClaw>(id + 0x10, 3.2f, comp => comp.NumCasts > 4, "5-hit tankbuster end")
+                .DeactivateOnExit<P2BahamutsClaw>();
+        }
+
+        private State P2Ravensbeak(uint id, float delay)
+        {
+            return ActorCast(id, _module.Nael, AID.Ravensbeak, delay, 4, true, "Tankbuster")
+                .ActivateOnEnter<P2Ravensbeak>()
+                .DeactivateOnExit<P2Ravensbeak>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
         private void P2Heavensfall(uint id, float delay)
         {
             ComponentCondition<P2Heavensfall>(id, delay, comp => comp.NumCasts > 0, "Knockback")
-                .ActivateOnEnter<P2DalamudDive>() // activate asap until twintania untargets current tank
+                .ActivateOnEnter<P2HeavensfallDalamudDive>() // activate asap until twintania untargets current tank
                 .ActivateOnEnter<P2Heavensfall>()
                 .DeactivateOnExit<P2Heavensfall>()
                 .DeactivateOnExit<P1Hatch>() // clean up p1 components...
@@ -163,21 +198,19 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P2ThermionicBurst>(id + 0x12, 1.4f, comp => comp.NumCasts > 0, "Cones 1");
 
             ComponentCondition<P2ThermionicBurst>(id + 0x20, 1.2f, comp => comp.Casters.Count > 0);
-            ComponentCondition<P2MeteorStream>(id + 0x21, 0.6f, comp => comp.NumCasts > 4, "Spread 2")
+            ComponentCondition<P2MeteorStream>(id + 0x21, 0.6f, comp => comp.NumCasts > 4, "Spread 2", 2) // sometimes it's heavily delayed...
                 .DeactivateOnExit<P2MeteorStream>();
             ComponentCondition<P2ThermionicBurst>(id + 0x22, 2.4f, comp => comp.NumCasts > 8, "Cones 2")
-                .ExecOnEnter<P2DalamudDive>(comp => comp.Show())
+                .ExecOnEnter<P2HeavensfallDalamudDive>(comp => comp.Show())
                 .DeactivateOnExit<P2ThermionicBurst>();
 
-            ComponentCondition<P2DalamudDive>(id + 0x30, 0.4f, comp => comp.NumCasts > 0, "Tankbuster")
-                .DeactivateOnExit<P2DalamudDive>()
+            ComponentCondition<P2HeavensfallDalamudDive>(id + 0x30, 0.4f, comp => comp.NumCasts > 0, "Tankbuster")
+                .DeactivateOnExit<P2HeavensfallDalamudDive>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
             ActorTargetable(id + 0x31, _module.Nael, true, 2, "Boss appears")
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
-            ComponentCondition<P2BahamutsClaw>(id + 0x40, 0.3f, comp => comp.NumCasts > 0)
-                .ActivateOnEnter<P2BahamutsClaw>();
-            ComponentCondition<P2BahamutsClaw>(id + 0x50, 3.2f, comp => comp.NumCasts > 4, "5-hit tankbuster end")
-                .DeactivateOnExit<P2BahamutsClaw>();
+
+            P2BahamutsClaw(id + 0x40, 0.3f);
         }
 
         private void P2BahamutsFavor(uint id, float delay)
@@ -193,7 +226,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x20, 5.0f, comp => !comp.Active, "Lightning spread")
                 .ActivateOnEnter<P2BahamutsFavorIronChariotLunarDynamo>()
                 .DeactivateOnExit<P2BahamutsFavorChainLightning>();
-            ComponentCondition<P2BahamutsFavor>(id + 0x21, 0.1f, comp => comp.PendingMechanics.Count == 1, "In");
+            ComponentCondition<P2BahamutsFavor>(id + 0x21, 0.1f, comp => comp.PendingMechanics.Count == 1, "In", 5); // lighting target can die early, which would trigger premature transition
             // +0.8s: iceball 3
             // +2.8s: iceball 4
             ComponentCondition<P2BahamutsFavor>(id + 0x30, 3.1f, comp => comp.PendingMechanics.Count == 0, "Out/Stack")
@@ -232,11 +265,11 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .ActivateOnEnter<P2BahamutsFavorChainLightning>();
             ComponentCondition<P2BahamutsFavorFireball>(id + 0x210, 1.0f, comp => !comp.Active, "Fireball 2")
                 .DeactivateOnExit<P2BahamutsFavorFireball>();
-            ComponentCondition<P2BahamutsFavor>(id + 0x220, 2.4f, comp => comp.PendingMechanics.Count > 0)
+            ComponentCondition<P2BahamutsFavor>(id + 0x220, 2.4f, comp => comp.PendingMechanics.Count > 0) // second quote
                 .ActivateOnEnter<P2BahamutsFavor>();
             ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x230, 1.7f, comp => !comp.Active, "Lightning spread")
                 .DeactivateOnExit<P2BahamutsFavorChainLightning>();
-            ComponentCondition<P2BahamutsFavor>(id + 0x240, 3.4f, comp => comp.PendingMechanics.Count == 1, "Stack")
+            ComponentCondition<P2BahamutsFavor>(id + 0x240, 3.4f, comp => comp.PendingMechanics.Count == 1, "Stack", 3) // lighting target can die early, which would trigger premature transition
                 .ActivateOnEnter<P2BahamutsFavorThermionicBeam>()
                 .DeactivateOnExit<P2BahamutsFavorThermionicBeam>();
             ComponentCondition<P2BahamutsFavor>(id + 0x250, 3.1f, comp => comp.PendingMechanics.Count == 0, "In/out")
@@ -266,12 +299,9 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P2BahamutsFavorFireball>(id + 0x350, 3.0f, comp => !comp.Active, "Fireball 3")
                 .DeactivateOnExit<P2BahamutsFavorFireball>();
 
-            ComponentCondition<P2BahamutsClaw>(id + 0x400, 3.6f, comp => comp.NumCasts > 0)
-                .ActivateOnEnter<P2BahamutsClaw>();
-            ComponentCondition<P2BahamutsClaw>(id + 0x410, 3.2f, comp => comp.NumCasts > 4, "5-hit tankbuster end")
-               .DeactivateOnExit<P2BahamutsClaw>();
+            P2BahamutsClaw(id + 0x400, 3.6f);
 
-            ComponentCondition<P2BahamutsFavor>(id + 0x500, 2.8f, comp => comp.PendingMechanics.Count > 0)
+            ComponentCondition<P2BahamutsFavor>(id + 0x500, 2.8f, comp => comp.PendingMechanics.Count > 0) // third quote
                 .ActivateOnEnter<P2BahamutsFavor>();
             // +3.0s: iceball 13
             // +5.0s: iceball 14
@@ -289,7 +319,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             // +0.9s: iceball 16
             ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x530, 1.3f, comp => comp.Active)
                 .ActivateOnEnter<P2BahamutsFavorChainLightning>();
-            ComponentCondition<P2BahamutsFavorFireball>(id + 0x540, 2.0f, comp => !comp.Active, "Fireball 4")
+            ComponentCondition<P2BahamutsFavorFireball>(id + 0x540, 2.0f, comp => !comp.Active, "Fireball 4", 2) // lighting target can die early, which would trigger premature transition
                 .DeactivateOnExit<P2BahamutsFavorFireball>();
 
             ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x600, 0.3f, comp => comp.Casters.Count > 0) // wings of salvation 1 bait
@@ -312,11 +342,54 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             // +0.8s: iceball 23
             // +1.9s: iceball 24
 
-            ActorCast(id + 0x700, _module.Nael, AID.Ravensbeak, 6.2f, 4, true, "Tankbuster")
-                .ActivateOnEnter<P2Ravensbeak>()
-                .DeactivateOnExit<P2Ravensbeak>()
-                .DeactivateOnExit<P2BahamutsFavorDeathstorm>()
-                .SetHint(StateMachine.StateHint.Tankbuster);
+            P2Ravensbeak(id + 0x700, 6.1f)
+                .DeactivateOnExit<P2BahamutsFavorDeathstorm>();
+        }
+
+        private void P2Divebombs(uint id, float delay)
+        {
+            ComponentCondition<P2BahamutsFavor>(id, delay, comp => comp.PendingMechanics.Count > 0) // fourth quote
+                .ActivateOnEnter<P2BahamutsFavor>()
+                .ActivateOnEnter<P2Cauterize>(); // first icon appears together with quote
+            ComponentCondition<P2Cauterize>(id + 1, 4, comp => comp.NumBaitsAssigned >= 2)
+                .ActivateOnEnter<P2Hypernova>()
+                .ActivateOnEnter<P2BahamutsFavorDalamudDive>()
+                .ActivateOnEnter<P2BahamutsFavorMeteorStream>();
+            ComponentCondition<P2Hypernova>(id + 2, 1.2f, comp => comp.NumCasts >= 1);
+            ComponentCondition<P2Hypernova>(id + 3, 1.6f, comp => comp.NumCasts >= 2);
+            ComponentCondition<P2Cauterize>(id + 0x10, 0.5f, comp => comp.Casters.Count + comp.NumCasts >= 2, "Divebomb bait 1");
+            ComponentCondition<P2Cauterize>(id + 0x11, 0.7f, comp => comp.NumBaitsAssigned >= 3);
+            ComponentCondition<P2Hypernova>(id + 0x12, 0.4f, comp => comp.NumCasts >= 3);
+            ComponentCondition<P2Hypernova>(id + 0x13, 1.6f, comp => comp.NumCasts >= 4);
+            ComponentCondition<P2Cauterize>(id + 0x20, 1.3f, comp => comp.Casters.Count + comp.NumCasts >= 3, "Divebomb bait 2");
+            ComponentCondition<P2BahamutsFavor>(id + 0x30, 3.3f, comp => comp.PendingMechanics.Count == 1, "Spread/tankbuster")
+                .DeactivateOnExit<P2BahamutsFavorMeteorStream>();
+            ComponentCondition<P2Cauterize>(id + 0x40, 0.7f, comp => comp.Casters.Count + comp.NumCasts >= 5, "Divebomb bait 3")
+                .ActivateOnEnter<P2BahamutsFavorThermionicBeam>();
+            ComponentCondition<P2BahamutsFavor>(id + 0x50, 1.6f, comp => comp.PendingMechanics.Count == 0, "Tankbuster/stack")
+                .DeactivateOnExit<P2BahamutsFavorDalamudDive>()
+                .DeactivateOnExit<P2BahamutsFavorThermionicBeam>()
+                .DeactivateOnExit<P2BahamutsFavor>();
+            ComponentCondition<P2Cauterize>(id + 0x60, 2.5f, comp => comp.NumCasts >= 5)
+                .DeactivateOnExit<P2Cauterize>();
+
+            P2BahamutsClaw(id + 0x100, 2.7f)
+                .DeactivateOnExit<P2Hypernova>();
+        }
+
+        private void P2BahamutsFavorQuote(uint id, float delay)
+        {
+            ComponentCondition<P2BahamutsFavor>(id, delay, comp => comp.PendingMechanics.Count > 0) // 5th/6th quote
+                .ActivateOnEnter<P2BahamutsFavor>();
+            ComponentCondition<P2BahamutsFavor>(id + 0x10, 5.1f, comp => comp.PendingMechanics.Count == 1, "In/stack/spread")
+                .ActivateOnEnter<P2BahamutsFavorIronChariotLunarDynamo>()
+                .ActivateOnEnter<P2BahamutsFavorThermionicBeam>()
+                .ActivateOnEnter<P2BahamutsFavorRavenDive>()
+                .DeactivateOnExit<P2BahamutsFavorRavenDive>();
+            ComponentCondition<P2BahamutsFavor>(id + 0x20, 3.1f, comp => comp.PendingMechanics.Count == 0, "Out/stack/in")
+                .DeactivateOnExit<P2BahamutsFavorIronChariotLunarDynamo>()
+                .DeactivateOnExit<P2BahamutsFavorThermionicBeam>()
+                .DeactivateOnExit<P2BahamutsFavor>();
         }
     }
 }

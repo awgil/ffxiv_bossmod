@@ -1,7 +1,5 @@
-﻿using BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace BossMod.Stormblood.Ultimate.UCOB
@@ -119,6 +117,45 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             else if (!spreadImminent && Spreads.Count > 0)
                 Spreads.Clear();
             base.Update(module);
+        }
+    }
+
+    class P2BahamutsFavorMeteorStream : Components.UniformStackSpread
+    {
+        private P2BahamutsFavor? _favor;
+
+        public P2BahamutsFavorMeteorStream() : base(0, 4, alwaysShowSpreads: true) { }
+
+        public override void Init(BossModule module) => _favor = module.FindComponent<P2BahamutsFavor>();
+
+        public override void Update(BossModule module)
+        {
+            bool spreadImminent = _favor != null && _favor.PendingMechanics.Count > 0 && _favor.PendingMechanics[0] == AID.MeteorStream;
+            if (spreadImminent && Spreads.Count == 0)
+                AddSpreads(module.Raid.WithoutSlot(true), _favor!.NextActivation);
+            else if (!spreadImminent && Spreads.Count > 0)
+                Spreads.Clear();
+            base.Update(module);
+        }
+    }
+
+    class P2BahamutsFavorDalamudDive : Components.GenericBaitAway
+    {
+        private P2BahamutsFavor? _favor;
+
+        private static AOEShapeCircle _shape = new(5);
+
+        public P2BahamutsFavorDalamudDive() : base(ActionID.MakeSpell(AID.DalamudDive), true, true) { }
+
+        public override void Init(BossModule module) => _favor = module.FindComponent<P2BahamutsFavor>();
+
+        public override void Update(BossModule module)
+        {
+            bool imminent = _favor != null && _favor.PendingMechanics.Count > 0 && _favor.PendingMechanics[0] == AID.DalamudDive;
+            if (imminent && CurrentBaits.Count == 0 && module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is var source && module.WorldState.Actors.Find(source?.TargetID ?? 0) is var target && target != null)
+                CurrentBaits.Add(new(target, target, _shape));
+            else if (!imminent && CurrentBaits.Count > 0)
+                CurrentBaits.Clear();
         }
     }
 

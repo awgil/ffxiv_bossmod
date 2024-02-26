@@ -13,8 +13,9 @@
         TailOfDarkness = 0x1FE6, // R4.000, spawn during fight (dark dragon)
         FangOfLight = 0x1FE7, // R4.000, spawn during fight (light dragon)
 
+        BahamutPrime = 0x1FE8, // R4.200, x1
+
         //_Gen_Phoenix = 0x1FE9, // R2.800, x1
-        //_Gen_BahamutPrime = 0x1FE8, // R4.200, x1
 
         Helper = 0x18D6, // R0.500, x42, mixed types
 
@@ -22,8 +23,11 @@
         VoidzoneLiquidHell = 0x1E88FE, // R0.500, EventObj type, spawn during fight
         Neurolink = 0x1E88FF, // R0.500, EventObj type, spawn during fight
         VoidzoneSalvation = 0x1E91D4, // R0.500, EventObj type, spawn during fight
-        //_Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
+        VoidzoneHypernova = 0x1E91C1, // R0.500, EventObj type, spawn during fight
+        //_Gen_Actor1ea7e5 = 0x1EA7E5, // R0.500, EventObj type, spawn during fight
+        //_Gen_Actor1e9663 = 0x1E9663, // R0.500, EventObj type, spawn during fight
 
+        //_Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
         //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x6, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
     };
@@ -50,6 +54,7 @@
         LunarDynamo = 9916, // NaelDeusDarnus->self, no cast, range ?-22 donut aoe
         ThermionicBeam = 9917, // NaelDeusDarnus->players, no cast, range 4 circle stack
         RavenDive = 9918, // NaelDeusDarnus->players, no cast, range 3 circle, knockback 50 on secondary targets
+        Hypernova = 9919, // NaelDeusDarnus->location, no cast, range 5 circle voidzone spawn
         MeteorStream = 9920, // NaelGeminus->players, no cast, range 4 circle
         DalamudDive = 9921, // NaelDeusDarnus->location, no cast, range 5 circle tankbuster
         BahamutsFavor = 9922, // NaelDeusDarnus->self, 3.0s cast, single-target, visual (damage-up on self, spawn dragons)
@@ -59,6 +64,30 @@
         ChainLightningAOE = 9928, // Helper->self, no cast, ???, paralysis on targets within radius 5 except main target
         Deathstorm = 9929, // TailOfDarkness->self, no cast, ???, applies dooms on 2-3 players
         WingsOfSalvation = 9930, // FangOfLight->location, 3.0s cast, range 4 circle aoe that leaves cleanse voidzone
+        Cauterize1 = 9931, // Firehorn->self, 4.0s cast, range 48+R width 20 rect
+        Cauterize2 = 9932, // Iceclaw->self, 4.0s cast, range 48+R width 20 rect
+        Cauterize3 = 9933, // Thunderwing->self, 4.0s cast, range 48+R width 20 rect
+        Cauterize4 = 9934, // TailOfDarkness->self, 4.0s cast, range 48+R width 20 rect
+        Cauterize5 = 9935, // FangOfLight->self, 4.0s cast, range 48+R width 20 rect
+        //_Ability_SeventhUmbralEra = 9937, // Helper->self, no cast, range 80 circle
+        //_Ability_CalamitousFlame = 9938, // Helper->self, no cast, range 80 circle
+        //_Ability_CalamitousBlaze = 9939, // Helper->self, no cast, range 80 circle
+
+        AutoAttackP3 = 9936, // BahamutPrime->player, no cast, single-target
+        //_Weaponskill_FlareBreath = 9940, // BahamutPrime->self, no cast, range 25+R ?-degree cone
+        //_Weaponskill_Flatten = 9941, // BahamutPrime->player, 4.0s cast, single-target
+        //_Weaponskill_QuickmarchTrio = 9954, // BahamutPrime->self, 4.0s cast, single-target
+        //_Weaponskill_MegaflareDive = 9953, // BahamutPrime->self, 4.0s cast, range 60+R width 12 rect
+        //_Weaponskill_LunarDive = 9923, // NaelDeusDarnus->self, 4.0s cast, range 60+R width 8 rect
+        //_Weaponskill_TwistingDive = 9906, // Twintania->self, 4.0s cast, range 60+R width 8 rect
+        //_Weaponskill_Megaflare = 9948, // Helper->players, no cast, range 5 circle
+        //_Weaponskill_Megaflare = 9949, // Helper->location, 3.0s cast, range 6 circle
+        //_Weaponskill_Megaflare = 9950, // Helper->player, no cast, ???
+        //_Weaponskill_EarthShaker = 9946, // Helper->self, no cast, range 60+R ?-degree cone
+        //_Weaponskill_EarthShaker = 9945, // BahamutPrime->self, no cast, single-target
+        //_Weaponskill_TempestWing = 9943, // BahamutPrime->self, no cast, ???
+        //_Weaponskill_TempestWing = 9944, // Helper->self, no cast, ???
+        //_Weaponskill_BlackfireTrio = 9955, // BahamutPrime->self, 4.0s cast, single-target
     };
 
     public enum SID : uint
@@ -78,5 +107,8 @@
     {
         Fireball = 117, // player
         Generate = 118, // player
+        Cauterize = 20, // player
+        _Gen_Icon_39 = 39, // player
+        _Gen_Icon_40 = 40, // player
     };
 }
