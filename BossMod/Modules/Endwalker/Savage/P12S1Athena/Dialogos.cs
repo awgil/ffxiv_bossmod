@@ -60,7 +60,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
             if (type != Type.None)
             {
                 _type = type;
-                _tankActivation = spell.FinishAt.AddSeconds(0.2);
+                _tankActivation = spell.NPCFinishAt.AddSeconds(0.2);
             }
         }
 

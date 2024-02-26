@@ -89,20 +89,20 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
             switch ((AID)spell.Action.ID)
             {
                 case AID.GeocentrismV:
-                    _aoes.Add(new(_shapeLine, new(95, 83), default, spell.FinishAt.AddSeconds(0.6f)));
-                    _aoes.Add(new(_shapeLine, new(100, 83), default, spell.FinishAt.AddSeconds(0.6f)));
-                    _aoes.Add(new(_shapeLine, new(105, 83), default, spell.FinishAt.AddSeconds(0.6f)));
+                    _aoes.Add(new(_shapeLine, new(95, 83), default, spell.NPCFinishAt.AddSeconds(0.6f)));
+                    _aoes.Add(new(_shapeLine, new(100, 83), default, spell.NPCFinishAt.AddSeconds(0.6f)));
+                    _aoes.Add(new(_shapeLine, new(105, 83), default, spell.NPCFinishAt.AddSeconds(0.6f)));
                     NumConcurrentAOEs = 3;
                     break;
                 case AID.GeocentrismC:
-                    _aoes.Add(new(_shapeCircle, new(100, 90), default, spell.FinishAt.AddSeconds(0.6f)));
-                    _aoes.Add(new(_shapeDonut, new(100, 90), default, spell.FinishAt.AddSeconds(0.6f)));
+                    _aoes.Add(new(_shapeCircle, new(100, 90), default, spell.NPCFinishAt.AddSeconds(0.6f)));
+                    _aoes.Add(new(_shapeDonut, new(100, 90), default, spell.NPCFinishAt.AddSeconds(0.6f)));
                     NumConcurrentAOEs = 2;
                     break;
                 case AID.GeocentrismH:
-                    _aoes.Add(new(_shapeLine, new(93, 85), 90.Degrees(), spell.FinishAt.AddSeconds(0.6f)));
-                    _aoes.Add(new(_shapeLine, new(93, 90), 90.Degrees(), spell.FinishAt.AddSeconds(0.6f)));
-                    _aoes.Add(new(_shapeLine, new(93, 95), 90.Degrees(), spell.FinishAt.AddSeconds(0.6f)));
+                    _aoes.Add(new(_shapeLine, new(93, 85), 90.Degrees(), spell.NPCFinishAt.AddSeconds(0.6f)));
+                    _aoes.Add(new(_shapeLine, new(93, 90), 90.Degrees(), spell.NPCFinishAt.AddSeconds(0.6f)));
+                    _aoes.Add(new(_shapeLine, new(93, 95), 90.Degrees(), spell.NPCFinishAt.AddSeconds(0.6f)));
                     NumConcurrentAOEs = 3;
                     break;
             }

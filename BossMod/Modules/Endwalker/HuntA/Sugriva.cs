@@ -87,7 +87,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (Active(module))
-                yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, default, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, default, module.PrimaryActor.CastInfo.NPCFinishAt);
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

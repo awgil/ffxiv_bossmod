@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Alliance.A10RhalgrEmissary
             };
             if (shape != null)
             {
-                _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
                 _aoes.SortBy(aoe => aoe.Activation);
             }
         }

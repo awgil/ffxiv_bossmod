@@ -20,7 +20,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
                 if (module.PrimaryActor.CastInfo == null)
                     yield return new(_shape, module.PrimaryActor.Position, Angle.FromDirection(Target.Value - module.PrimaryActor.Position), HitAt);
                 else
-                    yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.CastInfo.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                    yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.CastInfo.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
             }
         }
 

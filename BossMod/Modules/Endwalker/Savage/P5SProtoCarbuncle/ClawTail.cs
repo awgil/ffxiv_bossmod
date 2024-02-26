@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
             var rotation = module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation;
             if (_tailFirst ? Progress == 0 : Progress >= 7)
                 rotation += 180.Degrees();
-            yield return new(_shape, module.PrimaryActor.Position, rotation, module.PrimaryActor.CastInfo?.FinishAt ?? module.WorldState.CurrentTime);
+            yield return new(_shape, module.PrimaryActor.Position, rotation, module.PrimaryActor.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

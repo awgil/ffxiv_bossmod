@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
             };
             if (angle != default)
             {
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
                 _invertMiddle = invert;
             }
         }

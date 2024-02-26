@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
         {
             if ((AID)spell.Action.ID == AID.ByregotStrikeKnockback && module.PrimaryActor.FindStatus(SID.Glow) != null)
                 for (int i = 0; i < 4; ++i)
-                    _aoes.Add(new(_shape, caster.Position, spell.Rotation + i * 90.Degrees(), spell.FinishAt));
+                    _aoes.Add(new(_shape, caster.Position, spell.Rotation + i * 90.Degrees(), spell.NPCFinishAt));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

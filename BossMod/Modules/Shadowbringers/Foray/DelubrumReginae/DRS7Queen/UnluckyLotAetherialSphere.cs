@@ -17,7 +17,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.OptimalOffensiveMoveSphere)
-                _aoe = new(new AOEShapeCircle(20), caster.Position, activation: spell.FinishAt.AddSeconds(2.6));
+                _aoe = new(new AOEShapeCircle(20), caster.Position, activation: spell.NPCFinishAt.AddSeconds(2.6));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

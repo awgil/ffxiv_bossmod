@@ -45,7 +45,7 @@ namespace BossMod.RealmReborn.Raid.T02MultiADS
                 // predict rot target
                 _rotHolderSlot = module.Raid.FindSlot(spell.TargetID);
                 if (_rotHolderSlot >= 0)
-                    _rotExpiration[_rotHolderSlot] = spell.FinishAt.AddSeconds(15);
+                    _rotExpiration[_rotHolderSlot] = spell.NPCFinishAt.AddSeconds(15);
             }
         }
 

@@ -30,7 +30,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
             }
 
             foreach (var c in _casters)
-                yield return new((OID)c.OID == OID.Titan ? ShapeBoss : ShapeHelper, c.Position, c.CastInfo!.Rotation, c.CastInfo.FinishAt);
+                yield return new((OID)c.OID == OID.Titan ? ShapeBoss : ShapeHelper, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

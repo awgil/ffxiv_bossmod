@@ -65,7 +65,7 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.OrdealOfPurgation)
-                _activation = spell.FinishAt; // note: actual activation is several seconds later, but we need to finish our movements before shackles, so effective activation is around cast end
+                _activation = spell.NPCFinishAt; // note: actual activation is several seconds later, but we need to finish our movements before shackles, so effective activation is around cast end
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

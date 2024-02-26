@@ -14,8 +14,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
         {
             if ((AID)spell.Action.ID is AID.LeftSidedShockwaveFirst or AID.RightSidedShockwaveFirst)
             {
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation + 180.Degrees(), spell.FinishAt.AddSeconds(2.6f)));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation + 180.Degrees(), spell.NPCFinishAt.AddSeconds(2.6f)));
             }
         }
 

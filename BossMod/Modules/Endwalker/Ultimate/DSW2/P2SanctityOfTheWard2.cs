@@ -33,7 +33,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (Casters.Count > 0 && !actor.Position.InCircle(module.Bounds.Center, 12))
             {
                 var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(WHM.AID.Surecast) : ActionID.MakeSpell(WAR.AID.ArmsLength);
-                hints.PlannedActions.Add((action, actor, (float)((Casters.FirstOrDefault()?.CastInfo?.FinishAt ?? module.WorldState.CurrentTime) - module.WorldState.CurrentTime).TotalSeconds, false));
+                hints.PlannedActions.Add((action, actor, (float)((Casters.FirstOrDefault()?.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime) - module.WorldState.CurrentTime).TotalSeconds, false));
             }
         }
     }

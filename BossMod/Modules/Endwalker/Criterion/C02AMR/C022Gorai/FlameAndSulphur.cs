@@ -19,19 +19,19 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
             {
                 case AID.BrazenBalladExpanding:
                     foreach (var a in module.Enemies(OID.FlameAndSulphurFlame))
-                        _aoes.Add(new(_shapeFlameExpand, a.Position, a.Rotation, spell.FinishAt.AddSeconds(3.1f)));
+                        _aoes.Add(new(_shapeFlameExpand, a.Position, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
                     foreach (var a in module.Enemies(OID.FlameAndSulphurRock))
-                        _aoes.Add(new(_shapeRockExpand, a.Position, a.Rotation, spell.FinishAt.AddSeconds(3.1f)));
+                        _aoes.Add(new(_shapeRockExpand, a.Position, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
                     break;
                 case AID.BrazenBalladSplitting:
                     foreach (var a in module.Enemies(OID.FlameAndSulphurFlame))
                     {
                         var offset = a.Rotation.ToDirection().OrthoL() * 7.5f;
-                        _aoes.Add(new(_shapeFlameSplit, a.Position + offset, a.Rotation, spell.FinishAt.AddSeconds(3.1f)));
-                        _aoes.Add(new(_shapeFlameSplit, a.Position - offset, a.Rotation, spell.FinishAt.AddSeconds(3.1f)));
+                        _aoes.Add(new(_shapeFlameSplit, a.Position + offset, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
+                        _aoes.Add(new(_shapeFlameSplit, a.Position - offset, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
                     }
                     foreach (var a in module.Enemies(OID.FlameAndSulphurRock))
-                        _aoes.Add(new(_shapeRockSplit, a.Position, a.Rotation, spell.FinishAt.AddSeconds(3.1f)));
+                        _aoes.Add(new(_shapeRockSplit, a.Position, a.Rotation, spell.NPCFinishAt.AddSeconds(3.1f)));
                     break;
             }
         }

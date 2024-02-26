@@ -35,7 +35,7 @@ namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D151KeeperOfHalidom
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_showInhale)
-                yield return new(_shapeInhale, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_shapeInhale, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
             if (_showGrief)
                 yield return new(_shapeGrief, module.PrimaryActor.Position, new(), _griefActivation);
         }
@@ -46,10 +46,10 @@ namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D151KeeperOfHalidom
             {
                 case AID.Inhale:
                     _showInhale = _showGrief = true;
-                    _griefActivation = spell.FinishAt.AddSeconds(1.1);
+                    _griefActivation = spell.NPCFinishAt.AddSeconds(1.1);
                     break;
                 case AID.GoobbuesGrief:
-                    _griefActivation = spell.FinishAt;
+                    _griefActivation = spell.NPCFinishAt;
                     break;
             }
         }

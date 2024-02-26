@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
             if ((AID)spell.Action.ID is AID.CloudToGroundFast or AID.CloudToGroundSlow)
             {
                 var fast = (AID)spell.Action.ID == AID.CloudToGroundFast;
-                Lines.Add(new() { Next = caster.Position, Advance = new(-8.5f, 0), NextExplosion = spell.FinishAt, TimeToMove = fast ? 0.6f : 1.4f, ExplosionsLeft = 6, MaxShownExplosions = fast ? 5 : 2 });
+                Lines.Add(new() { Next = caster.Position, Advance = new(-8.5f, 0), NextExplosion = spell.NPCFinishAt, TimeToMove = fast ? 0.6f : 1.4f, ExplosionsLeft = 6, MaxShownExplosions = fast ? 5 : 2 });
             }
         }
 

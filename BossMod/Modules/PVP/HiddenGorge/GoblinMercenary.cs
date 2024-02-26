@@ -51,12 +51,12 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
             if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
             {
                 castingGobspin = true;
-                _activation = spell.FinishAt.AddSeconds(4);
+                _activation = spell.NPCFinishAt.AddSeconds(4);
             }
             if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
             {
                 castingGobswipe = true;
-                _activation = spell.FinishAt.AddSeconds(4);
+                _activation = spell.NPCFinishAt.AddSeconds(4);
             }
         }
 
@@ -90,12 +90,12 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
             if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
             {
                 castingGobspin = true;
-                _activation = spell.FinishAt.AddSeconds(4);
+                _activation = spell.NPCFinishAt.AddSeconds(4);
             }
             if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
             {
                 castingGobswipe = true;
-                _activation = spell.FinishAt.AddSeconds(4);
+                _activation = spell.NPCFinishAt.AddSeconds(4);
             }
         }
 
@@ -130,7 +130,7 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
         {
             if ((AID)spell.Action.ID == AID.GobfireShootypopsStart)
             {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 1, 6));
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 1, 6));
                 _increment = default;
             }
         }

@@ -29,6 +29,8 @@ namespace BossMod
 
     public class ActorCastInfo
     {
+        public static readonly TimeSpan NPCFinishDelay = TimeSpan.FromSeconds(0.3); // for whatever reason, npc spells have reported remaining cast time consistently 0.3s smaller than reality
+
         public ActionID Action;
         public ulong TargetID;
         public Angle Rotation;
@@ -39,6 +41,7 @@ namespace BossMod
         public bool EventHappened;
 
         public WPos LocXZ => new(Location.XZ());
+        public DateTime NPCFinishAt => FinishAt + NPCFinishDelay;
 
         public bool IsSpell() => Action.Type == ActionType.Spell;
         public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);

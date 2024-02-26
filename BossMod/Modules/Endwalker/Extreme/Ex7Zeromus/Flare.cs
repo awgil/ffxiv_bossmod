@@ -108,7 +108,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             if ((AID)spell.Action.ID == AID.NoxAOEFirst && _chasers.Where(c => c.Pos == null).MinBy(c => (c.Player.Position - caster.Position).LengthSq()) is var chaser && chaser != null)
             {
                 chaser.Pos = caster.Position;
-                chaser.Activation = spell.FinishAt;
+                chaser.Activation = spell.NPCFinishAt;
             }
         }
 

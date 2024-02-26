@@ -26,7 +26,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
             if ((AID)spell.Action.ID == AID.FirebreatheRotating)
             {
                 _nextRotation = spell.Rotation;
-                _nextActivation = spell.FinishAt.AddSeconds(0.7f);
+                _nextActivation = spell.NPCFinishAt.AddSeconds(0.7f);
             }
         }
 

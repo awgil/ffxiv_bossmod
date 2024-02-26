@@ -55,8 +55,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
             {
                 case AID.NRokujoRevelAOE:
                 case AID.SRokujoRevelAOE:
-                    _pendingLines.Add((spell.Rotation, spell.FinishAt));
-                    AddHitClouds(_clouds.InShape(_shapeLine, caster.Position, spell.Rotation), spell.FinishAt, ShapeCircle?.Radius ?? 0);
+                    _pendingLines.Add((spell.Rotation, spell.NPCFinishAt));
+                    AddHitClouds(_clouds.InShape(_shapeLine, caster.Position, spell.Rotation), spell.NPCFinishAt, ShapeCircle?.Radius ?? 0);
                     _pendingCircles.SortBy(p => p.activation);
                     break;
                 case AID.NLeapingLevin1:
@@ -69,11 +69,11 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
                     if (index < 0)
                     {
                         module.ReportError(this, $"Failed to predict levin from {caster.InstanceID:X}");
-                        _pendingCircles.Add((caster.Position, spell.FinishAt));
+                        _pendingCircles.Add((caster.Position, spell.NPCFinishAt));
                     }
-                    else if (Math.Abs((_pendingCircles[index].activation - spell.FinishAt).TotalSeconds) > 1)
+                    else if (Math.Abs((_pendingCircles[index].activation - spell.NPCFinishAt).TotalSeconds) > 1)
                     {
-                        module.ReportError(this, $"Mispredicted levin from {caster.InstanceID:X} by {(_pendingCircles[index].activation - spell.FinishAt).TotalSeconds}");
+                        module.ReportError(this, $"Mispredicted levin from {caster.InstanceID:X} by {(_pendingCircles[index].activation - spell.NPCFinishAt).TotalSeconds}");
                     }
                     break;
             }

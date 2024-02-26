@@ -50,7 +50,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
                 _directionOffsets.Add(dir);
                 _hints.Add(hint);
 
-                //var activation = _aoes.Count > 0 ? _aoes.Last().Activation.AddSeconds(3.1f) : actor.CastInfo?.FinishAt ?? module.WorldState.CurrentTime.AddSeconds(12);
+                //var activation = _aoes.Count > 0 ? _aoes.Last().Activation.AddSeconds(3.1f) : actor.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime.AddSeconds(12);
                 //var rotation = (_aoes.Count > 0 ? _aoes.Last().Rotation : actor.Rotation) + dir;
                 //_aoes.Add(new(donut ? _shapeIn : _shapeOut, actor.Position, rotation, activation));
                 //_aoes.Add(new(_shapeCone, actor.Position, rotation, activation));
@@ -80,8 +80,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
                     module.ReportError(this, $"Mispredicted rotation: {spell.Rotation} vs predicted {_aoes[mismatch].Rotation}");
                 _aoes.Clear();
             }
-            _aoes.Add(new(donut ? _shapeIn : _shapeOut, caster.Position, spell.Rotation, spell.FinishAt));
-            _aoes.Add(new(_shapeCone, caster.Position, spell.Rotation, spell.FinishAt));
+            _aoes.Add(new(donut ? _shapeIn : _shapeOut, caster.Position, spell.Rotation, spell.NPCFinishAt));
+            _aoes.Add(new(_shapeCone, caster.Position, spell.Rotation, spell.NPCFinishAt));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -282,7 +282,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
                     {
                         first = false;
                         aoe.Rotation = spell.Rotation;
-                        aoe.Activation = spell.FinishAt;
+                        aoe.Activation = spell.NPCFinishAt;
                     }
                 }
             }

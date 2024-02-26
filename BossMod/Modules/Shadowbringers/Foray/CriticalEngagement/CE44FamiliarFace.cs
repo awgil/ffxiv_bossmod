@@ -81,7 +81,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var c in _casters)
-                yield return new(_shape, c.caster.Position + c.offset * c.caster.CastInfo!.Rotation.ToDirection().OrthoL(), c.caster.CastInfo.Rotation, c.caster.CastInfo.FinishAt);
+                yield return new(_shape, c.caster.Position + c.offset * c.caster.CastInfo!.Rotation.ToDirection().OrthoL(), c.caster.CastInfo.Rotation, c.caster.CastInfo.NPCFinishAt);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -111,7 +111,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         {
             if ((AID)spell.Action.ID == AID.IntractableLandFirst)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 0.8f, ExplosionsLeft = 8, MaxShownExplosions = 4 });
+                Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 0.8f, ExplosionsLeft = 8, MaxShownExplosions = 4 });
             }
         }
 

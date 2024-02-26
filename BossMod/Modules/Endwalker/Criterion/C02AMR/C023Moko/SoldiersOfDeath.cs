@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
                 _ => null
             };
             if (shape != null)
-                AOEs.Add(new(shape, spell.LocXZ, default, spell.FinishAt));
+                AOEs.Add(new(shape, spell.LocXZ, default, spell.NPCFinishAt));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
