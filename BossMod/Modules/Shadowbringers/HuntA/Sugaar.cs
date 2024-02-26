@@ -49,10 +49,10 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
             switch ((AID)spell.Action.ID)
             {
                 case AID.NumbingNoiseAttract: // NN always seems to go CCW
-                    Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.8f, 3));
+                    Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
                     break;
                 case AID.TailSnapAttract: // TS always seems to go CW
-                    Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.8f, 3));
+                    Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
                     break;
             }
         }

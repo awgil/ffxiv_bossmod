@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
             if ((AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
             {
                 _direction = spell.Rotation + ThrenodyDirection(module);
-                _activation = spell.NPCFinishAt.AddSeconds(2.4f);
+                _activation = spell.NPCFinishAt.AddSeconds(2); //saw delays of upto ~0.3s higher because delay between Prepare and Resolve can vary
             }
         }
 

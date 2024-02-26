@@ -130,7 +130,7 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
         {
             if ((AID)spell.Action.ID == AID.GobfireShootypopsStart)
             {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 1, 6));
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt.AddMilliseconds(-52), 1, 6));
                 _increment = default;
             }
         }
