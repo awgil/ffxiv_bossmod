@@ -7,7 +7,7 @@ namespace BossMod
     // this is used e.g. in outdoor or on trash, where we have no active bossmodules
     public class AutoHints : IDisposable
     {
-        static readonly float RAIDWIDE_SIZE = 40;
+        static readonly float RaidwideSize = 40;
 
         private WorldState _ws;
         private Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = new();
@@ -50,13 +50,14 @@ namespace BossMod
             var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(actor.CastInfo.Action.ID) : null;
             if (data == null || data.CastType == 1)
                 return;
+            if (data.CastType is 2 or 5 && data.EffectRange >= RaidwideSize)
+                return;
             AOEShape? shape = data.CastType switch
             {
-                // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
-                2 => data.EffectRange >= RAIDWIDE_SIZE ? null : new AOEShapeCircle(data.EffectRange),
+                2 => new AOEShapeCircle(data.EffectRange), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
                 3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
                 4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f),
-                5 => data.EffectRange >= RAIDWIDE_SIZE ? null :  new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
+                5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius),
                 //6 => ???
                 //7 => new AOEShapeCircle(data.EffectRange), - used for player ground-targeted circles a-la asylum
                 //8 => charge rect
