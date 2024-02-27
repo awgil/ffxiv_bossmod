@@ -8,7 +8,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
     {
         Boss = 0x28F0, //R=8.4
         Helper = 0x233C, //R=0.5
-        //trash that can be pulled into miniboss room to miniboss
+        //trash that can be pulled into to miniboss
         ForgivenConformity = 0x28EE, //R=1.65
         ForgivenExtortion = 0x28EF, //R=2.7
         ForgivenPrejudice = 0x28F2, //R=3.6
