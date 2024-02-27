@@ -26,12 +26,12 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Lozatl
 
     class LozatlsFuryA : Components.SelfTargetedAOEs
     {
-        public LozatlsFuryA() : base(ActionID.MakeSpell(AID.LozatlsFuryA), new AOEShapeRect(60, 20, directionOffset: 90.Degrees())) { }
+        public LozatlsFuryA() : base(ActionID.MakeSpell(AID.LozatlsFuryA), new AOEShapeRect(60, 20, directionOffset: 90.Degrees())) { } // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
     }
 
     class LozatlsFuryB : Components.SelfTargetedAOEs
     {
-        public LozatlsFuryB() : base(ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, directionOffset: -90.Degrees())) { }
+        public LozatlsFuryB() : base(ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, directionOffset: -90.Degrees())) { } // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
     }
 
     class Stonefist : Components.SingleTargetCast
@@ -53,7 +53,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Lozatl
     {
         private bool castingRight;
         private bool castingLeft;
-        private static readonly AOEShapeRect rect = new(60, 20);
+        private static readonly AOEShapeRect rect = new(60, 20); //TODO: double halfwidth is strange
         private DateTime _activation;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
@@ -63,7 +63,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Lozatl
             if (castingLeft)
                 yield return new(rect, module.Bounds.Center, -90.Degrees(), _activation);
         }
-        
+
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)
         {
             if (state == 0x00040008)

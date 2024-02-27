@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Batsquatch
 {
     public enum OID : uint
@@ -75,6 +72,6 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Batsquatch
     [ModuleInfo(CFCID = 651, NameID = 8232)]
     public class D032Batsquatch : BossModule
     {
-        public D032Batsquatch(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(62, -35), 15f)) { }
+        public D032Batsquatch(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(62, -35), 15)) { }
     }
 }
