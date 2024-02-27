@@ -222,19 +222,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
         }
     }
 
-    class Rush : Components.BaitAwayCast
+    class Rush : Components.BaitAwayChargeCast
     {
-        public Rush() : base(ActionID.MakeSpell(AID.Rush), new AOEShapeRect(0, 7)) { }
-        public override void Update(BossModule module)
-        {
-            foreach (var b in CurrentBaits)
-                ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
-        }
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, 7)));
-        }
+        public Rush() : base(ActionID.MakeSpell(AID.Rush), 7) { }
     }
 
     class LaserShower : Components.LocationTargetedAOEs
