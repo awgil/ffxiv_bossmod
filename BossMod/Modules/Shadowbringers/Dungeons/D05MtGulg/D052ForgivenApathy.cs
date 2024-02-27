@@ -47,7 +47,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
         {
             var prejudice = module.Enemies(OID.ForgivenPrejudice).FirstOrDefault();
             if (prejudice != null && _casters.Count > 0)
-                hints.Add($"Interrupt or stun {prejudice.Name}!");
+                hints.Add($"Interrupt or stun {prejudice.Name}! (Raidwide)");
         }
     }
 
