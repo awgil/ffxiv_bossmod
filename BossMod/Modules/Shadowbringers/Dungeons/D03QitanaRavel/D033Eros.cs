@@ -216,6 +216,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Eros
     {
         public Inhale() : base(ActionID.MakeSpell(AID.Inhale), 50, kind: Kind.TowardsOrigin) { }
 
+        //TODO: consider testing if path is unsafe in addition to destination
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<ViperPoisonBaitAway>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 
     }
@@ -226,7 +227,8 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Eros
         {
             StopAtWall = true;
         }
-        
+
+        //TODO: consider testing if path is unsafe in addition to destination
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<ViperPoisonBaitAway>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 
     }
