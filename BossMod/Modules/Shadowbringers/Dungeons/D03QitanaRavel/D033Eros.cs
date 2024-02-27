@@ -215,6 +215,9 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Eros
     class Inhale : Components.KnockbackFromCastTarget
     {
         public Inhale() : base(ActionID.MakeSpell(AID.Inhale), 50, kind: Kind.TowardsOrigin) { }
+
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<ViperPoisonBaitAway>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+
     }
 
     class HeavingBreath : Components.KnockbackFromCastTarget
@@ -223,6 +226,9 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Eros
         {
             StopAtWall = true;
         }
+        
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<ViperPoisonBaitAway>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+
     }
 
     class Glossolalia : Components.RaidwideCast
