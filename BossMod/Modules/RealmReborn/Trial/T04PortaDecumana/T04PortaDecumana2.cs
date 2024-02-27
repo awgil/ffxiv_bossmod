@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
@@ -44,108 +45,6 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
         Ultima = 29024, // Boss->self, 71.0s cast, enrage
     };
 
-    class AethericBoom : Components.KnockbackFromCastTarget
-    {
-        public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), 20) 
-        { 
-            StopAtWall = true;
-        }
-    }
-
-    class OrbsHint : BossComponent
-    {
-        private bool casting;
-        private bool orbsspawned;
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.AethericBoom)
-                casting = true;
-        }
-        
-        public override void OnActorCreated(BossModule module, Actor actor)
-        {
-            if ((OID)actor.OID == OID.Aetheroplasm)
-            {
-                orbsspawned = true;
-                casting = false;
-            }
-        }
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (casting)
-            hints.Add("Prepare to soak the orbs!");  
-            if (orbsspawned && !module.Enemies(OID.Aetheroplasm).All(x => x.IsDead))
-            hints.Add("Soak the orbs!");  
-        }
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var p in module.Enemies(OID.Aetheroplasm).Where(x => !x.IsDead))
-                arena.AddCircle(p.Position, 1.4f, ArenaColor.Safe);
-        }
-    }
-    class OrbsAI : BossComponent
-    {
-        private bool starting;
-        private bool finished;
-        private int soaks;
-        private static readonly float maxError = 20 * (MathF.PI / 180);
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.AethericBoom)
-                starting = true;
-        }
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.AethericBoom)
-                finished = true;
-        }
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID is AID.AethericBoom)
-                starting = false;
-            if ((AID)spell.Action.ID is AID.AetheroplasmCollide)
-                finished = false;
-            if ((AID)spell.Action.ID is AID.AetheroplasmSoak)
-                ++soaks;
-            if (soaks == 2)
-                finished = false;
-        }
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            if (starting)
-            {
-                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1, false));
-                hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1, false));
-            }
-            if (finished)
-                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
-            if (module.Enemies(OID.Aetheroplasm).Where(x => !x.IsDead).LastOrDefault() != null)
-            {
-                var orb = module.Enemies(OID.Aetheroplasm).Where(x => !x.IsDead).LastOrDefault();
-                var orbX = orb!.Position.X;
-                var orbZ = orb!.Position.Z;
-            
-                if (orb.Rotation.AlmostEqual(-135.Degrees(), maxError))
-                {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX - 0.5f, orbZ - 0.5f), 1.2f));
-                }
-                if (orb.Rotation.AlmostEqual(-45.Degrees(), maxError))
-                {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX - 0.5f, orbZ + 0.5f), 1.2f));
-                }
-                if (orb.Rotation.AlmostEqual(45.Degrees(), maxError))
-                {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX + 0.5f, orbZ + 0.5f), 1.2f));
-                }
-                if (orb.Rotation.AlmostEqual(135.Degrees(), maxError))
-                {
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(orbX + 0.5f, orbZ - 0.5f), 1.2f));
-                }
-            }
-        }
-    }
-
     class TankPurge : Components.RaidwideCast
     {
         public TankPurge() : base(ActionID.MakeSpell(AID.TankPurge)) { }
@@ -179,6 +78,63 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
     class LaserFocus : Components.StackWithCastTargets
     {
         public LaserFocus() : base(ActionID.MakeSpell(AID.LaserFocusAOE), 6) { }
+    }
+
+    class AethericBoom : Components.KnockbackFromCastTarget
+    {
+        public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), 30)
+        {
+            StopAtWall = true;
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (Casters.Count > 0)
+                hints.Add("Prepare to soak the orbs!");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (Casters.Count > 0)
+            {
+                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1, false));
+                hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1, false));
+            }
+        }
+    }
+
+    class Aetheroplasm : BossComponent
+    {
+        private List<Actor> _orbs = new();
+
+        public IEnumerable<Actor> ActiveOrbs => _orbs.Where(orb => !orb.IsDead);
+
+        public override void Init(BossModule module)
+        {
+            _orbs = module.Enemies(OID.Aetheroplasm);
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (ActiveOrbs.Any())
+                hints.Add("Soak the orbs!");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            var orb = ActiveOrbs.FirstOrDefault();
+            if (orb != null)
+            {
+                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(orb.Position + 0.7f * orb.Rotation.ToDirection(), 1.2f));
+            }
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var orb in ActiveOrbs)
+                arena.AddCircle(orb.Position, 1.4f, ArenaColor.Safe);
+        }
     }
 
     class AssaultCannon : Components.SelfTargetedAOEs
@@ -220,11 +176,10 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
                 .ActivateOnEnter<MagitekRayL>()
                 .ActivateOnEnter<HomingRay>()
                 .ActivateOnEnter<LaserFocus>()
+                .ActivateOnEnter<AethericBoom>()
+                .ActivateOnEnter<Aetheroplasm>()
                 .ActivateOnEnter<AssaultCannon>()
                 .ActivateOnEnter<CitadelBuster>()
-                .ActivateOnEnter<OrbsAI>()
-                .ActivateOnEnter<AethericBoom>()
-                .ActivateOnEnter<OrbsHint>()
                 .ActivateOnEnter<Explosion>()
                 .ActivateOnEnter<Ultima>();
         }
