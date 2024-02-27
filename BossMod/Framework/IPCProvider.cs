@@ -11,6 +11,8 @@ namespace BossMod
         {
             Register("IsMoving", () => ActionManagerEx.Instance!.InputOverride.IsMoving());
             Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);
+            Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
+            Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);
         }
 
         public void Dispose()
