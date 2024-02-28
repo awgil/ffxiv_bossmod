@@ -81,12 +81,12 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
     [ModuleInfo(PrimaryActorOID = (uint)OID.TerminalStart, CFCID = 96)]
     public class T04Gauntlet : BossModule
     {
-        public List<Actor> P1Bugs;
-        public List<Actor> Bugs;
-        public List<Actor> Soldiers;
-        public List<Actor> Knights;
-        public List<Actor> Rooks;
-        public List<Actor> Dreadnaughts;
+        public IReadOnlyList<Actor> P1Bugs;
+        public IReadOnlyList<Actor> Bugs;
+        public IReadOnlyList<Actor> Soldiers;
+        public IReadOnlyList<Actor> Knights;
+        public IReadOnlyList<Actor> Rooks;
+        public IReadOnlyList<Actor> Dreadnaughts;
 
         public T04Gauntlet(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 25))
         {

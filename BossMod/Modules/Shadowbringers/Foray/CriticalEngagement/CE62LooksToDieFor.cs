@@ -119,7 +119,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
 
     class Burn : Components.GenericAOEs
     {
-        private List<Actor> _flames = new();
+        private IReadOnlyList<Actor> _flames = ActorEnumeration.EmptyList;
         private List<(Actor actor, AOEInstance? aoe)> _casters = new();
 
         private static AOEShapeCircle _shape = new(8);

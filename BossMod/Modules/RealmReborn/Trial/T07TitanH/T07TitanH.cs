@@ -141,7 +141,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
     [ModuleInfo(CFCID = 60, NameID = 1801)]
     public class T07TitanH : BossModule
     {
-        private List<Actor> _heart;
+        private IReadOnlyList<Actor> _heart;
         public IEnumerable<Actor> ActiveHeart => _heart.Where(h => h.IsTargetable && !h.IsDead);
 
         public T07TitanH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 25))

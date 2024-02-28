@@ -48,17 +48,17 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
     [ModuleInfo(PrimaryActorOID = (uint)OID.Knight, CFCID = 761, NameID = 9838)]
     public class DRS3 : BossModule
     {
-        private List<Actor> _warrior;
-        private List<Actor> _soldier;
-        private List<Actor> _gunner;
+        private IReadOnlyList<Actor> _warrior;
+        private IReadOnlyList<Actor> _soldier;
+        private IReadOnlyList<Actor> _gunner;
 
         public Actor? Knight() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
         public Actor? Warrior() => _warrior.FirstOrDefault();
         public Actor? Soldier() => _soldier.FirstOrDefault();
         public Actor? Gunner() => _gunner.FirstOrDefault();
-        public List<Actor> GunTurrets;
-        public List<Actor> AuraSpheres;
-        public List<Actor> SpiritualSpheres;
+        public IReadOnlyList<Actor> GunTurrets;
+        public IReadOnlyList<Actor> AuraSpheres;
+        public IReadOnlyList<Actor> SpiritualSpheres;
 
         public DRS3(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(244, -162), 25))
         {

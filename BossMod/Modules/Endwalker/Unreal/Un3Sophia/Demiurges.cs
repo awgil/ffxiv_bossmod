@@ -6,8 +6,8 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
     // shows all three demiurges + handles directional parry from first; the reason is to simplify condition checks
     class Demiurges : Components.DirectionalParry
     {
-        private List<Actor> _second = new();
-        private List<Actor> _third = new();
+        private IReadOnlyList<Actor> _second = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _third = ActorEnumeration.EmptyList;
 
         public bool AddsActive => ActiveActors.Any() || _second.Any(a => a.IsTargetable && !a.IsDead) || _third.Any(a => a.IsTargetable && !a.IsDead);
 

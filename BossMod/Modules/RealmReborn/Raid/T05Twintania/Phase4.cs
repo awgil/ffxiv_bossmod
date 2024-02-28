@@ -6,7 +6,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
     // P4 mechanics
     class P4Twisters : BossComponent
     {
-        private List<Actor> _twisters = new();
+        private IReadOnlyList<Actor> _twisters = ActorEnumeration.EmptyList;
         private List<WPos> _predictedPositions = new();
         private IEnumerable<Actor> ActiveTwisters => _twisters.Where(t => t.EventState != 7);
 
@@ -51,7 +51,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
     class P4Dreadknights : BossComponent
     {
         private Actor? _target;
-        private List<Actor> _dreadknights = new();
+        private IReadOnlyList<Actor> _dreadknights = ActorEnumeration.EmptyList;
         public IEnumerable<Actor> ActiveDreadknights => _dreadknights.Where(a => !a.IsDead);
 
         public override void Init(BossModule module)

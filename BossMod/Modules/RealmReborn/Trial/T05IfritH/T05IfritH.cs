@@ -100,7 +100,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
     [ModuleInfo(CFCID = 59, NameID = 1185)]
     public class T05IfritH : BossModule
     {
-        private List<Actor> _nails;
+        private IReadOnlyList<Actor> _nails;
         public IEnumerable<Actor> ActiveNails => _nails.Where(n => n.IsTargetable && !n.IsDead);
 
         public T05IfritH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))

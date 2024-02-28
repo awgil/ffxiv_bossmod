@@ -5,8 +5,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
 {
     class GreatBallOfFire : Components.GenericAOEs
     {
-        private List<Actor> _smallFlames = new();
-        private List<Actor> _bigFlames = new();
+        private IReadOnlyList<Actor> _smallFlames = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _bigFlames = ActorEnumeration.EmptyList;
         private DateTime _activation;
 
         private static AOEShapeCircle _shapeSmall = new(10);

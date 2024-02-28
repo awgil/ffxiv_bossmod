@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
 
     class JadePassage : Components.GenericAOEs
     {
-        private List<Actor> _spheres = new();
+        private IReadOnlyList<Actor> _spheres = ActorEnumeration.EmptyList;
         private DateTime _activation;
 
         private static AOEShapeRect _shape = new(40, 1, 40);

@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
     class PortalsAOE : Components.GenericAOEs
     {
         private OID _movedOID;
-        private List<Actor> _movedActors = new();
+        private IReadOnlyList<Actor> _movedActors = ActorEnumeration.EmptyList;
         private float _activationDelay;
         private AOEShape _shape;
         private List<(WPos pos, Angle rot, DateTime activation)> _origins = new();
@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
             if (dest == null)
                 return;
 
-            var movedActor = _movedActors.Find(a => a.Position.AlmostEqual(actor.Position, 1));
+            var movedActor = _movedActors.FirstOrDefault(a => a.Position.AlmostEqual(actor.Position, 1));
             if (movedActor != null)
                 _origins.Add((dest.Value, movedActor.Rotation, module.WorldState.CurrentTime.AddSeconds(_activationDelay)));
         }

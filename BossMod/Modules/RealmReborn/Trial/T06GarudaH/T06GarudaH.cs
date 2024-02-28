@@ -107,7 +107,7 @@ namespace BossMod.RealmReborn.Trial.T06GarudaH
     [ModuleInfo(CFCID = 61, NameID = 1644)]
     public class T06GarudaH : BossModule
     {
-        private List<Actor> _monoliths;
+        private IReadOnlyList<Actor> _monoliths;
         public IEnumerable<Actor> ActiveMonoliths => _monoliths;
 
         public T06GarudaH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 22))

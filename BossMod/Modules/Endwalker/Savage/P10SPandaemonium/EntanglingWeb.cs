@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
 
     class EntanglingWebHints : BossComponent
     {
-        private List<Actor> _pillars = new();
+        private IReadOnlyList<Actor> _pillars = ActorEnumeration.EmptyList;
         private List<Actor> _targets = new();
 
         private static float _radius = 5;

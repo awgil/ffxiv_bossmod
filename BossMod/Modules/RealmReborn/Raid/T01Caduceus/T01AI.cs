@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BossMod.RealmReborn.Raid.T01Caduceus
 {
@@ -11,7 +9,7 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         private Platforms? _platforms;
         private HoodSwing? _hoodSwing;
         private CloneMerge? _clone;
-        private List<Actor> _slimes = new();
+        private IReadOnlyList<Actor> _slimes = ActorEnumeration.EmptyList;
 
         public override void Init(BossModule module)
         {

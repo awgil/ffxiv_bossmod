@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     class ShiningBladeKnockback : Components.KnockbackFromCastTarget
     {
         private WDir _dirToAdelphel; // we don't want to be knocked near adelphel
-        private List<Actor> _tears = new(); // we don't want to be knocked into them
+        private IReadOnlyList<Actor> _tears = ActorEnumeration.EmptyList; // we don't want to be knocked into them
 
         private static float _tearRadius = 9; // TODO: verify
 

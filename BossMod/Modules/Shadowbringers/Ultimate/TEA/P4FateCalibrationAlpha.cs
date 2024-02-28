@@ -151,7 +151,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
         private void InitSafeSpots(BossModule module)
         {
-            var safeClone = module.Enemies(OID.PerfectAlexander).Find(a => a != ((TEA)module).PerfectAlex() && _casters.FindIndex(c => c.caster == a) < 0);
+            var safeClone = module.Enemies(OID.PerfectAlexander).FirstOrDefault(a => a != ((TEA)module).PerfectAlex() && _casters.FindIndex(c => c.caster == a) < 0);
             var debuffs = module.FindComponent<P4FateCalibrationAlphaDebuffs>();
             if (safeClone == null || debuffs == null)
                 return;

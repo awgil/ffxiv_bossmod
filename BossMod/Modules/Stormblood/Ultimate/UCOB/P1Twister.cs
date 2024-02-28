@@ -7,7 +7,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     class P1Twister : Components.GenericAOEs
     {
         private List<WPos> _predicted = new();
-        private List<Actor> _twisters = new();
+        private IReadOnlyList<Actor> _twisters = ActorEnumeration.EmptyList;
         private DateTime _predictStart = DateTime.MaxValue;
 
         private static AOEShapeCircle _shape = new(2); // TODO: verify radius

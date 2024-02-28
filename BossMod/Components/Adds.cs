@@ -7,7 +7,7 @@ namespace BossMod.Components
     public class Adds : BossComponent
     {
         private uint _actorOID;
-        private List<Actor> _actors = new();
+        private IReadOnlyList<Actor> _actors = ActorEnumeration.EmptyList;
 
         public IReadOnlyList<Actor> Actors => _actors;
         public IEnumerable<Actor> ActiveActors => Actors.Where(a => a.IsTargetable && !a.IsDead);

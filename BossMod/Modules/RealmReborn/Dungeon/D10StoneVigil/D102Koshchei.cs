@@ -34,7 +34,7 @@ namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D102Koshchei
 
     class Typhoon : Components.Exaflare
     {
-        private List<Actor> _maelstroms = new();
+        private IReadOnlyList<Actor> _maelstroms = ActorEnumeration.EmptyList;
 
         public Typhoon() : base(3) { }
 

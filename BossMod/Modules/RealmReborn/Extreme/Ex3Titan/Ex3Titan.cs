@@ -22,12 +22,12 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
     [ModuleInfo(CFCID = 64, NameID = 1801)]
     public class Ex3Titan : BossModule
     {
-        private List<Actor> _heart;
+        private IReadOnlyList<Actor> _heart;
         public Actor? Heart() => _heart.FirstOrDefault();
 
-        public List<Actor> Gaolers;
-        public List<Actor> Gaols;
-        public List<Actor> Bombs;
+        public IReadOnlyList<Actor> Gaolers;
+        public IReadOnlyList<Actor> Gaols;
+        public IReadOnlyList<Actor> Bombs;
 
         public Ex3Titan(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 25))
         {

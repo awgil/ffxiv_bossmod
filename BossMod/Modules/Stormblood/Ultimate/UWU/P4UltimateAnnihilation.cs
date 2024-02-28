@@ -5,7 +5,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
 {
     class P4UltimateAnnihilation : BossComponent
     {
-        private List<Actor> _orbs = new();
+        private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
 
         private static float _radius = 6;
 

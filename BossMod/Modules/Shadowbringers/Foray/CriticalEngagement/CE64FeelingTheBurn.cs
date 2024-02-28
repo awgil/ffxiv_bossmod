@@ -192,7 +192,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
     [ModuleInfo(CFCID = 778, DynamicEventID = 18)]
     public class CE64FeelingTheBurn : BossModule
     {
-        public List<Actor> Escorts;
+        public IReadOnlyList<Actor> Escorts;
 
         public CE64FeelingTheBurn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, -230), 24))
         {

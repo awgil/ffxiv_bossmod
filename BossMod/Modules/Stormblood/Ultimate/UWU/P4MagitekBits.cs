@@ -5,7 +5,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
 {
     class P4MagitekBits : BossComponent
     {
-        private List<Actor> _bits = new();
+        private IReadOnlyList<Actor> _bits = ActorEnumeration.EmptyList;
 
         public bool Active => _bits.Any(b => b.IsTargetable);
 

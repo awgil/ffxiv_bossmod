@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
     // TODO: improve!
     class ForbiddenFruit5 : ForbiddenFruitCommon
     {
-        private List<Actor> _towers = new();
+        private IReadOnlyList<Actor> _towers = ActorEnumeration.EmptyList;
 
         private const float _towerRadius = 5;
 

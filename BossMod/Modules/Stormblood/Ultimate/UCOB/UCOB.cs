@@ -22,7 +22,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania)]
     public class UCOB : BossModule
     {
-        private List<Actor> _nael;
+        private IReadOnlyList<Actor> _nael;
 
         public Actor? Twintania() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
         public Actor? Nael() => _nael.FirstOrDefault();
