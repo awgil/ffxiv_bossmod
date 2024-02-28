@@ -70,7 +70,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenObscenity
         private static readonly AOEShapeRect rect = new(100, 2.5f, 100);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if(_casters.Count > 0 && (_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) || _casters[0].Position.AlmostEqual(new(-252.5f, 253), 1)))
+            if(_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1))))
                 {
                     if (_casters.Count > 2)
                     {
@@ -110,7 +110,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenObscenity
                             yield return new(rect, _casters[5].Position, activation: _activation.AddSeconds(11.1f), color: ArenaColor.Danger);
                     }
                 }
-            if(_casters.Count > 0 && _casters[0].Position.AlmostEqual(new(-242.5f, 253), 1))
+            if(_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-242.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-237.5f, 253), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-227.5f, 253), 1))))
                 {
                     if (_casters.Count > 2)
                     {
@@ -294,5 +294,9 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenObscenity
     public class D055ForgivenObscenity : BossModule
     {
         public D055ForgivenObscenity(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-240, 237), 15, 20)) { }
+        protected override void DrawEnemies(int pcSlot, Actor pc)
+        {
+                Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+        }
     }
 }
