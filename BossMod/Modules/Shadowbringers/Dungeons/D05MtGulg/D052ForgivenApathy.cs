@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
+namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenApathy
 {
     public enum OID : uint
     {

@@ -34,11 +34,25 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
     class Catechism : Components.SingleTargetCast
     {
         public Catechism() : base(ActionID.MakeSpell(AID.Catechism)) { } //Note: actual tb happens about 0.5s later by helper with 0s cast
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var c in Casters)
+            {
+                BitMask targets = new();
+                targets.Set(module.Raid.FindSlot(c.CastInfo!.TargetID));
+                hints.PredictedDamage.Add((targets, c.CastInfo!.NPCFinishAt.AddSeconds(0.5f)));
+            }
+        }
     }
 
     class SacramentOfPenance : Components.RaidwideCast
     {
         public SacramentOfPenance() : base(ActionID.MakeSpell(AID.SacramentOfPenance)) { } //Note: actual raidwide happens about 0.5s later by helper with 0s cast
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var c in Casters)
+                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo!.NPCFinishAt.AddSeconds(0.8f)));
+        }
     }
 
     class PerfectContrition : Components.SelfTargetedAOEs
@@ -81,6 +95,14 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
                 }
             }
         }
+       public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+       {
+            if (Towers.Count > 0)
+            {
+                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 5));
+            }
+       }
     }
 
     class Exegesis : Components.GenericAOEs

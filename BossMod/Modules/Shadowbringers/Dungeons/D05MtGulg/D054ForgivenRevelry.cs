@@ -20,7 +20,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenRevelry
         RightPalm2 = 16248, // 233C->self, 4,5s cast, range 30 width 15 rect
     };
 
-    class PalmAttacks : Components.GenericAOEs //Palm Attacks have a wrong origin, so i made a custom solution, it is not pixel perfect, but a tiny bit bigger than the real AOE it seems
+    class PalmAttacks : Components.GenericAOEs //Palm Attacks have a wrong origin, so i made a custom solution
     {
         private DateTime _activation;
         private bool left;
@@ -30,9 +30,9 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenRevelry
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (left)
-                yield return new(rect, new(-240, 176), -90.Degrees(), _activation);
+                yield return new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), -90.Degrees(), _activation);
             if (right)
-                yield return new(rect, new(-240, 176), 90.Degrees(), _activation);
+                yield return new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), 90.Degrees(), _activation);
 
         }
 
