@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
 {
@@ -167,9 +166,9 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
         }
     }
 
-    class D051ForgivenWhimsyStates : StateMachineBuilder
+    class D053ForgivenWhimsyStates : StateMachineBuilder
     {
-        public D051ForgivenWhimsyStates(BossModule module) : base(module)
+        public D053ForgivenWhimsyStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<Catechism>()
@@ -181,8 +180,8 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
     }
 
     [ModuleInfo(CFCID = 659, NameID = 8261)]
-    public class D051ForgivenWhimsy : BossModule
+    public class D053ForgivenWhimsy : BossModule
     {
-        public D051ForgivenWhimsy(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15)) { }
+        public D053ForgivenWhimsy(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15)) { }
     }
 }
