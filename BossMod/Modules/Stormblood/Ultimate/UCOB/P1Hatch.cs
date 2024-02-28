@@ -23,7 +23,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             var inNeurolink = _neurolinks.InRadius(actor.Position, 2).Any();
             if (_targets[slot])
                 hints.Add("Go to neurolink!", !inNeurolink);
-            else if (inNeurolink)
+            else if (inNeurolink && module.PrimaryActor.IsTargetable) // don't care about standing in neurolinks when twintania flies away
                 hints.Add("GTFO from neurolink!");
         }
 
