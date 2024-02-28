@@ -3,7 +3,8 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenCruelty
     public enum OID : uint
     {
         Boss = 0x27CA, //R=6.89
-        Helper = 0x2E8, //R=0.5
+        Helper = 0x233C, //R=0.5
+        Helper2 = 0x27CB, //R=0.5
     }
 
     public enum AID : uint
