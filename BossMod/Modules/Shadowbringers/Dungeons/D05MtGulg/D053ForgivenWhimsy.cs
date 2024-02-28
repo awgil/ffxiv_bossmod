@@ -73,16 +73,13 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
         {
             if ((AID)spell.Action.ID is AID.Judged or AID.FoundWanting)
             {
-                ++NumCasts;
-                if (NumCasts == 1)
-                    Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
-                if (NumCasts == 2)
+                Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
+                if (Towers.Count == 0) //Note: I don't think towers can repeat, this is just a safety precaution
                 {
-                    Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
-                    tower1 = default; //Note: I don't think towers can repeat, this is just a safety precaution
+                    tower1 = default;
                     tower2 = default;
                     Tower1 = default;
-                }                    
+                }
             }
         }
     }
