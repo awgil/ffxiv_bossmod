@@ -6,7 +6,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     class P1JagdDolls : BossComponent
     {
         public int NumExhausts { get; private set; }
-        private List<Actor> _dolls = new();
+        private IReadOnlyList<Actor> _dolls = ActorEnumeration.EmptyList;
         private HashSet<ulong> _exhaustsDone = new();
 
         private static float _exhaustRadius = 8.8f;

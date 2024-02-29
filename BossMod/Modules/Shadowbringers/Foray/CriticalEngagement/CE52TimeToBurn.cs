@@ -41,7 +41,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn
     {
         private DateTime _bombsActivation;
         private DateTime _eruptionStart; // timestamp of StartTime cast start
-        private List<Actor> _bombs = new();
+        private IReadOnlyList<Actor> _bombs = ActorEnumeration.EmptyList;
         private List<Actor> _cycloneCasters = new();
         private List<(WPos pos, TimeSpan delay)> _clocks = new();
         private List<WPos> _eruptionSafeSpots = new();

@@ -7,8 +7,8 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     {
         public int NumNeurolinkSpawns { get; private set; }
         private BitMask _targets;
-        private List<Actor> _orbs = new();
-        private List<Actor> _neurolinks = new();
+        private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _neurolinks = ActorEnumeration.EmptyList;
 
         public P1Hatch() : base(ActionID.MakeSpell(AID.Hatch)) { KeepOnPhaseChange = true; }
 
@@ -23,7 +23,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             var inNeurolink = _neurolinks.InRadius(actor.Position, 2).Any();
             if (_targets[slot])
                 hints.Add("Go to neurolink!", !inNeurolink);
-            else if (inNeurolink)
+            else if (inNeurolink && module.PrimaryActor.IsTargetable) // don't care about standing in neurolinks when twintania flies away
                 hints.Add("GTFO from neurolink!");
         }
 

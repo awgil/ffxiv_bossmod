@@ -4,161 +4,6 @@ using System.Linq;
 
 namespace BossMod.Stormblood.Ultimate.UCOB
 {
-    class P2BahamutsFavor : BossComponent
-    {
-        public Actor? Source;
-        public List<AID> PendingMechanics = new();
-        public DateTime NextActivation;
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (PendingMechanics.Count > 0)
-            {
-                hints.Add(string.Join(" > ", PendingMechanics.Select(aid => aid switch
-                {
-                    AID.IronChariot => "Out",
-                    AID.LunarDynamo => "In",
-                    AID.ThermionicBeam => "Stack",
-                    AID.RavenDive or AID.MeteorStream => "Spread",
-                    AID.DalamudDive => "Tankbuster",
-                    _ => "???"
-                })));
-            }
-        }
-
-        public override void OnActorNpcYell(BossModule module, Actor actor, ushort id)
-        {
-            var (aid1, aid2) = id switch
-            {
-                6492 => (AID.LunarDynamo, AID.IronChariot),
-                6493 => (AID.LunarDynamo, AID.ThermionicBeam),
-                6494 => (AID.ThermionicBeam, AID.IronChariot),
-                6495 => (AID.ThermionicBeam, AID.LunarDynamo),
-                6496 => (AID.RavenDive, AID.IronChariot),
-                6497 => (AID.RavenDive, AID.LunarDynamo),
-                6500 => (AID.MeteorStream, AID.DalamudDive),
-                6501 => (AID.DalamudDive, AID.ThermionicBeam),
-                _ => (default, default)
-            };
-            if (aid1 != default)
-            {
-                Source = actor;
-                PendingMechanics.Clear();
-                PendingMechanics.Add(aid1);
-                PendingMechanics.Add(aid2);
-                NextActivation = module.WorldState.CurrentTime.AddSeconds(5.1f);
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if (PendingMechanics.Count > 0 && (AID)spell.Action.ID == PendingMechanics.First())
-            {
-                PendingMechanics.RemoveAt(0);
-                NextActivation = module.WorldState.CurrentTime.AddSeconds(3.1f);
-            }
-        }
-    }
-
-    class P2BahamutsFavorIronChariotLunarDynamo : Components.GenericAOEs
-    {
-        private P2BahamutsFavor? _favor;
-
-        private static AOEShapeCircle _shapeChariot = new(8.55f);
-        private static AOEShapeDonut _shapeDynamo = new(6, 22); // TODO: verify inner radius
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            AOEShape? shape = _favor != null && _favor.PendingMechanics.Count > 0 ? _favor.PendingMechanics[0] switch
-            {
-                AID.IronChariot => _shapeChariot,
-                AID.LunarDynamo => _shapeDynamo,
-                _ => null
-            } : null;
-            if (shape != null && _favor?.Source != null)
-                yield return new(shape, _favor.Source.Position, default, _favor.NextActivation);
-        }
-
-        public override void Init(BossModule module) => _favor = module.FindComponent<P2BahamutsFavor>();
-    }
-
-    class P2BahamutsFavorThermionicBeam : Components.UniformStackSpread
-    {
-        private P2BahamutsFavor? _favor;
-
-        public P2BahamutsFavorThermionicBeam() : base(4, 0, 8) { }
-
-        public override void Init(BossModule module) => _favor = module.FindComponent<P2BahamutsFavor>();
-
-        public override void Update(BossModule module)
-        {
-            bool stackImminent = _favor != null && _favor.PendingMechanics.Count > 0 && _favor.PendingMechanics[0] == AID.ThermionicBeam;
-            if (stackImminent && Stacks.Count == 0 && module.Raid.Player() is var target && target != null) // note: target is random
-                AddStack(target, _favor!.NextActivation);
-            else if (!stackImminent && Stacks.Count > 0)
-                Stacks.Clear();
-            base.Update(module);
-        }
-    }
-
-    class P2BahamutsFavorRavenDive : Components.UniformStackSpread
-    {
-        private P2BahamutsFavor? _favor;
-
-        public P2BahamutsFavorRavenDive() : base(0, 3, alwaysShowSpreads: true) { }
-
-        public override void Init(BossModule module) => _favor = module.FindComponent<P2BahamutsFavor>();
-
-        public override void Update(BossModule module)
-        {
-            bool spreadImminent = _favor != null && _favor.PendingMechanics.Count > 0 && _favor.PendingMechanics[0] == AID.RavenDive;
-            if (spreadImminent && Spreads.Count == 0)
-                AddSpreads(module.Raid.WithoutSlot(true), _favor!.NextActivation);
-            else if (!spreadImminent && Spreads.Count > 0)
-                Spreads.Clear();
-            base.Update(module);
-        }
-    }
-
-    class P2BahamutsFavorMeteorStream : Components.UniformStackSpread
-    {
-        private P2BahamutsFavor? _favor;
-
-        public P2BahamutsFavorMeteorStream() : base(0, 4, alwaysShowSpreads: true) { }
-
-        public override void Init(BossModule module) => _favor = module.FindComponent<P2BahamutsFavor>();
-
-        public override void Update(BossModule module)
-        {
-            bool spreadImminent = _favor != null && _favor.PendingMechanics.Count > 0 && _favor.PendingMechanics[0] == AID.MeteorStream;
-            if (spreadImminent && Spreads.Count == 0)
-                AddSpreads(module.Raid.WithoutSlot(true), _favor!.NextActivation);
-            else if (!spreadImminent && Spreads.Count > 0)
-                Spreads.Clear();
-            base.Update(module);
-        }
-    }
-
-    class P2BahamutsFavorDalamudDive : Components.GenericBaitAway
-    {
-        private P2BahamutsFavor? _favor;
-
-        private static AOEShapeCircle _shape = new(5);
-
-        public P2BahamutsFavorDalamudDive() : base(ActionID.MakeSpell(AID.DalamudDive), true, true) { }
-
-        public override void Init(BossModule module) => _favor = module.FindComponent<P2BahamutsFavor>();
-
-        public override void Update(BossModule module)
-        {
-            bool imminent = _favor != null && _favor.PendingMechanics.Count > 0 && _favor.PendingMechanics[0] == AID.DalamudDive;
-            if (imminent && CurrentBaits.Count == 0 && module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is var source && module.WorldState.Actors.Find(source?.TargetID ?? 0) is var target && target != null)
-                CurrentBaits.Add(new(target, target, _shape));
-            else if (!imminent && CurrentBaits.Count > 0)
-                CurrentBaits.Clear();
-        }
-    }
-
     class P2BahamutsFavorFireball : Components.UniformStackSpread
     {
         public Actor? Target;
@@ -213,20 +58,38 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         }
     }
 
+    // note: if player dies immediately after chain lightning cast, he won't get a status or have aoe cast; if he dies after status application, aoe will be triggered immediately
     class P2BahamutsFavorChainLightning : Components.UniformStackSpread
     {
+        private BitMask _pendingTargets;
+        private DateTime _expectedStatuses;
+
         public P2BahamutsFavorChainLightning() : base(0, 5, alwaysShowSpreads: true) { }
+
+        public bool ActiveOrSkipped(BossModule module) => Active || _pendingTargets.Any() && module.WorldState.CurrentTime >= _expectedStatuses && module.Raid.WithSlot(true).IncludedInMask(_pendingTargets).All(ip => ip.Item2.IsDead);
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             if ((SID)status.ID == SID.Thunderstruck)
+            {
                 AddSpread(actor, status.ExpireAt);
+                _pendingTargets.Reset();
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID == AID.ChainLightningAOE)
-                Spreads.Clear();
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.ChainLightning:
+                    _expectedStatuses = module.WorldState.CurrentTime.AddSeconds(1);
+                    foreach (var t in spell.Targets)
+                        _pendingTargets.Set(module.Raid.FindSlot(t.ID));
+                    break;
+                case AID.ChainLightningAOE:
+                    Spreads.Clear();
+                    break;
+            }
         }
     }
 

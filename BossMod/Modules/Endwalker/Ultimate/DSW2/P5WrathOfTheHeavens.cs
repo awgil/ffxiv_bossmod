@@ -117,7 +117,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     class P5WrathOfTheHeavensTwister : Components.GenericAOEs
     {
         private List<WPos> _predicted = new();
-        private List<Actor> _voidzones = new();
+        private IReadOnlyList<Actor> _voidzones = ActorEnumeration.EmptyList;
 
         private static AOEShapeCircle _shape = new(2); // TODO: verify radius
 

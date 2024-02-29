@@ -19,9 +19,9 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
 
         public int NumPlayerTethers { get; private set; }
         public int NumShapeTethers { get; private set; }
-        private List<Actor> _hexa = new();
-        private List<Actor> _tri = new();
-        private List<Actor> _sq = new();
+        private IReadOnlyList<Actor> _hexa = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _tri = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _sq = ActorEnumeration.EmptyList;
         private (WPos hexa, WPos tri, WPos sq)[] _resolvedShapes = new(WPos, WPos, WPos)[4];
         private PlayerState[] _states = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Column = -1, PartnerSlot = -1 });
         private bool _invert;
@@ -81,7 +81,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
             {
                 for (int col = 0; col < _resolvedShapes.Length; ++col)
                 {
-                    var hexa = _hexa.Find(h => Utils.AlmostEqual(h.PosRot.X, 88 + col * 8, 1));
+                    var hexa = _hexa.FirstOrDefault(h => Utils.AlmostEqual(h.PosRot.X, 88 + col * 8, 1));
                     if (hexa == null)
                     {
                         module.ReportError(this, $"Failed to find hexagon at column {col}");
@@ -167,7 +167,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
         }
         private IEnumerable<Actor> Neighbours(IEnumerable<Actor> list, Actor shape) => list.Where(s => ShapesAreNeighbours(s, shape));
         private int NumNeighbouringHexagons(Actor shape) => _hexa.Count(h => ShapesAreNeighbours(h, shape));
-        private Actor? LinkedShape(List<Actor> shapes, Actor hexa) => Neighbours(shapes, hexa).MinBy(NumNeighbouringHexagons);
+        private Actor? LinkedShape(IReadOnlyList<Actor> shapes, Actor hexa) => Neighbours(shapes, hexa).MinBy(NumNeighbouringHexagons);
 
         private WPos InvertedPos(WPos p) => new(200 - p.X, 184 - p.Z);
 

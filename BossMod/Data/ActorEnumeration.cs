@@ -16,6 +16,10 @@ namespace BossMod
             return mask;
         }
 
+        // empty actor list utility
+        private static List<Actor> _emptyList = new();
+        public static IReadOnlyList<Actor> EmptyList => _emptyList;
+
         // convert slot+actor range into actor range
         public static IEnumerable<Actor> Actors(this IEnumerable<(int, Actor)> range) => range.Select(indexActor => indexActor.Item2);
 

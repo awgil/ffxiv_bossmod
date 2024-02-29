@@ -1,19 +1,25 @@
+autorotation rework:
+- priority action suggestions
+- control panel w/ presets and bindings
+- module registry supporting alternatives per job
+- statusoff
+- bozja holster / action support
+- proper lb support
+- proper gcd time calculations
+- simulation in replay analysis
+
 network rework:
 - optionally log raw ipcs to replay
 - visualize in replay analysis, dump to file
 - utility to inject custom ipcs to the stream for debugging?
 
 general:
-- simulate autorotation in replay analysis
 - live replay
 -- checkbox - record ops to temp struct
 -- start record == rundown + start listening to main worldstate events
 -- on bossmodule activation == mark as 'interesting'
 -- on bossmodule deactivation or zone change == if current is interesting, move it to last (discard prev last); clear and restart current
 -- button to 'keep' last (add as temp to replay manager) or to 'save' last (save into replay file)
-- proper lb support
-- proper gcd time calculation
-- bozja action support
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - constrain bossmodules to zone id (e.g. for T04)
 - refactor pendingeffects

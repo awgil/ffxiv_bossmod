@@ -125,10 +125,10 @@ namespace BossMod.Stormblood.Ultimate.UWU
     [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda, CFCID = 539)]
     public class UWU : BossModule
     {
-        private List<Actor> _ifrits;
-        private List<Actor> _titan;
-        private List<Actor> _lahabrea;
-        private List<Actor> _ultima;
+        private IReadOnlyList<Actor> _ifrits;
+        private IReadOnlyList<Actor> _titan;
+        private IReadOnlyList<Actor> _lahabrea;
+        private IReadOnlyList<Actor> _ultima;
         private Actor? _mainIfrit;
 
         public IReadOnlyList<Actor> Ifrits => _ifrits;

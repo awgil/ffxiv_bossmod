@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         private static float _aoeOuterRadius = 20;
 
         public IEnumerable<Actor> BurningTwisters(BossModule module) => module.Enemies(OID.DarkblazeTwister).Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
-        public Actor? DarkTwister(BossModule module) => module.Enemies(OID.DarkblazeTwister).Find(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
+        public Actor? DarkTwister(BossModule module) => module.Enemies(OID.DarkblazeTwister).FirstOrDefault(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

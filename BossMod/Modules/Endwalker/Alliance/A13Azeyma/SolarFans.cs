@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Alliance.A13Azeyma
 
     class RadiantRhythm : Components.GenericAOEs
     {
-        private List<Actor> _flames = new();
+        private IReadOnlyList<Actor> _flames = ActorEnumeration.EmptyList;
 
         private static AOEShapeDonutSector _shape = new(20, 30, 45.Degrees());
 

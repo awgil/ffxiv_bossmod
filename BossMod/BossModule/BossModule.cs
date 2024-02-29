@@ -47,7 +47,7 @@ namespace BossMod
         // per-oid enemy lists; filled on first request
         private Dictionary<uint, List<Actor>> _relevantEnemies = new(); // key = actor OID
         public IReadOnlyDictionary<uint, List<Actor>> RelevantEnemies => _relevantEnemies;
-        public List<Actor> Enemies(uint oid)
+        public IReadOnlyList<Actor> Enemies(uint oid)
         {
             var entry = _relevantEnemies.GetValueOrDefault(oid);
             if (entry == null)
@@ -59,7 +59,7 @@ namespace BossMod
             }
             return entry;
         }
-        public List<Actor> Enemies<OID>(OID oid) where OID : Enum => Enemies((uint)(object)oid);
+        public IReadOnlyList<Actor> Enemies<OID>(OID oid) where OID : Enum => Enemies((uint)(object)oid);
 
         // component management: at most one component of any given type can be active at any time
         private List<BossComponent> _components = new();

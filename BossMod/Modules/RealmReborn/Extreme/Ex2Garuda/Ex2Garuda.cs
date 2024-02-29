@@ -56,12 +56,12 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
     [ModuleInfo(CFCID = 65, NameID = 1644)]
     public class Ex2Garuda : BossModule
     {
-        public List<Actor> Monoliths;
-        public List<Actor> RazorPlumes;
-        public List<Actor> SpinyPlumes;
-        public List<Actor> SatinPlumes;
-        public List<Actor> Chirada;
-        public List<Actor> Suparna;
+        public IReadOnlyList<Actor> Monoliths;
+        public IReadOnlyList<Actor> RazorPlumes;
+        public IReadOnlyList<Actor> SpinyPlumes;
+        public IReadOnlyList<Actor> SatinPlumes;
+        public IReadOnlyList<Actor> Chirada;
+        public IReadOnlyList<Actor> Suparna;
 
         public Ex2Garuda(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 22))
         {

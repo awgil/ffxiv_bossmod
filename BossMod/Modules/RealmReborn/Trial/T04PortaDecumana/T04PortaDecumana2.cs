@@ -105,7 +105,7 @@ namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
 
     class Aetheroplasm : BossComponent
     {
-        private List<Actor> _orbs = new();
+        private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
 
         public IEnumerable<Actor> ActiveOrbs => _orbs.Where(orb => !orb.IsDead);
 

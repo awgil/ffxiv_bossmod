@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
 
     class VoidBio : Components.GenericAOEs
     {
-        private List<Actor> _bubbles = new();
+        private IReadOnlyList<Actor> _bubbles = ActorEnumeration.EmptyList;
 
         private static AOEShapeCircle _shape = new(2); // TODO: verify explosion radius
 

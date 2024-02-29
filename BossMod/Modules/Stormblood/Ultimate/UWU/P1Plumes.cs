@@ -5,9 +5,9 @@ namespace BossMod.Stormblood.Ultimate.UWU
 {
     class P1Plumes : BossComponent
     {
-        private List<Actor> _razor = new();
-        private List<Actor> _spiny = new();
-        private List<Actor> _satin = new();
+        private IReadOnlyList<Actor> _razor = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _spiny = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _satin = ActorEnumeration.EmptyList;
 
         public bool Active => _razor.Any(p => p.IsTargetable) || _spiny.Any(p => p.IsTargetable) || _satin.Any(p => p.IsTargetable);
 

@@ -7,7 +7,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
     class SpitFlame : Components.UniformStackSpread
     {
         private Actor?[] _targets = { null, null, null, null };
-        private List<Actor> _adds = new();
+        private IReadOnlyList<Actor> _adds = ActorEnumeration.EmptyList;
 
         public SpitFlame() : base(0, 4, alwaysShowSpreads: true, raidwideOnResolve: false) { }
 
