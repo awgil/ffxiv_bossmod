@@ -97,7 +97,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
         }
        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
        {
-            if (Towers.Count > 0)
+            if (Towers.Count > 1)
             {
                 hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 5));
