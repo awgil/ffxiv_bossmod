@@ -1,4 +1,5 @@
-namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenCruelty
+// CONTRIB: made by malediktus, not checked
+namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D051ForgivenCruelty
 {
     public enum OID : uint
     {
@@ -68,7 +69,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenCruelty
                 .ActivateOnEnter<HurricaneWing>()
                 .ActivateOnEnter<TyphoonWing2>()
                 .ActivateOnEnter<TyphoonWing3>()
-                .ActivateOnEnter<TyphoonWing4>()               
+                .ActivateOnEnter<TyphoonWing4>()
                 .ActivateOnEnter<CycloneWing>()
                 .ActivateOnEnter<LumenInfinitum>();
         }
@@ -78,6 +79,5 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenCruelty
     public class D051ForgivenCruelty : BossModule
     {
         public D051ForgivenCruelty(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(188, -170), 20)) { }
-
     }
 }

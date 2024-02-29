@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
+namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D030RonkanDreamer
 {
     public enum OID : uint
     {

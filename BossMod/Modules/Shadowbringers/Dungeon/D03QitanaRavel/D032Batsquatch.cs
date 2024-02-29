@@ -1,5 +1,5 @@
 // CONTRIB: made by malediktus, not checked
-namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Batsquatch
+namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D032Batsquatch
 {
     public enum OID : uint
     {

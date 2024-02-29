@@ -1,7 +1,8 @@
+// CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
 
-namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenRevelry
+namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry
 {
     public enum OID : uint
     {
@@ -39,7 +40,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenRevelry
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
-            {   
+            {
                 case AID.LeftPalm2:
                     left = true;
                     _activation = spell.NPCFinishAt;

@@ -1,7 +1,9 @@
+// CONTRIB: made by malediktus, not checked
 using System.Collections.Generic;
 using System.Linq;
+
 //Note: This module exists because of the mini raidwide, to not confuse the AI
-namespace BossMod.Shadowbringers.Dungeon.Dungeon.D05MtGulg.ForgivenPrejudice
+namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D050ForgivenPrejudice
 {
     public enum OID : uint
     {

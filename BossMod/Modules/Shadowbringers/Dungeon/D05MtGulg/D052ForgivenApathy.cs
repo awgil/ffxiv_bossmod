@@ -1,7 +1,8 @@
+// CONTRIB: made by malediktus, not checked
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenApathy
+namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D052ForgivenApathy
 {
     public enum OID : uint
     {
@@ -24,7 +25,6 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenApathy
         EarthShaker2 = 16245, // 233C->self, 5,0s cast, range 60 60-degree cone
         Sanctification = 16814, // 28F2->self, 5,0s cast, range 12 90-degree cone
         PunitiveLight = 16815, // 28F2->self, 5,0s cast, range 20 circle
-
     };
 
     class PunitiveLight : BossComponent
@@ -82,15 +82,15 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenApathy
             if (PrimaryActor.Position.AlmostEqual(new(-204, -106), 1))
                 Arena.Bounds = new ArenaBoundsRect(new(-187.5f, -118), 12, 21, 120.Degrees());
         }
-            protected override void DrawEnemies(int pcSlot, Actor pc)
-            {
-                Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        protected override void DrawEnemies(int pcSlot, Actor pc)
+        {
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.ForgivenExtortion))
                 Arena.Actor(s, ArenaColor.Object);
             foreach (var e in Enemies(OID.ForgivenConformity))
                 Arena.Actor(e, ArenaColor.Object);
             foreach (var e in Enemies(OID.ForgivenPrejudice))
                 Arena.Actor(e, ArenaColor.Object);
-            }
+        }
     }
 }

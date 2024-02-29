@@ -1,7 +1,8 @@
+// CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
 
-namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
+namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
 {
     public enum OID : uint
     {
@@ -34,6 +35,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
     class Catechism : Components.SingleTargetCast
     {
         public Catechism() : base(ActionID.MakeSpell(AID.Catechism)) { } //Note: actual tb happens about 0.5s later by helper with 0s cast
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var c in Casters)
@@ -48,6 +50,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
     class SacramentOfPenance : Components.RaidwideCast
     {
         public SacramentOfPenance() : base(ActionID.MakeSpell(AID.SacramentOfPenance)) { } //Note: actual raidwide happens about 0.5s later by helper with 0s cast
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var c in Casters)
@@ -65,6 +68,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
         private bool tower1;
         private bool tower2;
         private Actor? Tower1;
+
         public override void OnActorEState(BossModule module, Actor actor, ushort state)
         {
             if (state is 0x01C or 0x02C)
@@ -82,6 +86,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
                 }
             }
         }
+
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.Judged or AID.FoundWanting)
@@ -95,13 +100,14 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
                 }
             }
         }
-       public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-       {
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
             if (Towers.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 5));
             if (Towers.Count > 1)
                 hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
-       }
+        }
     }
 
     class Exegesis : Components.GenericAOEs
@@ -112,6 +118,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
         private bool ExegesisC;
         private bool ExegesisD;
         private static readonly AOEShapeRect rect = new(5, 5, 5);
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (ExegesisA) //diagonal squares
@@ -145,7 +152,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
-            {   
+            {
                 case AID.ExegesisA:
                     ExegesisA = true;
                     _activation = spell.NPCFinishAt;
@@ -175,6 +182,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenWhimsy
                 ExegesisD = false;
             }
         }
+
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
             if (ExegesisA || ExegesisB || ExegesisC || ExegesisD)

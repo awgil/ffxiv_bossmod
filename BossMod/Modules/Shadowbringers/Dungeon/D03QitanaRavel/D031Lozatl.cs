@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Lozatl
+namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
 {
     public enum OID : uint
     {
