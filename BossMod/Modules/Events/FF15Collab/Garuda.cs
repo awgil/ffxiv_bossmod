@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 using System;
 using System.Linq;
 
@@ -21,7 +22,7 @@ namespace BossMod.Events.FF15Collab.Garuda
         unknown = 14588, // Helper->Noctis, no cast, single-target
         MiniSupercell = 14612, // Boss->self, 5,0s cast, range 45 width 6 rect, line stack, knockback 50, away from source
         GravitationalForce = 14614, // Boss->self, 3,5s cast, single-target
-        GravitationalForce2= 14615, // Helper->location, 3,5s cast, range 5 circle
+        GravitationalForce2 = 14615, // Helper->location, 3,5s cast, range 5 circle
         Vortex = 14677, // Helper->self, no cast, range 50 circle
         Vortex2 = 14620, // Helper->self, no cast, range 50 circle
         Vortex3 = 14622, // Helper->self, no cast, range 50 circle
@@ -65,7 +66,7 @@ namespace BossMod.Events.FF15Collab.Garuda
             if ((AID)spell.Action.ID == AID.Microburst)
                 casting = false;
         }
-    
+
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (casting)
@@ -96,9 +97,9 @@ namespace BossMod.Events.FF15Collab.Garuda
             base.OnCastFinished(module, caster, spell);
             if ((AID)spell.Action.ID == AID.MistralShriek)
                 casting = false;
-                done = module.WorldState.CurrentTime;
+            done = module.WorldState.CurrentTime;
         }
-    
+
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (casting)
@@ -107,11 +108,11 @@ namespace BossMod.Events.FF15Collab.Garuda
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-                base.AddAIHints(module, slot, actor, assignment, hints);
-                if (casting)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).Where(p => !p.Position.AlmostEqual(module.PrimaryActor.Position, 5)).FirstOrDefault()!, 1, false));
-                if (module.WorldState.CurrentTime > done && module.WorldState.CurrentTime < done.AddSeconds(2))
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.PrimaryActor, 1, false));
+            base.AddAIHints(module, slot, actor, assignment, hints);
+            if (casting)
+                hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).Where(p => !p.Position.AlmostEqual(module.PrimaryActor.Position, 5)).FirstOrDefault()!, 1, false));
+            if (module.WorldState.CurrentTime > done && module.WorldState.CurrentTime < done.AddSeconds(2))
+                hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.PrimaryActor, 1, false));
         }
     }
 
@@ -137,17 +138,21 @@ namespace BossMod.Events.FF15Collab.Garuda
     class MiniSupercell2 : Components.StackWithCastTargets
     {
         public MiniSupercell2() : base(ActionID.MakeSpell(AID.MiniSupercell), 1.2f) { }
+
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.MiniSupercell)
                 AddStack(module.Enemies(OID.Noctis).FirstOrDefault()!);
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.MiniSupercell)
                 Stacks.Clear();
         }
+
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (module.FindComponent<MiniSupercell>()!.ActiveAOEs(module, slot, actor) != null && Stacks.Count > 0)

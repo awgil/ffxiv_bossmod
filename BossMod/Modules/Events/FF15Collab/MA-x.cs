@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Events.FF15Collab.MAx
 {
     public enum OID : uint

@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
 
@@ -100,7 +101,7 @@ namespace BossMod.Events.FF15Collab.Iseultalon
 
     class DeathRay : Components.SelfTargetedAOEs
     {
-        public DeathRay() : base(ActionID.MakeSpell(AID.DeathRay2), new AOEShapeRect(40, 1)) 
+        public DeathRay() : base(ActionID.MakeSpell(AID.DeathRay2), new AOEShapeRect(40, 1))
         {
             Color = ArenaColor.Danger;
         }
