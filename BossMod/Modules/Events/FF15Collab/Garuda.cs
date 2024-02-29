@@ -9,6 +9,8 @@ namespace BossMod.Events.FF15Collab.Garuda
         Helper = 0x233C,
         Monolith = 0x2654, //R=2.3
         Noctis = 0x2651,
+        GravityVoidzone = 0x1E91C1,
+        Turbulence = 0x2653, //cage just before quicktime event
     }
 
     public enum AID : uint
@@ -166,9 +168,9 @@ namespace BossMod.Events.FF15Collab.Garuda
         }
     }
 
-     class GravitationalForce : Components.LocationTargetedAOEs
+    class GravitationalForce : Components.PersistentVoidzoneAtCastTarget
     {
-        public GravitationalForce() : base(ActionID.MakeSpell(AID.GravitationalForce2), 5) { }
+        public GravitationalForce() : base(5, ActionID.MakeSpell(AID.GravitationalForce2), m => m.Enemies(OID.GravityVoidzone), 0) { }
     }
 
     class MistralGaol : Components.CastHint
