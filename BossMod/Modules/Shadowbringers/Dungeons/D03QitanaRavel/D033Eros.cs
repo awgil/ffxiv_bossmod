@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 using System.Linq;
 
 namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Eros
@@ -218,7 +219,6 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Eros
 
         //TODO: consider testing if path is unsafe in addition to destination
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<ViperPoisonBaitAway>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
-
     }
 
     class HeavingBreath : Components.KnockbackFromCastTarget
@@ -230,7 +230,6 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Eros
 
         //TODO: consider testing if path is unsafe in addition to destination
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<ViperPoisonBaitAway>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
-
     }
 
     class Glossolalia : Components.RaidwideCast

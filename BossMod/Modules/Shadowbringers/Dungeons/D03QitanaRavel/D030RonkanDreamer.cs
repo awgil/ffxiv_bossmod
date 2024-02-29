@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
 
@@ -53,7 +54,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
         {
             foreach (var c in _casters)
             {
-                if (module.PrimaryActor.Position.AlmostEqual(new (0, 634), 1))
+                if (module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
                 {
                     if (c.Position.AlmostEqual(new(-17, 657), 1) || c.Position.AlmostEqual(new(-17, 650), 1) || c.Position.AlmostEqual(new(-17, 635), 1) || c.Position.AlmostEqual(new(-17, 620), 1) || c.Position.AlmostEqual(new(17, 657), 1) || c.Position.AlmostEqual(new(17, 650), 1) || c.Position.AlmostEqual(new(17, 635), 1) || c.Position.AlmostEqual(new(17, 620), 1))
                         yield return new(RectLong, c.Position, c.Rotation, _activation);
@@ -62,7 +63,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
                     if (c.Position.AlmostEqual(new(-17, 642), 1) || c.Position.AlmostEqual(new(17, 627), 1))
                         yield return new(RectShort, c.Position, c.Rotation, _activation);
                 }
-                if (module.PrimaryActor.Position.AlmostEqual(new (0, 428), 1))
+                if (module.PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
                 {
                     if (c.Position.AlmostEqual(new(17, 451), 1) || c.Position.AlmostEqual(new(17, 444), 1) || c.Position.AlmostEqual(new(17, 414), 1) || c.Position.AlmostEqual(new(17, 429), 1) || c.Position.AlmostEqual(new(-17, 451), 1) || c.Position.AlmostEqual(new(-17, 444), 1) || c.Position.AlmostEqual(new(-17, 414), 1) || c.Position.AlmostEqual(new(-17, 429), 1))
                         yield return new(RectLong, c.Position, c.Rotation, _activation);
@@ -77,10 +78,10 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             if (tether.ID == (uint)TetherID.StatueActivate)
-                {
-                    _casters.Add(source);
-                    _activation = module.WorldState.CurrentTime.AddSeconds(6);
-                }
+            {
+                _casters.Add(source);
+                _activation = module.WorldState.CurrentTime.AddSeconds(6);
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -134,20 +135,20 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.RonkanDreamer
         {
             if (module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
             {
-                arena.AddPolygon(Wall1(),ArenaColor.Border, 2);
-                arena.AddPolygon(Wall2(),ArenaColor.Border, 2);
+                arena.AddPolygon(Wall1(), ArenaColor.Border, 2);
+                arena.AddPolygon(Wall2(), ArenaColor.Border, 2);
             }
             if (module.PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
             {
-                arena.AddPolygon(Wall3(),ArenaColor.Border, 2);
-                arena.AddPolygon(Wall4(),ArenaColor.Border, 2);
+                arena.AddPolygon(Wall3(), ArenaColor.Border, 2);
+                arena.AddPolygon(Wall4(), ArenaColor.Border, 2);
             }
         }
-        
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         { //Note: this isn't looking natural because the AI is trying to dodge the lasers and the wall at the same time, consider not activating the AI in partyfinder until the AI is improved, for multiboxing it should do ok
             base.AddAIHints(module, slot, actor, assignment, hints);
-            if (module.PrimaryActor.Position.AlmostEqual(new (0, 634), 1))
+            if (module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
             {
                 hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1(), true));
                 hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2(), false));

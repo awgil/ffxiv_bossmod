@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
 
@@ -21,7 +22,6 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.Lozatl
         HeatUp2 = 15501, // 27AF->self, 3,0s cast, single-target
         LozatlsFuryA = 15504, // 27AF->self, 4,0s cast, range 60 width 20 rect
         LozatlsFuryB = 15503, // 27AF->self, 4,0s cast, range 60 width 20 rect
-
     };
 
     class LozatlsFuryA : Components.SelfTargetedAOEs
