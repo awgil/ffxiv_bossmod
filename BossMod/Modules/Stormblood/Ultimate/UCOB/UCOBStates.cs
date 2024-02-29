@@ -539,6 +539,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
                 .DeactivateOnExit<QuoteRavenDive>();
             ComponentCondition<P3TempestWing>(id + 0x50, 2.9f, comp => comp.NumCasts > 0, "Tethers")
+                .ExecOnEnter<P3AethericProfusion>(comp => comp.Active = true)
                 .DeactivateOnExit<P3TempestWing>();
             ComponentCondition<P3AethericProfusion>(id + 0x60, 1.0f, comp => comp.NumCasts > 0, "Neurolinks")
                 .DeactivateOnExit<P3AethericProfusion>();
