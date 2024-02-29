@@ -64,7 +64,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees())) { }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { }
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell) //tankbuster resolves on cast event, which can be delayed by moving out of tankbuster range
         {
             if (spell.Action == WatchedAction)
                 CurrentBaits.RemoveAll(b => b.Source == caster);

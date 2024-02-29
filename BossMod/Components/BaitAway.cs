@@ -196,4 +196,32 @@ namespace BossMod.Components
                 CurrentBaits.RemoveAll(b => b.Source == caster);
         }
     }
+
+    public class BaitAwayChargeCast : GenericBaitAway
+    {
+        public float HalfWidth;
+
+        public BaitAwayChargeCast(ActionID aid, float halfWidth) : base(aid)
+        {
+            HalfWidth = halfWidth;
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+                CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, HalfWidth)));
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                CurrentBaits.RemoveAll(b => b.Source == caster);
+        }
+
+        public override void Update(BossModule module)
+        {
+            foreach (var b in CurrentBaits)
+                ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
+        }
+    }
 }
