@@ -73,9 +73,9 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
     }
 
-    class GreedyPixieStates : StateMachineBuilder
+    class KeeperStates : StateMachineBuilder
     {
-        public GreedyPixieStates(BossModule module) : base(module)
+        public KeeperStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<Buffet>()
@@ -91,10 +91,10 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         }
     }
 
-    [ModuleInfo(CFCID = 745, NameID = 9797)]
-    public class GreedyPixie : BossModule
+    [ModuleInfo(CFCID = 745, NameID = 9807)]
+    public class Keeper : BossModule
     {
-        public GreedyPixie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Keeper(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

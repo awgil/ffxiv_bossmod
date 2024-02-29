@@ -89,6 +89,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
+            base.AddAIHints(module, slot, actor, assignment, hints);
             if (target == actor && targeted)
                 hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
         }
@@ -96,9 +97,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (target == actor && targeted)
-            {
                 hints.Add("Bait away!");
-            }
         }
     }
 
