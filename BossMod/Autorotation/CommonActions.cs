@@ -323,6 +323,7 @@ namespace BossMod
         public abstract CommonRotation.PlayerState GetState();
         public abstract CommonRotation.Strategy GetStrategy();
         public virtual Targeting SelectBetterTarget(AIHints.Enemy initial) => new(initial);
+        public virtual void FillStatusesToCancel(List<(uint statusId, ulong sourceId)> list) { }
         protected abstract void UpdateInternalState(int autoAction);
         protected abstract void QueueAIActions();
         protected abstract NextAction CalculateAutomaticGCD();

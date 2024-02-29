@@ -1,9 +1,7 @@
 ﻿using Dalamud.Hooking;
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using ImGuiNET;
 using System;
 using System.Linq;
-
 
 namespace BossMod
 {
@@ -104,7 +102,7 @@ namespace BossMod
             if (Hints.ForcedTarget != null && PrimaryTarget != Hints.ForcedTarget)
             {
                 PrimaryTarget = Hints.ForcedTarget;
-                TargetSystem.Instance()->Target = Utils.GameObjectInternal(Service.ObjectTable.FirstOrDefault(go => go.ObjectId == Hints.ForcedTarget.InstanceID));
+                FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->Target = Utils.GameObjectInternal(Service.ObjectTable.FirstOrDefault(go => go.ObjectId == Hints.ForcedTarget.InstanceID));
             }
 
             // TODO: this should be part of worldstate update for player
@@ -143,6 +141,10 @@ namespace BossMod
             if (nextAction.Target != null && Hints.ForbiddenTargets.FirstOrDefault(e => e.Actor == nextAction.Target)?.Priority == AIHints.Enemy.PriorityForbidFully)
                 nextAction = default;
             ActionManagerEx.Instance!.AutoQueue = nextAction; // TODO: this delays action for 1 frame after downtime, reconsider...
+
+            _classActions?.FillStatusesToCancel(Hints.StatusesToCancel);
+            foreach (var s in Hints.StatusesToCancel)
+                ActionManagerEx.Instance!.CancelStatus(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId);
 
             _ui.IsOpen = _classActions != null && _config.ShowUI;
 

@@ -130,6 +130,10 @@ namespace BossMod
         private Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
         private Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
 
+        // it's a static function of StatusManager really
+        private delegate bool CancelStatusDelegate(uint statusId, uint sourceId);
+        private CancelStatusDelegate _cancelStatusFunc;
+
         public ActionManagerEx()
         {
             InputOverride = new();
@@ -165,6 +169,10 @@ namespace BossMod
             _processPacketEffectResultBasicHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("40 53 41 54 41 55 48 83 EC 40", ProcessPacketEffectResultBasicDetour);
             _processPacketEffectResultBasicHook.Enable();
             Service.Log($"[AMEx] ProcessPacketEffectResultBasic address = 0x{_processPacketEffectResultBasicHook.Address:X}");
+
+            var cancelStatusAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 2C 48 8B 07");
+            _cancelStatusFunc = Marshal.GetDelegateForFunctionPointer<CancelStatusDelegate>(cancelStatusAddress);
+            Service.Log($"[AMEx] CancelStatus address = 0x{cancelStatusAddress:X}");
         }
 
         public void Dispose()
@@ -236,6 +244,16 @@ namespace BossMod
         public bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0)
         {
             return UseActionLocationDetour(_inst, action.Type, action.ID, targetID, &targetPos, itemLocation);
+        }
+
+        // does all the sanity checks (that status is on actor, is a buff that can be canceled, etc.)
+        // on success, the status manager is updated immediately, meaning that no rate limiting is needed
+        // if sourceId is not specified, removes first status with matching id
+        public bool CancelStatus(uint statusId, uint sourceId = GameObject.InvalidGameObjectId)
+        {
+            var res = _cancelStatusFunc(statusId, sourceId);
+            Service.Log($"[AMEx] Canceling status {statusId} from {sourceId:X} -> {res}");
+            return res;
         }
 
         private void UpdateDetour(ActionManager* self)

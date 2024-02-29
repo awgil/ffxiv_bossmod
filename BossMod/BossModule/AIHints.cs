@@ -69,6 +69,9 @@ namespace BossMod
         // autorotation will execute them in window-end order, if possible
         public List<(ActionID action, Actor target, float windowEnd, bool lowPriority)> PlannedActions = new();
 
+        // buffs to be canceled asap
+        public List<(uint statusId, ulong sourceId)> StatusesToCancel = new();
+
         // clear all stored data
         public void Clear()
         {
@@ -79,6 +82,7 @@ namespace BossMod
             ForbiddenDirections.Clear();
             PredictedDamage.Clear();
             PlannedActions.Clear();
+            StatusesToCancel.Clear();
         }
 
         // fill list of potential targets from world state

@@ -2,7 +2,6 @@ autorotation rework:
 - priority action suggestions
 - control panel w/ presets and bindings
 - module registry supporting alternatives per job
-- statusoff
 - bozja holster / action support
 - proper lb support
 - proper gcd time calculations
