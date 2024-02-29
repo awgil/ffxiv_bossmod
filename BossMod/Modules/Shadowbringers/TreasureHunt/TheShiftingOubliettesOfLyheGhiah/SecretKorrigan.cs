@@ -36,7 +36,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public Hypnotize() : base(ActionID.MakeSpell(AID.Hypnotize)) { }
     }
 
-     class Ram : Components.SingleTargetCast
+    class Ram : Components.SingleTargetCast
     {
         public Ram() : base(ActionID.MakeSpell(AID.Ram)) { }
     }

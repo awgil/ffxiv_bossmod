@@ -33,7 +33,6 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata
         BuffetTarget = 23, // player
     };
 
-
     class HurlBoss : Components.LocationTargetedAOEs
     {
         public HurlBoss() : base(ActionID.MakeSpell(AID.HurlBoss), 6) { }
@@ -63,7 +62,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata
         {
             StopAtWall = true;
         }
-        
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.BuffetTarget)

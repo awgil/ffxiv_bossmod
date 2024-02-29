@@ -23,7 +23,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         Drench = 21700, // Boss->self, 3,0s cast, range 10+R 90-degree cone
         FangsEnd = 21699, // Boss->player, 4,0s cast, single-target
         Drench2 = 22771, // BossAdd->self, 3,0s cast, range 10+R 90-degree cone
-    	ScaleRipple = 21702, // Boss->self, 2,5s cast, range 8 circle
+        ScaleRipple = 21702, // Boss->self, 2,5s cast, range 8 circle
 
         Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
         TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
@@ -38,7 +38,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public Douse() : base(ActionID.MakeSpell(AID.Douse), 8) { }
     }
 
-     class FangsEnd : Components.SingleTargetCast
+    class FangsEnd : Components.SingleTargetCast
     {
         public FangsEnd() : base(ActionID.MakeSpell(AID.FangsEnd)) { }
     }

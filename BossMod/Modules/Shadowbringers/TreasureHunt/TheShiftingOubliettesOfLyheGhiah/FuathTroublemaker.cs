@@ -49,7 +49,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Fuat
         public Hydrocannon() : base(ActionID.MakeSpell(AID.Hydrocannon), 6) { }
     }
 
-     class FuathTroublemakerStates : StateMachineBuilder
+    class FuathTroublemakerStates : StateMachineBuilder
     {
         public FuathTroublemakerStates(BossModule module) : base(module)
         {
