@@ -74,7 +74,7 @@ namespace BossMod.Events.FF15Collab.Garuda
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.AddAIHints(module, slot, actor, assignment, hints);
-            if (casting)
+            if (casting && actor.Position.AlmostEqual(module.PrimaryActor.Position, 15))
                 hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).FirstOrDefault()!, 1, false));
         }
     }
