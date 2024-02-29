@@ -197,6 +197,7 @@ namespace BossMod.Components
         }
     }
 
+    // a variation of BaitAwayCast for charges that end at target
     public class BaitAwayChargeCast : GenericBaitAway
     {
         public float HalfWidth;
@@ -204,6 +205,12 @@ namespace BossMod.Components
         public BaitAwayChargeCast(ActionID aid, float halfWidth) : base(aid)
         {
             HalfWidth = halfWidth;
+        }
+
+        public override void Update(BossModule module)
+        {
+            foreach (var b in CurrentBaits)
+                ((AOEShapeRect)b.Shape).LengthFront = (b.Target.Position - b.Source.Position).Length();
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -216,12 +223,6 @@ namespace BossMod.Components
         {
             if (spell.Action == WatchedAction)
                 CurrentBaits.RemoveAll(b => b.Source == caster);
-        }
-
-        public override void Update(BossModule module)
-        {
-            foreach (var b in CurrentBaits)
-                ((AOEShapeRect)b.Shape).SetEndPoint(b.Target.Position, b.Source.Position, Angle.FromDirection(b.Target.Position - b.Source.Position));
         }
     }
 }
