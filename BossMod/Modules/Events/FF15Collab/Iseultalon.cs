@@ -59,9 +59,9 @@ namespace BossMod.Events.FF15Collab.Iseultalon
             if ((AID)spell.Action.ID is AID.Electrocution)
             {
                 if (NumCasts > 0)
-                Towers.Add(new(DeterminePosition(module, caster, spell), 3, forbiddenSoakers: module.Raid.WithSlot(true).WhereActor(p => p.InstanceID == module.Raid.Player()!.InstanceID).Mask()));
+                    Towers.Add(new(DeterminePosition(module, caster, spell), 3, forbiddenSoakers: module.Raid.WithSlot(true).WhereActor(p => p.InstanceID == module.Raid.Player()!.InstanceID).Mask()));
                 if (NumCasts == 0)
-                Towers.Add(new(DeterminePosition(module, caster, spell), 3));
+                    Towers.Add(new(DeterminePosition(module, caster, spell), 3));
             }
         }
 

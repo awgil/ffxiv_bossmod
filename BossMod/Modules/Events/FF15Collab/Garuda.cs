@@ -28,7 +28,8 @@ namespace BossMod.Events.FF15Collab.Garuda
         GustFront = 14617, // Boss->self, no cast, single-target, dorito stack
         GustFront2 = 14618, // Helper->player/Noctis, no cast, single-target
         WickedTornado = 14613, // Boss->self, 3,5s cast, range 8-20 donut
-        MistralGaol = 14621, // Boss->self, 5,0s cast, range 6 circle
+        MistralGaol = 14621, // Boss->self, 5,0s cast, range 6 circle, quick time event starts
+        Microburst2 = 14624, // Boss->self, no cast, range 25 circle, quick time event failed (enrage)
         warpstrike = 14597, //duty action for player
     };
 
@@ -68,11 +69,12 @@ namespace BossMod.Events.FF15Collab.Garuda
             if (casting)
                 hints.Add($"Keep using duty action on the {module.Enemies(OID.Monolith).FirstOrDefault()!.Name}s to stay out of the AOE!");
         }
-      public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-       {
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
             if (casting)
-                hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).FirstOrDefault()!, 0.5f, false));
-       }
+                hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).FirstOrDefault()!, 1, false));
+        }
     }
 
     class MistralShriek : Components.SelfTargetedAOEs
@@ -100,14 +102,15 @@ namespace BossMod.Events.FF15Collab.Garuda
             if (casting)
                 hints.Add($"Use duty action to teleport to the {module.Enemies(OID.Monolith).FirstOrDefault()!.Name} at the opposite side of Garuda!");
         }
-      public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-       {
-            if (casting)
-                hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).Where(p => !p.Position.AlmostEqual(module.PrimaryActor.Position, 5)).FirstOrDefault()!, 0.5f, false));
-            if (module.WorldState.CurrentTime > done && module.WorldState.CurrentTime < done.AddSeconds(2))
-                hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.PrimaryActor, 0.5f, false));
 
-       }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+                base.AddAIHints(module, slot, actor, assignment, hints);
+                if (casting)
+                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).Where(p => !p.Position.AlmostEqual(module.PrimaryActor.Position, 5)).FirstOrDefault()!, 1, false));
+                if (module.WorldState.CurrentTime > done && module.WorldState.CurrentTime < done.AddSeconds(2))
+                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.PrimaryActor, 1, false));
+        }
     }
 
     class MistralSong : Components.SelfTargetedAOEs
@@ -133,6 +136,16 @@ namespace BossMod.Events.FF15Collab.Garuda
     {
         public MiniSupercell2() : base(ActionID.MakeSpell(AID.MiniSupercell), 1.2f) { }
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.MiniSupercell)
+                AddStack(module.Enemies(OID.Noctis).FirstOrDefault()!);
+        }
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.MiniSupercell)
+                Stacks.Clear();
+        }
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (module.FindComponent<MiniSupercell>()!.ActiveAOEs(module, slot, actor) != null && Stacks.Count > 0)
@@ -184,7 +197,7 @@ namespace BossMod.Events.FF15Collab.Garuda
     [ModuleInfo(CFCID = 646, NameID = 7893)]
     public class Garuda : BossModule
     {
-        public Garuda(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }
+        public Garuda(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 22)) { }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
