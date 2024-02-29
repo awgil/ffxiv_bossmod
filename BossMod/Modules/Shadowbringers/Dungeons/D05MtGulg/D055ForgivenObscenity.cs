@@ -268,11 +268,12 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.ForgivenObscenity
                 module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15);
         }
 
-       public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-       {
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
             if (active)
                 hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
-       }
+        }
     }
 
     class D055ForgivenObscenityStates : StateMachineBuilder
