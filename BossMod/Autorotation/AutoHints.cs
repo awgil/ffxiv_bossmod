@@ -7,6 +7,8 @@ namespace BossMod
     // this is used e.g. in outdoor or on trash, where we have no active bossmodules
     public class AutoHints : IDisposable
     {
+        static readonly float RaidwideSize = 40;
+
         private WorldState _ws;
         private Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = new();
 
@@ -47,6 +49,8 @@ namespace BossMod
                 return;
             var data = actor.CastInfo!.IsSpell() ? Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(actor.CastInfo.Action.ID) : null;
             if (data == null || data.CastType == 1)
+                return;
+            if (data.CastType is 2 or 5 && data.EffectRange >= RaidwideSize)
                 return;
             AOEShape? shape = data.CastType switch
             {
