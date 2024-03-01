@@ -39,7 +39,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         BloodCyclone = 24104, // HernaisTheTenacious->self, 3.0s cast, range 5 circle
         Aethertide = 24105, // DyunbuTheAccursed->self, 8.0s cast, single-target, visual
         AethertideAOE = 24106, // Helper->players, 8.0s cast, range 8 circle spread
-        MarchingBreath = 24107, // DyunbuTheAccursed->self, 8.0s cast, interruptible, percentage based heal on boss or self
+        MarchingBreath = 24107, // DyunbuTheAccursed->self, 8.0s cast, interruptible, heals all allies by 20% of max health (raidwide)
         TacticalStone = 24108, // DyunbuTheAccursed->player, 2.5s cast, single-target, autoattack
         TacticalAero = 24109, // DyunbuTheAccursed->self, 3.0s cast, range 40 width 8 rect
         Enrage = 24110, // DyunbuTheAccursed->self, 3.0s cast, applies Dmg up and haste to self
@@ -148,14 +148,14 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         public Aethertide() : base(ActionID.MakeSpell(AID.AethertideAOE), 8) { }
     }
 
-    class MarchingBreath : Components.CastHint //Big heal on self or boss, seems to be percentage based, seen numbers from 40k to over 1m
+    class MarchingBreath : Components.CastInterruptHint //heals all allies by 20% of max health (raidwide)
     {
-        public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath), "Interrupt") { }
+        public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath), (uint)OID.DyunbuTheAccursed) { }
     }
 
-    class SoulSacrifice : Components.CastHint //Add sacrifices itself to give dmg boss to boss
+    class SoulSacrifice : Components.CastInterruptHint //WarWraith sacrifices itself to give boss a damage buff
     {
-        public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice), "Interrupt") { }
+        public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice), (uint)OID.WarWraith) { }
     }
 
     class TacticalAero : Components.SelfTargetedAOEs
