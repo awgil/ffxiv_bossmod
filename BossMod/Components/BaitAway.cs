@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BossMod.Endwalker.Criterion.C03AAI.C032Lala;
 
 namespace BossMod.Components
 {
@@ -223,6 +224,13 @@ namespace BossMod.Components
         {
             if (spell.Action == WatchedAction)
                 CurrentBaits.RemoveAll(b => b.Source == caster);
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var b in CurrentBaits)
+                if (b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
+                    hints.AddForbiddenZone(ShapeDistance.Rect(b.Source.Position, b.Target.Position, HalfWidth));
         }
     }
 }
