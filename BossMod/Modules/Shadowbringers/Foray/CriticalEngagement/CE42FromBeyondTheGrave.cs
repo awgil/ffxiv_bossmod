@@ -36,7 +36,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         SoulPurgeDonut = 24101, // Boss->self, 5.0s cast, range 10-30 donut
         SoulPurgeDonutDual = 24102, // Boss->self, no cast, range 10-30 donut
         CrimsonBlade = 24103, // HernaisTheTenacious->self, 8.0s cast, range 50 180-degree cone aoe
-        BloodCyclone = 21104, // HernaisTheTenacious->self, 3.0s cast, range 5 circle
+        BloodCyclone = 24104, // HernaisTheTenacious->self, 3.0s cast, range 5 circle
         Aethertide = 24105, // DyunbuTheAccursed->self, 8.0s cast, single-target, visual
         AethertideAOE = 24106, // Helper->players, 8.0s cast, range 8 circle spread
         MarchingBreath = 24107, // DyunbuTheAccursed->self, 8.0s cast, interruptible, percentage based heal on boss or self
