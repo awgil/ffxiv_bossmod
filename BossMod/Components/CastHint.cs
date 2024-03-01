@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using Lumina.Excel.GeneratedSheets2;
 
 namespace BossMod.Components
 {
     public enum AID : uint
     {
-        SpittingSardine = 11423,
+        SpittingSardine = 11423, //blue mage skill, this enum table is temporary until bluemages get their own autorotation enums
     };
 
     // generic component that is 'active' when any actor casts specific spell
