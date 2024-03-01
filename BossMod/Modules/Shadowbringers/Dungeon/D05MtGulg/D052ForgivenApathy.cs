@@ -29,7 +29,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D052ForgivenApathy
 
     class PunitiveLight : Components.CastInterruptHint
     { //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
-        public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), (uint)OID.Boss) { }
+        public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), (uint)OID.Boss, true, true) { }
     }
 
     class Sanctification : Components.SelfTargetedAOEs

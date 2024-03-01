@@ -45,22 +45,26 @@ namespace BossMod.Components
     public class CastInterruptHint : CastCounter
     {
         public uint EnemyOID;
+        public bool Canbeinterrupted;
         public bool Canbestunned;
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
         public bool Active => _casters.Count > 0;
 
-        public CastInterruptHint(ActionID action, uint enemyOID, bool canbestunned = false) : base(action)
+        public CastInterruptHint(ActionID action, uint enemyOID, bool canbeinterrupted = true, bool canbestunned = false) : base(action)
         {
             EnemyOID = enemyOID;
+            Canbeinterrupted = canbeinterrupted;
             Canbestunned = canbestunned;
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (Active && !Canbestunned)
+            if (Active && Canbeinterrupted && !Canbestunned)
                 hints.Add($"Interrupt {module.Enemies(EnemyOID).FirstOrDefault()!.Name}!");
-            if (Active && Canbestunned)
+            if (Active && !Canbeinterrupted && Canbestunned)
+                hints.Add($"Stun {module.Enemies(EnemyOID).FirstOrDefault()!.Name}!");
+            if (Active && Canbeinterrupted && Canbestunned)
                 hints.Add($"Interrupt or stun {module.Enemies(EnemyOID).FirstOrDefault()!.Name}!");
         }
 
@@ -81,17 +85,17 @@ namespace BossMod.Components
             base.AddAIHints(module, slot, actor, assignment, hints);
             foreach (var caster in _casters)
             {
-                if (Active && actor.Role == Role.Tank && Service.ClientState.LocalPlayer?.Level >= 18)
+                if (Active && Canbeinterrupted && actor.Role == Role.Tank && Service.ClientState.LocalPlayer?.Level >= 18)
                     hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Interject), caster, 1, false));
-                if (Active && actor.Class is Class.GLA or Class.PLD && Service.ClientState.LocalPlayer?.Level >= 10)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Interject), caster, 1, false));
-                if (Active & Canbestunned && actor.Role == Role.Tank && Service.ClientState.LocalPlayer?.Level >= 12)
+                if (Active && Canbestunned && actor.Class is Class.GLA or Class.PLD && Service.ClientState.LocalPlayer?.Level >= 10)
+                    hints.PlannedActions.Add((ActionID.MakeSpell(PLD.AID.ShieldBash), caster, 1, false));
+                if (Active && Canbestunned && actor.Role == Role.Tank && Service.ClientState.LocalPlayer?.Level >= 12)
                     hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.LowBlow), caster, 1, false));
-                if (Active & Canbestunned && actor.Class == Class.WHM && Service.ClientState.LocalPlayer?.Level >= 45 && Service.ClientState.LocalPlayer?.Level <= 82)
+                if (Active && Canbestunned && actor.Class == Class.WHM && Service.ClientState.LocalPlayer?.Level >= 45 && Service.ClientState.LocalPlayer?.Level <= 82)
                     hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Holy1), caster, 1, false));
-                if (Active & Canbestunned && actor.Class == Class.WHM && Service.ClientState.LocalPlayer?.Level >= 82)
+                if (Active && Canbestunned && actor.Class == Class.WHM && Service.ClientState.LocalPlayer?.Level >= 82)
                     hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Holy3), caster, 1, false));
-                if (Active && actor.Class == Class.BLU)
+                if (Active && Canbestunned && actor.Class == Class.BLU)
                     hints.PlannedActions.Add((ActionID.MakeSpell(AID.SpittingSardine), caster, 1, false));
                 //TODO: add various missing actions
             }
