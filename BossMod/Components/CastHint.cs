@@ -102,7 +102,7 @@ namespace BossMod.Components
                 if (Active && Canbestunned && actor.Role == Role.Tank && Service.ClientState.LocalPlayer?.Level >= 12)
                     hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.LowBlow), caster, 1, false));
                 if (Active && Canbestunned && actor.Class.GetClassCategory() == ClassCategory.Melee && Service.ClientState.LocalPlayer?.Level >= 10)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.LowBlow), caster, 1, false));
+                    hints.PlannedActions.Add((ActionID.MakeSpell(SAM.AID.LegSweep), caster, 1, false));
                 if (Active && Canbestunned && actor.Class == Class.WHM && Service.ClientState.LocalPlayer?.Level >= 45 && Service.ClientState.LocalPlayer?.Level <= 82)
                     hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Holy1), caster, 1, false));
                 if (Active && Canbestunned && actor.Class == Class.WHM && Service.ClientState.LocalPlayer?.Level >= 82)
