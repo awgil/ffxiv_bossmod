@@ -86,6 +86,14 @@ namespace BossMod.Components
                 bait.Shape.Outline(arena, BaitOrigin(bait), bait.Rotation);
             }
         }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var b in CurrentBaits)
+                if (b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
+                    hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Rotation);
+            //TODO: AI hints for when actor is the target
+        }
     }
 
     // bait on all players, requiring everyone to spread out, by default originating from primary actor
@@ -194,14 +202,6 @@ namespace BossMod.Components
         {
             if (spell.Action == WatchedAction)
                 CurrentBaits.RemoveAll(b => b.Source == caster);
-        }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var b in CurrentBaits)
-                if (b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
-                    hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Rotation);
-            //TODO: AI hints for when actor is the target
         }
     }
 
