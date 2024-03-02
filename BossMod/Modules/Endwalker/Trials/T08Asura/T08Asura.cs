@@ -1,6 +1,7 @@
 // CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.Trials.T08Asura
 {
@@ -171,7 +172,7 @@ namespace BossMod.Endwalker.Trials.T08Asura
 
     class PedestalPurge : Components.SelfTargetedAOEs
     {
-        public PedestalPurge() : base(ActionID.MakeSpell(AID.PedestalPurge), new AOEShapeCircle(30)) { }
+        public PedestalPurge() : base(ActionID.MakeSpell(AID.PedestalPurge), new AOEShapeCircle(27)) { }
     }
 
     class IconographyWheelOfDeincarnation : Components.SelfTargetedAOEs
@@ -337,9 +338,9 @@ namespace BossMod.Endwalker.Trials.T08Asura
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.TheFaceOfDelightA or AID.TheFaceOfDelightB)
-                delight = true;
             if ((AID)spell.Action.ID is AID.TheFaceOfWrathA or AID.TheFaceOfWrathB)
+                delight = true;
+            if ((AID)spell.Action.ID is AID.TheFaceOfDelightA or AID.TheFaceOfDelightB)
                 wrath = true;
             if ((AID)spell.Action.ID == AID.FaceMechanicWrath)
             {
