@@ -52,28 +52,29 @@ namespace BossMod.Components
 
     public class CastInterruptHint : CastCounter
     {
-        public uint EnemyOID;
         public bool Canbeinterrupted;
         public bool Canbestunned;
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
         public bool Active => _casters.Count > 0;
 
-        public CastInterruptHint(ActionID action, uint enemyOID, bool canbeinterrupted = true, bool canbestunned = false) : base(action)
+        public CastInterruptHint(ActionID action, bool canbeinterrupted = true, bool canbestunned = false) : base(action)
         {
-            EnemyOID = enemyOID;
             Canbeinterrupted = canbeinterrupted;
             Canbestunned = canbestunned;
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            if (Active && Canbeinterrupted && !Canbestunned)
-                hints.Add($"Interrupt {module.Enemies(EnemyOID).FirstOrDefault()!.Name}!");
-            if (Active && !Canbeinterrupted && Canbestunned)
-                hints.Add($"Stun {module.Enemies(EnemyOID).FirstOrDefault()!.Name}!");
-            if (Active && Canbeinterrupted && Canbestunned)
-                hints.Add($"Interrupt or stun {module.Enemies(EnemyOID).FirstOrDefault()!.Name}!");
+            foreach (var caster in _casters)
+            {
+                if (Active && Canbeinterrupted && !Canbestunned)
+                    hints.Add($"Interrupt {caster.Name}!");
+                if (Active && !Canbeinterrupted && Canbestunned)
+                    hints.Add($"Stun {caster.Name}!");
+                if (Active && Canbeinterrupted && Canbestunned)
+                    hints.Add($"Interrupt or stun {caster.Name}!");
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

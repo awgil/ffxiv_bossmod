@@ -32,6 +32,7 @@ public enum AID : uint
     TheKingsNotice = 20810, // Boss->self, 5,0s cast, range 50 circle
     SplittingRage = 20814, // Boss->self, 3,0s cast, range 50 circle
     SkyrendingStrike = 20804, //enrage, 35s cast time
+    SkyrendingStrike2 = 20805, //enrage, 0 cast time, repeat incase player survived 1st enrage
 };
 
 public enum IconID : uint

@@ -18,7 +18,7 @@
 
     class MarineMayhem : Components.CastInterruptHint
     {
-        public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), (uint)OID.Boss) { }
+        public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem)) { }
     }
 
     class Waterga : Components.SpreadFromCastTargets
