@@ -84,9 +84,30 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         }
     }
 
-    class ThermalGust : Components.SelfTargetedAOEs
-    {
-        public ThermalGust() : base(ActionID.MakeSpell(AID.ThermalGust), new AOEShapeRect(60, 2)) { }
+    class ThermalGust : Components.GenericAOEs
+    {//This AOE only got 2s cast time, but the actors already spawn 4.5s earlier, so we can use that to our advantage
+        private DateTime _activation;
+
+        private static AOEShapeRect _shape = new(60, 2);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (_activation != default)
+                foreach (var c in module.Enemies(OID.Imaginifer))
+                    yield return new(_shape, c.Position, c.Rotation, _activation);
+        }
+
+        public override void OnActorCreated(BossModule module, Actor actor)
+        {
+            if ((OID)actor.OID == OID.Imaginifer)
+                _activation = module.WorldState.CurrentTime.AddSeconds(6.5f);
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.ThermalGust)
+                _activation = default;
+        }
     }
 
     class AgeOfEndlessFrost : Components.GenericAOEs

@@ -22,7 +22,8 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheOlderOne
     public enum AID : uint
     {
         AutoAttack = 870, // BonusAdd_GoldWhisker->player, no cast, single-target
-        AutoAttack2 = 13478, // Boss->player, no cast, single-target
+        AutoAttack2 = 872, // MandragoraBonusAdds->player, no cast, single-target
+        AutoAttack3 = 13478, // Boss->player, no cast, single-target
         MysticFlash = 13385, // Boss->player, 3,0s cast, single-target
         MysticLight = 13386, // Boss->self, 3,0s cast, range 40+R 60-degree cone
         MysticFlame = 13387, // Boss->self, 3,0s cast, single-target
