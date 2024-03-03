@@ -39,5 +39,10 @@ namespace BossMod.MaskedCarnivale.Stage11.Act2
             ActivateComponent<Hints>();
             ActivateComponent<Layout4Quads>();
         }
+        protected override void DrawEnemies(int pcSlot, Actor pc)
+        {
+            foreach (var s in Enemies(OID.Boss))
+                Arena.Actor(s, ArenaColor.Enemy);
+        }
     }
 }
