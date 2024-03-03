@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage17.Act2
@@ -24,58 +22,34 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
         MagitekRay = 15048, // 2721->location, 3,0s cast, range 6 circle, voidzone, interruptible
     };
 
-    class GrandStrike : SelfTargetedAOEs
+    class GrandStrike : Components.SelfTargetedAOEs
     {
         public GrandStrike() : base(ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2)) { }
     }
 
-    class MagitekField : CastHint
+    class MagitekField : Components.CastHint
     {
         public MagitekField() : base(ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses") { }
     }
 
-    class MagitekRay : PersistentVoidzoneAtCastTarget
+    class MagitekRay : Components.PersistentVoidzoneAtCastTarget
     {
         public MagitekRay() : base(6, ActionID.MakeSpell(AID.MagitekRay), m => m.Enemies(OID.MagitekRayVoidzone), 0) { }
     }
 
-    class TheHand : SelfTargetedAOEs
+    class TheHand : Components.SelfTargetedAOEs
     {
         public TheHand() : base(ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees())) { }
     }
 
-    class Shred : SelfTargetedAOEs
+    class Shred : Components.SelfTargetedAOEs
     {
         public Shred() : base(ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2)) { }
     }
 
-    class TheHandKB : Knockback //actual knockback happens a whole 0,9s after snapshot
+    class TheHandKB : Components.KnockbackFromCastTarget //actual knockback happens a whole 0,9s after snapshot
     {
-        private bool casting;
-        private Actor? _caster;
-
-        private static readonly AOEShapeCone cone = new(8, 60.Degrees());
-
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            if (casting && _caster != null)
-                yield return new(_caster.Position, 10, default, cone, _caster.Rotation, new());
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.TheHand)
-            {
-                casting = true;
-                _caster = caster; //this works because left hand and right hand never cast The Hand at the same time. if left claw uses the hand right claw uses shred and vice versa
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.TheHand)
-                casting = false;
-        }
+        public TheHandKB() : base(ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())) { }
     }
 
     class Hints2 : BossComponent
@@ -123,12 +97,11 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.LeftClaw))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.RightClaw))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
