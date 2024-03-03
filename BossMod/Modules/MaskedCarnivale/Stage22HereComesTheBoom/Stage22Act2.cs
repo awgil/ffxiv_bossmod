@@ -7,7 +7,8 @@ namespace BossMod.MaskedCarnivale.Stage22.Act2
     {
         Boss = 0x26FE, //R=3.75
         ArenaGrenade = 0x26FC, //R=1.2
-        ArenaGasBomb = 0x26FD //R=1.2
+        ArenaGasBomb = 0x26FD, //R=1.2
+        Helper = 0x233C,
     };
 
     public enum AID : uint
@@ -78,8 +79,7 @@ namespace BossMod.MaskedCarnivale.Stage22.Act2
                 .ActivateOnEnter<ScaldingScolding>()
                 .ActivateOnEnter<Flashthoom>()
                 .ActivateOnEnter<Hints2>()
-                .DeactivateOnEnter<Hints>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead);
+                .DeactivateOnEnter<Hints>();
         }
     }
 
@@ -93,8 +93,11 @@ namespace BossMod.MaskedCarnivale.Stage22.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            foreach (var s in Enemies(OID.ArenaGrenade))
+                Arena.Actor(s, ArenaColor.Object);
+            foreach (var s in Enemies(OID.ArenaGasBomb))
+                Arena.Actor(s, ArenaColor.Object);
         }
     }
 }

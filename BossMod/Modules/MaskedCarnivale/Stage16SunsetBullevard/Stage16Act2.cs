@@ -26,9 +26,9 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
         TenTonzeWave2 = 15268, // 233C->self, 4,6s cast, range 10-20 donut
     };
 
-    class OneOneOneOneTonzeSwing : Components.CastHint
+    class OneOneOneOneTonzeSwing : Components.RaidwideCast
     {
-        public OneOneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Diamondback!") { }
+        public OneOneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Use Diamondback!") { }
     }
 
     class TenTonzeSlash : Components.SelfTargetedAOEs
