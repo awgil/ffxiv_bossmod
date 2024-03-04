@@ -73,7 +73,7 @@ namespace BossMod.Components
             if (BlockersImpassable)
             {
                 var blockers = Blockers.Select(b => ShapeDistance.Circle(b.Center, b.Radius)).ToArray();
-                hints.AddForbiddenZone(p => blockers.Min(b => b(p)));
+                hints.AddForbiddenZone(p => blockers.Min(b => b(p)), NextExplosion);
             }
         }
 
