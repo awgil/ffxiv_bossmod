@@ -36,9 +36,9 @@ namespace BossMod.MaskedCarnivale.Stage17.Act1
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!module.PrimaryActor.IsDead)
-                hints.Add("Left claw counters magical damage!");
+                hints.Add($"{module.PrimaryActor.Name} counters magical damage!");
             if (!module.Enemies(OID.RightClaw).All(e => e.IsDead))
-                hints.Add("Right claw counters physical damage!");
+                hints.Add($"{module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
         }
     }
 
@@ -46,7 +46,7 @@ namespace BossMod.MaskedCarnivale.Stage17.Act1
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("The left claw counters magical attacks, the right claw counts physical\nattacks. If you have healing spells you can just tank the counter damage\nand kill them however you like anyway. All opponents in this stage are\nweak to lightning.\nThe Ram's Voice and Ultravibration combo can be used in Act 2.");
+            hints.Add($"The {module.PrimaryActor.Name} counters magical attacks, the {module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical\nattacks. If you have healing spells you can just tank the counter damage\nand kill them however you like anyway. All opponents in this stage are\nweak to lightning.\nThe Ram's Voice and Ultravibration combo can be used in Act 2.");
         }
     }
 

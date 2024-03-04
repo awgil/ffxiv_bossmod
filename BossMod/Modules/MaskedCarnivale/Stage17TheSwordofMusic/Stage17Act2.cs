@@ -57,9 +57,9 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (!module.Enemies(OID.LeftClaw).All(e => e.IsDead))
-                hints.Add("Left claw counters magical damage!");
+                hints.Add($"{module.Enemies(OID.LeftClaw).FirstOrDefault()!.Name} counters magical damage!");
             if (!module.Enemies(OID.RightClaw).All(e => e.IsDead))
-                hints.Add("Right claw counters physical damage!");
+                hints.Add($"{module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
         }
     }
 
@@ -67,7 +67,7 @@ namespace BossMod.MaskedCarnivale.Stage17.Act2
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add("Kreios is weak to lightning spells.\nDuring the fight he will spawn one of each claws as known from act 1.\nIf available use the Ram's Voice + Ultravibration combo for instant kill.");
+            hints.Add($"{module.PrimaryActor.Name} is weak to lightning spells.\nDuring the fight he will spawn one of each claws as known from act 1.\nIf available use the Ram's Voice + Ultravibration combo for instant kill.");
         }
     }
 
