@@ -1,5 +1,4 @@
-﻿using BossMod.Shadowbringers.Ultimate.TEA;
-using System.Linq;
+﻿using System.Linq;
 
 namespace BossMod.Stormblood.Ultimate.UCOB
 {
@@ -99,6 +98,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P3QuickmarchTrio(id + 0x30000, 3.1f);
             P3BlackfireTrio(id + 0x40000, 4.2f);
             P3FellruinTrio(id + 0x50000, 9.2f);
+            P3HeavensfallTrio(id + 0x60000, 4.2f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -446,7 +446,6 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .DeactivateOnExit<P3LunarDive>()
                 .DeactivateOnExit<P3MegaflareDive>()
                 .DeactivateOnExit<P3QuickmarchTrio>();
-
             ComponentCondition<P3Twister>(id + 0x40, 1.4f, comp => comp.Active, "Twisters")
                 .ActivateOnEnter<P3Twister>();
 
@@ -485,7 +484,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P3BlackfireTrio>(id + 0x20, 1.2f, comp => comp.Active)
                 .ActivateOnEnter<P3BlackfireTrio>()
                 .ActivateOnEnter<P3ThermionicBeam>();
-            ComponentCondition<P3MegaflareDive>(id + 0x30, 1.2f, comp => comp.NumCasts > 0, "Dive bait")
+            ComponentCondition<P3MegaflareDive>(id + 0x30, 1.2f, comp => comp.Casters.Count > 0, "Dive bait")
                 .ActivateOnEnter<P3MegaflareDive>()
                 .ActivateOnEnter<P1LiquidHell>(); // first puddle appears ~0.1s before dive bait
             ComponentCondition<P3ThermionicBeam>(id + 0x40, 2.9f, comp => !comp.Active, "Stack")
@@ -554,7 +553,46 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ActorCastEnd(id + 0x103, _module.BahamutPrime, 4.9f, true, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
 
-            // flare breath -> flatten -> flare breath
+            P3FlareBreath(id + 0x1000, 5.2f);
+            P3Flatten(id + 0x2000, 5.2f);
+            P3FlareBreath(id + 0x3000, 5.2f);
+        }
+
+        private void P3HeavensfallTrio(uint id, float delay)
+        {
+            ActorCast(id, _module.BahamutPrime, AID.HeavensfallTrio, delay, 4, true);
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (heavensfall trio)")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P3HeavensfallTrio>(id + 0x20, 1.2f, comp => comp.Active)
+                .ActivateOnEnter<P3HeavensfallTrio>();
+
+            ComponentCondition<P3MegaflareDive>(id + 0x30, 1.2f, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<P3MegaflareDive>();
+            ComponentCondition<P3MegaflareDive>(id + 0x40, 4, comp => comp.NumCasts > 0, "Dives")
+                .ActivateOnEnter<P3TwistingDive>()
+                .DeactivateOnExit<P3TwistingDive>()
+                .DeactivateOnExit<P3MegaflareDive>()
+                .DeactivateOnExit<P3HeavensfallTrio>();
+            ComponentCondition<P3Twister>(id + 0x50, 1.4f, comp => comp.Active, "Twisters")
+                .ActivateOnEnter<P3Twister>();
+
+            ComponentCondition<P3HeavensfallTowers>(id + 0x60, 0.5f, comp => comp.Towers.Count > 0)
+                .ActivateOnEnter<P3HeavensfallTowers>();
+            ComponentCondition<P3MegaflarePuddle>(id + 0x61, 1.0f, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<P3MegaflarePuddle>()
+                .ActivateOnEnter<P2Heavensfall>();
+            ComponentCondition<P3MegaflarePuddle>(id + 0x62, 3, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P3MegaflarePuddle>();
+            ComponentCondition<P2Heavensfall>(id + 0x63, 1.6f, comp => comp.NumCasts > 0, "Knockback")
+                .DeactivateOnExit<P3Twister>() // twisters disappear ~0.5s before knockback
+                .DeactivateOnExit<P2Heavensfall>();
+            ComponentCondition<P3HeavensfallTowers>(id + 0x64, 2.4f, comp => comp.NumCasts > 0, "Towers")
+                .DeactivateOnExit<P3HeavensfallTowers>();
+
+            ComponentCondition<P2ThermionicBurst>(id + 0x70, 1.6f, comp => comp.Casters.Count > 0)
+                .ActivateOnEnter<P2ThermionicBurst>();
+            // +2.0s: second pair, then every 0.5s
+            // TODO: pizzas resolve + hypernovas > fireball > gigaflare > 3x flare breath
         }
     }
 }

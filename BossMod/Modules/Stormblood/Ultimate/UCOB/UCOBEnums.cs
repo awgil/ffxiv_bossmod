@@ -93,6 +93,8 @@
         MegaflareStrike = 9952, // Helper->self, no cast, range 80 circle, tower fail
         FellruinTrio = 9956, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 3 start)
         AethericProfusion = 9905, // Twintania->self, 5.0s cast, range 80+R circle, deadly raidwide unless in neurolink
+        HeavensfallTrio = 9957, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 4 start)
+        HeavensfallVisual = 9911, // NaelDeusDarnus->self, 3.0s cast, single-target, visual (knockback)
     };
 
     public enum SID : uint
@@ -117,5 +119,6 @@
         MegaflareStack = 39, // player
         Earthshaker = 40, // player
         MegaflareDive = 41, // player
+        TwistingDive = 42, // player
     };
 }
