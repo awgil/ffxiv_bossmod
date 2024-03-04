@@ -91,10 +91,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
                 _activationKnockback = spell.NPCFinishAt.AddSeconds(0.6f);
             }
             if ((AID)spell.Action.ID == AID.LunarCry)
-            {
                 _castingLunarCry = true;
-                NextExplosion = spell.NPCFinishAt;
-            }
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

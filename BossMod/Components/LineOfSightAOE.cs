@@ -110,6 +110,7 @@ namespace BossMod.Components
             {
                 _casters.Add(caster);
                 Refresh(module);
+                NextExplosion = spell.NPCFinishAt;
             }
         }
 
