@@ -1,5 +1,3 @@
-using System.Linq;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage23
 {
@@ -7,7 +5,7 @@ namespace BossMod.MaskedCarnivale.Stage23
     {
         Boss = 0x2732, //R=5.8
         Maelstrom = 0x2733, //R=1.0
-        Helper = 0x233C
+        Helper = 0x233C,
     };
 
     public enum AID : uint
@@ -51,7 +49,7 @@ namespace BossMod.MaskedCarnivale.Stage23
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            hints.Add($"The {module.Enemies(OID.Boss).FirstOrDefault()!.Name} will use Ecliptic Meteor.\nUse Diamondback to survive it.\nYou can start the Final Sting combination at about 40% health left.\n(Off-guard->Bristle->Moonflute->Final Sting)");
+            hints.Add($"The {module.PrimaryActor.Name} will use Ecliptic Meteor.\nUse Diamondback to survive it.\nYou can start the Final Sting combination at about 40% health left.\n(Off-guard->Bristle->Moonflute->Final Sting)");
         }
     }
 

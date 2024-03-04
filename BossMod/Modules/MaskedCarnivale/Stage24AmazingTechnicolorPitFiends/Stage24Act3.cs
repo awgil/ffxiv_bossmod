@@ -89,7 +89,6 @@ namespace BossMod.MaskedCarnivale.Stage24.Act3
         public BoneShaker() : base(ActionID.MakeSpell(AID.BoneShaker), "Adds + Raidwide") { }
     }
 
-
     class Hints2 : BossComponent
     {
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
