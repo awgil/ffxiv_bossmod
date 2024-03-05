@@ -117,9 +117,9 @@ namespace BossMod.MaskedCarnivale.Stage26.Act2
         }
     }
 
-    class Stage26Act1States : StateMachineBuilder
+    class Stage26Act2States : StateMachineBuilder
     {
-        public Stage26Act1States(BossModule module) : base(module)
+        public Stage26Act2States(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<RawInstinct>()
@@ -134,9 +134,9 @@ namespace BossMod.MaskedCarnivale.Stage26.Act2
     }
 
     [ModuleInfo(CFCID = 695, NameID = 9231)]
-    public class Stage26Act1 : BossModule
+    public class Stage26Act2 : BossModule
     {
-        public Stage26Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
+        public Stage26Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
         {
             ActivateComponent<Hints>();
         }
