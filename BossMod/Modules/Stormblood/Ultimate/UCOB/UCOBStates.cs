@@ -589,10 +589,30 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P3HeavensfallTowers>(id + 0x64, 2.4f, comp => comp.NumCasts > 0, "Towers")
                 .DeactivateOnExit<P3HeavensfallTowers>();
 
-            ComponentCondition<P2ThermionicBurst>(id + 0x70, 1.6f, comp => comp.Casters.Count > 0)
+            ComponentCondition<P2ThermionicBurst>(id + 0x100, 1.6f, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<P2ThermionicBurst>();
             // +2.0s: second pair, then every 0.5s
-            // TODO: pizzas resolve + hypernovas > fireball > gigaflare > 3x flare breath
+
+            ComponentCondition<P2Hypernova>(id + 0x110, 1.6f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P2Hypernova>();
+            ComponentCondition<P2ThermionicBurst>(id + 0x120, 1.4f, comp => comp.NumCasts > 0, "Pizza start");
+            ComponentCondition<P2Hypernova>(id + 0x130, 0.2f, comp => comp.NumCasts > 1);
+            ComponentCondition<P2Hypernova>(id + 0x140, 1.6f, comp => comp.NumCasts > 2);
+            ComponentCondition<P3HeavensfallFireball>(id + 0x150, 0.9f, comp => comp.Active)
+                .ActivateOnEnter<P3HeavensfallFireball>();
+            ComponentCondition<P2ThermionicBurst>(id + 0x160, 2.5f, comp => comp.Casters.Count == 0, "Pizza end")
+                .DeactivateOnExit<P2ThermionicBurst>();
+
+            ActorTargetable(id + 0x170, _module.BahamutPrime, true, 1.4f, "Boss reappears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+            ActorCastStart(id + 0x171, _module.BahamutPrime, AID.Gigaflare, 0.1f, true);
+            // TODO: not sure about timings below...
+            ComponentCondition<P3HeavensfallFireball>(id + 0x172, 1.2f, comp => comp.NumFinishedStacks > 0, "Stack")
+                .DeactivateOnExit<P3HeavensfallFireball>();
+            ActorCastEnd(id + 0x173, _module.BahamutPrime, 4.8f, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+            // TODO: deactivate hypernova
+            // TODO: 3x flare breath
         }
     }
 }

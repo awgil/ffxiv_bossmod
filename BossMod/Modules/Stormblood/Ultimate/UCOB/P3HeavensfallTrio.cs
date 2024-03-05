@@ -96,9 +96,14 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private float TowerSortKey(Angle tower, Angle reference)
         {
             var cwDist = (reference - tower).Normalized().Deg;
-            if (cwDist < -22.5f)
+            if (cwDist < -5f) // towers are ~22.5 degrees apart
                 cwDist += 360;
             return cwDist;
         }
+    }
+
+    class P3HeavensfallFireball : Components.StackWithIcon
+    {
+        public P3HeavensfallFireball() : base((uint)IconID.Fireball, ActionID.MakeSpell(AID.Fireball), 4, 5.3f, 8) { }
     }
 }
