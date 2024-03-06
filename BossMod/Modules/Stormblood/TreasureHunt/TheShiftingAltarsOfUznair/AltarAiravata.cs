@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata
@@ -72,6 +73,11 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata
             }
         }
 
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+        {
+            return target == actor ? base.Sources(module, slot, actor) : Enumerable.Empty<Source>();
+        }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastFinished(module, caster, spell);
@@ -84,7 +90,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata
             base.AddHints(module, slot, actor, hints, movementHints);
             if (target == actor && targeted)
             {
-                hints.Add("Damage + Knockback --> Cone attack on you");
+                hints.Add("Bait away!");
             }
         }
 
@@ -95,6 +101,35 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata
                 hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
         }
     }
+
+    class Buffet2 : Components.BaitAwayCast //Boss jumps on player and does a cone attack, this is supposed to predict the position of the cone attack
+    {
+        public Buffet2() : base(ActionID.MakeSpell(AID.Buffet), new AOEShapeCone(30, 60.Degrees()), true) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var b in CurrentBaits)
+                if (b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
+                    hints.AddForbiddenZone(b.Shape, b.Target.Position + (b.Target.HitboxRadius + module.PrimaryActor.HitboxRadius) * (module.PrimaryActor.Position - b.Target.Position).Normalized(), b.Rotation);
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var bait in ActiveBaitsOn(pc))
+            {
+                bait.Shape.Outline(arena, bait.Target.Position + (bait.Target.HitboxRadius + module.PrimaryActor.HitboxRadius) * (module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
+            }
+        }
+
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            if (!IgnoreOtherBaits)
+                foreach (var bait in ActiveBaitsNotOn(pc))
+                    if (AlwaysDrawOtherBaits || IsClippedBy(pc, bait))
+                        bait.Shape.Draw(arena, bait.Target.Position + (bait.Target.HitboxRadius + module.PrimaryActor.HitboxRadius) * (module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
+        }
+    }
+
 
     class RaucousScritch : Components.SelfTargetedAOEs
     {
@@ -121,6 +156,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata
                 .ActivateOnEnter<BarbarousScream>()
                 .ActivateOnEnter<Huff>()
                 .ActivateOnEnter<Buffet>()
+                .ActivateOnEnter<Buffet2>()
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()
                 .ActivateOnEnter<Spin>()

@@ -112,7 +112,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
 
     class FireballVoidzone : Components.PersistentVoidzoneAtCastTarget
     {
-        public FireballVoidzone() : base(6, ActionID.MakeSpell(AID.Fireball), m => m.Enemies(OID.FireVoidzone), 0) { }
+        public FireballVoidzone() : base(6, ActionID.MakeSpell(AID.Fireball), m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7), 1) { }
     }
 
     class RaucousScritch : Components.SelfTargetedAOEs
