@@ -87,7 +87,6 @@ namespace BossMod.MaskedCarnivale.Stage27
     {
         private List<Actor> _bombs = new();
         private List<Actor> _casters = new();
-        private List<Actor> _movingbombs = new();
         private static readonly AOEShapeCircle circle = new(8);
         private DateTime _activation;
         private DateTime _snortingeffectends;
