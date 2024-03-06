@@ -98,7 +98,7 @@ namespace BossMod.MaskedCarnivale.Stage27
                 yield return new(circle, c.Position, activation: _activation);
             if (_casters.Count > 0 && _snortingeffectends > module.WorldState.CurrentTime)
             foreach (var c in _casters)
-                yield return new(circle, c.Position + Math.Min(15, module.Bounds.IntersectRay(c.Position, (c.Position - module.PrimaryActor.Position).Normalized())) * (c.Position - module.PrimaryActor.Position).Normalized(), activation: _activation);
+                yield return new(circle, c.Position + Math.Min(15, module.Bounds.IntersectRay(c.Position, (c.Position - module.PrimaryActor.Position).Normalized()) - c.HitboxRadius / 2) * (c.Position - module.PrimaryActor.Position).Normalized(), activation: _activation);
         }
 
         public override void Update(BossModule module)
