@@ -87,14 +87,19 @@ namespace BossMod.MaskedCarnivale.Stage27
     {
         private List<Actor> _bombs = new();
         private List<Actor> _casters = new();
+        private List<Actor> _movingbombs = new();
         private static readonly AOEShapeCircle circle = new(8);
         private DateTime _activation;
+        private DateTime _snortingeffectends;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_casters.Count > 0)
+            if (_casters.Count > 0 && _snortingeffectends == default)
             foreach (var c in _casters)
                 yield return new(circle, c.Position, activation: _activation);
+            if (_casters.Count > 0 && _snortingeffectends > module.WorldState.CurrentTime)
+            foreach (var c in _casters)
+                yield return new(circle, c.Position + Math.Min(15, module.Bounds.IntersectRay(c.Position, (c.Position - module.PrimaryActor.Position).Normalized())) * (c.Position - module.PrimaryActor.Position).Normalized(), activation: _activation);
         }
 
         public override void Update(BossModule module)
@@ -108,6 +113,8 @@ namespace BossMod.MaskedCarnivale.Stage27
                     _activation = module.WorldState.CurrentTime.AddSeconds(6);
                 }
             }
+            if (_snortingeffectends < module.WorldState.CurrentTime)
+                _snortingeffectends = default;
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)
@@ -123,6 +130,12 @@ namespace BossMod.MaskedCarnivale.Stage27
                 _bombs.Remove(caster);
                 _casters.Remove(caster);
             }
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.Snort)
+                _snortingeffectends = spell.NPCFinishAt.AddSeconds(2.5f);
         }
     }
 
