@@ -90,8 +90,13 @@ namespace BossMod.Components
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var b in CurrentBaits)
-                if (b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
+            {
+                if (CenterAtTarget && b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
+                    hints.AddForbiddenZone(b.Shape, b.Target.Position, b.Rotation);
+                if (!CenterAtTarget && b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
                     hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Rotation);
+            }
+            //TODO: activation?
             //TODO: AI hints for when actor is the target
         }
     }
