@@ -99,6 +99,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P3BlackfireTrio(id + 0x40000, 4.2f);
             P3FellruinTrio(id + 0x50000, 9.2f);
             P3HeavensfallTrio(id + 0x60000, 4.2f);
+            P3TenstrikeTrio(id + 0x70000, 8.1f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -606,13 +607,38 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ActorTargetable(id + 0x170, _module.BahamutPrime, true, 1.4f, "Boss reappears")
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
             ActorCastStart(id + 0x171, _module.BahamutPrime, AID.Gigaflare, 0.1f, true);
-            // TODO: not sure about timings below...
             ComponentCondition<P3HeavensfallFireball>(id + 0x172, 1.2f, comp => comp.NumFinishedStacks > 0, "Stack")
                 .DeactivateOnExit<P3HeavensfallFireball>();
             ActorCastEnd(id + 0x173, _module.BahamutPrime, 4.8f, true, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
-            // TODO: deactivate hypernova
-            // TODO: 3x flare breath
+
+            P3FlareBreath(id + 0x1000, 9.2f)
+                .DeactivateOnExit<P2Hypernova>();
+            P3FlareBreath(id + 0x2000, 2.1f);
+            P3FlareBreath(id + 0x3000, 2.1f);
+        }
+
+        private void P3TenstrikeTrio(uint id, float delay)
+        {
+            ActorCast(id, _module.BahamutPrime, AID.TenstrikeTrio, delay, 4, true);
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (tenstrike trio)")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+
+            ComponentCondition<Hatch>(id + 0x20, 2.3f, comp => comp.NumTargetsAssigned > 0)
+                .ActivateOnEnter<Hatch>()
+                .ActivateOnEnter<P2MeteorStream>();
+            ActorCast(id + 0x30, _module.Twintania, AID.Generate, 0.1f, 3, true, "Hatch 1");
+            ComponentCondition<P2MeteorStream>(id + 0x40, 0.9f, comp => comp.NumCasts > 0);
+            ComponentCondition<Hatch>(id + 0x41, 0.1f, comp => comp.NumTargetsAssigned > 3);
+            ActorCastStart(id + 0x50, _module.Twintania, AID.Generate, 0.1f, true);
+            ComponentCondition<P2MeteorStream>(id + 0x51, 0.8f, comp => comp.NumCasts > 1);
+            ComponentCondition<P2MeteorStream>(id + 0x52, 1.0f, comp => comp.NumCasts > 2); // first set of hatches explode around this point
+            ComponentCondition<P2MeteorStream>(id + 0x53, 1.0f, comp => comp.NumCasts > 3);
+            ActorCastEnd(id + 0x54, _module.Twintania, 0.2f, true, "Hatch 2");
+            // TODO: next set of spreads
+            // TODO: deactivate meteor stream & hatch components
+            // TODO: earthshakers
+            // TODO: gigaflare > flatten > flare breath
         }
     }
 }

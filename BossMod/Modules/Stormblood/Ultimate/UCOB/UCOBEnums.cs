@@ -95,6 +95,7 @@
         AethericProfusion = 9905, // Twintania->self, 5.0s cast, range 80+R circle, deadly raidwide unless in neurolink
         HeavensfallTrio = 9957, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 4 start)
         HeavensfallVisual = 9911, // NaelDeusDarnus->self, 3.0s cast, single-target, visual (knockback)
+        TenstrikeTrio = 9958, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 4 start)
     };
 
     public enum SID : uint
