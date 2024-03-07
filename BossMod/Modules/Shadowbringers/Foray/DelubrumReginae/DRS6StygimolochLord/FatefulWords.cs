@@ -11,10 +11,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             var dist = _playerDistances.GetValueOrDefault(actor.InstanceID);
-            if (dist > 0)
+            if (dist != 0)
                 yield return new(module.Bounds.Center, dist, module.PrimaryActor.CastInfo?.NPCFinishAt ?? new());
-            if (dist < 0)
-                yield return new(module.Bounds.Center, -dist, module.PrimaryActor.CastInfo?.NPCFinishAt ?? new(), Kind: Kind.TowardsOrigin);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
