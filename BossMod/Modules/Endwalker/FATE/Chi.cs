@@ -79,6 +79,6 @@
     [ModuleInfo(FateID = 1855)]
     public class Chi : BossModule
     {
-        public Chi(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(650, 0), 25)) { }
+        public Chi(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(650, 0), 30)) { }
     }
 }

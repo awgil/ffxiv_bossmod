@@ -1,12 +1,14 @@
-﻿namespace BossMod.Endwalker.FATE.Daivadipa
+﻿using System.Linq;
+
+namespace BossMod.Endwalker.FATE.Daivadipa
 {
     public enum OID : uint
     {
         Boss = 0x356D, // R=8.0
-        OrbOfImmolation = 0x3570, //R=1.0
-        OrbOfImmolation2 = 0x356F, //R=1.0
-        OrbOfConflagration = 0x3572, //R=1.0
-        OrbOfConflagration2 = 0x3571, //R=1.0
+        OrbOfImmolationBlue = 0x3570, //R=1.0
+        OrbOfImmolationRed = 0x356F, //R=1.0
+        OrbOfConflagrationBlue = 0x3572, //R=1.0
+        OrbOfConflagrationRed = 0x3571, //R=1.0
         Helper1 = 0x3573, //R=0.5
         Helper2 = 0x3574, //R=0.5
         Helper3 = 0x3575, //R=0.5
@@ -51,20 +53,87 @@
         ForcedMarch = 1257, // Boss->player, extra=0x2/0x8/0x1/0x4
     };
 
+    class Drumbeat : Components.SingleTargetCast
+    {
+        public Drumbeat() : base(ActionID.MakeSpell(AID.Drumbeat)) { }
+    }
+
+    class LeftwardTrisula : Components.SelfTargetedAOEs
+    {
+        public LeftwardTrisula() : base(ActionID.MakeSpell(AID.LeftwardTrisula), new AOEShapeCone(65, 90.Degrees())) { }
+    }
+
+    class RightwardParasu : Components.SelfTargetedAOEs
+    {
+        public RightwardParasu() : base(ActionID.MakeSpell(AID.RightwardParasu), new AOEShapeCone(65, 90.Degrees())) { }
+    }
+
+    class ErrantAkasa : Components.SelfTargetedAOEs
+    {
+        public ErrantAkasa() : base(ActionID.MakeSpell(AID.ErrantAkasa), new AOEShapeCone(60, 45.Degrees())) { }
+    }
+
+    class CosmicWeave : Components.SelfTargetedAOEs
+    {
+        public CosmicWeave() : base(ActionID.MakeSpell(AID.CosmicWeave), new AOEShapeCircle(18)) { }
+    }
+
+    class YawningHells : Components.LocationTargetedAOEs
+    {
+        public YawningHells() : base(ActionID.MakeSpell(AID.YawningHells2), 8) { }
+    }
+
+    class InfernalRedemption : Components.RaidwideCast //Note: actual raidwide happens about 1s later by helper with 0s cast
+    {
+        public InfernalRedemption() : base(ActionID.MakeSpell(AID.InfernalRedemption)) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var c in Casters)
+                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo!.NPCFinishAt.AddSeconds(1)));
+        }
+    }
+
+    class DivineCall : Components.StatusDrivenForcedMarch
+    {
+        public DivineCall() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
+
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos)
+        {
+            if (module.FindComponent<LeftwardTrisula>() != null && module.FindComponent<LeftwardTrisula>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+                return true;
+            if (module.FindComponent<RightwardParasu>() != null && module.FindComponent<RightwardParasu>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+                return true;
+            else
+                return false;
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall) ?? false)
+                hints.Add("Apply backwards march debuff");
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall2) ?? false)
+                hints.Add("Apply right march debuff");
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall3) ?? false)
+                hints.Add("Apply forwards march debuff");
+            if (module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall4) ?? false)
+                hints.Add("Apply left march debuff");
+        }
+    }
 
     class DaivadipaStates : StateMachineBuilder
     {
         public DaivadipaStates(BossModule module) : base(module)
         {
-            TrivialPhase();
-                // .ActivateOnEnter<BlizzardBreath>()
-                // .ActivateOnEnter<FlamesOfTheApocalypse>()
-                // .ActivateOnEnter<MindBlast>()
-                // .ActivateOnEnter<Megaflare>()
-                // .ActivateOnEnter<TidalWave>()
-                // .ActivateOnEnter<WindSlash>()
-                // .ActivateOnEnter<Windwinder>()
-                // .ActivateOnEnter<CivilizationBuster1>()
+            TrivialPhase()
+                .ActivateOnEnter<Drumbeat>()
+                .ActivateOnEnter<LeftwardTrisula>()
+                .ActivateOnEnter<RightwardParasu>()
+                .ActivateOnEnter<DivineCall>()
+                .ActivateOnEnter<InfernalRedemption>()
+                .ActivateOnEnter<CosmicWeave>()
+                .ActivateOnEnter<YawningHells>()
+                .ActivateOnEnter<ErrantAkasa>();
                 // .ActivateOnEnter<CivilizationBuster2>()
                 // .ActivateOnEnter<Touchdown>()
                 // .ActivateOnEnter<PillarImpact>()
