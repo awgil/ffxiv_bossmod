@@ -162,14 +162,14 @@ namespace BossMod.Endwalker.FATE.Daivadipa
         {
             if (active)
             {
-                foreach (var o in module.Enemies(OID.OrbOfImmolationBlue))
+                foreach (var o in module.Enemies(OID.OrbOfConflagrationBlue))
                 {
                     if (bluered1)
                         yield return new(circle, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.2f));
                     if (redblue2 && !redblue1)
                         yield return new(circle, o.Position, o.Rotation, activation: _activation2.AddSeconds(10.2f));
                 }
-                foreach (var o in module.Enemies(OID.OrbOfImmolationRed))
+                foreach (var o in module.Enemies(OID.OrbOfConflagrationRed))
                 {
                     if (bluered2 && !bluered1)
                         yield return new(circle, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.2f));
@@ -294,9 +294,13 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 return true;
             if (module.FindComponent<RightwardParasu>() != null && module.FindComponent<RightwardParasu>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
                 return true;
-            if (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+            if (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
+                return false;
+            if (module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
+                return false;
+            if (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any() && !module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
                 return true;
-            if (module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+            if (module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any() && !module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
                 return true;
             else
                 return false;
@@ -312,6 +316,20 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 hints.Add("Apply forwards march debuff");
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.DivineCall4) ?? false)
                 hints.Add("Apply left march debuff");
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            var forward = actor.FindStatus(SID.ForwardMarch) != null;
+            var left = actor.FindStatus(SID.LeftFace) != null;
+            var right = actor.FindStatus(SID.RightFace) != null;
+            var backwards = actor.FindStatus(SID.AboutFace) != null;
+            var marching = actor.FindStatus(SID.ForcedMarch) != null;
+            if (!marching && (forward || left || right || backwards) && ((module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any()) || (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any())))
+                hints.Add("Aim into AOEs!");
+            else if (!marching)
+                base.AddHints(module, slot, actor, hints, movementHints);
+
         }
     }
 

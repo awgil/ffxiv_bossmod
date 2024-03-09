@@ -1,4 +1,7 @@
-﻿namespace BossMod.Endwalker.FATE.Chi
+﻿using System;
+using System.Collections.Generic;
+
+namespace BossMod.Endwalker.FATE.Chi
 {
     public enum OID : uint
     {
@@ -15,7 +18,7 @@
     {
         AutoAttack = 25952, // Boss->player, no cast, single-target
         AssaultCarapace = 25954, // Boss->self, 5,0s cast, range 120 width 32 rect
-        AssaultCarapace2 = 25173, // Boss->location, 8,0s cast, range 120 width 32 rect
+        AssaultCarapace2 = 25173, // Boss->self, 8,0s cast, range 120 width 32 rect
         Carapace_RearGuns2dot0A = 25958, // Boss->self, 8,0s cast, range 120 width 32 rect
         Carapace_ForeArms2dot0A = 25957, // Boss->self, 8,0s cast, range 120 width 32 rect
         AssaultCarapace3 = 25953, // Boss->self, 5,0s cast, range 16-60 donut
@@ -52,19 +55,53 @@
         BunkerbusterTelegraph = 292, // Helper3/Helper6
     };
 
+    class AssaultCarapace : Components.SelfTargetedAOEs
+    {
+        public AssaultCarapace() : base(ActionID.MakeSpell(AID.AssaultCarapace), new AOEShapeRect(120, 16, 120)) { }
+    }
+
+    class AssaultCarapace2 : Components.SelfTargetedAOEs
+    {
+        public AssaultCarapace2() : base(ActionID.MakeSpell(AID.AssaultCarapace2), new AOEShapeRect(120, 16, 120)) { }
+    }
+
+    class Carapace_ForeArms2dot0A : Components.SelfTargetedAOEs
+    {
+        public Carapace_ForeArms2dot0A() : base(ActionID.MakeSpell(AID.Carapace_ForeArms2dot0A), new AOEShapeRect(120, 16, 120)) { }
+    }
+
+    class Carapace_RearGuns2dot0A : Components.SelfTargetedAOEs
+    {
+        public Carapace_RearGuns2dot0A() : base(ActionID.MakeSpell(AID.Carapace_RearGuns2dot0A), new AOEShapeRect(120, 16, 120)) { }
+    }
+
+    class AssaultCarapace3 : Components.SelfTargetedAOEs
+    {
+        public AssaultCarapace3() : base(ActionID.MakeSpell(AID.AssaultCarapace3), new AOEShapeDonut(16, 60)) { }
+    }
+
+    class Carapace_ForeArms2dot0B : Components.SelfTargetedAOEs
+    {
+        public Carapace_ForeArms2dot0B() : base(ActionID.MakeSpell(AID.Carapace_ForeArms2dot0B), new AOEShapeDonut(16, 60)) { }
+    }
+
+    class Carapace_RearGuns2dot0B : Components.SelfTargetedAOEs
+    {
+        public Carapace_RearGuns2dot0B() : base(ActionID.MakeSpell(AID.Carapace_RearGuns2dot0B), new AOEShapeDonut(16, 60)) { }
+    }
 
     class ChiStates : StateMachineBuilder
     {
         public ChiStates(BossModule module) : base(module)
         {
-            TrivialPhase();
-                // .ActivateOnEnter<BlizzardBreath>()
-                // .ActivateOnEnter<FlamesOfTheApocalypse>()
-                // .ActivateOnEnter<MindBlast>()
-                // .ActivateOnEnter<Megaflare>()
-                // .ActivateOnEnter<TidalWave>()
-                // .ActivateOnEnter<WindSlash>()
-                // .ActivateOnEnter<Windwinder>()
+            TrivialPhase()
+                .ActivateOnEnter<AssaultCarapace>()
+                .ActivateOnEnter<AssaultCarapace2>()
+                .ActivateOnEnter<Carapace_ForeArms2dot0A>()
+                .ActivateOnEnter<Carapace_ForeArms2dot0B>()
+                .ActivateOnEnter<Carapace_RearGuns2dot0A>()
+                .ActivateOnEnter<Carapace_RearGuns2dot0B>()
+                .ActivateOnEnter<AssaultCarapace3>();
                 // .ActivateOnEnter<CivilizationBuster1>()
                 // .ActivateOnEnter<CivilizationBuster2>()
                 // .ActivateOnEnter<Touchdown>()
