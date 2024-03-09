@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.FATE.Daivadipa
 {
@@ -23,8 +25,8 @@ namespace BossMod.Endwalker.FATE.Daivadipa
         Lamplight = 26497, // Boss->self, 2,0s cast, single-target
         LoyalFlame = 26499, // Boss->self, 5,0s cast, single-target, blue first
         LoyalFlame2 = 26498, // Boss->self, 5,0s cast, single-target, red first
-        LitPath1 = 26501, // OrbOfImmolation->self, 1,0s cast, range 50 width 10 rect
-        LitPath2 = 26500, // OrbOfImmolation2->self, 1,0s cast, range 50 width 10 rect
+        LitPath1 = 26501, // OrbOfImmolation->self, 1,0s cast, range 50 width 10 rect, blue orb
+        LitPath2 = 26500, // OrbOfImmolation2->self, 1,0s cast, range 50 width 10 rect, red orbs
         CosmicWeave = 26513, // Boss->self, 4,0s cast, range 18 circle
         YawningHells = 26511, // Boss->self, no cast, single-target
         YawningHells2 = 26512, // Helper1->location, 3,0s cast, range 8 circle
@@ -33,8 +35,8 @@ namespace BossMod.Endwalker.FATE.Daivadipa
         InfernalRedemption2 = 26518, // Helper3->location, no cast, range 60 circle
         IgnitingLights = 26503, // Boss->self, 2,0s cast, single-target
         IgnitingLights2 = 26502, // Boss->self, 2,0s cast, single-target
-        Burn = 26507, // OrbOfConflagration->self, 1,0s cast, range 10 circle
-        Burn2 = 26506, // OrbOfConflagration2->self, 1,0s cast, range 10 circle
+        Burn = 26507, // OrbOfConflagration->self, 1,0s cast, range 10 circle, blue orbs
+        Burn2 = 26506, // OrbOfConflagration2->self, 1,0s cast, range 10 circle, red orbs   
         KarmicFlames = 26515, // Boss->self, 5,5s cast, single-target
         KarmicFlames2 = 26516, // Helper2->location, 5,0s cast, range 50 circle, damage fall off, safe distance should be about 20
         DivineCall = 27080, // Boss->self, 4,0s cast, range 65 circle, forced backwards march
@@ -45,13 +47,196 @@ namespace BossMod.Endwalker.FATE.Daivadipa
 
     public enum SID : uint
     {
-        Hover = 1515, // none->OrbOfImmolation2, extra=0x64
+        Hover = 1515, // none->OrbOfImmolation, extra=0x64
         AboutFace = 1959, // Boss->player, extra=0x0
         RightFace = 1961, // Boss->player, extra=0x0
         ForwardMarch = 1958, // Boss->player, extra=0x0
         LeftFace = 1960, // Boss->player, extra=0x0
         ForcedMarch = 1257, // Boss->player, extra=0x2/0x8/0x1/0x4
     };
+
+    class LitPath : Components.GenericAOEs
+    {
+        private static readonly AOEShapeRect rect = new (50, 5);
+        private DateTime _activation1;
+        private DateTime _activation2;
+        private bool active;
+        private bool redblue1;
+        private bool redblue2;
+        private bool bluered1;
+        private bool bluered2;
+        private const float maxError = MathF.PI / 180;
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (active)
+            {
+                foreach (var o in module.Enemies(OID.OrbOfImmolationBlue))
+                {
+                    if (bluered1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
+                        yield return new(rect, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.9f));
+                    if (redblue2 && !redblue1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
+                        yield return new(rect, o.Position, o.Rotation, activation: _activation2.AddSeconds(8.9f));
+                }
+                foreach (var o in module.Enemies(OID.OrbOfImmolationRed))
+                {
+                    if (bluered2 && !bluered1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
+                        yield return new(rect, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.9f));
+                    if (redblue1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
+                        yield return new(rect, o.Position, o.Rotation, activation: _activation2.AddSeconds(8.9f));
+                }
+            }
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.LoyalFlame)
+            {
+                _activation1 = module.WorldState.CurrentTime;;
+                active = true;
+                bluered1 = true;
+                bluered2 = true;
+            }
+            if ((AID)spell.Action.ID == AID.LoyalFlame2)
+            {
+                _activation2 = module.WorldState.CurrentTime;;
+                active = true;
+                redblue1 = true;
+                redblue2 = true;
+            }
+        }
+
+        public override void Update(BossModule module) //Note: this is required because LitPath and Burn use the same color telegraph AID
+        {
+            if (module.Enemies(OID.OrbOfImmolationRed).All(x => x.IsDead) && module.Enemies(OID.OrbOfImmolationBlue).All(x => x.IsDead))
+            {
+                active = false;
+                bluered1 = false;
+                redblue2 = false;
+                bluered2 = false;
+                redblue1 = false;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.LitPath1)
+            {
+                _activation1 = spell.NPCFinishAt;
+                bluered1 = false;
+                redblue2 = false;
+                ++NumCasts;
+                if (NumCasts == 5)
+                {
+                    NumCasts = 0;
+                    active = false;
+                }
+            }
+            if ((AID)spell.Action.ID == AID.LitPath2)
+            {
+                _activation2 = spell.NPCFinishAt;
+                bluered2 = false;
+                redblue1 = false;
+                ++NumCasts;
+                if (NumCasts == 5)
+                {
+                    NumCasts = 0;
+                    active = false;
+                }
+            }
+        }
+    }
+
+    class Burn : Components.GenericAOEs
+    {
+        private static readonly AOEShapeCircle circle = new (10);
+        private DateTime _activation1;
+        private DateTime _activation2;
+        private bool active;
+        private bool redblue1;
+        private bool redblue2;
+        private bool bluered1;
+        private bool bluered2;
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (active)
+            {
+                foreach (var o in module.Enemies(OID.OrbOfImmolationBlue))
+                {
+                    if (bluered1)
+                        yield return new(circle, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.2f));
+                    if (redblue2 && !redblue1)
+                        yield return new(circle, o.Position, o.Rotation, activation: _activation2.AddSeconds(10.2f));
+                }
+                foreach (var o in module.Enemies(OID.OrbOfImmolationRed))
+                {
+                    if (bluered2 && !bluered1)
+                        yield return new(circle, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.2f));
+                    if (redblue1)
+                        yield return new(circle, o.Position, o.Rotation, activation: _activation2.AddSeconds(10.2f));
+                }
+            }
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.LoyalFlame)
+            {
+                _activation1 = module.WorldState.CurrentTime;
+                active = true;
+                bluered1 = true;
+                bluered2 = true;
+            }
+            if ((AID)spell.Action.ID == AID.LoyalFlame2)
+            {
+                _activation2 = module.WorldState.CurrentTime;
+                active = true;
+                redblue1 = true;
+                redblue2 = true;
+            }
+        }
+
+        public override void Update(BossModule module) //Note: this is required because LitPath and Burn use the same color telegraph AID
+        {
+            if (module.Enemies(OID.OrbOfConflagrationRed).All(x => x.IsDead) && module.Enemies(OID.OrbOfConflagrationBlue).All(x => x.IsDead))
+            {
+                active = false;
+                bluered1 = false;
+                redblue2 = false;
+                bluered2 = false;
+                redblue1 = false;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.Burn)
+            {
+                _activation1 = spell.NPCFinishAt;
+                bluered1 = false;
+                redblue2 = false;
+                ++NumCasts;
+                if (NumCasts == 16)
+                {
+                    NumCasts = 0;
+                    active = false;
+                }
+            }
+            if ((AID)spell.Action.ID == AID.Burn2)
+            {
+                _activation2 = spell.NPCFinishAt;
+                bluered2 = false;
+                redblue1 = false;
+                ++NumCasts;
+                if (NumCasts == 16)
+                {
+                    NumCasts = 0;
+                    active = false;
+                }
+            }
+        }
+    }
 
     class Drumbeat : Components.SingleTargetCast
     {
@@ -76,6 +261,11 @@ namespace BossMod.Endwalker.FATE.Daivadipa
     class CosmicWeave : Components.SelfTargetedAOEs
     {
         public CosmicWeave() : base(ActionID.MakeSpell(AID.CosmicWeave), new AOEShapeCircle(18)) { }
+    }
+
+    class KarmicFlames : Components.SelfTargetedAOEs
+    {
+        public KarmicFlames() : base(ActionID.MakeSpell(AID.KarmicFlames2), new AOEShapeCircle(20)) { }
     }
 
     class YawningHells : Components.LocationTargetedAOEs
@@ -103,6 +293,10 @@ namespace BossMod.Endwalker.FATE.Daivadipa
             if (module.FindComponent<LeftwardTrisula>() != null && module.FindComponent<LeftwardTrisula>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
                 return true;
             if (module.FindComponent<RightwardParasu>() != null && module.FindComponent<RightwardParasu>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+                return true;
+            if (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+                return true;
+            if (module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
                 return true;
             else
                 return false;
@@ -133,14 +327,10 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 .ActivateOnEnter<InfernalRedemption>()
                 .ActivateOnEnter<CosmicWeave>()
                 .ActivateOnEnter<YawningHells>()
-                .ActivateOnEnter<ErrantAkasa>();
-                // .ActivateOnEnter<CivilizationBuster2>()
-                // .ActivateOnEnter<Touchdown>()
-                // .ActivateOnEnter<PillarImpact>()
-                // .ActivateOnEnter<PillarPierce>()
-                // .ActivateOnEnter<AncientAevis>()
-                // .ActivateOnEnter<HeadlongRush>()
-                // .ActivateOnEnter<Aether>();
+                .ActivateOnEnter<ErrantAkasa>()
+                .ActivateOnEnter<KarmicFlames>()
+                .ActivateOnEnter<LitPath>()
+                .ActivateOnEnter<Burn>();
         }
     }
 
