@@ -294,10 +294,6 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 return true;
             if (module.FindComponent<RightwardParasu>() != null && module.FindComponent<RightwardParasu>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
                 return true;
-            if (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
-                return false;
-            if (module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
-                return false;
             if (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any() && !module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
                 return true;
             if (module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any() && !module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
@@ -325,7 +321,8 @@ namespace BossMod.Endwalker.FATE.Daivadipa
             var right = actor.FindStatus(SID.RightFace) != null;
             var backwards = actor.FindStatus(SID.AboutFace) != null;
             var marching = actor.FindStatus(SID.ForcedMarch) != null;
-            if (!marching && (forward || left || right || backwards) && ((module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any()) || (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any())))
+            var last = ForcedMovements(module, actor).LastOrDefault();
+            if (DestinationUnsafe(module, slot, actor, last.to) && !marching && (forward || left || right || backwards) && ((module.FindComponent<LitPath>() != null && module.FindComponent<LitPath>()!.ActiveAOEs(module, slot, actor).Any()) || (module.FindComponent<Burn>() != null && module.FindComponent<Burn>()!.ActiveAOEs(module, slot, actor).Any())))
                 hints.Add("Aim into AOEs!");
             else if (!marching)
                 base.AddHints(module, slot, actor, hints, movementHints);
