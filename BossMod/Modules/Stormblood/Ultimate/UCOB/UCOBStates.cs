@@ -99,7 +99,8 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P3BlackfireTrio(id + 0x40000, 4.2f);
             P3FellruinTrio(id + 0x50000, 9.2f);
             P3HeavensfallTrio(id + 0x60000, 4.2f);
-            P3TenstrikeTrio(id + 0x70000, 8.1f);
+            P3TenstrikeTrio(id + 0x70000, 8.2f);
+            P3GrandOctet(id + 0x80000, 4.2f);
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
@@ -430,6 +431,12 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .SetHint(StateMachine.StateHint.Tankbuster);
         }
 
+        private State P3Gigaflare(uint id, float delay)
+        {
+            return ActorCast(id, _module.BahamutPrime, AID.Gigaflare, delay, 6, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
         private void P3QuickmarchTrio(uint id, float delay)
         {
             ActorCast(id, _module.BahamutPrime, AID.QuickmarchTrio, delay, 4, true);
@@ -512,9 +519,8 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ActorTargetable(id + 0x200, _module.BahamutPrime, true, 0.3f, "Boss reappears")
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
             // +0.8s: hypernova 4
-            ActorCast(id + 0x210, _module.BahamutPrime, AID.Gigaflare, 0.1f, 6, true, "Raidwide")
-                .DeactivateOnExit<P1LiquidHell>() // last voidzone disappears ~2.6s before cast end
-                .SetHint(StateMachine.StateHint.Raidwide);
+            P3Gigaflare(id + 0x210, 0.1f)
+                .DeactivateOnExit<P1LiquidHell>(); // last voidzone disappears ~2.6s before cast end
 
             P3FlareBreath(id + 0x1000, 9.2f)
                 .DeactivateOnExit<P2Hypernova>(); // last voidzone disappears ~1.3ds
@@ -635,10 +641,56 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P2MeteorStream>(id + 0x52, 1.0f, comp => comp.NumCasts > 2); // first set of hatches explode around this point
             ComponentCondition<P2MeteorStream>(id + 0x53, 1.0f, comp => comp.NumCasts > 3);
             ActorCastEnd(id + 0x54, _module.Twintania, 0.2f, true, "Hatch 2");
-            // TODO: next set of spreads
-            // TODO: deactivate meteor stream & hatch components
-            // TODO: earthshakers
-            // TODO: gigaflare > flatten > flare breath
+            ComponentCondition<P2MeteorStream>(id + 0x55, 0.8f, comp => comp.NumCasts > 4);
+            ComponentCondition<P2MeteorStream>(id + 0x56, 1.0f, comp => comp.NumCasts > 5);
+            ComponentCondition<P2MeteorStream>(id + 0x57, 1.0f, comp => comp.NumCasts > 6); // second set of hatches explode around this point
+            ComponentCondition<P2MeteorStream>(id + 0x58, 1.0f, comp => comp.NumCasts > 7)
+                .DeactivateOnExit<P2MeteorStream>();
+
+            ComponentCondition<P3EarthShaker>(id + 0x100, 0.9f, comp => comp.CurrentBaits.Count > 0)
+                .ActivateOnEnter<P3EarthShaker>();
+            ActorTargetable(id + 0x110, _module.BahamutPrime, true, 5.2f, "Boss reappears") // second set of earthshaker icons appear at the same time
+                .ActivateOnEnter<P3EarthShakerVoidzone>()
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+            ComponentCondition<P3EarthShaker>(id + 0x111, 0.1f, comp => comp.NumCasts > 0, "Baited cones 1");
+            ComponentCondition<P3EarthShaker>(id + 0x120, 5.0f, comp => comp.NumCasts > 4, "Baited cones 2")
+                .DeactivateOnExit<Hatch>()
+                .DeactivateOnExit<P3EarthShaker>();
+
+            P3Gigaflare(id + 0x1000, 2.1f);
+            P3Flatten(id + 0x2000, 7.2f)
+                .DeactivateOnExit<P3EarthShakerVoidzone>(); // voidzones disappear right after gigaflares
+            P3FlareBreath(id + 0x3000, 3.2f);
+        }
+
+        private void P3GrandOctet(uint id, float delay)
+        {
+            ActorCast(id, _module.BahamutPrime, AID.GrandOctet, delay, 4, true);
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (grand octet)")
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P3GrandOctet>(id + 0x20, 1.2f, comp => comp.Casters.Count == 8)
+                .ActivateOnEnter<P3GrandOctet>();
+            ComponentCondition<P3GrandOctet>(id + 0x30, 5.1f, comp => comp.NumBaitsAssigned >= 2, "Nael bait"); // cauterize + nael
+            ComponentCondition<P3GrandOctet>(id + 0x31, 2, comp => comp.NumBaitsAssigned >= 3);
+            ComponentCondition<P3GrandOctet>(id + 0x32, 2, comp => comp.NumBaitsAssigned >= 4);
+            ComponentCondition<P3GrandOctet>(id + 0x33, 2, comp => comp.NumBaitsAssigned >= 5);
+            ComponentCondition<P3GrandOctet>(id + 0x34, 2, comp => comp.NumBaitsAssigned >= 6);
+            ComponentCondition<P3GrandOctet>(id + 0x40, 9, comp => comp.NumBaitsAssigned >= 7, "Bahamut bait");
+            ComponentCondition<P3GrandOctet>(id + 0x50, 4.2f, comp => comp.NumCasts >= 7);
+            ComponentCondition<P3MegaflareTower>(id + 0x60, 1.9f, comp => comp.Towers.Count > 0)
+                .ActivateOnEnter<P3MegaflareTower>();
+            ComponentCondition<P3MegaflareStack>(id + 0x61, 0.9f, comp => comp.Active)
+                .ActivateOnEnter<P3MegaflareStack>();
+            ComponentCondition<P3GrandOctet>(id + 0x70, 2.3f, comp => comp.AOEs.Count > 0, "Twintania bait");
+            ComponentCondition<P3MegaflareStack>(id + 0x71, 2.8f, comp => !comp.Active, "Stack")
+                .DeactivateOnExit<P3MegaflareStack>();
+            ComponentCondition<P3GrandOctet>(id + 0x72, 1.2f, comp => comp.NumCasts >= 8)
+                .DeactivateOnExit<P3GrandOctet>();
+            ComponentCondition<P3MegaflareTower>(id + 0x73, 0.8f, comp => comp.NumCasts > 0, "Towers")
+                .ActivateOnEnter<P3Twister>()
+                .DeactivateOnExit<P3MegaflareTower>();
+            ComponentCondition<P3Twister>(id + 0x74, 0.6f, comp => comp.Active, "Twisters");
+            // TODO: disable twister
         }
     }
 }
