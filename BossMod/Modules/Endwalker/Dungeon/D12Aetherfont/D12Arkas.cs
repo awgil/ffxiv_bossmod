@@ -80,7 +80,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Arkas
     }
     class SpunLightning : Components.SelfTargetedAOEs
     {
-        public SpunLightning() : base(ActionID.MakeSpell(AID.SpunLightning), new AOEShapeRect(4,2,-50)) { }
+        public SpunLightning() : base(ActionID.MakeSpell(AID.SpunLightning), new AOEShapeRect(8,4,-50)) { }
     }   
     class LightningClaw1 : Components.LocationTargetedAOEs
     {

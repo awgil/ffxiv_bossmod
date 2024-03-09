@@ -220,7 +220,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Octomammoth
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
         }
-    
+
     }
     
 

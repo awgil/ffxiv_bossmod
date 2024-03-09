@@ -49,9 +49,9 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Lyngbakr
         Icon_161 = 161, // 33CF
         Icon_218 = 218, // 33CE
     };
-    class SonicBloop : Components.SingleTargetCast
+    class SonicBloop : Components.StackWithCastTargets
     {
-        public SonicBloop() : base(ActionID.MakeSpell(AID.SonicBloop)) { }
+        public SonicBloop() : base(ActionID.MakeSpell(AID.SonicBloop),3,4) { }
     }
     class Waterspout : Components.SpreadFromCastTargets
     {
