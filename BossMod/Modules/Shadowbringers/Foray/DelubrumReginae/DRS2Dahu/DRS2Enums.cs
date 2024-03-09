@@ -19,10 +19,10 @@
         HeadDown = 22376, // Marchosias->location, 3.0s cast, width 4 rect charge
         SpitFlame = 22390, // Boss->self, 8.0s cast, single-target, visual (icons)
         SpitFlameAOE = 22391, // Boss->players, no cast, range 4 circle
-        LeftSidedShockwaveFirst = 22383, // Boss->self, 3.0s cast, range 20 180-degree cone
-        RightSidedShockwaveFirst = 22384, // Boss->self, 3.0s cast, range 20 180-degree cone
-        LeftSidedShockwaveSecond = 22385, // Boss->self, 1.0s cast, range 20 180-degree cone
-        RightSidedShockwaveSecond = 22386, // Boss->self, 1.0s cast, range 20 180-degree cone
+        LeftSidedShockwaveFirst = 22383, // Boss->self, 3.0s cast, range 15 180-degree cone
+        RightSidedShockwaveFirst = 22384, // Boss->self, 3.0s cast, range 15 180-degree cone
+        LeftSidedShockwaveSecond = 22385, // Boss->self, 1.0s cast, range 15 180-degree cone
+        RightSidedShockwaveSecond = 22386, // Boss->self, 1.0s cast, range 15 180-degree cone
         FeralHowl = 22375, // Boss->self, 5.0s cast, single-target
         FeralHowlAOE = 23349, // Helper->self, no cast, range 50 circle, raidwide knockback 30
         HuntersClaw = 22377, // Marchosias->self, 8.5s cast, range 8 circle puddle
