@@ -90,47 +90,6 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Arkas
     {
         public ForkedFissures() : base(ActionID.MakeSpell(AID.ForkedFissures), 2) { }
     }
-    /*class ForkedFissures : Components.GenericAOEs
-     {
-         private List<AOEInstance> _aoes = new();
-         private List<Actor?>? ForkHelper;
-         private static readonly AOEShapeRect rect = new(0.5f, 0.25f, 40);
-         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
-         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-         {
-             //ForkHelper = [.. module.Enemies(OID.Helper)];
-             //ForkHelper = module.Enemies(OID.Helper).ToList();
-             if ((AID)spell.Action.ID == AID.ForkedFissures)
-             {
-                 foreach (var helper in module.Enemies(OID.Helper))
-                 {
-                     if (helper != null)
-                     {
-                         _aoes.Add(new(rect, caster.Position, helper.Rotation, spell.NPCFinishAt));
-                         _aoes.SortBy(aoe => aoe.Activation);
-                     }
-                 }
-             }
-         }
-         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-         {
-             if ((AID)spell.Action.ID is AID.ForkedFissures)
-                 _aoes.RemoveAll(aoe => aoe.Origin.AlmostEqual(caster.Position, 1));
-         }
-     }*/
-    /*class ForkedFissures : Components.GenericAOEs
-    {
-        private Actor? _caster;
-        private DateTime _predictedActivation;
-
-        private static readonly AOEShapeRect rect = new(0.5f, 0.25f, 40);
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_caster?.CastInfo != null)
-                yield return new(rect, _caster.Position, _caster.CastInfo.Rotation, _caster.CastInfo.NPCFinishAt);
-        }
-    }*/
     class ElectricEruption : Components.RaidwideCast
     {
         public ElectricEruption() : base(ActionID.MakeSpell(AID.ElectricEruption)) { }

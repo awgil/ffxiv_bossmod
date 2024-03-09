@@ -118,23 +118,6 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Octomammoth
 
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
     */
-    /*
-            public const float OctoCircleRadius = 8;
-            public const float OctoRectL = 4;
-            public const float OctoRectHW = 2;
-            public WPos OctoWposCircleA = new(-345, -368);
-            public WPos OctoWposCircleB = new(-387.678f, -350.322f);
-            public WPos OctoWposCircleC = new(-352.322f, -350.322f);
-            public WPos OctoWposCircleD = new(-370, -343);
-            public WPos OctoWposCircleE = new(-395, -368);
-            public WPos OctoWposRectA = new(-395.000f, -368.000f);  //invalid i havent figured it out yet
-            public WPos OctoWposRectB = new(-395.000f, -368.000f);  //invalid i havent figured it out yet
-            public WPos OctoWposRectC = new(-395.000f, -368.000f);  //invalid i havent figured it out yet
-            public WPos OctoWposRectD = new(-395.000f, -368.000f);  //invalid i havent figured it out yet
-            public int OctoRectAngleA = 10; //invert for other side. just guessing for now
-            public int OctoRectAngleB = 15; //invert for other side. just guessing for now
-    */
-    //    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(OctoWposCircleD, OctoCircleRadius), DateTime.MaxValue);
 
      class D12OctomammothAI : BossComponent
     {
@@ -242,13 +225,3 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Octomammoth
     
 
 }
-
-
-/*
- Arena Bounds Circles  X,Z size -> 8
--345.000f,-368.000f
--387.678f,-350.322f
--352.322f,-350.322f
--370.000f,-343.000f
--395.000f,-368.000f
- */
