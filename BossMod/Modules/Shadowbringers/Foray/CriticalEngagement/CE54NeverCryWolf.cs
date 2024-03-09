@@ -75,7 +75,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         private bool _castingKnockback;
         private bool _castingLunarCry;
         private DateTime _activationKnockback;
-        private static readonly float maxError = MathF.PI/180;
+        private const float maxError = MathF.PI/180;
 
         public LunarCry() : base(ActionID.MakeSpell(AID.LunarCry), 80, false) { }
         public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.Icicle).Where(a => !_badPillars.Contains(a.InstanceID));
