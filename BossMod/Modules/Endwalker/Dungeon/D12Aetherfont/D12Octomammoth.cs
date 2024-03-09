@@ -101,6 +101,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Octomammoth
         public D12OctomammothStates(BossModule module) : base(module)
         {
             TrivialPhase()
+            .ActivateOnEnter<D12OctoMammothForeground>()
             .ActivateOnEnter<D12OctomammothAI>()
             .ActivateOnEnter<Wallop>()
             .ActivateOnEnter<Clearout>()
@@ -207,6 +208,41 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Octomammoth
 
             // Add forbidden zone using the calculated function with current time
             hints.AddForbiddenZone(forbiddenZone);
+        }
+    }
+    class D12OctoMammothForeground : BossComponent
+    {
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            DrawCircles(arena);
+        }
+
+        private void DrawCircles(MiniArena arena)
+        {
+            arena.AddCircleFilled(new WPos(-345, -368), 8, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-345, -368), 8, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-387.678f, -350.322f), 8, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-352.322f, -350.322f), 8, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-370, -343), 8, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-395, -368), 8, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-347.4326171875f, -360.63653564453f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-347.67233276367f, -359.98715209961f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-347.85485839844f, -359.49258422852f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-348.21545410156f, -358.51571655273f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-348.66912841797f, -357.2868347168f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-359.22134399414f, -346.90921020508f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-359.98919677734f, -346.52166748047f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-361.35482788086f, -345.83236694336f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-362.4801940918f, -345.26443481445f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-377.45910644531f, -344.94708251953f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-378.73901367188f, -345.44708251953f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-379.94046020508f, -345.91647338867f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-381.08489990234f, -346.36361694336f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-391.44171142578f, -357.25454711914f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-391.79779052734f, -357.98648071289f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-392.10589599609f, -358.6198425293f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-392.50811767578f, -359.44671630859f), 2, 0xFF404040);
+            arena.AddCircleFilled(new WPos(-392.99645996094f, -360.45059204102f), 2, 0xFF404040);
         }
     }
 
