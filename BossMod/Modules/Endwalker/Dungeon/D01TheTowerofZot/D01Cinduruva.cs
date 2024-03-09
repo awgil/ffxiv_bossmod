@@ -146,7 +146,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
     */
 
-    [ModuleInfo(CFCID = 783, NameID = 10258)]
+    [ModuleInfo(CFCID = 783, NameID = 10259)]
 
     class D01Cindurava : BossModule
     {
