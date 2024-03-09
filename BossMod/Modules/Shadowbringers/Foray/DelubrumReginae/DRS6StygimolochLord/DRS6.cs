@@ -40,7 +40,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
         private IReadOnlyList<Actor> _ballsEarth;
         private IReadOnlyList<Actor> _ballsFire;
 
-        public DRS6(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-416, -184), 40))
+        public DRS6(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-416, -184), 35))
         {
             _monks = Enemies(OID.StygimolochMonk);
             _ballsEarth = Enemies(OID.BallOfEarth);
