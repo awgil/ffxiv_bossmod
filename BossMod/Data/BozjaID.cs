@@ -3,7 +3,7 @@
 namespace BossMod
 {
     // elements of the bozja holster
-    public enum BozjaHolsterID : byte
+    public enum BozjaHolsterID : uint
     {
         None,
         LostParalyze,

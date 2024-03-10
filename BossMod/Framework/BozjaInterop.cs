@@ -1,5 +1,4 @@
-﻿using Dalamud.Hooking;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
 namespace BossMod
@@ -8,8 +7,6 @@ namespace BossMod
     unsafe class BozjaInterop : IDisposable
     {
         public static BozjaInterop? Instance;
-
-        public event Action<BozjaHolsterID, uint>? HolsterUsed;
 
         [StructLayout(LayoutKind.Explicit)]
         private struct Holster
@@ -25,9 +22,6 @@ namespace BossMod
         private delegate bool UseFromHolsterDelegate(uint holsterId, uint slot);
         private UseFromHolsterDelegate _useFromHolsterFunc;
 
-        private delegate bool DirectorUseFromHolsterDelegate(void* self, uint holsterIndex, uint slot);
-        private Hook<DirectorUseFromHolsterDelegate> _directorUseFromHolsterHook;
-
         public BozjaInterop()
         {
             var getHolsterAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 85 FF 74 1D");
@@ -37,15 +31,10 @@ namespace BossMod
             var useFromHolsterAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B 47 38 89 70 18");
             _useFromHolsterFunc = Marshal.GetDelegateForFunctionPointer<UseFromHolsterDelegate>(useFromHolsterAddress);
             Service.Log($"[BozjaInterop] UseFromHolster address = 0x{useFromHolsterAddress:X}");
-
-            _directorUseFromHolsterHook = Service.Hook.HookFromSignature<DirectorUseFromHolsterDelegate>("E8 ?? ?? ?? ?? 3C 01 0F 85 ?? ?? ?? ?? BD", DirectorUseFromHolsterDetour);
-            _directorUseFromHolsterHook.Enable();
-            Service.Log($"[BozjaInterop] DirectorUseFromHolster address = 0x{_directorUseFromHolsterHook.Address:X}");
         }
 
         public void Dispose()
         {
-            _directorUseFromHolsterHook?.Dispose();
         }
 
         public static void FetchHolster(Span<byte> result)
@@ -66,19 +55,12 @@ namespace BossMod
             }
         }
 
-        public static bool UseFromHolster(BozjaHolsterID id, uint slot) => Instance?._useFromHolsterFunc((uint)id, slot) ?? false;
-
-        private bool DirectorUseFromHolsterDetour(void* self, uint holsterIndex, uint slot)
+        public static BozjaHolsterID GetHolsterEntry(uint index)
         {
-            var res = _directorUseFromHolsterHook.Original(self, holsterIndex, slot);
-            if (res)
-            {
-                var holster = _getHolsterFunc();
-                var entry = (BozjaHolsterID)(holster != null ? holster->Contents[holsterIndex] : 0);
-                Service.Log($"[BozjaInterop] Used {entry} at slot {slot}");
-                HolsterUsed?.Invoke(entry, slot);
-            }
-            return res;
+            var holster = Instance != null ? Instance._getHolsterFunc() : null;
+            return holster != null ? (BozjaHolsterID)holster->Contents[index] : BozjaHolsterID.None;
         }
+
+        public static bool UseFromHolster(BozjaHolsterID id, uint slot) => Instance?._useFromHolsterFunc((uint)id, slot) ?? false;
     }
 }

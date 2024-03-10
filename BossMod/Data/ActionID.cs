@@ -77,5 +77,12 @@ namespace BossMod
             var castID = (uint)(object)id;
             return castID != 0 ? new(ActionType.Spell, castID) : new();
         }
+
+        public static ActionID MakeBozjaHolster(BozjaHolsterID id, int slot) => slot switch
+        {
+            0 => new(ActionType.BozjaHolsterSlot0, (uint)id),
+            1 => new(ActionType.BozjaHolsterSlot1, (uint)id),
+            _ => default
+        };
     }
 }

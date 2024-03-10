@@ -5,6 +5,8 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using static Dalamud.Interface.Utility.Raii.ImRaii;
+using static FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentFreeCompanyProfile.FCProfile;
 
 namespace BossMod
 {
@@ -105,7 +107,7 @@ namespace BossMod
         public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
         private ActionManager* _inst;
         private float _lastReqInitialAnimLock;
-        private ushort _lastReqSequence;
+        private int _lastReqSequence = -1;
         private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
         private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
         private int _restoreCntr;
@@ -121,6 +123,9 @@ namespace BossMod
 
         private delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
         private Hook<UseActionLocationDelegate> _useActionLocationHook;
+
+        private delegate bool UseBozjaFromHolsterDirectorDelegate(void* self, uint holsterIndex, uint slot);
+        private Hook<UseBozjaFromHolsterDirectorDelegate> _useBozjaFromHolsterDirectorHook;
 
         private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets);
         private Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
@@ -157,6 +162,10 @@ namespace BossMod
             _useActionLocationHook.Enable();
             Service.Log($"[AMEx] UseActionLocation address = 0x{_useActionLocationHook.Address:X}");
 
+            _useBozjaFromHolsterDirectorHook = Service.Hook.HookFromSignature<UseBozjaFromHolsterDirectorDelegate>("E8 ?? ?? ?? ?? 3C 01 0F 85 ?? ?? ?? ?? BD", UseBozjaFromHolsterDirectorDetour);
+            _useBozjaFromHolsterDirectorHook.Enable();
+            Service.Log($"[AMEx] UseBozjaFromHolsterDirector address = 0x{_useBozjaFromHolsterDirectorHook.Address:X}");
+
             _processPacketActionEffectHook = Service.Hook.HookFromSignature<ProcessPacketActionEffectDelegate>("E8 ?? ?? ?? ?? 48 8B 4C 24 68 48 33 CC E8 ?? ?? ?? ?? 4C 8D 5C 24 70 49 8B 5B 20 49 8B 73 28 49 8B E3 5F C3", ProcessPacketActionEffectDetour);
             _processPacketActionEffectHook.Enable();
             Service.Log($"[AMEx] ProcessPacketActionEffect address = 0x{_processPacketActionEffectHook.Address:X}");
@@ -179,6 +188,7 @@ namespace BossMod
             _processPacketEffectResultBasicHook.Dispose();
             _processPacketEffectResultHook.Dispose();
             _processPacketActionEffectHook.Dispose();
+            _useBozjaFromHolsterDirectorHook.Dispose();
             _useActionLocationHook.Dispose();
             _updateHook.Dispose();
             InputOverride.Dispose();
@@ -288,9 +298,9 @@ namespace BossMod
             var imminentAction = QueueActive ? QueueAction : AutoQueue.Action;
             var imminentActionAdj = imminentAction.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(imminentAction.ID)) : imminentAction;
             var imminentRecast = imminentActionAdj ? _inst->GetRecastGroupDetail(GetRecastGroup(imminentActionAdj)) : null;
-            if (imminentRecast != null && Config.RemoveCooldownDelay)
+            if (Config.RemoveCooldownDelay)
             {
-                var cooldownOverflow = imminentRecast->IsActive != 0 ? imminentRecast->Elapsed + dt - imminentRecast->Total : dt;
+                var cooldownOverflow = imminentRecast != null && imminentRecast->IsActive != 0 ? imminentRecast->Elapsed + dt - imminentRecast->Total : dt;
                 var animlockOverflow = dt - AnimationLock;
                 _useActionInPast = Math.Min(cooldownOverflow, animlockOverflow);
                 if (_useActionInPast >= dt)
@@ -368,48 +378,29 @@ namespace BossMod
             var currRot = pc?.Rotation ?? 0;
             if (currSeq != prevSeq)
             {
-                _lastReqInitialAnimLock = AnimationLock;
-                _lastReqSequence = currSeq;
-                MoveMightInterruptCast = CastTimeRemaining > 0;
-                if (prevRot != currRot && Config.RestoreRotation)
-                {
-                    _restoreRotation = (prevRot.Radians(), currRot.Radians());
-                    _restoreCntr = 2; // not sure why - but sometimes after successfully restoring rotation it is snapped back on next frame; TODO investigate
-                    //Service.Log($"[AMEx] Restore start: {currRot} -> {prevRot}");
-                }
-
-                var action = new ActionID(actionType, actionID);
-                var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
-                if (_useActionInPast > 0 && recast != null)
-                {
-                    if (CastTimeRemaining > 0)
-                        Utils.WriteField(_inst, 0x30, CastTimeElapsed + _useActionInPast);
-                    else
-                        Utils.WriteField(_inst, 8, Math.Max(0, AnimationLock - _useActionInPast));
-                    recast->Elapsed += _useActionInPast;
-                }
-
-                var recastElapsed = recast != null ? recast->Elapsed : 0;
-                var recastTotal = recast != null ? recast->Total : 0;
-                Service.Log($"[AMEx] UAL #{currSeq} ({action} @ {targetID:X} / {Utils.Vec3String(*targetPos)} {(ret ? "succeeded" : "failed?")}, ALock={AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
-                ActionRequested?.Invoke(new() {
-                    Action = action,
-                    TargetID = targetID,
-                    TargetPos = *targetPos,
-                    SourceSequence = currSeq,
-                    InitialAnimationLock = AnimationLock,
-                    InitialCastTimeElapsed = CastSpellID != 0 ? CastTimeElapsed : 0,
-                    InitialCastTimeTotal = CastSpellID != 0 ? CastTimeTotal : 0,
-                    InitialRecastElapsed = recastElapsed,
-                    InitialRecastTotal = recastTotal,
-                });
+                HandleActionRequest(new(actionType, actionID), currSeq, targetID, *targetPos, prevRot, currRot);
             }
             return ret;
+        }
+
+        private bool UseBozjaFromHolsterDirectorDetour(void* self, uint holsterIndex, uint slot)
+        {
+            var pc = Service.ClientState.LocalPlayer;
+            var prevRot = pc?.Rotation ?? 0;
+            var res = _useBozjaFromHolsterDirectorHook.Original(self, holsterIndex, slot);
+            if (res)
+            {
+                var currRot = pc?.Rotation ?? 0;
+                var entry = BozjaInterop.GetHolsterEntry(holsterIndex);
+                HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, GameObject.InvalidGameObjectId, default, prevRot, currRot);
+            }
+            return res;
         }
 
         private void ProcessPacketActionEffectDetour(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets)
         {
             var packetAnimLock = header->animationLockTime;
+            var action = new ActionID(header->actionType, header->actionId);
             if (ActionEffectReceived != null)
             {
                 // note: there's a slight difference with dispatching event from here rather than from packet processing (ActionEffectN) functions
@@ -418,7 +409,7 @@ namespace BossMod
                 // the last point is deemed to be minor enough for us to not care, as it simplifies things (no need to hook 5 functions)
                 var info = new ActorCastEvent
                 {
-                    Action = new(header->actionType, header->actionId),
+                    Action = action,
                     MainTargetID = header->animationTargetId,
                     AnimationLockTime = header->animationLockTime,
                     MaxTargets = header->NumTargets,
@@ -441,11 +432,11 @@ namespace BossMod
             _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
             var currAnimLock = AnimationLock;
 
-            if (header->SourceSequence == 0 || casterID != Service.ClientState.LocalPlayer?.ObjectId)
+            if (casterID != Service.ClientState.LocalPlayer?.ObjectId)
             {
                 // non-player-initiated
                 if (currAnimLock != prevAnimLock)
-                    Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: {casterID:X} {new ActionID(header->actionType, header->actionId)} {prevAnimLock:f3} -> {currAnimLock:f3}");
+                    Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {action} {prevAnimLock:f3} -> {currAnimLock:f3}");
                 return;
             }
 
@@ -484,7 +475,8 @@ namespace BossMod
                 Service.Log($"[AMEx] Animation lock updated by action with unexpected sequence ID #{header->SourceSequence}: {prevAnimLock:f3} -> {currAnimLock:f3}");
             }
 
-            Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+            Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}-{animLockReduction:f3}), CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+            _lastReqSequence = -1;
         }
 
         private void ProcessPacketEffectResultDetour(uint targetID, byte* packet, byte replaying)
@@ -515,6 +507,47 @@ namespace BossMod
                 }
             }
             _processPacketEffectResultBasicHook.Original(targetID, packet, replaying);
+        }
+
+        private void HandleActionRequest(ActionID action, int seq, ulong targetID, Vector3 targetPos, float prevRot, float currRot)
+        {
+            _lastReqInitialAnimLock = AnimationLock;
+            _lastReqSequence = seq;
+            MoveMightInterruptCast = CastTimeRemaining > 0;
+            if (prevRot != currRot && Config.RestoreRotation)
+            {
+                _restoreRotation = (prevRot.Radians(), currRot.Radians());
+                _restoreCntr = 2; // not sure why - but sometimes after successfully restoring rotation it is snapped back on next frame; TODO investigate
+                //Service.Log($"[AMEx] Restore start: {currRot} -> {prevRot}");
+            }
+
+            var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
+            if (_useActionInPast > 0)
+            {
+                if (CastTimeRemaining > 0)
+                    Utils.WriteField(_inst, 0x30, CastTimeElapsed + _useActionInPast);
+                else
+                    Utils.WriteField(_inst, 8, Math.Max(0, AnimationLock - _useActionInPast));
+
+                if (recast != null)
+                    recast->Elapsed += _useActionInPast;
+            }
+
+            var recastElapsed = recast != null ? recast->Elapsed : 0;
+            var recastTotal = recast != null ? recast->Total : 0;
+            Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
+            ActionRequested?.Invoke(new()
+            {
+                Action = action,
+                TargetID = targetID,
+                TargetPos = targetPos,
+                SourceSequence = (uint)seq,
+                InitialAnimationLock = AnimationLock,
+                InitialCastTimeElapsed = CastSpellID != 0 ? CastTimeElapsed : 0,
+                InitialCastTimeTotal = CastSpellID != 0 ? CastTimeTotal : 0,
+                InitialRecastElapsed = recastElapsed,
+                InitialRecastTotal = recastTotal,
+            });
         }
     }
 }

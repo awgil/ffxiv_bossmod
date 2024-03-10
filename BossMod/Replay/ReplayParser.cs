@@ -399,7 +399,7 @@ namespace BossMod
             p.HasAnyActions = true;
             _res.Actions.Add(a);
 
-            if (args.cast.SourceSequence != 0 && args.actor == _ws.Party.Player() && _pendingClientActions.FindIndex(a => a.SourceSequence == args.cast.SourceSequence) is var index && index >= 0)
+            if (args.actor == _ws.Party.Player() && _pendingClientActions.FindIndex(a => a.SourceSequence == args.cast.SourceSequence) is var index && index >= 0)
             {
                 a.ClientAction = _pendingClientActions[index];
                 _pendingClientActions[index].Action = a;

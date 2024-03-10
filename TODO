@@ -1,6 +1,6 @@
 autorotation rework:
 - bozja holster / action support
--- anim lock reduction
+-- action definitions (normal & holster)
 - priority action suggestions
 - control panel w/ presets and bindings
 - module registry supporting alternatives per job
