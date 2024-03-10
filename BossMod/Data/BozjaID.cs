@@ -112,19 +112,24 @@ namespace BossMod
     // holster -> action id mapping
     public static class BozjaActionID
     {
-        private static ActionID[] _actions = new ActionID[(int)BozjaHolsterID.Count];
+        public static ActionID SlotFromHolsterAction = new(ActionType.Spell, 21023);
 
-        public static ActionID Get(BozjaHolsterID id) => _actions[(int)id];
+        private static ActionID[] _normalActions = new ActionID[(int)BozjaHolsterID.Count];
+        private static ActionID[] _holsterActions = new ActionID[(int)BozjaHolsterID.Count];
+
+        public static ActionID GetNormal(BozjaHolsterID id) => _normalActions[(int)id];
+        public static ActionID GetHolster(BozjaHolsterID id) => _holsterActions[(int)id];
 
         static BozjaActionID()
         {
             var sheet = Service.LuminaGameData?.GetExcelSheet<MYCTemporaryItem>();
-            for (int i = 0; i < _actions.Length; i++)
+            for (int i = 0; i < _normalActions.Length; i++)
             {
                 var row = sheet?.GetRow((uint)i);
                 if (row != null)
                 {
-                    _actions[i] = new(ActionType.Spell, row.Action.Row);
+                    _normalActions[i] = new(ActionType.Spell, row.Action.Row);
+                    _holsterActions[i] = row.Type == 2 ? _normalActions[i] : SlotFromHolsterAction;
                 }
             }
         }

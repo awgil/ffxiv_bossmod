@@ -246,6 +246,8 @@ namespace BossMod
 
         public uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
         {
+            if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
+                action = BozjaActionID.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
             return _inst->GetActionStatus((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
         }
 
@@ -332,7 +334,13 @@ namespace BossMod
                 var status = GetActionStatus(actionAdj, targetID);
                 if (status == 0)
                 {
-                    var res = UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos, AutoQueue.Action.Type == ActionType.Item ? 65535u : 0);
+                    var res = AutoQueue.Action.Type switch
+                    {
+                        ActionType.Item => UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos, 65535),
+                        ActionType.BozjaHolsterSlot0 => BozjaInterop.UseFromHolster(AutoQueue.Action.As<BozjaHolsterID>(), 0),
+                        ActionType.BozjaHolsterSlot1 => BozjaInterop.UseFromHolster(AutoQueue.Action.As<BozjaHolsterID>(), 1),
+                        _ => UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos)
+                    };
                     //Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
                 }
                 else

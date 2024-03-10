@@ -36,8 +36,10 @@ namespace BossMod
             public float GCD => Cooldowns[CommonDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
             public float SprintCD => Cooldowns[CommonDefinitions.SprintCDGroup].Remaining; // 60.0 max
             public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup].Remaining; // variable max
-            public float DutyActionCD(int slot) => Cooldowns[CommonDefinitions.DutyAction0CDGroup + slot].Remaining;
             public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group].Remaining;
+
+            public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? Cooldowns[CommonDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
+            public float DutyActionCD(ActionID aid) => DutyActionCD(Array.IndexOf(DutyActions, aid));
 
             // check whether weaving typical ogcd off cooldown would end its animation lock by the specified deadline
             public float OGCDSlotLength => 0.6f + AnimationLockDelay; // most actions have 0.6 anim lock delay, which allows double-weaving oGCDs between GCDs
