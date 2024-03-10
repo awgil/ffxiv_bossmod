@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BossMod.Endwalker.Extreme.Ex5Rubicante;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -338,6 +339,7 @@ namespace BossMod
                 case "CLRJ": ParseClientActionReject(); break;
                 case "CDN+": ParseClientCountdown(true); break;
                 case "CDN-": ParseClientCountdown(false); break;
+                case "CLCD": ParseCooldown(); break;
                 case "CLDA": ParseClientDutyActions(); break;
                 case "CLBH": ParseClientBozjaHolster(); break;
             }
@@ -742,6 +744,15 @@ namespace BossMod
             AddOp(new ClientState.OpCountdownChange() { Value = start ? _input.ReadFloat() : null });
         }
 
+        private void ParseCooldown()
+        {
+            var op = new ClientState.OpCooldown() { Reset = _input.ReadBool() };
+            op.Cooldowns.Capacity = _input.ReadByte(false);
+            for (int i = 0; i < op.Cooldowns.Capacity; ++i)
+                op.Cooldowns.Add((_input.ReadByte(false), new() { Elapsed = _input.ReadFloat(), Total = _input.ReadFloat() }));
+            AddOp(op);
+        }
+
         private void ParseClientDutyActions()
         {
             AddOp(new ClientState.OpDutyActionsChange() { Slot0 = _input.ReadAction(), Slot1 = _input.ReadAction() });
@@ -749,14 +760,10 @@ namespace BossMod
 
         private void ParseClientBozjaHolster()
         {
-            var num = _input.ReadByte(false);
-            var op = new ClientState.OpBozjaHolsterChange(num);
-            for (int i = 0; i < num; ++i)
-            {
-                var entry = _input.ReadByte(false);
-                var count = _input.ReadByte(false);
-                op.Contents.Add(((BozjaHolsterID)entry, count));
-            }
+            var op = new ClientState.OpBozjaHolsterChange();
+            op.Contents.Capacity = _input.ReadByte(false);
+            for (int i = 0; i < op.Contents.Capacity; ++i)
+                op.Contents.Add(((BozjaHolsterID)_input.ReadByte(false), _input.ReadByte(false)));
             AddOp(op);
         }
 

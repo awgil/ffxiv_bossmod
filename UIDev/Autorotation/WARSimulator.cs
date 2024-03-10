@@ -3,6 +3,7 @@ using BossMod.WAR;
 using ImGuiNET;
 using System;
 
+#if false
 namespace UIDev
 {
     class WARSimulator : TestWindow
@@ -28,7 +29,7 @@ namespace UIDev
             GCDExpired = 1 << 15,
         }
 
-        public Rotation.State InitialState = new(new float[80]) { Level = 90, AnimationLockDelay = 0.1f };
+        public Rotation.State InitialState = new(new Cooldown[82]) { Level = 90, AnimationLockDelay = 0.1f };
         public int Duration = 260;
         public bool AOERotation = false;
         public bool KeepOnslaughtCharge = false;
@@ -516,3 +517,4 @@ namespace UIDev
         }
     }
 }
+#endif

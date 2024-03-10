@@ -2,6 +2,7 @@
 using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -369,6 +370,16 @@ namespace BossMod
             if (Client.CountdownRemaining != countdown)
                 Execute(new ClientState.OpCountdownChange() { Value = countdown });
 
+            Span<Cooldown> cooldowns = stackalloc Cooldown[Client.Cooldowns.Length];
+            ActionManagerEx.Instance!.GetCooldowns(cooldowns);
+            if (!MemoryExtensions.SequenceEqual(Client.Cooldowns.AsSpan(), cooldowns))
+            {
+                if (cooldowns.IndexOfAnyExcept(default(Cooldown)) < 0)
+                    Execute(new ClientState.OpCooldown() { Reset = true });
+                else
+                    Execute(new ClientState.OpCooldown() { Cooldowns = CalcCooldownDifference(cooldowns, Client.Cooldowns.AsSpan()) });
+            }
+
             var (dutyAction0, dutyAction1) = ActionManagerEx.Instance!.GetDutyActions();
             if (Client.DutyActions[0] != dutyAction0 || Client.DutyActions[1] != dutyAction1)
                 Execute(new ClientState.OpDutyActionsChange() { Slot0 = dutyAction0, Slot1 = dutyAction1 });
@@ -376,7 +387,7 @@ namespace BossMod
             Span<byte> bozjaHolster = stackalloc byte[Client.BozjaHolster.Length];
             BozjaInterop.FetchHolster(bozjaHolster);
             if (!MemoryExtensions.SequenceEqual(Client.BozjaHolster.AsSpan(), bozjaHolster))
-                Execute(new ClientState.OpBozjaHolsterChange(bozjaHolster));
+                Execute(new ClientState.OpBozjaHolsterChange() { Contents = CalcBozjaHolster(bozjaHolster) });
         }
 
         private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
@@ -390,6 +401,24 @@ namespace BossMod
             foreach (var op in ops)
                 Execute(op);
             _actorOps.Remove(instanceID);
+        }
+
+        private List<(int, Cooldown)> CalcCooldownDifference(Span<Cooldown> values, ReadOnlySpan<Cooldown> reference)
+        {
+            var res = new List<(int, Cooldown)>();
+            for (int i = 0, cnt = Math.Min(values.Length, reference.Length); i < cnt; ++i)
+                if (values[i] != reference[i])
+                    res.Add((i, values[i]));
+            return res;
+        }
+
+        private List<(BozjaHolsterID, byte)> CalcBozjaHolster(Span<byte> contents)
+        {
+            var res = new List<(BozjaHolsterID, byte)>();
+            for (int i = 0; i < contents.Length; ++i)
+                if (contents[i] != 0)
+                    res.Add(((BozjaHolsterID)i, contents[i]));
+            return res;
         }
 
         private unsafe ulong GaugeData()

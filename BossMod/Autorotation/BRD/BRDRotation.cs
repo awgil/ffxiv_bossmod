@@ -37,7 +37,7 @@ namespace BossMod.BRD
             public SID ExpectedCaustic => Unlocked(AID.CausticBite) ? SID.CausticBite : SID.VenomousBite;
             public SID ExpectedStormbite => Unlocked(AID.Stormbite) ? SID.Stormbite : SID.Windbite;
 
-            public State(float[] cooldowns) : base(cooldowns) { }
+            public State(WorldState ws) : base(ws) { }
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);

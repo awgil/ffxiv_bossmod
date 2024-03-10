@@ -47,7 +47,6 @@ namespace BossMod
     unsafe class ActionManagerEx : IDisposable
     {
         public static ActionManagerEx? Instance;
-        public const int NumCooldownGroups = 80;
 
         public float AnimationLockDelaySmoothing = 0.8f; // TODO tweak
         public float AnimationLockDelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
@@ -202,14 +201,32 @@ namespace BossMod
                 FaceTarget(player.Position + new Vector3(direction.X, 0, direction.Z));
         }
 
-        public void GetCooldowns(float[] cooldowns)
+        public void GetCooldown(ref Cooldown result, RecastDetail* data)
         {
-            var rg = _inst->GetRecastGroupDetail(0);
-            for (int i = 0; i < NumCooldownGroups; ++i)
+            if (data->IsActive != 0)
             {
-                cooldowns[i] = rg->Total - rg->Elapsed;
-                ++rg;
+                result.Elapsed = data->Elapsed;
+                result.Total = data->Total;
             }
+            else
+            {
+                result.Elapsed = result.Total = 0;
+            }
+        }
+
+        public void GetCooldowns(Span<Cooldown> cooldowns)
+        {
+            // [0,80) are stored in actionmanager, [80,81) are stored in director
+            var rg = _inst->GetRecastGroupDetail(0);
+            for (int i = 0; i < 80; ++i)
+                GetCooldown(ref cooldowns[i], rg++);
+            rg = _inst->GetRecastGroupDetail(80);
+            if (rg != null)
+                for (int i = 80; i < 82; ++i)
+                    GetCooldown(ref cooldowns[i], rg++);
+            else
+                for (int i = 80; i < 82; ++i)
+                    cooldowns[i] = default;
         }
 
         public float GCD()
