@@ -97,15 +97,15 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
     }
     class DeltaBlizzardIII1 : Components.SelfTargetedAOEs
     { 
-        public DeltaBlizzardIII1() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII1), new AOEShapeCone(40, 5.Degrees())) { }
+        public DeltaBlizzardIII1() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII1), new AOEShapeCone(40, 10.Degrees())) { } //might be different than the boss1 one
     }
     class DeltaBlizzardIII2 : Components.SelfTargetedAOEs
     { 
         public DeltaBlizzardIII2() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII2), new AOEShapeRect(44, 5)) { }
     }
-    class DeltaBlizzardIII3 : Components.RaidwideCast
+    class DeltaBlizzardIII3 : Components.ChargeAOEs //or raidwide?
     { 
-        public DeltaBlizzardIII3() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII3)) { }
+        public DeltaBlizzardIII3() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII3),20) { }
     }
     class DeltaFireIII3 : Components.SpreadFromCastTargets
     {
@@ -136,13 +136,17 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
             .ActivateOnEnter<DeltaThunderIII2>()
             .ActivateOnEnter<DeltaThunderIII3>()
             .ActivateOnEnter<DeltaThunderIII4>()
-            .ActivateOnEnter<Dhrupad>()
+            //.ActivateOnEnter<Dhrupad>()
             .ActivateOnEnter<DeltaBlizzardIII1>()
             .ActivateOnEnter<DeltaBlizzardIII2>()
             .ActivateOnEnter<DeltaBlizzardIII3>();
         }
     }
 
+    /*missing stuff
+     * stack marker
+     * delayed bombs on ground
+     */
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
     */
 

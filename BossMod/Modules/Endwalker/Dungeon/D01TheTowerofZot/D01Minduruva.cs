@@ -61,7 +61,8 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
         Icon_198 = 198, // 33CE
     };
 
-    class Dhrupad : Components.SingleTargetCast{
+    class Dhrupad : Components.SingleTargetCast
+    {
         public Dhrupad() : base(ActionID.MakeSpell(AID.Dhrupad)) { }
     }
     class ManusyaThunderIII2 : Components.SelfTargetedAOEs{
@@ -71,17 +72,17 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
         public ManusyaBioIII2() : base(ActionID.MakeSpell(AID.ManusyaBioIII2), new AOEShapeCone(40,90.Degrees())) { }
     }
     class ManusyaBlizzardIII2 : Components.SelfTargetedAOEs{
-        public ManusyaBlizzardIII2() : base(ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(40,5.Degrees())) { }
+        public ManusyaBlizzardIII2() : base(ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(40,10.Degrees())) { }
     }
     class ManusyaFireIII2 : Components.SelfTargetedAOEs{
-        public ManusyaFireIII2() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(4, 40)) { }
+        public ManusyaFireIII2() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(4, 70)) { } //made it bigger so it doesnt try to go to the edge of arena
     }
     class D01MinduruvaStates : StateMachineBuilder
     {
         public D01MinduruvaStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<Dhrupad>()
+            //.ActivateOnEnter<Dhrupad>() //testing with this disabled next run
             .ActivateOnEnter<ManusyaThunderIII2>()
             .ActivateOnEnter<ManusyaFireIII2>()
             .ActivateOnEnter<ManusyaBioIII2>()

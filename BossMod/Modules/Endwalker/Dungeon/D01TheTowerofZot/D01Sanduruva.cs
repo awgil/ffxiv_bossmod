@@ -83,7 +83,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Sanduruva
             }
             if (FoundHer == false)
             {
-                //  hints.Clear(); //dont think we need this? will test
+                //hints.Clear(); //dont think we need this? will test
             }
         }
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
@@ -141,13 +141,13 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Sanduruva
         public D01SanduruvaStates(BossModule module) : base(module)
         {
             TrivialPhase()
+            //.ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
+            //.ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
             .ActivateOnEnter<ExplosiveForce>()
             .ActivateOnEnter<WhoIsSheAnyways>()
             .ActivateOnEnter<PraptiSiddhi>()
             .ActivateOnEnter<PrakamyaSiddhi>()
-            .ActivateOnEnter<SphereShatter>()
-            .ActivateOnEnter<ManusyaStop>()
-            .ActivateOnEnter<ManusyaStop>();
+            .ActivateOnEnter<SphereShatter>();
         }
     }
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
