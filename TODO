@@ -1,12 +1,14 @@
 autorotation rework:
-- bozja holster / action support
--- action definitions (normal & holster)
 - priority action suggestions
 - control panel w/ presets and bindings
 - module registry supporting alternatives per job
 - proper lb support
 - proper gcd time calculations
 - simulation in replay analysis
+- cooldowns
+-- get rid of cdgroup enums
+-- properly support additional cdgroups
+-- remove fake cdgroup 71 (lb/holster)
 
 network rework:
 - optionally log raw ipcs to replay

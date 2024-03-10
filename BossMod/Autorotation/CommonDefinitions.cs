@@ -60,6 +60,25 @@ namespace BossMod
             var res = new Dictionary<ActionID, ActionDefinition>();
             (res[IDSprint] = new(0, 0, SprintCDGroup, 60, 1, 0.6f)).EffectDuration = 10;
             (res[statPotion] = new(0, 0, PotionCDGroup, 270, 1, 1.1f)).EffectDuration = 30;
+
+            // bozja actions
+            for (BozjaHolsterID i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
+            {
+                var normalAction = BozjaActionID.GetNormal(i);
+                var normalData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(normalAction.ID);
+                if (normalData == null)
+                    continue;
+
+                bool isItem = normalAction == BozjaActionID.GetHolster(i);
+                var animLock = isItem ? 1.1f : 0.6f;
+                res[normalAction] = new(normalData.Range, normalData.Cast100ms * 0.1f, normalData.CooldownGroup - 1, normalData.Recast100ms * 0.1f, Math.Max((int)normalData.MaxCharges, 1), animLock);
+                if (!isItem)
+                {
+                    // TODO: remove fake cdgroup
+                    res[ActionID.MakeBozjaHolster(i, 0)] = res[ActionID.MakeBozjaHolster(i, 1)] = new(0, 0, 71, 0, 1, 2.1f);
+                }
+            }
+
             return res;
         }
 
@@ -72,7 +91,7 @@ namespace BossMod
         public static ActionDefinition OGCDWithCharges<AID, CDGroup>(this Dictionary<ActionID, ActionDefinition> res, AID aid, float range, CDGroup cdGroup, float cooldown, int maxChargesAtCap, float animationLock = 0.6f) where AID : Enum where CDGroup : Enum
             => res[ActionID.MakeSpell(aid)] = new(range, 0, (int)(object)cdGroup, cooldown, maxChargesAtCap, animationLock);
         public static ActionDefinition GCDWithCharges<AID, CDGroup>(this Dictionary<ActionID, ActionDefinition> res, AID aid, float range, CDGroup cdGroup, float cooldown, int maxChargesAtCap, float animationLock = 0.6f) where AID : Enum where CDGroup : Enum
-    => res[ActionID.MakeSpell(aid)] = new(range, 0, (int)(object)cdGroup, cooldown, maxChargesAtCap, animationLock);
+            => res[ActionID.MakeSpell(aid)] = new(range, 0, (int)(object)cdGroup, cooldown, maxChargesAtCap, animationLock);
 
         // check whether given actor has tank stance
         public static bool HasTankStance(Actor a)
