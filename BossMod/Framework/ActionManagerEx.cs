@@ -5,8 +5,6 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using static Dalamud.Interface.Utility.Raii.ImRaii;
-using static FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentFreeCompanyProfile.FCProfile;
 
 namespace BossMod
 {
