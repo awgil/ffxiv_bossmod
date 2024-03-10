@@ -338,6 +338,7 @@ namespace BossMod
                 case "CLRJ": ParseClientActionReject(); break;
                 case "CDN+": ParseClientCountdown(true); break;
                 case "CDN-": ParseClientCountdown(false); break;
+                case "CLDA": ParseClientDutyActions(); break;
                 case "CLBH": ParseClientBozjaHolster(); break;
             }
 
@@ -739,6 +740,11 @@ namespace BossMod
         private void ParseClientCountdown(bool start)
         {
             AddOp(new ClientState.OpCountdownChange() { Value = start ? _input.ReadFloat() : null });
+        }
+
+        private void ParseClientDutyActions()
+        {
+            AddOp(new ClientState.OpDutyActionsChange() { Slot0 = _input.ReadAction(), Slot1 = _input.ReadAction() });
         }
 
         private void ParseClientBozjaHolster()

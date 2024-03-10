@@ -369,6 +369,10 @@ namespace BossMod
             if (Client.CountdownRemaining != countdown)
                 Execute(new ClientState.OpCountdownChange() { Value = countdown });
 
+            var (dutyAction0, dutyAction1) = ActionManagerEx.Instance!.GetDutyActions();
+            if (Client.DutyActions[0] != dutyAction0 || Client.DutyActions[1] != dutyAction1)
+                Execute(new ClientState.OpDutyActionsChange() { Slot0 = dutyAction0, Slot1 = dutyAction1 });
+
             Span<byte> bozjaHolster = stackalloc byte[Client.BozjaHolster.Length];
             BozjaInterop.FetchHolster(bozjaHolster);
             if (!MemoryExtensions.SequenceEqual(Client.BozjaHolster.AsSpan(), bozjaHolster))

@@ -32,12 +32,15 @@ namespace BossMod
     public class ClientState
     {
         public float? CountdownRemaining;
+        public ActionID[] DutyActions = new ActionID[2];
         public byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
 
         public IEnumerable<WorldState.Operation> CompareToInitial()
         {
             if (CountdownRemaining != null)
                 yield return new OpCountdownChange() { Value = CountdownRemaining };
+            if (DutyActions.Any(a => a))
+                yield return new OpDutyActionsChange() { Slot0 = DutyActions[0], Slot1 = DutyActions[1] };
             if (BozjaHolster.Any(count => count != 0))
                 yield return new OpBozjaHolsterChange(BozjaHolster);
         }
@@ -104,6 +107,22 @@ namespace BossMod
                 else
                     WriteTag(output, "CDN-");
             }
+        }
+
+        public event EventHandler<OpDutyActionsChange>? DutyActionsChanged;
+        public class OpDutyActionsChange : WorldState.Operation
+        {
+            public ActionID Slot0;
+            public ActionID Slot1;
+
+            protected override void Exec(WorldState ws)
+            {
+                ws.Client.DutyActions[0] = Slot0;
+                ws.Client.DutyActions[1] = Slot1;
+                ws.Client.DutyActionsChanged?.Invoke(ws, this);
+            }
+
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLDA").Emit(Slot0).Emit(Slot1);
         }
 
         public event EventHandler<OpBozjaHolsterChange>? BozjaHolsterChanged;

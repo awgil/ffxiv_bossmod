@@ -218,6 +218,13 @@ namespace BossMod
             return gcd->Total - gcd->Elapsed;
         }
 
+        public ActionID GetDutyAction(ushort slot)
+        {
+            var id = ActionManager.GetDutyActionId(slot);
+            return id != 0 ? new(ActionType.Spell, id) : default;
+        }
+        public (ActionID, ActionID) GetDutyActions() => (GetDutyAction(0), GetDutyAction(1));
+
         public uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
 
         public uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
