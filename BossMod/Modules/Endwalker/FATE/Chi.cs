@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace BossMod.Endwalker.FATE.Chi
 {
@@ -51,53 +49,38 @@ namespace BossMod.Endwalker.FATE.Chi
         ThermobaricExplosive2 = 25966, // Helper1->location, 10,0s cast, range 55 circle, damage fall off AOE
     };
 
-    public enum IconID : uint
-    {
-        Tankbuster = 243, // player
-        BunkerbusterTelegraph = 292, // Helper3/Helper6
-    };
-
    class Bunkerbuster : Components.GenericAOEs
     {
         private List<Actor> _casters = new();
         private DateTime _activation1;
         private DateTime _activation2;
+        private int NumCastsStarted;
 
         private static readonly AOEShapeRect rect = new(10, 10, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_casters.Count >= 3)
-            {
-                yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation1, ArenaColor.Danger);
-                yield return new(rect, _casters[1].Position, _casters[1].Rotation, _activation1, ArenaColor.Danger);
-                yield return new(rect, _casters[2].Position, _casters[2].Rotation, _activation1, ArenaColor.Danger);
-            }
+                for (int i = 0; i < 3; ++i)
+                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation1, ArenaColor.Danger);
             if (_casters.Count >= 6)
-            {
-                yield return new(rect, _casters[3].Position, _casters[3].Rotation, _activation2);
-                yield return new(rect, _casters[4].Position, _casters[4].Rotation, _activation2);
-                yield return new(rect, _casters[5].Position, _casters[5].Rotation, _activation2);
-            }
+                for (int i = 3; i < 6; ++i)
+                yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation2);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.BunkerBuster2)
+            if ((AID)spell.Action.ID is AID.BunkerBuster2 && NumCastsStarted == 0)
             {
-                if (_activation1 == default)
-                {
-                    _activation1 = spell.NPCFinishAt;
-                    _activation2 = _activation1.AddSeconds(1.9f);
-                }
+                _activation1 = spell.NPCFinishAt;
+                _activation2 = _activation1.AddSeconds(1.9f);
+                ++NumCastsStarted;
             }
-            if ((AID)spell.Action.ID is AID.BunkerBuster3)
+            if ((AID)spell.Action.ID is AID.BunkerBuster3 && NumCastsStarted == 0)
             {
-                if (_activation1 == default)
-                {
-                    _activation1 = spell.NPCFinishAt;
-                    _activation2 = _activation1.AddSeconds(1.9f);
-                }
+                _activation1 = spell.NPCFinishAt;
+                _activation2 = _activation1.AddSeconds(1.9f);
+                ++NumCastsStarted;
             }
         }
 
@@ -108,25 +91,32 @@ namespace BossMod.Endwalker.FATE.Chi
                 ++NumCasts;
                 if (_casters.Count > 0)
                     _casters.Remove(caster);
-                if (NumCasts == 3)
+                if (NumCasts is 3 or 6 or 9 or 12 or 15)
                 {
                     _activation1 = _activation1.AddSeconds(1.9f);
                     _activation2 = _activation1.AddSeconds(1.9f);
-                    NumCasts = 0;
                 }
             }
         }
 
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        public override void OnActorCreated(BossModule module, Actor actor)
         {
-            if (iconID == (uint)IconID.BunkerbusterTelegraph)
+            if ((OID)actor.OID is OID.Helper3 or OID.Helper6)
+            {
                 _casters.Add(actor);
+                if (_casters.Count == 1)
+                    _activation1 = _activation2 = module.WorldState.CurrentTime.AddSeconds(20); //placeholder value that gets overwritten when cast actually starts
+            }
         }
 
         public override void Update(BossModule module)
         {
             if (_casters.Count == 0)
+            {
                 _activation1 = default;
+                NumCasts = 0;
+                NumCastsStarted = 0;
+            }
         }
     }
 
@@ -146,79 +136,35 @@ namespace BossMod.Endwalker.FATE.Chi
                 if (_casters.Count >= 1 && NumCasts == 0)
                     yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation1, ArenaColor.Danger);
                 if (_casters.Count >= 4 && NumCasts == 0)
-                {
-                    yield return new(rect, _casters[1].Position, _casters[1].Rotation, _activation2);
-                    yield return new(rect, _casters[2].Position, _casters[2].Rotation, _activation2);
-                    yield return new(rect, _casters[3].Position, _casters[3].Rotation, _activation2);
-                }
+                    for (int i = 1; i < 4; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation2);
                 if (_casters.Count >= 3 && NumCasts == 1)
-                {
-                    yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[1].Position, _casters[1].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[2].Position, _casters[2].Rotation, _activation1, ArenaColor.Danger);
-                }
+                    for (int i = 0; i < 3; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation1, ArenaColor.Danger);
                 if (_casters.Count >= 8 && NumCasts == 1)
-                {
-                    yield return new(rect, _casters[3].Position, _casters[3].Rotation, _activation2);
-                    yield return new(rect, _casters[4].Position, _casters[4].Rotation, _activation2);
-                    yield return new(rect, _casters[5].Position, _casters[5].Rotation, _activation2);
-                    yield return new(rect, _casters[6].Position, _casters[6].Rotation, _activation2);
-                    yield return new(rect, _casters[7].Position, _casters[7].Rotation, _activation2);
-                }
+                    for (int i = 3; i < 8; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation2);
                 if (_casters.Count >= 5 && NumCasts == 4)
-                {
-                    yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[1].Position, _casters[1].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[2].Position, _casters[2].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[3].Position, _casters[3].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[4].Position, _casters[4].Rotation, _activation1, ArenaColor.Danger);
-                }
+                    for (int i = 0; i < 5; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation1, ArenaColor.Danger);
             }
             if (bombcount == 2)
             {
                 if (_casters.Count >= 2 && NumCasts == 0)
-                {
-                    yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[1].Position, _casters[1].Rotation, _activation1, ArenaColor.Danger);
-                }
+                    for (int i = 0; i < 2; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation1, ArenaColor.Danger);
                 if (_casters.Count >= 7 && NumCasts == 0)
-                {
-                    yield return new(rect, _casters[2].Position, _casters[2].Rotation, _activation2);
-                    yield return new(rect, _casters[3].Position, _casters[3].Rotation, _activation2);
-                    yield return new(rect, _casters[4].Position, _casters[4].Rotation, _activation2);
-                    yield return new(rect, _casters[5].Position, _casters[5].Rotation, _activation2);
-                    yield return new(rect, _casters[6].Position, _casters[6].Rotation, _activation2);
-                }
+                    for (int i = 2; i < 7; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation2);
                 if (_casters.Count >= 5 && NumCasts == 2)
-                {
-                    yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[1].Position, _casters[1].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[2].Position, _casters[2].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[3].Position, _casters[3].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[4].Position, _casters[4].Rotation, _activation1, ArenaColor.Danger);
-                }
+                    for (int i = 0; i < 5; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation1, ArenaColor.Danger);
                 if (_casters.Count >= 13 && NumCasts == 2)
-                {
-                    yield return new(rect, _casters[5].Position, _casters[5].Rotation, _activation2);
-                    yield return new(rect, _casters[6].Position, _casters[6].Rotation, _activation2);
-                    yield return new(rect, _casters[7].Position, _casters[7].Rotation, _activation2);
-                    yield return new(rect, _casters[8].Position, _casters[8].Rotation, _activation2);
-                    yield return new(rect, _casters[9].Position, _casters[9].Rotation, _activation2);
-                    yield return new(rect, _casters[10].Position, _casters[10].Rotation, _activation2);
-                    yield return new(rect, _casters[11].Position, _casters[11].Rotation, _activation2);
-                    yield return new(rect, _casters[12].Position, _casters[12].Rotation, _activation2);
-                }
+                    for (int i = 5; i < 13; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation2);
                 if (_casters.Count >= 8 && NumCasts == 7)
-                {
-                    yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[1].Position, _casters[1].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[2].Position, _casters[2].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[3].Position, _casters[3].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[4].Position, _casters[4].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[5].Position, _casters[5].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[6].Position, _casters[6].Rotation, _activation1, ArenaColor.Danger);
-                    yield return new(rect, _casters[7].Position, _casters[7].Rotation, _activation1, ArenaColor.Danger);
-                }
+                    for (int i = 0; i < 8; ++i)
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation1, ArenaColor.Danger);
             }
         }
 
@@ -226,7 +172,7 @@ namespace BossMod.Endwalker.FATE.Chi
         {
             if ((OID)actor.OID == OID.Helper4)
             {
-                _activation1 = module.WorldState.CurrentTime.AddSeconds(8);
+                _activation1 = _activation2 = module.WorldState.CurrentTime.AddSeconds(10);  //placeholder value that gets overwritten when cast actually starts
                 ++bombcount;
             }
             if ((OID)actor.OID is OID.Helper4 or OID.Helper5)
