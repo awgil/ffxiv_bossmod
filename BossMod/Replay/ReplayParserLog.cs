@@ -338,6 +338,7 @@ namespace BossMod
                 case "CLRJ": ParseClientActionReject(); break;
                 case "CDN+": ParseClientCountdown(true); break;
                 case "CDN-": ParseClientCountdown(false); break;
+                case "CLBH": ParseClientBozjaHolster(); break;
             }
 
             return true;
@@ -738,6 +739,19 @@ namespace BossMod
         private void ParseClientCountdown(bool start)
         {
             AddOp(new ClientState.OpCountdownChange() { Value = start ? _input.ReadFloat() : null });
+        }
+
+        private void ParseClientBozjaHolster()
+        {
+            var num = _input.ReadByte(false);
+            var op = new ClientState.OpBozjaHolsterChange(num);
+            for (int i = 0; i < num; ++i)
+            {
+                var entry = _input.ReadByte(false);
+                var count = _input.ReadByte(false);
+                op.Contents.Add(((BozjaHolsterID)entry, count));
+            }
+            AddOp(op);
         }
 
         private static (ActorHP hp, uint curMP) ActorHPMP(string repr)

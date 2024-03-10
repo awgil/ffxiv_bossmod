@@ -368,6 +368,11 @@ namespace BossMod
             var countdown = Countdown.TimeRemaining();
             if (Client.CountdownRemaining != countdown)
                 Execute(new ClientState.OpCountdownChange() { Value = countdown });
+
+            Span<byte> bozjaHolster = stackalloc byte[Client.BozjaHolster.Length];
+            BozjaInterop.FetchHolster(bozjaHolster);
+            if (!MemoryExtensions.SequenceEqual(Client.BozjaHolster.AsSpan(), bozjaHolster))
+                Execute(new ClientState.OpBozjaHolsterChange(bozjaHolster));
         }
 
         private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;

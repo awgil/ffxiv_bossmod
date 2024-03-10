@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace BossMod
@@ -31,11 +32,14 @@ namespace BossMod
     public class ClientState
     {
         public float? CountdownRemaining;
+        public byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
 
         public IEnumerable<WorldState.Operation> CompareToInitial()
         {
             if (CountdownRemaining != null)
                 yield return new OpCountdownChange() { Value = CountdownRemaining };
+            if (BozjaHolster.Any(count => count != 0))
+                yield return new OpBozjaHolsterChange(BozjaHolster);
         }
 
         public void Tick(float dt)
@@ -99,6 +103,36 @@ namespace BossMod
                     WriteTag(output, "CDN+").Emit(Value.Value);
                 else
                     WriteTag(output, "CDN-");
+            }
+        }
+
+        public event EventHandler<OpBozjaHolsterChange>? BozjaHolsterChanged;
+        public class OpBozjaHolsterChange : WorldState.Operation
+        {
+            public List<(BozjaHolsterID entry, byte count)> Contents = new();
+
+            public OpBozjaHolsterChange(byte numEntries) => Contents.Capacity = numEntries;
+            public OpBozjaHolsterChange(ReadOnlySpan<byte> entries)
+            {
+                for (int i = 0; i < entries.Length; ++i)
+                    if (entries[i] != 0)
+                        Contents.Add(((BozjaHolsterID)i, entries[i]));
+            }
+
+            protected override void Exec(WorldState ws)
+            {
+                Array.Fill(ws.Client.BozjaHolster, (byte)0);
+                foreach (var e in Contents)
+                    ws.Client.BozjaHolster[(int)e.entry] = e.count;
+                ws.Client.BozjaHolsterChanged?.Invoke(ws, this);
+            }
+
+            public override void Write(ReplayRecorder.Output output)
+            {
+                WriteTag(output, "CLBH");
+                output.Emit((byte)Contents.Count);
+                foreach (var e in Contents)
+                    output.Emit((byte)e.entry).Emit(e.count);
             }
         }
     }
