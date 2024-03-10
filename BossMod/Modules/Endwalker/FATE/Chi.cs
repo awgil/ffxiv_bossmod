@@ -25,11 +25,11 @@ namespace BossMod.Endwalker.FATE.Chi
         Carapace_ForeArms2dot0B = 25955, // Boss->self, 8,0s cast, range 16-60 donut
         Carapace_RearGuns2dot0B = 25956, // Boss->self, 8,0s cast, range 16-60 donut
         ForeArms = 25959, // Boss->self, 6,0s cast, range 45 180-degree cone
-        ForeArms2 = 26523, // Boss->location, 6,0s cast, range 45 180-degree cone
+        ForeArms2 = 26523, // Boss->self, 6,0s cast, range 45 180-degree cone
         ForeArms2dot0 = 25961, // Boss->self, no cast, range 45 180-degree cone
         RearGuns2dot0 = 25964, // Boss->self, no cast, range 45 180-degree cone
         RearGuns = 25962, // Boss->self, 6,0s cast, range 45 180-degree cone
-        RearGuns2 = 26524, // Boss->location, 6,0s cast, range 45 180-degree cone
+        RearGuns2 = 26524, // Boss->self, 6,0s cast, range 45 180-degree cone
         RearGuns_ForeArms2dot0 = 25963, // Boss->self, 6,0s cast, range 45 180-degree cone
         ForeArms_RearGuns2dot0 = 25960, // Boss->self, 6,0s cast, range 45 180-degree cone
         Hellburner = 25971, // Boss->self, no cast, single-target, circle tankbuster
