@@ -11,28 +11,10 @@ namespace BossMod.Endwalker.Trials.T08Asura
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_spell.Count > 0 && NumCasts == 0)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[0].Rotation, _start.AddSeconds(12.9f), ArenaColor.Danger);
-            if (_spell.Count > 1 && NumCasts == 0)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[1].Rotation, _start.AddSeconds(14.9f));
-            if (_spell.Count > 1 && NumCasts == 1)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[1].Rotation, _start.AddSeconds(14.9f), ArenaColor.Danger);
-            if (_spell.Count > 2 && NumCasts == 1)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[2].Rotation, _start.AddSeconds(17));
-            if (_spell.Count > 3 && NumCasts == 2)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[2].Rotation, _start.AddSeconds(17), ArenaColor.Danger);
-            if (_spell.Count > 3 && NumCasts == 2)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[3].Rotation, _start.AddSeconds(19));
-            if (_spell.Count > 4 && NumCasts == 3)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[3].Rotation, _start.AddSeconds(19), ArenaColor.Danger);
-            if (_spell.Count > 4 && NumCasts == 3)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[4].Rotation, _start.AddSeconds(21.1f));
-            if (_spell.Count > 5 && NumCasts == 4)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[4].Rotation, _start.AddSeconds(21.1f), ArenaColor.Danger);
-            if (_spell.Count > 5 && NumCasts == 4)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[5].Rotation, _start.AddSeconds(23.2f));
-            if (_spell.Count > 5 && NumCasts == 5)
-                yield return new(Cone, module.PrimaryActor.Position, _spell[5].Rotation, _start.AddSeconds(23.2f), ArenaColor.Danger);
+            if (_spell.Count > 0)
+                yield return new(Cone, module.PrimaryActor.Position, _spell[0].Rotation, _start, ArenaColor.Danger);
+            if (_spell.Count > 1)
+                yield return new(Cone, module.PrimaryActor.Position, _spell[1].Rotation, _start.AddSeconds(2));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -41,7 +23,7 @@ namespace BossMod.Endwalker.Trials.T08Asura
             {
                 _spell.Add(spell);
                 if (_start == default)
-                    _start = module.WorldState.CurrentTime;
+                    _start = module.WorldState.CurrentTime.AddSeconds(12.9f);
             }
         }
 
@@ -50,11 +32,12 @@ namespace BossMod.Endwalker.Trials.T08Asura
             if ((AID)spell.Action.ID is AID.Khadga1 or AID.Khadga2 or AID.Khadga3 or AID.Khadga4 or AID.Khadga5 or AID.Khadga6)
             {
                 ++NumCasts;
+                _spell.RemoveAt(0);
+                _start.AddSeconds(2);
                 if (NumCasts == 6)
                 {
                     NumCasts = 0;
                     _start = default;
-                    _spell.Clear();
                 }
             }
         }
