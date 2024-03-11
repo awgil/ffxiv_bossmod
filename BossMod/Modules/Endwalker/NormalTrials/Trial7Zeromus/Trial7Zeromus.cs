@@ -169,7 +169,8 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
             
             TrivialPhase()
                 .ActivateOnEnter<AbyssalEchoes>()
-                .ActivateOnEnter<BigBangPuddle>();
+                .ActivateOnEnter<BigBangPuddle>()
+                .ActivateOnEnter<BigCrunchPuddle>();
         }
     }
 
