@@ -1,0 +1,1 @@
+namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
