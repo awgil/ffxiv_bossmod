@@ -78,8 +78,8 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
         public static bool chained;
         private bool chainsactive;
         public static Actor? chaintarget;
-        private bool _fetters;
         private bool casting;
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.ChainTarget)
@@ -99,10 +99,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
         {
             var fetters = chaintarget?.FindStatus(SID.Fetters) != null;
             if (fetters)
-            {
                 chainsactive = true;
-                _fetters = fetters;
-            }
             if (fetters && !chained)
                 chained = true;
             if (chaintarget != null && !fetters && !casting)
