@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
             if (Baiter == actor)
             {
                 if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _startingRadius).Any())
-                    hints.Add("GTFO from party!");
+                    hints.Add("GTFO from raid!");
             }
             else if (Baiter != null)
             {
@@ -114,7 +114,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID is AID.FracturedEventideAOEFirstWE or AID.FracturedEventideAOEFirstEW or AID.FracturedEventideAOERest)
+            if ((AID)spell.Action.ID is AID.FracturedEventideAOEFirst or AID.FracturedEventideAOERest)
                 ++NumCasts;
         }
     }
