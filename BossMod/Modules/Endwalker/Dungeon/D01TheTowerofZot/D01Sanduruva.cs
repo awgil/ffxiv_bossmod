@@ -52,59 +52,52 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Sanduruva
         ManusyaBerserk = 2651, // Boss->player, extra=0x0
         VulnerabilityUp = 1789, // Boss->player, extra=0x1
     };
-    class WhoIsSheAnyways : BossComponent
+class WhoIsSheAnyways : BossComponent
+{
+    public int ActiveDebuffs { get; private set; }
+    public bool FoundHer = false;
+    public WPos IsShe = new WPos();
+
+    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        public int ActiveDebuffs { get; private set; }
-        public bool FoundHer = false;
-        public WPos IsShe;
-        /* //we dont even need this i think
-        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
-        {
-            if ((SID)status.ID is SID.WhoIsShe or SID.WhoIsShe2)
-            {
-                //send the player to the grillboss
-                // Add forbidden zone using the calculated function with current time
-                FoundHer = true;
-            }
+        base.AddAIHints(module, slot, actor, assignment, hints);
+        IsShe = module.PrimaryActor.Position;
+        FoundHer = module.Enemies(OID.BerserkerSphere).Any(x => !x.IsDead);
 
-        }*/
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        if (FoundHer)
         {
-            base.AddAIHints(module, slot, actor, assignment, hints);
-            IsShe = module.PrimaryActor.Position;
-            FoundHer = false;
-            if (module.Enemies(OID.BerserkerSphere).Any(x => !x.IsDead))
-                FoundHer = true;
-
-            if (FoundHer == true)
-            {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position, 1f));
-
-            }
-            if (FoundHer == false)
-            {
-                //hints.Clear(); //dont think we need this? will test
-            }
-        }
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            DrawCircles(arena);
-        }
-
-        private void DrawCircles(MiniArena arena)
-        {
-            if (FoundHer == true)
-            {
-                //arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, 0xFF404040);
-                arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, ArenaColor.SafeFromAOE);
-            }
-            if (FoundHer == false)
-            {
-                //arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, ArenaColor.SafeFromAOE);
-                arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, ArenaColor.Background);
-            }
+            IsShe = NearestPointOnCircle(IsShe.X, IsShe.Z, -258, -26, 20);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(IsShe, 1f));
         }
     }
+
+    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        if (FoundHer)
+            arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, ArenaColor.SafeFromAOE);
+        else
+            arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, ArenaColor.Background);
+    }
+
+        public static WPos NearestPointOnCircle(double x, double y, double a, double b, double radius)
+        {
+            // Calculate the vector from the circle's center to the point (x, y)
+            double dx = x - a;
+            double dy = y - b;
+
+            // Calculate the angle between the x-axis and the vector
+            double angle = Math.Atan2(dy, dx);
+
+            // Calculate the point on the circle's edge using trigonometry
+            double newX = a + radius * Math.Cos(angle);
+            double newY = b + radius * Math.Sin(angle);
+
+            WPos nearestPoint = new WPos((float)newX, (float)newY);
+            return nearestPoint;
+        }
+
+    }
+
 
     class ExplosiveForce : Components.SingleTargetCast
     {
@@ -141,9 +134,9 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Sanduruva
         public D01SanduruvaStates(BossModule module) : base(module)
         {
             TrivialPhase()
+            .ActivateOnEnter<ManusyaConfuse>()  //these are not avoidable anyways
             .ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
-            .ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
-            .ActivateOnEnter<ExplosiveForce>()
+            //.ActivateOnEnter<ExplosiveForce>()
             .ActivateOnEnter<WhoIsSheAnyways>()
             .ActivateOnEnter<PraptiSiddhi>()
             //.ActivateOnEnter<SphereShatter>()

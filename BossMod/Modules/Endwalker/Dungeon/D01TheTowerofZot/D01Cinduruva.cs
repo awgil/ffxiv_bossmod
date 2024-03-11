@@ -60,6 +60,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
         PraptiSiddhi = 25275,         //done. Sanduruva->self, 2.0s cast, range 40 width 4 rect
         Samsara = 25273,              // Boss->self, 3.0s cast, range 40 circle
     };
+
     public enum SID : uint
     {
         VulnerabilityUp = 1789, // Helper->player, extra=0x1

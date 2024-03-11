@@ -98,7 +98,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
     {
         public int ActiveDebuffs { get; private set; }
         public bool FireAlchMove = false;
-        public WPos FireAlchSafeSpot;
+        public WPos FireAlchSafeSpot = new WPos();
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             if ((SID)status.ID is SID.FireAlchemy)
