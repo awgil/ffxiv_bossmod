@@ -103,7 +103,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.FracturedEventideAOEFirstWE so AID.FracturedEventideAOEFirstEW)
+            if ((AID)spell.Action.ID == AID.FracturedEventideAOEFirst)
             {
                 _source = caster;
                 _startingRotation = spell.Rotation;
