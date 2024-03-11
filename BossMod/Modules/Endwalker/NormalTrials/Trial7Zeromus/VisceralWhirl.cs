@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
+namespace BossMod.Endwalker.NormalTrial.Trial7Zeromus
 {
     // note: apparently there's a slight overlap between aoes in the center, which looks ugly, but at least that's the truth...
     class VisceralWhirl : Components.GenericAOEs
@@ -40,6 +40,11 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         }
     }
 
+    class MiasmicBlast : Components.SelfTargetedAOEs
+    {
+        public MiasmicBlast() : base(ActionID.MakeSpell(AID.MiasmicBlast), new AOEShapeCross(60, 5)) { }
+    }
+
     class VoidBio : Components.GenericAOEs
     {
         private IReadOnlyList<Actor> _bubbles = ActorEnumeration.EmptyList;
@@ -51,6 +56,60 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         public override void Init(BossModule module)
         {
             _bubbles = module.Enemies(OID.ToxicBubble);
+        }
+    }
+
+    class BondsOfDarkness : BossComponent
+    {
+        public int NumTethers { get; private set; }
+        private int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_partners[slot] >= 0)
+                hints.Add("Break tether!");
+        }
+
+        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        {
+            return _partners[pcSlot] == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            var partner = module.Raid[_partners[pcSlot]];
+            if (partner != null)
+                arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+        }
+
+        public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            if (tether.ID == (uint)TetherID.BondsOfDarkness)
+            {
+                var slot1 = module.Raid.FindSlot(source.InstanceID);
+                var slot2 = module.Raid.FindSlot(tether.Target);
+                if (slot1 >= 0 && slot2 >= 0)
+                {
+                    ++NumTethers;
+                    _partners[slot1] = slot2;
+                    _partners[slot2] = slot1;
+                }
+            }
+        }
+
+        public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+        {
+            if (tether.ID == (uint)TetherID.BondsOfDarkness)
+            {
+                var slot1 = module.Raid.FindSlot(source.InstanceID);
+                var slot2 = module.Raid.FindSlot(tether.Target);
+                if (slot1 >= 0 && slot2 >= 0)
+                {
+                    --NumTethers;
+                    _partners[slot1] = -1;
+                    _partners[slot2] = -1;
+                }
+            }
         }
     }
 
