@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         AutoAttack = 35912, // Boss->player, no cast, single-target
 
         AbyssalNox  = 35575, // Boss->self, 5.0s cast, range 60 circle
-        AbyssalEchoesVisualIntercardinal = 35576, // Helper->self, 9.0s cast, single-target
+        AbyssalEchoesVisualCardinal = 35576, // Helper->self, 9.0s cast, single-target
         AbyssalEchoesVisualIntercardinal = 35577, // Helper->self, 9.0s cast, single-target
         AbyssalEchoes = 35578, // Helper->self, 16.0s cast, range 12 circle
         
@@ -27,10 +27,13 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         SableThreadVisualHitIntermediate = 35568, // Boss->self, no cast, single-target
         SableThreadVisualHitLast = 35569, // Boss->self, no cast, single-target
 
-        VisceralWhirl = 35579, // Boss->self, 8.0s cast, single-target
-        VisceralWhirlAOE1 = 35580, // Helper->self, 8.8s cast, range 29 width 28 rect
-        VisceralWhirlAOE2 = 35581, // Helper->self, 8.8s cast, range 60 width 28 rect
-
+        VisceralWhirlR = 35579, // Boss->self, 8.0s cast, single-target
+        VisceralWhirlRAOE1 = 35580, // Helper->self, 8.8s cast, range 29 width 28 rect
+        VisceralWhirlRAOE2 = 35581, // Helper->self, 8.8s cast, range 60 width 28 rect
+        VisceralWhirlL = 35582, // Boss->self, 8.0s cast, single-target
+        VisceralWhirlLAOE1 = 35583, // Helper->self, 8.8s cast, range 29 width 28 rect
+        VisceralWhirlLAOE2 = 35584, // Helper->self, 8.8s cast, range 60 width 28 rect
+        
         DarkMatter = 35638, // Boss->self, 4.0s cast, single-target
         DarkMatterAOE = 35639, // Helper->player, no cast, range 8 circle
 
@@ -72,10 +75,6 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         FracturedEventideAOEFirstWE = 35573, // Helper->self, 8.5s cast, range 60 width 8 rect
         FracturedEventideAOEFirstEW = 35910, // Helper->self, 8.5s cast, range 60 width 8 rect
         FracturedEventideAOERest = 35574, // Helper->self, no cast, range 60 width 8 rect
-
-        VisceralWhirl = 35582, // Boss->self, 8.0s cast, single-target
-        VisceralWhirlRAOE1 = 35583, // Helper->self, 8.8s cast, range 29 width 28 rect
-        VisceralWhirlRAOE2 = 35584, // Helper->self, 8.8s cast, range 60 width 28 rect
         
         RendTheRift = 35609, // Boss->self, 6.0s cast, range 60 circle
         NostalgiaDimensionalSurge = 35633, // Helper->location, 4.0s cast, range 5 circle
@@ -102,7 +101,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         ChasmicNailsAOE4 = 35631, // Helper->self, 9.8s cast, range 60 ?-degree cone
         ChasmicNailsAOE5 = 35632, // Helper->self, 10.5s cast, range 60 ?-degree cone
         ChasmicNailsVisual1 = 35623, // Helper->self, 1.5s cast, range 60 ?-degree cone
-        ChasmicNailsVisual1 = 35624, // Helper->self, 3.0s cast, range 60 ?-degree cone
+        ChasmicNailsVisual2 = 35624, // Helper->self, 3.0s cast, range 60 ?-degree cone
         ChasmicNailsVisual3 = 35625, // Helper->self, 4.0s cast, range 60 ?-degree cone
         ChasmicNailsVisual4 = 35626, // Helper->self, 5.0s cast, range 60 ?-degree cone
         ChasmicNailsVisual5 = 35627, // Helper->self, 6.0s cast, range 60 ?-degree cone
