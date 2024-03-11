@@ -18,7 +18,7 @@ public enum AID : uint
     NaturesPulse1 = 20797, // Helper->self, 4,0s cast, range 10 circle
     NaturesPulse2 = 20798, // Helper->self, 5,5s cast, range 10-20 donut
     NaturesPulse3 = 20799, // Helper->self, 7,0s cast, range 20-30 donut
-    TasteOfBlood = 20815, // Boss->self, 4,0s cast, range 40 ?-degree cone
+    TasteOfBlood = 20815, // Boss->self, 4,0s cast, range 40 180-degree cone
     RavenousGale = 20802, // Boss->self, 4,0s cast, single-target
     DynasticFlame1 = 20806, // Boss->player, 3,0s cast, range 5 circle
     DynasticFlame2 = 20807, // Boss->player, no cast, range 5 circle
@@ -33,11 +33,6 @@ public enum AID : uint
     SplittingRage = 20814, // Boss->self, 3,0s cast, range 50 circle
     SkyrendingStrike = 20804, //enrage, 35s cast time
     SkyrendingStrike2 = 20805, //enrage, 0 cast time, repeat incase player survived 1st enrage
-};
-
-public enum IconID : uint
-{
-    Unknown = 179, // Boss
 };
 
 public enum TetherID : uint
