@@ -72,8 +72,8 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         _Spell_BlackHole = 36134, // Helper->self, 5.7s cast, range 4 circle // no clue what this is
         FracturedEventideWE = 35571, // Boss->self, 8.0s cast, single-target
         FracturedEventideEW = 35572, // Boss->self, 8.0s cast, single-target
-        FracturedEventideAOEFirstWE = 35573, // Helper->self, 8.5s cast, range 60 width 8 rect
-        FracturedEventideAOEFirstEW = 35910, // Helper->self, 8.5s cast, range 60 width 8 rect
+        FracturedEventideAOEFirst = 35573, // Helper->self, 8.5s cast, range 60 width 8 rect
+        FracturedEventideAOEFirst2 = 35910, // Helper->self, 8.5s cast, range 60 width 8 rect // no clue what this is either
         FracturedEventideAOERest = 35574, // Helper->self, no cast, range 60 width 8 rect
         
         RendTheRift = 35609, // Boss->self, 6.0s cast, range 60 circle
