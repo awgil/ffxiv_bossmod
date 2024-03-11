@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.Extreme.Ex7Zeromus
+namespace BossMod.Endwalker.NormalTrial.Trial7Zeromus
 {
     class FlowOfTheAbyssDimensionalSurge : Components.SelfTargetedAOEs
     {
@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID is AID.AkhRhaiStart)
+            if ((AID)spell.Action.ID is AID.AkhRhaiStart or AID.UmbralRays or AID.UmbralPrism)
             {
                 Spreads.Clear();
                 Stacks.Clear();
