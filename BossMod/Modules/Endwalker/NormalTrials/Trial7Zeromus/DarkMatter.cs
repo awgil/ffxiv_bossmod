@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
@@ -48,9 +48,15 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         }
     }
 
-    class DarkBeckons : Components.UniformStackSpread
+    class ForkedLightningDarkBeckons : Components.UniformStackSpread
     {
-        public DarkBeckons() : base(6, 5, 4, alwaysShowSpreads: true) { }
+        public ForkedLightningDarkBeckons() : base(6, 5, 4, alwaysShowSpreads: true) { }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.ForkedLightning)
+                AddSpread(actor, status.ExpireAt);
+        }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
@@ -68,7 +74,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID is AID.DarkBeckons)
+            if ((AID)spell.Action.ID is AID.ForkedLightning or AID.DarkBeckons)
             {
                 Spreads.Clear();
                 Stacks.Clear();
