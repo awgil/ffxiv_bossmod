@@ -78,7 +78,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Sanduruva
 
             if (FoundHer == true)
             {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position, 0.5f));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position, 1f));
 
             }
             if (FoundHer == false)
@@ -116,19 +116,19 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Sanduruva
     }
     class SphereShatter : Components.SelfTargetedAOEs
     {
-        public SphereShatter() : base(ActionID.MakeSpell(AID.SphereShatter), new AOEShapeCircle(4)) { }
+        public SphereShatter() : base(ActionID.MakeSpell(AID.SphereShatter), new AOEShapeCircle(15)) { }
     }
     class PrakamyaSiddhi : Components.SelfTargetedAOEs
     {
         public PrakamyaSiddhi() : base(ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(5)) { }
     }
-    class ManusyaConfuse : Components.RaidwideCast
+    class ManusyaConfuse : Components.SelfTargetedAOEs
     {
-        public ManusyaConfuse() : base(ActionID.MakeSpell(AID.ManusyaConfuse)) { }
+        public ManusyaConfuse() : base(ActionID.MakeSpell(AID.ManusyaConfuse), new AOEShapeCircle(5)) { }
     }
-    class ManusyaStop : Components.RaidwideCast
+    class ManusyaStop : Components.SelfTargetedAOEs
     {
-        public ManusyaStop() : base(ActionID.MakeSpell(AID.ManusyaStop)) { }
+        public ManusyaStop() : base(ActionID.MakeSpell(AID.ManusyaStop), new AOEShapeCircle(5)) { }
     }
 
     public enum IconID : uint
@@ -141,15 +141,16 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Sanduruva
         public D01SanduruvaStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            //.ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
-            //.ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
+            .ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
+            .ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
             .ActivateOnEnter<ExplosiveForce>()
             .ActivateOnEnter<WhoIsSheAnyways>()
             .ActivateOnEnter<PraptiSiddhi>()
-            .ActivateOnEnter<PrakamyaSiddhi>()
-            .ActivateOnEnter<SphereShatter>();
+            //.ActivateOnEnter<SphereShatter>()
+            .ActivateOnEnter<PrakamyaSiddhi>();
         }
     }
+    //it runs from bezerker orbs but doesnt go to the right place. maybe arena size is wrong.
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
     */
     [ModuleInfo(CFCID = 783, NameID = 10257)]

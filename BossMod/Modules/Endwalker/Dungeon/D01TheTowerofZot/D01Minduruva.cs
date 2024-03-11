@@ -44,7 +44,9 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
         TransmuteBlizzardIII = 25371,    // Boss->self, 2.7s cast, single-target
         TransmuteFireIII = 25242,        // Boss->self, 2.7s cast, single-target
         TransmuteThunderIII = 25372,     // Boss->self, 2.7s cast, single-target
+        TransmuteBioIII = 25373,         // Boss->self, 2.7s cast, single-target
     };
+
     public enum SID : uint
     {
         IceAlchemy = 2752, // Boss->Boss, extra=0x0
@@ -66,7 +68,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
         public Dhrupad() : base(ActionID.MakeSpell(AID.Dhrupad)) { }
     }
     class ManusyaThunderIII2 : Components.SelfTargetedAOEs{
-        public ManusyaThunderIII2() : base(ActionID.MakeSpell(AID.ManusyaThunderIII2), new AOEShapeCircle(3)) { }
+        public ManusyaThunderIII2() : base(ActionID.MakeSpell(AID.ManusyaThunderIII2), new AOEShapeCircle(3),3) { }
     }
     class ManusyaBioIII2 : Components.SelfTargetedAOEs{ //targets tank
         public ManusyaBioIII2() : base(ActionID.MakeSpell(AID.ManusyaBioIII2), new AOEShapeCone(40,90.Degrees())) { }
@@ -75,7 +77,67 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
         public ManusyaBlizzardIII2() : base(ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(40,10.Degrees())) { }
     }
     class ManusyaFireIII2 : Components.SelfTargetedAOEs{
-        public ManusyaFireIII2() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(4, 70)) { } //made it bigger so it doesnt try to go to the edge of arena
+       public ManusyaFireIII2() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(2,40)) { }
+       /*public WPos ManusyaFireHack;
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastFinished(module, caster, spell);
+            //ManusyaFireHack = spell.LocXZ;
+            ManusyaFireHack = caster.Position;
+        }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (ManusyaFireHack.X != 0 || ManusyaFireHack.Z != 0) {
+                base.AddAIHints(module, slot, actor, assignment, hints);
+                hints.
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(ManusyaFireHack, 4));
+            }
+        }*/
+    }
+    class FireAlchemyResolver : BossComponent
+    {
+        public int ActiveDebuffs { get; private set; }
+        public bool FireAlchMove = false;
+        public WPos FireAlchSafeSpot;
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID is SID.FireAlchemy)
+            {
+                //send the player to the grillboss
+                // Add forbidden zone using the calculated function with current time
+                FireAlchMove = true;
+            }
+
+        }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
+            FireAlchSafeSpot = module.PrimaryActor.Position;
+            if (FireAlchMove == true)
+            {
+                hints.Clear(); //dont think we need this? will test
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.PrimaryActor.Position, 0.5f));
+
+            }
+        }
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            DrawCircles(arena);
+        }
+
+        private void DrawCircles(MiniArena arena)
+        {
+            if (FireAlchMove == true)
+            {
+                //arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, 0xFF404040);
+                arena.AddCircleFilled(new WPos(FireAlchSafeSpot.X, FireAlchSafeSpot.Z), 2.5f, ArenaColor.SafeFromAOE);
+            }
+            if (FireAlchMove == false)
+            {
+                //arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, ArenaColor.SafeFromAOE);
+                arena.AddCircleFilled(new WPos(FireAlchSafeSpot.X, FireAlchSafeSpot.Z), 2.5f, ArenaColor.Background);
+            }
+        }
     }
     class D01MinduruvaStates : StateMachineBuilder
     {
@@ -83,12 +145,15 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
         {
             TrivialPhase()
             //.ActivateOnEnter<Dhrupad>() //testing with this disabled next run
+            //.ActivateOnEnter<FireAlchemyResolver>()
             .ActivateOnEnter<ManusyaThunderIII2>()
             .ActivateOnEnter<ManusyaFireIII2>()
             .ActivateOnEnter<ManusyaBioIII2>()
             .ActivateOnEnter<ManusyaBlizzardIII2>();
         }
     }
+    //Seems to fail on the donut thing goes to wrong spot?
+    //it doesnt prioritize     class ManusyaFireIII2 : Components.SelfTargetedAOEs{
 
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
     */
@@ -100,6 +165,11 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
+        }
+        protected override void DrawEnemies(int pcSlot, Actor pc)
+        {
+            foreach (var s in Enemies(OID.Boss))
+                Arena.Actor(s, ArenaColor.Enemy, true);
         }
     }
 }

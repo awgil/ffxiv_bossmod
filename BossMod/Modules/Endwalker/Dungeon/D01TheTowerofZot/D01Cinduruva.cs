@@ -146,6 +146,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
     /*missing stuff
      * stack marker
      * delayed bombs on ground
+     * goes to opposite spot from the donut on some donuts? (first one i think in 2024 03 10 first recording)
      */
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
     */
