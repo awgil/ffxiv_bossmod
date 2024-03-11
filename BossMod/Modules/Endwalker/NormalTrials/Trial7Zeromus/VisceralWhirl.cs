@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 {
-
+    // note: apparently there's a slight overlap between aoes in the center, which looks ugly, but at least that's the truth...
     class VisceralWhirl : Components.GenericAOEs
     {
         private List<AOEInstance> _aoes = new();
@@ -20,10 +20,14 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         {
             switch ((AID)spell.Action.ID)
             {
-                case AID.VisceralWhirlAOE1:
+                case AID.VisceralWhirlRAOE1:
+                case AID.VisceralWhirlLAOE1:
                     _aoes.Add(new(_shapeNormal, caster.Position, spell.Rotation, spell.NPCFinishAt));
                     break;
-                case AID.VisceralWhirlAOE2:
+                case AID.VisceralWhirlRAOE2:
+                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.NPCFinishAt));
+                    break;
+                case AID.VisceralWhirlLAOE2:
                     _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.NPCFinishAt));
                     break;
             }
@@ -31,8 +35,22 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.VisceralWhirlAOE1 or AID.VisceralWhirlAOE2)
+            if ((AID)spell.Action.ID is AID.VisceralWhirlRAOE1 or AID.VisceralWhirlRAOE2 or AID.VisceralWhirlLAOE1 or AID.VisceralWhirlLAOE2)
                 _aoes.RemoveAll(a => a.Rotation.AlmostEqual(spell.Rotation, 0.05f));
+        }
+    }
+
+    class VoidBio : Components.GenericAOEs
+    {
+        private IReadOnlyList<Actor> _bubbles = ActorEnumeration.EmptyList;
+
+        private static AOEShapeCircle _shape = new(2); // TODO: verify explosion radius
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _bubbles.Where(actor => !actor.IsDead).Select(b => new AOEInstance(_shape, b.Position));
+
+        public override void Init(BossModule module)
+        {
+            _bubbles = module.Enemies(OID.ToxicBubble);
         }
     }
 
