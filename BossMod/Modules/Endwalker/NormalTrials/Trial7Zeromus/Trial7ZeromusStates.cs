@@ -2,7 +2,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 {
     class Trial7ZeromusStates : StateMachineBuilder
     {
-        public Ex7ZeromusStates(BossModule module) : base(module)
+        public Trial7ZeromusStates(BossModule module) : base(module)
         {
             SimplePhase(0, Phase1, "P1")
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.RendTheRift) ?? false);
