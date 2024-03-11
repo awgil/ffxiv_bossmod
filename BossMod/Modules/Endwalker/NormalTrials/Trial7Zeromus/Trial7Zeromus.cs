@@ -20,16 +20,16 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         AbyssalEchoesVisualIntercardinal = 35576, // Helper->self, 9.0s cast, single-target
         AbyssalEchoesVisualIntercardinal = 35577, // Helper->self, 9.0s cast, single-target
         AbyssalEchoes = 35578, // Helper->self, 16.0s cast, range 12 circle
-
-        SableThreadTarget = 35567, // Helper->player, no cast, single-target, visual (target selection)
+        
         SableThread = 35566, // Boss->self, 5.0s cast, single-target
+        SableThreadTarget = 35567, // Helper->player, no cast, single-target, visual (target selection)
         SableThreadAOE = 35570, // Helper->self, no cast, range 60 width 12 rect
         SableThreadVisualHitIntermediate = 35568, // Boss->self, no cast, single-target
         SableThreadVisualHitLast = 35569, // Boss->self, no cast, single-target
 
         VisceralWhirl = 35579, // Boss->self, 8.0s cast, single-target
-        VisceralWhirlLAOE1 = 35580, // Helper->self, 8.8s cast, range 29 width 28 rect
-        VisceralWhirlLAOE2 = 35581, // Helper->self, 8.8s cast, range 60 width 28 rect
+        VisceralWhirlAOE1 = 35580, // Helper->self, 8.8s cast, range 29 width 28 rect
+        VisceralWhirlAOE2 = 35581, // Helper->self, 8.8s cast, range 60 width 28 rect
 
         DarkMatter = 35638, // Boss->self, 4.0s cast, single-target
         DarkMatterAOE = 35639, // Helper->player, no cast, range 8 circle
@@ -79,8 +79,8 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         
         RendTheRift = 35609, // Boss->self, 6.0s cast, range 60 circle
         NostalgiaDimensionalSurge = 35633, // Helper->location, 4.0s cast, range 5 circle
-        NostalgiaDimensionalSurge2 = 35634, // Helper->location, 4.0s cast, range 2 circle
-        NostalgiaDimensionalSurge3 = 35635, // Helper->self, 4.0s cast, range 60 width 2 rect
+        NostalgiaDimensionalSurgeSmall = 35634, // Helper->location, 4.0s cast, range 2 circle
+        NostalgiaDimensionalSurgeLine = 35635, // Helper->self, 4.0s cast, range 60 width 2 rect
 
         Nostalgia = 35610, // Boss->self, 5.0s cast, single-target, visual (multiple raidwides)
         NostalgiaBury1 = 35612, // Helper->self, 0.7s cast, range 60 circle
@@ -95,17 +95,17 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         FlowOfTheAbyssDimensionalSurge = 35637, // Helper->self, 9.0s cast, range 60 width 14 rect
         AkhRhaiStart = 35619, // Helper->self, 3.0s cast, range 5 circle
         AkhRhaiAOE = 35620, // Helper->self, no cast, range 5 circle
-        ChasmicNailsVisual1 = 35623, // Helper->self, 1.5s cast, range 60 ?-degree cone
-        ChasmicNailsVisual1 = 35624, // Helper->self, 3.0s cast, range 60 ?-degree cone
-        ChasmicNailsVisual3 = 35625, // Helper->self, 4.0s cast, range 60 ?-degree cone
-        ChasmicNailsVisual4 = 35626, // Helper->self, 5.0s cast, range 60 ?-degree cone
-        ChasmicNailsVisual5 = 35627, // Helper->self, 6.0s cast, range 60 ?-degree cone
         ChasmicNails = 35622, // Boss->self, 7.0s cast, single-target
         ChasmicNailsAOE1 = 35628, // Helper->self, 7.7s cast, range 60 ?-degree cone
         ChasmicNailsAOE2 = 35629, // Helper->self, 8.4s cast, range 60 ?-degree cone
         ChasmicNailsAOE3 = 35630, // Helper->self, 9.1s cast, range 60 ?-degree cone
         ChasmicNailsAOE4 = 35631, // Helper->self, 9.8s cast, range 60 ?-degree cone
         ChasmicNailsAOE5 = 35632, // Helper->self, 10.5s cast, range 60 ?-degree cone
+        ChasmicNailsVisual1 = 35623, // Helper->self, 1.5s cast, range 60 ?-degree cone
+        ChasmicNailsVisual1 = 35624, // Helper->self, 3.0s cast, range 60 ?-degree cone
+        ChasmicNailsVisual3 = 35625, // Helper->self, 4.0s cast, range 60 ?-degree cone
+        ChasmicNailsVisual4 = 35626, // Helper->self, 5.0s cast, range 60 ?-degree cone
+        ChasmicNailsVisual5 = 35627, // Helper->self, 6.0s cast, range 60 ?-degree cone
     };
 
     public enum SID : uint
@@ -159,6 +159,54 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         public BigCrunchPuddle() : base(ActionID.MakeSpell(AID.BigCrunchAOE), 5) { }
     }
 
+    class DarkDivides : Components.UniformStackSpread
+    {
+        public DarkDivides() : base(0, 5) { }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.DivisiveDark)
+                AddSpread(actor, status.ExpireAt);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.DarkDivides)
+                Spreads.Clear();
+        }
+    }
+
+    class VisceralWhirl : Components.GenericAOEs
+    {
+        private List<AOEInstance> _aoes = new();
+
+        private static AOEShapeRect _shapeNormal = new(29, 14);
+        private static AOEShapeRect _shapeOffset = new(60, 14);
+
+        public bool Active => _aoes.Count > 0;
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.VisceralWhirlAOE1:
+                    _aoes.Add(new(_shapeNormal, caster.Position, spell.Rotation, spell.NPCFinishAt));
+                    break;
+                case AID.VisceralWhirlAOE2:
+                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.NPCFinishAt));
+                    break;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.VisceralWhirlAOE1 or AID.VisceralWhirlAOE2)
+                _aoes.RemoveAll(a => a.Rotation.AlmostEqual(spell.Rotation, 0.05f));
+        }
+    }
+
     class  Trial7ZeromusStates : StateMachineBuilder
     {
         public Trial7ZeromusStates(BossModule module) : base(module)
@@ -170,7 +218,8 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
             TrivialPhase()
                 .ActivateOnEnter<AbyssalEchoes>()
                 .ActivateOnEnter<BigBangPuddle>()
-                .ActivateOnEnter<BigCrunchPuddle>();
+                .ActivateOnEnter<DarkDivides>()
+                .ActivateOnEnter<VisceralWhirl>();
         }
     }
 
