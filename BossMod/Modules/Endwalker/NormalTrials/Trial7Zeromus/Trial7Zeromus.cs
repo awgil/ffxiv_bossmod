@@ -93,10 +93,8 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 
         FlowOfTheAbyss = 36089, // Boss->self, 7.0s cast, single-target (spread/stack + unsafe line)
         FlowOfTheAbyssDimensionalSurge = 35637, // Helper->self, 9.0s cast, range 60 width 14 rect
-
         AkhRhaiStart = 35619, // Helper->self, 3.0s cast, range 5 circle
         AkhRhaiAOE = 35620, // Helper->self, no cast, range 5 circle
-
         ChasmicNailsVisual1 = 35623, // Helper->self, 1.5s cast, range 60 ?-degree cone
         ChasmicNailsVisual1 = 35624, // Helper->self, 3.0s cast, range 60 ?-degree cone
         ChasmicNailsVisual3 = 35625, // Helper->self, 4.0s cast, range 60 ?-degree cone
@@ -165,9 +163,14 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
     {
         public Trial7ZeromusStates(BossModule module) : base(module)
         {
+            SimplePhase(0, Phase1, "P1")
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.RendTheRift) ?? false);
+            DeathPhase(1, Phase2); // starts at around 25%
+            
             TrivialPhase()
                 .ActivateOnEnter<AbyssalEchoes>()
-                .ActivateOnEnter<Example>();
+                .ActivateOnEnter<BigBangPuddle>()
+                .ActivateOnEnter<BigCrunchPuddle>();
         }
     }
 
