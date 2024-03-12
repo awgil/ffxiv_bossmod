@@ -71,13 +71,13 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
         public ManusyaThunderIII2() : base(ActionID.MakeSpell(AID.ManusyaThunderIII2), new AOEShapeCircle(3),3) { }
     }
     class ManusyaBioIII2 : Components.SelfTargetedAOEs{ //targets tank
-        public ManusyaBioIII2() : base(ActionID.MakeSpell(AID.ManusyaBioIII2), new AOEShapeCone(40,90.Degrees())) { }
+        public ManusyaBioIII2() : base(ActionID.MakeSpell(AID.ManusyaBioIII2), new AOEShapeCone(60,90.Degrees())) { }
     }
     class ManusyaBlizzardIII2 : Components.SelfTargetedAOEs{
-        public ManusyaBlizzardIII2() : base(ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(40,10.Degrees())) { }
+        public ManusyaBlizzardIII2() : base(ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(60,10.Degrees())) { }
     }
     class ManusyaFireIII2 : Components.SelfTargetedAOEs{
-       public ManusyaFireIII2() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(2,40)) { }
+       public ManusyaFireIII2() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(2,60)) { }
        /*public WPos ManusyaFireHack;
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -160,7 +160,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Minduruva
     [ModuleInfo(CFCID = 783, NameID = 10256)]
     public class D01Minduruva : BossModule
     {
-        public D01Minduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(68.5f, -124.5f), 20)) { }
+        public D01Minduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(68f, -124), 38)) { }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {

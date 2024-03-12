@@ -90,7 +90,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
     }
     class DeltaThunderIII3 : Components.SelfTargetedAOEs
     {
-        public DeltaThunderIII3() : base(ActionID.MakeSpell(AID.DeltaThunderIII3), new AOEShapeRect(40, 5)) { }
+        public DeltaThunderIII3() : base(ActionID.MakeSpell(AID.DeltaThunderIII3), new AOEShapeRect(60, 5)) { }
     }
     class DeltaThunderIII4 : Components.SpreadFromCastTargets
     {
@@ -98,15 +98,15 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
     }
     class DeltaBlizzardIII1 : Components.SelfTargetedAOEs
     { 
-        public DeltaBlizzardIII1() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII1), new AOEShapeCone(40, 10.Degrees())) { } //might be different than the boss1 one
+        public DeltaBlizzardIII1() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII1), new AOEShapeCone(60, 10.Degrees())) { } //might be different than the boss1 one
     }
     class DeltaBlizzardIII2 : Components.SelfTargetedAOEs
     { 
-        public DeltaBlizzardIII2() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII2), new AOEShapeRect(44, 5)) { }
+        public DeltaBlizzardIII2() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII2), new AOEShapeRect(64, 5)) { }
     }
-    class DeltaBlizzardIII3 : Components.ChargeAOEs //or raidwide?
+    class DeltaBlizzardIII3 : Components.SelfTargetedAOEs //or raidwide?
     { 
-        public DeltaBlizzardIII3() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII3),20) { }
+        public DeltaBlizzardIII3() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII3), new AOEShapeCircle(40)) { }
     }
     class DeltaFireIII3 : Components.SpreadFromCastTargets
     {
@@ -118,17 +118,65 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
     }
     class DeltaFireIII2 : Components.SelfTargetedAOEs
     {
-        public DeltaFireIII2() : base(ActionID.MakeSpell(AID.DeltaFireIII2), new AOEShapeRect(44, 5)) { }
+        public DeltaFireIII2() : base(ActionID.MakeSpell(AID.DeltaFireIII2), new AOEShapeRect(64, 5)) { }
     }
     class PraptiSiddhi : Components.SelfTargetedAOEs
     {
-        public PraptiSiddhi() : base(ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(40, 4)) { }
+        public PraptiSiddhi() : base(ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(60, 4)) { }
     }
+    /*   class WhoIsSheAnyways : BossComponent
+        {
+            public int ActiveDebuffs { get; private set; }
+            public bool FoundHer = false;
+            public WPos IsShe = new WPos();
+
+            public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+            {
+                base.AddAIHints(module, slot, actor, assignment, hints);
+                IsShe = module.PrimaryActor.Position;
+                FoundHer = module.Enemies(OID.BerserkerSphere).Any(x => !x.IsDead);
+
+                if (FoundHer)
+                {
+                    IsShe = NearestPointOnCircle(IsShe.X, IsShe.Z, -258, -26, 20);
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(IsShe, 1f));
+                }
+            }
+
+            public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+            {
+                if (FoundHer)
+                    arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, ArenaColor.SafeFromAOE);
+                else
+                    arena.AddCircleFilled(new WPos(IsShe.X, IsShe.Z), 2.5f, ArenaColor.Background);
+            }
+
+            public static WPos NearestPointOnCircle(double x, double y, double a, double b, double radius)
+            {
+                // Calculate the vector from the circle's center to the point (x, y)
+                double dx = x - a;
+                double dy = y - b;
+
+                // Calculate the angle between the x-axis and the vector
+                double angle = Math.Atan2(dy, dx);
+
+                // Calculate the adjusted radius so we can actually path to it
+                double adjustedRadius = radius - 0.5;
+
+                // Calculate the point on the adjusted circle's edge using trigonometry
+                double newX = a + adjustedRadius * Math.Cos(angle);
+                double newY = b + adjustedRadius * Math.Sin(angle);
+
+                WPos nearestPoint = new WPos((float)newX, (float)newY);
+                return nearestPoint;
+            }
+        }*/
     class D01CinduravaStates : StateMachineBuilder
     {
         public D01CinduravaStates(BossModule module) : base(module)
         {
             TrivialPhase()
+            //.ActivateOnEnter<WhoIsSheAnyways>()
             .ActivateOnEnter<PraptiSiddhi>()
             .ActivateOnEnter<DeltaFireIII1>()
             .ActivateOnEnter<DeltaFireIII2>()
@@ -140,14 +188,14 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
             //.ActivateOnEnter<Dhrupad>()
             .ActivateOnEnter<DeltaBlizzardIII1>()
             .ActivateOnEnter<DeltaBlizzardIII2>()
-            .ActivateOnEnter<DeltaBlizzardIII3>();
+            .ActivateOnEnter<DeltaBlizzardIII3>()
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Cinduruva).All(e => e.IsDead) && module.Enemies(OID.Sanduruva).All(e => e.IsDead) && module.Enemies(OID.Minduruva).All(e => e.IsDead);
         }
     }
 
     /*missing stuff
      * stack marker
      * delayed bombs on ground
-     * goes to opposite spot from the donut on some donuts? (first one i think in 2024 03 10 first recording)
      */
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
     */
@@ -156,14 +204,28 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerofZot.D01Cindurava
 
     class D01Cindurava : BossModule
     {
-        public D01Cindurava(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-28, -48), 13)) { }
+        public D01Cindurava(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-27.5f, -49.5f), 27)) { }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
+            hints.Normalize();
             base.CalculateAIHints(slot, actor, assignment, hints);
+            {
+                foreach (var e in hints.PotentialTargets)
+                {
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.Cinduruva => 4,
+                        OID.Minduruva => 3,
+                        OID.Sanduruva => 2,
+                        OID.Boss => 1,
+                        _ => 0
+                    };
+                }
+            }
         }
 
     }
-    
 
 }
+    

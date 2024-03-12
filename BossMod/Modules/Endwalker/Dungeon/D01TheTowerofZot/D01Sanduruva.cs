@@ -88,13 +88,17 @@ class WhoIsSheAnyways : BossComponent
             // Calculate the angle between the x-axis and the vector
             double angle = Math.Atan2(dy, dx);
 
-            // Calculate the point on the circle's edge using trigonometry
-            double newX = a + radius * Math.Cos(angle);
-            double newY = b + radius * Math.Sin(angle);
+            // Calculate the adjusted radius so we can actually path to it
+            double adjustedRadius = radius - 0.5;
+
+            // Calculate the point on the adjusted circle's edge using trigonometry
+            double newX = a + adjustedRadius * Math.Cos(angle);
+            double newY = b + adjustedRadius * Math.Sin(angle);
 
             WPos nearestPoint = new WPos((float)newX, (float)newY);
             return nearestPoint;
         }
+
 
     }
 
@@ -105,23 +109,23 @@ class WhoIsSheAnyways : BossComponent
     }
     class PraptiSiddhi : Components.SelfTargetedAOEs
     {
-        public PraptiSiddhi() : base(ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(40, 4)) { }
+        public PraptiSiddhi() : base(ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(60, 4)) { }
     }
     class SphereShatter : Components.SelfTargetedAOEs
     {
-        public SphereShatter() : base(ActionID.MakeSpell(AID.SphereShatter), new AOEShapeCircle(15)) { }
+        public SphereShatter() : base(ActionID.MakeSpell(AID.SphereShatter), new AOEShapeCircle(0.1f)) { }
     }
     class PrakamyaSiddhi : Components.SelfTargetedAOEs
     {
-        public PrakamyaSiddhi() : base(ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(5)) { }
+        public PrakamyaSiddhi() : base(ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(0.1f)) { }
     }
     class ManusyaConfuse : Components.SelfTargetedAOEs
     {
-        public ManusyaConfuse() : base(ActionID.MakeSpell(AID.ManusyaConfuse), new AOEShapeCircle(5)) { }
+        public ManusyaConfuse() : base(ActionID.MakeSpell(AID.ManusyaConfuse), new AOEShapeCircle(0.1f)) { }
     }
     class ManusyaStop : Components.SelfTargetedAOEs
     {
-        public ManusyaStop() : base(ActionID.MakeSpell(AID.ManusyaStop), new AOEShapeCircle(5)) { }
+        public ManusyaStop() : base(ActionID.MakeSpell(AID.ManusyaStop), new AOEShapeCircle(0.1f)) { }
     }
 
     public enum IconID : uint
@@ -137,10 +141,10 @@ class WhoIsSheAnyways : BossComponent
             .ActivateOnEnter<ManusyaConfuse>()  //these are not avoidable anyways
             .ActivateOnEnter<ManusyaStop>()  //these are not avoidable anyways
             //.ActivateOnEnter<ExplosiveForce>()
+            .ActivateOnEnter<PrakamyaSiddhi>()
+            .ActivateOnEnter<SphereShatter>()
             .ActivateOnEnter<WhoIsSheAnyways>()
-            .ActivateOnEnter<PraptiSiddhi>()
-            //.ActivateOnEnter<SphereShatter>()
-            .ActivateOnEnter<PrakamyaSiddhi>();
+            .ActivateOnEnter<PraptiSiddhi>();
         }
     }
     //it runs from bezerker orbs but doesnt go to the right place. maybe arena size is wrong.
@@ -149,7 +153,7 @@ class WhoIsSheAnyways : BossComponent
     [ModuleInfo(CFCID = 783, NameID = 10257)]
     public class D01Sanduruva : BossModule
     {
-        public D01Sanduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-258, -26), 20)) { }
+        public D01Sanduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-258, -26), 38)) { }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
