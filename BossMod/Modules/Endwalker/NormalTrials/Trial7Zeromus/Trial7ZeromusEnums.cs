@@ -70,7 +70,6 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         DarkBeckons = 35594, // Helper->players, no cast, range 6 circle stack
         DarkDivides = 35593, // Helper->player, no cast, range 5 circle spread
         ForkedLightning = 35668, // Helper->self, no cast, range 5 circle spread (Extreme only)
-        DarkBeckons = 36154, // Helper->players, no cast, range 6 circle 4-man stack (Extreme only)
         // AccelerationBomb = 35663 player->player
 
         BlackHole = 36133, // Boss->self, 5.0s cast, single-target, visual (placeable black hole + laser)
