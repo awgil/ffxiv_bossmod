@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.NormalTrial.Trial7Zeromus
+namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 {
     class FlowOfTheAbyssDimensionalSurge : Components.SelfTargetedAOEs
     {
