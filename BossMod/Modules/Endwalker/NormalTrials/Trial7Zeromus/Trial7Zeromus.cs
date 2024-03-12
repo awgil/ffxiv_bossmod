@@ -10,9 +10,18 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         public BigBangPuddle() : base(ActionID.MakeSpell(AID.BigBangAOE), 5) { }
     }
     
+    class BigBangSpread : Components.SpreadFromCastTargets// Extreme only
+    {
+        public BigBangSpread() : base(ActionID.MakeSpell(AID.BigBangSpread), 5) { }
+    }    
     class BigCrunchPuddle : Components.LocationTargetedAOEs
     {
         public BigCrunchPuddle() : base(ActionID.MakeSpell(AID.BigCrunchAOE), 5) { }
+    }
+    
+    class BigCrunchSpread : Components.SpreadFromCastTargets// Extreme only
+    {
+        public BigCrunchSpread() : base(ActionID.MakeSpell(AID.BigCrunchSpread), 5) { }
     }
 
     [ConfigDisplay(Order = 0x070, Parent = typeof(EndwalkerConfig))]
