@@ -48,7 +48,6 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
         ChainTarget = 92, // player
         Spread = 139, // player
         RotateCW = 167, // Boss
-        RotateCCW = 168, // Boss
     };
 
     public enum SID : uint
@@ -60,7 +59,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
 
     class SludgeVoidzone : Components.PersistentVoidzone
     {
-        public SludgeVoidzone() : base(10, m => m.Enemies(OID.SludgeVoidzone).Where(z => z.EventState != 7)) { }
+        public SludgeVoidzone() : base(9.8f, m => m.Enemies(OID.SludgeVoidzone).Where(z => z.EventState != 7)) { }
     }
 
     class ScavengersDaughter : Components.RaidwideCast
@@ -231,10 +230,9 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
         }
     }
 
-    // TODO: create and use generic 'line stack' component, this is an ugly hack to make line stack work if player plays with NPCFinis
+    // TODO: create and use generic 'line stack' component
     class IntoTheLight : Components.GenericBaitAway
     {
-        private bool targeted;
         private Actor? target;
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -245,23 +243,20 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
                 CurrentBaits.Add(new(module.PrimaryActor, target!, new AOEShapeRect(50, 4)));
             }
             if ((AID)spell.Action.ID == AID.IntoTheLight2)
-            {
                 CurrentBaits.Clear();
-                targeted = false;
-            }
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            if (target == actor && targeted)
-                hints.AddForbiddenZone(ShapeDistance.InvertedRect(module.PrimaryActor.Position, target.Position + 50 * (target.Position - module.PrimaryActor.Position).Normalized(), 4));
+            if (CurrentBaits.Count > 0 && actor != target)
+                hints.AddForbiddenZone(ShapeDistance.InvertedRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 50, 0, 4));
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (CurrentBaits.Count > 0)
             {
-                if (!actor.Position.InRect(module.PrimaryActor.Position, 50 * (target!.Position - module.PrimaryActor.Position).Normalized(), 4))
+                if (!actor.Position.InRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 50, 0, 4))
                     hints.Add("Stack!");
                 else
                     hints.Add("Stack!", false);
@@ -270,11 +265,59 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var bait in ActiveBaitsNotOn(pc))
+            foreach (var bait in CurrentBaits)
                 bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
         }
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)  {}
+    }
+
+    class CatONineTails : Components.GenericRotatingAOE
+    {
+        private static readonly AOEShapeCone _shape = new(25, 60.Degrees());
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.FierceBeating1)
+                Sequences.Add(new(_shape, module.Bounds.Center, spell.Rotation + 180.Degrees(), -45.Degrees(), spell.NPCFinishAt, 2, 8));
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.CatONineTails2 && Sequences.Count > 0)
+                AdvanceSequence(0, module.WorldState.CurrentTime);
+        }
+    }
+
+    class FierceBeating : Components.Exaflare
+    {
+        public FierceBeating() : base(4) { }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.FierceBeating4)
+                Lines.Add(new() { Next = caster.Position, Advance = 2.5f * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });        
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.FierceBeating6)
+                Lines.Add(new() { Next = caster.Position, Advance = 2.5f * caster.Rotation.ToDirection(), NextExplosion = module.WorldState.CurrentTime.AddSeconds(1), TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });
+            if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
+            {
+                int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+                AdvanceLine(module, Lines[index], caster.Position);
+                if (Lines[index].ExplosionsLeft == 0)
+                    Lines.RemoveAt(index);
+            }            
+            if ((AID)spell.Action.ID == AID.FierceBeating5)
+            {
+                int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
+                AdvanceLine(module, Lines[index], spell.TargetXZ);
+                if (Lines[index].ExplosionsLeft == 0)
+                    Lines.RemoveAt(index);
+            }
+        }
     }
 
     class D013PhiliaStates : StateMachineBuilder
@@ -293,10 +336,9 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
                 .ActivateOnEnter<RightKnout>()
                 .ActivateOnEnter<Taphephobia>()
                 .ActivateOnEnter<IntoTheLight>()
-                ;
-
+                .ActivateOnEnter<CatONineTails>()
+                .ActivateOnEnter<FierceBeating>();
         }
-
     }
 
     [ModuleInfo(CFCID = 676, NameID = 8301)]
