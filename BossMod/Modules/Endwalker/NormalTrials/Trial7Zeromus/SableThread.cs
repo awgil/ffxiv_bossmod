@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Normal.Trial7Zeromus
+﻿namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 {
     class SableThread : Components.GenericWildCharge
     {
