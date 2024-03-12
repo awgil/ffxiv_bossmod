@@ -10,6 +10,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         FlareRay = 0x1EB94F, // R0.500, EventObj type, spawn during fight
         BlackHole = 0x1EB94C, // R0.500, EventObj type, spawn during fight
         ArenaFeatures = 0x1EA1A1, // R2.000, EventObj type
+        UnknownEnemy = 0x4110, // R1.000, spawned prefight?
     };
 
     public enum AID : uint
@@ -31,9 +32,9 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         DarkMatter = 35638, // Boss->self, 4.0s cast, single-target, visual (tankbusters)
         DarkMatterAOE = 35639, // Helper->player, no cast, range 8 circle tankbuster
 
-        VisceralWhirlR = 35579, // Boss->self, 8.0s cast, single-target, visual (two of lines with right safespot)
-        VisceralWhirlRAOE1 = 35580, // Helper->self, 8.8s cast, range 29 width 28 rect
-        VisceralWhirlRAOE2 = 35581, // Helper->self, 8.8s cast, range 60 width 28 rect
+        VisceralWhirlR = 35579, // Boss->self, 8.0s cast, single-target, visual (two of lines with right safespot) (Appears in both, but only have ID for extreme)
+        VisceralWhirlRAOE1 = 35580, // Helper->self, 8.8s cast, range 29 width 28 rect (Appears in both, but only have ID for extreme)
+        VisceralWhirlRAOE2 = 35581, // Helper->self, 8.8s cast, range 60 width 28 rect (Appears in both, but only have ID for extreme)
         VisceralWhirlL = 35582, // Boss->self, 8.0s cast, single-target, visual  (two of lines with left safespot)
         VisceralWhirlLAOE1 = 35583, // Helper->self, 8.8s cast, range 29 width 28 rect
         VisceralWhirlLAOE2 = 35584, // Helper->self, 8.8s cast, range 60 width 28 rect
@@ -118,6 +119,9 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         ChasmicNailsVisual3 = 35625, // Helper->self, 4.0s cast, range 60 40-degree cone, visual (telegraph)
         ChasmicNailsVisual4 = 35626, // Helper->self, 5.0s cast, range 60 40-degree cone, visual (telegraph)
         ChasmicNailsVisual5 = 35627, // Helper->self, 6.0s cast, range 60 40-degree cone, visual (telegraph)
+
+
+
     };
 
     public enum SID : uint
@@ -132,6 +136,12 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         FleshWound = 264, // none->player, extra=0x0
         DivisiveDark = 3762, // none->player, extra=0x0 (Extreme only)
         ForkedLightning = 3799, // none->player, extra=0x0 (Extreme only)
+        Pollen = 1507, // ToxicBubble->player, extra=0x0
+        Transcendent = 418, // none->player, extra=0x0
+        BeckoningDark = 3763, // none->player, extra=0x0
+        BigBang = 3760, // none->Boss, extra=0x0
+        Bind = 2518, // none->player, extra=0x0
+        Unknown_Gen_ = 2056, // Boss->Boss, extra=0x286
     };
 
     public enum IconID : uint
@@ -145,6 +155,9 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         Nox = 197, // player
         AkhRhai = 23, // player
         UmbralPrism = 211, // player
+        Unknown_Icon_501 = 501, // Boss
+        Unknown_Icon_502 = 502, // Boss
+        Unknown_Icon_100 = 100, // player
     };
 
     public enum TetherID : uint
