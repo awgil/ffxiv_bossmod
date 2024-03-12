@@ -130,7 +130,9 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         HPPenalty = 1089, // none->player, extra=0x0
         AccelerationBomb = 2657, // none->player, extra=0x0
         DivisiveDark = 3762, // none->player, extra=0x0
-        FleshWound = 264, // none->player, extra=0x0        
+        FleshWound = 264, // none->player, extra=0x0
+        DivisiveDark = 3762, // none->player, extra=0x0 (Extreme only)
+        ForkedLightning = 3799, // none->player, extra=0x0 (Extreme only)
     };
 
     public enum IconID : uint
