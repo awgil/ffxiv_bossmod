@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.NormalTrial.Trial7Zeromus
+namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
 {
     // note: apparently there's a slight overlap between aoes in the center, which looks ugly, but at least that's the truth...
     class VisceralWhirl : Components.GenericAOEs
