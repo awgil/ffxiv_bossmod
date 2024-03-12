@@ -11,18 +11,18 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public UCOBStates(UCOB module) : base(module)
         {
             _module = module;
-            SimplePhase(0, Phase1Twintania1, "Twintania pre neurolink 1 (100%-74%)")
+            SimplePhase(0, Phase1Twintania1, "P1: Twintania pre neurolink 1 (100%-74%)")
                 .ActivateOnEnter<P1Hatch>()
                 .ActivateOnEnter<P1Twister>()
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.FindComponent<P1Hatch>()?.NumNeurolinkSpawns > 0;
-            SimplePhase(1, Phase1Twintania2, "Twintania pre neurolink 2 (74%-44%)")
+            SimplePhase(1, Phase1Twintania2, "P1: Twintania pre neurolink 2 (74%-44%)")
                 .ActivateOnEnter<P1LiquidHell>()
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.FindComponent<P1Hatch>()?.NumNeurolinkSpawns > 1;
-            SimplePhase(2, Phase1Twintania3, "Twintania pre neurolink 3 (44%-0%)")
+            SimplePhase(2, Phase1Twintania3, "P1: Twintania pre neurolink 3 (44%-0%)")
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
-            SimplePhase(3, Phase2, "Nael")
+            SimplePhase(3, Phase2, "P2: Nael")
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || _module.Nael() is var nael && nael != null && !nael.IsTargetable && nael.HP.Cur <= 1 && Module.FindComponent<P2BlockTransition>() == null;
-            DeathPhase(4, PhaseX);
+            DeathPhase(4, Phase34);
         }
 
         private void Phase1Twintania1(uint id)
@@ -90,7 +90,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             SimpleState(id + 0xFF0000, 100, "???");
         }
 
-        private void PhaseX(uint id)
+        private void Phase34(uint id)
         {
             P3SeventhUmbralEra(id, 5.3f);
             P3FlareBreath(id + 0x10000, 6.2f);
@@ -101,7 +101,11 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P3HeavensfallTrio(id + 0x60000, 4.2f);
             P3TenstrikeTrio(id + 0x70000, 8.2f);
             P3GrandOctet(id + 0x80000, 4.2f);
-            SimpleState(id + 0xFF0000, 100, "???");
+
+            P4PlummetBahamutsClaw(id + 0x100000, 8.2f);
+            // TODO: [> liquid hell > generate + twister > quote > twister] > megaflare > tankswap > repeat [] > tankswap > enrage
+            SimpleState(id + 0xFF0000, 100, "???")
+                .ActivateOnEnter<Quote>();
         }
 
         private void P1Plummet(uint id, float delay)
@@ -690,7 +694,20 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .ActivateOnEnter<P3Twister>()
                 .DeactivateOnExit<P3MegaflareTower>();
             ComponentCondition<P3Twister>(id + 0x74, 0.6f, comp => comp.Active, "Twisters");
-            // TODO: disable twister
+
+            ActorTargetable(id + 0x1000, _module.Twintania, true, 16, "Adds appear")
+                .DeactivateOnExit<P3Twister>()
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P4PlummetBahamutsClaw(uint id, float delay)
+        {
+            ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
+                .ActivateOnEnter<P1Plummet>()
+                .ActivateOnEnter<P2BahamutsClaw>() // 1st cast happens at the same time
+                .DeactivateOnExit<P1Plummet>();
+            ComponentCondition<P2BahamutsClaw>(id + 0x10, 3.2f, comp => comp.NumCasts > 4, "5-hit tankbuster end")
+                .DeactivateOnExit<P2BahamutsClaw>();
         }
     }
 }
