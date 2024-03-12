@@ -24,6 +24,11 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         public BigCrunchSpread() : base(ActionID.MakeSpell(AID.BigCrunchSpread), 5) { }
     }
 
+    class UnknownBlackHole: Components.SelfTargetedAOEs
+    {
+        public UnknownBlackHole() : base(ActionID.MakeSpell(AID.UnknownBlackHole), new AOEShapeCircle(4)) { }
+    }
+
     [ConfigDisplay(Order = 0x070, Parent = typeof(EndwalkerConfig))]
     public class Trial7ZeromusConfig : CooldownPlanningConfigNode
     {
