@@ -73,7 +73,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         // AccelerationBomb = 35663 player->player
 
         BlackHole = 36133, // Boss->self, 5.0s cast, single-target, visual (placeable black hole + laser)
-        _Spell_BlackHole = 36134, // Helper->self, 5.7s cast, range 4 circle // no clue what this is
+        UnknownBlackHole = 36134, // Helper->self, 5.7s cast, range 4 circle // no clue what this is
         FracturedEventideWE = 35571, // Boss->self, 8.0s cast, single-target, visual (laser W to E)
         FracturedEventideEW = 35572, // Boss->self, 8.0s cast, single-target, visual (laser E to W)
         FracturedEventideAOEFirst = 35573, // Helper->self, 8.5s cast, range 60 width 8 rect
