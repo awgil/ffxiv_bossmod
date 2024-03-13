@@ -101,11 +101,11 @@ class WhoIsSheAnyways : BossComponent
 
 
     }
-
-
     class ExplosiveForce : Components.SingleTargetCast
     {
         public ExplosiveForce() : base(ActionID.MakeSpell(AID.ExplosiveForce)) { }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }  //remove later once AI mode is re-written
+
     }
     class PraptiSiddhi : Components.SelfTargetedAOEs
     {
@@ -113,19 +113,24 @@ class WhoIsSheAnyways : BossComponent
     }
     class SphereShatter : Components.SelfTargetedAOEs
     {
-        public SphereShatter() : base(ActionID.MakeSpell(AID.SphereShatter), new AOEShapeCircle(0.1f)) { }
+         public SphereShatter() : base(ActionID.MakeSpell(AID.SphereShatter), new AOEShapeCircle(15)) { }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }  //remove later once AI mode is re-written
     }
+
     class PrakamyaSiddhi : Components.SelfTargetedAOEs
     {
-        public PrakamyaSiddhi() : base(ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(0.1f)) { }
+        public PrakamyaSiddhi() : base(ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(5)) { }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }  //remove later once AI mode is re-written
     }
-    class ManusyaConfuse : Components.SelfTargetedAOEs
+    class ManusyaConfuse : Components.RaidwideCast
     {
-        public ManusyaConfuse() : base(ActionID.MakeSpell(AID.ManusyaConfuse), new AOEShapeCircle(0.1f)) { }
+        public ManusyaConfuse() : base(ActionID.MakeSpell(AID.ManusyaConfuse)) { }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }  //remove later once AI mode is re-written
     }
-    class ManusyaStop : Components.SelfTargetedAOEs
+    class ManusyaStop : Components.RaidwideCast
     {
-        public ManusyaStop() : base(ActionID.MakeSpell(AID.ManusyaStop), new AOEShapeCircle(0.1f)) { }
+        public ManusyaStop() : base(ActionID.MakeSpell(AID.ManusyaStop)) { }
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }  //remove later once AI mode is re-written
     }
 
     public enum IconID : uint
@@ -147,7 +152,7 @@ class WhoIsSheAnyways : BossComponent
             .ActivateOnEnter<PraptiSiddhi>();
         }
     }
-    //it runs from bezerker orbs but doesnt go to the right place. maybe arena size is wrong.
+    
     /*    notes to self bnpcname has nameID, contentfindercondition has the CFC
     */
     [ModuleInfo(CFCID = 783, NameID = 10257)]
