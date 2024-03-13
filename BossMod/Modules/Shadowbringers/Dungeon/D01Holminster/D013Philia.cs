@@ -291,18 +291,71 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
 
     class FierceBeating : Components.Exaflare
     {
+        private readonly List<WPos> _casters = new();
+        private int linesstartedcounttotal;
+        private int linesstartedcount1;
+        private int linesstartedcount2;
+        private static readonly AOEShapeCircle circle = new(4);
+        private DateTime _activation;
+
         public FierceBeating() : base(4) { }
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            float angleInRadians1 = linesstartedcount1 * 45 * (MathF.PI / 180);
+            float angleInRadians2 = linesstartedcount2 * 45 * (MathF.PI / 180);
+            float cosTheta1 = MathF.Cos(angleInRadians1);
+            float sinTheta1 = MathF.Sin(angleInRadians1);
+            float cosTheta2 = MathF.Cos(angleInRadians2);
+            float sinTheta2 = MathF.Sin(angleInRadians2);
+            foreach (var (c, t) in FutureAOEs(module.WorldState.CurrentTime))
+                yield return new(Shape, c, activation: t, color: FutureColor);
+            foreach (var (c, t) in ImminentAOEs())
+                yield return new(Shape, c, activation: t, color: ImminentColor);
+            if (Lines.Count > 0 && linesstartedcount1 < 8)
+                yield return new(circle, new(cosTheta1 * (_casters[0].X - module.Bounds.Center.X) - sinTheta1 * (_casters[0].Z - module.Bounds.Center.Z) + module.Bounds.Center.X, sinTheta1 * (_casters[0].X - module.Bounds.Center.X) + cosTheta1 * (_casters[0].Z - module.Bounds.Center.Z) + module.Bounds.Center.Z), activation: _activation);
+            if (Lines.Count > 1 && linesstartedcount2 < 8)
+                yield return new(circle, new(cosTheta2 * (_casters[1].X - module.Bounds.Center.X) - sinTheta2 * (_casters[1].Z - module.Bounds.Center.Z) + module.Bounds.Center.X, sinTheta2 * (_casters[1].X - module.Bounds.Center.X) + cosTheta2 * (_casters[1].Z - module.Bounds.Center.Z) + module.Bounds.Center.Z), activation: _activation);
+        }
+
+        public override void Update(BossModule module)
+        {
+            if (linesstartedcount1 != 0 && Lines.Count == 0)
+            {
+                linesstartedcounttotal = 0;                
+                linesstartedcount1 = 0;
+                linesstartedcount2 = 0;
+                _casters.Clear();
+            }
+        }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FierceBeating4)
+            {
                 Lines.Add(new() { Next = caster.Position, Advance = 2.5f * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });        
+                _activation = spell.NPCFinishAt;
+                ++linesstartedcounttotal;
+                ++NumCasts;
+                _casters.Add(caster.Position);
+                if (linesstartedcounttotal % 2 != 0)
+                    ++linesstartedcount1;
+                else
+                    ++linesstartedcount2;
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.FierceBeating6)
+            {
                 Lines.Add(new() { Next = caster.Position, Advance = 2.5f * caster.Rotation.ToDirection(), NextExplosion = module.WorldState.CurrentTime.AddSeconds(1), TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });
+                ++linesstartedcounttotal;
+                if (linesstartedcounttotal % 2 != 0)
+                    ++linesstartedcount1;
+                else
+                    ++linesstartedcount2;
+            }
             if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
             {
                 int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
