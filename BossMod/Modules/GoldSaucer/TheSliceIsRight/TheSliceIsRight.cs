@@ -59,13 +59,13 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var b in _doublesidedsplit)
-                yield return new(rectdouble, b.Position, b.Rotation + 90.Degrees(), _activation);
+                yield return new(rectdouble, b.Position, b.Rotation + 90.Degrees(), _activation.AddSeconds(7));
             foreach (var b in _singlesplit)
-                yield return new(rectsingle, b.Position, b.Rotation + 90.Degrees(), _activation);
+                yield return new(rectsingle, b.Position, b.Rotation + 90.Degrees(), _activation.AddSeconds(7));
             foreach (var b in _circle)
-                yield return new(circle, b.Position, b.Rotation, _activation);
+                yield return new(circle, b.Position, b.Rotation, _activation.AddSeconds(7));
             foreach (var b in _bamboospawn)
-                yield return new(bamboospawn, b.Position, b.Rotation);
+                yield return new(bamboospawn, b.Position, b.Rotation); //activation time varies a lot (depending on the set?), just avoid entirely
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)
