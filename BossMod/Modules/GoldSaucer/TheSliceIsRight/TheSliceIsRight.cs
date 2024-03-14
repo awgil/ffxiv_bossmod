@@ -10,6 +10,7 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
         Daigoro = 0x25AC, //R=2.50
         Bamboo = 0x25AD, //R=0.50
         Helper = 0x1EAEDF,
+        Somethingoutsidethearena  = 0x2BC8, //not sure what this does, spawns multiple times before the minigame starts, but casts something during the minigame, probably just for visuals
         HelperCupPhase1 = 0x1EAEB7,
         HelperCupPhase2 = 0x1EAEB6,
         HelperCupPhase3 = 0x1EAE9D,
@@ -25,12 +26,12 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
         Yoyimbodoesstuff2 = 18331, // 25AB->self, no cast, single-tat
         Yoyimbodoesstuff3 = 18329, // 25AB->self, no cast, single-target
         Yoyimbodoesstuff4 = 18332, // 25AB->self, no cast, single-target
-        Yoyimbodoesstuff5 = 18338, // 2BC8->self, no cast, single-target
-        Yoyimbodoesstuff6 = 18328, // 25AB->location, no cast, single-target
-        Yoyimbodoesstuff7 = 18326, // 25AB->self, 3.0s cast, single-target
-        Yoyimbodoesstuff8 = 18339, // 25AB->self, 3.0s cast, single-target
-        Yoyimbodoesstuff9 = 18340, // 25AB->self, no cast, single-target
-        Yoyimbodoesstuff10 = 19026, // 25AB->self, no cast, single-target
+        Yoyimbodoesstuff5 = 18328, // 25AB->location, no cast, single-target
+        Yoyimbodoesstuff6 = 18326, // 25AB->self, 3.0s cast, single-target
+        Yoyimbodoesstuff7 = 18339, // 25AB->self, 3.0s cast, single-target
+        Yoyimbodoesstuff8 = 18340, // 25AB->self, no cast, single-target
+        Yoyimbodoesstuff9 = 19026, // 25AB->self, no cast, single-target
+        Somethingoutsidethearena = 18338, // 2BC8->self, no cast, single-target
         BambooSplit = 18333, // 25AD->self, 0.7s cast, range 28 width 5 rect
         BambooCircleFall = 18334, // 25AD->self, 0.7s cast, range 11 circle 
         BambooSpawn = 18327, // 25AD->self, no cast, range 3 circle
