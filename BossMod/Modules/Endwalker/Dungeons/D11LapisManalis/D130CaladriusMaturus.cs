@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130CaladriusMaturus
@@ -36,5 +34,13 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130CaladriusMaturus
     public class D130CaladriusMaturus : BossModule
     {
         public D130CaladriusMaturus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }
+
+        protected override void DrawEnemies(int pcSlot, Actor pc)
+        {
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+            foreach (var s in Enemies(OID.Caladrius))
+                Arena.Actor(s, ArenaColor.Enemy);
+        }
+
     }
 }
