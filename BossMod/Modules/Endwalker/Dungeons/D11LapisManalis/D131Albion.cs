@@ -1,6 +1,7 @@
 // CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
 {
@@ -43,27 +44,108 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
     };
 
     class WildlifeCrossing : Components.GenericAOEs
- //Note: this is not an accurate representation of the WildLifeCrossing mechanic (it got a weird origin and the size is also too small), only an estimation, the width is slightly bigger than the actual stampede. i might revise this in future if i can find a better solution
     {
-        private static readonly AOEShapeRect rect1 = new(40, 1.32f);
-        private static readonly AOEShapeRect rect2 = new(40, 1.7f);
-        private static readonly AOEShapeRect rect3 = new(40, 4);
-        private static readonly AOEShapeRect rect4 = new(40, 2.85f);
+
+        private static readonly AOEShapeRect rect = new(20, 5, 20);
+        private WPos stampede1 = default;
+        private WPos stampede2 = default;
+        private int stampede1counter;
+        private int stampede2counter;
+        private bool active1;
+        private bool active2;
+        private DateTime _reset1;
+        private DateTime _reset2;           
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            foreach (var b in module.Enemies(OID.WildBeasts1))
-                if (module.Bounds.Contains(b.Position))
-                    yield return new(rect1, b.Position, b.Rotation);
-            foreach (var b in module.Enemies(OID.WildBeasts2))
-                if (module.Bounds.Contains(b.Position))
-                    yield return new(rect2, b.Position, b.Rotation);
-            foreach (var b in module.Enemies(OID.WildBeasts3))
-                if (module.Bounds.Contains(b.Position))
-                    yield return new(rect3, b.Position, b.Rotation);
-            foreach (var b in module.Enemies(OID.WildBeasts4))
-                if (module.Bounds.Contains(b.Position))
-                    yield return new(rect4, b.Position, b.Rotation);
+            if (active1)
+                    yield return new(rect, stampede1, 90.Degrees());
+            if (active2)
+                    yield return new(rect, stampede2, 90.Degrees());                  
+        }
+
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
+        {
+            if (state == 0x00020001)
+            {
+                if (index is 0x21 or 0x25)
+                    if (stampede1 == default)
+                    {
+                        stampede1 = new(24, -759);
+                        active1 = true;
+                    }
+                    else
+                    {
+                        stampede2 = new(24, -759);
+                        active2 = true;
+                    }                        
+                if (index is 0x22 or 0x26)
+                    if (stampede1 == default)
+                    {
+                        stampede1 = new(24, -749);
+                        active1 = true;
+                    }
+                    else
+                    {
+                        stampede2 = new(24, -749);
+                        active2 = true;
+                    }    
+                if (index is 0x23 or 0x27)
+                    if (stampede1 == default)
+                    {
+                        stampede1 = new(24, -739);
+                        active1 = true;
+                    }
+                    else
+                    {
+                        stampede2 = new(24, -739);
+                        active2 = true;
+                    }    
+                if (index is 0x24 or 0x28)
+                    if (stampede1 == default)
+                    {
+                        stampede1 = new(24, -729);
+                        active1 = true;
+                    }
+                    else
+                    {
+                        stampede2 = new(24, -729);
+                        active2 = true;
+                    }   
+            }
+        }
+
+        public override void Update(BossModule module)
+        {
+            if (_reset1 != default && module.WorldState.CurrentTime > _reset1)
+            {
+                active1 = false;
+                stampede1counter = 0;
+                stampede1 = default;
+                _reset1 = default;
+            }
+            if (_reset2 != default && module.WorldState.CurrentTime > _reset2)
+            {
+                active2 = false;
+                stampede2counter = 0;
+                stampede2 = default;
+                _reset2 = default;
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if ((AID)spell.Action.ID == AID.WildlifeCrossing)
+            {
+                if (MathF.Abs(caster.Position.Z - stampede1.Z) < 1)
+                    ++stampede1counter;
+                if (MathF.Abs(caster.Position.Z - stampede2.Z) < 1)
+                    ++stampede2counter;
+                if (stampede1counter == 30) //sometimes stampedes only have 30 instead of 31 hits for some reason, so i take the lower value and add a 0,5s reset timer via update
+                    _reset1 = module.WorldState.CurrentTime.AddSeconds(0.5f);
+                if (stampede2counter == 30)
+                    _reset2 = module.WorldState.CurrentTime.AddSeconds(0.5f);
+            }
         }
     }
 
