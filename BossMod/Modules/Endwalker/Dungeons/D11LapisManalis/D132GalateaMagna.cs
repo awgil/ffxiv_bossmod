@@ -71,7 +71,7 @@ public enum TetherID : uint
         }
     }
 
-    [ModuleInfo(CFCID = 896, NameID = 12245)]
+    [ModuleInfo(CFCID = 896, NameID = 10308)]
     public class D130AlbusGriffin : BossModule
     {
         public D130AlbusGriffin(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(350, -394), 19.5f)) { }
