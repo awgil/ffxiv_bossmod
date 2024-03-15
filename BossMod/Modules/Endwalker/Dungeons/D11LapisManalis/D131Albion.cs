@@ -1,7 +1,6 @@
 // CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
 {
@@ -45,7 +44,6 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
 
     class WildlifeCrossing : Components.GenericAOEs
     {
-
         private static readonly AOEShapeRect rect = new(20, 5, 20);
         private WPos stampede1 = default;
         private WPos stampede2 = default;
