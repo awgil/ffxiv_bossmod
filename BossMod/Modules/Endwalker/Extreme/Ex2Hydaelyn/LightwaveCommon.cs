@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
