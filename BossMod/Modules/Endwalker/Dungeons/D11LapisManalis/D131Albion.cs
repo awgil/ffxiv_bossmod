@@ -54,8 +54,6 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
         private Angle _rotation2;
         private DateTime _reset1;
         private DateTime _reset2;
-        private int _row1;
-        private int _row2;
         private List<Actor> beasts1 = new();        
         private List<Actor> beasts2 = new();
         private WPos stampede1 = default;
@@ -64,9 +62,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (active1 && beasts1.Count > 0)
-                    yield return new(new AOEShapeRect((beasts1.First().Position - beasts1.Last().Position).Length() + 25, 5), new (beasts1.Last().Position.X, _row1), _rotation1);
+                    yield return new(new AOEShapeRect((beasts1.First().Position - beasts1.Last().Position).Length() + 30, 5), new (beasts1.Last().Position.X, stampede1.Z), _rotation1);
             if (active2 && beasts2.Count > 0)
-                    yield return new(new AOEShapeRect((beasts2.First().Position - beasts2.Last().Position).Length() + 25, 5), new (beasts2.Last().Position.X, _row2), _rotation2);
+                    yield return new(new AOEShapeRect((beasts2.First().Position - beasts2.Last().Position).Length() + 30, 5), new (beasts2.Last().Position.X, stampede2.Z), _rotation2);
             if (active1 && beasts1.Count == 0)
                     yield return new(rect, stampede1, 90.Degrees());
             if (active2 && beasts2.Count == 0)
@@ -75,126 +73,111 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
+            var newstampede = stampede1 == default;
             if (state == 0x00020001)
             {
                 if (index == 0x21)
-                    if (_row1 == default)
+                    if (newstampede)
                     {
                         active1 = true;
                         _rotation1 = 90.Degrees();
-                        _row1 = -759;
                         stampede1 = new(4, -759);
                     }
                     else
                     {
                         active2 = true;
                         _rotation2 = 90.Degrees();
-                        _row2 = -759;
                         stampede2 = new(4, -759);
                     }
                 if (index == 0x25)
-                    if (_row1 == default)
+                    if (newstampede)
                     {
                         active1 = true;
                         _rotation1 = -90.Degrees();
-                        _row1 = -759;
                         stampede1 = new(44, -759);
                     }
                     else
                     {
                         active2 = true;
                         _rotation2 = -90.Degrees();
-                        _row2 = -759;
                         stampede2 = new(44, -759);
                     }                   
                 if (index == 0x22)
-                    if (_row1 == default)
+                    if (newstampede)
                     {
                         active1 = true;
                         _rotation1 = 90.Degrees();
-                        _row1 = -749;
                         stampede1 = new(4, -749);
                     }
                     else
                     {
                         active2 = true;
                         _rotation2 = 90.Degrees();
-                        _row2 = -749;
                         stampede2 = new(4, -749);
                     }
                 if (index == 0x26)
-                    if (_row1 == default)
+                    if (newstampede)
                     {
                         active1 = true;
                         _rotation1 = -90.Degrees();
-                        _row1 = -749;
                         stampede1 = new(44, -749);
                     }
                     else
                     {
                         active2 = true;
                         _rotation2 = -90.Degrees();
-                        _row2 = -749;
                         stampede2 = new(44, -749);
                     } 
                 if (index == 0x23)
-                    if (_row1 == default)
+                    if (newstampede)
                     {
                         active1 = true;
                         _rotation1 = 90.Degrees();
-                        _row1 = -739;
                         stampede1 = new(4, -739);
                     }
                     else
                     {
                         active2 = true;
                         _rotation2 = 90.Degrees();
-                        _row2 = -739;
                         stampede2 = new(4, -739);
                     }
                 if (index == 0x27)
-                    if (_row1 == default)
+                    if (newstampede)
                     {
                         active1 = true;
                         _rotation1 = -90.Degrees();
-                        _row1 = -739;
                         stampede1 = new(44, -739);
                     }
                     else
                     {
                         active2 = true;
                         _rotation2 = -90.Degrees();
-                        _row2 = -739;
                         stampede2 = new(44, -739);
                     }
                 if (index == 0x24)
-                    if (_row1 == default)
+                    if (newstampede)
                     {
                         active1 = true;
                         _rotation1 = 90.Degrees();
-                        _row1 = -729;
                         stampede1 = new(4, -729);
                     }
                     else
                     {
                         active2 = true;
                         _rotation2 = 90.Degrees();
-                        _row2 = -729;
                         stampede2 = new(4, -729);
                     }
                 if (index == 0x28)
-                    if (_row1 == default)
+                    if (newstampede)
                     {
                         active1 = true;
                         _rotation1 = -90.Degrees();
-                        _row1 = -729;
-                        stampede2 = new(44, -729);
+                        stampede1 = new(44, -729);
                     }
                     else
                     {
                         active2 = true;
                         _rotation2 = -90.Degrees();
-                        _row2 = -729;
                         stampede2 = new(44, -729);
                     }
             }
@@ -203,36 +186,36 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
         public override void Update(BossModule module)
         {
             foreach (var b in module.Enemies(OID.WildBeasts4))
-            if (b.Position.InRect(new(24, _row1), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
+            if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
             beasts1.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts3))
-            if (b.Position.InRect(new(24, _row1), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
+            if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
             beasts1.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts2))
-            if (b.Position.InRect(new(24, _row1), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
+            if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
             beasts1.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts1))
-            if (b.Position.InRect(new(24, _row1), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
+            if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
             beasts1.Add(b);
 
             foreach (var b in module.Enemies(OID.WildBeasts4))
-            if (b.Position.InRect(new(24, _row2), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
+            if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
             beasts2.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts3))
-            if (b.Position.InRect(new(24, _row2), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
+            if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
             beasts2.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts2))
-            if (b.Position.InRect(new(24, _row2), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
+            if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
             beasts2.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts1))
-            if (b.Position.InRect(new(24, _row2), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
+            if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
             beasts2.Add(b);
 
             if (_reset1 != default && module.WorldState.CurrentTime > _reset1)
             {
                 active1 = false;
                 stampede1counter = 0;
-                _row1 = default;
+                stampede1 = default;
                 beasts1.Clear();
                 _reset1 = default;
             }
@@ -240,7 +223,7 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
             {
                 active2 = false;
                 stampede2counter = 0;
-                _row2 = default;
+                stampede2 = default;
                 beasts2.Clear();
                 _reset2 = default;
             }
@@ -250,9 +233,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
         {
             if ((AID)spell.Action.ID == AID.WildlifeCrossing)
             {
-                if (MathF.Abs(caster.Position.Z - _row1) < 1)
+                if (MathF.Abs(caster.Position.Z - stampede1.Z) < 1)
                     ++stampede1counter;
-                if (MathF.Abs(caster.Position.Z - _row2) < 1)
+                if (MathF.Abs(caster.Position.Z - stampede2.Z) < 1)
                     ++stampede2counter;
                 if (stampede1counter == 30) //sometimes stampedes only have 30 instead of 31 hits for some reason, so i take the lower value and add a 0,5s reset timer via update
                     _reset1 = module.WorldState.CurrentTime.AddSeconds(0.5f);
