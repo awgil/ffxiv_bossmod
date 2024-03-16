@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
     class Lightwave : Components.GenericAOEs
     {
         private List<Actor> Waves = new();
-        private static readonly AOEShapeRect WaveAOE = new(16, 8, 4); // real size is (4, 8, 4), but we want to mark some of the path as dangerous
+        private static readonly AOEShapeRect WaveAOE = new(16, 8, 12);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
