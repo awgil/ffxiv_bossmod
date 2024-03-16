@@ -36,10 +36,10 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnActorCreated(BossModule module, Actor actor)
         {
-            if ((AID)spell.Action.ID == AID.ParhelicCircle)
-                _activation = spell.NPCFinishAt.AddSeconds(6.7f);
+            if ((OID)actor.OID is OID.RefulgenceHexagon)
+                _activation = module.WorldState.CurrentTime.AddSeconds(8.9f);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
