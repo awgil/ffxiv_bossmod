@@ -131,6 +131,7 @@ namespace BossMod.ReplayVisualization
                 ActorState.OpStatus op => FilterInterestingStatuses(op.InstanceID, op.Index, op.Timestamp),
                 ClientState.OpActionRequest => false,
                 //ClientState.OpActionReject => false,
+                ClientState.OpCooldown => false,
                 _ => true
             };
         }

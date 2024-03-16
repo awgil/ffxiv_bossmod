@@ -99,6 +99,7 @@
         GrandOctet = 9959, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 6 start)
 
         BahamutsFavorP4 = 9960, // Helper->self, no cast, ???, visual (buff twin/nael with damage up)
+        MegaflareRaidwide = 9914, // NaelDeusDarnus->self, 5.0s cast, range 80+R circle, raidwide
     };
 
     public enum SID : uint
