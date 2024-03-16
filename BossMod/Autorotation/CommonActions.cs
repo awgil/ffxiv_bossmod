@@ -361,8 +361,7 @@ namespace BossMod
             var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
 
             var am = ActionManagerEx.Instance!;
-            var pc = Service.ClientState.LocalPlayer;
-            s.Level = pc?.Level ?? 0;
+            s.Level = Player.Level;
             s.UnlockProgress = _lock.Progress();
             s.CurMP = Player.CurMP;
             s.TargetingEnemy = Autorot.PrimaryTarget != null && Autorot.PrimaryTarget.Type is ActorType.Enemy or ActorType.Part && !Autorot.PrimaryTarget.IsAlly;
