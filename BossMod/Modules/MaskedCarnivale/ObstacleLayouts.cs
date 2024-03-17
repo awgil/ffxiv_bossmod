@@ -43,7 +43,7 @@ namespace BossMod.MaskedCarnivale
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        { 
+        {
             base.AddAIHints(module, slot, actor, assignment, hints);
             hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1A(), false));
             hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1B(), false));
@@ -93,7 +93,7 @@ namespace BossMod.MaskedCarnivale
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        { 
+        {
             base.AddAIHints(module, slot, actor, assignment, hints);
             hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad1(), false));
             hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad2(), false));
@@ -101,7 +101,7 @@ namespace BossMod.MaskedCarnivale
             hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad4(), false));
         }
     }
- 
+
     public class LayoutBigQuad : BossComponent
     {
         public static IEnumerable<WPos> Quad()
@@ -117,7 +117,7 @@ namespace BossMod.MaskedCarnivale
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        { 
+        {
             base.AddAIHints(module, slot, actor, assignment, hints);
             hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad(), false));
         }

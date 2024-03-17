@@ -26,7 +26,7 @@ namespace BossMod.MaskedCarnivale.Stage20.Act1
 
     class SnortKB : Components.KnockbackFromCastTarget
     {    //knockback actually delayed by 0.7s
-        public SnortKB() : base(ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin) 
+        public SnortKB() : base(ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin)
         {
             StopAtWall = true;
         }

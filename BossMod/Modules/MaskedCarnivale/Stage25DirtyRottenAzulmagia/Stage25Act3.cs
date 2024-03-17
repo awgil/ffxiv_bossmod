@@ -155,7 +155,7 @@ namespace BossMod.MaskedCarnivale.Stage25.Act3
                 .ActivateOnEnter<TremblingEarth2>()
                 .ActivateOnEnter<Charybdis>()
                 .ActivateOnEnter<Meteor>()
-                .ActivateOnEnter<MeteorVoidzone >()
+                .ActivateOnEnter<MeteorVoidzone>()
                 .ActivateOnEnter<Maelstrom>()
                 .ActivateOnEnter<Web>()
                 .ActivateOnEnter<Hints2>()

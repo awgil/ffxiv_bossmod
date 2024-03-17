@@ -52,7 +52,7 @@ namespace BossMod.MaskedCarnivale.Stage18.Act1
 
     class WildChargeKB : Components.KnockbackFromCastTarget
     {   //knockback actually delayed by 0.5s to 1s, maybe it depends on the rectangle length of the charge
-        public WildChargeKB() : base(ActionID.MakeSpell(AID.WildCharge), 10, kind: Kind.DirForward) 
+        public WildChargeKB() : base(ActionID.MakeSpell(AID.WildCharge), 10, kind: Kind.DirForward)
         {
             StopAtWall = true;
         }

@@ -7,7 +7,7 @@ namespace BossMod.MaskedCarnivale.Stage21.Act2
     {
         Boss = 0x2730, //R=3.7
         ArenaImp = 0x2731, //R=0.45
-        Voidzone = 0x1E972A,    
+        Voidzone = 0x1E972A,
     };
 
     public enum AID : uint
