@@ -205,6 +205,47 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
         }
     }
 
+    class Doom : BossComponent
+    {
+        private List<Actor> _doomed = new();
+        public bool Doomed { get; private set; }
+
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        {
+              if ((SID)status.ID == SID.Doom)
+                _doomed.Add(actor);
+        }
+
+        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+        {
+            if ((SID)status.ID == SID.Doom)
+                _doomed.Remove(actor);
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (_doomed.Contains(actor) && !(actor.Role == Role.Healer || actor.Class == Class.BRD))
+                hints.Add("You were doomed! Get cleansed fast.");
+            if (_doomed.Contains(actor) && (actor.Role == Role.Healer || actor.Class == Class.BRD))
+                hints.Add("Cleanse yourself! (Doom).");
+            foreach (var c in _doomed)
+                if (!_doomed.Contains(actor) && (actor.Role == Role.Healer || actor.Class == Class.BRD))
+                    hints.Add($"Cleanse {c.Name} (Doom)");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
+            foreach (var c in _doomed)
+            {
+                if (_doomed.Count > 0 && actor.Role == Role.Healer)
+                    hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Esuna), c, 1, false));
+                if (_doomed.Count > 0 && actor.Class == Class.BRD)
+                    hints.PlannedActions.Add((ActionID.MakeSpell(BRD.AID.WardensPaean), c, 1, false));
+            }
+        }
+    }
+
     class SoulScythe : Components.LocationTargetedAOEs
     {
         public SoulScythe() : base(ActionID.MakeSpell(AID.SoulScythe), 18) { }
@@ -215,6 +256,7 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
         public D132GalateaMagnaStates(BossModule module) : base(module)
         {
             TrivialPhase()
+                .ActivateOnEnter<Doom>()
                 .ActivateOnEnter<TenebrismTowers>()
                 .ActivateOnEnter<InOutAOE>()
                 .ActivateOnEnter<OutInAOE>()
