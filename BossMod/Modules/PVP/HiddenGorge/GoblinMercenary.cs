@@ -173,7 +173,7 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
                 .ActivateOnEnter<GobspinSwipe>()
                 .ActivateOnEnter<Knockbacks>()
                 .ActivateOnEnter<GobfireShootypops>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.IsTargetable ;
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.IsTargetable;
 
         }
     }

@@ -61,7 +61,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
                 _activation = spell.NPCFinishAt;
             }
             if (_rotation != default)
-                InitIfReady(module, caster);            
+                InitIfReady(module, caster);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
