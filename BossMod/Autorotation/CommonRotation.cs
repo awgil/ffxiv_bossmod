@@ -23,16 +23,32 @@ namespace BossMod
             public float ComboTimeLeft; // 0 if not in combo, max 30
             public uint ComboLastAction;
             public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
-            public float[] Cooldowns;
+
+            // these simply point to client state
+            public Cooldown[] Cooldowns;
+            public ActionID[] DutyActions;
+            public byte[] BozjaHolster;
 
             // both 2.5 max (unless slowed), reduced by gear attributes and certain status effects
             public float AttackGCDTime;
             public float SpellGCDTime;
 
-            public float GCD => Cooldowns[CommonDefinitions.GCDGroup]; // 2.5 max (decreased by SkS), 0 if not on gcd
-            public float SprintCD => Cooldowns[CommonDefinitions.SprintCDGroup]; // 60.0 max
-            public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup]; // variable max
-            public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group];
+            // find a slot containing specified duty action; returns -1 if not found
+            public int FindDutyActionSlot(ActionID action) => Array.IndexOf(DutyActions, action);
+            // find a slot containing specified duty action, if other duty action is the specified one; returns -1 if not found, or other action is different
+            public int FindDutyActionSlot(ActionID action, ActionID other)
+            {
+                var slot = FindDutyActionSlot(action);
+                return slot >= 0 && DutyActions[1 - slot] == other ? slot : -1;
+            }
+
+            public float GCD => Cooldowns[CommonDefinitions.GCDGroup].Remaining; // 2.5 max (decreased by SkS), 0 if not on gcd
+            public float SprintCD => Cooldowns[CommonDefinitions.SprintCDGroup].Remaining; // 60.0 max
+            public float PotionCD => Cooldowns[CommonDefinitions.PotionCDGroup].Remaining; // variable max
+            public float CD<CDGroup>(CDGroup group) where CDGroup : Enum => Cooldowns[(int)(object)group].Remaining;
+
+            public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? Cooldowns[CommonDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
+            public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
 
             // check whether weaving typical ogcd off cooldown would end its animation lock by the specified deadline
             public float OGCDSlotLength => 0.6f + AnimationLockDelay; // most actions have 0.6 anim lock delay, which allows double-weaving oGCDs between GCDs
@@ -42,9 +58,11 @@ namespace BossMod
             public bool CanWeave(float cooldown, float actionLock, float deadline) => deadline < 10000 ? MathF.Max(cooldown, AnimationLock) + actionLock + AnimationLockDelay <= deadline : cooldown <= AnimationLock;
             public bool CanWeave<CDGroup>(CDGroup group, float actionLock, float deadline) where CDGroup : Enum => CanWeave(CD(group), actionLock, deadline);
 
-            public PlayerState(float[] cooldowns)
+            public PlayerState(WorldState ws)
             {
-                Cooldowns = cooldowns;
+                Cooldowns = ws.Client.Cooldowns;
+                DutyActions = ws.Client.DutyActions;
+                BozjaHolster = ws.Client.BozjaHolster;
             }
         }
 

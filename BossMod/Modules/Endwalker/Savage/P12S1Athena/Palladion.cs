@@ -195,7 +195,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
     class PalladionWhiteFlame : Components.GenericBaitAway
     {
         private Palladion? _palladion;
-        private Actor _fakeSource = new(0, 0, -1, "dummy", ActorType.None, Class.None, new(100, 0, 100, 0)); // fake actor used as bait source
+        private Actor _fakeSource = new(0, 0, -1, "dummy", ActorType.None, Class.None, 0, new(100, 0, 100, 0)); // fake actor used as bait source
 
         private static AOEShapeRect _shape = new(100, 2);
 

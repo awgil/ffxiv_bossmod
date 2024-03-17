@@ -54,6 +54,7 @@ namespace BossMod
             Service.Config.LoadFromFile(dalamud.ConfigFile);
             Service.Config.Modified += (_, _) => Service.Config.SaveToFile(dalamud.ConfigFile);
 
+            BozjaInterop.Instance = new();
             ActionManagerEx.Instance = new(); // needs config
 
             _commandManager = commandManager;
@@ -93,6 +94,7 @@ namespace BossMod
             _autorotation.Dispose();
             _ws.Dispose();
             ActionManagerEx.Instance?.Dispose();
+            BozjaInterop.Instance?.Dispose();
             _commandManager.RemoveHandler("/vbm");
         }
 

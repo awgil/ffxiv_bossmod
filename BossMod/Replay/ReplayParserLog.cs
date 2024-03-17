@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BossMod.Endwalker.Extreme.Ex5Rubicante;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -338,6 +339,9 @@ namespace BossMod
                 case "CLRJ": ParseClientActionReject(); break;
                 case "CDN+": ParseClientCountdown(true); break;
                 case "CDN-": ParseClientCountdown(false); break;
+                case "CLCD": ParseCooldown(); break;
+                case "CLDA": ParseClientDutyActions(); break;
+                case "CLBH": ParseClientBozjaHolster(); break;
             }
 
             return true;
@@ -477,6 +481,7 @@ namespace BossMod
                     Name = _input.ReadString(),
                     Type = (ActorType)_input.ReadUShort(true),
                     Class = _input.ReadClass(),
+                    Level = _version < 12 ? 0 : _input.ReadInt(),
                     PosRot = new(_input.ReadVec3(), _input.ReadAngle().Rad),
                     HitboxRadius = _input.ReadFloat(),
                     HP = new() { Cur = _input.ReadUInt(false), Max = _input.ReadUInt(false), Shield = _input.ReadUInt(false) },
@@ -513,7 +518,7 @@ namespace BossMod
         {
             var instanceID = _input.ReadActorID();
             _input.ReadVoid();
-            AddOp(new ActorState.OpClassChange() { InstanceID = instanceID, Class = _input.ReadClass() });
+            AddOp(new ActorState.OpClassChange() { InstanceID = instanceID, Class = _input.ReadClass(), Level = _version < 12 ? 0 : _input.ReadInt() });
         }
 
         private void ParseActorMove()
@@ -738,6 +743,29 @@ namespace BossMod
         private void ParseClientCountdown(bool start)
         {
             AddOp(new ClientState.OpCountdownChange() { Value = start ? _input.ReadFloat() : null });
+        }
+
+        private void ParseCooldown()
+        {
+            var op = new ClientState.OpCooldown() { Reset = _input.ReadBool() };
+            op.Cooldowns.Capacity = _input.ReadByte(false);
+            for (int i = 0; i < op.Cooldowns.Capacity; ++i)
+                op.Cooldowns.Add((_input.ReadByte(false), new() { Elapsed = _input.ReadFloat(), Total = _input.ReadFloat() }));
+            AddOp(op);
+        }
+
+        private void ParseClientDutyActions()
+        {
+            AddOp(new ClientState.OpDutyActionsChange() { Slot0 = _input.ReadAction(), Slot1 = _input.ReadAction() });
+        }
+
+        private void ParseClientBozjaHolster()
+        {
+            var op = new ClientState.OpBozjaHolsterChange();
+            op.Contents.Capacity = _input.ReadByte(false);
+            for (int i = 0; i < op.Contents.Capacity; ++i)
+                op.Contents.Add(((BozjaHolsterID)_input.ReadByte(false), _input.ReadByte(false)));
+            AddOp(op);
         }
 
         private static (ActorHP hp, uint curMP) ActorHPMP(string repr)

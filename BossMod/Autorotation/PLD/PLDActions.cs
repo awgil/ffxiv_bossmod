@@ -17,7 +17,7 @@ namespace BossMod.PLD
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<PLDConfig>();
-            _state = new(autorot.Cooldowns);
+            _state = new(autorot.WorldState);
             _strategy = new();
 
             SupportedSpell(AID.Reprisal).Condition = _ => Autorot.Hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(Player.Position, 5 + e.Actor.HitboxRadius)); // TODO: consider checking only target?..
