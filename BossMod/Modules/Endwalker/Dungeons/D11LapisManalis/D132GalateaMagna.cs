@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BossMod.Endwalker.Alliance.A10Lions;
 
 namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
 {

@@ -8,6 +8,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
     {
         Boss = 0x27CC, //R=20.00
         Helper = 0x2E8, //R=0.5
+        Helper2 = 0x233C,
         Brightsphere = 0x27CD, //R=1.0
         Towers = 0x1EAACF, //R=0.5
     }
