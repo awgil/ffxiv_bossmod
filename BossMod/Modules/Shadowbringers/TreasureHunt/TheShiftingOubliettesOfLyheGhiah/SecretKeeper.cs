@@ -50,7 +50,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
 
     class MoldyPhlegm : Components.PersistentVoidzoneAtCastTarget
     {
-        public MoldyPhlegm() : base(6, ActionID.MakeSpell(AID.MoldyPhlegm), m => m.Enemies(OID.ResinVoidzone), 0) { }
+        public MoldyPhlegm() : base(6, ActionID.MakeSpell(AID.MoldyPhlegm), m => m.Enemies(OID.ResinVoidzone).Where(z => z.EventState != 7), 0) { }
     }
 
     class MoldySneeze : Components.Cleave
