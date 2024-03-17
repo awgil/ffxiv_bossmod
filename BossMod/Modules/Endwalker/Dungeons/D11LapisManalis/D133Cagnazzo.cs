@@ -86,6 +86,11 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D133Cagnazzo
         public VoidMiasma() : base(ActionID.MakeSpell(AID.VoidMiasma), new AOEShapeCone(50, 15.Degrees())) { }
     }
 
+    class Lifescleaver : Components.SelfTargetedAOEs
+    {
+        public Lifescleaver() : base(ActionID.MakeSpell(AID.Lifescleaver2), new AOEShapeCone(50, 15.Degrees())) { }
+    }
+
     class Tsunami : Components.RaidwideAfterNPCYell
     {
         public Tsunami() : base(ActionID.MakeSpell(AID.Tsunami), (uint)NPCYell.LimitBreakStart, 4.5f) { }
@@ -215,6 +220,7 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D133Cagnazzo
         {
             TrivialPhase()
                 .ActivateOnEnter<Voidcleaver>()
+                .ActivateOnEnter<Lifescleaver>()
                 .ActivateOnEnter<VoidMiasma>()
                 .ActivateOnEnter<VoidMiasmaBait>()
                 .ActivateOnEnter<Antediluvian>()
