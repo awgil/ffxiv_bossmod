@@ -80,7 +80,8 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
                 .ActivateOnEnter<HydaelynsRay>()
                 .ActivateOnEnter<RadiantHalo>()
                 .ActivateOnEnter<Lightwave>()
-                .ActivateOnEnter<WeaponTracker>();
+                .ActivateOnEnter<WeaponTracker>()
+                .ActivateOnEnter<Exodus>();
         }
     }
 
