@@ -4,6 +4,7 @@ namespace BossMod.Endwalker.Trials.T08Asura
     class LowerRealm : Components.RaidwideCast
     {
         public LowerRealm() : base(ActionID.MakeSpell(AID.LowerRealm)) { }
+
         public override void Update(BossModule module) //deathwall appears after 1st cast
         {
             if (NumCasts > 0)

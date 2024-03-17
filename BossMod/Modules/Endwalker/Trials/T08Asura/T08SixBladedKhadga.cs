@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Trials.T08Asura
 {
-   class SixBladedKhadga : Components.GenericAOEs
+    class SixBladedKhadga : Components.GenericAOEs
     {
         private List<ActorCastInfo> _spell = new();
         private DateTime _start;

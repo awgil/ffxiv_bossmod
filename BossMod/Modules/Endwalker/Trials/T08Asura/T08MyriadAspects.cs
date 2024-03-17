@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Trials.T08Asura
 {
     class MyriadAspects : Components.GenericAOEs
     {
-        private static readonly AOEShapeCone cone = new (40, 15.Degrees());
+        private static readonly AOEShapeCone cone = new(40, 15.Degrees());
         private DateTime _activation1;
         private DateTime _activation2;
         private List<ActorCastInfo> _spell1 = new();
@@ -39,12 +39,12 @@ namespace BossMod.Endwalker.Trials.T08Asura
         {
             if ((AID)spell.Action.ID is AID.MyriadAspects1 or AID.MyriadAspects2)
                 ++NumCasts;
-                if (NumCasts == 12)
-                {
-                    NumCasts = 0;
-                    _spell1.Clear();
-                    _spell2.Clear();
-                }
+            if (NumCasts == 12)
+            {
+                NumCasts = 0;
+                _spell1.Clear();
+                _spell2.Clear();
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Trials.T08Asura
 {
     class ManyFaces : Components.GenericAOEs
     {
-        private static readonly AOEShapeCone cone = new (20, 90.Degrees());
+        private static readonly AOEShapeCone cone = new(20, 90.Degrees());
         private DateTime _activation;
         private bool delight;
         private bool wrath;
