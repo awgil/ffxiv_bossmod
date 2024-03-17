@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using BossMod.MaskedCarnivale.Stage01;
 
 namespace BossMod.Components
 {
@@ -40,61 +39,32 @@ namespace BossMod.Components
 
     public class CastInterruptHint : CastHint
     {
-        public bool Canbeinterrupted;
-        public bool Canbestunned;
-        private List<Actor> _casters = new();
-        public new IReadOnlyList<Actor> Casters => _casters;
-        public new bool Active => _casters.Count > 0;
+        public bool CanBeInterrupted { get; init; }
+        public bool CanBeStunned { get; init; }
 
-        public CastInterruptHint(ActionID aid, bool canbeinterrupted = true, bool canbestunned = false, string hint = "") : base(aid, hint)
+        public CastInterruptHint(ActionID aid, bool canBeInterrupted = true, bool canBeStunned = false, string hint = "") : base(aid, "")
         {
-            Canbeinterrupted = canbeinterrupted;
-            Canbestunned = canbestunned;
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            foreach (var caster in _casters)
+            CanBeInterrupted = canBeInterrupted;
+            CanBeStunned = canBeStunned;
+            if (canBeInterrupted || canBeStunned)
             {
-                if (Active && Canbeinterrupted && !Canbestunned)
-                    hints.Add($"Interrupt {caster.Name}! " + Hint);
-                if (Active && !Canbeinterrupted && Canbestunned)
-                    hints.Add($"Stun {caster.Name}! " + Hint);
-                if (Active && Canbeinterrupted && Canbestunned)
-                    hints.Add($"Interrupt or stun {caster.Name}! " + Hint);
+                Hint = !canBeStunned ? "Interrupt" : !canBeInterrupted ? "Stun" : "Interrupt/stun";
+                if (hint.Length > 0)
+                    Hint += $" {hint}";
             }
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-                _casters.Add(caster);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-                _casters.Remove(caster);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            base.AddAIHints(module, slot, actor, assignment, hints);
-            if (Active)
-                foreach (var caster in _casters)
-                    foreach (var e in hints.PotentialTargets)
-                    {
-                        if (Canbeinterrupted)
-                        {
-                            e.Priority = 1;
-                            e.ShouldBeInterrupted = true;
-                        }
-                        if (Canbestunned)
-                        {
-                            e.Priority = 1;
-                            e.ShouldBeInterrupted = true;
-                        }
-                    }
+            foreach (var c in Casters)
+            {
+                var e = hints.PotentialTargets.Find(e => e.Actor == c);
+                if (e != null)
+                {
+                    e.ShouldBeInterrupted |= CanBeInterrupted;
+                    e.ShouldBeStunned |= CanBeStunned;
+                }
+            }
         }
     }
 }

@@ -67,88 +67,72 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
     class BracingWind : Components.KnockbackFromCastTarget
     {
         public BracingWind() : base(ActionID.MakeSpell(AID.BracingWind), 40, false, 1, new AOEShapeRect(60, 6), Kind.DirForward) { }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            var length = module.Bounds.HalfSize * 2; // casters are at the border, orthogonal to borders
+            foreach (var c in Casters)
+            {
+                hints.AddForbiddenZone(ShapeDistance.Rect(c.Position, c.CastInfo!.Rotation, length, Distance - length, 6), c.CastInfo!.NPCFinishAt);
+            }
+        }
     }
 
     class LunarCry : Components.CastLineOfSightAOE
     {
-        private HashSet<ulong> _badPillars = new();
-        private bool _castingKnockback;
-        private bool _castingLunarCry;
-        private DateTime _activationKnockback;
-        private const float maxError = MathF.PI/180;
+        private List<Actor> _safePillars = new();
+        private BracingWind? _knockback;
 
         public LunarCry() : base(ActionID.MakeSpell(AID.LunarCry), 80, false) { }
-        public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.Icicle).Where(a => !_badPillars.Contains(a.InstanceID));
+
+        public override IEnumerable<Actor> BlockerActors(BossModule module) => _safePillars;
+
+        public override void Init(BossModule module) => _knockback = module.FindComponent<BracingWind>();
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (_knockback?.Casters.Count > 0)
+                return; // resolve knockbacks first
+            base.AddAIHints(module, slot, actor, assignment, hints);
+        }
+
+        public override void OnActorCreated(BossModule module, Actor actor)
+        {
+            if ((OID)actor.OID == OID.Icicle)
+                _safePillars.Add(actor);
+        }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
             if ((AID)spell.Action.ID == AID.PillarPierce)
-                _badPillars.Add(caster.InstanceID);
-            if ((AID)spell.Action.ID == AID.BracingWind)
-            {
-                _castingKnockback = true;
-                _activationKnockback = spell.NPCFinishAt.AddSeconds(0.6f);
-            }
-            if ((AID)spell.Action.ID == AID.LunarCry)
-                _castingLunarCry = true;
-        }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            if (_castingKnockback)
-            {
-                foreach (var e in module.Enemies(OID.IceSprite))
-                {
-                    if (e.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                        hints.AddForbiddenZone(ShapeDistance.Rect(new(-854, e.Position.Z), new(-814, e.Position.Z), 6), _activationKnockback);
-                    if (e.Rotation.AlmostEqual(90.Degrees(), maxError))
-                        hints.AddForbiddenZone(ShapeDistance.Rect(new(-806, e.Position.Z), new(-846, e.Position.Z), 6), _activationKnockback);
-                }
-            }
-            if (!_castingKnockback)
-                base.AddAIHints(module, slot, actor, assignment, hints);
-            if (!_castingKnockback && _castingLunarCry)
-                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.BracingWindAOE)
-                _castingKnockback = false;
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            base.OnCastFinished(module, caster, spell);
-            if ((AID)spell.Action.ID == AID.LunarCry)
-                _castingKnockback = false;
+                _safePillars.Remove(caster);
         }
     }
 
+    // this AOE only got 2s cast time, but the actors already spawn 4.5s earlier, so we can use that to our advantage
     class ThermalGust : Components.GenericAOEs
-    {   //This AOE only got 2s cast time, but the actors already spawn 4.5s earlier, so we can use that to our advantage
+    {
+        private List<Actor> _casters = new();
         private DateTime _activation;
 
         private static AOEShapeRect _shape = new(60, 2);
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_activation != default)
-                foreach (var c in module.Enemies(OID.Imaginifer))
-                    yield return new(_shape, c.Position, c.Rotation, _activation);
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.NPCFinishAt ?? _activation));
 
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.Imaginifer)
+            {
+                _casters.Add(actor);
                 _activation = module.WorldState.CurrentTime.AddSeconds(6.5f);
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ThermalGust)
-                _activation = default;
+                _casters.Remove(caster);
         }
     }
 

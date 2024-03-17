@@ -143,6 +143,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         public CrimsonBlade() : base(ActionID.MakeSpell(AID.CrimsonBlade), new AOEShapeCone(50, 90.Degrees())) { }
     }
 
+    class BloodCyclone : Components.SelfTargetedAOEs
+    {
+        public BloodCyclone() : base(ActionID.MakeSpell(AID.BloodCyclone), new AOEShapeCircle(5)) { }
+    }
+
     class Aethertide : Components.SpreadFromCastTargets
     {
         public Aethertide() : base(ActionID.MakeSpell(AID.AethertideAOE), 8) { }
@@ -151,11 +156,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
     class MarchingBreath : Components.CastInterruptHint //heals all allies by 20% of max health (raidwide)
     {
         public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath), hint: "(20% HP AOE heal)") { }
-    }
-
-    class SoulSacrifice : Components.CastInterruptHint //WarWraith sacrifices itself to give boss a damage buff
-    {
-        public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice), hint: "(Dmg buff on boss)") { }
     }
 
     class TacticalAero : Components.SelfTargetedAOEs
@@ -167,13 +167,15 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
     {
         public EntropicFlame() : base(ActionID.MakeSpell(AID.EntropicFlame), new AOEShapeRect(60, 4)) { }
     }
+
     class DarkFlare : Components.LocationTargetedAOEs
     {
         public DarkFlare() : base(ActionID.MakeSpell(AID.DarkFlare), 8) { }
     }
-    class BloodCyclone : Components.SelfTargetedAOEs
+
+    class SoulSacrifice : Components.CastInterruptHint //WarWraith sacrifices itself to give boss a damage buff
     {
-        public BloodCyclone() : base(ActionID.MakeSpell(AID.BloodCyclone), new AOEShapeCircle(5)) { }
+        public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice), hint: "(Dmg buff on boss)") { }
     }
 
     class PurifyingLight : Components.LocationTargetedAOEs
@@ -196,11 +198,11 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
                 .ActivateOnEnter<ShockSphere>()
                 .ActivateOnEnter<SoulPurge>()
                 .ActivateOnEnter<CrimsonBlade>()
+                .ActivateOnEnter<BloodCyclone>()
                 .ActivateOnEnter<Aethertide>()
                 .ActivateOnEnter<MarchingBreath>()
                 .ActivateOnEnter<TacticalAero>()
                 .ActivateOnEnter<EntropicFlame>()
-                .ActivateOnEnter<BloodCyclone>()
                 .ActivateOnEnter<DarkFlare>()
                 .ActivateOnEnter<SoulSacrifice>()
                 .ActivateOnEnter<PurifyingLight>();
