@@ -34,7 +34,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public P3FlareBreath() : base(ActionID.MakeSpell(AID.FlareBreath), new AOEShapeCone(29.2f, 45.Degrees()), (uint)OID.BahamutPrime) { } // TODO: verify angle
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania, CFCID = 280)]
     public class UCOB : BossModule
     {
         private IReadOnlyList<Actor> _nael;

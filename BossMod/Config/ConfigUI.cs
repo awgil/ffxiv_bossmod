@@ -1,13 +1,7 @@
-﻿using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility.Raii;
-using Dalamud.Utility;
+﻿using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Globalization;
-using System.Linq;
 using System.Reflection;
 
 namespace BossMod
@@ -30,17 +24,14 @@ namespace BossMod
 
         private List<UINode> _roots = new();
         private UITree _tree = new();
+        private ModuleViewer _mv = new();
         private ConfigRoot _root;
         private WorldState _ws;
-
-        private readonly Lumina.Excel.ExcelSheet<ExVersion> _exSheet;
 
         public ConfigUI(ConfigRoot config, WorldState ws)
         {
             _root = config;
             _ws = ws;
-
-            _exSheet = Service.LuminaGameData!.GetExcelSheet<ExVersion>()!;
 
             Dictionary<Type, UINode> nodes = new();
             foreach (var n in config.Nodes)
@@ -75,58 +66,8 @@ namespace BossMod
                         DrawNodes(_roots);
                 using (var tab = ImRaii.TabItem("Modules"))
                     if (tab)
-                        DrawModules();
+                        _mv.Draw(_tree);
             }
-        }
-
-        private void DrawModules()
-        {
-            // TODO: separate unreals from trials and alliance raids from raids and show old unreals in uncatalogued
-            // support for fates and CEs to have nameIDs
-            foreach (var expac in ModuleRegistry.AvailableExpansions)
-            {
-                var expac_mods = ModuleRegistry.CataloguedModules.Where(x => x.ExVersion == expac);
-                var expac_cont = expac_mods.Select(x => x.ContentType).Distinct();
-                UIMisc.TextUnderlined(ImGuiColors.DalamudViolet, $"{_exSheet.GetRow(expac)!.Name}");
-                foreach (var cont in expac_cont)
-                {
-                    ImGui.Indent();
-                    UIMisc.TextUnderlined(ImGuiColors.TankBlue, $"{(cont!.RawString.IsNullOrEmpty() ? "Unknown" : cont)}");
-                    ModuleRegistry.Info? prevMod = null;
-                    foreach (var mod in expac_mods.Where(x => x.ContentType == cont))
-                    {
-                        if (prevMod == null || prevMod.InstanceName != mod.InstanceName || mod.IsCriticalEngagement())
-                        {
-                            ImGui.Indent();
-                            var displayName = mod.IsHunt() ? $"[{mod.HuntRank}] {mod.BossName}" ?? ""
-                                : mod.IsCriticalEngagement() ? $"[CE] {mod.ForayName}" ?? ""
-                                : mod.IsCarnivale() ? $"[{mod.CarnivaleStage}] {mod.BossName}" ?? ""
-                                : mod.InstanceName ?? "";
-                            foreach (var x in _tree.Node($"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(displayName)}###{mod.PrimaryActorOID}"))
-                            {
-                                DrawBosses(expac_mods, mod.CFCID);
-                            }
-                            ImGui.Unindent();
-                        }
-                        prevMod = mod;
-                    }
-                    ImGui.Unindent();
-                }
-            }
-
-            if (ModuleRegistry.UncataloguedModules.Any())
-            {
-                UIMisc.TextUnderlined(ImGuiColors.DPSRed, $"Uncatalogued");
-                foreach (var mod in ModuleRegistry.UncataloguedModules)
-                    ImGui.Text($"{mod.ModuleType.Name}");
-            }
-        }
-
-        private static void DrawBosses(IEnumerable<ModuleRegistry.Info> expac_mods, uint cfcID)
-        {
-            foreach (var mod in expac_mods.Where(x => x.CFCID == cfcID && cfcID != 0))
-                if (!mod.BossName!.RawString.IsNullOrEmpty())
-                    ImGui.Text($"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(mod.BossName)}");
         }
 
         private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config") ? t.Name.Remove(t.Name.Length - "Config".Length) : t.Name;

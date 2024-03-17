@@ -170,7 +170,7 @@ namespace BossMod.Shadowbringers.FATE.Archaeotania
         }
     }
 
-    [ModuleInfo(FateID = 1432)]
+    [ModuleInfo(FateID = 1432, ExVersion = 3, NameID = 8234)]
     public class Archaeotania : BossModule
     {
         public Archaeotania(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(279, 249), 29)) { }

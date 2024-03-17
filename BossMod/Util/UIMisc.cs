@@ -1,4 +1,7 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Interface.Internal;
+using ImGuiNET;
+using System.Collections.Generic;
+using System;
 using System.Numerics;
 
 namespace BossMod
@@ -27,6 +30,27 @@ namespace BossMod
             ImGui.GetWindowDrawList().PathLineTo(cur);
             ImGui.GetWindowDrawList().PathStroke(ImGui.ColorConvertFloat4ToU32(colour));
             ImGui.TextColored(colour, text);
+        }
+
+        public static void TextV(string s)
+        {
+            var cur = ImGui.GetCursorPos();
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0);
+            ImGui.Button("");
+            ImGui.PopStyleVar();
+            ImGui.SameLine();
+            ImGui.SetCursorPos(cur);
+            ImGui.TextUnformatted(s);
+        }
+
+        public static bool ImageToggleButton(IDalamudTextureWrap icon, Vector2 size, bool state)
+        {
+            var tintColor = new Vector4(1f, 1f, 1f, 1f);
+            if (!state)
+            {
+                tintColor = new Vector4(0.5f, 0.5f, 0.5f, 0.85f);
+            }
+            return ImGui.ImageButton(icon.ImGuiHandle, size, Vector2.Zero, Vector2.One, 1, Vector4.Zero, tintColor);
         }
     }
 }
