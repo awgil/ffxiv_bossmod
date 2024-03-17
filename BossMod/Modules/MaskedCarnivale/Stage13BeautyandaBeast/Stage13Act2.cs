@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage13.Act2
 {
@@ -28,47 +26,47 @@ namespace BossMod.MaskedCarnivale.Stage13.Act2
         BloodRain = 14882, // 26F8->location, 3,0s cast, range 50 circle
     };
 
-    class VoidFireII : LocationTargetedAOEs
+    class VoidFireII : Components.LocationTargetedAOEs
     {
         public VoidFireII() : base(ActionID.MakeSpell(AID.VoidFireII), 5) { }
     }
 
-    class VoidFireIV : LocationTargetedAOEs
+    class VoidFireIV : Components.LocationTargetedAOEs
     {
         public VoidFireIV() : base(ActionID.MakeSpell(AID.VoidFireIV), 10) { }
     }
 
-    class VoidFireIV3 : LocationTargetedAOEs
+    class VoidFireIV3 : Components.LocationTargetedAOEs
     {
         public VoidFireIV3() : base(ActionID.MakeSpell(AID.VoidFireIV3), 6) { }
     }
 
-    class VoidAero : SelfTargetedAOEs
+    class VoidAero : Components.SelfTargetedAOEs
     {
         public VoidAero() : base(ActionID.MakeSpell(AID.VoidAero), new AOEShapeRect(42, 4)) { }
     }
 
-    class DarkSabbath : CastGaze
+    class DarkSabbath : Components.CastGaze
     {
         public DarkSabbath() : base(ActionID.MakeSpell(AID.DarkSabbath)) { }
     }
 
-    class DarkMist : SelfTargetedAOEs
+    class DarkMist : Components.SelfTargetedAOEs
     {
         public DarkMist() : base(ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(10)) { }
     }
 
-    class CircleOfBlood : SelfTargetedAOEs
+    class CircleOfBlood : Components.SelfTargetedAOEs
     {
         public CircleOfBlood() : base(ActionID.MakeSpell(AID.CircleOfBlood2), new AOEShapeDonut(10, 20)) { }
     }
 
-    class BeguilingMist : CastHint
+    class BeguilingMist : Components.CastHint
     {
         public BeguilingMist() : base(ActionID.MakeSpell(AID.BeguilingMist), "Interrupt or run around uncontrollably!") { }
     }
 
-    class BloodRain : RaidwideCast
+    class BloodRain : Components.RaidwideCast
     {
         public BloodRain() : base(ActionID.MakeSpell(AID.BloodRain), "Harmless raidwide unless you failed to kill succubus in time") { }
     }
@@ -108,10 +106,9 @@ namespace BossMod.MaskedCarnivale.Stage13.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Succubus))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
         }
     }
 }
