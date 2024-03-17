@@ -27,27 +27,9 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D052ForgivenApathy
         PunitiveLight = 16815, // 28F2->self, 5,0s cast, range 20 circle
     };
 
-    class PunitiveLight : BossComponent
+    class PunitiveLight : Components.CastInterruptHint
     { //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
-        private List<Actor> _casters = new();
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.PunitiveLight)
-                _casters.Add(caster);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.PunitiveLight)
-                _casters.Remove(caster);
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            var prejudice = module.Enemies(OID.ForgivenPrejudice).FirstOrDefault();
-            if (prejudice != null && _casters.Count > 0)
-                hints.Add($"Interrupt or stun {prejudice.Name}! (Raidwide)");
-        }
+        public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "(Raidwide)") { }
     }
 
     class Sanctification : Components.SelfTargetedAOEs

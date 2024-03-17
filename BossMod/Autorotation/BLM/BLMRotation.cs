@@ -19,7 +19,7 @@
             // statuses
             public SID ExpectedThunder3 => Unlocked(AID.Thunder3) ? SID.Thunder3 : SID.Thunder1;
 
-            public State(float[] cooldowns) : base(cooldowns) { }
+            public State(WorldState ws) : base(ws) { }
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);

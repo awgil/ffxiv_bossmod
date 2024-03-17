@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage03
 {
@@ -11,23 +9,23 @@ namespace BossMod.MaskedCarnivale.Stage03
 
     public enum AID : uint
     {
-        Attack = 6499, // 25D4->player, no cast, single-target
+        AutoAttack = 6499, // 25D4->player, no cast, single-target
         BoulderClap = 14363, // 25D4->self, 3,0s cast, range 14 120-degree cone
         EarthenHeart = 14364, // 25D4->location, 3,0s cast, range 6 circle
         Obliterate = 14365, // 25D4->self, 6,0s cast, range 60 circle
     };
 
-    class BoulderClap : SelfTargetedAOEs
+    class BoulderClap : Components.SelfTargetedAOEs
     {
         public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14, 60.Degrees())) { }
     }
 
-    class Dreadstorm : PersistentVoidzoneAtCastTarget
+    class Dreadstorm : Components.PersistentVoidzoneAtCastTarget
     {
         public Dreadstorm() : base(6, ActionID.MakeSpell(AID.EarthenHeart), m => m.Enemies(OID.voidzone), 0) { }
     }
 
-    class Obliterate : RaidwideCast
+    class Obliterate : Components.RaidwideCast
     {
         public Obliterate() : base(ActionID.MakeSpell(AID.Obliterate), "Interruptible raidwide") { }
     }
@@ -67,11 +65,6 @@ namespace BossMod.MaskedCarnivale.Stage03
         public Stage03(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
-        }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
         }
     }
 }

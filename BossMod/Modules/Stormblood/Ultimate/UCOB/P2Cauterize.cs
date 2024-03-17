@@ -72,7 +72,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if (iconID == (uint)IconID.Cauterize && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+            if ((IconID)iconID is IconID.Cauterize && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
             {
                 BaitOrder[slot] = ++NumBaitsAssigned;
             }

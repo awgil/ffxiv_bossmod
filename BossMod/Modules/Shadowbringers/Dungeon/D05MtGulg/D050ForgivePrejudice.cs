@@ -29,26 +29,9 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D050ForgivenPrejudice
         public SanctifiedAero() : base(ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4)) { }
     }
 
-    class PunitiveLight : BossComponent
+    class PunitiveLight : Components.CastInterruptHint
     { //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
-        private List<Actor> _casters = new();
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.PunitiveLight)
-                _casters.Add(caster);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.PunitiveLight)
-                _casters.Remove(caster);
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (_casters.Count > 0)
-                hints.Add($"Interrupt or stun {module.PrimaryActor.Name}! (Raidwide)");
-        }
+        public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "(Raidwide)") { }
     }
 
     class Sanctification : Components.SelfTargetedAOEs

@@ -19,7 +19,7 @@ namespace BossMod.DNC
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<DNCConfig>();
-            _state = new(autorot.Cooldowns);
+            _state = new(autorot.WorldState);
             _strategy = new();
 
             SupportedSpell(AID.StandardStep).TransformAction = () => ActionID.MakeSpell(_state.BestStandardStep);

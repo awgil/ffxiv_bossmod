@@ -2,10 +2,13 @@ autorotation rework:
 - priority action suggestions
 - control panel w/ presets and bindings
 - module registry supporting alternatives per job
-- bozja holster / action support
 - proper lb support
 - proper gcd time calculations
 - simulation in replay analysis
+- cooldowns
+-- get rid of cdgroup enums
+-- properly support additional cdgroups
+-- remove fake cdgroup 71 (lb/holster)
 
 network rework:
 - optionally log raw ipcs to replay
@@ -29,10 +32,6 @@ boss modules:
 - boss module config presets/profiles
 
 autorotation:
-- don't fire 2mins on few % trash before boss...
--- separate button?
--- also don't re-dot?
--- while shift is held?
 - dot/regen server tick tracking
 - brd
 -- aoe rotation (2/3/4+ targets, barrage usage)
