@@ -1,21 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using BossMod.MaskedCarnivale.Stage01;
 
 namespace BossMod.Components
 {
-    public enum AID : uint
-    {
-        SpittingSardine = 11423, //blue mage skill
-        BombToss = 11396, //blue mage skill
-        Faze = 11403, //blue mage skill
-        TheRamsVoice = 11419, //blue mage skill
-        StickyTongue = 11412, //blue mage skill
-        PerpetualRay = 18314, //blue mage skill
-        Tatamigaeshi = 23266, //blue mage skill
-        WhiteDeath = 23268, //blue mage skill
-        TranquilizerL = 12884, //logos action in Eureka
-    };
-
     // generic component that is 'active' when any actor casts specific spell
     public class CastHint : CastCounter
     {
@@ -50,15 +38,15 @@ namespace BossMod.Components
         }
     }
 
-    public class CastInterruptHint : CastCounter
+    public class CastInterruptHint : CastHint
     {
         public bool Canbeinterrupted;
         public bool Canbestunned;
         private List<Actor> _casters = new();
-        public IReadOnlyList<Actor> Casters => _casters;
-        public bool Active => _casters.Count > 0;
+        public new IReadOnlyList<Actor> Casters => _casters;
+        public new bool Active => _casters.Count > 0;
 
-        public CastInterruptHint(ActionID action, bool canbeinterrupted = true, bool canbestunned = false) : base(action)
+        public CastInterruptHint(ActionID aid, bool canbeinterrupted = true, bool canbestunned = false, string hint = "") : base(aid, hint)
         {
             Canbeinterrupted = canbeinterrupted;
             Canbestunned = canbestunned;
@@ -69,11 +57,11 @@ namespace BossMod.Components
             foreach (var caster in _casters)
             {
                 if (Active && Canbeinterrupted && !Canbestunned)
-                    hints.Add($"Interrupt {caster.Name}!");
+                    hints.Add($"Interrupt {caster.Name}! " + Hint);
                 if (Active && !Canbeinterrupted && Canbestunned)
-                    hints.Add($"Stun {caster.Name}!");
+                    hints.Add($"Stun {caster.Name}! " + Hint);
                 if (Active && Canbeinterrupted && Canbestunned)
-                    hints.Add($"Interrupt or stun {caster.Name}!");
+                    hints.Add($"Interrupt or stun {caster.Name}! " + Hint);
             }
         }
 
@@ -92,35 +80,21 @@ namespace BossMod.Components
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.AddAIHints(module, slot, actor, assignment, hints);
-            foreach (var caster in _casters)
-            {
-                if (Active && Canbeinterrupted && actor.Role == Role.Tank && Service.ClientState.LocalPlayer?.Level >= 18)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Interject), caster, 1, false));
-                if (Active && Canbeinterrupted && actor.Class.GetClassCategory() == ClassCategory.PhysRanged && Service.ClientState.LocalPlayer?.Level >= 24)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(BRD.AID.HeadGraze), caster, 1, false));
-                if (Active && Canbestunned && actor.Class is Class.GLA or Class.PLD && Service.ClientState.LocalPlayer?.Level >= 10)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(PLD.AID.ShieldBash), caster, 1, false));
-                if (Active && Canbestunned && actor.Role == Role.Tank && Service.ClientState.LocalPlayer?.Level >= 12)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.LowBlow), caster, 1, false));
-                if (Active && Canbestunned && actor.Class.GetClassCategory() == ClassCategory.Melee && Service.ClientState.LocalPlayer?.Level >= 10)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(SAM.AID.LegSweep), caster, 1, false));
-                if (Active && Canbestunned && actor.Class == Class.WHM && Service.ClientState.LocalPlayer?.Level >= 45 && Service.ClientState.LocalPlayer?.Level <= 82)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Holy1), caster, 1, false));
-                if (Active && Canbestunned && actor.Class == Class.WHM && Service.ClientState.LocalPlayer?.Level >= 82)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Holy3), caster, 1, false));
-                if (Active && Canbeinterrupted && actor.Class == Class.BLU)
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.SpittingSardine), caster, 1, false));
-                if (Active && Canbestunned && actor.Class == Class.BLU)
-                {
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.BombToss), caster, 1, false));
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.Faze), caster, 1, false));
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.StickyTongue), caster, 1, false));
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.PerpetualRay), caster, 1, false));
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.Tatamigaeshi), caster, 1, false));
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.TheRamsVoice), caster, 1, false)); //actually a deep freeze, but similar effect
-                    hints.PlannedActions.Add((ActionID.MakeSpell(AID.WhiteDeath), caster, 1, false)); //actually a deep freeze, but similar effect
-                }
-            }
+            if (Active)
+                foreach (var caster in _casters)
+                    foreach (var e in hints.PotentialTargets)
+                    {
+                        if (Canbeinterrupted)
+                        {
+                            e.Priority = 1;
+                            e.ShouldBeInterrupted = true;
+                        }
+                        if (Canbestunned)
+                        {
+                            e.Priority = 1;
+                            e.ShouldBeInterrupted = true;
+                        }
+                    }
         }
     }
 }

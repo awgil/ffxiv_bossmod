@@ -150,12 +150,12 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
 
     class MarchingBreath : Components.CastInterruptHint //heals all allies by 20% of max health (raidwide)
     {
-        public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath)) { }
+        public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath), hint: "(20% HP AOE heal)") { }
     }
 
     class SoulSacrifice : Components.CastInterruptHint //WarWraith sacrifices itself to give boss a damage buff
     {
-        public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice)) { }
+        public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice), hint: "(Dmg buff on boss)") { }
     }
 
     class TacticalAero : Components.SelfTargetedAOEs
