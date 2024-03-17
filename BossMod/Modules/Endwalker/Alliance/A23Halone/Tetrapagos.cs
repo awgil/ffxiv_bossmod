@@ -19,7 +19,7 @@ namespace BossMod.Endwalker.Alliance.A23Halone
                 _ => null
             };
             if (shape != null)
-                _aoes.Add(new(shape, caster.Position, caster.Rotation, spell.FinishAt.AddSeconds(7.3f)));
+                _aoes.Add(new(shape, caster.Position, caster.Rotation, spell.NPCFinishAt.AddSeconds(7.3f)));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

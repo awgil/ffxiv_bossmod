@@ -64,7 +64,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
                 case AID.BeyondDefense:
                     _source = caster;
                     CurMechanic = Mechanic.Spread;
-                    _activation = spell.FinishAt.AddSeconds(0.2f);
+                    _activation = spell.NPCFinishAt.AddSeconds(0.2f);
                     break;
             }
         }

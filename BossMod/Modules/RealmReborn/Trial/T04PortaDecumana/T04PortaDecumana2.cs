@@ -1,4 +1,8 @@
-﻿namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BossMod.RealmReborn.Trial.T04PortaDecumana.Phase2
 {
     public enum OID : uint
     {
@@ -37,7 +41,7 @@
         CitadelBuster = 29020, // Boss->self, 5.0s cast, range 40 width 12 rect aoe
         Explosion = 29021, // Helper->self, 7.0s cast, raidwide with ? falloff
 
-        //??? = 28542, // Helper->self, no cast, range 40 circle - apply damage up buff?..
+        LimitBreakRefill = 28542, // Helper->self, no cast, range 40 circle - probably limit break refill
         Ultima = 29024, // Boss->self, 71.0s cast, enrage
     };
 
@@ -76,6 +80,63 @@
         public LaserFocus() : base(ActionID.MakeSpell(AID.LaserFocusAOE), 6) { }
     }
 
+    class AethericBoom : Components.KnockbackFromCastTarget
+    {
+        public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), 30)
+        {
+            StopAtWall = true;
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (Casters.Count > 0)
+                hints.Add("Prepare to soak the orbs!");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (Casters.Count > 0)
+            {
+                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.ArmsLength), actor, 1, false));
+                hints.PlannedActions.Add((ActionID.MakeSpell(WHM.AID.Surecast), actor, 1, false));
+            }
+        }
+    }
+
+    class Aetheroplasm : BossComponent
+    {
+        private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
+
+        public IEnumerable<Actor> ActiveOrbs => _orbs.Where(orb => !orb.IsDead);
+
+        public override void Init(BossModule module)
+        {
+            _orbs = module.Enemies(OID.Aetheroplasm);
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (ActiveOrbs.Any())
+                hints.Add("Soak the orbs!");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            var orb = ActiveOrbs.FirstOrDefault();
+            if (orb != null)
+            {
+                hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(orb.Position + 0.7f * orb.Rotation.ToDirection(), 1.2f));
+            }
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var orb in ActiveOrbs)
+                arena.AddCircle(orb.Position, 1.4f, ArenaColor.Safe);
+        }
+    }
+
     class AssaultCannon : Components.SelfTargetedAOEs
     {
         public AssaultCannon() : base(ActionID.MakeSpell(AID.AssaultCannon), new AOEShapeRect(40, 2)) { }
@@ -98,6 +159,11 @@
         }
     }
 
+    class Ultima : Components.CastHint
+    {
+        public Ultima() : base(ActionID.MakeSpell(AID.Ultima), "Enrage!", true) { }
+    }
+
     class T04PortaDecumana2States : StateMachineBuilder
     {
         public T04PortaDecumana2States(BossModule module) : base(module)
@@ -110,9 +176,12 @@
                 .ActivateOnEnter<MagitekRayL>()
                 .ActivateOnEnter<HomingRay>()
                 .ActivateOnEnter<LaserFocus>()
+                .ActivateOnEnter<AethericBoom>()
+                .ActivateOnEnter<Aetheroplasm>()
                 .ActivateOnEnter<AssaultCannon>()
                 .ActivateOnEnter<CitadelBuster>()
-                .ActivateOnEnter<Explosion>();
+                .ActivateOnEnter<Explosion>()
+                .ActivateOnEnter<Ultima>();
         }
     }
 
@@ -120,5 +189,11 @@
     public class T04PortaDecumana2 : BossModule
     {
         public T04PortaDecumana2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-704, 480), 20)) { }
+        protected override void DrawEnemies(int pcSlot, Actor pc)
+        {
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            foreach (var s in Enemies(OID.Aetheroplasm).Where(x => !x.IsDead))
+                Arena.Actor(s, ArenaColor.Object, true);
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Hellfire)
-                _expectedRaidwide = spell.FinishAt;
+                _expectedRaidwide = spell.NPCFinishAt;
         }
     }
 }

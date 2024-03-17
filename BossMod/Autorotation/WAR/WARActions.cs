@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.WAR
@@ -18,7 +19,7 @@ namespace BossMod.WAR
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<WARConfig>();
-            _state = new(autorot.Cooldowns);
+            _state = new(autorot.WorldState);
             _strategy = new();
 
             // upgrades

@@ -63,7 +63,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
             if ((AID)spell.Action.ID is AID.NNoblePursuitFirst or AID.SNoblePursuitFirst)
             {
                 var dir = spell.LocXZ - caster.Position;
-                _charges.Add(new(new AOEShapeRect(dir.Length(), _chargeHalfWidth), caster.Position, Angle.FromDirection(dir), spell.FinishAt));
+                _charges.Add(new(new AOEShapeRect(dir.Length(), _chargeHalfWidth), caster.Position, Angle.FromDirection(dir), spell.NPCFinishAt));
                 _posAfterLastCharge = spell.LocXZ;
             }
         }

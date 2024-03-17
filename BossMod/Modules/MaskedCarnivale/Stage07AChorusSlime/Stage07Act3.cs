@@ -1,5 +1,4 @@
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage07.Act3
@@ -17,28 +16,28 @@ namespace BossMod.MaskedCarnivale.Stage07.Act3
         Object130 = 14711, // 2706->self, no cast, range 30+R circle - instant kill if you do not line of sight the towers when they die
     };
 
-    class LowVoltage : GenericLineOfSightAOE
+    class LowVoltage : Components.GenericLineOfSightAOE
     {
         public LowVoltage() : base(ActionID.MakeSpell(AID.LowVoltage), 35, true) { } //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
     }
 
-    class SlimeExplosion : GenericStackSpread
+    class SlimeExplosion : Components.GenericStackSpread
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var p in module.Enemies(OID.Slime).Where(x => x.HP.Cur > 0))
-                arena.AddCircle(p.Position, 7.5f, ArenaColor.Danger);
+            foreach (var p in module.Enemies(OID.Slime).Where(x => !x.IsDead))
+            {
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddCircle(p.Position, 7.6f, 0xFF000000, 2);
+                arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
+            }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var player = module.Raid.Player();
-            if (player != null)
-                foreach (var p in module.Enemies(OID.Slime).Where(x => x.HP.Cur > 0))
-                    if (player.Position.InCircle(p.Position, 7.5f))
-                    {
-                        hints.Add("In slime explosion radius!");
-                    }
+            foreach (var p in module.Enemies(OID.Slime).Where(x => !x.IsDead))
+                if (actor.Position.InCircle(p.Position, 7.5f))
+                    hints.Add("In slime explosion radius!");
         }
     }
 
@@ -75,9 +74,9 @@ namespace BossMod.MaskedCarnivale.Stage07.Act3
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Slime))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
         }
     }
 }

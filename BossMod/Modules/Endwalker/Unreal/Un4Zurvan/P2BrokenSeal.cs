@@ -18,8 +18,8 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
         public int NumAssigned { get; private set; }
         public int NumCasts { get; private set; }
         private PlayerState[] _playerStates = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Partner = -1 });
-        private List<Actor> _fireTowers = new();
-        private List<Actor> _iceTowers = new();
+        private IReadOnlyList<Actor> _fireTowers = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _iceTowers = ActorEnumeration.EmptyList;
 
         public override void Init(BossModule module)
         {

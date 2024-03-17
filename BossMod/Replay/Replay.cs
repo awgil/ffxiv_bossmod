@@ -114,7 +114,7 @@ namespace BossMod
             public List<EncounterState> States = new();
             public List<EncounterError> Errors = new();
             public Dictionary<uint, List<Participant>> ParticipantsByOID = new(); // key = oid
-            public List<(Participant, Class)> PartyMembers = new();
+            public List<(Participant p, Class cls, int level)> PartyMembers = new();
             public int FirstAction;
             public int FirstStatus;
             public int FirstTether;

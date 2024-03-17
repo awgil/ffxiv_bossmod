@@ -60,5 +60,8 @@
 
         [PropertyDisplay("Always show all alive party members")]
         public bool ShowIrrelevantPlayers = false;
+
+        [PropertyDisplay("Show outlines and shadows on various radar markings")]
+        public bool ShowOutlinesAndShadows = false;
     }
 }

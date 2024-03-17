@@ -59,7 +59,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.LightningBoltAOE)
-                _aoes.Add(new(_shapeBolt, spell.LocXZ, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(_shapeBolt, spell.LocXZ, spell.Rotation, spell.NPCFinishAt));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -90,7 +90,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
         {
             if ((AID)spell.Action.ID == AID.CloudToGroundFirst)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = 5 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 1.1f, ExplosionsLeft = 4, MaxShownExplosions = 2 });
+                Lines.Add(new() { Next = caster.Position, Advance = 5 * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1.1f, ExplosionsLeft = 4, MaxShownExplosions = 2 });
             }
         }
 
@@ -119,7 +119,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
 
     class Burn : Components.GenericAOEs
     {
-        private List<Actor> _flames = new();
+        private IReadOnlyList<Actor> _flames = ActorEnumeration.EmptyList;
         private List<(Actor actor, AOEInstance? aoe)> _casters = new();
 
         private static AOEShapeCircle _shape = new(8);

@@ -6,8 +6,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
     // TODO: show reflect hints, show stay under dome hints
     class MaelstromsBolt : Components.CastCounter
     {
-        private List<Actor> _ballLightnings = new();
-        private List<Actor> _domes = new();
+        private IReadOnlyList<Actor> _ballLightnings = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _domes = ActorEnumeration.EmptyList;
 
         public MaelstromsBolt() : base(ActionID.MakeSpell(AID.MaelstromsBoltAOE)) { }
 

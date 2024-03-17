@@ -15,7 +15,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.LeftArmMetalCutterAOE1)
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -62,7 +62,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.LeftArmMetalCutter or AID.ArmUnit)
-                _instance = new(caster.Position, _distance, spell.FinishAt.AddSeconds(0.6f));
+                _instance = new(caster.Position, _distance, spell.NPCFinishAt.AddSeconds(0.6f));
         }
     }
 

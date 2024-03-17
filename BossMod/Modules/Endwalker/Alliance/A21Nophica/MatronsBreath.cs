@@ -6,8 +6,8 @@ namespace BossMod.Endwalker.Alliance.A21Nophica
     class MatronsBreath : BossComponent
     {
         public int NumCasts { get; private set; }
-        private List<Actor> _blueSafe = new();
-        private List<Actor> _goldSafe = new();
+        private IReadOnlyList<Actor> _blueSafe = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _goldSafe = ActorEnumeration.EmptyList;
         private List<Actor> _towers = new();
 
         private static AOEShapeDonut _shape = new(8, 40); // TODO: verify safe zone radius

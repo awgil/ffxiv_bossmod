@@ -22,8 +22,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash2
             if (secondAngle != default)
             {
                 NumCasts = 0;
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt.AddSeconds(0.1f)));
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation + secondAngle, spell.FinishAt.AddSeconds(1.9f)));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt.AddSeconds(0.1f)));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation + secondAngle, spell.NPCFinishAt.AddSeconds(1.9f)));
             }
         }
 

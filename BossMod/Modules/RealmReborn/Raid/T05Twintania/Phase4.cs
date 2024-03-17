@@ -6,7 +6,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
     // P4 mechanics
     class P4Twisters : BossComponent
     {
-        private List<Actor> _twisters = new();
+        private IReadOnlyList<Actor> _twisters = ActorEnumeration.EmptyList;
         private List<WPos> _predictedPositions = new();
         private IEnumerable<Actor> ActiveTwisters => _twisters.Where(t => t.EventState != 7);
 
@@ -21,7 +21,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
 
         public override void Update(BossModule module)
         {
-            if (_predictedPositions.Count == 0 && (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && (module.PrimaryActor.CastInfo.FinishAt - module.WorldState.CurrentTime).TotalSeconds <= PredictBeforeCastFinish)
+            if (_predictedPositions.Count == 0 && (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && (module.PrimaryActor.CastInfo.NPCFinishAt - module.WorldState.CurrentTime).TotalSeconds <= PredictBeforeCastFinish)
                 _predictedPositions.AddRange(module.Raid.WithoutSlot().Select(a => a.Position));
             if (_twisters.Count > 0)
                 _predictedPositions.Clear();
@@ -36,7 +36,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             foreach (var p in _predictedPositions)
-                hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictAvoidRadius), module.PrimaryActor.CastInfo?.FinishAt ?? new());
+                hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictAvoidRadius), module.PrimaryActor.CastInfo?.NPCFinishAt ?? new());
             foreach (var t in ActiveTwisters)
                 hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.HitboxRadius + TwisterCushion));
         }
@@ -51,7 +51,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
     class P4Dreadknights : BossComponent
     {
         private Actor? _target;
-        private List<Actor> _dreadknights = new();
+        private IReadOnlyList<Actor> _dreadknights = ActorEnumeration.EmptyList;
         public IEnumerable<Actor> ActiveDreadknights => _dreadknights.Where(a => !a.IsDead);
 
         public override void Init(BossModule module)

@@ -108,7 +108,7 @@ namespace BossMod.Components
 
         public CastGaze(ActionID aid, bool inverted = false) : base(aid, inverted) { }
 
-        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.FinishAt));
+        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.NPCFinishAt));
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -140,10 +140,10 @@ namespace BossMod.Components
         public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
         {
             // if there are multiple casters, take one that finishes first
-            var caster = _casters.Where(a => Shape.Check(actor.Position, a.Position, a.CastInfo!.Rotation)).MinBy(a => a.CastInfo!.FinishAt);
+            var caster = _casters.Where(a => Shape.Check(actor.Position, a.Position, a.CastInfo!.Rotation)).MinBy(a => a.CastInfo!.NPCFinishAt);
             Angle angle;
             if (caster != null && _playerWeakpoints.TryGetValue(actor.InstanceID, out angle))
-                yield return new(caster.Position, caster.CastInfo!.FinishAt, angle);
+                yield return new(caster.Position, caster.CastInfo!.NPCFinishAt, angle);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

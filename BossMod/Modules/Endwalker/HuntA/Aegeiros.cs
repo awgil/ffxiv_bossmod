@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
         Leafstorm = 27708, // Boss->self, 6.0s cast, range 10 circle
         Rimestorm = 27709, // Boss->self, 1.0s cast, range 40 180-degree cone
         Snowball = 27710, // Boss->location, 3.0s cast, range 8 circle
-        Canopy = 27711, // Boss->players, no cast, range 12 ?-degree cone cleave
+        Canopy = 27711, // Boss->players, no cast, range 12 120-degree cone cleave
         BackhandBlow = 27712, // Boss->self, 3.0s cast, range 12 120-degree cone
     };
 
@@ -27,10 +27,10 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.Leafstorm) ?? false)
-                yield return new(_leafstorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_leafstorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
 
             if (module.PrimaryActor.CastInfo?.IsSpell(AID.Rimestorm) ?? false)
-                yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
             else if (_rimestormExpected != default)
                 yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _rimestormExpected);
         }
@@ -55,7 +55,7 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
 
     class Canopy : Components.Cleave
     {
-        public Canopy() : base(ActionID.MakeSpell(AID.Canopy), new AOEShapeCone(12, 60.Degrees()), activeWhileCasting: false) { } // TODO: verify angle
+        public Canopy() : base(ActionID.MakeSpell(AID.Canopy), new AOEShapeCone(12, 60.Degrees()), activeWhileCasting: false) { }
     }
 
     class BackhandBlow : Components.SelfTargetedAOEs

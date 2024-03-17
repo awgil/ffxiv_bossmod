@@ -7,7 +7,7 @@ namespace BossMod.SAM
 {
     public static class Rotation
     {
-        public class State(float[] cooldowns) : CommonRotation.PlayerState(cooldowns)
+        public class State(WorldState ws) : CommonRotation.PlayerState(ws)
         {
             public int MeditationStacks; // 3 max
             public int Kenki; // 100 max, changes by 5

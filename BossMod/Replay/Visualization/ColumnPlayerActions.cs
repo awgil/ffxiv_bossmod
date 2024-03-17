@@ -20,7 +20,7 @@ namespace BossMod.ReplayVisualization
 
         private ColumnGenericHistory _autoAttacks;
         private ColumnGenericHistory _animLocks;
-        private CooldownGroup[] _cdGroups = new CooldownGroup[80];
+        private CooldownGroup[] _cdGroups = new CooldownGroup[ClientState.NumCooldownGroups];
         private ColumnSeparator _sep;
         private Dictionary<ActionID, (int group, float cd)> _cooldownReductions = new();
 

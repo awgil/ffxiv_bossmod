@@ -1,26 +1,26 @@
 // CONTRIB: made by malediktus, not checked
-using System.Collections.Generic;
+using System;
 using System.Linq;
 
-namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
+namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAcheloios
 {
     public enum OID : uint
     {
         Boss = 0x3D3E, //R=4.0
         BossAdd = 0x3D3F, //R=2.7
         BossHelper = 0x233C,
-        GymnasticGarlic = 0x3D51, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        GymnasticQueen = 0x3D53, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        GymnasticEggplant = 0x3D50, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards, despawn if not killed fast enough
-        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds that don't attack that despawn if not killed fast enough
-        BonusAdds_Lyssa = 0x3D4E, //R=3.75, violent bonus adds that don't seem to despawn
+        GymnasticGarlic = 0x3D51, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+        GymnasticQueen = 0x3D53, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+        GymnasticEggplant = 0x3D50, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+        GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+        GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
+        BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
     };
 
     public enum AID : uint
     {
-        AutoAttack2 = 870, // Boss/BossAdd->player, no cast, single-target
+        AutoAttack = 870, // Boss/BossAdd->player, no cast, single-target
         DoubleHammerA = 32284, // Boss->self, 4,2s cast, single-target
         DoubleHammerB = 32281, // Boss->self, 4,2s cast, single-target
         DoubleHammer = 32859, // BossHelper->self, 5,0s cast, range 30 180-degree cone
@@ -55,34 +55,57 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
     class Slammer : Components.GenericRotatingAOE
     {
         private Angle _increment;
-        private static AOEShapeCone _shape = new(30, 90.Degrees());
+        private Angle _rotation;
+        private DateTime _activation;
+        private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             // note that boss switches hands, so CW rotation means CCW aoe sequence and vice versa
-            if (iconID == (uint)IconID.RotateCW)           
-                _increment = 90.Degrees();
-            if (iconID == (uint)IconID.RotateCCW)
-                _increment = -90.Degrees();
+            var increment = (IconID)iconID switch
+            {
+                IconID.RotateCW => 90.Degrees(),
+                IconID.RotateCCW => 90.Degrees(),
+                _ => default
+            };
+            if (increment != default)
+            {
+                _increment = increment;
+                InitIfReady(module, actor);
+            }
         }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.DoubleHammer)
             {
-                _increment = 180.Degrees();
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.9f, 2, 1));
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, 180.Degrees(), spell.NPCFinishAt, 3.9f, 2, 1));
                 ImminentColor = ArenaColor.AOE;
             }
             if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
             {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.FinishAt, 3.3f, 4));
                 ImminentColor = ArenaColor.Danger;
+                _rotation = spell.Rotation;
+                _activation = spell.NPCFinishAt;
             }
+            if (_rotation != default)
+                InitIfReady(module, caster);
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)
+            if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)
                 AdvanceSequence(0, module.WorldState.CurrentTime);
+        }
+
+        private void InitIfReady(BossModule module, Actor source)
+        {
+            if (_rotation != default && _increment != default)
+            {
+                Sequences.Add(new(_shape, source.Position, _rotation, _increment, _activation, 3.3f, 4));
+                _rotation = default;
+                _increment = default;
+            }
         }
     }
 
@@ -158,7 +181,7 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
                 .ActivateOnEnter<PungentPirouette>()
                 .ActivateOnEnter<Pollen>()
                 .ActivateOnEnter<HeavySmash>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
         }
     }
 
@@ -169,23 +192,23 @@ namespace BossMod.Endwalker.TreasureHunt.GymnasiouAcheloios
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BossAdd))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.GymnasticEggplant))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.GymnasticTomato))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.GymnasticQueen))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.GymnasticGarlic))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.GymnasticOnion))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdds_Lampas))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdds_Lyssa))
-                Arena.Actor(s, ArenaColor.Vulnerable, false);
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

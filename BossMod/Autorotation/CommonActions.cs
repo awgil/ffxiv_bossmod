@@ -99,7 +99,7 @@ namespace BossMod
                     a.TransformTarget = _ => Player; // by default, all actions with range 0 should always target player
             }
             _lock = new(unlockData);
-            _mq = new(autorot.Cooldowns, autorot.WorldState);
+            _mq = new(autorot.WorldState);
         }
 
         // this is called after worldstate update
@@ -279,7 +279,7 @@ namespace BossMod
             // see if we have any GCD (queued or automatic)
             var mqGCD = _mq.PeekGCD();
             var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
-            float ogcdDeadline = nextGCD.Action ? Autorot.Cooldowns[CommonDefinitions.GCDGroup] : float.MaxValue;
+            float ogcdDeadline = nextGCD.Action ? Autorot.WorldState.Client.Cooldowns[CommonDefinitions.GCDGroup].Remaining : float.MaxValue;
             //Log($"{nextGCD.Action} = {ogcdDeadline}");
 
             // search for any oGCDs that we can execute without delaying GCD
@@ -323,6 +323,7 @@ namespace BossMod
         public abstract CommonRotation.PlayerState GetState();
         public abstract CommonRotation.Strategy GetStrategy();
         public virtual Targeting SelectBetterTarget(AIHints.Enemy initial) => new(initial);
+        public virtual void FillStatusesToCancel(List<(uint statusId, ulong sourceId)> list) { }
         protected abstract void UpdateInternalState(int autoAction);
         protected abstract void QueueAIActions();
         protected abstract NextAction CalculateAutomaticGCD();
@@ -360,8 +361,7 @@ namespace BossMod
             var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
 
             var am = ActionManagerEx.Instance!;
-            var pc = Service.ClientState.LocalPlayer;
-            s.Level = pc?.Level ?? 0;
+            s.Level = Player.Level;
             s.UnlockProgress = _lock.Progress();
             s.CurMP = Player.CurMP;
             s.TargetingEnemy = Autorot.PrimaryTarget != null && Autorot.PrimaryTarget.Type is ActorType.Enemy or ActorType.Part && !Autorot.PrimaryTarget.IsAlly;
@@ -458,7 +458,7 @@ namespace BossMod
             var definition = SupportedActions.GetValueOrDefault(action);
             return definition != null
                 && definition.Definition.CooldownGroup != CommonDefinitions.GCDGroup
-                && Autorot.Cooldowns[definition.Definition.CooldownGroup] - effAnimLock <= definition.Definition.CooldownAtFirstCharge
+                && Autorot.WorldState.Client.Cooldowns[definition.Definition.CooldownGroup].Remaining - effAnimLock <= definition.Definition.CooldownAtFirstCharge
                 && effAnimLock + definition.Definition.AnimationLock + animLockDelay <= deadline
                 && definition.Allowed(Player, target);
         }

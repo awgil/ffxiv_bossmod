@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             if (offset == 0)
                 return;
             var origin = caster.Position + offset * spell.Rotation.ToDirection().OrthoL();
-            AOE = new(_shape, origin, spell.Rotation, spell.FinishAt.AddSeconds(0.8f));
+            AOE = new(_shape, origin, spell.Rotation, spell.NPCFinishAt.AddSeconds(0.8f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

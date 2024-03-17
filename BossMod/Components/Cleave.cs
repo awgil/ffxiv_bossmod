@@ -13,7 +13,7 @@ namespace BossMod.Components
         public bool ActiveWhileCasting { get; private init; }
         public bool OriginAtTarget { get; private init; }
         public DateTime NextExpected;
-        private List<Actor> _enemies = new();
+        private IReadOnlyList<Actor> _enemies = ActorEnumeration.EmptyList;
 
         // enemy OID == 0 means 'primary actor'
         public Cleave(ActionID aid, AOEShape shape, uint enemyOID = 0, bool activeForUntargetable = false, bool originAtTarget = false, bool activeWhileCasting = true) : base(aid)

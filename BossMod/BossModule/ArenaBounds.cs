@@ -43,6 +43,7 @@ namespace BossMod
         public abstract IEnumerable<WPos> BuildClipPoly(float offset = 0); // positive offset increases area, negative decreases
         public abstract Pathfinding.Map BuildMap(float resolution = 0.5f);
         public abstract bool Contains(WPos p);
+        public abstract float IntersectRay(WPos origin, WDir dir);
         public abstract WDir ClampToBounds(WDir offset, float scale = 1);
         public WPos ClampToBounds(WPos position) => Center + ClampToBounds(position - Center);
 
@@ -129,6 +130,7 @@ namespace BossMod
         }
 
         public override bool Contains(WPos position) => position.InCircle(Center, HalfSize);
+        public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayCircle(origin, dir, Center, HalfSize);
 
         public override WDir ClampToBounds(WDir offset, float scale)
         {
@@ -154,6 +156,7 @@ namespace BossMod
 
         public override Pathfinding.Map BuildMap(float resolution) => new Pathfinding.Map(resolution, Center, HalfSize, HalfSize);
         public override bool Contains(WPos position) => WPos.AlmostEqual(position, Center, HalfSize);
+        public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, new(0, 1), HalfSize, HalfSize);
 
         public override WDir ClampToBounds(WDir offset, float scale)
         {
@@ -192,6 +195,7 @@ namespace BossMod
 
         public override Pathfinding.Map BuildMap(float resolution) => new Pathfinding.Map(resolution, Center, HalfWidth, HalfHeight, Rotation);
         public override bool Contains(WPos position) => position.InRect(Center, Rotation, HalfHeight, HalfHeight, HalfWidth);
+        public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, Rotation.ToDirection(), HalfWidth, HalfHeight);
 
         public override WDir ClampToBounds(WDir offset, float scale)
         {

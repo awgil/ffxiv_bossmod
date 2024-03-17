@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Unreal.Un4Zurvan
         {
             if ((AID)spell.Action.ID == AID.TwinSpiritFirst)
             {
-                _pending.Add((caster, new(_shape, caster.Position, Angle.FromDirection(spell.LocXZ - caster.Position), spell.FinishAt)));
+                _pending.Add((caster, new(_shape, caster.Position, Angle.FromDirection(spell.LocXZ - caster.Position), spell.NPCFinishAt)));
             }
         }
 

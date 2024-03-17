@@ -108,7 +108,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
                 _source = caster;
                 _startingRotation = spell.Rotation;
                 _increment = _startingRotation.Rad > 0 ? -7.Degrees() : 7.Degrees();
-                _startingActivation = spell.FinishAt;
+                _startingActivation = spell.NPCFinishAt;
             }
         }
 

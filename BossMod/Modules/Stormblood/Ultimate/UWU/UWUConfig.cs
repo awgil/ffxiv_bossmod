@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU
 {
-    [ConfigDisplay(Order = 0x200, Parent = typeof(StormbloodConfig))]
+    [ConfigDisplay(Order = 0x210, Parent = typeof(StormbloodConfig))]
     public class UWUConfig : CooldownPlanningConfigNode
     {
         [PropertyDisplay("Titan gaols priorities (close < far)")]

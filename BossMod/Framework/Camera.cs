@@ -81,7 +81,7 @@ namespace BossMod
 
         public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color)
         {
-            int numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, 1);
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, 0.1f);
             var delta = halfWidth / numSegments;
 
             var prev = center + radius * (direction - delta * numSegments).ToDirection().ToVec3();
@@ -97,7 +97,7 @@ namespace BossMod
 
         public void DrawWorldCircle(Vector3 center, float radius, uint color)
         {
-            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1);
+            int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 0.1f);
             var prev = center + new Vector3(0, 0, radius);
             for (int i = 1; i <= numSegments; ++i)
             {

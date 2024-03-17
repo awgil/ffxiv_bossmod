@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_origin != null)
-                yield return new(_shape, _origin.Value, 0.Degrees(), module.PrimaryActor.CastInfo?.FinishAt ?? default);
+                yield return new(_shape, _origin.Value, 0.Degrees(), module.PrimaryActor.CastInfo?.NPCFinishAt ?? default);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

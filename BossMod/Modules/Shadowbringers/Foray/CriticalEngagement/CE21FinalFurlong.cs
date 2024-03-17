@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
 {
@@ -43,7 +44,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
 
     class GraspingRancor : Components.LocationTargetedAOEs
     {
-        private List<Actor> _hands = new();
+        private IReadOnlyList<Actor> _hands = ActorEnumeration.EmptyList;
 
         public GraspingRancor() : base(ActionID.MakeSpell(AID.PurifyingLight), 12)
         {
@@ -61,7 +62,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
             base.AddHints(module, slot, actor, hints, movementHints);
             if (Casters.Count > 0)
             {
-                var hand = _hands.Find(h => h.Tether.Target == actor.InstanceID);
+                var hand = _hands.FirstOrDefault(h => h.Tether.Target == actor.InstanceID);
                 if (hand != null)
                 {
                     bool shouldBeFrozen = Shape.Check(hand.Position, Casters[0].CastInfo!.LocXZ);
@@ -73,7 +74,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong
 
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            var hand = _hands.Find(h => h.Tether.Target == pc.InstanceID);
+            var hand = _hands.FirstOrDefault(h => h.Tether.Target == pc.InstanceID);
             if (hand != null)
             {
                 bool isFrozen = hand.Tether.ID == (uint)TetherID.Frozen;

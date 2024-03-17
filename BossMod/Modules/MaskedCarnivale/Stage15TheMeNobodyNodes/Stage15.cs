@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage15
@@ -30,30 +30,40 @@ namespace BossMod.MaskedCarnivale.Stage15
         Disseminate = 14899, // 26FB->self, 2,0s cast, range 6+R circle, casts on death of serpents
     };
 
-    class HighVoltage : CastHint
+    class HighVoltage : Components.CastHint
     {
         public HighVoltage() : base(ActionID.MakeSpell(AID.HighVoltage), "Interrupt!") { }
     }
 
-    class Ballast : GenericAOEs
+    class Ballast : Components.GenericAOEs
     {
         private bool casting2;
         private bool casting3;
         private bool casting4;
         private Angle _rotation;
+        private DateTime _activation1;
+        private DateTime _activation2;
+        private DateTime _activation3;
 
-        private readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
-        private readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
-        private readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        private static readonly AOEShapeCone cone1 = new(5.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone2 = new(5.5f, 10.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone3 = new(10.5f, 15.5f, 135.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (casting2)
-                yield return new(cone2, module.PrimaryActor.Position, _rotation, new());
-            if (casting3)
-                yield return new(cone3, module.PrimaryActor.Position, _rotation, new());
-            if (casting4)
-                yield return new(cone4, module.PrimaryActor.Position, _rotation, new());
+            {
+                yield return new(cone1, module.PrimaryActor.Position, _rotation, _activation1, ArenaColor.Danger);
+                yield return new(cone2, module.PrimaryActor.Position, _rotation, _activation2);
+                yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3);
+            }
+            if (casting3 && !casting2)
+            {
+                yield return new(cone2, module.PrimaryActor.Position, _rotation, _activation2, ArenaColor.Danger);
+                yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3);
+            }
+            if (casting4 && !casting3)
+                yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3, ArenaColor.Danger);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -64,6 +74,9 @@ namespace BossMod.MaskedCarnivale.Stage15
                 casting3 = true;
                 casting4 = true;
                 _rotation = module.PrimaryActor.Rotation;
+                _activation1 = module.WorldState.CurrentTime.AddSeconds(4.6f);
+                _activation2 = module.WorldState.CurrentTime.AddSeconds(5.2f);
+                _activation3 = module.WorldState.CurrentTime.AddSeconds(5.8f);
             }
         }
 
@@ -78,50 +91,53 @@ namespace BossMod.MaskedCarnivale.Stage15
         }
     }
 
-    class PiercingLaser : SelfTargetedAOEs
+    class PiercingLaser : Components.SelfTargetedAOEs
     {
         public PiercingLaser() : base(ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 4)) { }
     }
 
-    class RepellingCannons : SelfTargetedAOEs
+    class RepellingCannons : Components.SelfTargetedAOEs
     {
         public RepellingCannons() : base(ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(12.3f)) { }
     }
 
-    class Superstorm : SelfTargetedAOEs
+    class Superstorm : Components.SelfTargetedAOEs
     {
         public Superstorm() : base(ActionID.MakeSpell(AID.Superstorm2), new AOEShapeDonut(8, 20)) { }
     }
 
-    class Spellsword : SelfTargetedAOEs
+    class Spellsword : Components.SelfTargetedAOEs
     {
         public Spellsword() : base(ActionID.MakeSpell(AID.Spellsword), new AOEShapeCone(7.1f, 60.Degrees())) { }
     }
 
-    class Disseminate : SelfTargetedAOEs
+    class Disseminate : Components.SelfTargetedAOEs
     {
         public Disseminate() : base(ActionID.MakeSpell(AID.Disseminate), new AOEShapeCircle(7.2f)) { }
     }
 
-    class BallastKB : Knockback //actual knockbacks are 0.274s after snapshot
+    class BallastKB : Components.Knockback //actual knockbacks are 0.274s after snapshot
     {
         private bool casting2;
         private bool casting3;
         private bool casting4;
+        private DateTime _activation1;
+        private DateTime _activation2;
+        private DateTime _activation3;
         private Angle _rotation;
 
-        private readonly AOEShapeCone cone2 = new(5.5f, 135.Degrees());
-        private readonly AOEShapeDonutSector cone3 = new(5.5f, 10.5f, 135.Degrees());
-        private readonly AOEShapeDonutSector cone4 = new(10.5f, 15.5f, 135.Degrees());
+        private static readonly AOEShapeCone cone1 = new(5.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone2 = new(5.5f, 10.5f, 135.Degrees());
+        private static readonly AOEShapeDonutSector cone3 = new(10.5f, 15.5f, 135.Degrees());
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
             if (casting2)
-                yield return new(module.PrimaryActor.Position, 20, default, cone2, _rotation, new());
+                yield return new(module.PrimaryActor.Position, 20, _activation1, cone1, _rotation);
             if (casting3)
-                yield return new(module.PrimaryActor.Position, 20, default, cone3, _rotation, new());
+                yield return new(module.PrimaryActor.Position, 20, _activation2, cone2, _rotation);
             if (casting4)
-                yield return new(module.PrimaryActor.Position, 20, default, cone4, _rotation, new());
+                yield return new(module.PrimaryActor.Position, 20, _activation3, cone3, _rotation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -132,6 +148,9 @@ namespace BossMod.MaskedCarnivale.Stage15
                 casting3 = true;
                 casting4 = true;
                 _rotation = module.PrimaryActor.Rotation;
+                _activation1 = module.WorldState.CurrentTime.AddSeconds(4.6f);
+                _activation2 = module.WorldState.CurrentTime.AddSeconds(5.2f);
+                _activation3 = module.WorldState.CurrentTime.AddSeconds(5.8f);
             }
         }
 
@@ -181,12 +200,11 @@ namespace BossMod.MaskedCarnivale.Stage15
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Shabti))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.Serpent))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

@@ -9,7 +9,7 @@
             if ((AID)spell.Action.ID is AID.NCloudToGroundAOEFirst or AID.SCloudToGroundAOEFirst)
             {
                 // 4 central exaflares (+-6 along one axis, 0 along other) have 3 casts, 4 side exaflares (+-20 along one axis, +-5/15 along other) have 7 casts
-                Lines.Add(new() { Next = caster.Position, Advance = 6 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 1.1f, ExplosionsLeft = (caster.Position - module.Bounds.Center).LengthSq() > 100 ? 7 : 3, MaxShownExplosions = 3 });
+                Lines.Add(new() { Next = caster.Position, Advance = 6 * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1.1f, ExplosionsLeft = (caster.Position - module.Bounds.Center).LengthSq() > 100 ? 7 : 3, MaxShownExplosions = 3 });
             }
         }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.HuntA.Sugriva
@@ -16,8 +15,8 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         BarrelingSmash = 27220, // Boss->player, no cast, single-target, charges to random player and starts casting Spark or Scythe Tail immediately afterwards
         Spark = 27221, // Boss->self, 5.0s cast, range 14-24+R donut
         ScytheTail = 27222, // Boss->self, 5.0s cast, range 17 circle
-        Butcher = 27223, // Boss->self, 5.0s cast, range 8 ?-degree cone
-        Rip = 27224, // Boss->self, 2.5s cast, range 8 ?-degree cone
+        Butcher = 27223, // Boss->self, 5.0s cast, range 8 120-degree cone
+        Rip = 27224, // Boss->self, 2.5s cast, range 8 120-degree cone
         RockThrowFirst = 27225, // Boss->location, 4.0s cast, range 6 circle
         RockThrowRest = 27226, // Boss->location, 1.6s cast, range 6 circle
         Crosswind = 27227, // Boss->self, 5.0s cast, range 36 circle
@@ -60,14 +59,21 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         public ScytheTail() : base(ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(17)) { }
     }
 
-    class Butcher : Components.SelfTargetedAOEs
+    class Butcher : Components.BaitAwayCast
     {
-        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 45.Degrees())) { } // TODO: verify angle, too few data points so far...
+        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees())) { }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { }
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell) //tankbuster resolves on cast event, which can be delayed by moving out of tankbuster range
+        {
+            if (spell.Action == WatchedAction)
+                CurrentBaits.RemoveAll(b => b.Source == caster);
+        }
     }
 
     class Rip : Components.SelfTargetedAOEs
     {
-        public Rip() : base(ActionID.MakeSpell(AID.Rip), new AOEShapeCone(8, 45.Degrees())) { } // TODO: verify angle, too few data points so far...
+        public Rip() : base(ActionID.MakeSpell(AID.Rip), new AOEShapeCone(8, 60.Degrees())) { }
     }
 
     // TODO: generalize to baited aoe
@@ -81,7 +87,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (Active(module))
-                yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, new(), module.PrimaryActor.CastInfo.FinishAt);
+                yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, default, module.PrimaryActor.CastInfo.NPCFinishAt);
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -100,8 +106,10 @@ namespace BossMod.Endwalker.HuntA.Sugriva
             switch ((AID)spell.Action.ID)
             {
                 case AID.ApplyPrey:
-                    _target = module.WorldState.Actors.Find(spell.TargetID);
                     NumCasts = 0;
+                    _target = module.WorldState.Actors.Find(spell.TargetID);
+                    if (_target?.Type == ActorType.Chocobo) //Player Chocobos are immune against prey, so mechanic doesn't happen if a chocobo gets selected
+                        _target = null;
                     break;
                 case AID.RockThrowRest:
                     if (NumCasts >= 1)

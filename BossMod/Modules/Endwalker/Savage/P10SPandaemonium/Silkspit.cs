@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
 {
     class Silkspit : Components.UniformStackSpread
     {
-        private List<Actor> _pillars = new();
+        private IReadOnlyList<Actor> _pillars = ActorEnumeration.EmptyList;
 
         public Silkspit() : base(0, 7) { }
 

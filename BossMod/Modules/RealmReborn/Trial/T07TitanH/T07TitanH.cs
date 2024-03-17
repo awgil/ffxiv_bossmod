@@ -96,7 +96,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
                 };
                 _outer = new AOEShapeDonut(outerRadius, module.Bounds.HalfSize);
                 _inner = new AOEShapeCircle(outerRadius - 2); // TODO: check falloff...
-                _innerFinish = spell.FinishAt;
+                _innerFinish = spell.NPCFinishAt;
             }
         }
 
@@ -119,8 +119,8 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
             // pattern 2: center -> 4 cardinals at small offset ~1s later -> 4 intercardinals at bigger offset ~1s later
             // pattern 3: 3 in center line -> 3 in side line ~1.5s later -> 3 in other side line ~1.5s later
             // showing casts that end within 2.25s seems to deal with all patterns reasonably well
-            var timeLimit = Casters.FirstOrDefault()?.CastInfo?.FinishAt.AddSeconds(2.25f) ?? new();
-            return Casters.TakeWhile(c => c.CastInfo!.FinishAt <= timeLimit).Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.FinishAt));
+            var timeLimit = Casters.FirstOrDefault()?.CastInfo?.NPCFinishAt.AddSeconds(2.25f) ?? new();
+            return Casters.TakeWhile(c => c.CastInfo!.NPCFinishAt <= timeLimit).Select(c => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
         }
     }
 
@@ -141,7 +141,7 @@ namespace BossMod.RealmReborn.Trial.T07TitanH
     [ModuleInfo(CFCID = 60, NameID = 1801)]
     public class T07TitanH : BossModule
     {
-        private List<Actor> _heart;
+        private IReadOnlyList<Actor> _heart;
         public IEnumerable<Actor> ActiveHeart => _heart.Where(h => h.IsTargetable && !h.IsDead);
 
         public T07TitanH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 25))

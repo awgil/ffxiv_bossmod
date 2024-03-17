@@ -2,6 +2,7 @@
 using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -25,6 +26,9 @@ namespace BossMod
         private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
         private Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
 
+        private unsafe delegate void ProcessPacketNpcYellDelegate(Network.ServerIPC.NpcYell* packet);
+        private Hook<ProcessPacketNpcYellDelegate> _processPacketNpcYellHook;
+
         private unsafe delegate void ProcessEnvControlDelegate(void* self, uint index, ushort s1, ushort s2);
         private Hook<ProcessEnvControlDelegate> _processEnvControlHook;
 
@@ -44,6 +48,11 @@ namespace BossMod
             _processPacketActorControlHook.Enable();
             Service.Log($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
 
+            // alt sig - impl: "45 33 D2 48 8D 41 48"
+            _processPacketNpcYellHook = Service.Hook.HookFromSignature<ProcessPacketNpcYellDelegate>("48 83 EC 58 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 0F 10 41 10", ProcessPacketNpcYellDetour);
+            _processPacketNpcYellHook.Enable();
+            Service.Log($"[WSG] ProcessPacketNpcYell address = 0x{_processPacketNpcYellHook.Address:X}");
+
             _processEnvControlHook = Service.Hook.HookFromSignature<ProcessEnvControlDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessEnvControlDetour);
             _processEnvControlHook.Enable();
             Service.Log($"[WSG] ProcessEnvControl address = 0x{_processEnvControlHook.Address:X}");
@@ -59,6 +68,7 @@ namespace BossMod
             ActionManagerEx.Instance!.ActionEffectReceived -= OnActionEffect;
             ActionManagerEx.Instance!.EffectResultReceived -= OnEffectResult;
             _processPacketActorControlHook.Dispose();
+            _processPacketNpcYellHook.Dispose();
             _processEnvControlHook.Dispose();
             _processPacketRSVDataHook.Dispose();
         }
@@ -160,6 +170,7 @@ namespace BossMod
             var character = obj as Character;
             var name = obj.Name.TextValue;
             var classID = (Class)(character?.ClassJob.Id ?? 0);
+            var level = character?.Level ?? 0;
             var posRot = new Vector4(obj.Position, obj.Rotation);
             var hp = new ActorHP();
             uint curMP = 0;
@@ -189,6 +200,7 @@ namespace BossMod
                     Name = name,
                     Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
                     Class = classID,
+                    Level = level,
                     PosRot = posRot,
                     HitboxRadius = radius,
                     HP = hp,
@@ -208,8 +220,8 @@ namespace BossMod
             {
                 if (act.Name != name)
                     Execute(new ActorState.OpRename() { InstanceID = act.InstanceID, Name = name });
-                if (act.Class != classID)
-                    Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID });
+                if (act.Class != classID || act.Level != level)
+                    Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID, Level = level });
                 if (act.PosRot != posRot)
                     Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
                 if (act.HitboxRadius != radius)
@@ -359,6 +371,25 @@ namespace BossMod
             var countdown = Countdown.TimeRemaining();
             if (Client.CountdownRemaining != countdown)
                 Execute(new ClientState.OpCountdownChange() { Value = countdown });
+
+            Span<Cooldown> cooldowns = stackalloc Cooldown[Client.Cooldowns.Length];
+            ActionManagerEx.Instance!.GetCooldowns(cooldowns);
+            if (!MemoryExtensions.SequenceEqual(Client.Cooldowns.AsSpan(), cooldowns))
+            {
+                if (cooldowns.IndexOfAnyExcept(default(Cooldown)) < 0)
+                    Execute(new ClientState.OpCooldown() { Reset = true });
+                else
+                    Execute(new ClientState.OpCooldown() { Cooldowns = CalcCooldownDifference(cooldowns, Client.Cooldowns.AsSpan()) });
+            }
+
+            var (dutyAction0, dutyAction1) = ActionManagerEx.Instance!.GetDutyActions();
+            if (Client.DutyActions[0] != dutyAction0 || Client.DutyActions[1] != dutyAction1)
+                Execute(new ClientState.OpDutyActionsChange() { Slot0 = dutyAction0, Slot1 = dutyAction1 });
+
+            Span<byte> bozjaHolster = stackalloc byte[Client.BozjaHolster.Length];
+            BozjaInterop.FetchHolster(bozjaHolster);
+            if (!MemoryExtensions.SequenceEqual(Client.BozjaHolster.AsSpan(), bozjaHolster))
+                Execute(new ClientState.OpBozjaHolsterChange() { Contents = CalcBozjaHolster(bozjaHolster) });
         }
 
         private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
@@ -372,6 +403,24 @@ namespace BossMod
             foreach (var op in ops)
                 Execute(op);
             _actorOps.Remove(instanceID);
+        }
+
+        private List<(int, Cooldown)> CalcCooldownDifference(Span<Cooldown> values, ReadOnlySpan<Cooldown> reference)
+        {
+            var res = new List<(int, Cooldown)>();
+            for (int i = 0, cnt = Math.Min(values.Length, reference.Length); i < cnt; ++i)
+                if (values[i] != reference[i])
+                    res.Add((i, values[i]));
+            return res;
+        }
+
+        private List<(BozjaHolsterID, byte)> CalcBozjaHolster(Span<byte> contents)
+        {
+            var res = new List<(BozjaHolsterID, byte)>();
+            for (int i = 0; i < contents.Length; ++i)
+                if (contents[i] != 0)
+                    res.Add(((BozjaHolsterID)i, contents[i]));
+            return res;
         }
 
         private unsafe ulong GaugeData()
@@ -429,6 +478,12 @@ namespace BossMod
                     _globalOps.Add(new OpDirectorUpdate() { DirectorID = p1, UpdateID = p2, Param1 = p3, Param2 = p4, Param3 = p5, Param4 = p6 });
                     break;
             }
+        }
+
+        private unsafe void ProcessPacketNpcYellDetour(Network.ServerIPC.NpcYell* packet)
+        {
+            _processPacketNpcYellHook.Original(packet);
+            _actorOps.GetOrAdd(packet->SourceID).Add(new ActorState.OpEventNpcYell() { InstanceID = packet->SourceID, Message = packet->Message });
         }
 
         private unsafe void ProcessEnvControlDetour(void* self, uint index, ushort s1, ushort s2)

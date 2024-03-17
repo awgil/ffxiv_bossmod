@@ -64,7 +64,7 @@ class HeavyImpact : Components.ConcentricAOEs
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.HeavyImpactAOE1)
-            AddSequence(caster.Position, spell.FinishAt, spell.Rotation);
+            AddSequence(caster.Position, spell.NPCFinishAt, spell.Rotation);
     }
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

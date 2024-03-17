@@ -123,7 +123,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.NTargetedLightAOE or AID.STargetedLightAOE)
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

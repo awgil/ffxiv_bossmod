@@ -18,7 +18,7 @@
             public int AetherflowStacks; // 0-2
             public float SwiftcastLeft; // 0 if buff not up, max 10
 
-            public State(float[] cooldowns) : base(cooldowns) { }
+            public State(WorldState ws) : base(ws) { }
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);

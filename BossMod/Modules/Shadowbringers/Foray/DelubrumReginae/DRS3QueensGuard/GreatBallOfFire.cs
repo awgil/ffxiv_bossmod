@@ -5,8 +5,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
 {
     class GreatBallOfFire : Components.GenericAOEs
     {
-        private List<Actor> _smallFlames = new();
-        private List<Actor> _bigFlames = new();
+        private IReadOnlyList<Actor> _smallFlames = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _bigFlames = ActorEnumeration.EmptyList;
         private DateTime _activation;
 
         private static AOEShapeCircle _shapeSmall = new(10);
@@ -15,9 +15,9 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             foreach (var f in _smallFlames)
-                yield return new(_shapeSmall, f.Position, new(), f.CastInfo?.FinishAt ?? _activation);
+                yield return new(_shapeSmall, f.Position, new(), f.CastInfo?.NPCFinishAt ?? _activation);
             foreach (var f in _bigFlames)
-                yield return new(_shapeBig, f.Position, new(), f.CastInfo?.FinishAt ?? _activation);
+                yield return new(_shapeBig, f.Position, new(), f.CastInfo?.NPCFinishAt ?? _activation);
         }
 
         public override void Init(BossModule module)

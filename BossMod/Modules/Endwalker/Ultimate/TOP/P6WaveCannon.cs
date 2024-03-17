@@ -13,7 +13,7 @@
         {
             if ((AID)spell.Action.ID is AID.P6WaveCannonExaflareFirst)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.FinishAt, TimeToMove = 1.1f, ExplosionsLeft = 7, MaxShownExplosions = 2 });
+                Lines.Add(new() { Next = caster.Position, Advance = 8 * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1.1f, ExplosionsLeft = 7, MaxShownExplosions = 2 });
             }
         }
 

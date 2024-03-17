@@ -6,7 +6,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
     // TODO :implement hints...
     class P1Mesohigh : Components.CastCounter
     {
-        private List<Actor> _sisters = new();
+        private IReadOnlyList<Actor> _sisters = ActorEnumeration.EmptyList;
         private static float _radius = 3;
 
         public P1Mesohigh() : base(ActionID.MakeSpell(AID.Mesohigh)) { }

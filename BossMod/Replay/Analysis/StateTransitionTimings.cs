@@ -54,6 +54,7 @@ namespace BossMod.ReplayAnalysis
         private SortedDictionary<uint, StateMetrics> _metrics = new();
         private List<(Replay, Replay.Encounter, Replay.EncounterError)> _errors = new();
         private List<(Replay, Replay.Encounter)> _encounters = new();
+        private float _lastSecondsToIgnore = 0;
 
         public StateTransitionTimings(List<Replay> replays, uint oid)
         {
@@ -107,7 +108,8 @@ namespace BossMod.ReplayAnalysis
 
             foreach (var n in tree.Node("Errors", _errors.Count == 0))
             {
-                tree.LeafNodes(_errors, error => $"{LocationString(error.Item1, error.Item2, error.Item3.Timestamp)} [{error.Item3.CompType}] {error.Item3.Message}");
+                ImGui.InputFloat("Last seconds to ignore", ref _lastSecondsToIgnore);
+                tree.LeafNodes(_errors.Where(e => (e.Item2.Time.End - e.Item3.Timestamp).TotalSeconds >= _lastSecondsToIgnore), error => $"{LocationString(error.Item1, error.Item2, error.Item3.Timestamp)} [{error.Item3.CompType}] {error.Item3.Message}");
             }
 
             MetricsToRemove delContext = new();

@@ -29,8 +29,8 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
     class P5Hatch : BossComponent
     {
         public Actor? Target { get; private set; }
-        public List<Actor> Orbs { get; private set; } = new();
-        public List<Actor> Neurolinks { get; private set; } = new();
+        public IReadOnlyList<Actor> Orbs { get; private set; } = ActorEnumeration.EmptyList;
+        public IReadOnlyList<Actor> Neurolinks { get; private set; } = ActorEnumeration.EmptyList;
 
         public override void Init(BossModule module)
         {
@@ -91,7 +91,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             if (_hatch?.Target != null)
             {
                 // see if there is anyone intercepting orb in a neurolink
-                var neurolinkUnderBoss = _hatch.Neurolinks.Find(n => n.Position.InCircle(module.PrimaryActor.Position, 1));
+                var neurolinkUnderBoss = _hatch.Neurolinks.FirstOrDefault(n => n.Position.InCircle(module.PrimaryActor.Position, 1));
                 // note: i've used to have extra logic if orb is being intercepted: in such case neither target would move anywhere nor others would give space
                 // however, it's a bit finicky - instead, it's safer to just let everyone move, and if orb ends up being intercepted - oh well...
                 //var orbIntercepted = neurolinkUnderBoss != null && module.Raid.WithoutSlot().InRadius(neurolinkUnderBoss.Position, T05Twintania.NeurolinkRadius).Any();

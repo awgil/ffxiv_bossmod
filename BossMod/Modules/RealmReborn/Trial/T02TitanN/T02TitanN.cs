@@ -80,7 +80,7 @@ namespace BossMod.RealmReborn.Trial.T02TitanN
     [ModuleInfo(CFCID = 57, NameID = 1801)]
     public class T02TitanN : BossModule
     {
-        private List<Actor> _heart;
+        private IReadOnlyList<Actor> _heart;
         public IEnumerable<Actor> ActiveHeart => _heart.Where(h => h.IsTargetable && !h.IsDead);
 
         public T02TitanN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 20)) // note: initial area is size 25, but it becomes smaller at 75%

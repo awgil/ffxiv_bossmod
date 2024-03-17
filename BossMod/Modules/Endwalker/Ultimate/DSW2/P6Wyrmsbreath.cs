@@ -117,7 +117,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             {
                 Source = _main.Dragons[0];
                 Target = module.WorldState.Actors.Find(Source?.TargetID ?? 0);
-                Activation = Source?.CastInfo?.FinishAt ?? module.WorldState.CurrentTime;
+                Activation = Source?.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime;
             }
         }
     }

@@ -6,7 +6,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
     class Shockwave : Components.GenericAOEs
     {
         private List<AOEInstance> _aoes = new();
-        private static AOEShapeCone _shape = new(20, 90.Degrees());
+        private static AOEShapeCone _shape = new(15, 90.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
 
@@ -14,8 +14,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
         {
             if ((AID)spell.Action.ID is AID.LeftSidedShockwaveFirst or AID.RightSidedShockwaveFirst)
             {
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.FinishAt));
-                _aoes.Add(new(_shape, caster.Position, spell.Rotation + 180.Degrees(), spell.FinishAt.AddSeconds(2.6f)));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
+                _aoes.Add(new(_shape, caster.Position, spell.Rotation + 180.Degrees(), spell.NPCFinishAt.AddSeconds(2.6f)));
             }
         }
 

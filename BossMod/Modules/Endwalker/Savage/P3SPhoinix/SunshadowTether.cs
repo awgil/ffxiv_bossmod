@@ -75,7 +75,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
                 arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
 
             // draw my tether
-            var myBird = module.Enemies(OID.Sunshadow).Find(bird => BirdTarget(bird) == pc.InstanceID);
+            var myBird = module.Enemies(OID.Sunshadow).FirstOrDefault(bird => BirdTarget(bird) == pc.InstanceID);
             if (myBird != null && !_chargedSunshadows.Contains(myBird.InstanceID))
             {
                 arena.AddLine(myBird.Position, pc.Position, myBird.Tether.ID != (uint)TetherID.LargeBirdFar ? ArenaColor.Danger : ArenaColor.Safe);

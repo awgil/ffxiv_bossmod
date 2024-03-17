@@ -6,7 +6,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
     // TODO: kill priorities
     class P2Nails : BossComponent
     {
-        private List<Actor> _nails = new();
+        private IReadOnlyList<Actor> _nails = ActorEnumeration.EmptyList;
 
         public bool Active => _nails.Any(a => a.IsTargetable);
 

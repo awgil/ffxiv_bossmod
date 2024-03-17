@@ -98,7 +98,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         {
             _palladion = module.FindComponent<Palladion>();
             _origin = module.PrimaryActor.Position; // note: assumed to be activated when cast starts, so boss is in initial jump position; PATE 1E43 happens 1s earlier, but icons only appear right before cast start
-            _activation = module.PrimaryActor.CastInfo?.FinishAt.AddSeconds(0.3f) ?? default;
+            _activation = module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default;
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
@@ -143,7 +143,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         public override void Init(BossModule module)
         {
             _palladion = module.FindComponent<Palladion>();
-            UpdateStack(module, module.PrimaryActor.CastInfo?.FinishAt.AddSeconds(0.3f) ?? default);
+            UpdateStack(module, module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default);
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -195,7 +195,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
     class PalladionWhiteFlame : Components.GenericBaitAway
     {
         private Palladion? _palladion;
-        private Actor _fakeSource = new(0, 0, -1, "dummy", ActorType.None, Class.None, new(100, 0, 100, 0)); // fake actor used as bait source
+        private Actor _fakeSource = new(0, 0, -1, "dummy", ActorType.None, Class.None, 0, new(100, 0, 100, 0)); // fake actor used as bait source
 
         private static AOEShapeRect _shape = new(100, 2);
 

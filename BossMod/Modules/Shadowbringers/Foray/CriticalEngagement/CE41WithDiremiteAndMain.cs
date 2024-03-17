@@ -88,7 +88,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.FinishAt));
+            return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.NPCFinishAt));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -194,8 +194,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
     [ModuleInfo(CFCID = 778, DynamicEventID = 21)]
     public class CE41WithDiremiteAndMain : BossModule
     {
-        private List<Actor> _dimCrystals = new();
-        private List<Actor> _corruptedCrystals = new();
+        private IReadOnlyList<Actor> _dimCrystals;
+        private IReadOnlyList<Actor> _corruptedCrystals;
 
         public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-220, 530), 30))
         {

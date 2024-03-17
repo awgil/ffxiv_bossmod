@@ -22,13 +22,13 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
             {
                 case AID.VisceralWhirlRAOE1:
                 case AID.VisceralWhirlLAOE1:
-                    _aoes.Add(new(_shapeNormal, caster.Position, spell.Rotation, spell.FinishAt));
+                    _aoes.Add(new(_shapeNormal, caster.Position, spell.Rotation, spell.NPCFinishAt));
                     break;
                 case AID.VisceralWhirlRAOE2:
-                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.FinishAt));
+                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.NPCFinishAt));
                     break;
                 case AID.VisceralWhirlLAOE2:
-                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.FinishAt));
+                    _aoes.Add(new(_shapeOffset, caster.Position + _shapeOffset.HalfWidth * spell.Rotation.ToDirection().OrthoR(), spell.Rotation, spell.NPCFinishAt));
                     break;
             }
         }
@@ -47,7 +47,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
 
     class VoidBio : Components.GenericAOEs
     {
-        private List<Actor> _bubbles = new();
+        private IReadOnlyList<Actor> _bubbles = ActorEnumeration.EmptyList;
 
         private static AOEShapeCircle _shape = new(2); // TODO: verify explosion radius
 

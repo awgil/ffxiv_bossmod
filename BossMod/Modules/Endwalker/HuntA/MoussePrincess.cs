@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
     public enum AID : uint
     {
         AutoAttack = 872, // Boss->player, no cast, single-target
-        PrincessThrenodyPrepare = 27318, // Boss->self, 4.0s cast, range 40 ?-degree cone
+        PrincessThrenodyPrepare = 27318, // Boss->self, 4.0s cast, range 40 120-degree cone
         PrincessThrenodyResolve = 27319, // Boss->self, 1.0s cast, range 40 120-degree cone
         WhimsyAlaMode = 27320, // Boss->self, 4.0s cast, single-target
         AmorphicFlail = 27321, // Boss->self, 5.0s cast, range 9 circle
@@ -30,25 +30,30 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
 
     class PrincessThrenody : Components.GenericAOEs
     {
-        private Angle? _direction = null;
-        private AOEShapeCone _shape = new(40, 60.Degrees());
+        private Angle _direction;
+        private DateTime _activation;
+
+        private static readonly AOEShapeCone _shape = new(40, 60.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_direction != null)
-                yield return new(_shape, module.PrimaryActor.Position, _direction.Value); // TODO: activation
+            if (_activation != default)
+                yield return new(_shape, module.PrimaryActor.Position, _direction, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
+            if ((AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
+            {
                 _direction = spell.Rotation + ThrenodyDirection(module);
+                _activation = spell.NPCFinishAt.AddSeconds(2); //saw delays of upto ~0.3s higher because delay between Prepare and Resolve can vary
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.PrincessThrenodyResolve)
-                _direction = null;
+            if ((AID)spell.Action.ID == AID.PrincessThrenodyResolve)
+                _activation = default;
         }
 
         private Angle ThrenodyDirection(BossModule module)
@@ -63,7 +68,8 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
                     case SID.ForwardWhimsy: return 0.Degrees();
                 }
             }
-            return new();
+            module.ReportError(this, "Failed to find whimsy status");
+            return default;
         }
     }
 

@@ -6,7 +6,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
 {
     class P3Burst : Components.GenericAOEs
     {
-        private List<Actor> _bombs = new();
+        private IReadOnlyList<Actor> _bombs = ActorEnumeration.EmptyList;
         private Dictionary<ulong, DateTime?> _bombActivation = new();
 
         private static AOEShape _shape = new AOEShapeCircle(6.3f);
@@ -19,7 +19,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
             {
                 var activation = _bombActivation.GetValueOrDefault(b.InstanceID);
                 if (activation != null)
-                    yield return new(_shape, b.Position, b.Rotation, b.CastInfo?.FinishAt ?? activation.Value);
+                    yield return new(_shape, b.Position, b.Rotation, b.CastInfo?.NPCFinishAt ?? activation.Value);
             }
         }
 

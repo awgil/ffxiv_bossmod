@@ -63,7 +63,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.FinishAt ?? module.WorldState.CurrentTime.AddSeconds(4)));
+            return _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime.AddSeconds(4)));
         }
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
@@ -100,7 +100,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
     [ModuleInfo(CFCID = 59, NameID = 1185)]
     public class T05IfritH : BossModule
     {
-        private List<Actor> _nails;
+        private IReadOnlyList<Actor> _nails;
         public IEnumerable<Actor> ActiveNails => _nails.Where(n => n.IsTargetable && !n.IsDead);
 
         public T05IfritH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))

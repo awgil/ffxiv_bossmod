@@ -55,11 +55,11 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
                 {
                     var target = module.Raid.WithoutSlot().FirstOrDefault(); // TODO: dunno how target is selected...
                     if (target != null)
-                        AddStack(target, spell.FinishAt.AddSeconds(4.1f));
+                        AddStack(target, spell.NPCFinishAt.AddSeconds(4.1f));
                 }
                 else
                 {
-                    AddSpreads(module.Raid.WithoutSlot(true), spell.FinishAt.AddSeconds(4.1f));
+                    AddSpreads(module.Raid.WithoutSlot(true), spell.NPCFinishAt.AddSeconds(4.1f));
                 }
             }
         }

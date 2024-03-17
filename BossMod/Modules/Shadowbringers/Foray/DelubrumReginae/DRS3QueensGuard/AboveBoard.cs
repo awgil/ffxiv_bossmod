@@ -9,8 +9,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
         public enum State { Initial, ThrowUpDone, ShortExplosionsDone, LongExplosionsDone }
 
         public State CurState { get; private set; }
-        private List<Actor> _smallBombs = new();
-        private List<Actor> _bigBombs = new();
+        private IReadOnlyList<Actor> _smallBombs = ActorEnumeration.EmptyList;
+        private IReadOnlyList<Actor> _bigBombs = ActorEnumeration.EmptyList;
         private bool _invertedBombs; // bombs are always either all normal (big=short) or all inverted
         private BitMask _invertedPlayers; // default for player is 'long', short is considered inverted (has visible status)
         private DateTime _activation;

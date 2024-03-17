@@ -76,9 +76,9 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
                 }
                 else if (shape == _aoeRay)
                 {
-                    if (lastRay != default && (actor.CastInfo == null || (actor.CastInfo.FinishAt - lastRay).TotalSeconds > 2))
+                    if (lastRay != default && (actor.CastInfo == null || (actor.CastInfo.NPCFinishAt - lastRay).TotalSeconds > 2))
                         continue;
-                    lastRay = actor.CastInfo?.FinishAt ?? new();
+                    lastRay = actor.CastInfo?.NPCFinishAt ?? new();
                 }
                 yield return (actor, shape);
             }

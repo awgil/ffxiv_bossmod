@@ -75,7 +75,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
             boss.PreferProvoking = true;
             if (module.PrimaryActor.CastInfo?.Action == WatchedAction)
             {
-                var cooldownWindowEnd = (float)(module.PrimaryActor.CastInfo.FinishAt - module.WorldState.CurrentTime).TotalSeconds;
+                var cooldownWindowEnd = (float)(module.PrimaryActor.CastInfo.NPCFinishAt - module.WorldState.CurrentTime).TotalSeconds;
                 switch (assignment)
                 {
                     case PartyRolesConfig.Assignment.MT:

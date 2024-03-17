@@ -12,9 +12,9 @@
         {
             if ((AID)spell.Action.ID == AID.CaloricTheory1InitialFire && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
             {
-                AddStack(target, spell.FinishAt);
+                AddStack(target, spell.NPCFinishAt);
                 foreach (var (_, p) in module.Raid.WithSlot(true).ExcludedFromMask(_initialMarkers))
-                    AddSpread(p, spell.FinishAt);
+                    AddSpread(p, spell.NPCFinishAt);
             }
         }
 
@@ -124,11 +124,11 @@
             {
                 case AID.CaloricTheory2InitialFire:
                     if (module.WorldState.Actors.Find(spell.TargetID) is var fireTarget && fireTarget != null)
-                        AddStack(fireTarget, spell.FinishAt); // fake stack
+                        AddStack(fireTarget, spell.NPCFinishAt); // fake stack
                     break;
                 case AID.CaloricTheory2InitialWind:
                     if (module.WorldState.Actors.Find(spell.TargetID) is var windTarget && windTarget != null)
-                        AddSpread(windTarget, spell.FinishAt);
+                        AddSpread(windTarget, spell.NPCFinishAt);
                     break;
             }
         }

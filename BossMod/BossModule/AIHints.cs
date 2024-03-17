@@ -24,6 +24,7 @@ namespace BossMod
             public bool PreferProvoking; // tank AI will provoke enemy if not targeted
             public bool ForbidDOTs; // if true, dots on target are forbidden
             public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
+            public bool ShouldBeStunned; // if set, AI will stun if possible
             public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
             //public bool PointlessToAttack; // if set, we prefer waiting and doing nothing rather than attacking the enemy (e.g. temporarily invincible)
 
@@ -69,6 +70,9 @@ namespace BossMod
         // autorotation will execute them in window-end order, if possible
         public List<(ActionID action, Actor target, float windowEnd, bool lowPriority)> PlannedActions = new();
 
+        // buffs to be canceled asap
+        public List<(uint statusId, ulong sourceId)> StatusesToCancel = new();
+
         // clear all stored data
         public void Clear()
         {
@@ -79,6 +83,7 @@ namespace BossMod
             ForbiddenDirections.Clear();
             PredictedDamage.Clear();
             PlannedActions.Clear();
+            StatusesToCancel.Clear();
         }
 
         // fill list of potential targets from world state

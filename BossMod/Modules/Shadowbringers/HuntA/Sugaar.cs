@@ -24,12 +24,6 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         TailSnapAttract = 18101, // rotation, pulls player in from 30 by max 25 units between hitboxes, 3 attacks of TailSnapRotating
     }
 
-    public enum IconID : uint
-    {
-        RotateCW = 167, // Boss
-        RotateCCW = 168, // Boss
-    };
-
     class BodySlam : Components.SelfTargetedAOEs
     {
         public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11)) { }
@@ -47,59 +41,26 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
 
     class NumbingNoiseTailSnapRotating : Components.GenericRotatingAOE
     {
-        private Angle _nextRotation;
-        private Angle _nextIncrement;
-        private AOEShapeCone? _nextShape;
-
-        private static AOEShapeCone _shapeNumbingNoise = new(13, 60.Degrees());
-        private static AOEShapeCone _shapeTailSnap = new(18, 60.Degrees());
-
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            var increment = (IconID)iconID switch
-            {
-                IconID.RotateCW => -120.Degrees(),
-                IconID.RotateCCW => 120.Degrees(),
-                _ => default
-            };
-            if (increment != default)
-            {
-                _nextIncrement = increment;
-                InitIfReady(module, actor);
-            }
-        }
+        private static readonly AOEShapeCone _shapeNumbingNoise = new(13, 60.Degrees());
+        private static readonly AOEShapeCone _shapeTailSnap = new(18, 60.Degrees());
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            (AOEShapeCone? shape, Angle rotation) = (AID)spell.Action.ID switch
+            switch ((AID)spell.Action.ID)
             {
-                AID.NumbingNoiseAttract => (_shapeNumbingNoise, spell.Rotation),
-                AID.TailSnapAttract => (_shapeTailSnap, spell.Rotation + 180.Degrees()),
-                _ => (null, default)
-            };
-            if (shape != null)
-            {
-                _nextShape = shape;
-                _nextRotation = rotation;
-                InitIfReady(module, caster);
+                case AID.NumbingNoiseAttract: // NN always seems to go CCW
+                    Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
+                    break;
+                case AID.TailSnapAttract: // TS always seems to go CW
+                    Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
+                    break;
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.NumbingNoiseRotating or AID.TailSnapRotating)
-                AdvanceSequence(caster.Position, spell.Rotation, module.WorldState.CurrentTime);
-        }
-
-        private void InitIfReady(BossModule module, Actor source)
-        {
-            if (_nextShape != null && _nextIncrement != default)
-            {
-                Sequences.Add(new(_nextShape, source.Position, _nextRotation, _nextIncrement, module.WorldState.CurrentTime.AddSeconds(6.1f), 2.8f, 3));
-                _nextRotation = default;
-                _nextIncrement = default;
-                _nextShape = null;
-            }
+            if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.NumbingNoiseRotating or AID.TailSnapRotating)
+                AdvanceSequence(0, module.WorldState.CurrentTime);
         }
     }
 
@@ -123,7 +84,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (caster == module.PrimaryActor && (AID)spell.Action.ID is AID.NumbingNoiseAttract or AID.TailSnapAttract)
-                _activation = spell.FinishAt;
+                _activation = spell.NPCFinishAt;
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
