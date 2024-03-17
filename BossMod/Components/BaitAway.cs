@@ -86,6 +86,19 @@ namespace BossMod.Components
                 bait.Shape.Outline(arena, BaitOrigin(bait), bait.Rotation);
             }
         }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var b in CurrentBaits)
+            {
+                if (CenterAtTarget && b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
+                    hints.AddForbiddenZone(b.Shape, b.Target.Position, b.Rotation);
+                if (!CenterAtTarget && b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
+                    hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Rotation);
+            }
+            //TODO: activation?
+            //TODO: AI hints for when actor is the target
+        }
     }
 
     // bait on all players, requiring everyone to spread out, by default originating from primary actor
