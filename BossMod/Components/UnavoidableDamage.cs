@@ -21,6 +21,7 @@ namespace BossMod.Components
         public float Delay; //delay from NPCyell for raidwide to cast event
         private bool casting;
         private DateTime _activation;
+
         public RaidwideAfterNPCYell(ActionID aid, uint nPCYellid, float delay, string hint = "Raidwide") : base(aid, hint)
         {
             NPCYellID = nPCYellid;
