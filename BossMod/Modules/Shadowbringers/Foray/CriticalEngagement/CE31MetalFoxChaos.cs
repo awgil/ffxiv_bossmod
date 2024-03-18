@@ -39,7 +39,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
         private DateTime _activation1;
         private DateTime _activation2;
         private DateTime _activation3;
-        private static readonly float maxError = MathF.PI / 180;
+        private const float maxError = MathF.PI / 180;
         private static readonly AOEShapeRect rect = new(100, 3);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)

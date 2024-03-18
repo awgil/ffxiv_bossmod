@@ -103,9 +103,21 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P3GrandOctet(id + 0x80000, 4.2f);
 
             P4PlummetBahamutsClaw(id + 0x100000, 8.2f);
-            // TODO: [> liquid hell > generate + twister > quote > twister] > megaflare > tankswap > repeat [] > tankswap > enrage
-            SimpleState(id + 0xFF0000, 100, "???")
-                .ActivateOnEnter<Quote>();
+            P4LiquidHell(id + 0x110000, 0.1f);
+            P4GenerateTwister(id + 0x120000, 1.2f);
+            P4QuoteTwister(id + 0x130000, 2.3f);
+            P4Megaflare(id + 0x140000, 5.5f);
+            P4DeathSentenceRavensbeak(id + 0x150000, 4.3f);
+
+            P4PlummetBahamutsClaw(id + 0x160000, 4.1f);
+            P4LiquidHell(id + 0x170000, 5.9f);
+            P4GenerateTwister(id + 0x180000, 1.2f);
+            P4QuoteTwister(id + 0x190000, 2.3f); // TODO: timings below...
+            P4DeathSentenceRavensbeak(id + 0x1A0000, 5);
+            P4Megaflare(id + 0x1B0000, 5);
+
+            // TODO: enrage
+            SimpleState(id + 0xFF0000, 100, "???");
         }
 
         private void P1Plummet(uint id, float delay)
@@ -700,14 +712,75 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
         }
 
+        // activates and keeps liquid hell, hatch and twister components
         private void P4PlummetBahamutsClaw(uint id, float delay)
         {
             ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
+                .ActivateOnEnter<LiquidHell>()
+                .ActivateOnEnter<Hatch>()
+                .ActivateOnEnter<Twister>()
                 .ActivateOnEnter<P1Plummet>()
                 .ActivateOnEnter<P2BahamutsClaw>() // 1st cast happens at the same time
                 .DeactivateOnExit<P1Plummet>();
             ComponentCondition<P2BahamutsClaw>(id + 0x10, 3.2f, comp => comp.NumCasts > 4, "5-hit tankbuster end")
                 .DeactivateOnExit<P2BahamutsClaw>();
+        }
+
+        private void P4LiquidHell(uint id, float delay)
+        {
+            ComponentCondition<LiquidHell>(id, delay, comp => comp.NumCasts >= 1, "Puddle 1");
+            ComponentCondition<LiquidHell>(id + 1, 1.2f, comp => comp.NumCasts >= 2);
+            ComponentCondition<LiquidHell>(id + 2, 1.2f, comp => comp.NumCasts >= 3);
+            ComponentCondition<LiquidHell>(id + 3, 1.2f, comp => comp.NumCasts >= 4);
+            ComponentCondition<LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5");
+        }
+
+        private void P4Twister(uint id, float delay)
+        {
+            ActorCast(id, _module.Twintania, AID.Twister, delay, 2, true); // icon appears ~0.1s before cast start
+            ComponentCondition<Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters");
+        }
+
+        private void P4GenerateTwister(uint id, float delay)
+        {
+            ActorCast(id, _module.Twintania, AID.Generate, delay, 3, true, "Hatch"); // icon appears ~0.1s before cast start
+            P4Twister(id + 0x100, 2.2f);
+        }
+
+        private void P4QuoteTwister(uint id, float delay)
+        {
+            ComponentCondition<Quote>(id, delay, comp => comp.PendingMechanics.Count > 0)
+                .ActivateOnEnter<Quote>();
+            ComponentCondition<Quote>(id + 0x10, 5.1f, comp => comp.PendingMechanics.Count == 2, "Quote 1")
+                .ActivateOnEnter<QuoteIronChariotLunarDynamo>();
+            ComponentCondition<Quote>(id + 0x20, 3.1f, comp => comp.PendingMechanics.Count == 1, "Quote 2")
+                .ActivateOnEnter<QuoteRavenDive>()
+                .ActivateOnEnter<QuoteThermionicBeam>()
+                .DeactivateOnExit<QuoteIronChariotLunarDynamo>();
+            ComponentCondition<Quote>(id + 0x30, 3.1f, comp => comp.PendingMechanics.Count == 0, "Quote 3")
+                .DeactivateOnExit<QuoteRavenDive>()
+                .DeactivateOnExit<QuoteThermionicBeam>()
+                .DeactivateOnExit<Quote>();
+            P4Twister(id + 0x100, 1.3f);
+        }
+
+        private void P4Megaflare(uint id, float delay)
+        {
+            ActorCast(id, _module.Nael, AID.MegaflareRaidwide, delay, 5, true, "Raidwide")
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P4DeathSentenceRavensbeak(uint id, float delay)
+        {
+            ActorCast(id, _module.Twintania, AID.DeathSentence, delay, 4, true, "Tank swap") // both bosses cast at the same time
+                .ActivateOnEnter<P1DeathSentence>()
+                .ActivateOnEnter<P2Ravensbeak>()
+                .DeactivateOnExit<P1DeathSentence>()
+                .DeactivateOnExit<P2Ravensbeak>()
+                .DeactivateOnExit<LiquidHell>() // TODO: reconsider - prep for next cycle
+                .DeactivateOnExit<Hatch>()
+                .DeactivateOnExit<Twister>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
         }
     }
 }

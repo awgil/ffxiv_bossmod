@@ -481,6 +481,7 @@ namespace BossMod
                     Name = _input.ReadString(),
                     Type = (ActorType)_input.ReadUShort(true),
                     Class = _input.ReadClass(),
+                    Level = _version < 12 ? 0 : _input.ReadInt(),
                     PosRot = new(_input.ReadVec3(), _input.ReadAngle().Rad),
                     HitboxRadius = _input.ReadFloat(),
                     HP = new() { Cur = _input.ReadUInt(false), Max = _input.ReadUInt(false), Shield = _input.ReadUInt(false) },
@@ -517,7 +518,7 @@ namespace BossMod
         {
             var instanceID = _input.ReadActorID();
             _input.ReadVoid();
-            AddOp(new ActorState.OpClassChange() { InstanceID = instanceID, Class = _input.ReadClass() });
+            AddOp(new ActorState.OpClassChange() { InstanceID = instanceID, Class = _input.ReadClass(), Level = _version < 12 ? 0 : _input.ReadInt() });
         }
 
         private void ParseActorMove()

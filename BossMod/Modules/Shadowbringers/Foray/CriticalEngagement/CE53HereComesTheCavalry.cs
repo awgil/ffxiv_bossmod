@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalry
@@ -33,12 +34,18 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         CallRaze = 23948, // Boss->self, 3.0s cast, single-target, visual
         Raze = 23949, // ImperialAssaultCraft->location, no cast, ???, raidwide?
         RawSteel = 23943, // Boss->player, 5.0s cast, width 4 rect charge cleaving tankbuster
-        CloseQuarters = 23944, // Boss->self, 5.0s cast, single-target
+        CloseQuarters = 23944, // Boss->self, 5.0s cast, single-target, visual
         CloseQuartersAOE = 23945, // Helper->self, 5.0s cast, range 15 circle
-        // TODO: far
+        FarAfield = 23946, // Boss->self, 5,0s cast, single-target, visual
+        FarAfieldAOE = 23947, // Helper->self, 5,0s cast, range 10-30 donut
         CallControlledBurn = 23950, // Boss->self, 5.0s cast, single-target, visual (spread)
         CallControlledBurnAOE = 23951, // ImperialAssaultCraft->players, 5.0s cast, range 6 circle spread
         MagitekBlaster = 23952, // Boss->players, 5.0s cast, range 8 circle stack
+    };
+
+    public enum TetherID : uint
+    {
+        RawSteel = 57, // Boss->player
     };
 
     class StormSlash : Components.SelfTargetedAOEs
@@ -111,15 +118,57 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         public CallRaze() : base(ActionID.MakeSpell(AID.CallRaze), "Multi raidwide") { }
     }
 
-    // TODO: cleave, distance/invuln hint
-    class RawSteel : Components.SingleTargetCast
+    // TODO: find out optimal distance, test results so far:
+    // - distance ~6.4 (inside hitbox) and 1 vuln stack: 79194 damage
+    // - distance ~22.2 and 4 vuln stacks: 21083 damage
+    // since hitbox is 7.2 it is probably starting to be optimal around distance 15
+    class RawSteel : Components.BaitAwayChargeCast
     {
-        public RawSteel() : base(ActionID.MakeSpell(AID.CallRaze), "Proximity tankbuster") { }
+        private static float _safeDistance = 15;
+
+        public RawSteel() : base(ActionID.MakeSpell(AID.RawSteel), 2) { }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (ActiveBaitsOn(actor).Any(b => b.Target.Position.InCircle(b.Source.Position, _safeDistance)))
+                hints.Add("Go further away from boss!");
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (CurrentBaits.Count > 0)
+                hints.Add("Proximity Tankbuster + Charge");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            base.AddAIHints(module, slot, actor, assignment, hints);
+            foreach (var b in ActiveBaits)
+            {
+                if (b.Target == actor)
+                    hints.AddForbiddenZone(ShapeDistance.Circle(b.Source.Position, _safeDistance));
+                hints.PredictedDamage.Add((new BitMask().WithBit(module.Raid.FindSlot(b.Target.InstanceID)), b.Source.CastInfo?.NPCFinishAt ?? default));
+            }
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var bait in ActiveBaitsOn(pc))
+            {
+                bait.Shape.Outline(arena, BaitOrigin(bait), bait.Rotation, bait.Target.Position.InCircle(bait.Source.Position, 15) ? ArenaColor.Danger : ArenaColor.Safe);
+            }
+        }
     }
 
     class CloseQuarters : Components.SelfTargetedAOEs
     {
         public CloseQuarters() : base(ActionID.MakeSpell(AID.CloseQuartersAOE), new AOEShapeCircle(15)) { }
+    }
+
+    class FarAfield : Components.SelfTargetedAOEs
+    {
+        public FarAfield() : base(ActionID.MakeSpell(AID.FarAfieldAOE), new AOEShapeDonut(10, 30)) { }
     }
 
     class CallControlledBurn : Components.SpreadFromCastTargets
@@ -132,7 +181,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
         public MagitekBlaster() : base(ActionID.MakeSpell(AID.MagitekBlaster), 8) { }
     }
 
-    // TODO: far afield
     class CE53HereComesTheCavalryStates : StateMachineBuilder
     {
         public CE53HereComesTheCavalryStates(BossModule module) : base(module)
@@ -149,6 +197,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
                 .ActivateOnEnter<CallRaze>()
                 .ActivateOnEnter<RawSteel>()
                 .ActivateOnEnter<CloseQuarters>()
+                .ActivateOnEnter<FarAfield>()
                 .ActivateOnEnter<CallControlledBurn>()
                 .ActivateOnEnter<MagitekBlaster>();
         }

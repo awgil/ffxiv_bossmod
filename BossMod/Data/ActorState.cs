@@ -29,7 +29,7 @@ namespace BossMod
         {
             foreach (var act in this)
             {
-                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, SpawnIndex = act.SpawnIndex, Name = act.Name, Type = act.Type, Class = act.Class, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HP = act.HP, CurMP = act.CurMP, IsTargetable = act.IsTargetable, IsAlly = act.IsAlly, OwnerID = act.OwnerID };
+                yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, SpawnIndex = act.SpawnIndex, Name = act.Name, Type = act.Type, Class = act.Class, Level = act.Level, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HP = act.HP, CurMP = act.CurMP, IsTargetable = act.IsTargetable, IsAlly = act.IsAlly, OwnerID = act.OwnerID };
                 if (act.IsDead)
                     yield return new OpDead() { InstanceID = act.InstanceID, Value = true };
                 if (act.InCombat)
@@ -57,6 +57,7 @@ namespace BossMod
             public string Name = "";
             public ActorType Type;
             public Class Class;
+            public int Level;
             public Vector4 PosRot;
             public float HitboxRadius;
             public ActorHP HP;
@@ -68,7 +69,7 @@ namespace BossMod
             protected override void ExecActor(WorldState ws, Actor actor) { }
             protected override void Exec(WorldState ws)
             {
-                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, Name, Type, Class, PosRot, HitboxRadius, HP, CurMP, IsTargetable, IsAlly, OwnerID);
+                var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, Name, Type, Class, Level, PosRot, HitboxRadius, HP, CurMP, IsTargetable, IsAlly, OwnerID);
                 ws.Actors.Added?.Invoke(ws, actor);
             }
 
@@ -79,6 +80,7 @@ namespace BossMod
                 .Emit(Name)
                 .Emit((ushort)Type, "X4")
                 .Emit(Class)
+                .Emit(Level)
                 .Emit(PosRot.XYZ())
                 .Emit(PosRot.W.Radians())
                 .Emit(HitboxRadius, "f3")
@@ -145,14 +147,16 @@ namespace BossMod
         public class OpClassChange : Operation
         {
             public Class Class;
+            public int Level;
 
             protected override void ExecActor(WorldState ws, Actor actor)
             {
                 actor.Class = Class;
+                actor.Level = Level;
                 ws.Actors.ClassChanged?.Invoke(ws, actor);
             }
 
-            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLSR").EmitActor(InstanceID).Emit().Emit(Class);
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLSR").EmitActor(InstanceID).Emit().Emit(Class).Emit(Level);
         }
 
         public event EventHandler<Actor>? Moved;

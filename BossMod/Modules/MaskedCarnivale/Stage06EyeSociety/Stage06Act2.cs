@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage06.Act2
@@ -27,7 +26,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
         Blind = 571, // Mandragora->player, extra=0x0
 
     };
-    class DemonEye : CastGaze
+    class DemonEye : Components.CastGaze
     {
         private BitMask _blinded;
 
@@ -51,7 +50,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
         }
     }
 
-    class ColdStare : SelfTargetedAOEs //TODO: cone based gaze
+    class ColdStare : Components.SelfTargetedAOEs //TODO: cone based gaze
     {
         private BitMask _blinded;
 
@@ -75,7 +74,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
         }
     }
 
-    class TearyTwirl : StackWithCastTargets
+    class TearyTwirl : Components.StackWithCastTargets
     {
         private BitMask _blinded;
 
@@ -102,7 +101,7 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
         }
     }
 
-    class DreadGaze : SelfTargetedAOEs //TODO: cone based gaze
+    class DreadGaze : Components.SelfTargetedAOEs //TODO: cone based gaze
     {
         private BitMask _blinded;
 
@@ -159,12 +158,11 @@ namespace BossMod.MaskedCarnivale.Stage06.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Eye))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Mandragora))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

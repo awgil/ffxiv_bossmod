@@ -9,11 +9,14 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyro
         BossAdd = 0x3D2E, //R=2.08
         BossHelper = 0x233C,
         StormsGrip = 0x3D2F, //R=1.0
+        BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
+        BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
     };
 
     public enum AID : uint
     {
         AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
+        AutoAttack2 = 870, // BonusAdd_Lyssa->player, no cast, single-target
         StormWingA = 32220, // Boss->self, 5,0s cast, single-target
         StormWingB = 32219, // Boss->self, 5,0s cast, single-target
         StormWing2 = 32221, // BossHelper->self, 5,0s cast, range 40 90-degree cone
@@ -24,7 +27,15 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyro
         BigHorn = 32226, // BossAdd->player, no cast, single-target
         Wingblow = 32224, // Boss->self, 4,0s cast, single-target
         Wingblow2 = 32225, // BossHelper->self, 4,0s cast, range 15 circle
+
+        HeavySmash = 32317, // BossAdd->location, 3,0s cast, range 6 circle
+        Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
     };
+
+    class HeavySmash : Components.LocationTargetedAOEs
+    {
+        public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
+    }
 
     class StormWing : Components.SelfTargetedAOEs
     {
@@ -61,7 +72,8 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyro
                 .ActivateOnEnter<WindCutter>()
                 .ActivateOnEnter<Wingblow>()
                 .ActivateOnEnter<DreadDive>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
+                .ActivateOnEnter<HeavySmash>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
         }
     }
 
@@ -75,6 +87,10 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyro
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BossAdd))
                 Arena.Actor(s, ArenaColor.Object);
+            foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.BonusAdds_Lampas))
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -84,6 +100,8 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyro
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
+                    OID.BonusAdds_Lampas => 4,
+                    OID.BonusAdds_Lyssa => 3,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0

@@ -26,6 +26,7 @@ namespace BossMod.MNK
             SupportedSpell(AID.Meditation).TransformAction = () => ActionID.MakeSpell(_state.Chakra == 5 ? _state.BestForbiddenChakra : AID.Meditation);
             SupportedSpell(AID.ArmOfTheDestroyer).TransformAction = SupportedSpell(AID.ShadowOfTheDestroyer).TransformAction = () => ActionID.MakeSpell(_state.BestShadowOfTheDestroyer);
             SupportedSpell(AID.MasterfulBlitz).TransformAction = () => ActionID.MakeSpell(_state.BestBlitz);
+            SupportedSpell(AID.PerfectBalance).Condition = _ => _state.PerfectBalanceLeft == 0;
 
             _config.Modified += OnConfigModified;
             OnConfigModified(null, EventArgs.Empty);

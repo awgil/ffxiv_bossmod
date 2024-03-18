@@ -107,6 +107,7 @@ namespace BossMod
         public string Name;
         public ActorType Type;
         public Class Class;
+        public int Level;
         public Vector4 PosRot = new(); // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
         public float HitboxRadius;
         public ActorHP HP;
@@ -129,7 +130,7 @@ namespace BossMod
         public Angle Rotation => PosRot.W.Radians();
         public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
 
-        public Actor(ulong instanceID, uint oid, int spawnIndex, string name, ActorType type, Class classID, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
+        public Actor(ulong instanceID, uint oid, int spawnIndex, string name, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
         {
             InstanceID = instanceID;
             OID = oid;
@@ -137,6 +138,7 @@ namespace BossMod
             Name = name;
             Type = type;
             Class = classID;
+            Level = level;
             PosRot = posRot;
             HitboxRadius = hitboxRadius;
             HP = hp;
