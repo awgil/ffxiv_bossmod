@@ -259,15 +259,18 @@ namespace BossMod
             public override void Write(ReplayRecorder.Output output) => WriteTag(output, Value ? "COM+" : "COM-").EmitActor(InstanceID);
         }
 
-        public event EventHandler<Actor>? ModelStateChanged;
+        public event EventHandler<(Actor, byte, byte, byte)>? ModelStateChanged;
         public class OpModelState : Operation
         {
             public ActorModelState Value;
+            public byte ModelState;
+            public byte AnimState1;
+            public byte AnimState2;
 
             protected override void ExecActor(WorldState ws, Actor actor)
             {
                 actor.ModelState = Value;
-                ws.Actors.ModelStateChanged?.Invoke(ws, actor);
+                ws.Actors.ModelStateChanged?.Invoke(ws, (actor, Value.ModelState, Value.AnimState1, Value.AnimState2));
             }
 
             public override void Write(ReplayRecorder.Output output) => WriteTag(output, "MDLS").EmitActor(InstanceID).Emit(Value.ModelState).Emit(Value.AnimState1).Emit(Value.AnimState2);
