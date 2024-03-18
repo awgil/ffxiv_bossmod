@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using static BossMod.ActorCastEvent;
 using static BossMod.BossComponent;
 
-namespace BossMod.Endwalker.DeepDungeon.SixtytoSeventy.DD370Aeturna
+namespace BossMod.Endwalker.DeepDungeon.DD70Aeturna
 {
     public enum OID : uint
     {
@@ -161,9 +161,9 @@ namespace BossMod.Endwalker.DeepDungeon.SixtytoSeventy.DD370Aeturna
         public ImpactAOE() : base(ActionID.MakeSpell(AID.ImpactAOE), new AOEShapeCircle(5)) { }
     }
 
-    class DD370AeturnaStates : StateMachineBuilder
+    class DD70AeturnaStates : StateMachineBuilder
     {
-        public DD370AeturnaStates(BossModule module) : base(module)
+        public DD70AeturnaStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<SteelClaw>()
@@ -179,8 +179,8 @@ namespace BossMod.Endwalker.DeepDungeon.SixtytoSeventy.DD370Aeturna
     }
 
     [ModuleInfo(CFCID = 903, NameID = 12246)]
-    public class DD370Aeturna : BossModule
+    public class DD70Aeturna : BossModule
     {
-        public DD370Aeturna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300.008f, -300.008f), 20)) { }
+        public DD70Aeturna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300.008f, -300.008f), 20)) { }
     }
 }
