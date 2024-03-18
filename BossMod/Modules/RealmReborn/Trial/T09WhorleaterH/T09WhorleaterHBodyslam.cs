@@ -1,16 +1,14 @@
-using BossMod.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
 {
-    class BodySlamKB : Knockback
+    class BodySlamKB : Components.Knockback
     {
         private DateTime _activation;
         private float Distance;
         private Angle Direction;
-
         private float LeviathanZ;
 
         public BodySlamKB()
@@ -49,7 +47,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
 
     }
 
-    class BodySlamAOE : GenericAOEs
+    class BodySlamAOE : Components.GenericAOEs
     {
         private bool active;
         private float LeviathanZ;
