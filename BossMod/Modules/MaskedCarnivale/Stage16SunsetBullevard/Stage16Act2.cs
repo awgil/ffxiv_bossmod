@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage16.Act2
@@ -27,113 +26,66 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
         TenTonzeWave2 = 15268, // 233C->self, 4,6s cast, range 10-20 donut
     };
 
-    class OneOneOneOneTonzeSwing : CastHint
+    class OneOneOneOneTonzeSwing : Components.RaidwideCast
     {
-        public OneOneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Diamondback!") { }
+        public OneOneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Use Diamondback!") { }
     }
 
-    class TenTonzeSlash : SelfTargetedAOEs
+    class TenTonzeSlash : Components.SelfTargetedAOEs
     {
         public TenTonzeSlash() : base(ActionID.MakeSpell(AID.TenTonzeSlash), new AOEShapeCone(44, 30.Degrees())) { }
     }
 
-    class OneOneOneTonzeSwing : SelfTargetedAOEs
+    class OneOneOneTonzeSwing : Components.SelfTargetedAOEs
     {
         public OneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneTonzeSwing), new AOEShapeCircle(12)) { }
     }
 
-    class CryOfRage : CastGaze
+    class CryOfRage : Components.CastGaze
     {
         public CryOfRage() : base(ActionID.MakeSpell(AID.CryOfRage)) { }
     }
 
-    class TenTonzeWave : SelfTargetedAOEs
+    class TenTonzeWave : Components.SelfTargetedAOEs
     {
         public TenTonzeWave() : base(ActionID.MakeSpell(AID.TenTonzeWave), new AOEShapeCone(44, 30.Degrees())) { }
     }
 
-    class TenTonzeWave2 : SelfTargetedAOEs
+    class TenTonzeWave2 : Components.SelfTargetedAOEs
     {
         public TenTonzeWave2() : base(ActionID.MakeSpell(AID.TenTonzeWave2), new AOEShapeDonut(10, 20)) { }
     }
 
-    class OneOneOneTonzeSwingKB : Knockback //actual knockback happens a whole 1,462s after snapshot
+    class OneOneOneTonzeSwingKB : Components.KnockbackFromCastTarget //actual knockback happens ~1.45s after snapshot
     {
-        private bool casting;
-        private DateTime _activation;
+        public OneOneOneTonzeSwingKB() : base(ActionID.MakeSpell(AID.OneOneOneTonzeSwing), 20, shape: new AOEShapeCircle(12)) { }
+    }
 
-        private static readonly AOEShapeCircle circle = new(12);
+    class ZoomIn : Components.BaitAwayChargeCast
+    {
+        public ZoomIn() : base(ActionID.MakeSpell(AID.ZoomIn), 4) { }
+    }
+
+    class ZoomInKB : Components.Knockback //actual knockback happens ~0.7s after snapshot
+    {
+        private DateTime _activation;
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
         {
-            if (casting)
-                yield return new(module.PrimaryActor.Position, 20, _activation, circle);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
-            {
-                _activation = spell.NPCFinishAt;
-                casting = true;
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.OneOneOneTonzeSwing)
-                casting = false;
-        }
-    }
-
-    class ZoomIn : GenericWildCharge
-    {
-        public ZoomIn() : base(4, ActionID.MakeSpell(AID.ZoomIn)) { }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-            {
-                Source = caster;
-                foreach (var (slot, player) in module.Raid.WithSlot())
-                {
-                    PlayerRoles[slot] = player.InstanceID == spell.TargetID ? PlayerRole.Target : PlayerRole.Target;
-                }
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-            {
-                Source = null;
-            }
-        }
-    }
-
-    class ZoomInKB : Knockback //actual knockback happens about 0,7s after snapshot
-    {
-        private DateTime _activation;
-        private bool casting;
-
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            if (casting)
+            if (_activation != default)
                 yield return new(module.PrimaryActor.Position, 20, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ZoomIn)
-            {
-                casting = true;
                 _activation = spell.NPCFinishAt;
-            }
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ZoomIn)
-                casting = false;
+                _activation = default;
         }
     }
 
@@ -173,8 +125,7 @@ namespace BossMod.MaskedCarnivale.Stage16.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Cyclops))
                 Arena.Actor(s, ArenaColor.Object, false);
         }

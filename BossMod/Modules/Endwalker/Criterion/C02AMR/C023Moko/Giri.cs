@@ -150,7 +150,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
             public Instance(Actor source)
             {
                 Source = source;
-                FakeSource = new(0, 0, -1, "", ActorType.None, Class.None, new());
+                FakeSource = new(0, 0, -1, "", ActorType.None, Class.None, 0, new());
             }
         }
 

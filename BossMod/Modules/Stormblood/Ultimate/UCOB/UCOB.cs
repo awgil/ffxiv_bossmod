@@ -8,20 +8,9 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public P1Plummet() : base(ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(12, 60.Degrees()), (uint)OID.Twintania) { }
     }
 
-    class P1Twister : Components.CastTwister
-    {
-        public P1Twister() : base(2, (uint)OID.VoidzoneTwister, ActionID.MakeSpell(AID.Twister), 0.3f, 0.5f) { KeepOnPhaseChange = true; } // TODO: verify radius
-    }
-
     class P1Fireball : Components.StackWithIcon
     {
         public P1Fireball() : base((uint)IconID.Fireball, ActionID.MakeSpell(AID.Fireball), 4, 5.3f, 4) { }
-    }
-
-    class P1LiquidHell : Components.PersistentVoidzoneAtCastTarget
-    {
-        public P1LiquidHell() : base(6, ActionID.MakeSpell(AID.LiquidHell), m => m.Enemies(OID.VoidzoneLiquidHell).Where(z => z.EventState != 7), 1.3f) { KeepOnPhaseChange = true; }
-        public void Reset() => NumCasts = 0;
     }
 
     class P2BahamutsClaw : Components.CastCounter

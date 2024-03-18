@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Components
@@ -13,14 +14,16 @@ namespace BossMod.Components
             public Actor Source;
             public Actor Target;
             public AOEShape Shape;
+            public DateTime Activation;
 
             public Angle Rotation => Angle.FromDirection(Target.Position - Source.Position);
 
-            public Bait(Actor source, Actor target, AOEShape shape)
+            public Bait(Actor source, Actor target, AOEShape shape, DateTime activation = default)
             {
                 Source = source;
                 Target = target;
                 Shape = shape;
+                Activation = activation;
             }
         }
 
@@ -64,6 +67,13 @@ namespace BossMod.Components
 
             if (!IgnoreOtherBaits && ActiveBaitsNotOn(actor).Any(b => IsClippedBy(actor, b)))
                 hints.Add("GTFO from baited aoe!");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var b in ActiveBaitsNotOn(actor))
+                hints.AddForbiddenZone(b.Shape, BaitOrigin(b), b.Rotation, b.Activation);
+            //TODO: AI hints for when actor is the target
         }
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -187,7 +197,7 @@ namespace BossMod.Components
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                CurrentBaits.Add(new(caster, target, Shape));
+                CurrentBaits.Add(new(caster, target, Shape, spell.NPCFinishAt));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -216,7 +226,7 @@ namespace BossMod.Components
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, HalfWidth)));
+                CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, HalfWidth), spell.NPCFinishAt));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

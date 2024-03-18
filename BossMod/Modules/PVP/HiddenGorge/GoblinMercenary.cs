@@ -111,6 +111,8 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
     class GobfireShootypops : Components.GenericRotatingAOE
     {
         private Angle _increment;
+        private Angle _rotation;
+        private DateTime _activation;
 
         private static AOEShapeRect _shape = new AOEShapeRect(32, 3);
 
@@ -123,22 +125,37 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
                 _ => default
             };
             if (increment != default)
+            {
                 _increment = increment;
+                InitIfReady(module, actor);
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.GobfireShootypopsStart)
             {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 1, 6));
-                _increment = default;
+                _rotation = spell.Rotation;
+                _activation = spell.NPCFinishAt;
             }
+            if (_rotation != default)
+                InitIfReady(module, caster);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.GobfireShootypopsStart or AID.GobfireShootypops)
                 AdvanceSequence(0, module.WorldState.CurrentTime);
+        }
+
+        private void InitIfReady(BossModule module, Actor source)
+        {
+            if (_rotation != default && _increment != default)
+            {
+                Sequences.Add(new(_shape, source.Position, _rotation, _increment, _activation, 1, 6));
+                _rotation = default;
+                _increment = default;
+            }
         }
     }
 
@@ -155,7 +172,9 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
                 .ActivateOnEnter<IronKiss>()
                 .ActivateOnEnter<GobspinSwipe>()
                 .ActivateOnEnter<Knockbacks>()
-                .ActivateOnEnter<GobfireShootypops>();
+                .ActivateOnEnter<GobfireShootypops>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.IsTargetable;
+
         }
     }
 

@@ -104,6 +104,11 @@ namespace BossMod.SAM
         Bloodbath = 84, // applied by Bloodbath to self, lifesteal
         Feint = 1195, // applied by Feint to target, 30% phys and -5% magic damage dealt
         Stun = 2, // applied by Leg Sweep to target
+
+        LostFontofPower = 2346,
+        BannerHonoredSacrifice = 2327,
+        LostExcellence = 2564,
+        Memorable = 2565,
     }
 
     public static class Definitions

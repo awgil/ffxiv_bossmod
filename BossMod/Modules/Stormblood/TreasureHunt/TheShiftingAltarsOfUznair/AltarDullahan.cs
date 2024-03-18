@@ -8,17 +8,30 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
         Boss = 0x2533, //R=3.8
         BossAdd = 0x2563, //R=1.8
         BossHelper = 0x233C,
+        AltarQueen = 0x254A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+        AltarGarlic = 0x2548, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+        AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+        AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+        AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     };
 
     public enum AID : uint
     {
         AutoAttack = 870, // 2533->player, no cast, single-target
-        AutoAttack2 = 6497, // 2563->player, no cast, single-target
+        AutoAttack2 = 872, // BonusAdd_Mandragoras->player, no cast, single-target
+        AutoAttack3 = 6497, // 2563->player, no cast, single-target
         IronJustice = 13316, // 2533->self, 3,0s cast, range 8+R 120-degree cone
         Cloudcover = 13477, // 2533->location, 3,0s cast, range 6 circle
         TerrorEye = 13644, // 2563->location, 3,5s cast, range 6 circle
         StygianRelease = 13314, // 2533->self, 3,5s cast, range 50+R circle, small raidwide dmg, knockback 20 from source
         VillainousRebuke = 13315, // 2533->players, 4,5s cast, range 6 circle
+
+        PluckAndPrune = 6449, // AltarEgg->self, 3,5s cast, range 6+R circle
+        PungentPirouette = 6450, // AltarGarlic->self, 3,5s cast, range 6+R circle
+        TearyTwirl = 6448, // AltarOnion->self, 3,5s cast, range 6+R circle
+        Pollen = 6452, // AltarQueen->self, 3,5s cast, range 6+R circle
+        HeirloomScream = 6451, // AltarTomato->self, 3,5s cast, range 6+R circle
+        Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
     };
 
     class IronJustice : Components.SelfTargetedAOEs
@@ -46,6 +59,31 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
         public StygianRelease() : base(ActionID.MakeSpell(AID.StygianRelease)) { }
     }
 
+    class PluckAndPrune : Components.SelfTargetedAOEs
+    {
+        public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class TearyTwirl : Components.SelfTargetedAOEs
+    {
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class HeirloomScream : Components.SelfTargetedAOEs
+    {
+        public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class PungentPirouette : Components.SelfTargetedAOEs
+    {
+        public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class Pollen : Components.SelfTargetedAOEs
+    {
+        public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
+    }
+
     class StygianReleaseKB : Components.KnockbackFromCastTarget
     {
         public StygianReleaseKB() : base(ActionID.MakeSpell(AID.StygianRelease), 20)
@@ -66,7 +104,12 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
                 .ActivateOnEnter<VillainousRebuke>()
                 .ActivateOnEnter<StygianRelease>()
                 .ActivateOnEnter<StygianReleaseKB>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
+                .ActivateOnEnter<PluckAndPrune>()
+                .ActivateOnEnter<TearyTwirl>()
+                .ActivateOnEnter<HeirloomScream>()
+                .ActivateOnEnter<PungentPirouette>()
+                .ActivateOnEnter<Pollen>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead);
         }
     }
 
@@ -80,6 +123,16 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BossAdd))
                 Arena.Actor(s, ArenaColor.Object);
+            foreach (var s in Enemies(OID.AltarEgg))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarTomato))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarQueen))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarGarlic))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarOnion))
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -89,6 +142,11 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
+                    OID.AltarOnion => 6,
+                    OID.AltarEgg => 5,
+                    OID.AltarGarlic => 4,
+                    OID.AltarTomato => 3,
+                    OID.AltarQueen => 2,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0

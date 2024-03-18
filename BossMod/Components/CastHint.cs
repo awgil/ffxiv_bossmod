@@ -36,4 +36,35 @@ namespace BossMod.Components
                 _casters.Remove(caster);
         }
     }
+
+    public class CastInterruptHint : CastHint
+    {
+        public bool CanBeInterrupted { get; init; }
+        public bool CanBeStunned { get; init; }
+
+        public CastInterruptHint(ActionID aid, bool canBeInterrupted = true, bool canBeStunned = false, string hint = "") : base(aid, "")
+        {
+            CanBeInterrupted = canBeInterrupted;
+            CanBeStunned = canBeStunned;
+            if (canBeInterrupted || canBeStunned)
+            {
+                Hint = !canBeStunned ? "Interrupt" : !canBeInterrupted ? "Stun" : "Interrupt/stun";
+                if (hint.Length > 0)
+                    Hint += $" {hint}";
+            }
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            foreach (var c in Casters)
+            {
+                var e = hints.PotentialTargets.Find(e => e.Actor == c);
+                if (e != null)
+                {
+                    e.ShouldBeInterrupted |= CanBeInterrupted;
+                    e.ShouldBeStunned |= CanBeStunned;
+                }
+            }
+        }
+    }
 }
