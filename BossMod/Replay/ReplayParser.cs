@@ -181,7 +181,7 @@ namespace BossMod
                         foreach (var p in _participants.Values.Where(p => p.WorldExistence.Count > 0 && p.WorldExistence.Last().End == default)) // include only live actors
                             m.Encounter.ParticipantsByOID.GetOrAdd(p.OID).Add(p);
                         foreach (var p in _ws.Party.WithoutSlot(true))
-                            m.Encounter.PartyMembers.Add((_participants[p.InstanceID], p.Class));
+                            m.Encounter.PartyMembers.Add((_participants[p.InstanceID], p.Class, p.Level));
                         _res.Encounters.Add(m.Encounter);
                     }
                     else

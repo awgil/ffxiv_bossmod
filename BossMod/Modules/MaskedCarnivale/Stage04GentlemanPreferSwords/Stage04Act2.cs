@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage04.Act2
 {
@@ -19,17 +17,17 @@ namespace BossMod.MaskedCarnivale.Stage04.Act2
         MagitekRay = 14368, // 25D5->location, 3,0s cast, range 6 circle
     };
 
-    class GrandStrike : SelfTargetedAOEs
+    class GrandStrike : Components.SelfTargetedAOEs
     {
         public GrandStrike() : base(ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2)) { }
     }
 
-    class MagitekRay : LocationTargetedAOEs
+    class MagitekRay : Components.LocationTargetedAOEs
     {
         public MagitekRay() : base(ActionID.MakeSpell(AID.MagitekRay), 6) { }
     }
 
-    class MagitekField : CastHint
+    class MagitekField : Components.CastHint
     {
         public MagitekField() : base(ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses") { }
     }
@@ -73,9 +71,9 @@ namespace BossMod.MaskedCarnivale.Stage04.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Beetle))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

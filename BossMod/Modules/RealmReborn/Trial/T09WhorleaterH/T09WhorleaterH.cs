@@ -1,20 +1,21 @@
 // CONTRIB: made by taurenkey, changed by malediktus, not checked
-using BossMod.Components;
+using System.Linq;
 
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
 {
-    class GrandFall : LocationTargetedAOEs
+    class GrandFall : Components.LocationTargetedAOEs
     {
         public GrandFall() : base(ActionID.MakeSpell(AID.GrandFall), 8) { }
     }
 
-    class Hydroshot : PersistentVoidzoneAtCastTarget
+    class Hydroshot : Components.PersistentVoidzoneAtCastTarget
     {
-        public Hydroshot() : base(5, ActionID.MakeSpell(AID.Hydroshot), m => m.Enemies(OID.HydroshotZone), 0) { }
+        public Hydroshot() : base(5, ActionID.MakeSpell(AID.Hydroshot), m => m.Enemies(OID.HydroshotZone).Where(z => z.EventState != 7), 0) { }
     }
-    class Dreadstorm : PersistentVoidzoneAtCastTarget
+
+    class Dreadstorm : Components.PersistentVoidzoneAtCastTarget
     {
-        public Dreadstorm() : base(5, ActionID.MakeSpell(AID.Dreadstorm), m => m.Enemies(OID.DreadstormZone), 0) { }
+        public Dreadstorm() : base(5, ActionID.MakeSpell(AID.Dreadstorm), m => m.Enemies(OID.DreadstormZone).Where(z => z.EventState != 7), 0) { }
     }
 
     class T09WhorleaterHStates : StateMachineBuilder

@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage10
 {
@@ -23,48 +21,48 @@ namespace BossMod.MaskedCarnivale.Stage10
         BlackNebula = 14724, // Boss->self, 6,0s cast, range 50+R circle, interruptible enrage after 3 King's Will casts
     };
 
-    class IronJustice1 : SelfTargetedAOEs
+    class IronJustice1 : Components.SelfTargetedAOEs
     {
         public IronJustice1() : base(ActionID.MakeSpell(AID.IronJustice1), new AOEShapeCone(9, 60.Degrees())) { }
     }
 
-    class IronJustice2 : SelfTargetedAOEs
+    class IronJustice2 : Components.SelfTargetedAOEs
     {
         public IronJustice2() : base(ActionID.MakeSpell(AID.IronJustice2), new AOEShapeCone(9.5f, 60.Degrees())) { }
     }
 
-    class IronJustice3 : SelfTargetedAOEs
+    class IronJustice3 : Components.SelfTargetedAOEs
     {
         public IronJustice3() : base(ActionID.MakeSpell(AID.IronJustice3), new AOEShapeCone(10, 60.Degrees())) { }
     }
 
-    class IronJustice4 : SelfTargetedAOEs
+    class IronJustice4 : Components.SelfTargetedAOEs
     {
         public IronJustice4() : base(ActionID.MakeSpell(AID.IronJustice4), new AOEShapeCone(10.5f, 60.Degrees())) { }
     }
 
-    class BlackNebula : CastHint
+    class BlackNebula : Components.CastHint
     {
         public BlackNebula() : base(ActionID.MakeSpell(AID.BlackNebula), "Interrupt or wipe!") { }
     }
 
-    class Cloudcover1 : LocationTargetedAOEs
+    class Cloudcover1 : Components.LocationTargetedAOEs
     {
         public Cloudcover1() : base(ActionID.MakeSpell(AID.Cloudcover1), 6) { }
     }
 
-    class KingsWill1 : CastHint
+    class KingsWill1 : Components.CastHint
     {
         public static readonly string hints = "Interrupt if not going for the achievement";
         public KingsWill1() : base(ActionID.MakeSpell(AID.KingsWill), hints) { }
     }
 
-    class KingsWill2 : CastHint
+    class KingsWill2 : Components.CastHint
     {
         public KingsWill2() : base(ActionID.MakeSpell(AID.KingsWill2), KingsWill1.hints) { }
     }
 
-    class KingsWill3 : CastHint
+    class KingsWill3 : Components.CastHint
     {
         public KingsWill3() : base(ActionID.MakeSpell(AID.KingsWill3), KingsWill1.hints) { }
     }
@@ -105,12 +103,6 @@ namespace BossMod.MaskedCarnivale.Stage10
         public Stage10(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
-        }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
         }
     }
 }

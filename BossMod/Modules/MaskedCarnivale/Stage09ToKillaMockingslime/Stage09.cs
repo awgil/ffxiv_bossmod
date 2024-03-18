@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage09
 {
@@ -28,17 +26,17 @@ namespace BossMod.MaskedCarnivale.Stage09
         Water = 14271, // 2716->player, 1,0s cast, single-target
     };
 
-    class GoldenTongue : CastHint
+    class GoldenTongue : Components.CastHint
     {
         public GoldenTongue() : base(ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increase its magic damage") { }
     }
 
-    class DarkVoidzone : PersistentVoidzoneAtCastTarget
+    class DarkVoidzone : Components.PersistentVoidzoneAtCastTarget
     {
         public DarkVoidzone() : base(4, ActionID.MakeSpell(AID.Dark), m => m.Enemies(OID.DarkVoidzone), 0) { }
     }
 
-    class Dark : LocationTargetedAOEs
+    class Dark : Components.LocationTargetedAOEs
     {
         public Dark() : base(ActionID.MakeSpell(AID.Dark), 5) { }
     }
@@ -87,20 +85,19 @@ namespace BossMod.MaskedCarnivale.Stage09
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Licorice))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.Flan))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.Pudding))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.Marshmallow))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.Bavarois))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
             foreach (var s in Enemies(OID.Gelato))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
         }
     }
 }

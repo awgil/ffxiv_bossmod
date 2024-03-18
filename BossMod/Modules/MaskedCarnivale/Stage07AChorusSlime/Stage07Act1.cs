@@ -1,5 +1,4 @@
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage07.Act1
@@ -16,22 +15,22 @@ namespace BossMod.MaskedCarnivale.Stage07.Act1
         Blizzard = 14709, // 2702->player, 1,0s cast, single-target
     };
 
-    class SlimeExplosion : GenericStackSpread
+    class SlimeExplosion : Components.GenericStackSpread
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
-                arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
+            if (!module.PrimaryActor.IsDead)
+            {
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddCircle(module.PrimaryActor.Position, 7.6f, 0xFF000000, 2);
+                arena.AddCircle(module.PrimaryActor.Position, 7.6f, ArenaColor.Danger);
+            }
         }
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var player = module.Raid.Player();
-            if (player != null)
-                foreach (var p in module.Enemies(OID.Boss).Where(x => x.HP.Cur > 0))
-                    if (player.Position.InCircle(p.Position, 7.6f))
-                    {
-                        hints.Add("In slime explosion radius!");
-                    }
+            if (!module.PrimaryActor.IsDead)
+                if (module.PrimaryActor.Position.InCircle(module.PrimaryActor.Position, 7.6f))
+                    hints.Add("In slime explosion radius!");
         }
     }
 
@@ -75,10 +74,9 @@ namespace BossMod.MaskedCarnivale.Stage07.Act1
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Sprite))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
         }
     }
 }

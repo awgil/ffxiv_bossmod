@@ -59,7 +59,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     {
         private BitMask _stackTargets;
 
-        public P3MegaflareSpreadStack() : base(5, 5, 3, 3, alwaysShowSpreads: true) { } // TODO: verify stack radius
+        public P3MegaflareSpreadStack() : base(5, 5, 3, 3, alwaysShowSpreads: true) { }
 
         public override void Init(BossModule module)
         {

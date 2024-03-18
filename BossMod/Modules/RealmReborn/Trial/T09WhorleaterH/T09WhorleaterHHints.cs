@@ -17,7 +17,7 @@ namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var tail = module.Enemies(OID.Tail).Where(x => x.IsTargetable && x.FindStatus(775) == null && x.FindStatus(477) != null).FirstOrDefault();
+            var tail = module.Enemies(OID.Tail).Where(x => x.IsTargetable && x.FindStatus(SID.Invincibility) == null && x.FindStatus(SID.MantleOfTheWhorl) != null).FirstOrDefault();
             var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
             if (tail != null)
             {
