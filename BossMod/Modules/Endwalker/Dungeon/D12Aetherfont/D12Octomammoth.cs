@@ -101,7 +101,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Octomammoth
         public D12OctomammothStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<D12OctoMammothForeground>()
+            .ActivateOnEnter<D12OctoMammothBackground>()
             .ActivateOnEnter<D12OctomammothAI>()
             .ActivateOnEnter<Wallop>()
             .ActivateOnEnter<Clearout>()
@@ -210,7 +210,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D12Octomammoth
             hints.AddForbiddenZone(forbiddenZone);
         }
     }
-    class D12OctoMammothForeground : BossComponent
+    class D12OctoMammothBackground : BossComponent
     {
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
