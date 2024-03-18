@@ -71,7 +71,11 @@ namespace BossMod.Components
         {
             foreach (var c in _chasers)
                 if (c.Pos != null)
+                {                
+                    if (arena.Config.ShowOutlinesAndShadows)
+                        arena.AddLine(c.Pos.Value, c.Player.Position, 0xFF000000, 2);
                     arena.AddLine(c.Pos.Value, c.Player.Position, ArenaColor.Danger);
+                }
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
