@@ -8,11 +8,7 @@ namespace BossMod.Endwalker.Alliance.A24Menphina
 
         private static AOEShapeDonut _shape = new(10, 60);
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_aoe != null)
-                yield return _aoe.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
