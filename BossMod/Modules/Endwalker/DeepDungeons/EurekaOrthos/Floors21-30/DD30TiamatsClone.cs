@@ -54,14 +54,14 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors21to30.DD30TiamatsCl
         {
             private readonly List<Actor> _heads = new();
             private static readonly AOEShapeRect rect = new(2, 2, 2);
-            private static readonly AOEShapeRect rect2 = new(6, 2, 2);
+            private static readonly AOEShapeRect rect2 = new(6, 2);
 
             public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
             {
                 foreach (var c in _heads)
                 {
                     yield return new(rect, c.Position, c.Rotation, color: ArenaColor.Danger);
-                    yield return new(rect2, c.Position + 4 * c.Rotation.ToDirection(), c.Rotation);
+                    yield return new(rect2, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
                 }
             }
 
