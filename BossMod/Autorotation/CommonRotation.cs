@@ -23,6 +23,7 @@ namespace BossMod
             public float ComboTimeLeft; // 0 if not in combo, max 30
             public uint ComboLastAction;
             public float RaidBuffsLeft; // 0 if no damage-up status is up, otherwise it is time left on longest
+            public int LimitBreakLevel;
 
             // these simply point to client state
             public Cooldown[] Cooldowns;

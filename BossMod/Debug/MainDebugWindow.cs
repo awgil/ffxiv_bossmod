@@ -1,5 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
 using System;
 using System.Linq;
@@ -156,6 +156,10 @@ namespace BossMod
             {
                 _debugVfx.Draw();
             }
+            if (ImGui.CollapsingHeader("Limit break"))
+            {
+                DrawLimitBreak();
+            }
         }
 
         private void DrawStatuses()
@@ -279,6 +283,13 @@ namespace BossMod
             {
                 ImGui.TextUnformatted($"{w.WindowName}: focus={w.IsFocused}");
             }
+        }
+
+        private unsafe void DrawLimitBreak()
+        {
+            var lb = LimitBreakController.Instance();
+            ImGui.TextUnformatted($"Value: {lb->CurrentValue}/{lb->BarValue & 0xFFFF} ({lb->BarCount} bars)");
+            ImGui.TextUnformatted($"Unks: uE={(lb->BarValue >> 16) & 0xFF}, uF={lb->BarValue >> 24}");
         }
     }
 }
