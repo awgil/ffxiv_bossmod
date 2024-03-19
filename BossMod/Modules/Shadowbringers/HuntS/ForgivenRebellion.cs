@@ -116,6 +116,11 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion
         }
     }
 
+    class SanctifiedBlizzardChainHint : Components.RaidwideCast
+    {
+        public SanctifiedBlizzardChainHint() : base(ActionID.MakeSpell(AID.SanctifiedBlizzardChain), "Rotation direction undeterminable until start of the 2nd cast") { }
+    }
+
     class HeavenlyCyclone : Components.GenericRotatingAOE
     {
         private Angle _increment;
@@ -219,6 +224,7 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion
                 .ActivateOnEnter<Interference>()
                 .ActivateOnEnter<SanctifiedBlizzard>()
                 .ActivateOnEnter<SanctifiedBlizzardChain>()
+                .ActivateOnEnter<SanctifiedBlizzardChainHint>()
                 .ActivateOnEnter<RoyalDecree>();
         }
     }
