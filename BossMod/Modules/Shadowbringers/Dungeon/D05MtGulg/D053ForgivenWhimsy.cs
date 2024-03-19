@@ -182,17 +182,6 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
                 ExegesisD = false;
             }
         }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (ExegesisA || ExegesisB || ExegesisC || ExegesisD)
-            {
-                arena.AddLine(new(-235, -65), new(-235, -35), ArenaColor.Border, 2);
-                arena.AddLine(new(-245, -65), new(-245, -35), ArenaColor.Border, 2);
-                arena.AddLine(new(-225, -55), new(-255, -55), ArenaColor.Border, 2);
-                arena.AddLine(new(-225, -45), new(-255, -45), ArenaColor.Border, 2);
-            }
-        }
     }
 
     class D053ForgivenWhimsyStates : StateMachineBuilder
