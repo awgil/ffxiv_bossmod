@@ -132,7 +132,7 @@ namespace BossMod.Components
                     shapes.Add(ShapeDistance.InvertedCircle(c.Origin, Radius));
             }
             if (shapes.Count > 0)
-                hints.AddForbiddenZone(p => shapes.Select(f => f(p)).Max());
+                hints.AddForbiddenZone(p => shapes.Select(f => f(p)).Max(), _activation);
             if (shapes.Count > 0 && !inverting)
                 shapes.Clear();
         }
