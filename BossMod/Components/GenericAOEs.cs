@@ -69,10 +69,11 @@ namespace BossMod.Components
         public IReadOnlyList<Actor> Casters => _casters;
         public IEnumerable<Actor> ActiveCasters => _casters.Take(MaxCasts);
 
-        public SelfTargetedAOEs(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : base(aid)
+        public SelfTargetedAOEs(ActionID aid, AOEShape shape, int maxCasts = int.MaxValue, uint color = ArenaColor.AOE) : base(aid)
         {
             Shape = shape;
             MaxCasts = maxCasts;
+            Color = color;
         }
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
