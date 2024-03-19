@@ -47,20 +47,25 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion
     class SanctifiedBlizzardChain : Components.GenericRotatingAOE
     {
         private Angle _increment;
-        private Angle _rotation;
         private DateTime _activation;
         private Angle _rot1;
         private Angle _rot2;
+        private int _numCasts;
         private static readonly AOEShapeCone _shape = new(40, 22.5f.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             // direction seems to be server side until after first rotation
-            if (_rot1 != default && Sequences.Count == 0 && NumCasts == 0)
+            if (_rot1 != default && Sequences.Count == 0 && _numCasts == 0)
             {
                 yield return new(_shape, module.PrimaryActor.Position, _rot1, _activation, ImminentColor);
                 yield return new(_shape, module.PrimaryActor.Position, _rot1 + 45.Degrees(), _activation, FutureColor);
                 yield return new(_shape, module.PrimaryActor.Position, _rot1 - 45.Degrees(), _activation, FutureColor);
+            }
+            if (_rot1 != default && Sequences.Count == 0 && _numCasts == 1)
+            {
+                yield return new(_shape, module.PrimaryActor.Position, _rot1 + 45.Degrees(), _activation, ImminentColor);
+                yield return new(_shape, module.PrimaryActor.Position, _rot1 - 45.Degrees(), _activation, ImminentColor);
             }
             foreach (var s in Sequences)
             {
@@ -83,32 +88,33 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion
         {
             if ((AID)spell.Action.ID == AID.SanctifiedBlizzardChain)
             {
-                _rotation = spell.Rotation;
                 _activation = spell.NPCFinishAt;
                 _rot1 = spell.Rotation;
             }
             if ((AID)spell.Action.ID is AID.SanctifiedBlizzardChain2 or AID.SanctifiedBlizzardChain3)
             {
-                if (NumCasts == 0)
+                if (_numCasts == 1)
                     _rot2 = spell.Rotation;
-                ++NumCasts;
                 if ((_rot1 - _rot2).Normalized().Rad > 0)
                     _increment = -45.Degrees();
                 if ((_rot1 - _rot2).Normalized().Rad < 0)
                     _increment = 45.Degrees();
                 if (Sequences.Count == 0)
-                    Sequences.Add(new(_shape, module.PrimaryActor.Position, _rotation, _increment, _activation, 1.7f, 7));
+                    Sequences.Add(new(_shape, module.PrimaryActor.Position, _rot2, _increment, _activation, 1.3f, 7));
             }
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
+            if ((AID)spell.Action.ID == AID.SanctifiedBlizzardChain)
+                ++_numCasts;
             if ((AID)spell.Action.ID is AID.SanctifiedBlizzardChain2 or AID.SanctifiedBlizzardChain3)
             {
+                ++_numCasts;
                 if (Sequences.Count > 0)
                     AdvanceSequence(0, module.WorldState.CurrentTime);
-                if (NumCasts == 7)
+                if (_numCasts == 8)
                 {
-                    NumCasts = 0;
+                    _numCasts = 0;
                     _rot1 = default;
                     _rot2 = default;
                 }
@@ -159,7 +165,6 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion
             if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.HeavenlyCyclone or AID.HeavenlyCyclone1 or AID.HeavenlyCyclone2)
                 AdvanceSequence(0, module.WorldState.CurrentTime);
         }
-
 
         private void InitIfReady(BossModule module, Actor source)
         {
