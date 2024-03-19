@@ -5,8 +5,11 @@ namespace BossMod.Modules.Endwalker.SoloDuty.Endwalker;
 
 class EndwalkerStates : StateMachineBuilder
 {
-    public EndwalkerStates(BossModule module) : base(module)
+    private Endwalker _module;
+
+    public EndwalkerStates(Endwalker module) : base(module)
     {
+        _module = module;
         DeathPhase(0, id => { SimpleState(id, 10000, "Enrage"); })
             .ActivateOnEnter<TidalWave>()
             .ActivateOnEnter<Megaflare>()
@@ -24,8 +27,7 @@ class EndwalkerStates : StateMachineBuilder
             .ActivateOnEnter<DiamondDust>()
             .ActivateOnEnter<DeadGaze>()
             .ActivateOnEnter<MortalCoil>()
-            .ActivateOnEnter<TidalWave2>()
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || module.PrimaryActor.IsDead;
+            .ActivateOnEnter<TidalWave2>();
 
         DeathPhase(1, id => { SimpleState(id, 10000, "Enrage"); })
             .ActivateOnEnter<AetherialRay>()
@@ -37,7 +39,8 @@ class EndwalkerStates : StateMachineBuilder
             .ActivateOnEnter<Extinguishment>()
             .ActivateOnEnter<WyrmsTongue>()
             .ActivateOnEnter<UnmovingDvenadkatik>()
-            .ActivateOnEnter<TheEdgeUnbound2>();
+            .ActivateOnEnter<TheEdgeUnbound2>()
+            .Raw.Update = () => _module.ZenosP2() is var ZenosP2 && ZenosP2 != null && !ZenosP2.IsTargetable && ZenosP2.HP.Cur <= 1;
     }
 }
 
