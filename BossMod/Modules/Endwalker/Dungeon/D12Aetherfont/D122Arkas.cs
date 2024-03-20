@@ -92,16 +92,15 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_casters.Count > 0)
+            if (_casters.Count == 16)
                 for (int i = 0; i < 16; ++i)
                     yield return new(_casters[i].shape, _casters[i].source, _casters[i].direction, _activation);
         }
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (state == 0x00200010)
+            if (state is 0x00200010 or 0x00020001)
             {
-                _activation = module.WorldState.CurrentTime.AddSeconds(6);
                 if (index == 0x04)
                 {
                     _patternStart.AddRange(patternIndex04Start);
@@ -112,16 +111,6 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
                     _patternStart.AddRange(patternIndex03Start);
                     _patternEnd.AddRange(patternIndex03End);
                 }
-                if (_casters.Count < 16 && _patternStart.Count > 0 && _patternEnd.Count > 0)
-                    for (int i = 0; i < 16; ++i)
-                        _casters.Add((_patternStart[i], new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), Angle.FromDirection(_patternEnd[i] - _patternStart[i])));
-                if (_casters.Count >= 16 && _patternStart.Count > 16 && _patternEnd.Count > 16)
-                    for (int i = 16; i < 32; ++i)
-                        _casters.Add((_patternStart[i], new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), Angle.FromDirection(_patternEnd[i] - _patternStart[i])));
-            }
-            if (state == 0x00020001)
-            {
-                _activation = module.WorldState.CurrentTime.AddSeconds(6);
                 if (index == 0x02)
                 {
                     _patternStart.AddRange(patternIndex02Start);
@@ -138,11 +127,8 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
                 if (_casters.Count >= 16 && _patternStart.Count > 16 && _patternEnd.Count > 16)
                     for (int i = 16; i < 32; ++i)
                         _casters.Add((_patternStart[i], new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), Angle.FromDirection(_patternEnd[i] - _patternStart[i])));
+                _activation = module.WorldState.CurrentTime.AddSeconds(6);
             }
-        }
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-                    hints.Add($"casters {_casters.Count}, start {_patternStart.Count}, end {_patternEnd.Count}");
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
