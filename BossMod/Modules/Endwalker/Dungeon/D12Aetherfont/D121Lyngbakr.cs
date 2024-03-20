@@ -86,7 +86,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D121Lyngbakr
 
     class Tidalspout : Components.StackWithCastTargets
     {
-        public Tidalspout() : base(ActionID.MakeSpell(AID.Tidalspout),6) { }
+        public Tidalspout() : base(ActionID.MakeSpell(AID.Tidalspout), 6) { }
     }
 
     class Upsweep : Components.RaidwideCast
