@@ -30,11 +30,6 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
         Wallop = 33346, // MammothTentacle->self, 3.0s cast, range 22 width 8 rect
     };
 
-    public enum TetherID : uint
-    {
-        Telekinesis = 167, // Actor3eac->Boss
-    };
-
     class Border : BossComponent
     {
         private static float _platformOffset = 25;
