@@ -81,7 +81,7 @@ class WyrmsTongue : Components.SelfTargetedAOEs
 
 class NineNightsAvatar : Components.SelfTargetedAOEs
 {
-    public NineNightsAvatar() : base(ActionID.MakeSpell(AID.NineNightsAvatar), new AOEShapeCircle(10), color: ArenaColor.Danger) { }
+    public NineNightsAvatar() : base(ActionID.MakeSpell(AID.NineNightsAvatar), new AOEShapeCircle(10)) { Color = ArenaColor.Danger; }
 }
 
 class NineNightsHelpers : Components.SelfTargetedAOEs

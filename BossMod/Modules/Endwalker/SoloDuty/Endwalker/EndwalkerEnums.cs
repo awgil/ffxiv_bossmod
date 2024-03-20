@@ -20,7 +20,7 @@ public enum AID : uint
     HellfireVisual = 26923, // Helpers->self, 6.0s cast, range 60 circle
     AkhMorn = 26924, // ZenosP1/ZenosP2->self, 7.0s cast, single-target
     AkhMornVisual = 26925, // Helpers->player, no cast, range 4 circle
-    _Weaponskill_Unk01 = 26926, // ZenosP1/ZenosP2->location, no cast, single-target
+    Teleport = 26926, // ZenosP1/ZenosP2->location, no cast, single-target
     ComeHither = 26927, // ZenosP1->self, 4.0s cast, single-target
     StarBeyondStars = 26928, // ZenosP1->self, 4.0s cast, single-target
     StarBeyondStarsHelper = 26929, // Helpers->self, 5.0s cast, range 50 30-degree cone
@@ -40,7 +40,7 @@ public enum AID : uint
     DiamondDustVisual = 26938, // Helpers->self, 5.0s cast, range 60 circle
     DeadGaze = 26967, // AvatarVisual->self, 7.0s cast, single-target
     DeadGazeVisual = 26968, // Helpers->self, 7.0s cast, range 60 circle
-    _Weaponskill_Unk02 = 28303, // ZenosP1/ZenosP2->player, no cast, single-target
+    GapClose = 28303, // ZenosP1/ZenosP2->player, no cast, single-target
     StarBeyondStarsAvatar = 26969, // AvatarVisual->self, 4.0s cast, single-target
     TidalWave2 = 26939, // ZenosP1->self, 3.0s cast, single-target
     TidalWaveVisual2 = 26940, // Helpers->self, 3.0s cast, range 60 width 60 rect
@@ -64,15 +64,15 @@ public enum AID : uint
 
 public enum SID : uint
 {
-    _Gen_FireResistanceUp = 520, // none->player, extra=0x0
-    _Gen_LightningResistanceDownII = 1260, // none->player, extra=0x0
-    _Gen_ThinIce = 1579, // Helpers->player, extra=0xFA
-    _Gen_Petrification = 610, // Helpers->player, extra=0x0
-    _Gen_DownForTheCount = 2961, // Helpers->player, extra=0xEC7
+    FireResistanceUp = 520, // none->player, extra=0x0
+    LightningResistanceDownII = 1260, // none->player, extra=0x0
+    ThinIce = 1579, // Helpers->player, extra=0xFA
+    Petrification = 610, // Helpers->player, extra=0x0
+    DownForTheCount = 2961, // Helpers->player, extra=0xEC7
     _Gen_Unk01 = 2785, // none->ZenosP2, extra=0x0
     _Gen_Unk02 = 2892, // ZenosP2->player, extra=0x2110
-    _Gen_Unlimited = 2781, // none->player, extra=0x0
+    Unlimited = 2781, // none->player, extra=0x0
     _Gen_Unk03 = 2850, // none->player, extra=0x0
-    _Gen_SparkOfHope = 2786, // none->player, extra=0x5/0x4/0x3/0x2/0x1
+    SparkOfHope = 2786, // none->player, extra=0x5/0x4/0x3/0x2/0x1
     _Gen_Unk04 = 2881, // none->player, extra=0x0
 };
