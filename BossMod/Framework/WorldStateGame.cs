@@ -358,6 +358,12 @@ namespace BossMod
                 var member = _alliance.IsAlliance && !_alliance.IsSmallGroupAlliance ? _alliance.AllianceMember(i - PartyState.MaxPartySize) : null;
                 UpdatePartySlot(i, 0, member != null ? member->ObjectID : 0);
             }
+
+            // update limit break
+            var lb = LimitBreakController.Instance();
+            var lbMax = (ushort)lb->BarValue; // CS is incorrect here, two high bytes are some other fields
+            if (Party.LimitBreakCur != lb->CurrentValue || Party.LimitBreakMax != lbMax)
+                Execute(new PartyState.OpLimitBreakChange() { Cur = lb->CurrentValue, Max = lbMax });
         }
 
         private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)

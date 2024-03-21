@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System;
 using System.Linq;
 
 namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAcheloios
@@ -54,36 +55,57 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouAchelo
     class Slammer : Components.GenericRotatingAOE
     {
         private Angle _increment;
+        private Angle _rotation;
+        private DateTime _activation;
         private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             // note that boss switches hands, so CW rotation means CCW aoe sequence and vice versa
-            if (iconID == (uint)IconID.RotateCW)
-                _increment = 90.Degrees();
-            if (iconID == (uint)IconID.RotateCCW)
-                _increment = -90.Degrees();
+            var increment = (IconID)iconID switch
+            {
+                IconID.RotateCW => 90.Degrees(),
+                IconID.RotateCCW => 90.Degrees(),
+                _ => default
+            };
+            if (increment != default)
+            {
+                _increment = increment;
+                InitIfReady(module, actor);
+            }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.DoubleHammer)
             {
-                _increment = 180.Degrees();
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 3.9f, 2, 1));
+                Sequences.Add(new(_shape, caster.Position, spell.Rotation, 180.Degrees(), spell.NPCFinishAt, 3.9f, 2, 1));
                 ImminentColor = ArenaColor.AOE;
             }
             if ((AID)spell.Action.ID == AID.QuadrupleHammer2)
             {
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 3.3f, 4));
                 ImminentColor = ArenaColor.Danger;
+                _rotation = spell.Rotation;
+                _activation = spell.NPCFinishAt;
             }
+            if (_rotation != default)
+                InitIfReady(module, caster);
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.QuadrupleHammer2 or AID.LeftHammer2 or AID.RightHammer2 or AID.DoubleHammerA or AID.DoubleHammerB)
                 AdvanceSequence(0, module.WorldState.CurrentTime);
+        }
+
+        private void InitIfReady(BossModule module, Actor source)
+        {
+            if (_rotation != default && _increment != default)
+            {
+                Sequences.Add(new(_shape, source.Position, _rotation, _increment, _activation, 3.3f, 4));
+                _rotation = default;
+                _increment = default;
+            }
         }
     }
 

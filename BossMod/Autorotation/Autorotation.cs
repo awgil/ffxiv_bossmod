@@ -120,7 +120,7 @@ namespace BossMod
                     Class.SCH => player.Level <= 60 ? typeof(SCH.Actions) : null,
                     Class.RPR => typeof(RPR.Actions),
                     Class.GNB => typeof(GNB.Actions),
-                    Class.SAM => player.Level == 90 ? typeof(SAM.Actions) : null,
+                    Class.SAM => typeof(SAM.Actions),
                     Class.DNC => typeof(DNC.Actions),
                     _ => null
                 };

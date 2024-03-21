@@ -564,11 +564,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         private static AOEShapeCone _shape = new(60, 105.Degrees());
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (AOE != null)
-                yield return AOE.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

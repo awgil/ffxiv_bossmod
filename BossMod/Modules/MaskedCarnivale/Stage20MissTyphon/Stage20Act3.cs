@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage20.Act3
 {
@@ -24,47 +22,47 @@ namespace BossMod.MaskedCarnivale.Stage20.Act3
         ImpSong = 14744, // 272D->self, 6,0s cast, range 50+R circle
     };
 
-    class AquaBreath : SelfTargetedAOEs
+    class AquaBreath : Components.SelfTargetedAOEs
     {
         public AquaBreath() : base(ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f, 45.Degrees())) { }
     }
 
-    class Megavolt : SelfTargetedAOEs
+    class Megavolt : Components.SelfTargetedAOEs
     {
         public Megavolt() : base(ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f)) { }
     }
 
-    class Tentacle : SelfTargetedAOEs
+    class Tentacle : Components.SelfTargetedAOEs
     {
         public Tentacle() : base(ActionID.MakeSpell(AID.Tentacle), new AOEShapeCircle(8)) { }
     }
 
-    class Wallop : SelfTargetedAOEs
+    class Wallop : Components.SelfTargetedAOEs
     {
         public Wallop() : base(ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(57.2f, 5)) { }
     }
 
-    class WallopKB : KnockbackFromCastTarget
+    class WallopKB : Components.KnockbackFromCastTarget
     {
         public WallopKB() : base(ActionID.MakeSpell(AID.Wallop), 20, kind: Kind.AwayFromOrigin) { } //knockback actually delayed by 0.8s
     }
 
-    class Fireball : LocationTargetedAOEs
+    class Fireball : Components.LocationTargetedAOEs
     {
         public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 8) { }
     }
 
-    class ImpSong : CastHint
+    class ImpSong : Components.CastHint
     {
         public ImpSong() : base(ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!") { }
     }
 
-    class Snort : CastHint
+    class Snort : Components.CastHint
     {
         public Snort() : base(ActionID.MakeSpell(AID.Snort), "Use Diamondback!") { }
     }
 
-    class SnortKB : KnockbackFromCastTarget
+    class SnortKB : Components.KnockbackFromCastTarget
     {
         public SnortKB() : base(ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin) { }  //knockback actually delayed by 0.7s
     }
@@ -109,8 +107,7 @@ namespace BossMod.MaskedCarnivale.Stage20.Act3
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Ultros))
                 Arena.Actor(s, ArenaColor.Object, false);
             foreach (var s in Enemies(OID.Tentacle))

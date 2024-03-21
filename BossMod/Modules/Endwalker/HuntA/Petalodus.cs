@@ -16,9 +16,9 @@
         AncientBlizzard = 27069, // Boss->self, 4.0s cast, range 40 45-degree cone
     }
 
-    class MarineMayhem : Components.CastHint
+    class MarineMayhem : Components.CastInterruptHint
     {
-        public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), "Interruptible 3x raidwide") { }
+        public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), hint: "(Raidwide x3)") { }
     }
 
     class Waterga : Components.SpreadFromCastTargets

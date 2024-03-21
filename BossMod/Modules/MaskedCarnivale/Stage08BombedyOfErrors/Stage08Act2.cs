@@ -1,5 +1,4 @@
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage08.Act2
@@ -20,43 +19,43 @@ namespace BossMod.MaskedCarnivale.Stage08.Act2
         Burst = 14680, // 270B->self, 6,0s cast, range 50 circle
     };
 
-    class Sap : LocationTargetedAOEs
+    class Sap : Components.LocationTargetedAOEs
     {
         public Sap() : base(ActionID.MakeSpell(AID.Sap), 8) { }
     }
 
-    class Burst : CastHint
+    class Burst : Components.CastHint
     {
         public Burst() : base(ActionID.MakeSpell(AID.Burst), "Interrupt or wipe!") { }
     }
 
-    class Selfdetonations : GenericStackSpread
+    class Selfdetonations : BossComponent
     {
-        private string hint = "In bomb explosion radius!";
+        private static readonly string hint = "In bomb explosion radius!";
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var p in module.Enemies(OID.Bomb).Where(x => x.HP.Cur > 0))
+            foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
+            {
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddCircle(p.Position, 10, 0xFF000000, 2);
                 arena.AddCircle(p.Position, 10, ArenaColor.Danger);
-            foreach (var p in module.Enemies(OID.Snoll).Where(x => x.HP.Cur > 0))
+            }
+            foreach (var p in module.Enemies(OID.Snoll).Where(x => !x.IsDead))
+            {
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddCircle(p.Position, 6, 0xFF000000, 2);
                 arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+            }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var player = module.Raid.Player();
-            if (player != null)
-            {
-                foreach (var p in module.Enemies(OID.Bomb).Where(x => x.HP.Cur > 0))
-                    if (player.Position.InCircle(p.Position, 10))
-                    {
-                        hints.Add(hint);
-                    }
-                foreach (var p in module.Enemies(OID.Snoll).Where(x => x.HP.Cur > 0))
-                    if (player.Position.InCircle(p.Position, 6))
-                    {
-                        hints.Add(hint);
-                    }
-            }
+            foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
+                if (actor.Position.InCircle(p.Position, 10))
+                    hints.Add(hint);
+            foreach (var p in module.Enemies(OID.Snoll).Where(x => !x.IsDead))
+                if (actor.Position.InCircle(p.Position, 6))
+                    hints.Add(hint);
         }
     }
 
@@ -93,12 +92,11 @@ namespace BossMod.MaskedCarnivale.Stage08.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Bomb))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Snoll))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

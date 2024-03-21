@@ -67,9 +67,35 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
         public PotentPerfume() : base(ActionID.MakeSpell(AID.PotentPerfume), 8) { }
     }
 
-    class SapShowerTendrilsHint : Components.CastHint
+    class SapShowerTendrilsHint : BossComponent
     {
-        public SapShowerTendrilsHint() : base(ActionID.MakeSpell(AID.SapShower2), "Circles resolve before cross, aim forced march into cross") { }
+        private int NumCasts;
+        private bool active;
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.SapShower2)
+            {
+                active = true;
+                ++NumCasts;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.SapShower2)
+                active = false;
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (active)
+            {
+                if (NumCasts <= 4 && NumCasts > 0)
+                    hints.Add("Circles resolve before cross");
+                if (NumCasts > 4)
+                    hints.Add("Circles resolve before cross, aim forced march into cross");
+            }
+        }
     }
 
     class SapShower : Components.LocationTargetedAOEs
