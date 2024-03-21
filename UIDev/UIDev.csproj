@@ -62,4 +62,8 @@
     <!-- <PackageReference Include="ImGui.NET" Version="1.86.0" /> -->
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
+
+  <Target Name="PostBuildScript" AfterTargets="Build">
+    <Copy SourceFiles="$(DalamudLibPath)\runtimes\win-x64\native\cimgui.dll" DestinationFolder="$(OutputPath)"/>
+  </Target>
 </Project>
