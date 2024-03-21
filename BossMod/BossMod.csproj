@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Platforms>x64</Platforms>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
