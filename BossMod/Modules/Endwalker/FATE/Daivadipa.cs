@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.FATE.Daivadipa
 {
     public enum OID : uint
@@ -57,7 +58,7 @@ namespace BossMod.Endwalker.FATE.Daivadipa
 
     class LitPath : Components.GenericAOEs
     {
-        private static readonly AOEShapeRect rect = new (50, 5);
+        private static readonly AOEShapeRect rect = new(50, 5);
         private DateTime _activation1;
         private DateTime _activation2;
         private bool active;
@@ -92,14 +93,14 @@ namespace BossMod.Endwalker.FATE.Daivadipa
         {
             if ((AID)spell.Action.ID == AID.LoyalFlame)
             {
-                _activation1 = module.WorldState.CurrentTime;;
+                _activation1 = module.WorldState.CurrentTime; ;
                 active = true;
                 bluered1 = true;
                 bluered2 = true;
             }
             if ((AID)spell.Action.ID == AID.LoyalFlame2)
             {
-                _activation2 = module.WorldState.CurrentTime;;
+                _activation2 = module.WorldState.CurrentTime; ;
                 active = true;
                 redblue1 = true;
                 redblue2 = true;
@@ -149,7 +150,7 @@ namespace BossMod.Endwalker.FATE.Daivadipa
 
     class Burn : Components.GenericAOEs
     {
-        private static readonly AOEShapeCircle circle = new (10);
+        private static readonly AOEShapeCircle circle = new(10);
         private DateTime _activation1;
         private DateTime _activation2;
         private bool active;

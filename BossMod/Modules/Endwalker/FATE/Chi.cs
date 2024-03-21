@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.FATE.Chi
 {
     public enum OID : uint
@@ -49,7 +50,7 @@ namespace BossMod.Endwalker.FATE.Chi
         ThermobaricExplosive2 = 25966, // Helper1->location, 10,0s cast, range 55 circle, damage fall off AOE
     };
 
-   class Bunkerbuster : Components.GenericAOEs
+    class Bunkerbuster : Components.GenericAOEs
     {
         private List<Actor> _casters = new();
         private DateTime _activation;
@@ -64,7 +65,7 @@ namespace BossMod.Endwalker.FATE.Chi
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 6)
                 for (int i = 3; i < 6; ++i)
-                yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(1.9f));
+                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(1.9f));
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -113,7 +114,7 @@ namespace BossMod.Endwalker.FATE.Chi
         }
     }
 
-   class BouncingBomb : Components.GenericAOEs
+    class BouncingBomb : Components.GenericAOEs
     {
         private List<Actor> _casters = new();
         private DateTime _activation;
@@ -201,9 +202,9 @@ namespace BossMod.Endwalker.FATE.Chi
 
     class Combos : Components.GenericAOEs
     {
-        private static readonly AOEShapeCone cone = new (45, 90.Degrees());
-        private static readonly AOEShapeDonut donut = new (16, 60);
-        private static readonly AOEShapeRect rect = new (120, 16, 120);
+        private static readonly AOEShapeCone cone = new(45, 90.Degrees());
+        private static readonly AOEShapeDonut donut = new(16, 60);
+        private static readonly AOEShapeRect rect = new(120, 16, 120);
         private DateTime _activation1;
         private DateTime _activation2;
         private AOEShape? _shape1;
@@ -260,7 +261,7 @@ namespace BossMod.Endwalker.FATE.Chi
                     _shape1 = _shape2 = cone;
                     offset = true;
                     break;
-            }            
+            }
             if ((AID)spell.Action.ID is AID.Carapace_ForeArms2dot0A or AID.Carapace_ForeArms2dot0B or AID.Carapace_RearGuns2dot0A or AID.Carapace_RearGuns2dot0B or AID.RearGuns_ForeArms2dot0 or AID.ForeArms_RearGuns2dot0)
             {
                 _activation1 = spell.NPCFinishAt;
@@ -270,13 +271,13 @@ namespace BossMod.Endwalker.FATE.Chi
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {     
+        {
             if ((AID)spell.Action.ID is AID.Carapace_ForeArms2dot0A or AID.Carapace_ForeArms2dot0B or AID.Carapace_RearGuns2dot0A or AID.Carapace_RearGuns2dot0B or AID.RearGuns_ForeArms2dot0 or AID.ForeArms_RearGuns2dot0)
                 ++NumCasts;
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {     
+        {
             if ((AID)spell.Action.ID is AID.RearGuns2dot0 or AID.ForeArms2dot0)
             {
                 NumCasts = 0;
