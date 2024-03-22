@@ -8,12 +8,14 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D133DamcyanAntilon
     public enum OID : uint
     {
         Boss = 0x4042, // R=6.0
+        AethericCharge = 0x4043, // R=1.0
         Helper = 0x233C,
     };
 
     public enum AID : uint
     {
         AutoAttack = 870, // Boss->player, no cast, single-target
+        ArcaneEdge = 35010, // Boss->player, 5,0s cast, single-target
         OldMagic = 35011, // Boss->self, 5,0s cast, range 60 circle
         Teleport = 34991, // Boss->location, no cast, single-target
         DuplicitousBatteryTelegraph = 36058, // Helper->location, 3,5s cast, range 5 circle
@@ -30,14 +32,29 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D133DamcyanAntilon
         AntipodalAssault2 = 35008, // Boss->location, no cast, width 8 rect charge
         HardSlash = 35009, // Boss->self, 5,0s cast, range 50 90-degree cone
         TwilightPhase = 36055, // Boss->self, 6,0s cast, single-target
-        TwilightPhase2 = 34997, // Boss->self, no cast, single-target
-        TwilightPhase3 = 36056, // Helper->self, 7,3s cast, range 60 width 20 rect
+        TwilightPhaseA = 34997, // Boss->self, no cast, single-target
+        TwilightPhaseB = 34998, // Boss->self, no cast, single-target
+        TwilightPhase2 = 36056, // Helper->self, 7,3s cast, range 60 width 20 rect
         DarkImpact = 35001, // Boss->location, 7,0s cast, single-target
         DarkImpact2 = 35002, // Helper->self, 8,0s cast, range 25 circle
         DeathsJourney = 34995, // Boss->self, 6,0s cast, range 8 circle
-        DeathsJourney2 = 34996, // Helper->self, 6,5s cast, range 30 30-degree cone
-        DeathsJourney3 = 35872, // Helper->self, 6,5s cast, range 30 30-degree cone
+        DeathsJourney2 = 34996, // Helper->self, 6,5s cast, range 30 30-degree cone, this does the damage
+        DeathsJourney3 = 35872, // Helper->self, 6,5s cast, range 30 30-degree cone, visual
     };
+
+    class Voidzone : BossComponent
+    {
+        public override void OnEventEnvControl(BossModule module, byte index, uint state)
+        {
+            if (state == 0x00020001 && index == 0x0A)
+                module.Arena.Bounds = new ArenaBoundsCircle(new(0, -422), 20);
+        }
+    }
+
+    class ArcaneEdge : Components.RaidwideCast
+    {
+        public ArcaneEdge() : base(ActionID.MakeSpell(AID.ArcaneEdge)) { }
+    }
 
     class OldMagic : Components.RaidwideCast
     {
@@ -102,7 +119,7 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D133DamcyanAntilon
             if ((AID)spell.Action.ID == AID.AntipodalAssaultMarker)
             {
                 target = module.WorldState.Actors.Find(spell.MainTargetID);
-                CurrentBaits.Add(new(module.PrimaryActor, target!, new AOEShapeRect(50, 4)));
+                CurrentBaits.Add(new(module.PrimaryActor, target!, new AOEShapeRect(50, 4))); // the actual range is not 50, but just a charge of 8 width, but always goes until the edge of the arena, so we can simplify it
             }
             if ((AID)spell.Action.ID == AID.AntipodalAssault2)
                 CurrentBaits.Clear();
@@ -141,7 +158,7 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D133DamcyanAntilon
 
     class TwilightPhase : Components.SelfTargetedAOEs
     {
-        public TwilightPhase() : base(ActionID.MakeSpell(AID.TwilightPhase3), new AOEShapeRect(30, 10, 30)) { }
+        public TwilightPhase() : base(ActionID.MakeSpell(AID.TwilightPhase2), new AOEShapeRect(30, 10, 30)) { }
     }
 
     class DarkImpact : Components.SelfTargetedAOEs
@@ -159,17 +176,14 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D133DamcyanAntilon
         public DeathsJourney2() : base(ActionID.MakeSpell(AID.DeathsJourney2), new AOEShapeCone(30, 15.Degrees())) { }
     }
 
-    class DeathsJourney3 : Components.SelfTargetedAOEs
-    {
-        public DeathsJourney3() : base(ActionID.MakeSpell(AID.DeathsJourney3), new AOEShapeCone(30, 15.Degrees())) { }
-    }
-
     class D133DuranteStates : StateMachineBuilder
     {
         public D133DuranteStates(BossModule module) : base(module)
         {
             TrivialPhase()
+                .ActivateOnEnter<Voidzone>()
                 .ActivateOnEnter<OldMagic>()
+                .ActivateOnEnter<ArcaneEdge>()
                 .ActivateOnEnter<Contrapasso>()
                 .ActivateOnEnter<DuplicitousBattery>()
                 .ActivateOnEnter<Explosion>()
@@ -180,14 +194,13 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D133DamcyanAntilon
                 .ActivateOnEnter<TwilightPhase>()
                 .ActivateOnEnter<DarkImpact>()
                 .ActivateOnEnter<DeathsJourney>()
-                .ActivateOnEnter<DeathsJourney2>()
-                .ActivateOnEnter<DeathsJourney3>();
+                .ActivateOnEnter<DeathsJourney2>();
         }
     }
 
     [ModuleInfo(CFCID = 823, NameID = 12584)]
     class D133Durante : BossModule
     {
-        public D133Durante(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -420), 24)) { }
+        public D133Durante(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -422), 23)) { }
     }
 }

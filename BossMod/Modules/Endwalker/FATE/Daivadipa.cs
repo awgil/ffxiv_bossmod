@@ -93,14 +93,14 @@ namespace BossMod.Endwalker.FATE.Daivadipa
         {
             if ((AID)spell.Action.ID == AID.LoyalFlame)
             {
-                _activation1 = module.WorldState.CurrentTime; ;
+                _activation1 = module.WorldState.CurrentTime;
                 active = true;
                 bluered1 = true;
                 bluered2 = true;
             }
             if ((AID)spell.Action.ID == AID.LoyalFlame2)
             {
-                _activation2 = module.WorldState.CurrentTime; ;
+                _activation2 = module.WorldState.CurrentTime;
                 active = true;
                 redblue1 = true;
                 redblue2 = true;

@@ -1,4 +1,5 @@
 ﻿// CONTRIB: made by Malediktus, not checked
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -38,12 +39,13 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D121Lyngbakr
         {
             private readonly List<Actor> _staves = new();
             private static readonly AOEShapeCross cross = new(40, 4);
+            private DateTime _activation;
 
             public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
             {
                 if (module.FindComponent<Explosion>() != null && !module.FindComponent<Explosion>()!.ActiveAOEs(module, slot, actor).Any())
                     foreach (var c in _staves)
-                        yield return new(cross, c.Position, c.Rotation);
+                        yield return new(cross, c.Position, c.Rotation, _activation, risky: _activation.AddSeconds(-5) < module.WorldState.CurrentTime);
             }
 
             public override void OnActorModelStateChange(BossModule module, Actor actor, byte ModelState, byte AnimState1, byte AnimState2)
@@ -51,10 +53,24 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D121Lyngbakr
                 if ((OID)actor.OID == OID.HexingStaff)
                 {
                     if (AnimState2 == 1)
+                    {
                         _staves.Add(actor);
+                        if (NumCasts == 0)
+                            _activation = module.WorldState.CurrentTime.AddSeconds(8.1f);
+                        if (NumCasts == 1)
+                            _activation = module.WorldState.CurrentTime.AddSeconds(25.9f);
+                        if (NumCasts > 1)
+                            _activation = module.WorldState.CurrentTime.AddSeconds(32);
+                    }
                     if (AnimState2 == 0)
                         _staves.Remove(actor);
                 }
+            }
+
+            public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+            {
+                if ((AID)spell.Action.ID == AID.RuinousConfluence)
+                    ++NumCasts;
             }
         }
 

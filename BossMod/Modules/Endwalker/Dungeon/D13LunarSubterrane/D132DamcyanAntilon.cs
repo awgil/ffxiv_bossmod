@@ -69,6 +69,16 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D132DamcyanAntilon
             if ((AID)spell.Action.ID == AID.Landslip2)
                 _casters.Remove(caster);
         }
+
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos)
+        {
+            if (module.FindComponent<Towerfall>() != null && module.FindComponent<Towerfall>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+                return true;
+            if (!module.Bounds.Contains(pos))
+                return true;
+            else
+                return false;
+        }
     }
 
     class EarthenGeyser : Components.StackWithCastTargets
