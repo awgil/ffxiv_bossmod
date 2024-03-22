@@ -108,7 +108,7 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
                     _singlesplitToberemoved.Add(actor);
                 if ((OID)actor.OID == OID.HelperDoubleRect)
                     _doublesidedsplitToberemoved.Add(actor);
-                _time = module.WorldState.CurrentTime.AddSeconds(0.8);
+                _time = module.WorldState.CurrentTime.AddSeconds(0.75f);
             }
         }
 
