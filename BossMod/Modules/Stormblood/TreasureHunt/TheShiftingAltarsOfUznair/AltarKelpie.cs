@@ -37,7 +37,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
 
     class HydroPush : Components.SelfTargetedAOEs
     {
-        public HydroPush() : base(ActionID.MakeSpell(AID.HydroPush), new AOEShapeRect(49.4f, 22)) { }
+        public HydroPush() : base(ActionID.MakeSpell(AID.HydroPush), new AOEShapeRect(49.4f, 22, 5)) { }
     }
 
     class BloodyPuddle : Components.SelfTargetedAOEs
@@ -57,7 +57,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
 
     class HydroPushKB : Components.KnockbackFromCastTarget
     {
-        public HydroPushKB() : base(ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22), kind: Kind.DirForward)
+        public HydroPushKB() : base(ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward)
         {
             StopAtWall = true;
         }
@@ -115,7 +115,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BonusAdd_GoldWhisker))
-                Arena.Actor(s, ArenaColor.Object);
+                Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
                 Arena.Actor(s, ArenaColor.Vulnerable);
         }

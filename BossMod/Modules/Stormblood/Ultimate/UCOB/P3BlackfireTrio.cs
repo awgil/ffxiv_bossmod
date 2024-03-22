@@ -56,7 +56,7 @@
 
     class P3MegaflareStack : Components.UniformStackSpread
     {
-        public P3MegaflareStack() : base(5, 0, 4, 4) { } // TODO: verify stack radius
+        public P3MegaflareStack() : base(5, 0, 4, 4) { }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {

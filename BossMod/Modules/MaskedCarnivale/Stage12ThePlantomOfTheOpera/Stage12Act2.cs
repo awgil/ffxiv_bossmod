@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage12.Act2
 {
@@ -18,24 +16,24 @@ namespace BossMod.MaskedCarnivale.Stage12.Act2
         InflammableFumes = 14753, // 271B->self, 15,0s cast, range 50 circle
     };
 
-    class WildHorn : SelfTargetedAOEs
+    class WildHorn : Components.SelfTargetedAOEs
     {
         public WildHorn() : base(ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(16.96f, 60.Degrees())) { }
     }
 
-    class Trounce : SelfTargetedAOEs
+    class Trounce : Components.SelfTargetedAOEs
     {
         public Trounce() : base(ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(46.96f, 30.Degrees())) { }
     }
 
-    class SporeSac : CastHint
+    class SporeSac : Components.CastHint
     {
         public SporeSac() : base(ActionID.MakeSpell(AID.SporeSac), "Calls Roselets. Prepare Ice Spikes if available.") { }
     }
 
-    class InflammableFumes : CastHint
+    class InflammableFumes : Components.CastHint
     {
-        public InflammableFumes() : base(ActionID.MakeSpell(AID.InflammableFumes), "Stun him with Bomb Toss. High damage but suriveable.") { }
+        public InflammableFumes() : base(ActionID.MakeSpell(AID.InflammableFumes), "Stun Boss with Bomb Toss. High damage but suriveable.") { }
     }
 
     class Hints : BossComponent
@@ -69,10 +67,9 @@ namespace BossMod.MaskedCarnivale.Stage12.Act2
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Roselet))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

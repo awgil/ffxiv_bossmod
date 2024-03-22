@@ -44,7 +44,6 @@ namespace BossMod
         public BossModuleManager Bossmods => _bossmods;
         public WorldState WorldState => _bossmods.WorldState;
         public CommonActions? ClassActions => _classActions;
-        public float[] Cooldowns = new float[ActionManagerEx.NumCooldownGroups];
 
         public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
         public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
@@ -105,26 +104,23 @@ namespace BossMod
                 FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->Target = Utils.GameObjectInternal(Service.ObjectTable.FirstOrDefault(go => go.ObjectId == Hints.ForcedTarget.InstanceID));
             }
 
-            // TODO: this should be part of worldstate update for player
-            ActionManagerEx.Instance!.GetCooldowns(Cooldowns);
-
             Type? classType = null;
             if (_config.Enabled && player != null)
             {
                 classType = player.Class switch
                 {
                     Class.WAR => typeof(WAR.Actions),
-                    Class.PLD => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(PLD.Actions) : null,
+                    Class.PLD => player.Level <= 60 ? typeof(PLD.Actions) : null,
                     Class.MNK => typeof(MNK.Actions),
                     Class.DRG => typeof(DRG.Actions),
                     Class.BRD => typeof(BRD.Actions),
-                    Class.BLM => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(BLM.Actions) : null,
-                    Class.SMN => Service.ClientState.LocalPlayer?.Level <= 30 ? typeof(SMN.Actions) : null,
+                    Class.BLM => player.Level <= 60 ? typeof(BLM.Actions) : null,
+                    Class.SMN => player.Level <= 30 ? typeof(SMN.Actions) : null,
                     Class.WHM => typeof(WHM.Actions),
-                    Class.SCH => Service.ClientState.LocalPlayer?.Level <= 60 ? typeof(SCH.Actions) : null,
+                    Class.SCH => player.Level <= 60 ? typeof(SCH.Actions) : null,
                     Class.RPR => typeof(RPR.Actions),
                     Class.GNB => typeof(GNB.Actions),
-                    Class.SAM => Service.ClientState.LocalPlayer?.Level == 90 ? typeof(SAM.Actions) : null,
+                    Class.SAM => typeof(SAM.Actions),
                     Class.DNC => typeof(DNC.Actions),
                     _ => null
                 };
@@ -183,7 +179,7 @@ namespace BossMod
             ImGui.TextUnformatted(strategy.ToString());
             ImGui.TextUnformatted($"Raidbuffs: {state.RaidBuffsLeft:f2}s left, next in {strategy.RaidBuffsIn:f2}s");
             ImGui.TextUnformatted($"Downtime: {strategy.FightEndIn:f2}s, pos-lock: {strategy.PositionLockIn:f2}");
-            ImGui.TextUnformatted($"GCD={Cooldowns[CommonDefinitions.GCDGroup]:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}, Combo={state.ComboTimeLeft:f3}");
+            ImGui.TextUnformatted($"GCD={WorldState.Client.Cooldowns[CommonDefinitions.GCDGroup].Remaining:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}, Combo={state.ComboTimeLeft:f3}");
         }
 
         private void OnActionRequested(ClientActionRequest request)
@@ -212,7 +208,7 @@ namespace BossMod
             // callType is 0 for normal calls, 1 if called by queue mechanism, 2 if called from macro, 3 if combo (in such case comboRouteID is ActionComboRoute row id)
             // right when GCD ends, it is called internally by queue mechanism with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
             // itemLocation==0 for spells, 65535 for item used from hotbar, some value (bagID<<8 | slotID) for item used from inventory; it is the same as a4 in UseActionLocation
-            //Service.Log($"UA: {action} @ {targetID:X}: {a4} {a5} {a6} {a7}");
+            //Service.Log($"UA: {new ActionID(actionType, actionID)} @ {targetID:X}: {itemLocation} {callType} {comboRouteID}");
             if (callType != 0 || _classActions == null)
             {
                 // pass to hooked function transparently

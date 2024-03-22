@@ -24,7 +24,7 @@ namespace BossMod.ReplayVisualization
             _columns = new ColumnPlayerDetails[enc.PartyMembers.Count];
             foreach (var i in showPlayers.SetBits())
             {
-                var (p, c) = enc.PartyMembers[i];
+                var (p, c, l) = enc.PartyMembers[i];
                 _columns[i] = Add(new ColumnPlayerDetails(Timeline, _tree, _phaseBranches, _replay, _encounter, p, c));
             }
         }
@@ -33,7 +33,7 @@ namespace BossMod.ReplayVisualization
         {
             for (int i = 0; i < _columns.Length; ++i)
             {
-                var (p, c) = _encounter.PartyMembers[i];
+                var (p, c, l) = _encounter.PartyMembers[i];
                 foreach (var n in tree.Node($"{c} {ReplayUtils.ParticipantString(p, p.WorldExistence.FirstOrDefault().Start)}"))
                 {
                     var col = _columns[i];

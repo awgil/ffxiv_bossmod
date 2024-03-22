@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Platforms>x64</Platforms>
     <Nullable>enable</Nullable>
     <OutputType>WinExe</OutputType>
@@ -62,4 +62,8 @@
     <!-- <PackageReference Include="ImGui.NET" Version="1.86.0" /> -->
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
+
+  <Target Name="PostBuildScript" AfterTargets="Build">
+    <Copy SourceFiles="$(DalamudLibPath)\runtimes\win-x64\native\cimgui.dll" DestinationFolder="$(OutputPath)"/>
+  </Target>
 </Project>

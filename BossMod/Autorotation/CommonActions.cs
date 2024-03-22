@@ -99,7 +99,7 @@ namespace BossMod
                     a.TransformTarget = _ => Player; // by default, all actions with range 0 should always target player
             }
             _lock = new(unlockData);
-            _mq = new(autorot.Cooldowns, autorot.WorldState);
+            _mq = new(autorot.WorldState);
         }
 
         // this is called after worldstate update
@@ -279,7 +279,7 @@ namespace BossMod
             // see if we have any GCD (queued or automatic)
             var mqGCD = _mq.PeekGCD();
             var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
-            float ogcdDeadline = nextGCD.Action ? Autorot.Cooldowns[CommonDefinitions.GCDGroup] : float.MaxValue;
+            float ogcdDeadline = nextGCD.Action ? Autorot.WorldState.Client.Cooldowns[CommonDefinitions.GCDGroup].Remaining : float.MaxValue;
             //Log($"{nextGCD.Action} = {ogcdDeadline}");
 
             // search for any oGCDs that we can execute without delaying GCD
@@ -361,8 +361,7 @@ namespace BossMod
             var vuln = Autorot.Bossmods.ActiveModule?.PlanExecution?.EstimateTimeToNextVulnerable(Autorot.Bossmods.ActiveModule.StateMachine) ?? (false, 10000);
 
             var am = ActionManagerEx.Instance!;
-            var pc = Service.ClientState.LocalPlayer;
-            s.Level = pc?.Level ?? 0;
+            s.Level = Player.Level;
             s.UnlockProgress = _lock.Progress();
             s.CurMP = Player.CurMP;
             s.TargetingEnemy = Autorot.PrimaryTarget != null && Autorot.PrimaryTarget.Type is ActorType.Enemy or ActorType.Part && !Autorot.PrimaryTarget.IsAlly;
@@ -371,6 +370,7 @@ namespace BossMod
             s.AnimationLockDelay = am.EffectiveAnimationLockDelay;
             s.ComboTimeLeft = am.ComboTimeLeft;
             s.ComboLastAction = am.ComboLastMove;
+            s.LimitBreakLevel = Autorot.WorldState.Party.LimitBreakMax > 0 ? Autorot.WorldState.Party.LimitBreakCur / Autorot.WorldState.Party.LimitBreakMax : 0;
 
             // all GCD skills share the same base recast time (with some exceptions that aren't relevant here)
             // so we can check Fast Blade (9) and Stone (119) recast timers to get effective sks and sps
@@ -459,7 +459,7 @@ namespace BossMod
             var definition = SupportedActions.GetValueOrDefault(action);
             return definition != null
                 && definition.Definition.CooldownGroup != CommonDefinitions.GCDGroup
-                && Autorot.Cooldowns[definition.Definition.CooldownGroup] - effAnimLock <= definition.Definition.CooldownAtFirstCharge
+                && Autorot.WorldState.Client.Cooldowns[definition.Definition.CooldownGroup].Remaining - effAnimLock <= definition.Definition.CooldownAtFirstCharge
                 && effAnimLock + definition.Definition.AnimationLock + animLockDelay <= deadline
                 && definition.Allowed(Player, target);
         }

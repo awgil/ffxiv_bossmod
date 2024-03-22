@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System;
 using System.Linq;
 
 namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.SecretCladoselache
@@ -33,24 +34,50 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     class PelagicCleaverRotation : Components.GenericRotatingAOE
     {
         private Angle _increment;
+        private Angle _rotation;
+        private DateTime _activation;
         private static readonly AOEShapeCone _shape = new(40, 30.Degrees());
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if (iconID == (uint)IconID.RotateCW)
-                _increment = -60.Degrees();
-            if (iconID == (uint)IconID.RotateCCW)
-                _increment = 60.Degrees();
+            var increment = (IconID)iconID switch
+            {
+                IconID.RotateCW => -60.Degrees(),
+                IconID.RotateCCW => 60.Degrees(),
+                _ => default
+            };
+            if (increment != default)
+            {
+                _increment = increment;
+                InitIfReady(module, actor);
+            }
         }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.PelagicCleaverRotationStart)
-                Sequences.Add(new(_shape, caster.Position, spell.Rotation, _increment, spell.NPCFinishAt, 2.1f, 6));
+            {
+                _rotation = spell.Rotation;
+                _activation = spell.NPCFinishAt;
+            }
+            if (_rotation != default)
+                InitIfReady(module, caster);
         }
+
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.PelagicCleaverRotationStart or AID.PelagicCleaverDuringRotation)
                 AdvanceSequence(0, module.WorldState.CurrentTime);
+        }
+
+        private void InitIfReady(BossModule module, Actor source)
+        {
+            if (_rotation != default && _increment != default)
+            {
+                Sequences.Add(new(_shape, source.Position, _rotation, _increment, _activation, 2.1f, 6));
+                _rotation = default;
+                _increment = default;
+            }
         }
     }
 

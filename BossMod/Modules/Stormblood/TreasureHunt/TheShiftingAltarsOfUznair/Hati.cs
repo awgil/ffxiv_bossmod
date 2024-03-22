@@ -8,7 +8,6 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.Hati
         Boss = 0x2538, //R=5.4
         BossAdd = 0x2569, //R=3.0
         BossHelper = 0x233C,
-        IceVoidzone = 0x1E8D9C,
     };
 
     public enum AID : uint

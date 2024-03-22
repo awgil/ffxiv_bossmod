@@ -7,7 +7,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     {
         private DateTime _activation;
 
-        public P3SeventhUmbralEra() : base(ActionID.MakeSpell(AID.SeventhUmbralEra)) { } // TODO: check immunity
+        public P3SeventhUmbralEra() : base(ActionID.MakeSpell(AID.SeventhUmbralEra), true) { }
 
         public override void Init(BossModule module) => _activation = module.WorldState.CurrentTime.AddSeconds(5.3f);
 

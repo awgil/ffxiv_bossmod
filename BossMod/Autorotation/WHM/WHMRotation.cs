@@ -34,7 +34,7 @@ namespace BossMod.WHM
             public bool CanCastCure2 => Unlocked(AID.Cure2) && (EnoughMPForGCD(1000) || FreecureLeft > GCD);
             public bool CanCastCure3 => Unlocked(AID.Cure3) && EnoughMPForGCD(1500);
 
-            public State(float[] cooldowns) : base(cooldowns) { }
+            public State(WorldState ws) : base(ws) { }
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);

@@ -19,8 +19,8 @@ namespace BossMod.Events.FF15Collab.Garuda
         AutoAttack = 870, // Boss->player, no cast, single-target
         MistralShriek = 14611, // Boss->self, 7,0s cast, range 30 circle
         MistralSong = 14616, // Boss->self, 3,5s cast, range 20 150-degree cone
-        unknown = 14588, // Helper->Noctis, no cast, single-target
-        MiniSupercell = 14612, // Boss->self, 5,0s cast, range 45 width 6 rect, line stack, knockback 50, away from source
+        MiniSupercell = 14588, // Helper->Noctis, no cast, single-target, linestack target
+        MiniSupercell2 = 14612, // Boss->self, 5,0s cast, range 45 width 6 rect, line stack, knockback 50, away from source
         GravitationalForce = 14614, // Boss->self, 3,5s cast, single-target
         GravitationalForce2 = 14615, // Helper->location, 3,5s cast, range 5 circle
         Vortex = 14677, // Helper->self, no cast, range 50 circle
@@ -52,7 +52,9 @@ namespace BossMod.Events.FF15Collab.Garuda
     class Microburst : Components.SelfTargetedAOEs
     {
         private bool casting;
+
         public Microburst() : base(ActionID.MakeSpell(AID.Microburst), new AOEShapeCircle(18)) { }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
@@ -72,6 +74,7 @@ namespace BossMod.Events.FF15Collab.Garuda
             if (casting)
                 hints.Add($"Keep using duty action on the {module.Enemies(OID.Monolith).FirstOrDefault()!.Name}s to stay out of the AOE!");
         }
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.AddAIHints(module, slot, actor, assignment, hints);
@@ -84,7 +87,9 @@ namespace BossMod.Events.FF15Collab.Garuda
     {
         private bool casting;
         private DateTime done;
+
         public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(30)) { }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
@@ -126,48 +131,55 @@ namespace BossMod.Events.FF15Collab.Garuda
         public WickedTornado() : base(ActionID.MakeSpell(AID.WickedTornado), new AOEShapeDonut(8, 20)) { }
     }
 
-    class MiniSupercell : Components.SelfTargetedAOEs //ugly hack to make a line stack with NPC
+    // TODO: create and use generic 'line stack' component
+    class MiniSupercell : Components.GenericBaitAway
     {
-        public MiniSupercell() : base(ActionID.MakeSpell(AID.MiniSupercell), new AOEShapeRect(45, 3))
-        {
-            Risky = false;
-            Color = ArenaColor.SafeFromAOE;
-        }
-    }
+        private Actor? target;
 
-    class MiniSupercell2 : Components.StackWithCastTargets
-    {
-        public MiniSupercell2() : base(ActionID.MakeSpell(AID.MiniSupercell), 1.2f) { }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.MiniSupercell)
-                AddStack(module.Enemies(OID.Noctis).FirstOrDefault()!);
+            {
+                target = module.WorldState.Actors.Find(spell.MainTargetID);
+                CurrentBaits.Add(new(module.PrimaryActor, target!, new AOEShapeRect(45, 3)));
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.MiniSupercell)
-                Stacks.Clear();
+            if ((AID)spell.Action.ID == AID.MiniSupercell2)
+                CurrentBaits.Clear();
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (CurrentBaits.Count > 0 && actor != target)
+                hints.AddForbiddenZone(ShapeDistance.InvertedRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 45, 0, 3));
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (module.FindComponent<MiniSupercell>()!.ActiveAOEs(module, slot, actor) != null && Stacks.Count > 0)
+            if (CurrentBaits.Count > 0)
             {
-                if (!module.FindComponent<MiniSupercell>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(actor.Position, z.Origin, z.Rotation)))
+                if (!actor.Position.InRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 45, 0, 3))
                     hints.Add("Stack!");
-                if (module.FindComponent<MiniSupercell>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(actor.Position, z.Origin, z.Rotation)))
+                else
                     hints.Add("Stack!", false);
             }
         }
+
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var bait in CurrentBaits)
+                bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
     }
 
     class MiniSupercellKB : Components.KnockbackFromCastTarget
     {
-        public MiniSupercellKB() : base(ActionID.MakeSpell(AID.MiniSupercell), 50, shape: new AOEShapeRect(45, 3))
+        public MiniSupercellKB() : base(ActionID.MakeSpell(AID.MiniSupercell2), 50, shape: new AOEShapeRect(45, 3))
         {
             StopAtWall = true;
         }
@@ -193,7 +205,6 @@ namespace BossMod.Events.FF15Collab.Garuda
                 .ActivateOnEnter<MistralSong>()
                 .ActivateOnEnter<GravitationalForce>()
                 .ActivateOnEnter<MiniSupercell>()
-                .ActivateOnEnter<MiniSupercell2>()
                 .ActivateOnEnter<MiniSupercellKB>()
                 .ActivateOnEnter<Microburst>()
                 .ActivateOnEnter<WickedTornado>()

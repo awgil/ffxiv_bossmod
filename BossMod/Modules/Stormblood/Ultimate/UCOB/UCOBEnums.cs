@@ -18,6 +18,7 @@
         //_Gen_Phoenix = 0x1FE9, // R2.800, x1
 
         Helper = 0x18D6, // R0.500, x42, mixed types
+        EventHelper = 0x1EA1A1, // R2.000, x6, EventObj type
 
         VoidzoneTwister = 0x1E8910, // R0.500, EventObj type, spawn during fight
         VoidzoneLiquidHell = 0x1E88FE, // R0.500, EventObj type, spawn during fight
@@ -28,7 +29,6 @@
         VoidzoneEarthShaker = 0x1E9663, // R0.500, EventObj type, spawn during fight
 
         //_Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
-        //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x6, EventObj type
         //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
     };
 
@@ -69,11 +69,11 @@
         Cauterize3 = 9933, // Thunderwing->self, 4.0s cast, range 48+R width 20 rect
         Cauterize4 = 9934, // TailOfDarkness->self, 4.0s cast, range 48+R width 20 rect
         Cauterize5 = 9935, // FangOfLight->self, 4.0s cast, range 48+R width 20 rect
+
+        AutoAttackP3 = 9936, // BahamutPrime->player, no cast, single-target
         SeventhUmbralEra = 9937, // Helper->self, no cast, range 80 circle raidwide with ? falloff, knockback 11
         CalamitousFlame = 9938, // Helper->self, no cast, range 80 circle raidwide with ? falloff
         CalamitousBlaze = 9939, // Helper->self, no cast, range 80 circle raidwide with ? falloff, requires tank LB2+
-
-        AutoAttackP3 = 9936, // BahamutPrime->player, no cast, single-target
         FlareBreath = 9940, // BahamutPrime->self, no cast, range 25+R ?-degree cone cleave
         Flatten = 9941, // BahamutPrime->player, 4.0s cast, single-target tankbuster
         Gigaflare = 9942, // BahamutPrime->self, 6.0s cast, range 80+R circle, raidwide
@@ -93,6 +93,13 @@
         MegaflareStrike = 9952, // Helper->self, no cast, range 80 circle, tower fail
         FellruinTrio = 9956, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 3 start)
         AethericProfusion = 9905, // Twintania->self, 5.0s cast, range 80+R circle, deadly raidwide unless in neurolink
+        HeavensfallTrio = 9957, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 4 start)
+        HeavensfallVisual = 9911, // NaelDeusDarnus->self, 3.0s cast, single-target, visual (knockback)
+        TenstrikeTrio = 9958, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 5 start)
+        GrandOctet = 9959, // BahamutPrime->self, 4.0s cast, single-target, visual (trio 6 start)
+
+        BahamutsFavorP4 = 9960, // Helper->self, no cast, ???, visual (buff twin/nael with damage up)
+        MegaflareRaidwide = 9914, // NaelDeusDarnus->self, 5.0s cast, range 80+R circle, raidwide
     };
 
     public enum SID : uint
@@ -117,5 +124,7 @@
         MegaflareStack = 39, // player
         Earthshaker = 40, // player
         MegaflareDive = 41, // player
+        TwistingDive = 42, // player
+        LunarDive = 119, // player
     };
 }

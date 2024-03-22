@@ -187,7 +187,7 @@ namespace BossMod
 
         private BossModule CreateDemoModule()
         {
-            return new DemoModule(WorldState, new(0, 0, -1, "", ActorType.None, Class.None, new()));
+            return new DemoModule(WorldState, new(0, 0, -1, "", ActorType.None, Class.None, 0, new()));
         }
 
         private void ActorAdded(object? sender, Actor actor)

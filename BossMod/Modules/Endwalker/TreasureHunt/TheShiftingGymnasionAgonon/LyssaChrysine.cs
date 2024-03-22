@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FrigidNeedle)
-                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.495f));
+                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -79,7 +79,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.CircleOfIce)
-                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.495f));
+                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

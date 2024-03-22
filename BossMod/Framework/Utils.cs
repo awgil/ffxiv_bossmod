@@ -252,6 +252,13 @@ namespace BossMod
         public static void SortBy<TValue, TKey>(this List<TValue> list, Func<TValue, TKey> proj) where TKey : notnull, IComparable => list.Sort((l, r) => proj(l).CompareTo(proj(r)));
         public static void SortByReverse<TValue, TKey>(this List<TValue> list, Func<TValue, TKey> proj) where TKey : notnull, IComparable => list.Sort((l, r) => proj(r).CompareTo(proj(l)));
 
+        // get enumerable of zero or one elements, depending on whether argument is null
+        public static IEnumerable<T> ZeroOrOne<T>(T? value) where T : struct
+        {
+            if (value != null)
+                yield return value.Value;
+        }
+
         // swap to values
         public static void Swap<T>(ref T l, ref T r)
         {
