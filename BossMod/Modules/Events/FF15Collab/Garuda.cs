@@ -52,7 +52,9 @@ namespace BossMod.Events.FF15Collab.Garuda
     class Microburst : Components.SelfTargetedAOEs
     {
         private bool casting;
+
         public Microburst() : base(ActionID.MakeSpell(AID.Microburst), new AOEShapeCircle(18)) { }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
@@ -72,6 +74,7 @@ namespace BossMod.Events.FF15Collab.Garuda
             if (casting)
                 hints.Add($"Keep using duty action on the {module.Enemies(OID.Monolith).FirstOrDefault()!.Name}s to stay out of the AOE!");
         }
+
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.AddAIHints(module, slot, actor, assignment, hints);
@@ -84,7 +87,9 @@ namespace BossMod.Events.FF15Collab.Garuda
     {
         private bool casting;
         private DateTime done;
+
         public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(30)) { }
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             base.OnCastStarted(module, caster, spell);
@@ -131,7 +136,6 @@ namespace BossMod.Events.FF15Collab.Garuda
     {
         private Actor? target;
 
-
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.MiniSupercell)
@@ -170,7 +174,7 @@ namespace BossMod.Events.FF15Collab.Garuda
                 bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
         }
 
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)  {}
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
     }
 
     class MiniSupercellKB : Components.KnockbackFromCastTarget

@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
+// CONTRIB: made by malediktus, not checked
+namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 {
     public enum OID : uint
     {
@@ -74,25 +75,10 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
 
     class Chains : BossComponent
     {
-        public static bool chained;
+        public bool chained;
         private bool chainsactive;
-        public static Actor? chaintarget;
+        public Actor? chaintarget;
         private bool casting;
-
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.ChainTarget)
-            {
-                chaintarget = actor;
-                casting = true;
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.ChainDown)
-                casting = false;
-        }
 
         public override void Update(BossModule module)
         {
@@ -115,6 +101,37 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
                 hints.Add($"{chaintarget.Name} is about to be chained!");
             if (chaintarget != null && chainsactive)
                 hints.Add($"Destroy chains on {chaintarget.Name}!");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (chained && actor != chaintarget)
+            {
+                foreach (var e in hints.PotentialTargets)
+                {
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.IronChain => 1,
+                        OID.Boss => -1,
+                        _ => 0
+                    };
+                }
+            }
+        }
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if (iconID == (uint)IconID.ChainTarget)
+            {
+                chaintarget = actor;
+                casting = true;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.ChainDown)
+                casting = false;
         }
     }
 
@@ -214,6 +231,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
     class Taphephobia : Components.UniformStackSpread
     {
         public Taphephobia() : base(0, 6, alwaysShowSpreads: true) { }
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Spread)
@@ -221,6 +239,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
                 AddSpread(actor);
             }
         }
+
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Taphephobia2)
@@ -269,7 +288,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
                 bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
         }
 
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)  {}
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
     }
 
     class CatONineTails : Components.GenericRotatingAOE
@@ -323,7 +342,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
         {
             if (linesstartedcount1 != 0 && Lines.Count == 0)
             {
-                linesstartedcounttotal = 0;                
+                linesstartedcounttotal = 0;
                 linesstartedcount1 = 0;
                 linesstartedcount2 = 0;
                 _casters.Clear();
@@ -334,7 +353,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
         {
             if ((AID)spell.Action.ID == AID.FierceBeating4)
             {
-                Lines.Add(new() { Next = caster.Position, Advance = 2.5f * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });        
+                Lines.Add(new() { Next = caster.Position, Advance = 2.5f * spell.Rotation.ToDirection(), NextExplosion = spell.NPCFinishAt, TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });
                 _activation = spell.NPCFinishAt;
                 ++linesstartedcounttotal;
                 ++NumCasts;
@@ -363,7 +382,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
                 AdvanceLine(module, Lines[index], caster.Position);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
-            }            
+            }
             if ((AID)spell.Action.ID == AID.FierceBeating5)
             {
                 int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
@@ -399,21 +418,5 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D013Philia
     public class D013Philia : BossModule
     {
         public D013Philia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(134, -465), 19.5f)) { }
-
-        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            if (Chains.chained && actor != Chains.chaintarget)
-                foreach (var e in hints.PotentialTargets)
-                {
-                    e.Priority = (OID)e.Actor.OID switch
-                    {
-                        OID.IronChain => 1,
-                        OID.Boss => -1,
-                        _ => 0
-                    };
-                }
-            else
-            base.CalculateAIHints(slot, actor, assignment, hints);
-        }
     }
 }

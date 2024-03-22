@@ -1,11 +1,12 @@
-﻿namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D011ForgivenDissonance
+﻿// CONTRIB: made by legendoficeman & malediktus, not checked
+namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D011ForgivenDissonance
 {
     public enum OID : uint
     {
-      Boss = 0x278A, // R4.000, x1
-      Orbs = 0x2896, // R1.100, spawn during fight
-      Helper = 0x233C, // x3
-      Helper2 = 0x2A4B, // R3.450, spawn during fight
+        Boss = 0x278A, // R4.000, x1
+        Orbs = 0x2896, // R1.100, spawn during fight
+        Helper = 0x233C, // x3
+        Helper2 = 0x2A4B, // R3.450, spawn during fight
     };
 
     public enum AID : uint

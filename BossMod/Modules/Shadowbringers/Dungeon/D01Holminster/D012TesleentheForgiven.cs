@@ -1,10 +1,10 @@
 ﻿using System.Linq;
 
-namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D012TesleentheForgiven
+// CONTRIB: made by legendoficeman & malediktus, not checked
+namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D012TesleentheForgiven
 {
     public enum OID : uint
     {
-
         Boss = 0x278B, // R1.800, x1
         HolyWaterVoidzone = 0x1EABF9, // R0.500, EventObj type, spawn during fight
         Helper = 0x233C, // x3
@@ -41,7 +41,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D012TesleentheForgiv
         public TheTickler() : base(ActionID.MakeSpell(AID.TheTickler)) { }
     }
 
-     class ScoldsBridle : Components.RaidwideCast
+    class ScoldsBridle : Components.RaidwideCast
     {
         public ScoldsBridle() : base(ActionID.MakeSpell(AID.ScoldsBridle)) { }
     }
@@ -49,6 +49,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01HolminserSwitch.D012TesleentheForgiv
     class FeveredFlagellation : Components.GenericBaitAway
     {
         private static readonly AOEShapeRect rect = new AOEShapeRect(0, 2);
+
         public override void Update(BossModule module)
         {
             foreach (var b in CurrentBaits)
