@@ -1,5 +1,4 @@
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage13.Act1
@@ -16,7 +15,7 @@ namespace BossMod.MaskedCarnivale.Stage13.Act1
         Mow = 14879, // Boss->self, 3,0s cast, range 6+R 120-degree cone
     };
 
-    class Mow : SelfTargetedAOEs
+    class Mow : Components.SelfTargetedAOEs
     {
         public Mow() : base(ActionID.MakeSpell(AID.Mow), new AOEShapeCone(7.4f, 60.Degrees())) { }
     }
@@ -52,10 +51,9 @@ namespace BossMod.MaskedCarnivale.Stage13.Act1
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Vodoriga))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
         }
     }
 }

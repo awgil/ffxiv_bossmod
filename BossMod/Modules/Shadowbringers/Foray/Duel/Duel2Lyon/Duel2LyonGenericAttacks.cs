@@ -195,9 +195,7 @@ class NaturesBlood : Exaflare
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NaturesBlood1)
-        {
             Lines.Add(new LineWithActor(caster));
-        }
     }
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

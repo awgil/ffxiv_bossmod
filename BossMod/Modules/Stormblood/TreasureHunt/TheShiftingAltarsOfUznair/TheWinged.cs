@@ -13,6 +13,8 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheWinged
         AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
         AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
         AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+        BonusAdd_AltarMatanga = 0x2545, // R3.420
+        BonusAdd_GoldWhisker = 0x2544, // R0.540
     };
 
     public enum AID : uint
@@ -31,6 +33,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheWinged
         HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
         PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
         PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
+        unknown = 9636, // BonusAdd_AltarMatanga->self, no cast, single-target
+        Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 120-degree cone
+        RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
+        Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
     };
 
@@ -91,9 +97,24 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheWinged
         public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
     }
 
-    class BeastStates : StateMachineBuilder
+    class RaucousScritch : Components.SelfTargetedAOEs
     {
-        public BeastStates(BossModule module) : base(module)
+        public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
+    }
+
+    class Hurl : Components.LocationTargetedAOEs
+    {
+        public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
+    }
+
+    class Spin : Components.Cleave
+    {
+        public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
+    }
+
+    class TheWingedStates : StateMachineBuilder
+    {
+        public TheWingedStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<Filoplumes>()
@@ -107,14 +128,17 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheWinged
                 .ActivateOnEnter<HeirloomScream>()
                 .ActivateOnEnter<PungentPirouette>()
                 .ActivateOnEnter<Pollen>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead);
+                .ActivateOnEnter<Hurl>()
+                .ActivateOnEnter<RaucousScritch>()
+                .ActivateOnEnter<Spin>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead);
         }
     }
 
     [ModuleInfo(CFCID = 586, NameID = 7595)]
-    public class Beast : BossModule
+    public class TheWinged : BossModule
     {
-        public Beast(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public TheWinged(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
@@ -129,6 +153,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheWinged
                 Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.AltarOnion))
                 Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.BonusAdd_GoldWhisker))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -142,7 +170,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheWinged
                     OID.AltarEgg => 5,
                     OID.AltarGarlic => 4,
                     OID.AltarTomato => 3,
-                    OID.AltarQueen => 2,
+                    OID.AltarQueen or OID.BonusAdd_GoldWhisker or OID.BonusAdd_AltarMatanga => 2,
                     OID.Boss => 1,
                     _ => 0
                 };

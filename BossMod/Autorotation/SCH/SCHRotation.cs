@@ -18,7 +18,7 @@
             // statuses
             public SID ExpectedBio => Unlocked(AID.Biolysis) ? SID.Biolysis : Unlocked(AID.Bio2) ? SID.Bio2 : SID.Bio1;
 
-            public State(float[] cooldowns) : base(cooldowns) { }
+            public State(WorldState ws) : base(ws) { }
 
             public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
             public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);

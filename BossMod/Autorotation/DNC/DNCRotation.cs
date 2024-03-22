@@ -3,7 +3,7 @@ namespace BossMod.DNC
 {
     public static class Rotation
     {
-        public class State(float[] cooldowns) : CommonRotation.PlayerState(cooldowns)
+        public class State(WorldState ws) : CommonRotation.PlayerState(ws)
         {
             public byte Feathers;
             public bool IsDancing;

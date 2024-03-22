@@ -2,6 +2,7 @@
 using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -169,6 +170,7 @@ namespace BossMod
             var character = obj as Character;
             var name = obj.Name.TextValue;
             var classID = (Class)(character?.ClassJob.Id ?? 0);
+            var level = character?.Level ?? 0;
             var posRot = new Vector4(obj.Position, obj.Rotation);
             var hp = new ActorHP();
             uint curMP = 0;
@@ -198,6 +200,7 @@ namespace BossMod
                     Name = name,
                     Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
                     Class = classID,
+                    Level = level,
                     PosRot = posRot,
                     HitboxRadius = radius,
                     HP = hp,
@@ -217,8 +220,8 @@ namespace BossMod
             {
                 if (act.Name != name)
                     Execute(new ActorState.OpRename() { InstanceID = act.InstanceID, Name = name });
-                if (act.Class != classID)
-                    Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID });
+                if (act.Class != classID || act.Level != level)
+                    Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID, Level = level });
                 if (act.PosRot != posRot)
                     Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
                 if (act.HitboxRadius != radius)
@@ -355,6 +358,12 @@ namespace BossMod
                 var member = _alliance.IsAlliance && !_alliance.IsSmallGroupAlliance ? _alliance.AllianceMember(i - PartyState.MaxPartySize) : null;
                 UpdatePartySlot(i, 0, member != null ? member->ObjectID : 0);
             }
+
+            // update limit break
+            var lb = LimitBreakController.Instance();
+            var lbMax = (ushort)lb->BarValue; // CS is incorrect here, two high bytes are some other fields
+            if (Party.LimitBreakCur != lb->CurrentValue || Party.LimitBreakMax != lbMax)
+                Execute(new PartyState.OpLimitBreakChange() { Cur = lb->CurrentValue, Max = lbMax });
         }
 
         private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)
@@ -368,6 +377,25 @@ namespace BossMod
             var countdown = Countdown.TimeRemaining();
             if (Client.CountdownRemaining != countdown)
                 Execute(new ClientState.OpCountdownChange() { Value = countdown });
+
+            Span<Cooldown> cooldowns = stackalloc Cooldown[Client.Cooldowns.Length];
+            ActionManagerEx.Instance!.GetCooldowns(cooldowns);
+            if (!MemoryExtensions.SequenceEqual(Client.Cooldowns.AsSpan(), cooldowns))
+            {
+                if (cooldowns.IndexOfAnyExcept(default(Cooldown)) < 0)
+                    Execute(new ClientState.OpCooldown() { Reset = true });
+                else
+                    Execute(new ClientState.OpCooldown() { Cooldowns = CalcCooldownDifference(cooldowns, Client.Cooldowns.AsSpan()) });
+            }
+
+            var (dutyAction0, dutyAction1) = ActionManagerEx.Instance!.GetDutyActions();
+            if (Client.DutyActions[0] != dutyAction0 || Client.DutyActions[1] != dutyAction1)
+                Execute(new ClientState.OpDutyActionsChange() { Slot0 = dutyAction0, Slot1 = dutyAction1 });
+
+            Span<byte> bozjaHolster = stackalloc byte[Client.BozjaHolster.Length];
+            BozjaInterop.FetchHolster(bozjaHolster);
+            if (!MemoryExtensions.SequenceEqual(Client.BozjaHolster.AsSpan(), bozjaHolster))
+                Execute(new ClientState.OpBozjaHolsterChange() { Contents = CalcBozjaHolster(bozjaHolster) });
         }
 
         private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
@@ -381,6 +409,24 @@ namespace BossMod
             foreach (var op in ops)
                 Execute(op);
             _actorOps.Remove(instanceID);
+        }
+
+        private List<(int, Cooldown)> CalcCooldownDifference(Span<Cooldown> values, ReadOnlySpan<Cooldown> reference)
+        {
+            var res = new List<(int, Cooldown)>();
+            for (int i = 0, cnt = Math.Min(values.Length, reference.Length); i < cnt; ++i)
+                if (values[i] != reference[i])
+                    res.Add((i, values[i]));
+            return res;
+        }
+
+        private List<(BozjaHolsterID, byte)> CalcBozjaHolster(Span<byte> contents)
+        {
+            var res = new List<(BozjaHolsterID, byte)>();
+            for (int i = 0; i < contents.Length; ++i)
+                if (contents[i] != 0)
+                    res.Add(((BozjaHolsterID)i, contents[i]));
+            return res;
         }
 
         private unsafe ulong GaugeData()

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntS.Armstrong
+﻿namespace BossMod.Endwalker.HuntS.Armstrong
 {
     public enum OID : uint
     {

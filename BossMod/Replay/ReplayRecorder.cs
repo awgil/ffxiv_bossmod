@@ -175,7 +175,7 @@ namespace BossMod
         private WorldState _ws;
         private Output _logger;
 
-        public const int Version = 11;
+        public const int Version = 12;
 
         public ReplayRecorder(WorldState ws, ReplayLogFormat format, bool logInitialState, DirectoryInfo targetDirectory, string logPrefix)
         {
