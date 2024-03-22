@@ -62,11 +62,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds
 
         public Hellpounce() : base(ActionID.MakeSpell(AID.Hellpounce), "GTFO from charge!") { }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_charge != null)
-                yield return _charge.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_charge);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

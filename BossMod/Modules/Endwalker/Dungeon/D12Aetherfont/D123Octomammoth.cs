@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 // CONTRIB: made by dhoggpt, not checked
 namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
@@ -31,6 +32,57 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
     {
         Telekinesis = 167, // Actor3eac->Boss
     };
+
+    class Border : BossComponent
+    {
+        private static float _platformOffset = 25;
+        private static float _platformRadius = 8;
+        private static Angle[] _platformDirections = [-90.Degrees(), -45.Degrees(), 0.Degrees(), 45.Degrees(), 90.Degrees()];
+        private static WDir[] _platformCenters = _platformDirections.Select(d => _platformOffset * d.ToDirection()).ToArray();
+
+        private static float _bridgeInner = 20;
+        private static float _bridgeOuter = 26;
+        private static Angle _offInner = DirToPointAtDistance(_bridgeInner);
+        private static Angle _offOuter = DirToPointAtDistance(_bridgeOuter);
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            hints.AddForbiddenZone(p => {
+                // union of platforms
+                var res = _platformCenters.Select(off => ShapeDistance.Circle(module.Bounds.Center + off, _platformRadius)(p)).Min();
+                // union of bridges
+                for (int i = 1; i < 5; ++i)
+                    res = Math.Min(res, ShapeDistance.Rect(module.Bounds.Center + _platformCenters[i - 1], module.Bounds.Center + _platformCenters[i], 3)(p));
+                // invert
+                return -res;
+            });
+
+            base.AddAIHints(module, slot, actor, assignment, hints);
+        }
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            // draw platforms
+            foreach (var c in _platformCenters)
+                arena.AddCircle(module.Bounds.Center + c, _platformRadius, ArenaColor.Border);
+
+            // draw bridges
+            for (int i = 1; i < 5; ++i)
+            {
+                DrawBridgeLine(arena, module.Bounds.Center, _platformDirections[i - 1], _platformDirections[i], _offInner, _bridgeInner);
+                DrawBridgeLine(arena, module.Bounds.Center, _platformDirections[i - 1], _platformDirections[i], _offOuter, _bridgeOuter);
+            }
+        }
+
+        private static Angle DirToPointAtDistance(float d) => Angle.Acos((_platformOffset * _platformOffset + d * d - _platformRadius * _platformRadius) / (2 * _platformOffset * d));
+
+        private void DrawBridgeLine(MiniArena arena, WPos center, Angle from, Angle to, Angle offset, float distance)
+        {
+            var p1 = center + distance * (from + offset).ToDirection();
+            var p2 = center + distance * (to - offset).ToDirection();
+            arena.AddLine(p1, p2, ArenaColor.Border);
+        }
+    }
 
     class Wallop : Components.SelfTargetedAOEs
     {
@@ -92,8 +144,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
         public D123OctomammothStates(BossModule module) : base(module)
         {
             TrivialPhase()
-                //.ActivateOnEnter<D123OctomammothForeground>()
-                //.ActivateOnEnter<D123OctomammothAI>()
+                .ActivateOnEnter<Border>()
                 .ActivateOnEnter<Wallop>()
                 .ActivateOnEnter<Clearout>()
                 .ActivateOnEnter<VividEyes>()
@@ -107,129 +158,6 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
                 .ActivateOnEnter<SalineSpit2>();
         }
     }
-
-    //class D123OctomammothAI : BossComponent
-    //{
-    //    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    //    {
-    //        // Define circles
-    //        var circles = new WPos[]
-    //        {
-    //            new WPos(-345, -368),               // Circle A
-    //            new WPos(-387.678f, -350.322f),     // Circle B
-    //            new WPos(-352.322f, -350.322f),     // Circle C
-    //            new WPos(-370,  -343),              // Circle D
-    //            new WPos(-395, -368)                // Circle E
-    //        };
-
-    //        // Define smaller circles because i failed to get rectangles working
-    //        var smallCircles = new WPos[]
-    //        {
-    //            new WPos(-347.4326171875f, -360.63653564453f),
-    //            new WPos(-347.67233276367f, -359.98715209961f),
-    //            new WPos(-347.85485839844f, -359.49258422852f),
-    //            new WPos(-348.21545410156f, -358.51571655273f),
-    //            new WPos(-348.66912841797f, -357.2868347168f),
-    //            new WPos(-359.22134399414f, -346.90921020508f),
-    //            new WPos(-359.98919677734f, -346.52166748047f),
-    //            new WPos(-361.35482788086f, -345.83236694336f),
-    //            new WPos(-362.4801940918f, -345.26443481445f),
-    //            new WPos(-377.45910644531f, -344.94708251953f),
-    //            new WPos(-378.73901367188f, -345.44708251953f),
-    //            new WPos(-379.94046020508f, -345.91647338867f),
-    //            new WPos(-381.08489990234f, -346.36361694336f),
-    //            new WPos(-391.44171142578f, -357.25454711914f),
-    //            new WPos(-391.79779052734f, -357.98648071289f),
-    //            new WPos(-392.10589599609f, -358.6198425293f),
-    //            new WPos(-392.50811767578f, -359.44671630859f),
-    //            new WPos(-392.99645996094f, -360.45059204102f)
-    //        };
-
-    //        // Define circle radius
-    //        var circleRadius = 8f;
-    //        var smallerCircleRadius = 2f;
-
-    //        // Define the center and radius of the giant circle
-    //        var giantCircleCenter = new WPos(-370, -368); // Adjust as needed
-    //        var giantCircleRadius = 56f; // Adjust as needed
-
-    //        // Calculate the distance from a point to the nearest circle's edge
-    //        Func<WPos, float> distanceToNearestCircleEdge = p =>
-    //        {
-    //            var minDistance = float.MaxValue;
-    //            foreach (var circle in circles)
-    //            {
-    //                var dx = p.X - circle.X;
-    //                var dz = p.Z - circle.Z;
-    //                var distance = MathF.Sqrt(dx * dx + dz * dz) - circleRadius;
-    //                minDistance = Math.Min(minDistance, distance);
-    //            }
-    //            foreach (var circle in smallCircles)
-    //            {
-    //                var dx = p.X - circle.X;
-    //                var dz = p.Z - circle.Z;
-    //                var distance = MathF.Sqrt(dx * dx + dz * dz) - smallerCircleRadius;
-    //                minDistance = Math.Min(minDistance, distance);
-    //            }
-    //            return minDistance;
-    //        };
-
-    //        // Calculate the distance from a point to the edge of the giant circle
-    //        Func<WPos, float> distanceToGiantCircleEdge = p =>
-    //        {
-    //            var dx = p.X - giantCircleCenter.X;
-    //            var dz = p.Z - giantCircleCenter.Z;
-    //            return giantCircleRadius - MathF.Sqrt(dx * dx + dz * dz);
-    //        };
-
-    //        // Define the forbidden zone as the area outside all the circles within the giant circle
-    //        Func<WPos, float> forbiddenZone = p =>
-    //        {
-    //            var nearestCircleDistance = distanceToNearestCircleEdge(p);
-    //            var giantCircleDistance = distanceToGiantCircleEdge(p);
-    //            return -Math.Min(nearestCircleDistance, giantCircleDistance); // Invert the distance
-    //        };
-
-    //        // Add forbidden zone using the calculated function with current time
-    //        hints.AddForbiddenZone(forbiddenZone);
-    //    }
-    //}
-
-    //class D123OctomammothForeground : BossComponent
-    //{
-    //    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-    //    {
-    //        DrawCircles(arena);
-    //    }
-
-    //    private void DrawCircles(MiniArena arena)
-    //    {
-    //        arena.AddCircleFilled(new WPos(-345, -368), 8, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-345, -368), 8, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-387.678f, -350.322f), 8, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-352.322f, -350.322f), 8, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-370, -343), 8, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-395, -368), 8, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-347.4326171875f, -360.63653564453f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-347.67233276367f, -359.98715209961f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-347.85485839844f, -359.49258422852f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-348.21545410156f, -358.51571655273f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-348.66912841797f, -357.2868347168f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-359.22134399414f, -346.90921020508f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-359.98919677734f, -346.52166748047f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-361.35482788086f, -345.83236694336f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-362.4801940918f, -345.26443481445f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-377.45910644531f, -344.94708251953f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-378.73901367188f, -345.44708251953f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-379.94046020508f, -345.91647338867f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-381.08489990234f, -346.36361694336f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-391.44171142578f, -357.25454711914f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-391.79779052734f, -357.98648071289f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-392.10589599609f, -358.6198425293f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-392.50811767578f, -359.44671630859f), 2, 0xFF404040);
-    //        arena.AddCircleFilled(new WPos(-392.99645996094f, -360.45059204102f), 2, 0xFF404040);
-    //    }
-    //}
 
     [ModuleInfo(CFCID = 822, NameID = 12334)]
     class D123Octomammoth : BossModule

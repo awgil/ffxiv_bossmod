@@ -17,11 +17,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _activationDelay = activationDelay;
         }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_aoe != null)
-                yield return _aoe.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
         {

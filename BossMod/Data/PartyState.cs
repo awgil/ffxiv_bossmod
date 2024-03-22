@@ -27,6 +27,9 @@ namespace BossMod
         public Actor? this[int slot] => (slot >= 0 && slot < _actors.Length) ? _actors[slot] : null; // bounds-checking accessor
         public Actor? Player() => this[PlayerSlot];
 
+        public int LimitBreakCur;
+        public int LimitBreakMax = 10000;
+
         public PartyState(ActorState actorState)
         {
             actorState.Added += (_, actor) =>
@@ -78,6 +81,8 @@ namespace BossMod
             for (int i = 0; i < MaxAllianceSize; ++i)
                 if (i < MaxPartySize && _contentIDs[i] != 0 || _actorIDs[i] != 0)
                     yield return new OpModify() { Slot = i, ContentID = i < MaxPartySize ? _contentIDs[i] : 0, InstanceID = _actorIDs[i] };
+            if (LimitBreakCur != 0 || LimitBreakMax != 10000)
+                yield return new OpLimitBreakChange() { Cur = LimitBreakCur, Max = LimitBreakMax };
         }
 
         // implementation of operations
@@ -109,6 +114,22 @@ namespace BossMod
             }
 
             public override void Write(ReplayRecorder.Output output) => WriteTag(output, "PAR ").Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
+        }
+
+        public event EventHandler<OpLimitBreakChange>? LimitBreakChanged;
+        public class OpLimitBreakChange : WorldState.Operation
+        {
+            public int Cur;
+            public int Max;
+
+            protected override void Exec(WorldState ws)
+            {
+                ws.Party.LimitBreakCur = Cur;
+                ws.Party.LimitBreakMax = Max;
+                ws.Party.LimitBreakChanged?.Invoke(ws, this);
+            }
+
+            public override void Write(ReplayRecorder.Output output) => WriteTag(output, "LB  ").Emit(Cur).Emit(Max);
         }
     }
 }
