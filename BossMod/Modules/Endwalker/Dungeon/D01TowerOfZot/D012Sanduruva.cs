@@ -1,6 +1,7 @@
 // CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva
 {
@@ -24,6 +25,16 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva
         SphereShatter = 25252, // BerserkerSphere->self, 2.0s cast, range 15 circle
     };
 
+    public enum SID : uint
+    {
+        ManusyaBerserk = 2651, // Boss->player, extra=0x0
+        ManusyaStop = 2653, // none->player, extra=0x0
+        TemporalDisplacement = 900, // none->player, extra=0x0
+        ManusyaConfuse = 2652, // Boss->player, extra=0x1C6
+        WhoIsShe = 2655, // none->Boss, extra=0x0
+        WhoIsShe2 = 2654, // none->BerserkerSphere, extra=0x1A8
+    };
+
     class IsitvaSiddhi : Components.SingleTargetCast
     {
         public IsitvaSiddhi() : base(ActionID.MakeSpell(AID.IsitvaSiddhi)) { }
@@ -38,7 +49,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva
         {
             if (_casters.Count > 0)
                 foreach (var c in _casters)
-                    yield return new(circle, c.Position, activation: _activation);
+                    yield return new(circle, c.Position, activation: _activation, risky: _activation.AddSeconds(-7) < module.WorldState.CurrentTime);
         }
 
         public override void OnActorCreated(BossModule module, Actor actor)
