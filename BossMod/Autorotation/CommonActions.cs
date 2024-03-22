@@ -370,7 +370,7 @@ namespace BossMod
             s.AnimationLockDelay = am.EffectiveAnimationLockDelay;
             s.ComboTimeLeft = am.ComboTimeLeft;
             s.ComboLastAction = am.ComboLastMove;
-            s.LimitBreakLevel = Autorot.WorldState.Party.LimitBreakCur / Autorot.WorldState.Party.LimitBreakMax;
+            s.LimitBreakLevel = Autorot.WorldState.Party.LimitBreakMax > 0 ? Autorot.WorldState.Party.LimitBreakCur / Autorot.WorldState.Party.LimitBreakMax : 0;
 
             // all GCD skills share the same base recast time (with some exceptions that aren't relevant here)
             // so we can check Fast Blade (9) and Stone (119) recast timers to get effective sks and sps
