@@ -12,6 +12,10 @@
         [PropertyDisplay("Auto stop replays on duty end")]
         public bool AutoStop = false;
 
+        [PropertyDisplay("Max replays to keep before removal")]
+        [PropertyIntSlider(0, 1000, Speed = 1f, Logarithmic = false)]
+        public int MaxReplays = 0;
+
         [PropertyDisplay("Store server packets in the replay")]
         public bool DumpServerPackets = false;
 

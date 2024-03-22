@@ -2,6 +2,7 @@
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -93,6 +94,21 @@ namespace BossMod
         {
             if (_recorder == null)
             {
+                try
+                {
+                    IEnumerable<FileInfo> filesToDelete = Enumerable.Empty<FileInfo>();
+                    if (_config.MaxReplays > 0)
+                        if (_logDir.GetFiles().Length >= _config.MaxReplays)
+                            filesToDelete = _logDir.GetFiles().OrderBy(f => f.LastWriteTime).Take(_logDir.GetFiles().Length - _config.MaxReplays);
+                    if (filesToDelete != null)
+                        foreach (var f in filesToDelete)
+                            f.Delete();
+                }
+                catch (Exception ex)
+                {
+                    Service.Log($"Failed to delete old replays: {ex}");
+                }
+
                 try
                 {
                     _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, $"{GetPrefix()}");

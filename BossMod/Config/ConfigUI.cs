@@ -154,6 +154,7 @@ namespace BossMod
                         bool v => DrawProperty(props, n.Node, field, v),
                         Enum v => DrawProperty(props, n.Node, field, v),
                         float v => DrawProperty(props, n.Node, field, v),
+                        int v => DrawProperty(props, n.Node, field, v),
                         GroupAssignment v => DrawProperty(props, n.Node, field, v),
                         _ => false
                     };
@@ -216,6 +217,31 @@ namespace BossMod
             else
             {
                 if (ImGui.InputFloat(props.Label, ref v))
+                {
+                    member.SetValue(node, v);
+                    node.NotifyModified();
+                }
+            }
+            return true;
+        }
+
+        private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, int v)
+        {
+            var slider = member.GetCustomAttribute<PropertyIntSliderAttribute>();
+            if (slider != null)
+            {
+                var flags = ImGuiSliderFlags.None;
+                if (slider.Logarithmic)
+                    flags |= ImGuiSliderFlags.Logarithmic;
+                if (ImGui.DragInt(props.Label, ref v, slider.Speed, slider.Min, slider.Max, "%d", flags))
+                {
+                    member.SetValue(node, v);
+                    node.NotifyModified();
+                }
+            }
+            else
+            {
+                if (ImGui.InputInt(props.Label, ref v))
                 {
                     member.SetValue(node, v);
                     node.NotifyModified();
