@@ -51,7 +51,7 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
 
     class ScarecrowChase : Components.GenericAOEs
     {
-        private List<Tuple<Actor, uint>> _casters = new();
+        private List<(Actor actor, uint icon)> _casters = new();
         private List<Actor> _casterssorted = new();
         private static readonly AOEShapeCross cross = new(40, 5);
         private DateTime _activation;
@@ -72,15 +72,15 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
         {
             if (iconID == (uint)IconID.Icon1)
             {
-                _casters.Add(new Tuple <Actor, uint>(actor, iconID));
+                _casters.Add((actor, iconID));
                 _activation = module.WorldState.CurrentTime.AddSeconds(9.9f);
             }
             if (iconID == (uint)IconID.Icon2)
-                _casters.Add(new Tuple <Actor, uint>(actor, iconID));
+                _casters.Add((actor, iconID));
             if (iconID == (uint)IconID.Icon3)
-                _casters.Add(new Tuple <Actor, uint>(actor, iconID));
+                _casters.Add((actor, iconID));
             if (iconID == (uint)IconID.Icon4)
-                _casters.Add(new Tuple <Actor, uint>(actor, iconID));
+                _casters.Add((actor, iconID));
             var _order = _casters.OrderBy(x => x.Item2); // icons can appear in random order in raw ops, so need to be sorted
             _casterssorted = _order.Select(x => x.Item1).ToList();
         }
