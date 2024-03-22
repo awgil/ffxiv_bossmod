@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
 {
     public enum OID : uint
@@ -10,7 +11,7 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
         Daigoro = 0x25AC, //R=2.50
         Bamboo = 0x25AD, //R=0.50
         Helper = 0x1EAEDF,
-        Somethingoutsidethearena  = 0x2BC8, //not sure what this does, spawns multiple times before the minigame starts, but casts something during the minigame, probably just for visuals
+        Somethingoutsidethearena = 0x2BC8, //not sure what this does, spawns multiple times before the minigame starts, but casts something during the minigame, probably just for visuals
         HelperCupPhase1 = 0x1EAEB7,
         HelperCupPhase2 = 0x1EAEB6,
         HelperCupPhase3 = 0x1EAE9D,
@@ -101,7 +102,7 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
                 _activation = module.WorldState.CurrentTime.AddSeconds(7);
             }
             if (state == 0x00040008) //bamboo deactivation animation, spell casts end about 0.75s later
-            {                        
+            {
                 if ((OID)actor.OID == OID.HelperCircle)
                     _circleToberemoved.Add(actor);
                 if ((OID)actor.OID == OID.HelperSingleRect)
