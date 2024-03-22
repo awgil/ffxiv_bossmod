@@ -79,12 +79,12 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
             if (_time != default && module.WorldState.CurrentTime > _time)
             {
                 _time = default;
-                _circle = _circle.Except(_circleToberemoved).ToList();
+                _circle.RemoveAll(_circleToberemoved.Contains);
                 _circleToberemoved.Clear();
-                _singlesplit = _singlesplit.Except(_singlesplitToberemoved).ToList();
+                _singlesplit.RemoveAll(_singlesplitToberemoved.Contains);
                 _singlesplitToberemoved.Clear();
-                _doublesidedsplit = _doublesidedsplit.Except(_doublesidedsplitToberemoved).ToList();
-                _doublesidedsplit.Clear();
+                _doublesidedsplit.RemoveAll(_doublesidedsplitToberemoved.Contains);
+                _doublesidedsplitToberemoved.Clear();
             }
         }
 
