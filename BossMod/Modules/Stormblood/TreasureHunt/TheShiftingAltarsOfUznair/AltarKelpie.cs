@@ -7,9 +7,14 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
     {
         Boss = 0x2537, //R=5.4
         Hydrosphere = 0x255B, //R=1.2
+        BossHelper = 0x233C,
         BonusAdd_AltarMatanga = 0x2545, // R3.420
         BonusAdd_GoldWhisker = 0x2544, // R0.540
-        BossHelper = 0x233C,
+        AltarQueen = 0x254A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+        AltarGarlic = 0x2548, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+        AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+        AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+        AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     };
 
     public enum AID : uint
@@ -27,6 +32,11 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
         Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 120-degree cone
         RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
         Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
+        PluckAndPrune = 6449, // AltarEgg->self, 3,5s cast, range 6+R circle
+        PungentPirouette = 6450, // AltarGarlic->self, 3,5s cast, range 6+R circle
+        TearyTwirl = 6448, // AltarOnion->self, 3,5s cast, range 6+R circle
+        Pollen = 6452, // AltarQueen->self, 3,5s cast, range 6+R circle
+        HeirloomScream = 6451, // AltarTomato->self, 3,5s cast, range 6+R circle
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
     };
 
@@ -87,6 +97,31 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
         public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
     }
 
+    class PluckAndPrune : Components.SelfTargetedAOEs
+    {
+        public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class TearyTwirl : Components.SelfTargetedAOEs
+    {
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class HeirloomScream : Components.SelfTargetedAOEs
+    {
+        public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class PungentPirouette : Components.SelfTargetedAOEs
+    {
+        public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class Pollen : Components.SelfTargetedAOEs
+    {
+        public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
+    }
+
     class KelpieStates : StateMachineBuilder
     {
         public KelpieStates(BossModule module) : base(module)
@@ -102,7 +137,12 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()
                 .ActivateOnEnter<Spin>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
+                .ActivateOnEnter<PluckAndPrune>()
+                .ActivateOnEnter<TearyTwirl>()
+                .ActivateOnEnter<HeirloomScream>()
+                .ActivateOnEnter<PungentPirouette>()
+                .ActivateOnEnter<Pollen>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead);
         }
     }
 
@@ -118,6 +158,16 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
                 Arena.Actor(s, ArenaColor.Vulnerable);
             foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
                 Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarEgg))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarTomato))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarQueen))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarGarlic))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.AltarOnion))
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -127,7 +177,11 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
-                    OID.BonusAdd_GoldWhisker => 3,
+                    OID.AltarOnion => 7,
+                    OID.AltarEgg => 6,
+                    OID.AltarGarlic => 5,
+                    OID.AltarTomato => 4,
+                    OID.AltarQueen or OID.BonusAdd_GoldWhisker => 3,
                     OID.BonusAdd_AltarMatanga => 2,
                     OID.Boss => 1,
                     _ => 0
