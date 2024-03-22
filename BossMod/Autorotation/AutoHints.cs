@@ -7,7 +7,7 @@ namespace BossMod
     // this is used e.g. in outdoor or on trash, where we have no active bossmodules
     public class AutoHints : IDisposable
     {
-        static readonly float RaidwideSize = 40;
+        static readonly float RaidwideSize = 30;
 
         private WorldState _ws;
         private Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = new();

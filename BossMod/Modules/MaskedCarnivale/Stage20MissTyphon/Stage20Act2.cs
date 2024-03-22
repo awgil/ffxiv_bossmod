@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage20.Act2
 {
@@ -18,27 +16,27 @@ namespace BossMod.MaskedCarnivale.Stage20.Act2
         LightningBolt = 14717, // 233C->location, 3,0s cast, range 3 circle
     };
 
-    class AquaBreath : SelfTargetedAOEs
+    class AquaBreath : Components.SelfTargetedAOEs
     {
         public AquaBreath() : base(ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f, 45.Degrees())) { }
     }
 
-    class Megavolt : SelfTargetedAOEs
+    class Megavolt : Components.SelfTargetedAOEs
     {
         public Megavolt() : base(ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f)) { }
     }
 
-    class Waterspout : LocationTargetedAOEs
+    class Waterspout : Components.LocationTargetedAOEs
     {
         public Waterspout() : base(ActionID.MakeSpell(AID.Waterspout), 4) { }
     }
 
-    class LightningBolt : LocationTargetedAOEs
+    class LightningBolt : Components.LocationTargetedAOEs
     {
         public LightningBolt() : base(ActionID.MakeSpell(AID.LightningBolt), 3) { }
     }
 
-    class ImpSong : CastHint
+    class ImpSong : Components.CastHint
     {
         public ImpSong() : base(ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!") { }
     }
@@ -72,12 +70,6 @@ namespace BossMod.MaskedCarnivale.Stage20.Act2
         public Stage20Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
         {
             ActivateComponent<Hints>();
-        }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
         }
     }
 }

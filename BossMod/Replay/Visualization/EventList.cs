@@ -237,8 +237,8 @@ namespace BossMod.ReplayVisualization
             ImGui.SameLine();
             for (int i = 0; i < enc.PartyMembers.Count; i++)
             {
-                var (p, c) = enc.PartyMembers[i];
-                if (ImGui.Button($"{c} {p.NameHistory.FirstOrDefault().Value}"))
+                var (p, c, l) = enc.PartyMembers[i];
+                if (ImGui.Button($"{c}{l} {p.NameHistory.FirstOrDefault().Value}"))
                     OpenTimeline(enc, new(1u << i));
                 ImGui.SameLine();
             }

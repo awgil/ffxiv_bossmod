@@ -35,7 +35,14 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LampasChrysine
         public AetherialLight() : base(ActionID.MakeSpell(AID.AetherialLight2), new AOEShapeCone(40, 30.Degrees()), 4) { }
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            return ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
+            return ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, (NumCasts > 2 && i < 2) ? ArenaColor.Danger : ArenaColor.AOE));
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            base.OnCastStarted(module, caster, spell);
+            if ((AID)spell.Action.ID == AID.AetherialLight2)
+                ++NumCasts;
         }
     }
 

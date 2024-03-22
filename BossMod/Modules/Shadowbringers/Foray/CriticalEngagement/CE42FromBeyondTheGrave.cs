@@ -36,16 +36,16 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         SoulPurgeDonut = 24101, // Boss->self, 5.0s cast, range 10-30 donut
         SoulPurgeDonutDual = 24102, // Boss->self, no cast, range 10-30 donut
         CrimsonBlade = 24103, // HernaisTheTenacious->self, 8.0s cast, range 50 180-degree cone aoe
-        //BloodCyclone = 21104, // HernaisTheTenacious->self, 3.0s cast, ???
+        BloodCyclone = 24104, // HernaisTheTenacious->self, 3.0s cast, range 5 circle
         Aethertide = 24105, // DyunbuTheAccursed->self, 8.0s cast, single-target, visual
         AethertideAOE = 24106, // Helper->players, 8.0s cast, range 8 circle spread
-        MarchingBreath = 24107, // DyunbuTheAccursed->self, 8.0s cast, interruptible, ???
+        MarchingBreath = 24107, // DyunbuTheAccursed->self, 8.0s cast, interruptible, heals all allies by 20% of max health (raidwide)
         TacticalStone = 24108, // DyunbuTheAccursed->player, 2.5s cast, single-target, autoattack
         TacticalAero = 24109, // DyunbuTheAccursed->self, 3.0s cast, range 40 width 8 rect
-        //Enrage = 24110, // DyunbuTheAccursed->self, 3.0s cast, ???
+        Enrage = 24110, // DyunbuTheAccursed->self, 3.0s cast, applies Dmg up and haste to self
         EntropicFlame = 24111, // WarWraith->self, 4.0s cast, range 60 width 8 rect
-        //DarkFlare = 24112, // WarWraith->location, 5.0s cast, ???
-        //SoulSacrifice = 24113, // WarWraith->Boss, 6.0s cast, interruptible, ???
+        DarkFlare = 24112, // WarWraith->location, 5.0s cast, range 8 circle
+        SoulSacrifice = 24113, // WarWraith->Boss, 6.0s cast, interruptible, WarWraith sacrifices to give Dmg Up to Boss
 
         DeadlyToxin = 24699, // Deathwall->self, no cast, range 25-30 donut, deathwall
         Shock = 24114, // ShockSphere->self, no cast, range 7 circle aoe around sphere
@@ -143,15 +143,19 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         public CrimsonBlade() : base(ActionID.MakeSpell(AID.CrimsonBlade), new AOEShapeCone(50, 90.Degrees())) { }
     }
 
+    class BloodCyclone : Components.SelfTargetedAOEs
+    {
+        public BloodCyclone() : base(ActionID.MakeSpell(AID.BloodCyclone), new AOEShapeCircle(5)) { }
+    }
+
     class Aethertide : Components.SpreadFromCastTargets
     {
         public Aethertide() : base(ActionID.MakeSpell(AID.AethertideAOE), 8) { }
     }
 
-    // TODO: no idea what it does if not interrupted...
-    class MarchingBreath : Components.CastHint
+    class MarchingBreath : Components.CastInterruptHint //heals all allies by 20% of max health (raidwide)
     {
-        public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath), "Interrupt") { }
+        public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath), hint: "(20% HP AOE heal)") { }
     }
 
     class TacticalAero : Components.SelfTargetedAOEs
@@ -164,6 +168,16 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         public EntropicFlame() : base(ActionID.MakeSpell(AID.EntropicFlame), new AOEShapeRect(60, 4)) { }
     }
 
+    class DarkFlare : Components.LocationTargetedAOEs
+    {
+        public DarkFlare() : base(ActionID.MakeSpell(AID.DarkFlare), 8) { }
+    }
+
+    class SoulSacrifice : Components.CastInterruptHint //WarWraith sacrifices itself to give boss a damage buff
+    {
+        public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice), hint: "(Dmg buff on boss)") { }
+    }
+
     class PurifyingLight : Components.LocationTargetedAOEs
     {
         public PurifyingLight() : base(ActionID.MakeSpell(AID.PurifyingLight), 12)
@@ -173,7 +187,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         }
     }
 
-    // TODO: there are some spells that i've not seen effects of (due to being interrupted or adds killed before they could finish casting)
     class CE42FromBeyondTheGraveStates : StateMachineBuilder
     {
         public CE42FromBeyondTheGraveStates(BossModule module) : base(module)
@@ -185,10 +198,13 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
                 .ActivateOnEnter<ShockSphere>()
                 .ActivateOnEnter<SoulPurge>()
                 .ActivateOnEnter<CrimsonBlade>()
+                .ActivateOnEnter<BloodCyclone>()
                 .ActivateOnEnter<Aethertide>()
                 .ActivateOnEnter<MarchingBreath>()
                 .ActivateOnEnter<TacticalAero>()
                 .ActivateOnEnter<EntropicFlame>()
+                .ActivateOnEnter<DarkFlare>()
+                .ActivateOnEnter<SoulSacrifice>()
                 .ActivateOnEnter<PurifyingLight>();
         }
     }

@@ -53,11 +53,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
             _distance = distance;
         }
 
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            if (_instance != null)
-                yield return _instance.Value;
-        }
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_instance);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

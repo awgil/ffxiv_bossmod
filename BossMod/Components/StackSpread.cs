@@ -274,4 +274,64 @@ namespace BossMod.Components
     {
         public StackWithCastTargets(ActionID aid, float radius, int minStackSize = 2, int maxStackSize = int.MaxValue) : base(aid, new(), radius, 0, minStackSize, maxStackSize) { }
     }
+
+    // spread/stack mechanic that selects targets by icon and finishes by cast event
+    public class IconStackSpread : UniformStackSpread
+    {
+        public uint StackIcon { get; private init; }
+        public uint SpreadIcon { get; private init; }
+        public ActionID StackAction { get; private init; }
+        public ActionID SpreadAction { get; private init; }
+        public float ActivationDelay { get; private init; }
+        public int NumFinishedStacks { get; protected set; }
+        public int NumFinishedSpreads { get; protected set; }
+
+        public IconStackSpread(uint stackIcon, uint spreadIcon, ActionID stackAID, ActionID spreadAID, float stackRadius, float spreadRadius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
+            : base(stackRadius, spreadRadius, minStackSize, maxStackSize, alwaysShowSpreads)
+        {
+            StackIcon = stackIcon;
+            SpreadIcon = spreadIcon;
+            StackAction = stackAID;
+            SpreadAction = spreadAID;
+            ActivationDelay = activationDelay;
+        }
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if (iconID == StackIcon)
+            {
+                AddStack(actor, module.WorldState.CurrentTime.AddSeconds(ActivationDelay));
+            }
+            else if (iconID == SpreadIcon)
+            {
+                AddSpread(actor, module.WorldState.CurrentTime.AddSeconds(ActivationDelay));
+            }
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if (spell.Action == StackAction)
+            {
+                Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+                ++NumFinishedStacks;
+            }
+            else if (spell.Action == SpreadAction)
+            {
+                Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+                ++NumFinishedSpreads;
+            }
+        }
+    }
+
+    // generic 'spread from actors with specific icon' mechanic
+    public class SpreadFromIcon : IconStackSpread
+    {
+        public SpreadFromIcon(uint icon, ActionID aid, float radius, float activationDelay, bool drawAllSpreads = true) : base(0, icon, default, aid, 0, radius, activationDelay, alwaysShowSpreads: drawAllSpreads) { }
+    }
+
+    // generic 'stack with actors with specific icon' mechanic
+    public class StackWithIcon : IconStackSpread
+    {
+        public StackWithIcon(uint icon, ActionID aid, float radius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue) : base(icon, 0, aid, default, radius, 0, activationDelay, minStackSize, maxStackSize) { }
+    }
 }

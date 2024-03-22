@@ -9,18 +9,26 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
         BossAdd = 0x256A, //R=2.07
         BossHelper = 0x233C,
         IceVoidzone = 0x1E8D9C,
+        BonusAdd_AltarMatanga = 0x2545, // R3.420
     };
 
     public enum AID : uint
     {
         AutoAttack = 870, // 2539->player, no cast, single-target
-        AutoAttack2 = 6499, // 256A->player, no cast, single-target
+        AutoAttack2 = 872, // BonusAdd_AltarMatanga->player, no cast, single-target
+
+        AutoAttack3 = 6499, // 256A->player, no cast, single-target
         TheScorpionsSting = 13393, // 2539->self, 3,5s cast, range 6+R 90-degree cone
         TheRamsVoice = 13394, // 2539->self, 5,0s cast, range 4+R circle, interruptible, deep freeze + frostbite
         TheLionsBreath = 13392, // 2539->self, 3,5s cast, range 6+R 120-degree cone, burn
         LanguorousGaze = 13742, // 256A->self, 3,0s cast, range 6+R 90-degree cone
         TheRamsKeeper = 13396, // 2539->location, 3,5s cast, range 6 circle, voidzone
         TheDragonsVoice = 13395, // 2539->self, 5,0s cast, range 8-30 donut, interruptible, paralaysis
+        unknown = 9636, // BonusAdd_AltarMatanga->self, no cast, single-target
+        Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 120-degree cone
+        RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
+        Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
+        Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
     };
 
     public enum IconID : uint
@@ -103,8 +111,24 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
 
     class IceVoidzone : Components.PersistentVoidzoneAtCastTarget
     {
-        public IceVoidzone() : base(6, ActionID.MakeSpell(AID.TheRamsKeeper), m => m.Enemies(OID.IceVoidzone), 0) { }
+        public IceVoidzone() : base(6, ActionID.MakeSpell(AID.TheRamsKeeper), m => m.Enemies(OID.IceVoidzone).Where(z => z.EventState != 7), 0) { }
     }
+
+    class RaucousScritch : Components.SelfTargetedAOEs
+    {
+        public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
+    }
+
+    class Hurl : Components.LocationTargetedAOEs
+    {
+        public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
+    }
+
+    class Spin : Components.Cleave
+    {
+        public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
+    }
+
 
     class ChimeraStates : StateMachineBuilder
     {
@@ -120,7 +144,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
                 .ActivateOnEnter<LanguorousGaze>()
                 .ActivateOnEnter<TheRamsKeeper>()
                 .ActivateOnEnter<IceVoidzone>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
+                .ActivateOnEnter<Hurl>()
+                .ActivateOnEnter<RaucousScritch>()
+                .ActivateOnEnter<Spin>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
         }
     }
 
@@ -134,6 +161,8 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BossAdd))
                 Arena.Actor(s, ArenaColor.Object);
+            foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -143,6 +172,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
+                    OID.BonusAdd_AltarMatanga => 3,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0

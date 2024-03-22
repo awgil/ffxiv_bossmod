@@ -229,6 +229,7 @@ namespace BossMod.Network
                 ActorControlCategory.PlayActionTimeline => $"{p1:X4}",
                 ActorControlCategory.EObjSetState => $"{p1:X4}, housing={(p3 != 0 ? p4 : null)}",
                 ActorControlCategory.EObjAnimation => $"{p1:X4} {p2:X4}",
+                ActorControlCategory.LimitBreakGauge => $"{p1} bars, {p2}/{p3}, uE={p4}, uF={p5}",
                 ActorControlCategory.ActionRejected => $"{Utils.LogMessageString(p1)}; action={new ActionID((ActionType)p2, p3)}, recast={p4 * 0.01f:f2}/{p5 * 0.01f:f2}, src-seq={p6}",
                 ActorControlCategory.IncrementRecast => $"group {p1}: dt=dt={p2 * 0.01f:f2}s",
                 _ => ""

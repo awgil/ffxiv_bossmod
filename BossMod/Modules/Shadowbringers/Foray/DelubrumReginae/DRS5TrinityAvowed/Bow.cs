@@ -15,11 +15,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
             _risky = risky;
         }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (AOE != null)
-                yield return AOE.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

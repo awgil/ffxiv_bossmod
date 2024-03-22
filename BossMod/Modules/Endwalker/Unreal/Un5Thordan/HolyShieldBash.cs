@@ -2,7 +2,7 @@
 
 class HolyShieldBash : Components.GenericWildCharge
 {
-    public HolyShieldBash() : base(5) { } // TODO: width could be smaller...
+    public HolyShieldBash() : base(3) { }
 
     public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {

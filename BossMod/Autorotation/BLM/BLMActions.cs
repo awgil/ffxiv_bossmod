@@ -1,7 +1,5 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.BLM
 {
@@ -20,7 +18,7 @@ namespace BossMod.BLM
             : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
         {
             _config = Service.Config.Get<BLMConfig>();
-            _state = new(autorot.Cooldowns);
+            _state = new(autorot.WorldState);
             _strategy = new();
             _prevMP = player.CurMP;
 

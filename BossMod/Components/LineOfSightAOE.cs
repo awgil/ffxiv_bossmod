@@ -20,8 +20,9 @@ namespace BossMod.Components
             MaxRange = maxRange;
         }
 
-        public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers)
+        public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers, DateTime nextExplosion = default)
         {
+            NextExplosion = nextExplosion;
             Origin = origin;
             Blockers.Clear();
             Blockers.AddRange(blockers);
@@ -126,7 +127,7 @@ namespace BossMod.Components
         {
             var caster = ActiveCaster;
             WPos? position = caster != null ? (module.WorldState.Actors.Find(caster.CastInfo!.TargetID)?.Position ?? caster.CastInfo!.LocXZ) : null;
-            Modify(position, BlockerActors(module).Select(b => (b.Position, b.HitboxRadius)));
+            Modify(position, BlockerActors(module).Select(b => (b.Position, b.HitboxRadius)), caster?.CastInfo?.NPCFinishAt ?? default);
         }
     }
 }

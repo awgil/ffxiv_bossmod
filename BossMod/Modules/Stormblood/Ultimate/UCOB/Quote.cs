@@ -40,6 +40,10 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 6501 => [AID.DalamudDive, AID.ThermionicBeam],
                 6502 => [AID.RavenDive, AID.LunarDynamo, AID.MeteorStream],
                 6503 => [AID.LunarDynamo, AID.RavenDive, AID.MeteorStream],
+                6504 => [AID.IronChariot, AID.ThermionicBeam, AID.RavenDive],
+                6505 => [AID.IronChariot, AID.RavenDive, AID.ThermionicBeam],
+                6506 => [AID.LunarDynamo, AID.RavenDive, AID.ThermionicBeam],
+                6507 => [AID.LunarDynamo, AID.IronChariot, AID.RavenDive],
                 _ => []
             };
             if (aids.Count > 0)
