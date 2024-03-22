@@ -1,6 +1,9 @@
-﻿using ImGuiNET;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace BossMod
 {
@@ -56,7 +59,7 @@ namespace BossMod
                 {
                     try
                     {
-                        _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, "World");
+                        _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, $"{GetPrefix()}");
                     }
                     catch (Exception ex)
                     {
@@ -86,6 +89,30 @@ namespace BossMod
             _manager.Draw();
         }
 
+        public void StartRecording()
+        {
+            if (_recorder == null)
+            {
+                try
+                {
+                    _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, $"{GetPrefix()}");
+                }
+                catch (Exception ex)
+                {
+                    Service.Log($"Failed to start recording: {ex}");
+                }
+            }
+        }
+
+        public void StopRecording()
+        {
+            if (_recorder != null)
+            {
+                _recorder.Dispose();
+                _recorder = null;
+            }
+        }
+
         public override void OnClose()
         {
             SetVisible(false);
@@ -93,5 +120,28 @@ namespace BossMod
 
         private void ApplyConfig(object? sender, EventArgs args) => IsOpen = _config.ShowUI;
         private void UpdateTitle() =>  WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
+        private static unsafe string GetPrefix()
+        {
+            var prefix = "World";
+            var row = Service.LuminaGameData!.GetExcelSheet<TerritoryType>()!.GetRow(Service.ClientState.TerritoryType);
+            if (row != null)
+            {
+                if (row.ContentFinderCondition.Value!.RowId != 0)
+                    prefix = row.ContentFinderCondition.Value.Name.RawString;
+                else
+                    prefix = row.PlaceName.Value?.NameNoArticle.RawString ?? prefix;
+            }
+
+            var cf = ContentsFinder.Instance();
+            var unrestricted = cf->IsUnrestrictedParty ? "U" : "";
+            var levelsync = cf->IsLevelSync ? "LS" : "";
+            var minilvl = cf->IsMinimalIL ? "MI" : "";
+            var noecho = cf->IsSilenceEcho ? "NE" : "";
+            var dfsettings = string.Join(", ", new[] { unrestricted, levelsync, minilvl, noecho }.Where(s => !string.IsNullOrEmpty(s)));
+            if (dfsettings != null)
+                prefix += $"_{dfsettings}";
+
+            return prefix;
+        }
     }
 }

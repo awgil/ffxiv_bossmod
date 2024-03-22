@@ -6,6 +6,12 @@
         [PropertyDisplay("Show replay management UI")]
         public bool ShowUI = false;
 
+        [PropertyDisplay("Auto record replays on duty start")]
+        public bool AutoRecord = false;
+
+        [PropertyDisplay("Auto stop replays on duty end")]
+        public bool AutoStop = false;
+
         [PropertyDisplay("Store server packets in the replay")]
         public bool DumpServerPackets = false;
 

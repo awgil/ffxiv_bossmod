@@ -46,6 +46,8 @@ namespace BossMod
             Service.WindowSystem = new("vbm");
             //Service.Device = pluginInterface.UiBuilder.Device;
             Service.Condition.ConditionChange += OnConditionChanged;
+            Service.DutyState.DutyStarted += OnDutyStarted;
+            Service.DutyState.DutyCompleted += OnDutyCompleted;
             MultiboxUnlock.Exec();
             Network.IDScramble.Initialize();
             Camera.Instance = new();
@@ -82,6 +84,8 @@ namespace BossMod
         public void Dispose()
         {
             Service.Condition.ConditionChange -= OnConditionChanged;
+            Service.DutyState.DutyStarted -= OnDutyStarted;
+            Service.DutyState.DutyCompleted -= OnDutyCompleted;
             _wndDebug.Dispose();
             _wndReplay.Dispose();
             _wndBossmodHints.Dispose();
@@ -159,6 +163,18 @@ namespace BossMod
         private void OnConditionChanged(ConditionFlag flag, bool value)
         {
             Service.Log($"Condition chage: {flag}={value}");
+        }
+
+        private void OnDutyStarted(object? sender, ushort e)
+        {
+            if (!Service.Config.Get<ReplayManagementConfig>().AutoRecord) return;
+            _wndReplay.StartRecording();
+        }
+
+        private void OnDutyCompleted(object? sender, ushort e)
+        {
+            if (!Service.Config.Get<ReplayManagementConfig>().AutoStop) return;
+            _wndReplay.StopRecording();
         }
     }
 }
