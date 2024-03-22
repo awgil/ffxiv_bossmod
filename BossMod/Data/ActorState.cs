@@ -263,9 +263,6 @@ namespace BossMod
         public class OpModelState : Operation
         {
             public ActorModelState Value;
-            public byte ModelState;
-            public byte AnimState1;
-            public byte AnimState2;
 
             protected override void ExecActor(WorldState ws, Actor actor)
             {
