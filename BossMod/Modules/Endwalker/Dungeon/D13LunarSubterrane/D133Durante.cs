@@ -78,7 +78,7 @@ namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D133DamcyanAntilon
                     yield return new(circle, _casters[i].source, activation: _casters[i].activation, color: ArenaColor.Danger);
             if (_casters.Count > 16)
                 for (int i = 16; i < Math.Clamp(_casters.Count, 16, 32); ++i)
-                    yield return new(circle, _casters[i].source, activation: _casters[i].activation);
+                    yield return new(circle, _casters[i].source, activation: _casters[i].activation, risky: false);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
