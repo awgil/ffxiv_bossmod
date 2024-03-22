@@ -35,7 +35,7 @@ namespace BossMod.Endwalker.NormalTrials.Trial7Zeromus
         public Trial7ZeromusConfig() : base(90) { }
     }
 
-    [ModuleInfo(CFCID = 964)]
+    [ModuleInfo(CFCID = 964, PrimaryActorOID = 0x404E)]
     public class Trial7Zeromus : BossModule
     {
         public Trial7Zeromus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }
