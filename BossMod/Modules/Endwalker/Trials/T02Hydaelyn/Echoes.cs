@@ -9,12 +9,14 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.Echoes)
+            {
                 ++NumCasts;
                 if (NumCasts == 5)
                 {
                     Stacks.Clear();
                     NumCasts = 0;
                 }
+            }
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

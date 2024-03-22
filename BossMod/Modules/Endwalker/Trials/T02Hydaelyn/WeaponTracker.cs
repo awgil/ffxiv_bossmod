@@ -5,10 +5,8 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
 {
     class WeaponTracker : Components.GenericAOEs
     {
-        private bool staff;
-        private bool sword;
-        private bool chakram;
-
+        public enum Stance { Sword, Staff, Chakram }
+        public Stance CurStance { get; private set; }
         private DateTime _activation;
         private static AOEShapeCross _aoeSword = new(40, 5);
         private static AOEShapeCircle _aoeStaff = new(10);
@@ -18,12 +16,12 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
         {
             if (_activation != default)
             {
-                if (sword)
-                yield return new(_aoeSword, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
-                if (staff)
-                yield return new(_aoeStaff, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
-                if (chakram)
-                yield return new(_aoeChakram, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
+                if (CurStance == Stance.Sword)
+                    yield return new(_aoeSword, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
+                if (CurStance == Stance.Staff)
+                    yield return new(_aoeStaff, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
+                if (CurStance == Stance.Chakram)
+                    yield return new(_aoeChakram, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
             }
         }
 
@@ -32,26 +30,16 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
             if ((SID)status.ID == SID.HydaelynsWeapon)
                 _activation = module.WorldState.CurrentTime.AddSeconds(6);
             if ((SID)status.ID == SID.HydaelynsWeapon && status.Extra == 0x1B4)
-            {
-                staff = true;
-                chakram = false;
-                sword = false;
-            }
+                CurStance = Stance.Staff;
             if ((SID)status.ID == SID.HydaelynsWeapon && status.Extra == 0x1B5)
-            {
-                staff = false;
-                chakram = true;
-                sword = false;                
-            }
+                CurStance = Stance.Chakram;
         }
 
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
             if ((SID)status.ID == SID.HydaelynsWeapon)
             {
-                staff = false;
-                chakram = false;
-                sword = true;
+                CurStance = Stance.Sword;
                 _activation = module.WorldState.CurrentTime.AddSeconds(6.9f);               
             }
         }
