@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+
 namespace BossMod.Shadowbringers.HuntS.Aglaope
 {
     public enum OID : uint
@@ -28,9 +32,38 @@ namespace BossMod.Shadowbringers.HuntS.Aglaope
         public SongOfTorment() : base(ActionID.MakeSpell(AID.SongOfTorment), hint: "(Raidwide + Bleed)") { }
     }
 
-    class SeductiveSonata : Components.SelfTargetedAOEs
+//TODO: ideally this AOE should just wait for Effect Results, since they can be delayed by over 2.1s, which would cause unknowning players and AI to run back into the death zone
+    class SeductiveSonata : Components.GenericAOEs //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
     {
-        public SeductiveSonata() : base(ActionID.MakeSpell(AID.SeductiveSonata), new AOEShapeCircle(16.2f)) { }
+        private DateTime _activation;
+        private DateTime _time;
+        private bool casting;
+        private static readonly AOEShapeCircle circle = new(16.2f);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (casting || (_time != default && _time > module.WorldState.CurrentTime))
+                yield return new(circle, module.PrimaryActor.Position, activation: _activation);
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.SeductiveSonata)
+            {
+                casting = true;
+                _activation = spell.NPCFinishAt;
+                _time = spell.NPCFinishAt.AddSeconds(2.2f);
+            }
+        }
+
+        public override void Update(BossModule module)
+        {
+            if (_time != default && _time < module.WorldState.CurrentTime)
+            {
+                _time = default;
+                casting = false;
+            }
+        }
     }
 
     class DeathlyVerse : Components.SelfTargetedAOEs
