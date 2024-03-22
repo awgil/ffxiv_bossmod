@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.Trials.T02Hydaelyn
 {
     class MousasScorn : Components.CastSharedTankbuster

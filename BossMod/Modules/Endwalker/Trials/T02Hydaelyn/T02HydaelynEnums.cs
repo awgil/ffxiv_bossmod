@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
         HerossRadiance = 26071, // Boss->self, 5,0s cast, range 40 circle
         Teleport = 26025, // Boss->location, no cast, single-target, boss teleports mid
         Teleport2 = 28282, // Boss->location, no cast, single-target
-        Teleport3= 26030, // 3503->location, no cast, single-target, Mystic Refulgence teleports
+        Teleport3 = 26030, // 3503->location, no cast, single-target, Mystic Refulgence teleports
         DawnMantle = 27660, // Boss->self, 4,9s cast, single-target
         Anthelion = 26056, // Boss->self, no cast, range 5-40 donut (not sure if 5.04 or 5, impossible to tell with naked eye)
         MousasScorn = 26070, // Boss->players, 5,0s cast, range 4 circle, shared tankbuster
@@ -78,5 +78,4 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
         MagossMantle = 2877, // none->Boss, extra=0x0, staff stance
         CrystallizeElement = 2056, // EchoOfHydaelyn/Boss->EchoOfHydaelyn/Boss, extra=0x152/0x153
     };
-
 }

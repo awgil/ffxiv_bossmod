@@ -40,7 +40,7 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
             if ((SID)status.ID == SID.HydaelynsWeapon)
             {
                 CurStance = Stance.Sword;
-                _activation = module.WorldState.CurrentTime.AddSeconds(6.9f);               
+                _activation = module.WorldState.CurrentTime.AddSeconds(6.9f);
             }
         }
 

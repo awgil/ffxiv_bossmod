@@ -26,7 +26,7 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
                     yield return new(_circle, c + _triRadius * (tri.Rotation + 60.Degrees()).ToDirection(), activation: _activation);
                     yield return new(_circle, c + _triRadius * (tri.Rotation + 180.Degrees()).ToDirection(), activation: _activation);
                     yield return new(_circle, c + _triRadius * (tri.Rotation - 60.Degrees()).ToDirection(), activation: _activation);
-                    yield return new(_circle, c + _hexRadius *  hex.Rotation.ToDirection(), activation: _activation);
+                    yield return new(_circle, c + _hexRadius * hex.Rotation.ToDirection(), activation: _activation);
                     yield return new(_circle, c + _hexRadius * (hex.Rotation + 60.Degrees()).ToDirection(), activation: _activation);
                     yield return new(_circle, c + _hexRadius * (hex.Rotation + 120.Degrees()).ToDirection(), activation: _activation);
                     yield return new(_circle, c + _hexRadius * (hex.Rotation + 180.Degrees()).ToDirection(), activation: _activation);
@@ -46,11 +46,11 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
         {
             if ((AID)spell.Action.ID == AID.Incandescence)
                 ++NumCasts;
-                if (NumCasts == 10)
-                {
-                    NumCasts = 0;
-                    _activation = default;
-                }
+            if (NumCasts == 10)
+            {
+                NumCasts = 0;
+                _activation = default;
+            }
 
         }
     }
