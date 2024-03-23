@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace BossMod.Shadowbringers.HuntS.Tarchia
 {
@@ -81,7 +80,6 @@ namespace BossMod.Shadowbringers.HuntS.Tarchia
                 ++NumCasts;
             if ((AID)spell.Action.ID == AID.MightySpin2)
                 _activation = default;
-
         }
     }
 
