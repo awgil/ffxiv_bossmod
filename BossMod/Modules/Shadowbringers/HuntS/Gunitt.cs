@@ -64,10 +64,20 @@ namespace BossMod.Shadowbringers.HuntS.Gunitt
     {
         private BitMask _forbidden;
 
+        public override void Update(BossModule module)
+        {
+            if (Stacks.Count > 0) //updating forbiddenplayers because debuffs can be applied after new stack marker appears
+            {
+                var Forbidden = Stacks[0];
+                Forbidden.ForbiddenPlayers = _forbidden;
+                Stacks[0] = Forbidden;
+            }
+        }
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Stackmarker)
-                Stacks.Add(new(actor, 10, 10, activation: module.WorldState.CurrentTime.AddSeconds(5), forbiddenPlayers: _forbidden));
+                Stacks.Add(new(actor, 10, activation: module.WorldState.CurrentTime.AddSeconds(5), forbiddenPlayers: _forbidden));
         }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {

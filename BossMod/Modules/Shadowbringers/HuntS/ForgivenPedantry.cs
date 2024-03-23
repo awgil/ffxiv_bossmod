@@ -110,11 +110,18 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenPedantry
     class WitchHunt : Components.GenericBaitAway
     {
         private static readonly AOEShapeRect rect = new AOEShapeRect(0, 5);
+        private bool witchHunt1done;
 
         public override void Update(BossModule module)
         {
             foreach (var b in CurrentBaits)
                 ((AOEShapeRect)b.Shape).LengthFront = (b.Target.Position - b.Source.Position).Length();
+            if (CurrentBaits.Count > 0 && witchHunt1done) //updating WitchHunt2 target incase of sudden tank swap
+            {
+                var Target = CurrentBaits[0];
+                Target.Target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID)!;
+                CurrentBaits[0] = Target;
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -122,7 +129,10 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenPedantry
             if ((AID)spell.Action.ID == AID.SanctifiedShock)
                 CurrentBaits.Add(new(module.PrimaryActor, module.WorldState.Actors.Find(spell.MainTargetID)!, rect));
             if ((AID)spell.Action.ID == AID.WitchHunt2)
+            {
                 CurrentBaits.Clear();
+                witchHunt1done = false;
+            }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -130,7 +140,7 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenPedantry
             if ((AID)spell.Action.ID == AID.WitchHunt)
             {
                 CurrentBaits.Clear();
-                CurrentBaits.Add(new(module.PrimaryActor, module.WorldState.Actors.Find(module.PrimaryActor.TargetID)!, rect)); //i guess this could draw wrong if the main tank changes during the ~2s between Witchhunt and WitchHunt2
+                CurrentBaits.Add(new(module.PrimaryActor, module.WorldState.Actors.Find(module.PrimaryActor.TargetID)!, rect));
             }
         }
     }
