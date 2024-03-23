@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Shadowbringers.HuntS.Gunitt
 {
     public enum OID : uint
@@ -70,7 +67,7 @@ namespace BossMod.Shadowbringers.HuntS.Gunitt
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Stackmarker)
-                Stacks.Add(new(actor, 10, activation: module.WorldState.CurrentTime.AddSeconds(5), forbiddenPlayers: _forbidden));
+                Stacks.Add(new(actor, 10, 10, activation: module.WorldState.CurrentTime.AddSeconds(5), forbiddenPlayers: _forbidden));
         }
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
