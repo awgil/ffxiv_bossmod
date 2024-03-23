@@ -11,14 +11,14 @@ namespace BossMod.Shadowbringers.HuntA.Nuckelavee
     public enum AID : uint
     {
         AutoAttack = 872, // 288F->player, no cast, single-target
-        Torpedo = 16964, // 288F->player, 4,0s cast, single-target, tankbuster on  cast event
+        Torpedo = 16964, // 288F->player, 4,0s cast, single-target, tankbuster on cast event
         BogBody = 16965, // 288F->player, 5,0s cast, range 5 circle, spread, applies bleed that can be dispelled
         Gallop = 16967, // 288F->location, 4,5s cast, rushes to target and casts Spite
         Spite = 18037, // 288F->self, no cast, range 8 circle
     };
 
     class Torpedo : Components.SingleTargetCast
-    {
+    { //Tankbuster resolves on cast event instead of cast finished
         private List<Actor> _casters = new();
         public new IReadOnlyList<Actor> Casters => _casters;
         public new bool Active => _casters.Count > 0;
