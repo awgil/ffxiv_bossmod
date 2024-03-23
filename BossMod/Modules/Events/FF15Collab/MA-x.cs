@@ -46,7 +46,7 @@ namespace BossMod.Events.FF15Collab.MAx
         }
     }
 
-    [ModuleInfo(FateID = 1409, NameID = 7898)]
+    [ModuleInfo(FateID = 1409, NameID = 7898, ExVersion = 0)]
     public class MAx : BossModule
     {
         public MAx(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(295, -22), 25)) { }
