@@ -96,13 +96,11 @@ namespace BossMod
             {
                 try
                 {
-                    IEnumerable<FileInfo> filesToDelete = Enumerable.Empty<FileInfo>();
                     if (_config.MaxReplays > 0)
-                        if (_logDir.GetFiles().Length >= _config.MaxReplays)
-                            filesToDelete = _logDir.GetFiles().OrderBy(f => f.LastWriteTime).Take(_logDir.GetFiles().Length - _config.MaxReplays);
-                    if (filesToDelete != null)
-                        foreach (var f in filesToDelete)
-                            f.Delete();
+                    {
+                        var files = _logDir.GetFiles().OrderBy(f => f.LastWriteTime).ToList();
+                        files.Take(files.Count - _config.MaxReplays).ToList().ForEach(f => f.Delete());
+                    }
                 }
                 catch (Exception ex)
                 {
