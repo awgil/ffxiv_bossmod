@@ -75,16 +75,16 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 foreach (var o in module.Enemies(OID.OrbOfImmolationBlue))
                 {
                     if (bluered1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.9f));
+                        yield return new(rect, o.Position, o.Rotation, _activation1.AddSeconds(6.9f));
                     if (redblue2 && !redblue1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, o.Position, o.Rotation, activation: _activation2.AddSeconds(8.9f));
+                        yield return new(rect, o.Position, o.Rotation, _activation2.AddSeconds(8.9f));
                 }
                 foreach (var o in module.Enemies(OID.OrbOfImmolationRed))
                 {
                     if (bluered2 && !bluered1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.9f));
+                        yield return new(rect, o.Position, o.Rotation, _activation1.AddSeconds(6.9f));
                     if (redblue1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, o.Position, o.Rotation, activation: _activation2.AddSeconds(8.9f));
+                        yield return new(rect, o.Position, o.Rotation, _activation2.AddSeconds(8.9f));
                 }
             }
         }
@@ -166,16 +166,16 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 foreach (var o in module.Enemies(OID.OrbOfConflagrationBlue))
                 {
                     if (bluered1)
-                        yield return new(circle, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.2f));
+                        yield return new(circle, o.Position, o.Rotation, _activation1.AddSeconds(6.2f));
                     if (redblue2 && !redblue1)
-                        yield return new(circle, o.Position, o.Rotation, activation: _activation2.AddSeconds(10.2f));
+                        yield return new(circle, o.Position, o.Rotation, _activation2.AddSeconds(10.2f));
                 }
                 foreach (var o in module.Enemies(OID.OrbOfConflagrationRed))
                 {
                     if (bluered2 && !bluered1)
-                        yield return new(circle, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.2f));
+                        yield return new(circle, o.Position, o.Rotation, _activation1.AddSeconds(6.2f));
                     if (redblue1)
-                        yield return new(circle, o.Position, o.Rotation, activation: _activation2.AddSeconds(10.2f));
+                        yield return new(circle, o.Position, o.Rotation, _activation2.AddSeconds(10.2f));
                 }
             }
         }
