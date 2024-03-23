@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace BossMod.Shadowbringers.HuntS.Aglaope
 {
@@ -32,8 +31,9 @@ namespace BossMod.Shadowbringers.HuntS.Aglaope
         public SongOfTorment() : base(ActionID.MakeSpell(AID.SongOfTorment), hint: "(Raidwide + Bleed)") { }
     }
 
-//TODO: ideally this AOE should just wait for Effect Results, since they can be delayed by over 2.1s, which would cause unknowning players and AI to run back into the death zone
-    class SeductiveSonata : Components.GenericAOEs //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
+//TODO: ideally this AOE should just wait for Effect Results, since they can be delayed by over 2.1s, which would cause unknowning players and AI to run back into the death zone, 
+//not sure how to do this though considering there can be anywhere from 0-32 targets with different time for effect results each
+    class SeductiveSonata : Components.GenericAOEs
     {
         private DateTime _activation;
         private DateTime _time;
