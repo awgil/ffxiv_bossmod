@@ -77,7 +77,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.Judged or AID.FoundWanting)
-                Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
+                Towers.RemoveAt(0);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
