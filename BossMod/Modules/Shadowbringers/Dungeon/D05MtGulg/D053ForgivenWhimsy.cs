@@ -170,7 +170,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.Exegesis)
                 Pattern = Patterns.None;
