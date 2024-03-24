@@ -57,39 +57,20 @@ namespace BossMod.Components
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-                if (Active && CanBeInterrupted && !CanBeStunned)
-                {
-                    if (ShowNameInHint && Casters.Count > 0 && HintExtra.Length == 0)
-                    hints.Add($"Interrupt {Casters[0].Name}!");
-                    if (!ShowNameInHint && Casters.Count > 0 && HintExtra.Length == 0)
-                    hints.Add($"Interrupt!");
-                    if (ShowNameInHint && Casters.Count > 0 && HintExtra.Length > 0)
-                    hints.Add($"Interrupt {Casters[0].Name}!" + $" {HintExtra}");
-                    if (!ShowNameInHint && Casters.Count > 0 && HintExtra.Length > 0)
-                    hints.Add($"Interrupt!" + $" {HintExtra}");
-                }
-                if (Active && !CanBeInterrupted && CanBeStunned)
-                {
-                    if (ShowNameInHint && Casters.Count > 0 && HintExtra.Length == 0)
-                    hints.Add($"Stun {Casters[0].Name}!");
-                    if (!ShowNameInHint && Casters.Count > 0 && HintExtra.Length == 0)
-                    hints.Add($"Stun!");
-                    if (ShowNameInHint && Casters.Count > 0 && HintExtra.Length > 0)
-                    hints.Add($"Stun {Casters[0].Name}!" + $" {HintExtra}");
-                    if (!ShowNameInHint && Casters.Count > 0 && HintExtra.Length > 0)
-                    hints.Add($"Stun!" + $" {HintExtra}");
-                }
-                if (Active && CanBeInterrupted && CanBeStunned)
-                {
-                    if (ShowNameInHint && Casters.Count > 0 && HintExtra.Length == 0)
-                    hints.Add($"Interrupt/stun {Casters[0].Name}!");
-                    if (!ShowNameInHint && Casters.Count > 0 && HintExtra.Length == 0)
-                    hints.Add($"Interrupt/stun!");
-                    if (ShowNameInHint && Casters.Count > 0 && HintExtra.Length > 0)
-                    hints.Add($"Interrupt/stun {Casters[0].Name}!" + $" {HintExtra}");
-                    if (!ShowNameInHint && Casters.Count > 0 && HintExtra.Length > 0)
-                    hints.Add($"Interrupt/stun!" + $" {HintExtra}");
-                }
+            if (!Active) return;
+            string action = "";
+            if (CanBeInterrupted && !CanBeStunned)
+                action = "Interrupt";
+            else if (CanBeInterrupted && CanBeStunned)
+                action = "Interrupt/Stun";
+            else if (!CanBeInterrupted && CanBeStunned)
+                action = "Stun";
+            string hint = $"{action}!";
+            if (ShowNameInHint && Casters.Count > 0)
+                hint = $"{action} {Casters[0].Name}!";
+            if (HintExtra.Length > 0)
+                hint += $" {HintExtra}";
+            hints.Add(hint);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
