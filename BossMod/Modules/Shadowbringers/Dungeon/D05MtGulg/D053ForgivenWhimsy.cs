@@ -65,40 +65,19 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
 
     public class JudgmentDay : Components.GenericTowers
     {
-        private bool tower1;
-        private bool tower2;
-        private Actor? Tower1;
-
         public override void OnActorEState(BossModule module, Actor actor, ushort state)
         {
             if (state is 0x01C or 0x02C)
             {
-                if (!tower1)
-                {
-                    tower1 = true;
+                if (!Towers.Contains(new (actor.Position, 5, 1, 1)))
                     Towers.Add(new(actor.Position, 5, 1, 1));
-                    Tower1 = actor;
-                }
-                if (tower1 && !tower2 && actor != Tower1)
-                {
-                    tower2 = true;
-                    Towers.Add(new(actor.Position, 5, 1, 1));
-                }
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.Judged or AID.FoundWanting)
-            {
                 Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
-                if (Towers.Count == 0) //Note: I don't think towers can repeat, this is just a safety precaution
-                {
-                    tower1 = default;
-                    tower2 = default;
-                    Tower1 = default;
-                }
-            }
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
