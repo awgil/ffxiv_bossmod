@@ -1,5 +1,4 @@
 ﻿// CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
