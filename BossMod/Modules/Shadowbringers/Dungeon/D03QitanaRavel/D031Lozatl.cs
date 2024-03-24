@@ -34,7 +34,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
     }
 
     class Stonefist : Components.SingleTargetCast
-    { //Tankbuster resolves on cast event instead of cast finished
+    {
         public Stonefist() : base(ActionID.MakeSpell(AID.Stonefist)) 
         {
             EndsOnCastEvent = true;

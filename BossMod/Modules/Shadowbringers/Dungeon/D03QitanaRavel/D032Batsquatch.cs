@@ -36,7 +36,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D032Batsquatch
     }
 
     class RipperFang : Components.SingleTargetCast
-    { //Tankbuster resolves on cast event instead of cast finished
+    {
         public RipperFang() : base(ActionID.MakeSpell(AID.RipperFang)) 
         {
             EndsOnCastEvent = true;

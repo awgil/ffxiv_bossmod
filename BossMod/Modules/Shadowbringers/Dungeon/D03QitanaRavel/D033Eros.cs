@@ -217,7 +217,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
     }
 
     class Rend : Components.SingleTargetCast
-    { //Tankbuster resolves on cast event instead of cast finished
+    {
         public Rend() : base(ActionID.MakeSpell(AID.Rend)) 
         {
             EndsOnCastEvent = true;
