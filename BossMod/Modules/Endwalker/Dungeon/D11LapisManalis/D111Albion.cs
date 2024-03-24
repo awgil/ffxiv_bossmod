@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
+namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D111Albion
 {
     public enum OID : uint
     {
@@ -54,7 +54,7 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
         private Angle _rotation2;
         private DateTime _reset1;
         private DateTime _reset2;
-        private List<Actor> beasts1 = new();        
+        private List<Actor> beasts1 = new();
         private List<Actor> beasts2 = new();
         private WPos stampede1 = default;
         private WPos stampede2 = default;
@@ -62,13 +62,13 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (active1 && beasts1.Count > 0)
-                    yield return new(new AOEShapeRect((beasts1.First().Position - beasts1.Last().Position).Length() + 30, 5), new (beasts1.Last().Position.X, stampede1.Z), _rotation1);
+                yield return new(new AOEShapeRect((beasts1.First().Position - beasts1.Last().Position).Length() + 30, 5), new(beasts1.Last().Position.X, stampede1.Z), _rotation1);
             if (active2 && beasts2.Count > 0)
-                    yield return new(new AOEShapeRect((beasts2.First().Position - beasts2.Last().Position).Length() + 30, 5), new (beasts2.Last().Position.X, stampede2.Z), _rotation2);
+                yield return new(new AOEShapeRect((beasts2.First().Position - beasts2.Last().Position).Length() + 30, 5), new(beasts2.Last().Position.X, stampede2.Z), _rotation2);
             if (active1 && beasts1.Count == 0)
-                    yield return new(rect, stampede1, 90.Degrees());
+                yield return new(rect, stampede1, 90.Degrees());
             if (active2 && beasts2.Count == 0)
-                    yield return new(rect, stampede2, 90.Degrees());
+                yield return new(rect, stampede2, 90.Degrees());
         }
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)
@@ -101,7 +101,7 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
                         active2 = true;
                         _rotation2 = -90.Degrees();
                         stampede2 = new(44, -759);
-                    }                   
+                    }
                 if (index == 0x22)
                     if (newstampede)
                     {
@@ -127,7 +127,7 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
                         active2 = true;
                         _rotation2 = -90.Degrees();
                         stampede2 = new(44, -749);
-                    } 
+                    }
                 if (index == 0x23)
                     if (newstampede)
                     {
@@ -186,30 +186,30 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
         public override void Update(BossModule module)
         {
             foreach (var b in module.Enemies(OID.WildBeasts4))
-            if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
-            beasts1.Add(b);
+                if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
+                    beasts1.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts3))
-            if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
-            beasts1.Add(b);
+                if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
+                    beasts1.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts2))
-            if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
-            beasts1.Add(b);
+                if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
+                    beasts1.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts1))
-            if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
-            beasts1.Add(b);
+                if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
+                    beasts1.Add(b);
 
             foreach (var b in module.Enemies(OID.WildBeasts4))
-            if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
-            beasts2.Add(b);
+                if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
+                    beasts2.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts3))
-            if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
-            beasts2.Add(b);
+                if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
+                    beasts2.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts2))
-            if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
-            beasts2.Add(b);
+                if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
+                    beasts2.Add(b);
             foreach (var b in module.Enemies(OID.WildBeasts1))
-            if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
-            beasts2.Add(b);
+                if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
+                    beasts2.Add(b);
 
             if (_reset1 != default && module.WorldState.CurrentTime > _reset1)
             {
@@ -342,9 +342,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
         public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.IcyCrystal);
     }
 
-    class D131AlbionStates : StateMachineBuilder
+    class D111AlbionStates : StateMachineBuilder
     {
-        public D131AlbionStates(BossModule module) : base(module)
+        public D111AlbionStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<WildlifeCrossing>()
@@ -360,8 +360,8 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D131Albion
     }
 
     [ModuleInfo(CFCID = 896, NameID = 11992)]
-    public class D131Albion : BossModule
+    public class D111Albion : BossModule
     {
-        public D131Albion(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(24, -744), 19.5f)) { }
+        public D111Albion(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(24, -744), 19.5f)) { }
     }
 }

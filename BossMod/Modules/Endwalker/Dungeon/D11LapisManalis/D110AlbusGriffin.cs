@@ -1,7 +1,7 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130AlbusGriffin
+namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D110AlbusGriffin
 {
     public enum OID : uint
     {
@@ -31,9 +31,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130AlbusGriffin
         public Freefall() : base(ActionID.MakeSpell(AID.Freefall), 8) { }
     }
 
-    class D130AlbusGriffinStates : StateMachineBuilder
+    class D110AlbusGriffinStates : StateMachineBuilder
     {
-        public D130AlbusGriffinStates(BossModule module) : base(module)
+        public D110AlbusGriffinStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<Freefall>()
@@ -44,8 +44,8 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130AlbusGriffin
     }
 
     [ModuleInfo(CFCID = 896, NameID = 12245)]
-    public class D130AlbusGriffin : BossModule
+    public class D110AlbusGriffin : BossModule
     {
-        public D130AlbusGriffin(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }
+        public D110AlbusGriffin(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }
     }
 }

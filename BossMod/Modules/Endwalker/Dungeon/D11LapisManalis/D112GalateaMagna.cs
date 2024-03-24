@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
+namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D112GalateaMagna
 {
     public enum OID : uint
     {
@@ -59,7 +59,7 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             var activation = 3 * (_casters.Count - _casterssorted.Count);
-            if (_casterssorted.Count == 1) 
+            if (_casterssorted.Count == 1)
                 yield return new(cross, _casterssorted[0].Position, 45.Degrees(), _activation.AddSeconds(activation), ArenaColor.Danger);
             if (_casterssorted.Count > 1)
             {
@@ -158,8 +158,8 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
         public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
         {
             foreach (var a in _affected)
-            if (_affected.Count > 0 && module.WorldState.CurrentTime > _activation.AddSeconds(-10))
-                yield return new(a.Position, _activation);
+                if (_affected.Count > 0 && module.WorldState.CurrentTime > _activation.AddSeconds(-10))
+                    yield return new(a.Position, _activation);
         }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -208,11 +208,10 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
     class Doom : BossComponent
     {
         private List<Actor> _doomed = new();
-        public bool Doomed { get; private set; }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-              if ((SID)status.ID == SID.Doom)
+            if ((SID)status.ID == SID.Doom)
                 _doomed.Add(actor);
         }
 
@@ -251,9 +250,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
         public SoulScythe() : base(ActionID.MakeSpell(AID.SoulScythe), 18) { }
     }
 
-    class D132GalateaMagnaStates : StateMachineBuilder
+    class D112GalateaMagnaStates : StateMachineBuilder
     {
-        public D132GalateaMagnaStates(BossModule module) : base(module)
+        public D112GalateaMagnaStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<Doom>()
@@ -267,8 +266,8 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D132GalateaMagna
     }
 
     [ModuleInfo(CFCID = 896, NameID = 10308)]
-    public class D132GalateaMagna : BossModule
+    public class D112GalateaMagna : BossModule
     {
-        public D132GalateaMagna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(350, -394), 19.5f)) { }
+        public D112GalateaMagna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(350, -394), 19.5f)) { }
     }
 }

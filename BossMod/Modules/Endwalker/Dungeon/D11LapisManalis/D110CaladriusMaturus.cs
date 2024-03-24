@@ -1,7 +1,7 @@
 // CONTRIB: made by malediktus, not checked
 using System.Linq;
 
-namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130CaladriusMaturus
+namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D110CaladriusMaturus
 {
     public enum OID : uint
     {
@@ -20,9 +20,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130CaladriusMaturus
         public TransonicBlast() : base(ActionID.MakeSpell(AID.TransonicBlast), new AOEShapeCone(9, 45.Degrees())) { }
     }
 
-    class D130CaladriusMaturusStates : StateMachineBuilder
+    class D110CaladriusMaturusStates : StateMachineBuilder
     {
-        public D130CaladriusMaturusStates(BossModule module) : base(module)
+        public D110CaladriusMaturusStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<TransonicBlast>()
@@ -31,9 +31,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130CaladriusMaturus
     }
 
     [ModuleInfo(CFCID = 896, NameID = 12078)]
-    public class D130CaladriusMaturus : BossModule
+    public class D110CaladriusMaturus : BossModule
     {
-        public D130CaladriusMaturus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }
+        public D110CaladriusMaturus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
@@ -41,6 +41,5 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D130CaladriusMaturus
             foreach (var s in Enemies(OID.Caladrius))
                 Arena.Actor(s, ArenaColor.Enemy);
         }
-
     }
 }

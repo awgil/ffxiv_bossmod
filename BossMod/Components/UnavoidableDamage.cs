@@ -15,44 +15,47 @@ namespace BossMod.Components
     }
 
     // generic unavoidable raidwide cast after NPC yell, typically used at the end of boss "limit break" phases
-    public class RaidwideAfterNPCYell : CastHint
+    public class RaidwideAfterNPCYell : CastCounter
     {
         public uint NPCYellID;
-        public float Delay; //delay from NPCyell for raidwide to cast event
-        private bool casting;
+        public float Delay; // delay from NPCYell for raidwide to cast event
+        public string Hint;
         private DateTime _activation;
 
-        public RaidwideAfterNPCYell(ActionID aid, uint nPCYellid, float delay, string hint = "Raidwide") : base(aid, hint)
+        public RaidwideAfterNPCYell(ActionID aid, uint npcYellID, float delay, string hint = "Raidwide") : base(aid)
         {
-            NPCYellID = nPCYellid;
+            NPCYellID = npcYellID;
             Delay = delay;
+            Hint = hint;
+        }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (_activation != default && Hint.Length > 0)
+                hints.Add(Hint);
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (_activation != default)
+                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), _activation));
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if (spell.Action == WatchedAction)
+            {
+                ++NumCasts;
+                _activation = default;
+            }
         }
 
         public override void OnActorNpcYell(BossModule module, Actor actor, ushort id)
         {
             if (id == NPCYellID)
             {
-                casting = true;
-                _activation = module.WorldState.CurrentTime;
+                _activation = module.WorldState.CurrentTime.AddSeconds(Delay);
             }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if (spell.Action == WatchedAction)
-                casting = false;
-        }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            if (casting)
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), _activation.AddSeconds(Delay)));
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (casting && Hint.Length > 0)
-                hints.Add(Hint);
         }
     }
 

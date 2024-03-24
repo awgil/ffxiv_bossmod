@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D133Cagnazzo
+namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D113Cagnazzo
 {
     public enum OID : uint
     {
@@ -213,10 +213,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D133Cagnazzo
         }
     }
 
-
-    class D133CagnazzoStates : StateMachineBuilder
+    class D113CagnazzoStates : StateMachineBuilder
     {
-        public D133CagnazzoStates(BossModule module) : base(module)
+        public D113CagnazzoStates(BossModule module) : base(module)
         {
             TrivialPhase()
                 .ActivateOnEnter<Voidcleaver>()
@@ -239,9 +238,9 @@ namespace BossMod.Endwalker.Dungeon.D13LapisManalis.D133Cagnazzo
     }
 
     [ModuleInfo(CFCID = 896, NameID = 11995)]
-    public class D133Cagnazzo : BossModule
+    public class D113Cagnazzo : BossModule
     {
-        public D133Cagnazzo(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-250, 130), 20)) { }
+        public D113Cagnazzo(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-250, 130), 20)) { }
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
