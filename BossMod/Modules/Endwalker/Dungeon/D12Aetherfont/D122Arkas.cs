@@ -1,6 +1,7 @@
 ﻿// CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
 {
@@ -43,23 +44,15 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
 
     class Voidzone : BossComponent
     {
-        private bool active;
-
         public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
             if (index == 0x00)
+            {
                 if (state == 0x00020001)
-                    active = true;
+                    module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 10);
                 if (state == 0x00080004)
-                    active = false;
-        }
-
-        public override void Update(BossModule module)
-        {
-            if (!active)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 14.5f);
-            if (active)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 10);
+                    module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 14.5f);
+            }
         }
     }
 
@@ -76,7 +69,6 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
 
     class ForkedFissures : Components.GenericAOEs
     {
-        private DateTime _activation;
         private static WPos[] patternIndex04Start = [new(419.293f, -445.661f), new(422.919f, -448.675f), new(419.359f, -445.715f), new(419.333f, -437.25f), new(432.791f, -434.82f), new(423.239f, -442.489f), new(426.377f, -437.596f), new(419.335f, -445.663f), new(417.162f, -442.421f), new(427.274f, -448.618f), new(430.839f, -441.877f), new(419.292f, -445.596f), new(427.482f, -448.548f), new(419.101f, -434.242f), new(424.274f, -433.427f), new(419.326f, -445.681f)];
         private static WPos[] patternIndex04End = [new(420.035f, -454.124f), new(427.42f, -448.692f), new(412.039f, -447.562f), new(417.533f, -427.085f), new(433.860f, -427.97f), new(426.993f, -437.034f), new(433.646f, -433.433f), new(411.276f, -434.165f), new(419.394f, -436.118f), new(430.442f, -453.971f), new(439.872f, -438.59f), new(423.667f, -442.039f), new(431.815f, -441.032f), new(425.437f, -432.547f), new(428.824f, -425.528f), new(424.002f, -448.966f)];
         private static WPos[] patternIndex03Start = [new(419.343f, -434.343f), new(416.325f, -437.829f), new(419.304f, -434.353f), new(427.97f, -434.253f), new(430.244f, -447.772f), new(422.523f, -438.223f), new(427.408f, -441.363f), new(419.274f, -434.245f), new(422.582f, -432.152f), new(416.35f, -442.222f), new(423.09f, -445.755f), new(419.412f, -434.285f), new(419.294f, -434.309f), new(416.47f, -442.448f), new(430.633f, -433.69f), new(431.389f, -439.114f)];
@@ -88,14 +80,9 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
 
         private List<WPos> _patternStart = new();
         private List<WPos> _patternEnd = new();
-        private List<(WPos source, AOEShape shape, Angle direction)> _casters = new();
+        private readonly List<AOEInstance> _aoes = new();
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_casters.Count == 16)
-                for (int i = 0; i < 16; ++i)
-                    yield return new(_casters[i].shape, _casters[i].source, _casters[i].direction, _activation);
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(16);
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
@@ -121,21 +108,16 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
                     _patternStart.AddRange(patternIndex01Start);
                     _patternEnd.AddRange(patternIndex01End);
                 }
-                if (_casters.Count < 16 && _patternStart.Count > 0 && _patternEnd.Count > 0)
-                    for (int i = 0; i < 16; ++i)
-                        _casters.Add((_patternStart[i], new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), Angle.FromDirection(_patternEnd[i] - _patternStart[i])));
-                if (_casters.Count >= 16 && _patternStart.Count > 16 && _patternEnd.Count > 16)
-                    for (int i = 16; i < 32; ++i)
-                        _casters.Add((_patternStart[i], new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), Angle.FromDirection(_patternEnd[i] - _patternStart[i])));
-                _activation = module.WorldState.CurrentTime.AddSeconds(6);
+                for (int i = 0; i < _patternEnd.Count; ++i)
+                    _aoes.Add(new (new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), module.WorldState.CurrentTime.AddSeconds(6)));
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.ForkedFissures && _casters.Count > 0 && _patternStart.Count > 0 && _patternEnd.Count > 0)
+            if ((AID)spell.Action.ID == AID.ForkedFissures && _aoes.Count > 0 && _patternStart.Count > 0 && _patternEnd.Count > 0)
             {
-                _casters.RemoveAt(0);
+                _aoes.RemoveAt(0);
                 _patternStart.RemoveAt(0);
                 _patternEnd.RemoveAt(0);
             }
