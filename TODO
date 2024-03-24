@@ -2,7 +2,7 @@ autorotation rework:
 - priority action suggestions
 - control panel w/ presets and bindings
 - module registry supporting alternatives per job
-- proper lb support
+- unify lb planning across all classes
 - proper gcd time calculations
 - simulation in replay analysis
 - cooldowns
@@ -24,6 +24,7 @@ general:
 -- button to 'keep' last (add as temp to replay manager) or to 'save' last (save into replay file)
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - constrain bossmodules to zone id (e.g. for T04)
+- module registry improvements
 - refactor pendingeffects
 
 boss modules:

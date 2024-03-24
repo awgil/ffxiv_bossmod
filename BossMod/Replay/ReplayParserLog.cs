@@ -335,6 +335,7 @@ namespace BossMod
                 case "PAR+": ParsePartyJoin(); break; // legacy (up to v3)
                 case "PAR-": ParsePartyLeave(); break; // legacy (up to v3)
                 case "PAR!": ParsePartyAssign(); break; // legacy (up to v3)
+                case "LB  ": ParsePartyLimitBreak(); break;
                 case "CLAR": ParseClientActionRequest(); break;
                 case "CLRJ": ParseClientActionReject(); break;
                 case "CDN+": ParseClientCountdown(true); break;
@@ -711,6 +712,11 @@ namespace BossMod
                 ContentID = _input.ReadULong(true),
                 InstanceID = _input.ReadULong(true),
             });
+        }
+
+        private void ParsePartyLimitBreak()
+        {
+            AddOp(new PartyState.OpLimitBreakChange() { Cur = _input.ReadInt(), Max = _input.ReadInt() });
         }
 
         private void ParseClientActionRequest()

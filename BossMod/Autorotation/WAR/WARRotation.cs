@@ -123,12 +123,28 @@ namespace BossMod.WAR
                 UseOutsideMelee = 6, // use immediately if outside melee range
             }
 
+            // TODO: this should be a common feature (LB)
             public enum SpecialAction : uint
             {
                 None = 0, // don't use any special actions
 
                 [PropertyDisplay("LB3", 0x8000ff00)]
                 LB3, // use LB3 if available
+
+                [PropertyDisplay("LB2+", 0x8000ff40)]
+                LB2, // use LB2+ if available
+
+                [PropertyDisplay("LB1+", 0x8000ff80)]
+                LB1, // use LB1+ (i.e. any) if available
+
+                [PropertyDisplay("LB2 only", 0x80ffff00)]
+                LB2Only, // use LB2 if available, but not LB3
+
+                [PropertyDisplay("LB1 only", 0x80ffff40)]
+                LB1Only, // use LB1 if available, but not LB2+
+
+                [PropertyDisplay("LB1/2", 0x80ffff80)]
+                LB12, // use LB1/LB2 if not available, but not LB3
             }
 
             public GaugeUse GaugeStrategy; // how are we supposed to handle gauge
@@ -427,6 +443,17 @@ namespace BossMod.WAR
             }
         }
 
+        public static bool ShouldUseLB(State state, Strategy strategy) => strategy.SpecialActionUse switch
+        {
+            Strategy.SpecialAction.LB3 => state.LimitBreakLevel == 3,
+            Strategy.SpecialAction.LB2 => state.LimitBreakLevel >= 2,
+            Strategy.SpecialAction.LB1 => state.LimitBreakLevel >= 1,
+            Strategy.SpecialAction.LB2Only => state.LimitBreakLevel == 2,
+            Strategy.SpecialAction.LB1Only => state.LimitBreakLevel == 1,
+            Strategy.SpecialAction.LB12 => state.LimitBreakLevel is 1 or 2,
+            _ => false
+        };
+
         public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
         {
             // prepull
@@ -551,9 +578,9 @@ namespace BossMod.WAR
         // window-end is either GCD or GCD - time-for-second-ogcd; we are allowed to use ogcds only if their animation lock would complete before window-end
         public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
         {
-            // LB3 if requested (TODO: condition)
-            if (strategy.SpecialActionUse == Strategy.SpecialAction.LB3)
-                return ActionID.MakeSpell(AID.LandWaker);
+            // LB if requested
+            if (ShouldUseLB(state, strategy))
+                return ActionID.MakeSpell(state.LimitBreakLevel == 3 ? AID.LandWaker : state.LimitBreakLevel == 2 ? AID.Stronghold : AID.ShieldWall);
 
             // 0. onslaught as a gap-filler - this should be used asap even if we're delaying GCD, since otherwise we'll probably end up delaying it even more
             bool wantOnslaught = state.Unlocked(AID.Onslaught) && state.TargetingEnemy && ShouldUseOnslaught(state, strategy);

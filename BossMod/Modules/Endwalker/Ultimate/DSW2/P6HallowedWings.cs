@@ -9,11 +9,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         private static AOEShapeRect _shape = new(50, 11);
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (AOE != null)
-                yield return AOE.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -44,11 +40,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 
         public P6CauterizeN() : base(ActionID.MakeSpell(AID.CauterizeN)) { }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (AOE != null)
-                yield return AOE.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 
         // note: we want to show hint much earlier than cast start - we assume component is created right as hallowed wings starts, meaning nidhogg is already in place
         public override void Init(BossModule module)

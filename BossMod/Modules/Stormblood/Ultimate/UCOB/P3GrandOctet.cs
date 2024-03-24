@@ -133,7 +133,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             // bahamut on intercardinal => CW dive order
             bool bahamutIntercardinal = ((int)MathF.Round(dirToBaha.Deg / 45) & 1) != 0;
             _diveOrder = bahamutIntercardinal ? -1 : +1;
-            var orders = Casters.Select(c => _diveOrder * CCWDirection(Angle.FromDirection(c.Position - module.Bounds.Center), dirToNael)).ToList();
+            var orders = Casters.Select(c => _diveOrder * CCWDirection(Angle.FromDirection(c.Position - module.Bounds.Center), dirToBaha)).ToList();
             MemoryExtensions.Sort(orders.AsSpan(), Casters.AsSpan());
             Casters.Insert(0, _nael);
             Casters.Add(_baha);

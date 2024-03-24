@@ -98,6 +98,30 @@ namespace BossMod
             return Rect(from, dir / l, l, 0, halfWidth);
         }
 
+        public static Func<WPos, float> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
+        {
+            // dir points outside far side
+            var normal = dir.OrthoL(); // points outside left side
+            return p =>
+            {
+                var offset = p - origin;
+                var distParr = offset.Dot(dir);
+                var distOrtho = offset.Dot(normal);
+                var distFront = distParr - lenFront;
+                var distBack = -distParr - lenBack;
+                var distLeft = distOrtho - halfWidth;
+                var distRight = -distOrtho - halfWidth;
+                return -Math.Max(Math.Max(distFront, distBack), Math.Max(distLeft, distRight));
+            };
+        }
+        public static Func<WPos, float> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+        public static Func<WPos, float> InvertedRect(WPos from, WPos to, float halfWidth)
+        {
+            var dir = to - from;
+            var l = dir.Length();
+            return InvertedRect(from, dir / l, l, 0, halfWidth);
+        }
+
         public static Func<WPos, float> Cross(WPos origin, Angle direction, float length, float halfWidth)
         {
             var dir = direction.ToDirection();
