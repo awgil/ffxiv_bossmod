@@ -113,15 +113,13 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
     class Exegesis : Components.GenericAOEs
     {
         private DateTime _activation;
-        private bool ExegesisA;
-        private bool ExegesisB;
-        private bool ExegesisC;
-        private bool ExegesisD;
+        public enum Patterns { None, Diagonal, Cross, EastWest, NorthSouth }
+        public Patterns Pattern { get; private set; }
         private static readonly AOEShapeRect rect = new(5, 5, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (ExegesisA) //diagonal squares
+            if (Pattern == Patterns.Diagonal)
             {
                 yield return new(rect, new(-240, -50), default, _activation);
                 yield return new(rect, new(-250, -40), default, _activation);
@@ -129,17 +127,17 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
                 yield return new(rect, new(-250, -60), default, _activation);
                 yield return new(rect, new(-230, -60), default, _activation);
             }
-            if (ExegesisB) //West+East Square
+            if (Pattern == Patterns.EastWest)
             {
                 yield return new(rect, new(-250, -50), default, _activation);
                 yield return new(rect, new(-230, -50), default, _activation);
             }
-            if (ExegesisC) //North+South Square
+            if (Pattern == Patterns.NorthSouth)
             {
                 yield return new(rect, new(-240, -60), default, _activation);
                 yield return new(rect, new(-240, -40), default, _activation);
             }
-            if (ExegesisD) //cross pattern
+            if (Pattern == Patterns.Cross)
             {
                 yield return new(rect, new(-230, -50), default, _activation);
                 yield return new(rect, new(-240, -60), default, _activation);
@@ -154,33 +152,28 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
             switch ((AID)spell.Action.ID)
             {
                 case AID.ExegesisA:
-                    ExegesisA = true;
-                    _activation = spell.NPCFinishAt;
+                    Pattern = Patterns.Diagonal;
+                    _activation = spell.NPCFinishAt.AddSeconds(0.5f);
                     break;
                 case AID.ExegesisB:
-                    ExegesisB = true;
-                    _activation = spell.NPCFinishAt;
+                    Pattern = Patterns.EastWest;
+                    _activation = spell.NPCFinishAt.AddSeconds(0.5f);
                     break;
                 case AID.ExegesisC:
-                    ExegesisC = true;
-                    _activation = spell.NPCFinishAt;
+                    Pattern = Patterns.NorthSouth;
+                    _activation = spell.NPCFinishAt.AddSeconds(0.5f);
                     break;
                 case AID.ExegesisD:
-                    ExegesisD = true;
-                    _activation = spell.NPCFinishAt;
+                    Pattern = Patterns.Cross;
+                    _activation = spell.NPCFinishAt.AddSeconds(0.5f);
                     break;
             }
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID is AID.ExegesisA or AID.ExegesisB or AID.ExegesisC or AID.ExegesisD)
-            {
-                ExegesisA = false;
-                ExegesisB = false;
-                ExegesisC = false;
-                ExegesisD = false;
-            }
+            if ((AID)spell.Action.ID == AID.Exegesis)
+                Pattern = Patterns.None;
         }
     }
 
