@@ -47,7 +47,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
 
     class Torpedo : Components.SingleTargetCast
     {
-        public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo)) { }
+        public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class RisingSeas : Components.RaidwideCast
@@ -69,6 +72,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
         {
             StopAtWall = true;
         }
+
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<BloodyPuddle>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }
 

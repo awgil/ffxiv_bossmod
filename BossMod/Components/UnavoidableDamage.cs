@@ -21,9 +21,12 @@
         {
             foreach (var c in Casters)
             {
-                BitMask targets = new();
-                targets.Set(module.Raid.FindSlot(c.CastInfo!.TargetID));
-                hints.PredictedDamage.Add((targets, c.CastInfo!.NPCFinishAt));
+                if (c.CastInfo != null) //is null after casts finishes if EndsOnCastEvent is used
+                {
+                    BitMask targets = new();
+                    targets.Set(module.Raid.FindSlot(c.CastInfo!.TargetID));
+                    hints.PredictedDamage.Add((targets, c.CastInfo!.NPCFinishAt));
+                }
             }
         }
     }

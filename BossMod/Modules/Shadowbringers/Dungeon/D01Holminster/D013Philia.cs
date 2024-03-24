@@ -181,6 +181,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            base.AddHints(module, slot, actor, hints, movementHints);
             if (target == actor && targeted)
                 hints.Add("Bait away!");
         }
@@ -201,21 +202,9 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
         public RightKnout() : base(ActionID.MakeSpell(AID.RightKnout), new AOEShapeCone(24, 105.Degrees())) { }
     }
 
-    class Taphephobia : Components.UniformStackSpread
+    class Taphephobia : Components.SpreadFromCastTargets
     {
-        public Taphephobia() : base(0, 6, alwaysShowSpreads: true) { }
-
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.Spread)
-                AddSpread(actor);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.Taphephobia2)
-                Spreads.Clear();
-        }
+        public Taphephobia() : base(ActionID.MakeSpell(AID.Taphephobia2), 6) { }
     }
 
     // TODO: create and use generic 'line stack' component

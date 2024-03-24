@@ -54,7 +54,10 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D011ForgivenDissonance
 
     class Pillory : Components.SingleTargetCast
     {
-        public Pillory() : base(ActionID.MakeSpell(AID.Pillory)) { }
+        public Pillory() : base(ActionID.MakeSpell(AID.Pillory)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class D011ForgivenDissonanceStates : StateMachineBuilder

@@ -38,7 +38,10 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D012TesleentheForgiven
 
     class TheTickler : Components.SingleTargetCast
     {
-        public TheTickler() : base(ActionID.MakeSpell(AID.TheTickler)) { }
+        public TheTickler() : base(ActionID.MakeSpell(AID.TheTickler)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class ScoldsBridle : Components.RaidwideCast

@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
 using System.Collections.Generic;
 
 namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
@@ -35,8 +34,11 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
     }
 
     class Stonefist : Components.SingleTargetCast
-    {
-        public Stonefist() : base(ActionID.MakeSpell(AID.Stonefist)) { }
+    { //Tankbuster resolves on cast event instead of cast finished
+        public Stonefist() : base(ActionID.MakeSpell(AID.Stonefist)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class LozatlsScorn : Components.RaidwideCast
@@ -61,9 +63,9 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
             if (state == 0x00040008)
             {
                 if (actor.Position.AlmostEqual(new(8, 328), 1))
-                    _aoe = new(rect, module.Bounds.Center, 90.Degrees(), activation: module.WorldState.CurrentTime.AddSeconds(8));
+                    _aoe = new(rect, module.Bounds.Center, 90.Degrees(), module.WorldState.CurrentTime.AddSeconds(8));
                 if (actor.Position.AlmostEqual(new(-7, 328), 1))
-                    _aoe = new(rect, module.Bounds.Center, -90.Degrees(), activation: module.WorldState.CurrentTime.AddSeconds(8));
+                    _aoe = new(rect, module.Bounds.Center, -90.Degrees(), module.WorldState.CurrentTime.AddSeconds(8));
             }
         }
 
