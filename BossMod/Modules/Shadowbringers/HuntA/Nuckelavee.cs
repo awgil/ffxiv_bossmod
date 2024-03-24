@@ -69,6 +69,7 @@ namespace BossMod.Shadowbringers.HuntA.Nuckelavee
                 _aoe = null;
         }
     }
+
     class NuckelaveeStates : StateMachineBuilder
     {
         public NuckelaveeStates(BossModule module) : base(module)
