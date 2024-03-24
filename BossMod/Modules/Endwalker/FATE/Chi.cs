@@ -204,7 +204,7 @@ namespace BossMod.Endwalker.FATE.Chi
     {
         private static readonly AOEShapeCone cone = new(45, 90.Degrees());
         private static readonly AOEShapeDonut donut = new(16, 60);
-        private static readonly AOEShapeRect rect = new(120, 16, 120);
+        private static readonly AOEShapeRect rect = new(60, 16, 60);
         private DateTime _activation1;
         private DateTime _activation2;
         private AOEShape? _shape1;
