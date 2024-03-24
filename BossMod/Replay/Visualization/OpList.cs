@@ -129,6 +129,7 @@ namespace BossMod.ReplayVisualization
                 ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
                 ActorState.OpEffectResult => false,
                 ActorState.OpStatus op => FilterInterestingStatuses(op.InstanceID, op.Index, op.Timestamp),
+                PartyState.OpLimitBreakChange => false,
                 ClientState.OpActionRequest => false,
                 //ClientState.OpActionReject => false,
                 ClientState.OpCooldown => false,
