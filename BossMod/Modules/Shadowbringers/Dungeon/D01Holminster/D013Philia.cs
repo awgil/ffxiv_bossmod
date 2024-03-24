@@ -75,9 +75,9 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 
     class Chains : BossComponent
     {
-        public static bool chained;
+        public bool chained;
         private bool chainsactive;
-        public static Actor? chaintarget;
+        public Actor? chaintarget;
         private bool casting;
 
         public override void Update(BossModule module)
@@ -379,7 +379,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            if (Chains.chained && actor != Chains.chaintarget)
+            if (FindComponent<Chains>()?.chained ?? true && (FindComponent<Chains>()?.chaintarget == actor))
                 foreach (var e in hints.PotentialTargets)
                 {
                     e.Priority = (OID)e.Actor.OID switch
