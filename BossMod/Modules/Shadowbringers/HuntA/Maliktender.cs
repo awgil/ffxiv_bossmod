@@ -28,7 +28,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
 
     class TwentyKNeedles : Components.SelfTargetedAOEs
     {
-        public TwentyKNeedles() : base(ActionID.MakeSpell(AID.TwentyKNeedles), new AOEShapeRect(20,4)) { }
+        public TwentyKNeedles() : base(ActionID.MakeSpell(AID.TwentyKNeedles), new AOEShapeRect(20, 4)) { }
     }
 
     class Haste : BossComponent
@@ -48,7 +48,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
 
     class NineNineNineKNeedles : Components.SelfTargetedAOEs
     {
-        public NineNineNineKNeedles() : base(ActionID.MakeSpell(AID.NineNineNineKNeedles), new AOEShapeRect(20,4)) { }
+        public NineNineNineKNeedles() : base(ActionID.MakeSpell(AID.NineNineNineKNeedles), new AOEShapeRect(20, 4)) { }
     }
 
     class MaliktenderStates : StateMachineBuilder
