@@ -159,16 +159,12 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.spread)
-            {
                 AddSpread(actor);
-            }
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.ConfessionOfFaithSpread)
-            {
                 Spreads.Clear();
-            }
         }
     }
 
@@ -200,9 +196,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (target == actor && targeted)
-            {
                 hints.Add("Bait away!");
-            }
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
