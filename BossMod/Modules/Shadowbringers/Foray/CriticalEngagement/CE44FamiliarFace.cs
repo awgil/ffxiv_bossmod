@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
@@ -74,7 +73,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
     class Towerfall : Components.GenericAOEs
     {
         private readonly List<(Actor tower, DateTime activation)> _towers = [];
-        public enum Types { None, TowerRound, ControlTower, LaserShower }
+        public enum Types { None, TowerRound, ControlTower }
         public Types Type { get; private set; }
         private readonly static AOEShapeRect _shape = new(40, 5);
 
