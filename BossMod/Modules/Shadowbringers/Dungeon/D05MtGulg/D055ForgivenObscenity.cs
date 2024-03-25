@@ -69,6 +69,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
         private DateTime _activation;
         private List<Actor> _casters = new();
         private static readonly AOEShapeRect rect = new(100, 2.5f, 100);
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1))))
@@ -256,17 +257,15 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)
         {
             if (state == 0x00040008)
+            {
+                module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15);                
                 active = false;
+            }
             if (state == 0x00010002)
+            {
                 active = true;
-        }
-
-        public override void Update(BossModule module)
-        {
-            if (!active)
                 module.Arena.Bounds = new ArenaBoundsRect(new(-240, 237), 15, 20);
-            if (active)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15);
+            }
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
