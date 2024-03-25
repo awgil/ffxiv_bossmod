@@ -99,8 +99,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
 
     class Poison : BossComponent
     {
-        private List<Actor> _poisoned = new();
-        public bool poisoned { get; private set; }
+        private List<Actor> _poisoned = [];
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -206,7 +205,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
     class SphereShatter : Components.GenericAOEs
     {
         private DateTime _activation;
-        private List<Actor> _casters = new();
+        private readonly List<Actor> _casters = [];
         private static readonly AOEShapeCircle circle = new(15);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

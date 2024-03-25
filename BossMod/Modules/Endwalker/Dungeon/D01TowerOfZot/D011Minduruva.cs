@@ -53,8 +53,7 @@ namespace BossMod.Endwalker.Dungeon.D01TowerOfZot.D011Minduruva
 
     class Poison : BossComponent
     {
-        private List<Actor> _poisoned = new();
-        public bool poisoned { get; private set; }
+        private readonly List<Actor> _poisoned = [];
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {

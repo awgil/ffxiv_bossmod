@@ -1,7 +1,6 @@
 // CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva
 {
@@ -43,7 +42,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva
     class SphereShatter : Components.GenericAOEs
     {
         private DateTime _activation;
-        private List<Actor> _casters = new();
+        private readonly List<Actor> _casters = [];
         private static readonly AOEShapeCircle circle = new(15);
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
