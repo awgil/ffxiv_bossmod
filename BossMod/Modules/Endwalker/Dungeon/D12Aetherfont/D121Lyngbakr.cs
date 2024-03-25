@@ -32,8 +32,8 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D121Lyngbakr
         private static readonly AOEShapeCircle bigcircle = new(15);
         private DateTime _activation1;
         private DateTime _activation2;
-        private List<Actor> _bigcrystals = new();
-        private List<Actor> _smallcrystals = new();
+        private readonly List<Actor> _bigcrystals = [];
+        private readonly List<Actor> _smallcrystals = [];
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

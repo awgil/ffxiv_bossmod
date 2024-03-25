@@ -32,15 +32,15 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
 
     class Border : BossComponent
     {
-        private static float _platformOffset = 25;
-        private static float _platformRadius = 8;
-        private static Angle[] _platformDirections = [-90.Degrees(), -45.Degrees(), 0.Degrees(), 45.Degrees(), 90.Degrees()];
-        private static WDir[] _platformCenters = _platformDirections.Select(d => _platformOffset * d.ToDirection()).ToArray();
+        private static readonly float _platformOffset = 25;
+        private static readonly float _platformRadius = 8;
+        private static readonly Angle[] _platformDirections = [-90.Degrees(), -45.Degrees(), 0.Degrees(), 45.Degrees(), 90.Degrees()];
+        private static readonly WDir[] _platformCenters = _platformDirections.Select(d => _platformOffset * d.ToDirection()).ToArray();
 
-        private static float _bridgeInner = 22;
-        private static float _bridgeOuter = 26;
-        private static Angle _offInner = DirToPointAtDistance(_bridgeInner);
-        private static Angle _offOuter = DirToPointAtDistance(_bridgeOuter);
+        private static readonly float _bridgeInner = 22;
+        private static readonly float _bridgeOuter = 26;
+        private static readonly Angle _offInner = DirToPointAtDistance(_bridgeInner);
+        private static readonly Angle _offOuter = DirToPointAtDistance(_bridgeOuter);
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
