@@ -75,8 +75,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
 
     class ExtremeEdge : Components.GenericAOEs
     {
-        private List<(Actor caster, float offset)> _casters = new();
-        private static AOEShapeRect _shape = new(60, 18);
+        private readonly List<(Actor caster, float offset)> _casters = [];
+        private readonly static AOEShapeRect _shape = new(60, 18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -88,8 +88,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         {
             var offset = (AID)spell.Action.ID switch
             {
-                AID.ExtremeEdgeL => 15,
-                AID.ExtremeEdgeR => -15,
+                AID.ExtremeEdgeL => 12,
+                AID.ExtremeEdgeR => -12,
                 _ => 0
             };
             if (offset != 0)
