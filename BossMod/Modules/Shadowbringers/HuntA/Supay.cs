@@ -15,9 +15,41 @@ namespace BossMod.Shadowbringers.HuntA.Supay
         Beakaxe = 17857, // Boss->player, no cast, single-target, instantlyy kills petrified players
     };
 
-    class BlasphemousHowl : Components.SpreadFromCastTargets
+    public enum IconID : uint
     {
-        public BlasphemousHowl() : base(ActionID.MakeSpell(AID.BlasphemousHowl), 8) { }
+        Baitaway = 159, // player
+    };
+
+    class BlasphemousHowl : Components.GenericBaitAway
+    {
+        private bool targeted;
+        private Actor? target;
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if (iconID == (uint)IconID.Baitaway)
+            {
+                CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(8)));
+                targeted = true;
+                target = actor;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.BlasphemousHowl)
+            {
+                CurrentBaits.Clear();
+                targeted = false;
+            }
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (target == actor && targeted)
+                hints.Add("Bait away + look away!");
+        }
     }
 
     class PetroEyes : Components.CastGaze

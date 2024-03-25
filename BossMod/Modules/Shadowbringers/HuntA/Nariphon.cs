@@ -20,14 +20,48 @@ namespace BossMod.Shadowbringers.HuntA.Nariphon
         PiercingResistanceDownII = 1435, // Boss->player, extra=0x0
     };
 
+    public enum IconID : uint
+    {
+        Baitaway = 140, // player
+        Stackmarker = 62, // player
+    };
+
+
     class OdiousMiasma : Components.SelfTargetedAOEs
     {
         public OdiousMiasma() : base(ActionID.MakeSpell(AID.OdiousMiasma), new AOEShapeCone(12, 60.Degrees())) { }
     }
 
-    class AllergenInjection : Components.SpreadFromCastTargets
+    class AllergenInjection : Components.GenericBaitAway
     {
-        public AllergenInjection() : base(ActionID.MakeSpell(AID.AllergenInjection), 6) { }
+        private bool targeted;
+        private Actor? target;
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if (iconID == (uint)IconID.Baitaway)
+            {
+                CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(6)));
+                targeted = true;
+                target = actor;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.AllergenInjection)
+            {
+                CurrentBaits.Clear();
+                targeted = false;
+            }
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (target == actor && targeted)
+                hints.Add("Bait away!");
+        }
     }
 
     class RootsOfAtopy : Components.GenericStackSpread

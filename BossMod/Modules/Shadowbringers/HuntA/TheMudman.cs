@@ -15,6 +15,10 @@ namespace BossMod.Shadowbringers.HuntA.TheMudman
         GravityForce = 16829, // Boss->player, 5,0s cast, range 6 circle, interruptible, applies heavy
     };
 
+    public enum IconID : uint
+    {
+        Baitaway     = 140, // player
+    };
 
     class BogBequest : Components.SelfTargetedAOEs
     {
@@ -31,9 +35,36 @@ namespace BossMod.Shadowbringers.HuntA.TheMudman
         public RoyalFlush() : base(ActionID.MakeSpell(AID.RoyalFlush), new AOEShapeCircle(8)) { }
     }
 
-    class GravityForce : Components.SpreadFromCastTargets
+    class GravityForce : Components.GenericBaitAway
     {
-        public GravityForce() : base(ActionID.MakeSpell(AID.GravityForce), 6) { }
+        private bool targeted;
+        private Actor? target;
+
+        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+        {
+            if (iconID == (uint)IconID.Baitaway)
+            {
+                CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(6)));
+                targeted = true;
+                target = actor;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.GravityForce)
+            {
+                CurrentBaits.Clear();
+                targeted = false;
+            }
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (target == actor && targeted)
+                hints.Add("Bait away or interrupt!");
+        }
     }
 
     class GravityForceHint : Components.CastInterruptHint
