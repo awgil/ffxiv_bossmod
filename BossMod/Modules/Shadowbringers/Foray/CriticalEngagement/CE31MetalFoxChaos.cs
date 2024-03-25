@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
 {
@@ -30,21 +29,19 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
         private static readonly Angle[] rotations = [0.Degrees(), 90.Degrees(), 180.Degrees(), -90.Degrees()];
         private readonly List<DateTime> _times = [];
         private Angle startrotation;
-        private bool LaserShower;
-        private bool DiffractiveLaser;
-        private bool SatelliteLaser;
+        public enum Types { None, SatelliteLaser, DiffractiveLaser, LaserShower }
+        public Types Type { get; private set; }
         private const float maxError = MathF.PI / 180;
         private static readonly AOEShapeRect rect = new(100, 3);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            foreach (var p in module.Enemies(OID.MagitekBit))
-            {
-                if (module.Bounds.Contains(p.Position) && _times.Count > 0)
+            if (_times.Count > 0)
+                foreach (var p in module.Enemies(OID.MagitekBit))
                 {
-                    if (SatelliteLaser && module.WorldState.CurrentTime > _times[0])
+                    if (Type == Types.SatelliteLaser && module.WorldState.CurrentTime > _times[0])
                         yield return new(rect, p.Position, p.Rotation, _times[1]);
-                    if ((DiffractiveLaser && module.WorldState.CurrentTime > _times[0]) || LaserShower)
+                    if ((Type == Types.DiffractiveLaser && module.WorldState.CurrentTime > _times[0]) || Type == Types.LaserShower)
                     {
                         if (NumCasts < 5 && p.Rotation.AlmostEqual(startrotation, maxError))
                             yield return new(rect, p.Position, p.Rotation, _times[1], ArenaColor.Danger);
@@ -58,7 +55,6 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
                             yield return new(rect, p.Position, p.Rotation, _times[3], ArenaColor.Danger);
                     }
                 }
-            }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
@@ -66,7 +62,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
             var _time = module.WorldState.CurrentTime;
             if ((AID)spell.Action.ID == AID.SatelliteLaser)
             {
-                SatelliteLaser = true;
+                Type = Types.SatelliteLaser;
                 _times.Add(_time.AddSeconds(2.5f));
                 _times.Add(_time.AddSeconds(12.3f));
             }
@@ -74,35 +70,29 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
             {
                 DateTime[] times = [_time.AddSeconds(2), _time.AddSeconds(8.8f), _time.AddSeconds(10.6f), _time.AddSeconds(12.4f)];
                 startrotation = rotations.FirstOrDefault(r => spell.Rotation.AlmostEqual(r, maxError)) + 180.Degrees();
-                DiffractiveLaser = true;
+                Type = Types.DiffractiveLaser;
                 _times.AddRange(times);
             }
             if ((AID)spell.Action.ID == AID.LaserShower2)
             {
                 DateTime[] times = [_time, _time.AddSeconds(6.5f), _time.AddSeconds(8.3f), _time.AddSeconds(10.1f)];
                 startrotation = rotations.FirstOrDefault(r => caster.Rotation.AlmostEqual(r, maxError));
-                LaserShower = true;
+                Type = Types.LaserShower;
                 _times.AddRange(times);
             }
-        }
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (_times.Count>0)
-                hints.Add($"t0 {_times[0]}\n");
-                hints.Add($"{module.WorldState.CurrentTime}");
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.RefractedLaser)
-                ++NumCasts;
-            if (NumCasts == 14)
             {
-                NumCasts = 0;
-                _times.Clear();
-                SatelliteLaser = false;
-                DiffractiveLaser = false;
-                LaserShower = false;
+                ++NumCasts;
+                if (NumCasts == 14)
+                {
+                    NumCasts = 0;
+                    _times.Clear();
+                    Type = Types.None;
+                }
             }
         }
     }
