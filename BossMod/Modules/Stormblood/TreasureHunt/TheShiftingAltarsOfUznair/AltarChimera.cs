@@ -86,7 +86,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.TheRamsKeeper)
             {

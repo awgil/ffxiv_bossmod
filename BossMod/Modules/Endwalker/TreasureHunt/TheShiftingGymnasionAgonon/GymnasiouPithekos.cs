@@ -81,7 +81,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
         {
             base.AddHints(module, slot, actor, hints, movementHints);
             if (target == actor && targeted)
-                hints.Add("Bait voidzone away!");
+                hints.Add("Bait levinorb away!");
         }
     }
 
