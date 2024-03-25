@@ -66,40 +66,19 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
 
     public class JudgmentDay : Components.GenericTowers
     {
-        private bool tower1;
-        private bool tower2;
-        private Actor? Tower1;
-
         public override void OnActorEState(BossModule module, Actor actor, ushort state)
         {
             if (state is 0x01C or 0x02C)
             {
-                if (!tower1)
-                {
-                    tower1 = true;
+                if (!Towers.Contains(new (actor.Position, 5, 1, 1)))
                     Towers.Add(new(actor.Position, 5, 1, 1));
-                    Tower1 = actor;
-                }
-                if (tower1 && !tower2 && actor != Tower1)
-                {
-                    tower2 = true;
-                    Towers.Add(new(actor.Position, 5, 1, 1));
-                }
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.Judged or AID.FoundWanting)
-            {
-                Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
-                if (Towers.Count == 0) //Note: I don't think towers can repeat, this is just a safety precaution
-                {
-                    tower1 = default;
-                    tower2 = default;
-                    Tower1 = default;
-                }
-            }
+                Towers.RemoveAt(0);
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -114,15 +93,13 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
     class Exegesis : Components.GenericAOEs
     {
         private DateTime _activation;
-        private bool ExegesisA;
-        private bool ExegesisB;
-        private bool ExegesisC;
-        private bool ExegesisD;
+        public enum Patterns { None, Diagonal, Cross, EastWest, NorthSouth }
+        public Patterns Pattern { get; private set; }
         private static readonly AOEShapeRect rect = new(5, 5, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (ExegesisA) //diagonal squares
+            if (Pattern == Patterns.Diagonal)
             {
                 yield return new(rect, new(-240, -50), default, _activation);
                 yield return new(rect, new(-250, -40), default, _activation);
@@ -130,17 +107,17 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
                 yield return new(rect, new(-250, -60), default, _activation);
                 yield return new(rect, new(-230, -60), default, _activation);
             }
-            if (ExegesisB) //West+East Square
+            if (Pattern == Patterns.EastWest)
             {
                 yield return new(rect, new(-250, -50), default, _activation);
                 yield return new(rect, new(-230, -50), default, _activation);
             }
-            if (ExegesisC) //North+South Square
+            if (Pattern == Patterns.NorthSouth)
             {
                 yield return new(rect, new(-240, -60), default, _activation);
                 yield return new(rect, new(-240, -40), default, _activation);
             }
-            if (ExegesisD) //cross pattern
+            if (Pattern == Patterns.Cross)
             {
                 yield return new(rect, new(-230, -50), default, _activation);
                 yield return new(rect, new(-240, -60), default, _activation);
@@ -155,44 +132,28 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
             switch ((AID)spell.Action.ID)
             {
                 case AID.ExegesisA:
-                    ExegesisA = true;
-                    _activation = spell.NPCFinishAt;
+                    Pattern = Patterns.Diagonal;
+                    _activation = spell.NPCFinishAt.AddSeconds(0.5f);
                     break;
                 case AID.ExegesisB:
-                    ExegesisB = true;
-                    _activation = spell.NPCFinishAt;
+                    Pattern = Patterns.EastWest;
+                    _activation = spell.NPCFinishAt.AddSeconds(0.5f);
                     break;
                 case AID.ExegesisC:
-                    ExegesisC = true;
-                    _activation = spell.NPCFinishAt;
+                    Pattern = Patterns.NorthSouth;
+                    _activation = spell.NPCFinishAt.AddSeconds(0.5f);
                     break;
                 case AID.ExegesisD:
-                    ExegesisD = true;
-                    _activation = spell.NPCFinishAt;
+                    Pattern = Patterns.Cross;
+                    _activation = spell.NPCFinishAt.AddSeconds(0.5f);
                     break;
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID is AID.ExegesisA or AID.ExegesisB or AID.ExegesisC or AID.ExegesisD)
-            {
-                ExegesisA = false;
-                ExegesisB = false;
-                ExegesisC = false;
-                ExegesisD = false;
-            }
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            if (ExegesisA || ExegesisB || ExegesisC || ExegesisD)
-            {
-                arena.AddLine(new(-235, -65), new(-235, -35), ArenaColor.Border, 2);
-                arena.AddLine(new(-245, -65), new(-245, -35), ArenaColor.Border, 2);
-                arena.AddLine(new(-225, -55), new(-255, -55), ArenaColor.Border, 2);
-                arena.AddLine(new(-225, -45), new(-255, -45), ArenaColor.Border, 2);
-            }
+            if ((AID)spell.Action.ID == AID.Exegesis)
+                Pattern = Patterns.None;
         }
     }
 
