@@ -334,19 +334,22 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
                 else
                     ++linesstartedcount2;
             }
-            if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
+            if (Lines.Count > 0)
             {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
-                AdvanceLine(module, Lines[index], caster.Position);
-                if (Lines[index].ExplosionsLeft == 0)
-                    Lines.RemoveAt(index);
-            }
-            if ((AID)spell.Action.ID == AID.FierceBeating5)
-            {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
-                AdvanceLine(module, Lines[index], spell.TargetXZ);
-                if (Lines[index].ExplosionsLeft == 0)
-                    Lines.RemoveAt(index);
+                if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
+                {
+                    int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+                    AdvanceLine(module, Lines[index], caster.Position);
+                    if (Lines[index].ExplosionsLeft == 0)
+                        Lines.RemoveAt(index);
+                }
+                if ((AID)spell.Action.ID == AID.FierceBeating5)
+                {
+                    int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
+                    AdvanceLine(module, Lines[index], spell.TargetXZ);
+                    if (Lines[index].ExplosionsLeft == 0)
+                        Lines.RemoveAt(index);
+                }
             }
         }
     }
