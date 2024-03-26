@@ -14,7 +14,11 @@ namespace BossMod.Stormblood.Ultimate.UCOB
 
         public Hatch() : base(ActionID.MakeSpell(AID.Hatch)) { KeepOnPhaseChange = true; }
 
-        public void Reset() => NumTargetsAssigned = NumCasts = 0;
+        public void Reset()
+        {
+            _targets.Reset();
+            NumTargetsAssigned = NumCasts = 0;
+        }
 
         public override void Init(BossModule module)
         {
