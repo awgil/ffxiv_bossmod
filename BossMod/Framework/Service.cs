@@ -27,6 +27,7 @@ namespace BossMod
         [PluginService] public static IFramework Framework { get; private set; }
         [PluginService] public static ITextureProvider Texture { get; private set; }
         [PluginService] public static ICommandManager CommandManager { get; private set; }
+        [PluginService] public static IDutyState DutyState { get; private set; }
         [PluginService] public static DalamudPluginInterface PluginInterface { get; private set; }
 #pragma warning restore CS8618
 
