@@ -126,6 +126,8 @@ namespace BossMod
             }
         }
 
+        public bool IsRecording() => _recorder != null;
+
         public override void OnClose()
         {
             SetVisible(false);

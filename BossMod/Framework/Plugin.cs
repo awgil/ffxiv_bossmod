@@ -4,6 +4,7 @@ using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using System;
 using System.Reflection;
 
@@ -48,6 +49,7 @@ namespace BossMod
             Service.Condition.ConditionChange += OnConditionChanged;
             Service.DutyState.DutyStarted += OnDutyStarted;
             Service.DutyState.DutyCompleted += OnDutyCompleted;
+            Service.ClientState.TerritoryChanged += OnZoneChange;
             MultiboxUnlock.Exec();
             Network.IDScramble.Initialize();
             Camera.Instance = new();
@@ -86,6 +88,7 @@ namespace BossMod
             Service.Condition.ConditionChange -= OnConditionChanged;
             Service.DutyState.DutyStarted -= OnDutyStarted;
             Service.DutyState.DutyCompleted -= OnDutyCompleted;
+            Service.ClientState.TerritoryChanged -= OnZoneChange;
             _wndDebug.Dispose();
             _wndReplay.Dispose();
             _wndBossmodHints.Dispose();
@@ -175,6 +178,21 @@ namespace BossMod
         {
             if (!Service.Config.Get<ReplayManagementConfig>().AutoStop) return;
             _wndReplay.StopRecording();
+        }
+
+        private unsafe void OnZoneChange(ushort obj)
+        {
+            if (GameMain.Instance()->CurrentContentFinderConditionId != 0 && !_wndReplay.IsRecording() && Service.Config.Get<ReplayManagementConfig>().AutoRecord)
+            {
+                _wndReplay.StartRecording();
+                return;
+            }
+
+            if (_wndReplay.IsRecording() && Service.Config.Get<ReplayManagementConfig>().AutoStop)
+            {
+                _wndReplay.StopRecording();
+                return;
+            }
         }
     }
 }
