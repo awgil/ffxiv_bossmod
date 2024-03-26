@@ -64,7 +64,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID == AID.SweepRest)
+            if (Lines.Count > 0 && (AID)spell.Action.ID == AID.SweepRest)
             {
                 int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
                 AdvanceLine(module, Lines[index], caster.Position);
