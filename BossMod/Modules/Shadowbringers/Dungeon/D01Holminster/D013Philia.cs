@@ -268,32 +268,33 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 
     class FierceBeating : Components.Exaflare
     {
-        private readonly List<WPos> _casters = new();
+        private readonly List<WPos> _casters = [];
         private int linesstartedcounttotal;
         private int linesstartedcount1;
         private int linesstartedcount2;
         private static readonly AOEShapeCircle circle = new(4);
         private DateTime _activation;
-        private const float radianconversion = MathF.PI / 180;
+        private const float RadianConversion = 45 * (MathF.PI / 180);
 
         public FierceBeating() : base(4) { }
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            float angleInRadians1 = linesstartedcount1 * 45 * radianconversion;
-            float angleInRadians2 = linesstartedcount2 * 45 * radianconversion;
-            float cosTheta1 = MathF.Cos(angleInRadians1);
-            float sinTheta1 = MathF.Sin(angleInRadians1);
-            float cosTheta2 = MathF.Cos(angleInRadians2);
-            float sinTheta2 = MathF.Sin(angleInRadians2);
             foreach (var (c, t) in FutureAOEs(module.WorldState.CurrentTime))
                 yield return new(Shape, c, activation: t, color: FutureColor);
             foreach (var (c, t) in ImminentAOEs())
                 yield return new(Shape, c, activation: t, color: ImminentColor);
             if (Lines.Count > 0 && linesstartedcount1 < 8)
-                yield return new(circle, new(cosTheta1 * (_casters[0].X - module.Bounds.Center.X) - sinTheta1 * (_casters[0].Z - module.Bounds.Center.Z) + module.Bounds.Center.X, sinTheta1 * (_casters[0].X - module.Bounds.Center.X) + cosTheta1 * (_casters[0].Z - module.Bounds.Center.Z) + module.Bounds.Center.Z), activation: _activation.AddSeconds(linesstartedcount1 * 3.7f));
+                yield return new(circle, CalculateCirclePosition(linesstartedcount1, module.Bounds.Center, _casters[0]), activation: _activation.AddSeconds(linesstartedcount1 * 3.7f));
             if (Lines.Count > 1 && linesstartedcount2 < 8)
-                yield return new(circle, new(cosTheta2 * (_casters[1].X - module.Bounds.Center.X) - sinTheta2 * (_casters[1].Z - module.Bounds.Center.Z) + module.Bounds.Center.X, sinTheta2 * (_casters[1].X - module.Bounds.Center.X) + cosTheta2 * (_casters[1].Z - module.Bounds.Center.Z) + module.Bounds.Center.Z), activation: _activation.AddSeconds(linesstartedcount2 * 3.7f));
+                yield return new(circle, CalculateCirclePosition(linesstartedcount2, module.Bounds.Center, _casters[1]), activation: _activation.AddSeconds(linesstartedcount2 * 3.7f));
+        }
+
+        private static WPos CalculateCirclePosition(int count, WPos origin, WPos caster)
+        {
+            float x = MathF.Cos(count * RadianConversion) * (caster.X - origin.X) - MathF.Sin(count * RadianConversion) * (caster.Z - origin.Z);
+            float z = MathF.Sin(count * RadianConversion) * (caster.X - origin.X) + MathF.Cos(count * RadianConversion) * (caster.Z - origin.Z);
+            return new WPos(origin.X + x, origin.Z + z);
         }
 
         public override void Update(BossModule module)
