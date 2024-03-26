@@ -75,7 +75,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
 
     class NatureCall2 : Components.SelfTargetedAOEs
     {
-        public NatureCall2() : base(ActionID.MakeSpell(AID.NatureCall), new AOEShapeCone(30, 60.Degrees())) { }
+        public NatureCall2() : base(ActionID.MakeSpell(AID.NatureCall2), new AOEShapeCone(30, 60.Degrees())) { }
     }
 
     class PluckAndPrune : Components.SelfTargetedAOEs
