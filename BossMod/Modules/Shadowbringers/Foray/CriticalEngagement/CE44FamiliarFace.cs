@@ -52,7 +52,10 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
 
     class RockCutter : Components.SingleTargetCast
     {
-        public RockCutter() : base(ActionID.MakeSpell(AID.RockCutter)) { }
+        public RockCutter() : base(ActionID.MakeSpell(AID.RockCutter)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class AncientQuake : Components.RaidwideCast
