@@ -218,18 +218,18 @@ namespace BossMod.Endwalker.FATE.Chi
             {
                 if (NumCasts == 0)
                 {
-                    yield return new(_shape1, module.PrimaryActor.Position, _rotation, _activation1, ArenaColor.Danger);
+                    yield return new(_shape1, module.PrimaryActor.Position, _rotation, activation: _activation1, ArenaColor.Danger);
                     if (!offset)
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation, _activation2);
+                        yield return new(_shape2, module.PrimaryActor.Position, _rotation, activation: _activation2);
                     else
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation2);
+                        yield return new(_shape2, module.PrimaryActor.Position, _rotation + 180.Degrees(), activation: _activation2);
                 }
                 if (NumCasts == 1)
                 {
                     if (!offset)
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation, _activation2, ArenaColor.Danger);
+                        yield return new(_shape2, module.PrimaryActor.Position, _rotation, activation: _activation2, ArenaColor.Danger);
                     else
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation2, ArenaColor.Danger);
+                        yield return new(_shape2, module.PrimaryActor.Position, _rotation + 180.Degrees(), activation: _activation2, ArenaColor.Danger);
                 }
             }
         }
