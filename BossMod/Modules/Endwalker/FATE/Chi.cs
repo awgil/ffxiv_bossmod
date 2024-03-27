@@ -91,6 +91,11 @@ namespace BossMod.Endwalker.FATE.Chi
                     _casters.Remove(caster);
                 if (NumCasts is 3 or 6 or 9 or 12 or 15)
                     _activation = _activation.AddSeconds(1.9f);
+                if (_casters.Count == 0 && NumCasts != 0)
+                {
+                    NumCasts = 0;
+                    NumCastsStarted = 0;
+                }
             }
         }
 
@@ -101,15 +106,6 @@ namespace BossMod.Endwalker.FATE.Chi
                 _casters.Add(actor);
                 if (_casters.Count == 1)
                     _activation = module.WorldState.CurrentTime.AddSeconds(20); //placeholder value that gets overwritten when cast actually starts
-            }
-        }
-
-        public override void Update(BossModule module)
-        {
-            if (_casters.Count == 0 && NumCasts != 0)
-            {
-                NumCasts = 0;
-                NumCastsStarted = 0;
             }
         }
     }
@@ -187,15 +183,11 @@ namespace BossMod.Endwalker.FATE.Chi
                     _casters.Remove(caster);
                 if ((bombcount == 1 && NumCasts is 1 or 4) || (bombcount == 2 && NumCasts is 2 or 7))
                     _activation = _activation.AddSeconds(2.8f);
-            }
-        }
-
-        public override void Update(BossModule module)
-        {
-            if (_casters.Count == 0 && bombcount != 0)
-            {
-                bombcount = 0;
-                NumCasts = 0;
+                if (_casters.Count == 0 && bombcount != 0)
+                {
+                    bombcount = 0;
+                    NumCasts = 0;
+                }
             }
         }
     }
