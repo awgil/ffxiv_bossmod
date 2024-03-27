@@ -46,8 +46,22 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D111Albion
     class WildlifeCrossing : Components.GenericAOEs
     {
         private static readonly AOEShapeRect rect = new(20, 5, 20);
+        private static readonly Angle _rot90 = 90.Degrees();
+        private static readonly Angle _rotM90 = -90.Degrees();
         private (bool active, WPos position, Angle rotation, int count, DateTime reset, List<Actor> beasts) stampede1;
         private (bool active, WPos position, Angle rotation, int count, DateTime reset, List<Actor> beasts) stampede2;
+        private readonly (bool, WPos, Angle, int, DateTime, List<Actor>)[] stampedePositions =
+        [
+            (true, new WPos(4, -759), _rot90, 0, default(DateTime), new List<Actor>()),
+            (true, new WPos(44, -759), _rotM90, 0, default(DateTime), new List<Actor>()),
+            (true, new WPos(4, -749), _rot90, 0, default(DateTime), new List<Actor>()),
+            (true, new WPos(44, -749), _rotM90, 0, default(DateTime), new List<Actor>()),
+            (true, new WPos(4, -739), _rot90, 0, default(DateTime), new List<Actor>()),
+            (true, new WPos(44, -739), _rotM90, 0, default(DateTime), new List<Actor>()),
+            (true, new WPos(4, -729), _rot90, 0, default(DateTime), new List<Actor>()),
+            (true, new WPos(44, -729), _rotM90, 0, default(DateTime), new List<Actor>()),
+        ];
+        private bool Newstampede => stampede1 == default;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -56,57 +70,57 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D111Albion
             if (stampede2.active && stampede2.beasts.Count > 0)
                 yield return new(new AOEShapeRect(CalculateStampedeLength(stampede2.beasts) + 30, 5), new(stampede2.beasts.Last().Position.X, stampede2.position.Z), stampede2.rotation);
             if (stampede1.active && stampede1.beasts.Count == 0)
-                yield return new(rect, stampede1.position, 90.Degrees());
+                yield return new(rect, stampede1.position, _rot90);
             if (stampede2.active && stampede2.beasts.Count == 0)
-                yield return new(rect, stampede2.position, 90.Degrees());
+                yield return new(rect, stampede2.position, _rot90);
         }
+
         private static float CalculateStampedeLength(List<Actor> beasts) => (beasts.First().Position - beasts.Last().Position).Length();
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            var newstampede = stampede1 == default;
             if (state == 0x00020001)
             {
                 if (index == 0x21)
-                    if (newstampede)
-                        stampede1 = (true, new(4, -759), 90.Degrees(), 0, default, []);
+                    if (Newstampede)
+                        stampede1 = stampedePositions[0];
                     else
-                        stampede2 = (true, new(4, -759), 90.Degrees(), 0, default, []);
+                        stampede2 = stampedePositions[0];
                 if (index == 0x25)
-                    if (newstampede)
-                        stampede1 = (true, new(44, -759), -90.Degrees(), 0, default, []);
+                    if (Newstampede)
+                        stampede1 = stampedePositions[1];
                     else
-                        stampede2 = (true, new(44, -759), -90.Degrees(), 0, default, []);
+                        stampede2 = stampedePositions[1];
                 if (index == 0x22)
-                    if (newstampede)
-                        stampede1 = (true, new(4, -749), 90.Degrees(), 0, default, []);
+                    if (Newstampede)
+                        stampede1 = stampedePositions[2];
                     else
-                        stampede2 = (true, new(4, -749), 90.Degrees(), 0, default, []);
+                        stampede2 = stampedePositions[2];
                 if (index == 0x26)
-                    if (newstampede)
-                        stampede1 = (true, new(44, -749), -90.Degrees(), 0, default, []);
+                    if (Newstampede)
+                        stampede1 = stampedePositions[3];
                     else
-                        stampede2 = (true, new(44, -749), -90.Degrees(), 0, default, []);
+                        stampede2 = stampedePositions[3];
                 if (index == 0x23)
-                    if (newstampede)
-                        stampede1 = (true, new(4, -739), 90.Degrees(), 0, default, []);
+                    if (Newstampede)
+                        stampede1 = stampedePositions[4];
                     else
-                        stampede2 = (true, new(4, -739), 90.Degrees(), 0, default, []);
+                        stampede2 = stampedePositions[4];
                 if (index == 0x27)
-                    if (newstampede)
-                        stampede1 = (true, new(44, -739), -90.Degrees(), 0, default, []);
+                    if (Newstampede)
+                        stampede1 = stampedePositions[5];
                     else
-                        stampede2 = (true, new(44, -739), -90.Degrees(), 0, default, []);
+                        stampede2 = stampedePositions[5];
                 if (index == 0x24)
-                    if (newstampede)
-                        stampede1 = (true, new(4, -729), 90.Degrees(), 0, default, []);
+                    if (Newstampede)
+                        stampede1 = stampedePositions[6];
                     else
-                        stampede2 = (true, new(4, -729), 90.Degrees(), 0, default, []);
+                        stampede2 = stampedePositions[6];
                 if (index == 0x28)
-                    if (newstampede)
-                        stampede1 = (true, new(44, -729), -90.Degrees(), 0, default, []);
+                    if (Newstampede)
+                        stampede1 = stampedePositions[7];
                     else
-                        stampede2 = (true, new(44, -729), -90.Degrees(), 0, default, []);
+                        stampede2 = stampedePositions[7];
             }
         }
 
