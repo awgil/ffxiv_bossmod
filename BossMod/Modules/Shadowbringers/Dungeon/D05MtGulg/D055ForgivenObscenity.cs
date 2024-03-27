@@ -9,6 +9,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
         Boss = 0x27CE, //R=5.0
         BossClones = 0x27CF, //R=5.0
         Helper = 0x2E8, //R=0.5
+        Helper2 = 0x233C,
         Orbs = 0x27D0, //R=1.0
         Rings = 0x1EAB62,
     }

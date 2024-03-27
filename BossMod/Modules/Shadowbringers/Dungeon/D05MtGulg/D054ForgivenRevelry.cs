@@ -8,6 +8,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry
     {
         Boss = 0x28F3, //R=7.5
         Helper = 0x2E8, //R=0.5
+        Helper2 = 0x233C,
         Brightsphere = 0x2947, //R=1.0
     }
 
