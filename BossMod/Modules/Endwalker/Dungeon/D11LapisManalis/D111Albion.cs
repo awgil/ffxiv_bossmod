@@ -46,30 +46,21 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D111Albion
     class WildlifeCrossing : Components.GenericAOEs
     {
         private static readonly AOEShapeRect rect = new(20, 5, 20);
-        private int stampede1counter;
-        private int stampede2counter;
-        private bool active1;
-        private bool active2;
-        private Angle _rotation1;
-        private Angle _rotation2;
-        private DateTime _reset1;
-        private DateTime _reset2;
-        private List<Actor> beasts1 = new();
-        private List<Actor> beasts2 = new();
-        private WPos stampede1 = default;
-        private WPos stampede2 = default;
+        private (bool active, WPos position, Angle rotation, int count, DateTime reset, List<Actor> beasts) stampede1;
+        private (bool active, WPos position, Angle rotation, int count, DateTime reset, List<Actor> beasts) stampede2;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (active1 && beasts1.Count > 0)
-                yield return new(new AOEShapeRect((beasts1.First().Position - beasts1.Last().Position).Length() + 30, 5), new(beasts1.Last().Position.X, stampede1.Z), _rotation1);
-            if (active2 && beasts2.Count > 0)
-                yield return new(new AOEShapeRect((beasts2.First().Position - beasts2.Last().Position).Length() + 30, 5), new(beasts2.Last().Position.X, stampede2.Z), _rotation2);
-            if (active1 && beasts1.Count == 0)
-                yield return new(rect, stampede1, 90.Degrees());
-            if (active2 && beasts2.Count == 0)
-                yield return new(rect, stampede2, 90.Degrees());
+            if (stampede1.active && stampede1.beasts.Count > 0)
+                yield return new(new AOEShapeRect(CalculateStampedeLength(stampede1.beasts) + 30, 5), new(stampede1.beasts.Last().Position.X, stampede1.position.Z), stampede1.rotation);
+            if (stampede2.active && stampede2.beasts.Count > 0)
+                yield return new(new AOEShapeRect(CalculateStampedeLength(stampede2.beasts) + 30, 5), new(stampede2.beasts.Last().Position.X, stampede2.position.Z), stampede2.rotation);
+            if (stampede1.active && stampede1.beasts.Count == 0)
+                yield return new(rect, stampede1.position, 90.Degrees());
+            if (stampede2.active && stampede2.beasts.Count == 0)
+                yield return new(rect, stampede2.position, 90.Degrees());
         }
+        private static float CalculateStampedeLength(List<Actor> beasts) => (beasts.First().Position - beasts.Last().Position).Length();
 
         public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
@@ -78,176 +69,89 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D111Albion
             {
                 if (index == 0x21)
                     if (newstampede)
-                    {
-                        active1 = true;
-                        _rotation1 = 90.Degrees();
-                        stampede1 = new(4, -759);
-                    }
+                        stampede1 = (true, new(4, -759), 90.Degrees(), 0, default, []);
                     else
-                    {
-                        active2 = true;
-                        _rotation2 = 90.Degrees();
-                        stampede2 = new(4, -759);
-                    }
+                        stampede2 = (true, new(4, -759), 90.Degrees(), 0, default, []);
                 if (index == 0x25)
                     if (newstampede)
-                    {
-                        active1 = true;
-                        _rotation1 = -90.Degrees();
-                        stampede1 = new(44, -759);
-                    }
+                        stampede1 = (true, new(44, -759), -90.Degrees(), 0, default, []);
                     else
-                    {
-                        active2 = true;
-                        _rotation2 = -90.Degrees();
-                        stampede2 = new(44, -759);
-                    }
+                        stampede2 = (true, new(44, -759), -90.Degrees(), 0, default, []);
                 if (index == 0x22)
                     if (newstampede)
-                    {
-                        active1 = true;
-                        _rotation1 = 90.Degrees();
-                        stampede1 = new(4, -749);
-                    }
+                        stampede1 = (true, new(4, -749), 90.Degrees(), 0, default, []);
                     else
-                    {
-                        active2 = true;
-                        _rotation2 = 90.Degrees();
-                        stampede2 = new(4, -749);
-                    }
+                        stampede2 = (true, new(4, -749), 90.Degrees(), 0, default, []);
                 if (index == 0x26)
                     if (newstampede)
-                    {
-                        active1 = true;
-                        _rotation1 = -90.Degrees();
-                        stampede1 = new(44, -749);
-                    }
+                        stampede1 = (true, new(44, -749), -90.Degrees(), 0, default, []);
                     else
-                    {
-                        active2 = true;
-                        _rotation2 = -90.Degrees();
-                        stampede2 = new(44, -749);
-                    }
+                        stampede2 = (true, new(44, -749), -90.Degrees(), 0, default, []);
                 if (index == 0x23)
                     if (newstampede)
-                    {
-                        active1 = true;
-                        _rotation1 = 90.Degrees();
-                        stampede1 = new(4, -739);
-                    }
+                        stampede1 = (true, new(4, -739), 90.Degrees(), 0, default, []);
                     else
-                    {
-                        active2 = true;
-                        _rotation2 = 90.Degrees();
-                        stampede2 = new(4, -739);
-                    }
+                        stampede2 = (true, new(4, -739), 90.Degrees(), 0, default, []);
                 if (index == 0x27)
                     if (newstampede)
-                    {
-                        active1 = true;
-                        _rotation1 = -90.Degrees();
-                        stampede1 = new(44, -739);
-                    }
+                        stampede1 = (true, new(44, -739), -90.Degrees(), 0, default, []);
                     else
-                    {
-                        active2 = true;
-                        _rotation2 = -90.Degrees();
-                        stampede2 = new(44, -739);
-                    }
+                        stampede2 = (true, new(44, -739), -90.Degrees(), 0, default, []);
                 if (index == 0x24)
                     if (newstampede)
-                    {
-                        active1 = true;
-                        _rotation1 = 90.Degrees();
-                        stampede1 = new(4, -729);
-                    }
+                        stampede1 = (true, new(4, -729), 90.Degrees(), 0, default, []);
                     else
-                    {
-                        active2 = true;
-                        _rotation2 = 90.Degrees();
-                        stampede2 = new(4, -729);
-                    }
+                        stampede2 = (true, new(4, -729), 90.Degrees(), 0, default, []);
                 if (index == 0x28)
                     if (newstampede)
-                    {
-                        active1 = true;
-                        _rotation1 = -90.Degrees();
-                        stampede1 = new(44, -729);
-                    }
+                        stampede1 = (true, new(44, -729), -90.Degrees(), 0, default, []);
                     else
-                    {
-                        active2 = true;
-                        _rotation2 = -90.Degrees();
-                        stampede2 = new(44, -729);
-                    }
+                        stampede2 = (true, new(44, -729), -90.Degrees(), 0, default, []);
             }
         }
 
         public override void Update(BossModule module)
         {
-            foreach (var b in module.Enemies(OID.WildBeasts4))
-                if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
-                    beasts1.Add(b);
-            foreach (var b in module.Enemies(OID.WildBeasts3))
-                if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
-                    beasts1.Add(b);
-            foreach (var b in module.Enemies(OID.WildBeasts2))
-                if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
-                    beasts1.Add(b);
-            foreach (var b in module.Enemies(OID.WildBeasts1))
-                if (b.Position.InRect(new(24, stampede1.Z), _rotation1, 33, 33, 5) && !beasts1.Contains(b))
-                    beasts1.Add(b);
+            var stampede1Position = new WPos(24, stampede1.position.Z);
+            var stampede2Position = new WPos(24, stampede2.position.Z);
 
-            foreach (var b in module.Enemies(OID.WildBeasts4))
-                if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
-                    beasts2.Add(b);
-            foreach (var b in module.Enemies(OID.WildBeasts3))
-                if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
-                    beasts2.Add(b);
-            foreach (var b in module.Enemies(OID.WildBeasts2))
-                if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
-                    beasts2.Add(b);
-            foreach (var b in module.Enemies(OID.WildBeasts1))
-                if (b.Position.InRect(new(24, stampede2.Z), _rotation2, 33, 33, 5) && !beasts2.Contains(b))
-                    beasts2.Add(b);
-
-            if (_reset1 != default && module.WorldState.CurrentTime > _reset1)
+            foreach (var oid in new[] { OID.WildBeasts4, OID.WildBeasts3, OID.WildBeasts2, OID.WildBeasts1 })
             {
-                active1 = false;
-                stampede1counter = 0;
+                var beasts = module.Enemies(oid);
+                foreach (var b in beasts)
+                {
+                    if (b.Position.InRect(stampede1Position, stampede1.rotation, 33, 33, 5) && !stampede1.beasts.Contains(b))
+                        stampede1.beasts.Add(b);
+                    if (b.Position.InRect(stampede2Position, stampede2.rotation, 33, 33, 5) && !stampede2.beasts.Contains(b))
+                        stampede2.beasts.Add(b);
+                }
+            }
+
+            if (stampede1.reset != default && module.WorldState.CurrentTime > stampede1.reset)
                 stampede1 = default;
-                beasts1.Clear();
-                _reset1 = default;
-            }
-            if (_reset2 != default && module.WorldState.CurrentTime > _reset2)
-            {
-                active2 = false;
-                stampede2counter = 0;
+            if (stampede2.reset != default && module.WorldState.CurrentTime > stampede2.reset)
                 stampede2 = default;
-                beasts2.Clear();
-                _reset2 = default;
-            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID == AID.WildlifeCrossing)
             {
-                if (MathF.Abs(caster.Position.Z - stampede1.Z) < 1)
-                    ++stampede1counter;
-                if (MathF.Abs(caster.Position.Z - stampede2.Z) < 1)
-                    ++stampede2counter;
-                if (stampede1counter == 30) //sometimes stampedes only have 30 instead of 31 hits for some reason, so i take the lower value and add a 0,5s reset timer via update
-                    _reset1 = module.WorldState.CurrentTime.AddSeconds(0.5f);
-                if (stampede2counter == 30)
-                    _reset2 = module.WorldState.CurrentTime.AddSeconds(0.5f);
+                if (MathF.Abs(caster.Position.Z - stampede1.position.Z) < 1)
+                    ++stampede1.count;
+                if (MathF.Abs(caster.Position.Z - stampede2.position.Z) < 1)
+                    ++stampede2.count;
+                if (stampede1.count == 30) //sometimes stampedes only have 30 instead of 31 hits for some reason, so i take the lower value and add a 0,5s reset timer via update
+                    stampede1.reset = module.WorldState.CurrentTime.AddSeconds(0.5f);
+                if (stampede2.count == 30)
+                    stampede1.reset = module.WorldState.CurrentTime.AddSeconds(0.5f);
             }
         }
     }
 
     class IcyThroes : Components.GenericBaitAway
     {
-        private readonly List<Actor> _targets = new();
+        private readonly List<Actor> _targets = [];
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
@@ -277,7 +181,7 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D111Albion
 
     class Icebreaker : Components.GenericAOEs
     {
-        private List<Actor> _casters = new();
+        private readonly List<Actor> _casters = [];
         private static readonly AOEShapeCircle circle = new(17);
         private DateTime _activation;
 
