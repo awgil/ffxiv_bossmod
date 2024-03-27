@@ -148,13 +148,13 @@ namespace BossMod.Endwalker.FATE.Chi
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
                 if (_casters.Count >= 7 && NumCasts == 0)
                     for (int i = 2; i < 7; ++i)
-                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky: false);
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f));
                 if (_casters.Count >= 5 && NumCasts == 2)
                     for (int i = 0; i < 5; ++i)
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
                 if (_casters.Count >= 13 && NumCasts == 2)
                     for (int i = 5; i < 13; ++i)
-                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky: false);
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f));
                 if (_casters.Count >= 8 && NumCasts == 7)
                     for (int i = 0; i < 8; ++i)
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
@@ -204,7 +204,7 @@ namespace BossMod.Endwalker.FATE.Chi
     {
         private static readonly AOEShapeCone cone = new(45, 90.Degrees());
         private static readonly AOEShapeDonut donut = new(16, 60);
-        private static readonly AOEShapeRect rect = new(60, 16, 60);
+        private static readonly AOEShapeRect rect = new(120, 16, 120);
         private DateTime _activation1;
         private DateTime _activation2;
         private AOEShape? _shape1;
@@ -220,9 +220,9 @@ namespace BossMod.Endwalker.FATE.Chi
                 {
                     yield return new(_shape1, module.PrimaryActor.Position, _rotation, activation: _activation1, ArenaColor.Danger);
                     if (!offset)
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation, activation: _activation2, risky: _shape1 == _shape2 ? false: true);
+                        yield return new(_shape2, module.PrimaryActor.Position, _rotation, activation: _activation2);
                     else
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation + 180.Degrees(), activation: _activation2, risky: _shape1 == _shape2 ? false: true);
+                        yield return new(_shape2, module.PrimaryActor.Position, _rotation + 180.Degrees(), activation: _activation2);
                 }
                 if (NumCasts == 1)
                 {
