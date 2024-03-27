@@ -75,47 +75,38 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 foreach (var o in module.Enemies(OID.OrbOfImmolationBlue))
                 {
                     if (bluered1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.9f));
+                        yield return new(rect, o.Position, o.Rotation, _activation1.AddSeconds(6.9f));
                     if (redblue2 && !redblue1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, o.Position, o.Rotation, activation: _activation2.AddSeconds(8.9f));
+                        yield return new(rect, o.Position, o.Rotation, _activation2.AddSeconds(8.9f));
                 }
                 foreach (var o in module.Enemies(OID.OrbOfImmolationRed))
                 {
                     if (bluered2 && !bluered1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.9f));
+                        yield return new(rect, o.Position, o.Rotation, _activation1.AddSeconds(6.9f));
                     if (redblue1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(0.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError) || o.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, o.Position, o.Rotation, activation: _activation2.AddSeconds(8.9f));
+                        yield return new(rect, o.Position, o.Rotation, _activation2.AddSeconds(8.9f));
                 }
             }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.LoyalFlame)
+            if (!module.Enemies(OID.OrbOfImmolationRed).All(x => x.IsDead) && !module.Enemies(OID.OrbOfImmolationBlue).All(x => x.IsDead))
             {
-                _activation1 = module.WorldState.CurrentTime; ;
-                active = true;
-                bluered1 = true;
-                bluered2 = true;
-            }
-            if ((AID)spell.Action.ID == AID.LoyalFlame2)
-            {
-                _activation2 = module.WorldState.CurrentTime; ;
-                active = true;
-                redblue1 = true;
-                redblue2 = true;
-            }
-        }
-
-        public override void Update(BossModule module) //Note: this is required because LitPath and Burn use the same color telegraph AID
-        {
-            if (module.Enemies(OID.OrbOfImmolationRed).All(x => x.IsDead) && module.Enemies(OID.OrbOfImmolationBlue).All(x => x.IsDead))
-            {
-                active = false;
-                bluered1 = false;
-                redblue2 = false;
-                bluered2 = false;
-                redblue1 = false;
+                if ((AID)spell.Action.ID == AID.LoyalFlame)
+                {
+                    _activation1 = module.WorldState.CurrentTime;
+                    active = true;
+                    bluered1 = true;
+                    bluered2 = true;
+                }
+                if ((AID)spell.Action.ID == AID.LoyalFlame2)
+                {
+                    _activation2 = module.WorldState.CurrentTime;
+                    active = true;
+                    redblue1 = true;
+                    redblue2 = true;
+                }
             }
         }
 
@@ -166,47 +157,38 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 foreach (var o in module.Enemies(OID.OrbOfConflagrationBlue))
                 {
                     if (bluered1)
-                        yield return new(circle, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.2f));
+                        yield return new(circle, o.Position, o.Rotation, _activation1.AddSeconds(6.2f));
                     if (redblue2 && !redblue1)
-                        yield return new(circle, o.Position, o.Rotation, activation: _activation2.AddSeconds(10.2f));
+                        yield return new(circle, o.Position, o.Rotation, _activation2.AddSeconds(10.2f));
                 }
                 foreach (var o in module.Enemies(OID.OrbOfConflagrationRed))
                 {
                     if (bluered2 && !bluered1)
-                        yield return new(circle, o.Position, o.Rotation, activation: _activation1.AddSeconds(6.2f));
+                        yield return new(circle, o.Position, o.Rotation, _activation1.AddSeconds(6.2f));
                     if (redblue1)
-                        yield return new(circle, o.Position, o.Rotation, activation: _activation2.AddSeconds(10.2f));
+                        yield return new(circle, o.Position, o.Rotation, _activation2.AddSeconds(10.2f));
                 }
             }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.LoyalFlame)
+            if (!module.Enemies(OID.OrbOfConflagrationRed).All(x => x.IsDead) && !module.Enemies(OID.OrbOfConflagrationBlue).All(x => x.IsDead))
             {
-                _activation1 = module.WorldState.CurrentTime;
-                active = true;
-                bluered1 = true;
-                bluered2 = true;
-            }
-            if ((AID)spell.Action.ID == AID.LoyalFlame2)
-            {
-                _activation2 = module.WorldState.CurrentTime;
-                active = true;
-                redblue1 = true;
-                redblue2 = true;
-            }
-        }
-
-        public override void Update(BossModule module) //Note: this is required because LitPath and Burn use the same color telegraph AID
-        {
-            if (module.Enemies(OID.OrbOfConflagrationRed).All(x => x.IsDead) && module.Enemies(OID.OrbOfConflagrationBlue).All(x => x.IsDead))
-            {
-                active = false;
-                bluered1 = false;
-                redblue2 = false;
-                bluered2 = false;
-                redblue1 = false;
+                if ((AID)spell.Action.ID == AID.LoyalFlame)
+                {
+                    _activation1 = module.WorldState.CurrentTime;
+                    active = true;
+                    bluered1 = true;
+                    bluered2 = true;
+                }
+                if ((AID)spell.Action.ID == AID.LoyalFlame2)
+                {
+                    _activation2 = module.WorldState.CurrentTime;
+                    active = true;
+                    redblue1 = true;
+                    redblue2 = true;
+                }
             }
         }
 
