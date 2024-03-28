@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Components
 {
@@ -75,6 +76,74 @@ namespace BossMod.Components
             base.OnEventCast(module, caster, spell);
             if (spell.Action == WatchedAction)
                 _predictedByEvent.Add((module.WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ, module.WorldState.CurrentTime.AddSeconds(CastEventToSpawn)));
+        }
+    }
+
+    // voidzone (circle aoe that stays active for some time) centered at each existing object with specified OID, assumed to be persistent voidzone center
+    // inverts from dangerous to safe when a specific AID is being casted
+    public class PersistentInvertibleVoidzone : GenericAOEs
+    {
+        public AOEShapeCircle Shape { get; private init; }
+        public Func<BossModule, IEnumerable<Actor>> Sources { get; private init; }
+        private bool inverting;
+        private DateTime _activation;
+        private float Radius;
+
+        public PersistentInvertibleVoidzone(float radius, ActionID aid, Func<BossModule, IEnumerable<Actor>> sources) : base(aid, "GTFO from voidzone!")
+        {
+            Shape = new(radius);
+            Sources = sources;
+            Radius = radius;
+        }
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            if (!inverting)
+                foreach (var s in Sources(module))
+                    yield return new(Shape, s.Position);
+            if (inverting)
+                foreach (var s in Sources(module))
+                    yield return new(Shape, s.Position, activation: _activation, color: ArenaColor.SafeFromAOE, risky: false);
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+            {
+                inverting = true;
+                _activation = spell.NPCFinishAt;
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                inverting = false;
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            var shapes = new List<Func<WPos, float>>();
+            foreach (var c in ActiveAOEs(module, slot, actor))
+            {
+                if (c.Risky)
+                    hints.AddForbiddenZone(c.Shape, c.Origin, c.Rotation, c.Activation);
+                if (inverting)
+                    shapes.Add(ShapeDistance.InvertedCircle(c.Origin, Radius));
+            }
+            if (shapes.Count > 0)
+                hints.AddForbiddenZone(p => shapes.Select(f => f(p)).Max(), _activation);
+            if (shapes.Count > 0 && !inverting)
+                shapes.Clear();
+        }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            base.AddHints(module, slot, actor, hints, movementHints);
+            if (ActiveAOEs(module, slot, actor).Any(c => c.Check(actor.Position)) && inverting)
+                hints.Add("Wait in puddle until mechanic resolves!", false);
+            if (!ActiveAOEs(module, slot, actor).Any(c => c.Check(actor.Position)) && inverting)
+                hints.Add("Go into puddle until mechanic resolves!");
         }
     }
 }
