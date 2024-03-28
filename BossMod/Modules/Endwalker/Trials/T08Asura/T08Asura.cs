@@ -62,21 +62,9 @@ namespace BossMod.Endwalker.Trials.T08Asura
         public Scattering() : base(ActionID.MakeSpell(AID.Scattering), new AOEShapeRect(20, 3)) { }
     }
 
-    class OrderedChaos : Components.UniformStackSpread
+    class OrderedChaos : Components.SpreadFromCastTargets
     {
-        public OrderedChaos() : base(0, 5, alwaysShowSpreads: true) { }
-
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.Spreadmarker)
-                AddSpread(actor);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.OrderedChaos2)
-                Spreads.Clear();
-        }
+        public OrderedChaos() : base(ActionID.MakeSpell(AID.OrderedChaos), 5) { }
     }
 
     class T08AsuraStates : StateMachineBuilder

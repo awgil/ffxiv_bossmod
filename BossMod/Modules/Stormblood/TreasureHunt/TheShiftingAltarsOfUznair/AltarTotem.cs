@@ -47,30 +47,29 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarTotem
         public TheWardensVerdict() : base(ActionID.MakeSpell(AID.TheWardensVerdict), new AOEShapeRect(45.06f, 2)) { }
     }
 
-    class FlamesOfFury : Components.UniformStackSpread
+    class FlamesOfFury : Components.GenericBaitAway
     {
-        public FlamesOfFury() : base(0, 10, alwaysShowSpreads: true) { }
         private bool targeted;
-        private int numcasts;
         private Actor? target;
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Baitaway)
             {
-                AddSpread(actor);
+                CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(10)));
                 targeted = true;
                 target = actor;
             }
         }
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FlamesOfFury)
-                ++numcasts;
-            if (numcasts == 3)
+                ++NumCasts;
+            if (NumCasts == 3)
             {
-                Spreads.Clear();
-                numcasts = 0;
+                CurrentBaits.Clear();
+                NumCasts = 0;
                 targeted = false;
             }
         }
@@ -85,13 +84,13 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarTotem
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (target == actor && targeted)
-                hints.Add("Bait away (3 times!)");
+                hints.Add("Bait voidzone away! (3 times)");
         }
     }
 
-    class FlamesOfFuryVoidzone : Components.PersistentVoidzoneAtCastTarget
+    class FlamesOfFuryVoidzone : Components.PersistentVoidzone
     {
-        public FlamesOfFuryVoidzone() : base(10, ActionID.MakeSpell(AID.FlamesOfFury), m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7), 0) { }
+        public FlamesOfFuryVoidzone() : base(10, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7)) { }
     }
 
     class HatiStates : StateMachineBuilder

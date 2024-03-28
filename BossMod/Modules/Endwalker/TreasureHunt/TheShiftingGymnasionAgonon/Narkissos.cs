@@ -39,12 +39,6 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
         LeftFace = 1960, // Boss->player, extra=0x0
     };
 
-    public enum IconID : uint
-    {
-        Tankbuster = 218, // player
-        Spread = 140, // player
-    };
-
     class Brainstorm : Components.StatusDrivenForcedMarch
     {
         public Brainstorm() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
@@ -116,23 +110,9 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.Narkissos
         public PutridBreath() : base(ActionID.MakeSpell(AID.PutridBreath), new AOEShapeCone(25, 45.Degrees())) { }
     }
 
-    class RockHard : Components.UniformStackSpread
+    class RockHard : Components.SpreadFromCastTargets
     {
-        public RockHard() : base(0, 6, alwaysShowSpreads: true) { }
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.Spread)
-            {
-                AddSpread(actor);
-            }
-        }
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.RockHard)
-            {
-                Spreads.Clear();
-            }
-        }
+        public RockHard() : base(ActionID.MakeSpell(AID.RockHard), 6) { }
     }
 
     class BeguilingGas : Components.CastHint

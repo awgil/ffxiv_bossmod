@@ -31,6 +31,7 @@ namespace BossMod.Components
         public bool CenterAtTarget; // if true, aoe source is at target
         public bool AllowDeadTargets = true; // if false, baits with dead targets are ignored
         public bool EnableHints = true;
+        public bool EndsOnCastEvent;
         public bool IgnoreOtherBaits = false; // if true, don't show hints/aoes for baits by others
         public PlayerPriority BaiterPriority = PlayerPriority.Interesting;
         public BitMask ForbiddenPlayers; // these players should avoid baiting
@@ -202,7 +203,13 @@ namespace BossMod.Components
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (spell.Action == WatchedAction)
+            if (spell.Action == WatchedAction && !EndsOnCastEvent)
+                CurrentBaits.RemoveAll(b => b.Source == caster);
+        }
+
+        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        {
+            if (spell.Action == WatchedAction && EndsOnCastEvent)
                 CurrentBaits.RemoveAll(b => b.Source == caster);
         }
     }

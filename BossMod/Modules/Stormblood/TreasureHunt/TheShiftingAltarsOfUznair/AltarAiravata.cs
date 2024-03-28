@@ -51,7 +51,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata
 
     class Huff : Components.SingleTargetCast
     {
-        public Huff() : base(ActionID.MakeSpell(AID.Huff)) { }
+        public Huff() : base(ActionID.MakeSpell(AID.Huff)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class Buffet : Components.KnockbackFromCastTarget
