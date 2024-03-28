@@ -1,3 +1,5 @@
+# THIS IS A FORK, IF YOU USE IT AND BUG REPORT TO VEYN ILL STEAL YOUR TOENAILS
+
 **Discord**: https://discord.gg/Zzrcc8kmvy
 
 This plugin consists of several interrelated parts which can be enabled or disabled independently.
