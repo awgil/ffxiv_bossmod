@@ -75,8 +75,7 @@ namespace BossMod.Shadowbringers.HuntA.LilMurderer
                 .ActivateOnEnter<GobthunderII>()
                 .ActivateOnEnter<GobthunderIII>()
                 .ActivateOnEnter<GobthunderIIIHint>()
-                .ActivateOnEnter<Gobhaste>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Gobhaste>();
         }
     }
 

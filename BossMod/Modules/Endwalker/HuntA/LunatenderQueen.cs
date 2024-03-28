@@ -70,8 +70,7 @@
                 .ActivateOnEnter<WickedWhim>()
                 .ActivateOnEnter<AvertYourEyesInverted>()
                 .ActivateOnEnter<YouMayApproachInverted>()
-                .ActivateOnEnter<AwayWithYouInverted>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<AwayWithYouInverted>();
         }
     }
 

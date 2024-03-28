@@ -89,8 +89,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
             TrivialPhase()
                 .ActivateOnEnter<QuintupleSneeze>()
                 .ActivateOnEnter<Uppercut>()
-                .ActivateOnEnter<RottenSpores>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<RottenSpores>();
         }
     }
 

@@ -142,8 +142,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
                 .ActivateOnEnter<ButcherHint>()
                 .ActivateOnEnter<Rip>()
                 .ActivateOnEnter<RockThrow>()
-                .ActivateOnEnter<Crosswind>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Crosswind>();
         }
     }
 

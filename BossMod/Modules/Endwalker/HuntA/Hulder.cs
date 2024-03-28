@@ -49,8 +49,7 @@
                 .ActivateOnEnter<TempestuousWrath>()
                 .ActivateOnEnter<RottingElegy>()
                 .ActivateOnEnter<OdeToLostLove>()
-                .ActivateOnEnter<StormOfColor>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<StormOfColor>();
         }
     }
 

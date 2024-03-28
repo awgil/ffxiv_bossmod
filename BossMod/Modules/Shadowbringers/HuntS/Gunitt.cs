@@ -109,8 +109,7 @@ namespace BossMod.Shadowbringers.HuntS.Gunitt
                 .ActivateOnEnter<TheDeepRendsHint>()
                 .ActivateOnEnter<CoinToss>()
                 .ActivateOnEnter<SwivelGun>()
-                .ActivateOnEnter<TheDeepSeeks>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<TheDeepSeeks>();
         }
     }
 

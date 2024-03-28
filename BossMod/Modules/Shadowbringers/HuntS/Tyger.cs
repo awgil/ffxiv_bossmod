@@ -104,8 +104,7 @@ namespace BossMod.Shadowbringers.HuntS.Tyger
                 .ActivateOnEnter<TheRamsBreath>()
                 .ActivateOnEnter<TheRamsEmbrace>()
                 .ActivateOnEnter<TheRamsVoice>()
-                .ActivateOnEnter<TheRamsVoiceHint>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<TheRamsVoiceHint>();
         }
     }
 

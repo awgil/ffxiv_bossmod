@@ -71,8 +71,7 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
                 .ActivateOnEnter<LeafstormRimestorm>()
                 .ActivateOnEnter<Snowball>()
                 .ActivateOnEnter<Canopy>()
-                .ActivateOnEnter<BackhandBlow>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<BackhandBlow>();
         }
     }
 

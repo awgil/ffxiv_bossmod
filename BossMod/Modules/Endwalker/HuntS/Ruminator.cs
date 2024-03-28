@@ -84,8 +84,7 @@ namespace BossMod.Endwalker.HuntS.Ruminator
         {
             TrivialPhase()
                 .ActivateOnEnter<ChitinousTrace>()
-                .ActivateOnEnter<StygianVapor>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<StygianVapor>();
         }
     }
 

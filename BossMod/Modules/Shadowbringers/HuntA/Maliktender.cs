@@ -59,8 +59,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
                 .ActivateOnEnter<Sabotendance>()
                 .ActivateOnEnter<TwentyKNeedles>()
                 .ActivateOnEnter<NineNineNineKNeedles>()
-                .ActivateOnEnter<Haste>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Haste>();
         }
     }
 

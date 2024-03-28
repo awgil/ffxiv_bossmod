@@ -82,8 +82,7 @@ namespace BossMod.Shadowbringers.HuntA.Baal
             TrivialPhase()
                 .ActivateOnEnter<SewageWave>()
                 .ActivateOnEnter<SewerWater>()
-                .ActivateOnEnter<SewerWater2>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<SewerWater2>();
         }
     }
 

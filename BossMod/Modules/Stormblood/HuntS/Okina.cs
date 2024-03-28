@@ -79,8 +79,7 @@ namespace BossMod.Stormblood.HuntS.Okina
                 .ActivateOnEnter<Immersion>()
                 .ActivateOnEnter<BodySlam>()
                 .ActivateOnEnter<BodySlamKB>()
-                .ActivateOnEnter<RubyTide>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<RubyTide>();
         }
     }
 

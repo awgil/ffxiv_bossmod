@@ -94,8 +94,7 @@ namespace BossMod.Shadowbringers.HuntA.Grassman
                 .ActivateOnEnter<Streak>()
                 .ActivateOnEnter<Browbeat>()
                 .ActivateOnEnter<StoolPelt>()
-                .ActivateOnEnter<ChestThump>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<ChestThump>();
         }
     }
 

@@ -77,8 +77,7 @@ namespace BossMod.Shadowbringers.HuntA.Nuckelavee
             TrivialPhase()
                 .ActivateOnEnter<Torpedo>()
                 .ActivateOnEnter<BogBody>()
-                .ActivateOnEnter<Spite>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Spite>();
         }
     }
 

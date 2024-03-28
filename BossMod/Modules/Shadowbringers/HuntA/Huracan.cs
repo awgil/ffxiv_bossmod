@@ -101,8 +101,7 @@ namespace BossMod.Shadowbringers.HuntA.Huracan
             TrivialPhase()
                 .ActivateOnEnter<SpringBreeze>()
                 .ActivateOnEnter<SummerHeat>()
-                .ActivateOnEnter<Combos>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Combos>();
         }
     }
 
