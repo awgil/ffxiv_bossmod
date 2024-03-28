@@ -100,6 +100,7 @@
         BahamutsFavorP4 = 9960, // Helper->self, no cast, ???, visual (buff twin/nael with damage up)
         MegaflareRaidwide = 9914, // NaelDeusDarnus->self, 5.0s cast, range 80+R circle, raidwide
         TwinFury = 9907, // Twintania->self, 3.0s cast, single-target, enrage
+        WhiteFury = 9924, // NaelDeusDarnus->self, 3.0s cast, single-target, enrage
 
         Teraflare = 9961, // BahamutPrime->self, no cast, ???, kills everyone during phase transition
         FlamesOfRebirth = 9970, // Phoenix->self, no cast, range 80+R circle, revives and buffs everyone during phase transition
@@ -110,6 +111,8 @@
         Exaflare = 9967, // BahamutPrime->self, 4.0s cast, single-target, visual (exaflares)
         ExaflareFirst = 9968, // Helper->self, 4.0s cast, range 6 circle
         ExaflareRest = 9969, // Helper->self, no cast, range 6 circle
+        Enrage = 9965, // BahamutPrime->player, 10.0s cast, range 4 circle, enrage spread
+        EnrageAOE = 9966, // BahamutPrime->player, no cast, range 4 circle, enrage spread second+ casts
     };
 
     public enum SID : uint
