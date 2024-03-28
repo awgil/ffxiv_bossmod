@@ -9,11 +9,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
 
         public MercifulMoon() : base(ActionID.MakeSpell(AID.MercifulMoon)) { }
 
-        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
-        {
-            if (_eye != null)
-                yield return _eye.Value;
-        }
+        public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_eye);
 
         public override void Update(BossModule module)
         {

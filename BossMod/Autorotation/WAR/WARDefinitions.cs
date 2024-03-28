@@ -57,6 +57,8 @@ namespace BossMod.WAR
         Interject = 7538, // L18, instant, 30.0s CD (group 44), range 3, single-target 0/0, targets=hostile
 
         // special
+        ShieldWall = 197, // LB1
+        Stronghold = 198, // LB2
         LandWaker = 4240, // LB3
     }
 
@@ -243,6 +245,8 @@ namespace BossMod.WAR
             SupportedActions.OGCD(AID.Shirk, 25, CDGroup.Shirk, 120.0f);
             SupportedActions.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
             SupportedActions.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
+            SupportedActions.OGCD(AID.ShieldWall, 0, CDGroup.LimitBreak, 0, 3.86f);
+            SupportedActions.OGCD(AID.Stronghold, 0, CDGroup.LimitBreak, 0, 3.86f);
             SupportedActions.OGCD(AID.LandWaker, 0, CDGroup.LimitBreak, 0, 3.86f);
         }
     }

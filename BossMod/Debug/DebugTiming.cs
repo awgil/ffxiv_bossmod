@@ -28,7 +28,7 @@ namespace BossMod
             ImGui.TextUnformatted($"dt real: {dtReal} = raw + {dtReal - dtRaw}");
             ImGui.TextUnformatted($"dt ms granularity: {Utils.ReadField<long>(fwk, 0x16D0)} + {Utils.ReadField<float>(fwk, 0x16D8)}");
             ImGui.TextUnformatted($"dt us granularity: {Utils.ReadField<long>(fwk, 0x16E0)} + {Utils.ReadField<float>(fwk, 0x16E8)}");
-            ImGui.TextUnformatted($"dt timer: {DateTime.UnixEpoch.AddSeconds(fwk->ServerTime)}");
+            ImGui.TextUnformatted($"dt timer: {DateTime.UnixEpoch.AddSeconds(fwk->UtcTime.TimeStamp)}");
             _prevFrameCounter = fwk->FrameCounter;
             _prevQPC = qpc;
         }

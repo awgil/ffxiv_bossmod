@@ -124,11 +124,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
         private AOEInstance? _instance;
         private static AOEShapeRect _shape = new(60, 2.5f);
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_instance != null)
-                yield return _instance.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_instance);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

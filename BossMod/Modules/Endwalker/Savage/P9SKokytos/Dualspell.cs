@@ -76,11 +76,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
         private Mechanic _curMechanic;
         private AOEInstance? _aoe;
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_aoe != null)
-                yield return _aoe.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
