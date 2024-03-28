@@ -22,7 +22,12 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
             SimplePhase(3, Phase2, "P2: Nael")
                 .Raw.Update = () => Module.PrimaryActor.IsDestroyed || _module.Nael() is var nael && nael != null && !nael.IsTargetable && nael.HP.Cur <= 1 && Module.FindComponent<P2BlockTransition>() == null;
-            DeathPhase(4, Phase34);
+            SimplePhase(4, Phase34, "P3-4: Bahamut + Adds")
+                .DeactivateOnExit<Hatch>()
+                .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead && _module.Nael() is var nael && nael != null && nael.IsDead;
+            SimplePhase(5, Phase5, "P5: Golden Bahamut")
+                .ActivateOnEnter<P5Exaflare>() // exaflares overlap with next mechanics
+                .Raw.Update = () => _module.BahamutPrime() is var baha && (baha == null || baha.IsDestroyed || baha.IsDead);
         }
 
         private void Phase1Twintania1(uint id)
@@ -112,10 +117,30 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P4PlummetBahamutsClaw(id + 0x160000, 4.1f);
             P4LiquidHell(id + 0x170000, 5.9f);
             P4GenerateTwister(id + 0x180000, 1.2f);
-            P4QuoteTwister(id + 0x190000, 2.3f); // TODO: timings below...
-            P4DeathSentenceRavensbeak(id + 0x1A0000, 5);
-            P4Megaflare(id + 0x1B0000, 5);
+            P4QuoteTwister(id + 0x190000, 2.6f);
+            P4DeathSentenceRavensbeak(id + 0x1A0000, 8.8f);
+            P4Megaflare(id + 0x1B0000, 7.1f);
 
+            // TODO: enrage
+            SimpleState(id + 0xFF0000, 100, "???");
+        }
+
+        private void Phase5(uint id)
+        {
+            P5Teraflare(id, 4.1f);
+            P5MornAfah(id + 0x10000, 0.1f);
+            P5AhkMorn(id + 0x20000, 2.2f, 3);
+            P5Exaflare(id + 0x30000, 5.2f);
+            P5AhkMorn(id + 0x40000, 7.1f, 4);
+            P5MornAfah(id + 0x50000, 7.3f);
+            P5Exaflare(id + 0x60000, 8.2f);
+            P5MornAfah(id + 0x70000, 7.2f);
+            P5AhkMorn(id + 0x80000, 8.2f, 5);
+            P5Exaflare(id + 0x90000, 7.2f);
+            P5MornAfah(id + 0xA0000, 7.2f);
+            P5AhkMorn(id + 0xB0000, 8.2f, 6);
+            P5Exaflare(id + 0xC0000, 7.2f); // TODO: timings here and below...
+            P5MornAfah(id + 0xD0000, 7.2f);
             // TODO: enrage
             SimpleState(id + 0xFF0000, 100, "???");
         }
@@ -203,6 +228,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         {
             ComponentCondition<P2Heavensfall>(id, delay, comp => comp.NumCasts > 0, "Knockback")
                 .ExecOnEnter<Hatch>(comp => comp.Active = false)
+                .ExecOnEnter<Hatch>(comp => comp.Reset())
                 .ActivateOnEnter<P2HeavensfallDalamudDive>() // activate asap until twintania untargets current tank
                 .ActivateOnEnter<P2Heavensfall>()
                 .ActivateOnEnter<P2HeavensfallPillar>()
@@ -787,7 +813,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
 
         private void P4DeathSentenceRavensbeak(uint id, float delay)
         {
-            ActorCast(id, _module.Twintania, AID.DeathSentence, delay, 4, true, "Tank swap") // both bosses cast at the same time
+            ActorCast(id, _module.Nael, AID.Ravensbeak, delay, 4, true, "Tank swap") // both bosses cast at the same time
                 .ActivateOnEnter<P1DeathSentence>()
                 .ActivateOnEnter<P2Ravensbeak>()
                 .DeactivateOnExit<P1DeathSentence>()
@@ -795,6 +821,50 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .DeactivateOnExit<LiquidHell>() // TODO: reconsider - prep for next cycle
                 .DeactivateOnExit<Twister>()
                 .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P5Teraflare(uint id, float delay)
+        {
+            ComponentCondition<P5Teraflare>(id, delay, comp => comp.DownForTheCountAssigned)
+                .ActivateOnEnter<P5Teraflare>()
+                .SetHint(StateMachine.StateHint.DowntimeStart);
+            ComponentCondition<P5Teraflare>(id + 1, 13.2f, comp => comp.NumCasts > 0)
+                .DeactivateOnExit<P5Teraflare>();
+            ComponentCondition<P5FlamesOfRebirth>(id + 2, 25.1f, comp => comp.NumCasts > 0)
+                .ActivateOnEnter<P5FlamesOfRebirth>()
+                .DeactivateOnExit<P5FlamesOfRebirth>();
+            ActorTargetable(id + 3, _module.BahamutPrime, true, 19.9f, "Boss appears")
+                .SetHint(StateMachine.StateHint.DowntimeEnd);
+        }
+
+        private void P5MornAfah(uint id, float delay)
+        {
+            ActorCast(id, _module.BahamutPrime, AID.MornAfah, delay, 6, true, "Stack")
+                .ActivateOnEnter<P5MornAfah>()
+                .DeactivateOnExit<P5MornAfah>()
+                .SetHint(StateMachine.StateHint.Raidwide);
+        }
+
+        private void P5AhkMorn(uint id, float delay, int count)
+        {
+            ActorCast(id, _module.BahamutPrime, AID.AkhMorn, delay, 4, true, "Tankbuster hit 1")
+                .ActivateOnEnter<P5AhkMorn>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P5AhkMorn>(id + 0x10, 2.1f, comp => comp.NumCasts >= 2)
+                .SetHint(StateMachine.StateHint.Tankbuster);
+            ComponentCondition<P5AhkMorn>(id + 0x20, 1.1f * (count - 2), comp => comp.NumCasts >= count, $"Tankbuster hint {count}")
+                .DeactivateOnExit<P5AhkMorn>()
+                .SetHint(StateMachine.StateHint.Tankbuster);
+        }
+
+        private void P5Exaflare(uint id, float delay)
+        {
+            ActorCast(id, _module.BahamutPrime, AID.Exaflare, delay, 4, true)
+                .ExecOnEnter<P5Exaflare>(comp => comp.Reset()); // first pair of exaflares start ~2s into cast, 3s delay between lines
+            ComponentCondition<P5Exaflare>(id + 0x10, 2, comp => comp.NumCasts >= 2, "Exaflares 1");
+            ComponentCondition<P5Exaflare>(id + 0x20, 3, comp => comp.NumCasts >= 8, "Exaflares 2");
+            ComponentCondition<P5Exaflare>(id + 0x30, 3, comp => comp.NumCasts >= 18, "Exaflares 3");
+            // +7.5s: resolve
         }
     }
 }
