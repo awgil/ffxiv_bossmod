@@ -135,6 +135,7 @@ namespace BossMod
             WorldState.Actors.EventObjectAnimation += OnActorEAnim;
             WorldState.Actors.PlayActionTimelineEvent += OnActorPlayActionTimelineEvent;
             WorldState.Actors.EventNpcYell += OnActorNpcYell;
+            WorldState.Actors.ModelStateChanged += OnActorModelStateChange;
             WorldState.EnvControl += OnEnvControl;
             foreach (var v in WorldState.Actors)
                 OnActorCreated(null, v);
@@ -170,6 +171,7 @@ namespace BossMod
                 WorldState.Actors.EventObjectAnimation -= OnActorEAnim;
                 WorldState.Actors.PlayActionTimelineEvent -= OnActorPlayActionTimelineEvent;
                 WorldState.Actors.EventNpcYell -= OnActorNpcYell;
+                WorldState.Actors.ModelStateChanged += OnActorModelStateChange;
                 WorldState.EnvControl -= OnEnvControl;
             }
         }
@@ -479,6 +481,12 @@ namespace BossMod
         {
             foreach (var comp in _components)
                 comp.OnActorNpcYell(this, arg.actor, arg.id);
+        }
+
+        private void OnActorModelStateChange(object? sender, (Actor actor, byte modelstate, byte animstate1, byte animstate2) arg)
+        {
+            foreach (var comp in _components)
+                comp.OnActorModelStateChange(this, arg.actor, arg.modelstate, arg.animstate1, arg.animstate2);
         }
 
         private void OnEnvControl(object? sender, WorldState.OpEnvControl op)
