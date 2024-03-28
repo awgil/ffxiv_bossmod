@@ -46,20 +46,53 @@ namespace BossMod.Components
 
     public class CastInterruptHint : CastHint
     {
-        public bool CanBeInterrupted { get; init; }
-        public bool CanBeStunned { get; init; }
+        public bool CanBeInterrupted;
+        public bool CanBeStunned;
+        public bool ShowNameInHint;
+        public string HintExtra;
+        private List<Actor> _casters = new();
+        public new IReadOnlyList<Actor> Casters => _casters;
+        public new bool Active => _casters.Count > 0;
 
-        public CastInterruptHint(ActionID aid, bool canBeInterrupted = true, bool canBeStunned = false, string hint = "") : base(aid, "")
+        public CastInterruptHint(ActionID aid, bool canBeInterrupted = true, bool canBeStunned = false, string hintExtra = "", bool showNameInHint = false) : base(aid, hintExtra)
         {
             CanBeInterrupted = canBeInterrupted;
             CanBeStunned = canBeStunned;
-            if (canBeInterrupted || canBeStunned)
-            {
-                Hint = !canBeStunned ? "Interrupt" : !canBeInterrupted ? "Stun" : "Interrupt/stun";
-                if (hint.Length > 0)
-                    Hint += $" {hint}";
-            }
+            ShowNameInHint = showNameInHint;
+            HintExtra = hintExtra;
         }
+
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        {
+            if (!Active) return;
+            string action = "";
+            if (CanBeInterrupted && !CanBeStunned)
+                action = "Interrupt";
+            else if (CanBeInterrupted && CanBeStunned)
+                action = "Interrupt/Stun";
+            else if (!CanBeInterrupted && CanBeStunned)
+                action = "Stun";
+            string hint = $"{action}!";
+            if (ShowNameInHint && Casters.Count > 0)
+                hint = $"{action} {Casters[0].Name}!";
+            if (HintExtra.Length > 0)
+                hint += $" {HintExtra}";
+            hints.Add(hint);
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                _casters.Add(caster);
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if (spell.Action == WatchedAction)
+                _casters.Remove(caster);
+        }
+
+
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
