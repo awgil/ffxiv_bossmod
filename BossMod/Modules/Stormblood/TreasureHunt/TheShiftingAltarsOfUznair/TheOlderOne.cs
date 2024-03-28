@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheOlderOne
@@ -72,7 +73,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheOlderOne
 
     class MysticFlash : Components.SingleTargetCast
     {
-        public MysticFlash() : base(ActionID.MakeSpell(AID.MysticFlash)) { }
+        public MysticFlash() : base(ActionID.MakeSpell(AID.MysticFlash)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class PluckAndPrune : Components.SelfTargetedAOEs

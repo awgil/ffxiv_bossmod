@@ -26,7 +26,10 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D051ForgivenCruelty
 
     class Rake : Components.SingleTargetCast
     {
-        public Rake() : base(ActionID.MakeSpell(AID.Rake)) { }
+        public Rake() : base(ActionID.MakeSpell(AID.Rake)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class CycloneWing : Components.RaidwideCast

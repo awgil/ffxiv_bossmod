@@ -21,8 +21,8 @@ namespace BossMod.Endwalker.HuntA.Aegeiros
     class LeafstormRimestorm : Components.GenericAOEs
     {
         private DateTime _rimestormExpected;
-        private static AOEShapeCircle _leafstorm = new(10);
-        private static AOEShapeCone _rimestorm = new(40, 90.Degrees());
+        private static readonly AOEShapeCircle _leafstorm = new(10);
+        private static readonly AOEShapeCone _rimestorm = new(40, 90.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

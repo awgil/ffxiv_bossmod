@@ -54,7 +54,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath
         public Compress2() : base(ActionID.MakeSpell(AID.Compress2), new AOEShapeRect(102.1f, 3.5f)) { }
     }
 
-    class Accelerate : Components.StackWithCastTargets //not sure if this is always a stack, in one replay the icon is a spread marker, need to investigate, but since this is a rare boss it is hard to test
+    class Accelerate : Components.StackWithCastTargets
     {
         public Accelerate() : base(ActionID.MakeSpell(AID.Accelerate), 6) { }
     }

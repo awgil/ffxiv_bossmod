@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -67,25 +66,14 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegaka
 
     class OdiousAtmosphere : Components.GenericAOEs
     {
-        private bool activeBreath;
-        private Actor? _caster;
-        private DateTime _activation;
-        private static readonly AOEShapeCone cone = new(40, 90.Degrees());
+        private AOEInstance? _aoe;
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (activeBreath && _caster != null)
-                yield return new(cone, _caster.Position, _caster.Rotation, _activation);
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.OdiousAtmosphere0)
-            {
-                activeBreath = true;
-                _caster = caster;
-                _activation = spell.NPCFinishAt;
-            }
+                _aoe = new(new AOEShapeCone(40, 90.Degrees()), caster.Position, spell.Rotation, activation: spell.NPCFinishAt);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -98,7 +86,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegaka
                 case AID.OdiousAtmosphere3:
                     if (++NumCasts == 6)
                     {
-                        activeBreath = false;
+                        _aoe = null;
                         NumCasts = 0;
                     }
                     break;

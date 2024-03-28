@@ -32,79 +32,43 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
 
     class GobspinSwipe : Components.GenericAOEs
     {
-        private DateTime _activation;
-        private bool castingGobspin;
-        private bool castingGobswipe;
-        private static readonly AOEShapeCircle circle = new(8);
-        private static readonly AOEShapeDonut donut = new(5, 30);
+        private AOEInstance? _aoe;
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (castingGobspin)
-                yield return new(circle, module.PrimaryActor.Position, default, _activation);
-            if (castingGobswipe)
-                yield return new(donut, module.PrimaryActor.Position, default, _activation);
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            {
-                castingGobspin = true;
-                _activation = spell.NPCFinishAt.AddSeconds(4);
-            }
+                _aoe = new(new AOEShapeCircle(8), module.PrimaryActor.Position, activation: spell.NPCFinishAt.AddSeconds(4));
             if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            {
-                castingGobswipe = true;
-                _activation = spell.NPCFinishAt.AddSeconds(4);
-            }
+                _aoe = new(new AOEShapeDonut(5, 30), module.PrimaryActor.Position, activation: spell.NPCFinishAt.AddSeconds(4));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID == AID.GobspinWhooshdrops)
-                castingGobspin = false;
-            if ((AID)spell.Action.ID == AID.GobswipeConklops)
-                castingGobswipe = false;
+            if ((AID)spell.Action.ID is AID.GobspinWhooshdrops or AID.GobswipeConklops)
+                _aoe = null;
         }
     }
 
     class Knockbacks : Components.Knockback
     {
-        private DateTime _activation;
-        private bool castingGobspin;
-        private bool castingGobswipe;
-        private static readonly AOEShapeCircle circle = new(8);
-        private static readonly AOEShapeDonut donut = new(5, 30);
+        private Source? _knockback;
 
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            if (castingGobspin)
-                yield return new(module.PrimaryActor.Position, 15, _activation, circle);
-            if (castingGobswipe)
-                yield return new(module.PrimaryActor.Position, 15, _activation, donut);
-        }
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            {
-                castingGobspin = true;
-                _activation = spell.NPCFinishAt.AddSeconds(4);
-            }
+                _knockback = new(module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeCircle(8));
             if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            {
-                castingGobswipe = true;
-                _activation = spell.NPCFinishAt.AddSeconds(4);
-            }
+                _knockback = new(module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeDonut(5, 30));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            if ((AID)spell.Action.ID == AID.GobspinWhooshdrops)
-                castingGobspin = false;
-            if ((AID)spell.Action.ID == AID.GobswipeConklops)
-                castingGobswipe = false;
+            if ((AID)spell.Action.ID is AID.GobspinWhooshdrops or AID.GobswipeConklops)
+                _knockback = null;
         }
     }
 
@@ -174,7 +138,6 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
                 .ActivateOnEnter<Knockbacks>()
                 .ActivateOnEnter<GobfireShootypops>()
                 .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.IsTargetable;
-
         }
     }
 

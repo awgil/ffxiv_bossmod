@@ -42,12 +42,6 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
         HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
     };
 
-    public enum IconID : uint
-    {
-        Tankbuster = 218, // player
-        Spread = 140, // player
-    };
-
     class Scratch : Components.SingleTargetCast
     {
         public Scratch() : base(ActionID.MakeSpell(AID.Scratch)) { }
@@ -78,25 +72,9 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSphinx
         public AlpineDraft() : base(ActionID.MakeSpell(AID.AlpineDraft), new AOEShapeRect(45, 2.5f)) { }
     }
 
-    class FeatherRain : Components.UniformStackSpread
+    class FeatherRain : Components.SpreadFromCastTargets
     {
-        public FeatherRain() : base(0, 6, alwaysShowSpreads: true) { }
-
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.Spread)
-            {
-                AddSpread(actor);
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.FeatherRain)
-            {
-                Spreads.Clear();
-            }
-        }
+        public FeatherRain() : base(ActionID.MakeSpell(AID.FeatherRain), 6) { }
     }
 
     class AeroII : Components.LocationTargetedAOEs

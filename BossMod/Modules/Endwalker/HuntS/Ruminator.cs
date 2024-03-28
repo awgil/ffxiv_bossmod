@@ -12,9 +12,9 @@ namespace BossMod.Endwalker.HuntS.Ruminator
     {
         AutoAttack = 871, // Boss->player, no cast, single-target
         ChitinousTraceCircleFirst = 26874, // Boss->self, 4.0s cast, range 8 circle - always followed by circle, does not 'record' shape by itself
-        ChitinousTraceDonutFirst = 26875, // Boss->self, 4.0s cast, range ?-40 donut - always followed by donut, does not 'record' shape by itself
+        ChitinousTraceDonutFirst = 26875, // Boss->self, 4.0s cast, range 8-40 donut - always followed by donut, does not 'record' shape by itself
         ChitinousTraceCircle = 26876, // Boss->self, 2.5s cast, range 8 circle
-        ChitinousTraceDonut = 26877, // Boss->self, 2.5s cast, range ?-40 donut
+        ChitinousTraceDonut = 26877, // Boss->self, 2.5s cast, range 8-40 donut
         ChitinousAdvanceCircleFirst = 26878, // Boss->self, 3.0s cast, range 8 circle
         ChitinousAdvanceDonutFirst = 26879, // Boss->self, 3.0s cast, range 8-40 donut
         ChitinousAdvanceCircleRest = 26880, // Boss->self, no cast, range 8 circle
@@ -29,7 +29,7 @@ namespace BossMod.Endwalker.HuntS.Ruminator
     class ChitinousTrace : Components.GenericAOEs
     {
         private bool _active;
-        private List<AOEShape> _pendingShapes = new();
+        private readonly List<AOEShape> _pendingShapes = [];
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

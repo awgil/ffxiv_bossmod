@@ -61,13 +61,17 @@ namespace BossMod.Endwalker.HuntA.Sugriva
 
     class Butcher : Components.BaitAwayCast
     {
-        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees())) { }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { }
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell) //tankbuster resolves on cast event, which can be delayed by moving out of tankbuster range
+        public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees()))
         {
-            if (spell.Action == WatchedAction)
-                CurrentBaits.RemoveAll(b => b.Source == caster);
+            EndsOnCastEvent = true;
+        }
+    }
+
+    class ButcherHint : Components.SingleTargetCast
+    {
+        public ButcherHint() : base(ActionID.MakeSpell(AID.Butcher), "Tankbuster cleave") 
+        {
+            EndsOnCastEvent = true;
         }
     }
 
@@ -80,7 +84,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
     class RockThrow : Components.GenericAOEs
     {
         private Actor? _target;
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public RockThrow() : base(ActionID.MakeSpell(AID.RockThrowRest)) { }
 
@@ -135,6 +139,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
                 .ActivateOnEnter<Spark>()
                 .ActivateOnEnter<ScytheTail>()
                 .ActivateOnEnter<Butcher>()
+                .ActivateOnEnter<ButcherHint>()
                 .ActivateOnEnter<Rip>()
                 .ActivateOnEnter<RockThrow>()
                 .ActivateOnEnter<Crosswind>();

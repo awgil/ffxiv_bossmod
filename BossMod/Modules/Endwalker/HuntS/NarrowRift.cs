@@ -39,10 +39,10 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
 
     class EmptyPromise : Components.GenericAOEs
     {
-        private List<AOEShape> _pendingShapes = new();
+        private readonly List<AOEShape> _pendingShapes = [];
 
-        private static AOEShapeCircle _shapeCircle = new(10);
-        private static AOEShapeDonut _shapeDonut = new(6, 40);
+        private static readonly AOEShapeCircle _shapeCircle = new(10);
+        private static readonly AOEShapeDonut _shapeDonut = new(6, 40);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -83,7 +83,7 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
     class VanishingRay : Components.GenericAOEs
     {
         private DateTime _activation;
-        private static AOEShapeRect _shape = new(50, 4);
+        private static readonly AOEShapeRect _shape = new(50, 4);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

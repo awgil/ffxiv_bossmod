@@ -37,7 +37,10 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D032Batsquatch
 
     class RipperFang : Components.SingleTargetCast
     {
-        public RipperFang() : base(ActionID.MakeSpell(AID.RipperFang)) { }
+        public RipperFang() : base(ActionID.MakeSpell(AID.RipperFang)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class FallingBoulder : Components.SelfTargetedAOEs

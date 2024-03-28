@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarSkatene
@@ -37,7 +38,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarSkatene
 
     class RecklessAbandon : Components.SingleTargetCast
     {
-        public RecklessAbandon() : base(ActionID.MakeSpell(AID.RecklessAbandon)) { }
+        public RecklessAbandon() : base(ActionID.MakeSpell(AID.RecklessAbandon)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class SkateneStates : StateMachineBuilder
