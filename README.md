@@ -1,4 +1,4 @@
-**RotationSolverReborn**
+**BossmodReborn**
 
 ![Github Latest Releases](https://img.shields.io/github/downloads/FFXIV-CombatReborn/BossmodReborn/latest/total.svg?style=for-the-badge)
 ![Github All Releases](https://img.shields.io/github/downloads/FFXIV-CombatReborn/BossmodReborn/total.svg?style=for-the-badge)
