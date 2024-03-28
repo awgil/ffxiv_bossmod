@@ -60,6 +60,22 @@ namespace BossMod
         }
     }
 
+    // attribute that specifies slider should be used for displaying float property
+    [AttributeUsage(AttributeTargets.Field)]
+    public class PropertyIntSliderAttribute : Attribute
+    {
+        public float Speed = 1;
+        public int Min;
+        public int Max;
+        public bool Logarithmic;
+
+        public PropertyIntSliderAttribute(int min, int max)
+        {
+            Min = min;
+            Max = max;
+        }
+    }
+
     // base class for configuration nodes
     public abstract class ConfigNode
     {

@@ -4,6 +4,7 @@ using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using System;
 using System.Reflection;
 
@@ -46,6 +47,7 @@ namespace BossMod
             Service.WindowSystem = new("vbm");
             //Service.Device = pluginInterface.UiBuilder.Device;
             Service.Condition.ConditionChange += OnConditionChanged;
+            Service.ClientState.TerritoryChanged += OnZoneChange;
             MultiboxUnlock.Exec();
             Network.IDScramble.Initialize();
             Camera.Instance = new();
@@ -82,6 +84,7 @@ namespace BossMod
         public void Dispose()
         {
             Service.Condition.ConditionChange -= OnConditionChanged;
+            Service.ClientState.TerritoryChanged -= OnZoneChange;
             _wndDebug.Dispose();
             _wndReplay.Dispose();
             _wndBossmodHints.Dispose();
@@ -159,6 +162,21 @@ namespace BossMod
         private void OnConditionChanged(ConditionFlag flag, bool value)
         {
             Service.Log($"Condition chage: {flag}={value}");
+        }
+
+        private unsafe void OnZoneChange(ushort obj)
+        {
+            if (GameMain.Instance()->CurrentContentFinderConditionId != 0 && !_wndReplay.IsRecording() && Service.Config.Get<ReplayManagementConfig>().AutoRecord)
+            {
+                _wndReplay.StartRecording();
+                return;
+            }
+
+            if (_wndReplay.IsRecording() && Service.Config.Get<ReplayManagementConfig>().AutoStop)
+            {
+                _wndReplay.StopRecording();
+                return;
+            }
         }
     }
 }
