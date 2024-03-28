@@ -59,7 +59,6 @@ namespace BossMod.Endwalker.FATE.Daivadipa
     class LitPath : Components.GenericAOEs
     {
         private static readonly AOEShapeRect rect = new(50, 5);
-        private static readonly Angle[] rotations = [0.Degrees(), 90.Degrees(), 180.Degrees(), -90.Degrees()];
         private DateTime _activation;
         private bool redblue1;
         private bool redblue2;
@@ -73,16 +72,16 @@ namespace BossMod.Endwalker.FATE.Daivadipa
             {
                 foreach (var o in module.Enemies(OID.OrbOfImmolationBlue))
                 {
-                    if (bluered1 && o.Rotation.AlmostEqual(rotations.FirstOrDefault(r => o.Rotation.AlmostEqual(r, maxError)), maxError))
+                    if (bluered1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError)))
                         yield return new(rect, o.Position, o.Rotation, _activation.AddSeconds(1.9f));
-                    if (redblue2 && !redblue1 && o.Rotation.AlmostEqual(rotations.FirstOrDefault(r => o.Rotation.AlmostEqual(r, maxError)), maxError))
+                    if (redblue2 && !redblue1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError)))
                         yield return new(rect, o.Position, o.Rotation, _activation.AddSeconds(4));
                 }
                 foreach (var o in module.Enemies(OID.OrbOfImmolationRed))
                 {
-                    if (bluered2 && !bluered1 && o.Rotation.AlmostEqual(rotations.FirstOrDefault(r => o.Rotation.AlmostEqual(r, maxError)), maxError))
+                    if (bluered2 && !bluered1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError)))
                         yield return new(rect, o.Position, o.Rotation, _activation.AddSeconds(4));
-                    if (redblue1 && o.Rotation.AlmostEqual(rotations.FirstOrDefault(r => o.Rotation.AlmostEqual(r, maxError)), maxError))
+                    if (redblue1 && (o.Rotation.AlmostEqual(90.Degrees(), maxError) || o.Rotation.AlmostEqual(180.Degrees(), maxError)))
                         yield return new(rect, o.Position, o.Rotation, _activation.AddSeconds(1.9f));
                 }
             }
