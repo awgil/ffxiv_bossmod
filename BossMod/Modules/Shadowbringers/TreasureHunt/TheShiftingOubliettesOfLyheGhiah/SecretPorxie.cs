@@ -15,12 +15,17 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         MagickedBroom5 = 0x3015, // R=3.125
         MagickedBroom6 = 0x30F0, // R=3.125
         BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
+        SecretQueen = 0x3021, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+        SecretGarlic = 0x301F, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+        SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+        SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+        SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     };
 
     public enum AID : uint
     {
-        AutoAttack = 872, // Boss/BonusAdd_TheKeeperOfTheKeys->player, no cast, single-target
-        BrewingStorm = 21670, // Boss->self, 2,5s cast, range 5 60-degree cone
+        AutoAttack = 872, // Boss/BonusAdd_TheKeeperOfTheKeys->player/Mandragoras, no cast, single-target
+        BrewingStorm = 21670, // Boss->self, 2,5s cast, range 5 60-degree cone, knockback 10 away from source
         HarrowingDream = 21671, // Boss->self, 3,0s cast, range 6 circle, applies sleep
         BecloudingDust = 22935, // Boss->self, 3,0s cast, single-target
         BecloudingDust2 = 22936, // BossHelper->location, 3,0s cast, range 6 circle
@@ -34,6 +39,11 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
         Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
         Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
+        Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
+        TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
+        HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
+        PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
+        PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
     };
 
 
@@ -89,6 +99,31 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
     }
 
+    class PluckAndPrune : Components.SelfTargetedAOEs
+    {
+        public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class TearyTwirl : Components.SelfTargetedAOEs
+    {
+        public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class HeirloomScream : Components.SelfTargetedAOEs
+    {
+        public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class PungentPirouette : Components.SelfTargetedAOEs
+    {
+        public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
+    }
+
+    class Pollen : Components.SelfTargetedAOEs
+    {
+        public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
+    }
+
     class PorxieStates : StateMachineBuilder
     {
         public PorxieStates(BossModule module) : base(module)
@@ -101,7 +136,12 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
                 .ActivateOnEnter<Spin>()
                 .ActivateOnEnter<Mash>()
                 .ActivateOnEnter<Scoop>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
+                .ActivateOnEnter<PluckAndPrune>()
+                .ActivateOnEnter<TearyTwirl>()
+                .ActivateOnEnter<HeirloomScream>()
+                .ActivateOnEnter<PungentPirouette>()
+                .ActivateOnEnter<Pollen>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead) && module.Enemies(OID.SecretEgg).All(e => e.IsDead) && module.Enemies(OID.SecretQueen).All(e => e.IsDead) && module.Enemies(OID.SecretOnion).All(e => e.IsDead) && module.Enemies(OID.SecretGarlic).All(e => e.IsDead) && module.Enemies(OID.SecretTomato).All(e => e.IsDead);
         }
     }
 
@@ -115,6 +155,16 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
                 Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.SecretEgg))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.SecretTomato))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.SecretQueen))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.SecretGarlic))
+                Arena.Actor(s, ArenaColor.Vulnerable);
+            foreach (var s in Enemies(OID.SecretOnion))
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -124,7 +174,11 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
-                    OID.BonusAdd_TheKeeperOfTheKeys => 2,
+                    OID.SecretOnion => 6,
+                    OID.SecretEgg => 5,
+                    OID.SecretGarlic => 4,
+                    OID.SecretTomato => 3,
+                    OID.BonusAdd_TheKeeperOfTheKeys or OID.SecretQueen => 2,
                     OID.Boss => 1,
                     _ => 0
                 };
