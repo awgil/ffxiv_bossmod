@@ -94,7 +94,8 @@ namespace BossMod.Shadowbringers.HuntS.Tarchia
                 .ActivateOnEnter<Trounce>()
                 .ActivateOnEnter<BafflementBulb>()
                 .ActivateOnEnter<Groundstorm>()
-                .ActivateOnEnter<ForestFire>();
+                .ActivateOnEnter<ForestFire>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

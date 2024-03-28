@@ -62,7 +62,8 @@ namespace BossMod.Shadowbringers.HuntA.Rusalka
                 .ActivateOnEnter<Hydrocannon>()
                 .ActivateOnEnter<AetherialSpark>()
                 .ActivateOnEnter<AetherialPull>()
-                .ActivateOnEnter<Flood>();
+                .ActivateOnEnter<Flood>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

@@ -43,7 +43,8 @@ namespace BossMod.Shadowbringers.HuntA.OPoorestPauldia
                 .ActivateOnEnter<RustingClaw>()
                 .ActivateOnEnter<TailDrive>()
                 .ActivateOnEnter<WordsOfWoe>()
-                .ActivateOnEnter<TheSpin>();
+                .ActivateOnEnter<TheSpin>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

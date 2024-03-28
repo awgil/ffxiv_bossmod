@@ -69,7 +69,8 @@
         {
             TrivialPhase()
                 .ActivateOnEnter<Slammer>()
-                .ActivateOnEnter<BoneShaker>();
+                .ActivateOnEnter<BoneShaker>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

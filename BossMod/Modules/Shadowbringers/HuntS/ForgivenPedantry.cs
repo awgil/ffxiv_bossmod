@@ -157,7 +157,8 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenPedantry
                 .ActivateOnEnter<CleansingFire>()
                 .ActivateOnEnter<FeveredFlagellation>()
                 .ActivateOnEnter<FeveredFlagellationHint>()
-                .ActivateOnEnter<WitchHunt>();
+                .ActivateOnEnter<WitchHunt>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

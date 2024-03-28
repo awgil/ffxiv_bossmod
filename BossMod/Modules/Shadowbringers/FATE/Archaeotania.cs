@@ -166,7 +166,8 @@ namespace BossMod.Shadowbringers.FATE.Archaeotania
                 .ActivateOnEnter<PillarPierce>()
                 .ActivateOnEnter<AncientAevis>()
                 .ActivateOnEnter<HeadlongRush>()
-                .ActivateOnEnter<Aether>();
+                .ActivateOnEnter<Aether>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

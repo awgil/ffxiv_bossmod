@@ -189,7 +189,8 @@ namespace BossMod.Shadowbringers.HuntS.Ixtab
                 .ActivateOnEnter<ArchaicDualcast>()
                 .ActivateOnEnter<Cryptcall>()
                 .ActivateOnEnter<CryptcallHint>()
-                .ActivateOnEnter<Doom>();
+                .ActivateOnEnter<Doom>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

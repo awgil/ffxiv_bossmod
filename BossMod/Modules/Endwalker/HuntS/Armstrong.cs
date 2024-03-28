@@ -91,7 +91,8 @@
                 .ActivateOnEnter<AcceleratedLanding>()
                 .ActivateOnEnter<CalculatedCombustion>()
                 .ActivateOnEnter<Pummel>()
-                .ActivateOnEnter<SoporificGas>();
+                .ActivateOnEnter<SoporificGas>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
     [ModuleInfo(NotoriousMonsterID = 196)]

@@ -50,7 +50,8 @@
                 .ActivateOnEnter<TailSwipe>()
                 .ActivateOnEnter<HeavyStomp>()
                 .ActivateOnEnter<SonicHowl>()
-                .ActivateOnEnter<SteelFang>();
+                .ActivateOnEnter<SteelFang>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

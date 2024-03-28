@@ -103,7 +103,8 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
                 .ActivateOnEnter<NumbingNoise>()
                 .ActivateOnEnter<TailSnap>()
                 .ActivateOnEnter<NumbingNoiseTailSnapRotating>()
-                .ActivateOnEnter<NumbingNoiseTailSnapAttract>();
+                .ActivateOnEnter<NumbingNoiseTailSnapAttract>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

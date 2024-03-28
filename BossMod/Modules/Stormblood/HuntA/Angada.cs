@@ -66,7 +66,8 @@ namespace BossMod.Stormblood.HuntA.Angada
                 .ActivateOnEnter<ScytheTail>()
                 .ActivateOnEnter<Butcher>()
                 .ActivateOnEnter<Rip>()
-                .ActivateOnEnter<RockThrow>();
+                .ActivateOnEnter<RockThrow>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 
