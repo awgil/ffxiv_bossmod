@@ -1,4 +1,6 @@
 // CONTRIB: made by malediktus, not checked
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
@@ -20,7 +22,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
     public enum AID : uint
     {
         AutoAttack = 870, // 2544->player, no cast, single-target
-        AutoAttack2 = 872, // Boss->player, no cast, single-target
+        AutoAttack2 = 872, // Boss/BonusAdd_AltarMatanga->player, no cast, single-target
         Torpedo = 13438, // Boss->player, 3,0s cast, single-target
         Innocence = 13439, // Boss->location, 3,0s cast, range 5 circle
         Gallop = 13441, // Boss->location, no cast, ???, movement ability
@@ -50,14 +52,37 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
         public HydroPush() : base(ActionID.MakeSpell(AID.HydroPush), new AOEShapeRect(49.4f, 22, 5)) { }
     }
 
-    class BloodyPuddle : Components.SelfTargetedAOEs
+    class BloodyPuddle : Components.GenericAOEs
     {
-        public BloodyPuddle() : base(ActionID.MakeSpell(AID.BloodyPuddle), new AOEShapeCircle(11.2f)) { }
+        private static readonly AOEShapeCircle circle = new(11.2f);
+        private readonly List<Actor> _spheres = [];
+        private DateTime _activation;
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            foreach (var s in _spheres)
+                yield return new(circle, s.Position, activation: _activation);
+        }
+
+        public override void OnActorCreated(BossModule module, Actor actor)
+        {
+            if ((OID)actor.OID == OID.Hydrosphere)
+            {
+                _spheres.Add(actor);
+                _activation = module.WorldState.CurrentTime.AddSeconds(3);
+            }
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.BloodyPuddle)
+                _spheres.Clear();
+        }
     }
 
     class Torpedo : Components.SingleTargetCast
     {
-        public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo)) 
+        public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo))
         {
             EndsOnCastEvent = true;
         }
@@ -82,7 +107,6 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
         {
             StopAtWall = true;
         }
-
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<BloodyPuddle>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }
 
