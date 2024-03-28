@@ -96,8 +96,7 @@ namespace BossMod.Endwalker.HuntA.Yilan
                 .ActivateOnEnter<MiniLight>()
                 .ActivateOnEnter<Devour>()
                 .ActivateOnEnter<BogBomb>()
-                .ActivateOnEnter<BrackishRain>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<BrackishRain>();
         }
     }
 

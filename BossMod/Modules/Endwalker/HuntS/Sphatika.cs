@@ -146,8 +146,7 @@ namespace BossMod.Endwalker.HuntS.Sphatika
             TrivialPhase()
                 .ActivateOnEnter<Gnaw>()
                 .ActivateOnEnter<Caterwaul>()
-                .ActivateOnEnter<Stance>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Stance>();
         }
     }
 

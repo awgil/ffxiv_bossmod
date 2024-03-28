@@ -135,7 +135,7 @@ namespace BossMod.Shadowbringers.HuntS.Ixtab
 
     class Doom : BossComponent
     {
-        private List<Actor> _doomed = new();
+        private readonly List<Actor> _doomed = [];
         public bool Doomed { get; private set; }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
@@ -189,8 +189,7 @@ namespace BossMod.Shadowbringers.HuntS.Ixtab
                 .ActivateOnEnter<ArchaicDualcast>()
                 .ActivateOnEnter<Cryptcall>()
                 .ActivateOnEnter<CryptcallHint>()
-                .ActivateOnEnter<Doom>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Doom>();
         }
     }
 

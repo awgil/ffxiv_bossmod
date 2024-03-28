@@ -81,8 +81,7 @@ namespace BossMod.Endwalker.HuntS.Ophioneus
                 .ActivateOnEnter<RightMaw>()
                 .ActivateOnEnter<LeftMaw>()
                 .ActivateOnEnter<PyricCircleBurst>()
-                .ActivateOnEnter<Scratch>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Scratch>();
         }
     }
 

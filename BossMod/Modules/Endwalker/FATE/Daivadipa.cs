@@ -313,8 +313,7 @@ namespace BossMod.Endwalker.FATE.Daivadipa
                 .ActivateOnEnter<ErrantAkasa>()
                 .ActivateOnEnter<KarmicFlames>()
                 .ActivateOnEnter<LitPath>()
-                .ActivateOnEnter<Burn>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<Burn>();
         }
     }
 

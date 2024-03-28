@@ -125,8 +125,7 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
             TrivialPhase()
                 .ActivateOnEnter<EmptyPromise>()
                 .ActivateOnEnter<VanishingRay>()
-                .ActivateOnEnter<ContinualMeddling>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<ContinualMeddling>();
         }
     }
 

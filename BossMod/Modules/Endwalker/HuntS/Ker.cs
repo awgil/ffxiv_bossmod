@@ -276,8 +276,7 @@ namespace BossMod.Endwalker.HuntS.Ker
                 .ActivateOnEnter<AncientFlare>()
                 .ActivateOnEnter<AncientHoly>()
                 .ActivateOnEnter<AncientHoly2>()
-                .ActivateOnEnter<AncientHolyWhispersManifest>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<AncientHolyWhispersManifest>();
         }
     }
 

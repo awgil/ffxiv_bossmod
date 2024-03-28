@@ -339,8 +339,7 @@ namespace BossMod.Endwalker.FATE.Chi
                 .ActivateOnEnter<ThermobaricExplosive>()
                 .ActivateOnEnter<Bunkerbuster>()
                 .ActivateOnEnter<BouncingBomb>()
-                .ActivateOnEnter<MissileShower>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<MissileShower>();
         }
     }
 

@@ -28,8 +28,7 @@
         {
             TrivialPhase()
                 .ActivateOnEnter<AccursedPox>()
-                .ActivateOnEnter<EntropicFlame>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<EntropicFlame>();
         }
     }
 

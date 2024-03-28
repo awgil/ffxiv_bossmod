@@ -70,8 +70,7 @@ namespace BossMod.Endwalker.HuntA.Storsie
         {
             TrivialPhase()
                 .ActivateOnEnter<Aspect>()
-                .ActivateOnEnter<FangsEnd>()
-                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
+                .ActivateOnEnter<FangsEnd>();
         }
     }
 
