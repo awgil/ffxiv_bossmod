@@ -42,7 +42,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
 
     class Orbs : Components.GenericAOEs
     {
-        private List<Actor> _orbs = new();
+        private readonly List<Actor> _orbs = [];
         private static readonly AOEShapeCircle circle = new(3);
         public Orbs() : base(new(), "GTFO from voidzone!") { }
 
@@ -54,9 +54,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.Orbs)
-            {
                 _orbs.Add(actor);
-            }
         }
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)
         {
@@ -68,8 +66,9 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
     class GoldChaser : Components.GenericAOEs
     {
         private DateTime _activation;
-        private List<Actor> _casters = new();
+        private readonly List<Actor> _casters = [];
         private static readonly AOEShapeRect rect = new(100, 2.5f, 100);
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1))))
@@ -175,14 +174,6 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
                     NumCasts = 0;
                 }
             }
-            if ((AID)spell.Action.ID == AID.AutoAttack)
-            {
-                if (NumCasts > 0) //failsafe
-                {
-                    _casters.Clear();
-                    NumCasts = 0;
-                }
-            }
         }
     }
 
@@ -257,17 +248,15 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)
         {
             if (state == 0x00040008)
-                active = false;
-            if (state == 0x00010002)
-                active = true;
-        }
-
-        public override void Update(BossModule module)
-        {
-            if (!active)
+            {
                 module.Arena.Bounds = new ArenaBoundsRect(new(-240, 237), 15, 20);
-            if (active)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15);
+                active = false;
+            }
+            if (state == 0x00010002)
+            {
+                active = true;
+                module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15); 
+            }
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

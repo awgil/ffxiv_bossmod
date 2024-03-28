@@ -52,7 +52,7 @@ namespace BossMod.Endwalker.FATE.Chi
 
     class Bunkerbuster : Components.GenericAOEs
     {
-        private List<Actor> _casters = new();
+        private readonly List<Actor> _casters = [];
         private DateTime _activation;
         private int NumCastsStarted;
 
@@ -91,6 +91,11 @@ namespace BossMod.Endwalker.FATE.Chi
                     _casters.Remove(caster);
                 if (NumCasts is 3 or 6 or 9 or 12 or 15)
                     _activation = _activation.AddSeconds(1.9f);
+                if (_casters.Count == 0 && NumCasts != 0)
+                {
+                    NumCasts = 0;
+                    NumCastsStarted = 0;
+                }
             }
         }
 
@@ -103,20 +108,11 @@ namespace BossMod.Endwalker.FATE.Chi
                     _activation = module.WorldState.CurrentTime.AddSeconds(20); //placeholder value that gets overwritten when cast actually starts
             }
         }
-
-        public override void Update(BossModule module)
-        {
-            if (_casters.Count == 0 && NumCasts != 0)
-            {
-                NumCasts = 0;
-                NumCastsStarted = 0;
-            }
-        }
     }
 
     class BouncingBomb : Components.GenericAOEs
     {
-        private List<Actor> _casters = new();
+        private readonly List<Actor> _casters = [];
         private DateTime _activation;
         private int bombcount;
 
@@ -148,13 +144,13 @@ namespace BossMod.Endwalker.FATE.Chi
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
                 if (_casters.Count >= 7 && NumCasts == 0)
                     for (int i = 2; i < 7; ++i)
-                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f));
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky : false);
                 if (_casters.Count >= 5 && NumCasts == 2)
                     for (int i = 0; i < 5; ++i)
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
                 if (_casters.Count >= 13 && NumCasts == 2)
                     for (int i = 5; i < 13; ++i)
-                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f));
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky : false);
                 if (_casters.Count >= 8 && NumCasts == 7)
                     for (int i = 0; i < 8; ++i)
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
@@ -187,15 +183,11 @@ namespace BossMod.Endwalker.FATE.Chi
                     _casters.Remove(caster);
                 if ((bombcount == 1 && NumCasts is 1 or 4) || (bombcount == 2 && NumCasts is 2 or 7))
                     _activation = _activation.AddSeconds(2.8f);
-            }
-        }
-
-        public override void Update(BossModule module)
-        {
-            if (_casters.Count == 0 && bombcount != 0)
-            {
-                bombcount = 0;
-                NumCasts = 0;
+                if (_casters.Count == 0 && bombcount != 0)
+                {
+                    bombcount = 0;
+                    NumCasts = 0;
+                }
             }
         }
     }
@@ -204,32 +196,27 @@ namespace BossMod.Endwalker.FATE.Chi
     {
         private static readonly AOEShapeCone cone = new(45, 90.Degrees());
         private static readonly AOEShapeDonut donut = new(16, 60);
-        private static readonly AOEShapeRect rect = new(120, 16, 120);
-        private DateTime _activation1;
-        private DateTime _activation2;
-        private AOEShape? _shape1;
-        private AOEShape? _shape2;
-        private bool offset;
-        private Angle _rotation;
+        private static readonly AOEShapeRect rect = new(60, 16, 60);
+        private (AOEShape shape1, AOEShape shape2, DateTime activation1, DateTime activation2, bool offset, Angle rotation) combo;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            if (_shape1 != null && _shape2 != null)
+            if (combo != default)
             {
                 if (NumCasts == 0)
                 {
-                    yield return new(_shape1, module.PrimaryActor.Position, _rotation, activation: _activation1, ArenaColor.Danger);
-                    if (!offset)
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation, activation: _activation2);
+                    yield return new(combo.shape1, module.PrimaryActor.Position, combo.rotation, combo.activation1, ArenaColor.Danger);
+                    if (!combo.offset)
+                        yield return new(combo.shape2, module.PrimaryActor.Position, combo.rotation, combo.activation2, risky: combo.shape1 != combo.shape2);
                     else
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation + 180.Degrees(), activation: _activation2);
+                        yield return new(combo.shape2, module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, risky: combo.shape1 != combo.shape2);
                 }
                 if (NumCasts == 1)
                 {
-                    if (!offset)
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation, activation: _activation2, ArenaColor.Danger);
+                    if (!combo.offset)
+                        yield return new(combo.shape2, module.PrimaryActor.Position, combo.rotation, combo.activation2, ArenaColor.Danger);
                     else
-                        yield return new(_shape2, module.PrimaryActor.Position, _rotation + 180.Degrees(), activation: _activation2, ArenaColor.Danger);
+                        yield return new(combo.shape2, module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, ArenaColor.Danger);
                 }
             }
         }
@@ -239,34 +226,21 @@ namespace BossMod.Endwalker.FATE.Chi
             switch ((AID)spell.Action.ID)
             {
                 case AID.Carapace_ForeArms2dot0A:
-                    _shape1 = rect;
-                    _shape2 = cone;
+                    combo = (rect, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), false, spell.Rotation);
                     break;
                 case AID.Carapace_ForeArms2dot0B:
-                    _shape1 = donut;
-                    _shape2 = cone;
+                    combo = (donut, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), false, spell.Rotation);
                     break;
                 case AID.Carapace_RearGuns2dot0A:
-                    _shape1 = rect;
-                    _shape2 = cone;
-                    offset = true;
+                    combo = (rect, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
                     break;
                 case AID.Carapace_RearGuns2dot0B:
-                    _shape1 = donut;
-                    _shape2 = cone;
-                    offset = true;
+                    combo = (donut, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
                     break;
                 case AID.RearGuns_ForeArms2dot0:
                 case AID.ForeArms_RearGuns2dot0:
-                    _shape1 = _shape2 = cone;
-                    offset = true;
+                    combo = (cone, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
                     break;
-            }
-            if ((AID)spell.Action.ID is AID.Carapace_ForeArms2dot0A or AID.Carapace_ForeArms2dot0B or AID.Carapace_RearGuns2dot0A or AID.Carapace_RearGuns2dot0B or AID.RearGuns_ForeArms2dot0 or AID.ForeArms_RearGuns2dot0)
-            {
-                _activation1 = spell.NPCFinishAt;
-                _activation2 = spell.NPCFinishAt.AddSeconds(3.1f);
-                _rotation = spell.Rotation;
             }
         }
 
@@ -281,9 +255,7 @@ namespace BossMod.Endwalker.FATE.Chi
             if ((AID)spell.Action.ID is AID.RearGuns2dot0 or AID.ForeArms2dot0)
             {
                 NumCasts = 0;
-                offset = false;
-                _shape1 = null;
-                _shape2 = null;
+                combo = default;
             }
         }
     }
@@ -310,12 +282,12 @@ namespace BossMod.Endwalker.FATE.Chi
 
     class AssaultCarapace : Components.SelfTargetedAOEs
     {
-        public AssaultCarapace() : base(ActionID.MakeSpell(AID.AssaultCarapace), new AOEShapeRect(120, 16, 120)) { }
+        public AssaultCarapace() : base(ActionID.MakeSpell(AID.AssaultCarapace), new AOEShapeRect(60, 16, 60)) { }
     }
 
     class AssaultCarapace2 : Components.SelfTargetedAOEs
     {
-        public AssaultCarapace2() : base(ActionID.MakeSpell(AID.AssaultCarapace2), new AOEShapeRect(120, 16, 120)) { }
+        public AssaultCarapace2() : base(ActionID.MakeSpell(AID.AssaultCarapace2), new AOEShapeRect(60, 16, 60)) { }
     }
 
     class AssaultCarapace3 : Components.SelfTargetedAOEs

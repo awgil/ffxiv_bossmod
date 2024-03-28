@@ -103,22 +103,6 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
                 hints.Add($"Destroy chains on {chaintarget.Name}!");
         }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            if (chained && actor != chaintarget)
-            {
-                foreach (var e in hints.PotentialTargets)
-                {
-                    e.Priority = (OID)e.Actor.OID switch
-                    {
-                        OID.IronChain => 1,
-                        OID.Boss => -1,
-                        _ => 0
-                    };
-                }
-            }
-        }
-
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.ChainTarget)
@@ -137,25 +121,14 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 
     class Aethersup : Components.GenericAOEs
     {
-        private bool activeSup;
-        private Actor? _caster;
-        private DateTime _activation;
-        private static readonly AOEShapeCone cone = new(24, 60.Degrees());
+        private AOEInstance? _aoe;
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (activeSup && _caster != null)
-                yield return new(cone, _caster.Position, _caster.Rotation, _activation);
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Aethersup)
-            {
-                activeSup = true;
-                _caster = caster;
-                _activation = spell.NPCFinishAt;
-            }
+                _aoe = new(new AOEShapeCone(24, 60.Degrees()), module.PrimaryActor.Position, spell.Rotation, spell.NPCFinishAt);
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -166,7 +139,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
                 case AID.Aethersup2:
                     if (++NumCasts == 4)
                     {
-                        activeSup = false;
+                        _aoe = null;
                         NumCasts = 0;
                     }
                     break;
@@ -208,6 +181,7 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            base.AddHints(module, slot, actor, hints, movementHints);
             if (target == actor && targeted)
                 hints.Add("Bait away!");
         }
@@ -228,25 +202,9 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
         public RightKnout() : base(ActionID.MakeSpell(AID.RightKnout), new AOEShapeCone(24, 105.Degrees())) { }
     }
 
-    class Taphephobia : Components.UniformStackSpread
+    class Taphephobia : Components.SpreadFromCastTargets
     {
-        public Taphephobia() : base(0, 6, alwaysShowSpreads: true) { }
-
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.Spread)
-            {
-                AddSpread(actor);
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.Taphephobia2)
-            {
-                Spreads.Clear();
-            }
-        }
+        public Taphephobia() : base(ActionID.MakeSpell(AID.Taphephobia2), 6) { }
     }
 
     // TODO: create and use generic 'line stack' component
@@ -310,32 +268,33 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 
     class FierceBeating : Components.Exaflare
     {
-        private readonly List<WPos> _casters = new();
+        private readonly List<WPos> _casters = [];
         private int linesstartedcounttotal;
         private int linesstartedcount1;
         private int linesstartedcount2;
         private static readonly AOEShapeCircle circle = new(4);
         private DateTime _activation;
-        private const float radianconversion = MathF.PI / 180;
+        private const float RadianConversion = 45 * (MathF.PI / 180);
 
         public FierceBeating() : base(4) { }
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            float angleInRadians1 = linesstartedcount1 * 45 * radianconversion;
-            float angleInRadians2 = linesstartedcount2 * 45 * radianconversion;
-            float cosTheta1 = MathF.Cos(angleInRadians1);
-            float sinTheta1 = MathF.Sin(angleInRadians1);
-            float cosTheta2 = MathF.Cos(angleInRadians2);
-            float sinTheta2 = MathF.Sin(angleInRadians2);
             foreach (var (c, t) in FutureAOEs(module.WorldState.CurrentTime))
                 yield return new(Shape, c, activation: t, color: FutureColor);
             foreach (var (c, t) in ImminentAOEs())
                 yield return new(Shape, c, activation: t, color: ImminentColor);
             if (Lines.Count > 0 && linesstartedcount1 < 8)
-                yield return new(circle, new(cosTheta1 * (_casters[0].X - module.Bounds.Center.X) - sinTheta1 * (_casters[0].Z - module.Bounds.Center.Z) + module.Bounds.Center.X, sinTheta1 * (_casters[0].X - module.Bounds.Center.X) + cosTheta1 * (_casters[0].Z - module.Bounds.Center.Z) + module.Bounds.Center.Z), activation: _activation.AddSeconds(linesstartedcount1 * 3.7f));
+                yield return new(circle, CalculateCirclePosition(linesstartedcount1, module.Bounds.Center, _casters[0]), activation: _activation.AddSeconds(linesstartedcount1 * 3.7f));
             if (Lines.Count > 1 && linesstartedcount2 < 8)
-                yield return new(circle, new(cosTheta2 * (_casters[1].X - module.Bounds.Center.X) - sinTheta2 * (_casters[1].Z - module.Bounds.Center.Z) + module.Bounds.Center.X, sinTheta2 * (_casters[1].X - module.Bounds.Center.X) + cosTheta2 * (_casters[1].Z - module.Bounds.Center.Z) + module.Bounds.Center.Z), activation: _activation.AddSeconds(linesstartedcount2 * 3.7f));
+                yield return new(circle, CalculateCirclePosition(linesstartedcount2, module.Bounds.Center, _casters[1]), activation: _activation.AddSeconds(linesstartedcount2 * 3.7f));
+        }
+
+        private static WPos CalculateCirclePosition(int count, WPos origin, WPos caster)
+        {
+            float x = MathF.Cos(count * RadianConversion) * (caster.X - origin.X) - MathF.Sin(count * RadianConversion) * (caster.Z - origin.Z);
+            float z = MathF.Sin(count * RadianConversion) * (caster.X - origin.X) + MathF.Cos(count * RadianConversion) * (caster.Z - origin.Z);
+            return new WPos(origin.X + x, origin.Z + z);
         }
 
         public override void Update(BossModule module)
@@ -376,19 +335,22 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
                 else
                     ++linesstartedcount2;
             }
-            if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
+            if (Lines.Count > 0)
             {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
-                AdvanceLine(module, Lines[index], caster.Position);
-                if (Lines[index].ExplosionsLeft == 0)
-                    Lines.RemoveAt(index);
-            }
-            if ((AID)spell.Action.ID == AID.FierceBeating5)
-            {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
-                AdvanceLine(module, Lines[index], spell.TargetXZ);
-                if (Lines[index].ExplosionsLeft == 0)
-                    Lines.RemoveAt(index);
+                if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
+                {
+                    int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+                    AdvanceLine(module, Lines[index], caster.Position);
+                    if (Lines[index].ExplosionsLeft == 0)
+                        Lines.RemoveAt(index);
+                }
+                if ((AID)spell.Action.ID == AID.FierceBeating5)
+                {
+                    int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
+                    AdvanceLine(module, Lines[index], spell.TargetXZ);
+                    if (Lines[index].ExplosionsLeft == 0)
+                        Lines.RemoveAt(index);
+                }
             }
         }
     }
@@ -418,5 +380,21 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
     public class D013Philia : BossModule
     {
         public D013Philia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(134, -465), 19.5f)) { }
+
+        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (FindComponent<Chains>()?.chained ?? true && (FindComponent<Chains>()?.chaintarget == actor))
+                foreach (var e in hints.PotentialTargets)
+                {
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.IronChain => 1,
+                        OID.Boss => -1,
+                        _ => 0
+                    };
+                }
+            else
+            base.CalculateAIHints(slot, actor, assignment, hints);
+        }
     }
 }

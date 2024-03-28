@@ -46,9 +46,8 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
         public Thundercall() : base(ActionID.MakeSpell(AID.Thundercall), 3) { }
     }
 
-    class Thundercall2 : Components.UniformStackSpread
+    class Thundercall2 : Components.GenericBaitAway
     {
-        public Thundercall2() : base(0, 18, alwaysShowSpreads: true) { }
         private bool targeted;
         private Actor? target;
 
@@ -56,7 +55,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
         {
             if (iconID == (uint)IconID.Thundercall)
             {
-                AddSpread(actor);
+                CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(18)));
                 targeted = true;
                 target = actor;
             }
@@ -66,7 +65,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
         {
             if ((AID)spell.Action.ID == AID.Thundercall)
             {
-                Spreads.Clear();
+                CurrentBaits.Clear();
                 targeted = false;
             }
         }
@@ -80,8 +79,9 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouPithek
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            base.AddHints(module, slot, actor, hints, movementHints);
             if (target == actor && targeted)
-                hints.Add("Bait away!");
+                hints.Add("Bait levinorb away!");
         }
     }
 

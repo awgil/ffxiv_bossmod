@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarMandragora
@@ -34,7 +35,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarMandragora
 
     class OpticalIntrusion : Components.SingleTargetCast
     {
-        public OpticalIntrusion() : base(ActionID.MakeSpell(AID.OpticalIntrusion)) { }
+        public OpticalIntrusion() : base(ActionID.MakeSpell(AID.OpticalIntrusion)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class Hypnotize : Components.SelfTargetedAOEs

@@ -51,8 +51,8 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D112GalateaMagna
 
     class ScarecrowChase : Components.GenericAOEs
     {
-        private List<(Actor actor, uint icon)> _casters = new();
-        private List<Actor> _casterssorted = new();
+        private readonly List<(Actor actor, uint icon)> _casters = [];
+        private List<Actor> _casterssorted = [];
         private static readonly AOEShapeCross cross = new(40, 5);
         private DateTime _activation;
 
@@ -70,19 +70,14 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D112GalateaMagna
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
-            if (iconID == (uint)IconID.Icon1)
+            var icon = (IconID)iconID;
+            if (icon >= IconID.Icon1 && icon <= IconID.Icon4)
             {
                 _casters.Add((actor, iconID));
-                _activation = module.WorldState.CurrentTime.AddSeconds(9.9f);
+                if (_activation == default)
+                    _activation = module.WorldState.CurrentTime.AddSeconds(9.9f);
             }
-            if (iconID == (uint)IconID.Icon2)
-                _casters.Add((actor, iconID));
-            if (iconID == (uint)IconID.Icon3)
-                _casters.Add((actor, iconID));
-            if (iconID == (uint)IconID.Icon4)
-                _casters.Add((actor, iconID));
-            var _order = _casters.OrderBy(x => x.Item2); // icons can appear in random order in raw ops, so need to be sorted
-            _casterssorted = _order.Select(x => x.Item1).ToList();
+            _casterssorted = _casters.OrderBy(x => x.icon).Select(x => x.actor).ToList();
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -91,14 +86,17 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D112GalateaMagna
             {
                 _casterssorted.RemoveAt(0);
                 if (_casterssorted.Count == 0)
+                {
                     _casters.Clear();
+                    _activation = default;
+                }
             }
         }
     }
 
     class OutInAOE : Components.ConcentricAOEs
     {
-        private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 40) };
+        private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 40)];
 
         public OutInAOE() : base(_shapes) { }
 
@@ -153,7 +151,7 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D112GalateaMagna
     class GlassyEyed : Components.GenericGaze
     {
         private DateTime _activation;
-        private List<Actor> _affected = new();
+        private readonly List<Actor> _affected = [];
 
         public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
         {
@@ -180,16 +178,29 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D112GalateaMagna
 
     public class TenebrismTowers : Components.GenericTowers
     {
+        private WPos position;
         public override void OnEventEnvControl(BossModule module, byte index, uint state)
         {
-            if (state == 0x00010008 && index == 0x07)
-                Towers.Add(new(new(350, -404), 5, 1, 1));
-            if (state == 0x00010008 && index == 0x08)
-                Towers.Add(new(new(360, -394), 5, 1, 1));
-            if (state == 0x00010008 && index == 0x09)
-                Towers.Add(new(new(350, -384), 5, 1, 1));
-            if (state == 0x00010008 && index == 0x0A)
-                Towers.Add(new(new(340, -394), 5, 1, 1));
+
+            if (state == 0x00010008)
+            {
+                switch (index)
+                {
+                    case 0x07:
+                        position = new(350, -404);
+                        break;
+                    case 0x08:
+                        position = new(360, -394);
+                        break;
+                    case 0x09:
+                        position = new(350, -384);
+                        break;
+                    case 0x0A:
+                        position = new(340, -394);
+                        break;
+                }
+            Towers.Add(new(position, 5, 1, 1));
+            }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -207,7 +218,7 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D112GalateaMagna
 
     class Doom : BossComponent
     {
-        private List<Actor> _doomed = new();
+        private readonly List<Actor> _doomed = [];
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {

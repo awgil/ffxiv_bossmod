@@ -43,13 +43,13 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
 
     class BambooSplits : Components.GenericAOEs
     {
-        private List<Actor> _doublesidedsplit = new();
-        private List<Actor> _singlesplit = new();
-        private List<Actor> _circle = new();
-        private List<Actor> _doublesidedsplitToberemoved = new();
-        private List<Actor> _singlesplitToberemoved = new();
-        private List<Actor> _circleToberemoved = new();
-        private List<Actor> _bamboospawn = new();
+        private readonly List<Actor> _doublesidedsplit = [];
+        private readonly List<Actor> _singlesplit = [];
+        private readonly List<Actor> _circle = [];
+        private readonly List<Actor> _doublesidedsplitToberemoved = [];
+        private readonly List<Actor> _singlesplitToberemoved = [];
+        private readonly List<Actor> _circleToberemoved = [];
+        private readonly List<Actor> _bamboospawn = [];
         private static readonly AOEShapeRect rectdouble = new(28, 2.5f, 28);
         private static readonly AOEShapeRect rectsingle = new(28, 2.5f);
         private static readonly AOEShapeCircle circle = new(11);
