@@ -1,5 +1,5 @@
+// CONTRIB: made by Malediktus based on replay by legendoficeman
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors21to30.DD30TiamatsClone
 {
