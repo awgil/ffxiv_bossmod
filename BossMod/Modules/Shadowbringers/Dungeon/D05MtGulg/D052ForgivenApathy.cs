@@ -1,7 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D052ForgivenApathy
 {
     public enum OID : uint
@@ -29,7 +26,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D052ForgivenApathy
 
     class PunitiveLight : Components.CastInterruptHint
     { //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
-        public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "(Raidwide)") { }
+        public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "(Raidwide)", true) { }
     }
 
     class Sanctification : Components.SelfTargetedAOEs

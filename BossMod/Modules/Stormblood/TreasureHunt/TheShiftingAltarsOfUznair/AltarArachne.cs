@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarArachne
@@ -33,7 +34,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarArachne
 
     class DarkSpike : Components.SingleTargetCast
     {
-        public DarkSpike() : base(ActionID.MakeSpell(AID.DarkSpike)) { }
+        public DarkSpike() : base(ActionID.MakeSpell(AID.DarkSpike)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class FrondAffeared : Components.CastGaze

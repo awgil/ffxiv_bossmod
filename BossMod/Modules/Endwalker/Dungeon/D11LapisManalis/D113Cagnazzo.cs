@@ -118,7 +118,7 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D113Cagnazzo
 
     class HydraulicRam : Components.GenericAOEs
     {
-        private List<(WPos source, AOEShape shape, Angle direction)> _casters = new();
+        private readonly List<(WPos source, AOEShape shape, Angle direction)> _casters = [];
         private DateTime _activation;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
@@ -149,7 +149,7 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D113Cagnazzo
 
     class Hydrobomb : Components.GenericAOEs
     {
-        private List<WPos> _casters = new();
+        private readonly List<WPos> _casters = [];
         private static readonly AOEShapeCircle circle = new(4);
         private DateTime _activation;
 
