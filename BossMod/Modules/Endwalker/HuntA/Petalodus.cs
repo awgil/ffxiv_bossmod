@@ -44,7 +44,8 @@
                 .ActivateOnEnter<MarineMayhem>()
                 .ActivateOnEnter<Waterga>()
                 .ActivateOnEnter<TidalGuillotine>()
-                .ActivateOnEnter<AncientBlizzard>();
+                .ActivateOnEnter<AncientBlizzard>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

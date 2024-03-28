@@ -228,7 +228,8 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion
                 .ActivateOnEnter<SanctifiedBlizzard>()
                 .ActivateOnEnter<SanctifiedBlizzardChain>()
                 .ActivateOnEnter<SanctifiedBlizzardChainHint>()
-                .ActivateOnEnter<RoyalDecree>();
+                .ActivateOnEnter<RoyalDecree>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

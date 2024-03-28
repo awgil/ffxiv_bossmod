@@ -99,7 +99,8 @@ namespace BossMod.Shadowbringers.HuntA.Nariphon
             TrivialPhase()
                 .ActivateOnEnter<OdiousMiasma>()
                 .ActivateOnEnter<RootsOfAtopy>()
-                .ActivateOnEnter<AllergenInjection>();
+                .ActivateOnEnter<AllergenInjection>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

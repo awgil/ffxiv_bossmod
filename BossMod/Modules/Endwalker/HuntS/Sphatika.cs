@@ -53,8 +53,8 @@ namespace BossMod.Endwalker.HuntS.Sphatika
 
     class Stance : Components.GenericAOEs
     {
-        private List<Angle> _pendingCleaves = new();
-        private static AOEShapeCone _shape = new(40, 90.Degrees());
+        private readonly List<Angle> _pendingCleaves = [];
+        private static readonly AOEShapeCone _shape = new(40, 90.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -146,7 +146,8 @@ namespace BossMod.Endwalker.HuntS.Sphatika
             TrivialPhase()
                 .ActivateOnEnter<Gnaw>()
                 .ActivateOnEnter<Caterwaul>()
-                .ActivateOnEnter<Stance>();
+                .ActivateOnEnter<Stance>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

@@ -63,7 +63,8 @@ namespace BossMod.Shadowbringers.HuntA.Supay
         {
             TrivialPhase()
                 .ActivateOnEnter<PetroEyes>()
-                .ActivateOnEnter<BlasphemousHowl>();
+                .ActivateOnEnter<BlasphemousHowl>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

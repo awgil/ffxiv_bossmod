@@ -270,7 +270,8 @@ namespace BossMod.Shadowbringers.FATE.Formidable
                 .ActivateOnEnter<DwarvenDischargeCircle>()
                 .ActivateOnEnter<AutomatonEscort>()
                 .ActivateOnEnter<SteamDome>()
-                .ActivateOnEnter<DynamicSensoryJammer>();
+                .ActivateOnEnter<DynamicSensoryJammer>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

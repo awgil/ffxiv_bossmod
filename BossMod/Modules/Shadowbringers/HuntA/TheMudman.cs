@@ -81,7 +81,8 @@ namespace BossMod.Shadowbringers.HuntA.TheMudman
                 .ActivateOnEnter<FeculentFlood>()
                 .ActivateOnEnter<RoyalFlush>()
                 .ActivateOnEnter<GravityForce>()
-                .ActivateOnEnter<GravityForceHint>();
+                .ActivateOnEnter<GravityForceHint>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

@@ -28,7 +28,8 @@
         {
             TrivialPhase()
                 .ActivateOnEnter<PetrifyingEye>()
-                .ActivateOnEnter<Icefall>();
+                .ActivateOnEnter<Icefall>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

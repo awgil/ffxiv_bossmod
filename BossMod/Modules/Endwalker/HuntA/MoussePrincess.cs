@@ -102,7 +102,8 @@ namespace BossMod.Endwalker.HuntA.MoussePrincess
                 .ActivateOnEnter<WhimsyAlaMode>()
                 .ActivateOnEnter<AmorphicFlail>()
                 .ActivateOnEnter<PrincessCacophony>()
-                .ActivateOnEnter<Banish>();
+                .ActivateOnEnter<Banish>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

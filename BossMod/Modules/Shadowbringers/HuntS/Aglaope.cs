@@ -108,7 +108,8 @@ namespace BossMod.Shadowbringers.HuntS.Aglaope
                 .ActivateOnEnter<FourfoldSuffering>()
                 .ActivateOnEnter<AncientAero>()
                 .ActivateOnEnter<AncientAeroIII>()
-                .ActivateOnEnter<AncientAeroIIIKB>();
+                .ActivateOnEnter<AncientAeroIIIKB>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

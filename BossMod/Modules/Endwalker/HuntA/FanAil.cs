@@ -52,7 +52,8 @@
                 .ActivateOnEnter<LiquidHell>()
                 .ActivateOnEnter<Plummet>()
                 .ActivateOnEnter<DeathSentence>()
-                .ActivateOnEnter<CycloneWing>();
+                .ActivateOnEnter<CycloneWing>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

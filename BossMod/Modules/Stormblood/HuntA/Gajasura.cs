@@ -36,7 +36,8 @@ namespace BossMod.Stormblood.HuntA.Gajasura
             TrivialPhase()
                 .ActivateOnEnter<Spin>()
                 .ActivateOnEnter<Hurl>()
-                .ActivateOnEnter<Buffet>();
+                .ActivateOnEnter<Buffet>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 

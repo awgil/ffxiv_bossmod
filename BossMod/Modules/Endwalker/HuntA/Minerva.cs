@@ -113,7 +113,8 @@ namespace BossMod.Endwalker.HuntA.Minerva
                 .ActivateOnEnter<BallisticMissile>()
                 .ActivateOnEnter<Hyperflame>()
                 .ActivateOnEnter<SonicAmplifier>()
-                .ActivateOnEnter<HammerKnuckles>();
+                .ActivateOnEnter<HammerKnuckles>()
+                .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.InCombat;
         }
     }
 
