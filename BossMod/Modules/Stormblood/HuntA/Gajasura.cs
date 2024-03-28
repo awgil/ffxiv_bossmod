@@ -16,12 +16,12 @@ namespace BossMod.Stormblood.HuntA.Gajasura
 
     class Spin : Components.SelfTargetedAOEs
     {
-        public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(8.23f)) { }
+        public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(8.23f, 60.Degrees())) { }
     }
 
-    class Hurl : Components.SelfTargetedAOEs
+    class Hurl : Components.LocationTargetedAOEs
     {
-        public Hurl() : base(ActionID.MakeSpell(AID.Hurl), new AOEShapeCircle(6)) { }
+        public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
     }
 
     class Buffet : Components.SingleTargetCast
