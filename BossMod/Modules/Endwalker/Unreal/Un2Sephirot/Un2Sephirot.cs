@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
         public P3PillarOfSeverity() : base(ActionID.MakeSpell(AID.PillarOfSeverityAOE)) { }
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, CFCID = 875, NameID = 4776)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, CFCID = 875, NameID = 4776, ExVersion = 4, DisplayName = "Containment Bay S1T7 (Unreal)")]
     public class Un2Sephirot : BossModule
     {
         public Actor? BossP1() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
