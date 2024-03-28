@@ -29,12 +29,13 @@ namespace BossMod
             public uint ExVersion;
             public uint ContentIcon;
             public SeString? ContentType;
-            public SeString? InstanceName;
+            public SeString? DisplayName;
             public SeString? ForayName;
             public SeString? FateName;
             public SeString? BossName;
             public string HuntRank = "";
             public int CarnivaleStage;
+            public uint QuestID;
 
             public bool IsUncatalogued;
 
@@ -142,15 +143,19 @@ namespace BossMod
                 uint fateID = infoAttr?.FateID ?? 0;
                 uint dynamicEventID = infoAttr?.DynamicEventID ?? 0;
                 uint cfcID = infoAttr?.CFCID ?? 0;
+                uint questID = infoAttr?.QuestID ?? 0;
+                uint exVersion = infoAttr?.ExVersion ?? 69;
+                SeString displayName = new SeString(infoAttr?.DisplayName ?? string.Empty);
 
-                bool uncatalogued = (cfcID == 0 && nameID == 0 && nmID == 0 && fateID == 0 && dynamicEventID == 0) || (cfcID != 0 && _cfcSheet.GetRow(cfcID)!.ShortCode.RawString.IsNullOrEmpty());
+                uint _exVersion = exVersion;
+                SeString _displayName = displayName;
+
+                bool uncatalogued = (cfcID == 0 && nameID == 0 && nmID == 0 && fateID == 0 && dynamicEventID == 0 && questID == 0) || (cfcID != 0 && _cfcSheet.GetRow(cfcID)!.ShortCode.RawString.IsNullOrEmpty());
                 if (uncatalogued)
                     Service.Log($"[{nameof(ModuleRegistry)}] Module {module.Name} is uncatalogued. It does not provide sufficient {nameof(Info)} tags.");
 
                 SeString contentType = new();
                 uint contentIcon = default;
-                SeString instanceName = new();
-                uint exVersion = 69;
                 string huntRank = "";
                 int carnivaleStage = 0;
                 SeString fateName = new();
@@ -162,18 +167,19 @@ namespace BossMod
                     var cfcRow = _cfcSheet.GetRow(cfcID)!;
                     contentType = cfcRow.ContentType?.Value?.Name ?? new SeString();
                     exVersion = cfcRow.TerritoryType?.Value?.ExVersion.Value?.RowId ?? 0;
-                    instanceName = cfcRow.Name;
+                    displayName = cfcRow.Name;
 
                     if (cfcID is 735 or 760 or 761 or 778) // bozja et al
                     {
-                        contentType = Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(6)!.Name;
-                        contentIcon = (uint)Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(6)!.Icon;
+                        contentType = _playStyleSheet!.GetRow(6)!.Name;
+                        contentIcon = (uint)_playStyleSheet!.GetRow(6)!.Icon;
                     }
                     else if (cfcRow.ShortCode.RawString.StartsWith("aoz")) // masked carnivale
                     {
-                        contentType = Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(8)!.Name;
-                        contentIcon = (uint)Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!.GetRow(8)!.Icon;
+                        contentType = _playStyleSheet!.GetRow(8)!.Name;
+                        contentIcon = (uint)_playStyleSheet!.GetRow(8)!.Icon;
                         carnivaleStage = int.Parse(Regex.Replace(cfcRow.ShortCode.RawString, @"\D", "").TrimStart('0'));
+                        //displayName = new SeString($"{displayName} (Stage {carnivaleStage})");
                     }
                     else
                         contentIcon = cfcRow.ContentType?.Value?.Icon ?? 0;
@@ -186,8 +192,9 @@ namespace BossMod
 
                 if (nmID != 0)
                 {
-                    bossName = _nmSheet.GetRow(nmID)!.BNpcName.Value?.Singular ?? new SeString();
+                    displayName = bossName = _nmSheet.GetRow(nmID)!.BNpcName.Value?.Singular ?? new SeString();
                     huntRank = Enum.Parse<HuntRanks>(_nmSheet.GetRow(nmID)!.Rank.ToString()).ToString();
+                    //displayName = new SeString($"{displayName} ({huntRank} Rank)");
                     contentType = _playStyleSheet.GetRow(10)!.Name;
                     contentIcon = (uint)_playStyleSheet.GetRow(10)!.Icon;
                     foreach (var row in _nmtSheet)
@@ -195,18 +202,27 @@ namespace BossMod
                             exVersion = _territorySheet.FirstOrDefault(x => x.Unknown42 == row.RowId)?.ExVersion.Value?.RowId ?? 0;
                 }
 
+                // ideally you could parse the location field to get the exversion in the fate sheet but that requires parsing lgb files
                 if (fateID != 0) // needs exversion
                 {
                     contentType = _contentTypeSheet.GetRow(8)!.Name;
                     contentIcon = _contentTypeSheet.GetRow(8)!.Icon;
-                    fateName = _fateSheet.GetRow(fateID)!.Name;
+                    displayName = _fateSheet.GetRow(fateID)!.Name;
                 }
 
                 if (dynamicEventID != 0) // needs exversion?
                 {
                     contentType = _playStyleSheet.GetRow(6)!.Name;
                     contentIcon = (uint)_playStyleSheet.GetRow(6)!.Icon;
-                    forayName = _dynamicEventSheet.GetRow(dynamicEventID)!.Name;
+                    displayName = forayName = _dynamicEventSheet.GetRow(dynamicEventID)!.Name;
+                }
+
+                if (questID != 0)
+                {
+                    contentType = _contentTypeSheet.GetRow(7)!.Name;
+                    contentIcon = _contentTypeSheet.GetRow(7)!.Icon;
+                    displayName = _questSheet.GetRow(questID)!.Name;
+                    exVersion = _questSheet.GetRow(questID)!.Expansion.Value?.RowId ?? 0;
                 }
                 
                 return new Info(module, statesType) {
@@ -221,13 +237,14 @@ namespace BossMod
                     CFCID = cfcID,
                     ContentType = contentType,
                     ContentIcon = contentIcon,
-                    InstanceName = instanceName,
+                    DisplayName = infoAttr?.DisplayName != null ? _displayName : displayName,
                     ExVersion = exVersion,
                     BossName = bossName, 
                     FateName = fateName,
                     ForayName = forayName,
                     HuntRank = huntRank,
                     CarnivaleStage = carnivaleStage,
+                    QuestID = questID,
 
                     IsUncatalogued = uncatalogued,
                 };
@@ -242,31 +259,35 @@ namespace BossMod
 
         private static Dictionary<uint, Info> _modules = new(); // [primary-actor-oid] = module type
 
-        private static readonly ExcelSheet<ContentFinderCondition> _cfcSheet;
-        private static readonly ExcelSheet<ContentType> _contentTypeSheet;
-        private static readonly ExcelSheet<NotoriousMonster> _nmSheet;
         private static readonly ExcelSheet<NotoriousMonsterTerritory> _nmtSheet;
-        private static readonly ExcelSheet<Fate> _fateSheet;
         private static readonly ExcelSheet<CharaCardPlayStyle> _playStyleSheet;
-        private static readonly ExcelSheet<TerritoryType> _territorySheet;
+        private static readonly ExcelSheet<ContentFinderCondition> _cfcSheet;
         private static readonly ExcelSheet<DynamicEvent> _dynamicEventSheet;
+        private static readonly ExcelSheet<ContentType> _contentTypeSheet;
+        private static readonly ExcelSheet<TerritoryType> _territorySheet;
+        private static readonly ExcelSheet<NotoriousMonster> _nmSheet;
         private static readonly ExcelSheet<BNpcName> _npcNamesSheet;
+        private static readonly ExcelSheet<Quest> _questSheet;
+        private static readonly ExcelSheet<Fate> _fateSheet;
 
+        private static readonly List<uint> _expacs;
         private static readonly List<Info> _catalogued;
         private static readonly List<Info> _uncatalogued;
-        private static readonly List<uint> _expacs;
+        private static readonly List<SeString> _contentTypes;
+        private static readonly Dictionary<SeString, uint> _contentTypesIcons;
 
         static ModuleRegistry()
         {
-            _cfcSheet = Service.LuminaGameData!.GetExcelSheet<ContentFinderCondition>()!;
-            _contentTypeSheet = Service.LuminaGameData!.GetExcelSheet<ContentType>()!;
-            _nmSheet = Service.LuminaGameData!.GetExcelSheet<NotoriousMonster>()!;
             _nmtSheet = Service.LuminaGameData!.GetExcelSheet<NotoriousMonsterTerritory>()!;
-            _fateSheet = Service.LuminaGameData!.GetExcelSheet<Fate>()!;
             _playStyleSheet = Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!;
-            _territorySheet = Service.LuminaGameData!.GetExcelSheet<TerritoryType>()!;
+            _cfcSheet = Service.LuminaGameData!.GetExcelSheet<ContentFinderCondition>()!;
             _dynamicEventSheet = Service.LuminaGameData!.GetExcelSheet<DynamicEvent>()!;
+            _contentTypeSheet = Service.LuminaGameData!.GetExcelSheet<ContentType>()!;
+            _territorySheet = Service.LuminaGameData!.GetExcelSheet<TerritoryType>()!;
+            _nmSheet = Service.LuminaGameData!.GetExcelSheet<NotoriousMonster>()!;
             _npcNamesSheet = Service.LuminaGameData!.GetExcelSheet<BNpcName>()!;
+            _questSheet = Service.LuminaGameData!.GetExcelSheet<Quest>()!;
+            _fateSheet = Service.LuminaGameData!.GetExcelSheet<Fate>()!;
 
             foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
             {
@@ -281,18 +302,25 @@ namespace BossMod
 
             _catalogued = _modules.Values
                 .Where(x => !x.IsUncatalogued)
-                .OrderBy(x => x.ExVersion)
-                .ThenBy(x => _cfcSheet.GetRow(x.CFCID)?.ClassJobLevelSync)
-                .ThenBy(x => _cfcSheet.GetRow(x.CFCID)?.ItemLevelRequired)
-                .ThenBy(x => _cfcSheet.GetRow(x.CFCID)?.SortKey)
+                .GroupBy(x => new { x.ExVersion, ContentType = x.ContentType ?? new() })
+                .OrderBy(g => g.Key.ExVersion)
+                .SelectMany(group => group.OrderBy(x => _cfcSheet.GetRow(x.CFCID)?.SortKey))
                 .ToList();
             _uncatalogued = _modules.Values.Where(x => x.IsUncatalogued || x.ExVersion == 69).Select(x => x).ToList();
-            _expacs = _modules.Where(x => x.Value.ExVersion != 69).Select(x => x.Value.ExVersion).Distinct().ToList();
+            _expacs = _modules.Where(x => x.Value.ExVersion != 69).Select(x => x.Value.ExVersion).Distinct().OrderBy(x => x).ToList();
+            _contentTypes = _modules.Select(x => x.Value.ContentType ?? new()).Distinct().ToList();
+            _contentTypesIcons = _modules
+                .Where(x => x.Value.ContentType != null && x.Value.ContentIcon != default)
+                .Select(x => (x.Value.ContentType!, x.Value.ContentIcon))
+                .Distinct().OrderBy(x => x.ContentIcon).ToDictionary(x => x.Item1, x => x.ContentIcon);
         }
 
+        public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modules;
         public static IReadOnlyList<Info> CataloguedModules => _catalogued;
         public static IReadOnlyList<Info> UncataloguedModules => _uncatalogued;
         public static IReadOnlyList<uint> AvailableExpansions => _expacs;
+        public static IReadOnlyList<SeString> AvailableContent => _contentTypes;
+        public static IReadOnlyDictionary<SeString, uint> AvailableContentIcons => _contentTypesIcons;
 
         public static Info? FindByOID(uint oid) => _modules.GetValueOrDefault(oid);
 

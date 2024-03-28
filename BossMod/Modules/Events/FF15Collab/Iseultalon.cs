@@ -157,7 +157,7 @@ namespace BossMod.Events.FF15Collab.Iseultalon
         }
     }
 
-    [ModuleInfo(NameID = 7895)] //questbattle ID 184
+    [ModuleInfo(QuestID = 68695, NameID = 7895)]
     public class Iseultalon : BossModule
     {
         public Iseultalon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-289, -30), 25)) { } //note the arena is actually a 6 sided polygon
