@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
+// TODO: revise and refactor voidzone components; 'persistent' part of name is redundant
 namespace BossMod.Components
 {
     // voidzone (circle aoe that stays active for some time) centered at each existing object with specified OID, assumed to be persistent voidzone center
+    // TODO: typically sources are either eventobj's with eventstate != 7 or normal actors that are non dead; other conditions are much rarer
     public class PersistentVoidzone : GenericAOEs
     {
         public AOEShapeCircle Shape { get; private init; }
@@ -25,6 +27,8 @@ namespace BossMod.Components
 
     // voidzone that appears with some delay at cast target
     // note that if voidzone is predicted by cast start rather than cast event, we have to account for possibility of cast finishing without event (e.g. if actor dies before cast finish)
+    // TODO: this has problems when target moves - castevent and spawn position could be quite different
+    // TODO: this has problems if voidzone never actually spawns after castevent, eg because of phase changes
     public class PersistentVoidzoneAtCastTarget : GenericAOEs
     {
         public AOEShapeCircle Shape { get; private init; }
@@ -79,71 +83,70 @@ namespace BossMod.Components
         }
     }
 
-    // voidzone (circle aoe that stays active for some time) centered at each existing object with specified OID, assumed to be persistent voidzone center
-    // inverts from dangerous to safe when a specific AID is being casted
-    public class PersistentInvertibleVoidzone : GenericAOEs
+    // these are normal voidzones that could be 'inverted' (e.g. when you need to enter a voidzone at specific time to avoid some mechanic)
+    // TODO: i'm not sure whether these should be considered actual voidzones (if so, should i merge them with base component? what about cast prediction?) or some completely other type of mechanic (maybe drawing differently)
+    // TODO: might want to have per-player invertability
+    public class PersistentInvertibleVoidzone : CastCounter
     {
         public AOEShapeCircle Shape { get; private init; }
         public Func<BossModule, IEnumerable<Actor>> Sources { get; private init; }
-        private bool inverting;
-        private DateTime _activation;
-        private float Radius;
+        public DateTime InvertResolveAt;
 
-        public PersistentInvertibleVoidzone(float radius, ActionID aid, Func<BossModule, IEnumerable<Actor>> sources) : base(aid, "GTFO from voidzone!")
+        public bool Inverted => InvertResolveAt != default;
+
+        public PersistentInvertibleVoidzone(float radius, Func<BossModule, IEnumerable<Actor>> sources, ActionID aid = default) : base(aid)
         {
             Shape = new(radius);
             Sources = sources;
-            Radius = radius;
         }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (!inverting)
-                foreach (var s in Sources(module))
-                    yield return new(Shape, s.Position);
-            if (inverting)
-                foreach (var s in Sources(module))
-                    yield return new(Shape, s.Position, activation: _activation, color: ArenaColor.SafeFromAOE, risky: false);
+            var inVoidzone = Sources(module).Any(s => Shape.Check(actor.Position, s));
+            if (Inverted)
+                hints.Add(inVoidzone ? "Stay in voidzone" : "Go to voidzone!", !inVoidzone);
+            else if (inVoidzone)
+                hints.Add("GTFO from voidzone!");
         }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            var shapes = Sources(module).Select(s => Shape.Distance(s.Position, s.Rotation)).ToList();
+            if (shapes.Count == 0)
+                return;
+
+            Func<WPos, float> distance = p =>
+            {
+                float dist = shapes.Select(s => s(p)).Min();
+                return Inverted ? -dist : dist;
+            };
+            hints.AddForbiddenZone(distance, InvertResolveAt);
+        }
+
+        // TODO: reconsider - draw foreground circles instead?
+        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            var color = Inverted ? ArenaColor.SafeFromAOE : ArenaColor.AOE;
+            foreach (var s in Sources(module))
+                Shape.Draw(arena, s.Position, s.Rotation, color);
+        }
+    }
+
+    // invertible voidzone that is inverted when specific spell is being cast; resolved when cast ends
+    public class PersistentInvertibleVoidzoneByCast : PersistentInvertibleVoidzone
+    {
+        public PersistentInvertibleVoidzoneByCast(float radius, Func<BossModule, IEnumerable<Actor>> sources, ActionID aid) : base(radius, sources, aid) { }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-            {
-                inverting = true;
-                _activation = spell.NPCFinishAt;
-            }
+                InvertResolveAt = spell.NPCFinishAt;
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if (spell.Action == WatchedAction)
-                inverting = false;
-        }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            var shapes = new List<Func<WPos, float>>();
-            foreach (var c in ActiveAOEs(module, slot, actor))
-            {
-                if (c.Risky)
-                    hints.AddForbiddenZone(c.Shape, c.Origin, c.Rotation, c.Activation);
-                if (inverting)
-                    shapes.Add(ShapeDistance.InvertedCircle(c.Origin, Radius));
-            }
-            if (shapes.Count > 0)
-                hints.AddForbiddenZone(p => shapes.Select(f => f(p)).Max(), _activation);
-            if (shapes.Count > 0 && !inverting)
-                shapes.Clear();
-        }
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            base.AddHints(module, slot, actor, hints, movementHints);
-            if (ActiveAOEs(module, slot, actor).Any(c => c.Check(actor.Position)) && inverting)
-                hints.Add("Wait in puddle until mechanic resolves!", false);
-            if (!ActiveAOEs(module, slot, actor).Any(c => c.Check(actor.Position)) && inverting)
-                hints.Add("Go into puddle until mechanic resolves!");
+                InvertResolveAt = default;
         }
     }
 }
