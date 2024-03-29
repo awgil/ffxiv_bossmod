@@ -1,9 +1,8 @@
 ﻿// CONTRIB: made by Malediktus, not checked
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace BossMod.Endwalker.Dungeon.D13TheLunarSubterrane.D133DamcyanAntilon
+namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D133Durante
 {
     public enum OID : uint
     {
