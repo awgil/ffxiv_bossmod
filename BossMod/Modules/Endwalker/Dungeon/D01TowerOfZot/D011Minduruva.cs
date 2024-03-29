@@ -45,7 +45,6 @@ namespace BossMod.Endwalker.Dungeon.D01TowerOfZot.D011Minduruva
         FireAlchemy = 2751, // Boss->Boss, extra=0x0
     };
 
-
     class ManusyaBio : Components.SingleTargetCast
     {
         public ManusyaBio() : base(ActionID.MakeSpell(AID.ManusyaBio), "Tankbuster + cleansable poison") { }
@@ -57,7 +56,7 @@ namespace BossMod.Endwalker.Dungeon.D01TowerOfZot.D011Minduruva
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-              if ((SID)status.ID == SID.Poison)
+            if ((SID)status.ID == SID.Poison)
                 _poisoned.Add(actor);
         }
 
@@ -97,7 +96,7 @@ namespace BossMod.Endwalker.Dungeon.D01TowerOfZot.D011Minduruva
         private bool active;
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID  == AID.Dhrupad)
+            if ((AID)spell.Action.ID == AID.Dhrupad)
                 active = true;
         }
 
@@ -137,7 +136,7 @@ namespace BossMod.Endwalker.Dungeon.D01TowerOfZot.D011Minduruva
 
     class ManusyaFireIII : Components.SelfTargetedAOEs
     {
-       public ManusyaFireIII() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(5, 60)) { }
+        public ManusyaFireIII() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(5, 60)) { }
     }
 
     class D011MinduruvaStates : StateMachineBuilder
@@ -145,13 +144,13 @@ namespace BossMod.Endwalker.Dungeon.D01TowerOfZot.D011Minduruva
         public D011MinduruvaStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<Dhrupad>()
-            .ActivateOnEnter<ManusyaBio>()
-            .ActivateOnEnter<Poison>()
-            .ActivateOnEnter<ManusyaThunderIII>()
-            .ActivateOnEnter<ManusyaFireIII>()
-            .ActivateOnEnter<ManusyaBioIII>()
-            .ActivateOnEnter<ManusyaBlizzardIII>();
+                .ActivateOnEnter<Dhrupad>()
+                .ActivateOnEnter<ManusyaBio>()
+                .ActivateOnEnter<Poison>()
+                .ActivateOnEnter<ManusyaThunderIII>()
+                .ActivateOnEnter<ManusyaFireIII>()
+                .ActivateOnEnter<ManusyaBioIII>()
+                .ActivateOnEnter<ManusyaBlizzardIII>();
         }
     }
 
@@ -159,10 +158,5 @@ namespace BossMod.Endwalker.Dungeon.D01TowerOfZot.D011Minduruva
     public class D011Minduruva : BossModule
     {
         public D011Minduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(68, -124), 19.5f)) { }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-        }
     }
 }
