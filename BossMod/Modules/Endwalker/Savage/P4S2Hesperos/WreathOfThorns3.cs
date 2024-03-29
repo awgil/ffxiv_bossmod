@@ -22,7 +22,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private IEnumerable<Actor> _knockbackThorn => _relevantHelpers.Skip(4).Take(1);
         private IEnumerable<Actor> _meleeTowers => _relevantHelpers.Skip(5);
 
-        private static float _jumpAOERadius = 10;
+        private static readonly float _jumpAOERadius = 10;
 
         public override void Update(BossModule module)
         {

@@ -2,7 +2,7 @@
 {
     class HeavensTrialCone : Components.GenericBaitAway
     {
-        private static AOEShapeCone _shape = new(60, 15.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 15.Degrees());
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {

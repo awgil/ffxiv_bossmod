@@ -12,9 +12,9 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
         private BitMask _ins; // [i] == true if i'th aoe is in
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCone _shapeCone = new(60, 135.Degrees());
-        private static AOEShapeCircle _shapeOut = new(6);
-        private static AOEShapeDonut _shapeIn = new(6, 40);
+        private static readonly AOEShapeCone _shapeCone = new(60, 135.Degrees());
+        private static readonly AOEShapeCircle _shapeOut = new(6);
+        private static readonly AOEShapeDonut _shapeIn = new(6, 40);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
 
@@ -150,7 +150,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
             public Instance(Actor source)
             {
                 Source = source;
-                FakeSource = new(0, 0, -1, "", ActorType.None, Class.None, new());
+                FakeSource = new(0, 0, -1, "", ActorType.None, Class.None, 0, new());
             }
         }
 

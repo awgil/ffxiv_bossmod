@@ -8,7 +8,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         private Actor? _source;
         private DateTime _activation;
 
-        private static AOEShapeCircle _shape = new(14);
+        private static readonly AOEShapeCircle _shape = new(14);
 
         public bool Active => _source != null;
 

@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphnolobion
@@ -59,12 +58,15 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
 
     class EarthShaker : Components.BaitAwayCast
     {
-        public EarthShaker() : base(ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 15.Degrees())) { }
+        public EarthShaker() : base(ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 15.Degrees()))
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class EarthQuaker : Components.ConcentricAOEs
     {
-        private static AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20) };
+        private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 20)];
 
         public EarthQuaker() : base(_shapes) { }
 

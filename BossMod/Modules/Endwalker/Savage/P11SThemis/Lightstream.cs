@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Savage.P11SThemis
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shape = new(50, 5);
+        private static readonly AOEShapeRect _shape = new(50, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

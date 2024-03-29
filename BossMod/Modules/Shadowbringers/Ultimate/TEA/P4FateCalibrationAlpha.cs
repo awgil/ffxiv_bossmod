@@ -112,7 +112,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         private List<(Actor caster, DateTime activation)> _casters = new();
         private WPos[]? _safespots;
 
-        private static AOEShapeCross _shape = new(100, 8);
+        private static readonly AOEShapeCross _shape = new(100, 8);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

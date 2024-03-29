@@ -13,8 +13,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         private WPos _prevPos;
         private DateTime _nextHit;
 
-        private static AOEShapeCone _shapeAlpha = new(30, 45.Degrees());
-        private static AOEShapeRect _shapeBlasty = new(55, 5);
+        private static readonly AOEShapeCone _shapeAlpha = new(30, 45.Degrees());
+        private static readonly AOEShapeRect _shapeBlasty = new(55, 5);
 
         public LimitCut(float alphaDelay)
         {

@@ -1,5 +1,4 @@
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage18.Act2
@@ -20,84 +19,62 @@ namespace BossMod.MaskedCarnivale.Stage18.Act2
         BoneShaker = 15053, // 2725->self, no cast, range 50 circle, harmless raidwide
     };
 
-    class Explosion : SelfTargetedAOEs
+    class Explosion : Components.SelfTargetedAOEs
     {
         public Explosion() : base(ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(10)) { }
     }
 
-    class Fireball : LocationTargetedAOEs
+    class Fireball : Components.LocationTargetedAOEs
     {
         public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 6) { }
     }
 
-    class RipperClaw : SelfTargetedAOEs
+    class RipperClaw : Components.SelfTargetedAOEs
     {
         public RipperClaw() : base(ActionID.MakeSpell(AID.RipperClaw), new AOEShapeCone(8, 45.Degrees())) { }
     }
 
-    class TailSmash : SelfTargetedAOEs
+    class TailSmash : Components.SelfTargetedAOEs
     {
         public TailSmash() : base(ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(15, 45.Degrees())) { }
     }
 
-    class WildCharge : GenericWildCharge
+    class WildCharge : Components.BaitAwayChargeCast
     {
-        private bool casting;
-
-        public WildCharge() : base(4, ActionID.MakeSpell(AID.WildCharge)) { }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-            {
-                casting = true;
-                Source = caster;
-                foreach (var (slot, player) in module.Raid.WithSlot())
-                {
-                    PlayerRoles[slot] = player.InstanceID == spell.TargetID ? PlayerRole.Target : PlayerRole.Target;
-                }
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-            {
-                Source = null;
-                casting = false;
-            }
-        }
+        public WildCharge() : base(ActionID.MakeSpell(AID.WildCharge), 4) { }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            if (casting && !module.Enemies(OID.Keg).All(e => e.IsDead))
+            if (CurrentBaits.Count > 0 && !module.Enemies(OID.Keg).All(e => e.IsDead))
                 hints.Add("Aim charge at a keg!");
         }
     }
 
-    class WildChargeKB : KnockbackFromCastTarget
-    {
-        public WildChargeKB() : base(ActionID.MakeSpell(AID.WildCharge), 10, kind: Kind.DirForward) { } //knockback actually delayed by 0.5s to 1s, maybe it depends on the rectangle length of the charge
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) { }
+    class WildChargeKB : Components.KnockbackFromCastTarget
+    {   //knockback actually delayed by 0.5s to 1s, maybe it depends on the rectangle length of the charge
+        public WildChargeKB() : base(ActionID.MakeSpell(AID.WildCharge), 10, kind: Kind.DirForward)
+        {
+            StopAtWall = true;
+        }
     }
 
-    class KegExplosion : GenericStackSpread
+    class KegExplosion : Components.GenericStackSpread
     {
         public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {
-            foreach (var p in module.Enemies(OID.Keg).Where(x => x.HP.Cur > 0))
+            foreach (var p in module.Enemies(OID.Keg).Where(x => !x.IsDead))
+            {
+                if (arena.Config.ShowOutlinesAndShadows)
+                    arena.AddCircle(p.Position, 10, 0xFF000000, 2);
                 arena.AddCircle(p.Position, 10, ArenaColor.Danger);
+            }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
-            var player = module.Raid.Player();
-            if (player != null)
-                foreach (var p in module.Enemies(OID.Keg).Where(x => x.HP.Cur > 0))
-                    if (player.Position.InCircle(p.Position, 10))
-                    {
-                        hints.Add("In keg explosion radius!");
-                    }
+            foreach (var p in module.Enemies(OID.Keg).Where(x => !x.IsDead))
+                if (actor.Position.InCircle(p.Position, 10))
+                    hints.Add("In keg explosion radius!");
         }
     }
 
@@ -139,9 +116,9 @@ namespace BossMod.MaskedCarnivale.Stage18.Act2
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.Keg))
-                Arena.Actor(s, ArenaColor.Object, false);
+                Arena.Actor(s, ArenaColor.Object);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

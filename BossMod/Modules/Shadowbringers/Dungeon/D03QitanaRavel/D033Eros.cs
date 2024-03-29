@@ -129,11 +129,6 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         public ViperPoisonPatterns() : base(6, ActionID.MakeSpell(AID.ViperPoisonPatterns), m => m.Enemies(OID.PoisonVoidzone).Where(z => z.EventState != 7), 0) { }
     }
 
-    class ViperPoisonBaitAway : Components.PersistentVoidzone
-    {
-        public ViperPoisonBaitAway() : base(6, m => m.Enemies(OID.PoisonVoidzone).Where(z => z.EventState != 7)) { }
-    }
-
     class ConfessionOfFaithLeft : Components.SelfTargetedAOEs
     {
         public ConfessionOfFaithLeft() : base(ActionID.MakeSpell(AID.ConfessionOfFaithLeft), new AOEShapeCone(60, 46.Degrees(), 20.Degrees())) { } // TODO: verify; there should not be an offset in reality here...
@@ -153,28 +148,13 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         public ConfessionOfFaithCenter() : base(ActionID.MakeSpell(AID.ConfessionOfFaithCenter), new AOEShapeCone(60, 40.Degrees())) { }
     }
 
-    class ConfessionOfFaithSpread : Components.UniformStackSpread
+    class ConfessionOfFaithSpread : Components.SpreadFromCastTargets
     {
-        public ConfessionOfFaithSpread() : base(0, 5, alwaysShowSpreads: true) { }
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.spread)
-            {
-                AddSpread(actor);
-            }
-        }
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.ConfessionOfFaithSpread)
-            {
-                Spreads.Clear();
-            }
-        }
+        public ConfessionOfFaithSpread() : base(ActionID.MakeSpell(AID.ConfessionOfFaithSpread), 5) { }
     }
 
-    class ViperPoisonBait : Components.UniformStackSpread
+    class ViperPoisonBait : Components.GenericBaitAway
     {
-        public ViperPoisonBait() : base(0, 6, alwaysShowSpreads: true) { }
         private bool targeted;
         private Actor? target;
 
@@ -182,7 +162,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         {
             if (iconID == (uint)IconID.poisonbait)
             {
-                AddSpread(actor);
+                CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(6)));
                 targeted = true;
                 target = actor;
             }
@@ -192,17 +172,16 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         {
             if ((AID)spell.Action.ID == AID.ViperPoisonBaitAway)
             {
-                Spreads.Clear();
+                CurrentBaits.Clear();
                 targeted = false;
             }
         }
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            base.AddHints(module, slot, actor, hints, movementHints);
             if (target == actor && targeted)
-            {
-                hints.Add("Bait away!");
-            }
+                hints.Add("Bait voidzone away!");
         }
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -218,7 +197,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         public Inhale() : base(ActionID.MakeSpell(AID.Inhale), 50, kind: Kind.TowardsOrigin) { }
 
         //TODO: consider testing if path is unsafe in addition to destination
-        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<ViperPoisonBaitAway>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }
 
     class HeavingBreath : Components.KnockbackFromCastTarget
@@ -229,7 +208,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         }
 
         //TODO: consider testing if path is unsafe in addition to destination
-        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<ViperPoisonBaitAway>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }
 
     class Glossolalia : Components.RaidwideCast
@@ -237,7 +216,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         public Glossolalia() : base(ActionID.MakeSpell(AID.Glossolalia)) { }
     }
 
-    class Rend : Components.SingleTargetCast
+    class Rend : Components.SingleTargetDelayableCast
     {
         public Rend() : base(ActionID.MakeSpell(AID.Rend)) { }
     }
@@ -249,7 +228,6 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
             TrivialPhase()
                 .ActivateOnEnter<ViperPoisonBait>()
                 .ActivateOnEnter<ViperPoisonPatterns>()
-                .ActivateOnEnter<ViperPoisonBaitAway>()
                 .ActivateOnEnter<Rend>()
                 .ActivateOnEnter<HoundOutOfHeavenGood>()
                 .ActivateOnEnter<HoundOutOfHeavenBad>()

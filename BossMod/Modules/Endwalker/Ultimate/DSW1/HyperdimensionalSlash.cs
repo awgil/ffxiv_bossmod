@@ -11,9 +11,9 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private List<(WPos Pos, Actor? Source)> _tears = new();
         private BitMask _riskyTears;
 
-        private static float _linkRadius = 9; // TODO: verify
-        private static AOEShapeRect _aoeLaser = new(70, 4);
-        private static AOEShapeCone _aoeCone = new(40, 60.Degrees());
+        private static readonly float _linkRadius = 9; // TODO: verify
+        private static readonly AOEShapeRect _aoeLaser = new(70, 4);
+        private static readonly AOEShapeCone _aoeCone = new(40, 60.Degrees());
 
         public override void Update(BossModule module)
         {

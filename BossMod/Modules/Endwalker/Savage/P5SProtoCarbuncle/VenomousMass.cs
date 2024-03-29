@@ -4,7 +4,7 @@
     {
         private Actor? _target;
 
-        private static float _radius = 6;
+        private static readonly float _radius = 6;
 
         public VenomousMass() : base(ActionID.MakeSpell(AID.VenomousMassAOE)) { }
 

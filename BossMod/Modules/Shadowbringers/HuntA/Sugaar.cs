@@ -69,7 +69,7 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
         private NumbingNoiseTailSnapRotating? _rotating;
         private DateTime _activation;
 
-        private static AOEShapeCircle _shape = new(30);
+        private static readonly AOEShapeCircle _shape = new(30);
 
         public override void Init(BossModule module) => _rotating = module.FindComponent<NumbingNoiseTailSnapRotating>();
 
@@ -108,5 +108,5 @@ namespace BossMod.Shadowbringers.HuntA.Sugaar
     }
 
     [ModuleInfo(NotoriousMonsterID = 125)]
-    public class Sugaar(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Sugaar(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

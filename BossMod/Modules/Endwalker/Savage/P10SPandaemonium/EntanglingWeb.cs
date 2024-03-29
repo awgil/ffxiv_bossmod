@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         private IReadOnlyList<Actor> _pillars = ActorEnumeration.EmptyList;
         private List<Actor> _targets = new();
 
-        private static float _radius = 5;
+        private static readonly float _radius = 5;
 
         public override void Init(BossModule module)
         {

@@ -44,7 +44,7 @@ class Enaero : BossComponent
 
 class HeartOfNatureConcentric : ConcentricAOEs
 {
-    private static AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30) };
+    private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30) };
 
     public HeartOfNatureConcentric() : base(_shapes) { }
 
@@ -195,9 +195,7 @@ class NaturesBlood : Exaflare
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NaturesBlood1)
-        {
             Lines.Add(new LineWithActor(caster));
-        }
     }
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)

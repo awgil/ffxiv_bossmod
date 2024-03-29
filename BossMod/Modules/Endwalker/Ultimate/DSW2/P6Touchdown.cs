@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P6Touchdown : Components.GenericAOEs
     {
-        private static AOEShapeCircle _shape = new(20); // TODO: verify falloff
+        private static readonly AOEShapeCircle _shape = new(20); // TODO: verify falloff
 
         public P6Touchdown() : base(ActionID.MakeSpell(AID.TouchdownAOE)) { }
 
@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private BitMask _boiling;
         private BitMask _freezing;
 
-        private static AOEShapeRect _shape = new(80, 11);
+        private static readonly AOEShapeRect _shape = new(80, 11);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

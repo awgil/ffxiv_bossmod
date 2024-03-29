@@ -25,10 +25,10 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
         private List<WPos> _meteors = new();
         private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
 
-        private static float _radius = 2;
-        private static int _ownThickness = 2;
-        private static int _otherThickness = 1;
-        private static bool _drawShadows = true;
+        private static readonly float _radius = 2;
+        private static readonly int _ownThickness = 2;
+        private static readonly int _otherThickness = 1;
+        private static readonly bool _drawShadows = true;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -52,7 +51,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FrigidNeedle)
-                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.495f));
+                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -79,7 +78,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.CircleOfIce)
-                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.495f));
+                AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -114,27 +113,19 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
 
     class IcePillarSpawn : Components.GenericAOEs
     {
-        private bool activePillar;
-        private DateTime _activation;
-        private static readonly AOEShapeCircle circle = new(6);
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (activePillar)
-                foreach (var p in module.Enemies(OID.IcePillars))
-                    yield return new(circle, p.Position, default, _activation);
-        }
+        private readonly List<AOEInstance> _aoes = new();
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(4);
+
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.IcePillars)
-            {
-                activePillar = true;
-                _activation = module.WorldState.CurrentTime.AddSeconds(3.75f);
-            }
+                _aoes.Add(new(new AOEShapeCircle(6), actor.Position, activation: module.WorldState.CurrentTime.AddSeconds(3.75f)));
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.IcePillar)
-                activePillar = false;
+                _aoes.RemoveAt(0);
         }
     }
 

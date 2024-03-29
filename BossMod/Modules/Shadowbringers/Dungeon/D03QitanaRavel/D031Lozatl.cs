@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
 using System.Collections.Generic;
 
 namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
@@ -34,7 +33,7 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
         public LozatlsFuryB() : base(ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, directionOffset: -90.Degrees())) { } // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
     }
 
-    class Stonefist : Components.SingleTargetCast
+    class Stonefist : Components.SingleTargetDelayableCast
     {
         public Stonefist() : base(ActionID.MakeSpell(AID.Stonefist)) { }
     }
@@ -51,38 +50,26 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
 
     class RonkanLight : Components.GenericAOEs
     {
-        private bool castingRight;
-        private bool castingLeft;
         private static readonly AOEShapeRect rect = new(60, 20); //TODO: double halfwidth is strange
-        private DateTime _activation;
+        private AOEInstance? _aoe;
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (castingRight)
-                yield return new(rect, module.Bounds.Center, 90.Degrees(), _activation);
-            if (castingLeft)
-                yield return new(rect, module.Bounds.Center, -90.Degrees(), _activation);
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnActorEAnim(BossModule module, Actor actor, uint state)
         {
             if (state == 0x00040008)
             {
                 if (actor.Position.AlmostEqual(new(8, 328), 1))
-                    castingRight = true;
+                    _aoe = new(rect, module.Bounds.Center, 90.Degrees(), module.WorldState.CurrentTime.AddSeconds(8));
                 if (actor.Position.AlmostEqual(new(-7, 328), 1))
-                    castingLeft = true;
-                _activation = module.WorldState.CurrentTime.AddSeconds(8);
+                    _aoe = new(rect, module.Bounds.Center, -90.Degrees(), module.WorldState.CurrentTime.AddSeconds(8));
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
             if ((AID)spell.Action.ID is AID.RonkanLightLeft or AID.RonkanLightRight)
-            {
-                castingRight = false;
-                castingLeft = false;
-            }
+                _aoe = null;
         }
     }
 

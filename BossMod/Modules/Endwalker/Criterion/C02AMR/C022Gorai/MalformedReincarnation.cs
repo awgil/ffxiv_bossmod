@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
         private BitMatrix _playerBlue; // [i] = blue debuffs for slot i; 0 = bait, 1/2/3 = soaks
         private bool _baitsDone;
 
-        private static float TowerRadius = 4;
+        private static readonly float TowerRadius = 4;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

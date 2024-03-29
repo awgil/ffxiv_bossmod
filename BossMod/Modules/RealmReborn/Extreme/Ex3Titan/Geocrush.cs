@@ -3,7 +3,7 @@
     class Geocrush : Components.CastCounter
     {
         private float _radius;
-        private static float _ringWidth = 2;
+        private static readonly float _ringWidth = 2;
 
         public Geocrush(float radius) : base(ActionID.MakeSpell(AID.Geocrush))
         {

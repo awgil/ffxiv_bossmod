@@ -170,6 +170,7 @@ namespace BossMod
             var character = obj as Character;
             var name = obj.Name.TextValue;
             var classID = (Class)(character?.ClassJob.Id ?? 0);
+            var level = character?.Level ?? 0;
             var posRot = new Vector4(obj.Position, obj.Rotation);
             var hp = new ActorHP();
             uint curMP = 0;
@@ -199,6 +200,7 @@ namespace BossMod
                     Name = name,
                     Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
                     Class = classID,
+                    Level = level,
                     PosRot = posRot,
                     HitboxRadius = radius,
                     HP = hp,
@@ -218,8 +220,8 @@ namespace BossMod
             {
                 if (act.Name != name)
                     Execute(new ActorState.OpRename() { InstanceID = act.InstanceID, Name = name });
-                if (act.Class != classID)
-                    Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID });
+                if (act.Class != classID || act.Level != level)
+                    Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID, Level = level });
                 if (act.PosRot != posRot)
                     Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
                 if (act.HitboxRadius != radius)
@@ -356,6 +358,12 @@ namespace BossMod
                 var member = _alliance.IsAlliance && !_alliance.IsSmallGroupAlliance ? _alliance.AllianceMember(i - PartyState.MaxPartySize) : null;
                 UpdatePartySlot(i, 0, member != null ? member->ObjectID : 0);
             }
+
+            // update limit break
+            var lb = LimitBreakController.Instance();
+            var lbMax = (ushort)lb->BarValue; // CS is incorrect here, two high bytes are some other fields
+            if (Party.LimitBreakCur != lb->CurrentValue || Party.LimitBreakMax != lbMax)
+                Execute(new PartyState.OpLimitBreakChange() { Cur = lb->CurrentValue, Max = lbMax });
         }
 
         private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)

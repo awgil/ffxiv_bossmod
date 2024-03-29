@@ -164,7 +164,7 @@ namespace BossMod.Components
                     continue; // this could happen if attract starts from < min distance
 
                 if (StopAtWall)
-                    distance = Math.Min(distance, module.Bounds.IntersectRay(from, dir) - 0.001f);
+                    distance = Math.Min(distance, module.Bounds.IntersectRay(from, dir) - actor.HitboxRadius);
 
                 var to = from + distance * dir;
                 yield return (from, to);

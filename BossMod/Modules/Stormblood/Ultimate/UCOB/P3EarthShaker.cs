@@ -7,7 +7,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     {
         private List<Bait> _futureBaits = new();
 
-        private static AOEShapeCone _shape = new(60, 45.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 45.Degrees());
 
         public P3EarthShaker() : base(ActionID.MakeSpell(AID.EarthShakerAOE)) { }
 
@@ -37,7 +37,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private List<AOEInstance> _predicted = new();
         private BitMask _targets;
 
-        private static AOEShapeCircle _shape = new(5); // TODO: verify radius
+        private static readonly AOEShapeCircle _shape = new(5); // TODO: verify radius
 
         public P3EarthShakerVoidzone() : base(default, "GTFO from voidzone!") { }
 

@@ -9,10 +9,10 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private List<WPos> _planetsFiery = new();
         private List<WPos> _planetsAzure = new();
 
-        private static AOEShapeCone _aoeHead = new(20, 90.Degrees());
-        private static AOEShapeCircle _aoePlanet = new(30);
-        private static float _knockbackDistance = 25;
-        private static float _planetOffset = 19.8f; // == 14 * sqrt(2)
+        private static readonly AOEShapeCone _aoeHead = new(20, 90.Degrees());
+        private static readonly AOEShapeCircle _aoePlanet = new(30);
+        private static readonly float _knockbackDistance = 25;
+        private static readonly float _planetOffset = 19.8f; // == 14 * sqrt(2)
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

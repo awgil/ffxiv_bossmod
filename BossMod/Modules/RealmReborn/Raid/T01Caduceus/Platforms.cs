@@ -15,26 +15,26 @@ namespace BossMod.RealmReborn.Raid.T01Caduceus
         public const float HexaNeighbourDistX = HexaCenterToSideCornerX * 2;
         public const float HexaNeighbourDistZ = HexaPlatformSide * 1.5f;
 
-        public static WPos ClosestPlatformCenter = new(0.6f, -374); // (0,0) on hexa grid
-        public static (int, int)[] HexaPlatforms = { (0, 0), (0, 1), (1, 1), (0, 2), (1, 2), (2, 2), (3, 2), (0, 3), (1, 3), (2, 3), (1, 4), (2, 4) };
-        public static (int, int) OctaPlatform = (3, 4);
-        public static WPos[] HexaPlatformCenters = HexaPlatforms.Select(HexaCenter).ToArray();
-        public static WDir OctaCenterOffset = 0.5f * new WDir(OctaPlatformShort, OctaPlatformLong - HexaPlatformSide);
-        public static WPos OctaPlatformCenter = HexaCenter(OctaPlatform) - OctaCenterOffset;
+        public static readonly WPos ClosestPlatformCenter = new(0.6f, -374); // (0,0) on hexa grid
+        public static readonly (int, int)[] HexaPlatforms = { (0, 0), (0, 1), (1, 1), (0, 2), (1, 2), (2, 2), (3, 2), (0, 3), (1, 3), (2, 3), (1, 4), (2, 4) };
+        public static readonly (int, int) OctaPlatform = (3, 4);
+        public static readonly WPos[] HexaPlatformCenters = HexaPlatforms.Select(HexaCenter).ToArray();
+        public static readonly WDir OctaCenterOffset = 0.5f * new WDir(OctaPlatformShort, OctaPlatformLong - HexaPlatformSide);
+        public static readonly WPos OctaPlatformCenter = HexaCenter(OctaPlatform) - OctaCenterOffset;
 
         // it is possible to move from platform if height difference is < 0.5, or jump if height difference is < 2
-        public static float[] PlatformHeights = { 4.5f, 0.9f, 0.5f, -0.7f, -0.3f, 0.1f, 0.5f, 1.7f, 1.3f, 0.9f, 2.1f, 2.5f, 4.9f };
-        public static (int lower, int upper)[] HighEdges = { (1, 0), (3, 7), (4, 7), (9, 12), (11, 12) };
-        public static (int lower, int upper)[] JumpEdges = { (3, 1), (4, 1), (4, 2), (4, 8), (5, 8), (5, 9), (8, 10), (8, 11), (9, 11) };
+        public static readonly float[] PlatformHeights = { 4.5f, 0.9f, 0.5f, -0.7f, -0.3f, 0.1f, 0.5f, 1.7f, 1.3f, 0.9f, 2.1f, 2.5f, 4.9f };
+        public static readonly (int lower, int upper)[] HighEdges = { (1, 0), (3, 7), (4, 7), (9, 12), (11, 12) };
+        public static readonly (int lower, int upper)[] JumpEdges = { (3, 1), (4, 1), (4, 2), (4, 8), (5, 8), (5, 9), (8, 10), (8, 11), (9, 11) };
 
-        public static Func<WPos, float>[] PlatformShapes;
-        public static Func<WPos, float>[] HighEdgeShapes;
-        public static (WPos p, WDir d, float l)[] JumpEdgeSegments;
+        public static readonly Func<WPos, float>[] PlatformShapes;
+        public static readonly Func<WPos, float>[] HighEdgeShapes;
+        public static readonly (WPos p, WDir d, float l)[] JumpEdgeSegments;
 
-        public static BitMask AllPlatforms = new(0x1FFF);
+        public static readonly BitMask AllPlatforms = new(0x1FFF);
 
         public static WPos HexaCenter((int x, int y) c) => ClosestPlatformCenter - new WDir(c.x * HexaNeighbourDistX + ((c.y & 1) != 0 ? HexaCenterToSideCornerX : 0), c.y * HexaNeighbourDistZ);
-        public static WDir[] HexaCornerOffsets = {
+        public static readonly WDir[] HexaCornerOffsets = {
             new(HexaCenterToSideCornerX, -HexaCenterToSideCornerZ),
             new(HexaCenterToSideCornerX, HexaCenterToSideCornerZ),
             new(0, HexaPlatformSide),

@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         private BitMask _vulnSnake;
         private BitMask _vulnWing;
 
-        private static AOEShapeCone _shape = new(30, 90.Degrees());
+        private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
         public PteraIxou() : base(ActionID.MakeSpell(AID.PteraIxouAOESnake)) { } // doesn't matter which spell to track
 

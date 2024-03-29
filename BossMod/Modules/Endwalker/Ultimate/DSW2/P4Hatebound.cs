@@ -76,7 +76,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private BitMask _forbidden;
         private BitMask _baiters;
 
-        private static float _radius = 4;
+        private static readonly float _radius = 4;
 
         public P4MirageDive() : base(ActionID.MakeSpell(AID.MirageDiveAOE)) { }
 

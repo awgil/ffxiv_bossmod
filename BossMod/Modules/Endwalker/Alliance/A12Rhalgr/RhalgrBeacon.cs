@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Alliance.A12Rhalgr
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shape = new(8);
+        private static readonly AOEShapeCircle _shape = new(8);
 
         public RhalgrBeaconShock() : base(ActionID.MakeSpell(AID.Shock)) { }
 

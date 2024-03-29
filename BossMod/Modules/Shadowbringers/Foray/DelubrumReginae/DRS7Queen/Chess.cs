@@ -13,7 +13,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
         }
 
         protected GuardState[] GuardStates = new GuardState[4];
-        protected static AOEShapeCross Shape = new(60, 5);
+        protected static readonly AOEShapeCross Shape = new(60, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

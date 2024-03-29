@@ -8,9 +8,9 @@
         public Stance CurStance { get; private set; }
         public bool AOEImminent { get; private set; }
 
-        private static AOEShapeRect _aoeSword = new(20, 5, 20);
-        private static AOEShapeCircle _aoeStaff = new(10);
-        private static AOEShapeDonut _aoeChakram = new(5, 40);
+        private static readonly AOEShapeRect _aoeSword = new(20, 5, 20);
+        private static readonly AOEShapeCircle _aoeStaff = new(10);
+        private static readonly AOEShapeDonut _aoeChakram = new(5, 40);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

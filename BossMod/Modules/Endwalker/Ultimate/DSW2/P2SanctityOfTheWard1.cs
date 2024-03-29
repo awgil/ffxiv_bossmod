@@ -74,8 +74,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         public List<ChargeInfo> Charges = new();
         public Angle ChargeAngle { get; private set; } // 0 if charges are not active or on failure, <0 if CW, >0 if CCW
 
-        private static float _chargeHalfWidth = 3;
-        private static AOEShapeCircle _brightflareShape = new(9);
+        private static readonly float _chargeHalfWidth = 3;
+        private static readonly AOEShapeCircle _brightflareShape = new(9);
 
         public P2SanctityOfTheWard1Flares() : base(ActionID.MakeSpell(AID.BrightFlare), "GTFO from charges and spheres!") { }
 

@@ -335,6 +335,7 @@ namespace BossMod
                 case "PAR+": ParsePartyJoin(); break; // legacy (up to v3)
                 case "PAR-": ParsePartyLeave(); break; // legacy (up to v3)
                 case "PAR!": ParsePartyAssign(); break; // legacy (up to v3)
+                case "LB  ": ParsePartyLimitBreak(); break;
                 case "CLAR": ParseClientActionRequest(); break;
                 case "CLRJ": ParseClientActionReject(); break;
                 case "CDN+": ParseClientCountdown(true); break;
@@ -481,6 +482,7 @@ namespace BossMod
                     Name = _input.ReadString(),
                     Type = (ActorType)_input.ReadUShort(true),
                     Class = _input.ReadClass(),
+                    Level = _version < 12 ? 0 : _input.ReadInt(),
                     PosRot = new(_input.ReadVec3(), _input.ReadAngle().Rad),
                     HitboxRadius = _input.ReadFloat(),
                     HP = new() { Cur = _input.ReadUInt(false), Max = _input.ReadUInt(false), Shield = _input.ReadUInt(false) },
@@ -517,7 +519,7 @@ namespace BossMod
         {
             var instanceID = _input.ReadActorID();
             _input.ReadVoid();
-            AddOp(new ActorState.OpClassChange() { InstanceID = instanceID, Class = _input.ReadClass() });
+            AddOp(new ActorState.OpClassChange() { InstanceID = instanceID, Class = _input.ReadClass(), Level = _version < 12 ? 0 : _input.ReadInt() });
         }
 
         private void ParseActorMove()
@@ -710,6 +712,11 @@ namespace BossMod
                 ContentID = _input.ReadULong(true),
                 InstanceID = _input.ReadULong(true),
             });
+        }
+
+        private void ParsePartyLimitBreak()
+        {
+            AddOp(new PartyState.OpLimitBreakChange() { Cur = _input.ReadInt(), Max = _input.ReadInt() });
         }
 
         private void ParseClientActionRequest()

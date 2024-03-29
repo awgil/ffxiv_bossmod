@@ -16,12 +16,12 @@ namespace BossMod.Endwalker.Savage.P7SAgdistis
         private List<(Actor, AOEShape)> _activeAOEs = new();
         private BitMatrix _tetherClips; // [i,j] is set if i is tethered and clips j
 
-        protected static BitMask ValidPlatformsMask = new(7);
-        protected static AOEShapeCircle ShapeBullUntethered = new(10);
-        protected static AOEShapeRect ShapeBirdUntethered = new(60, 4);
-        protected static AOEShapeRect ShapeBullBirdTethered = new(60, 4);
-        protected static AOEShapeCone ShapeMinotaurUntethered = new(60, 45.Degrees());
-        protected static AOEShapeCone ShapeMinotaurTethered = new(60, 22.5f.Degrees());
+        protected static readonly BitMask ValidPlatformsMask = new(7);
+        protected static readonly AOEShapeCircle ShapeBullUntethered = new(10);
+        protected static readonly AOEShapeRect ShapeBirdUntethered = new(60, 4);
+        protected static readonly AOEShapeRect ShapeBullBirdTethered = new(60, 4);
+        protected static readonly AOEShapeCone ShapeMinotaurUntethered = new(60, 45.Degrees());
+        protected static readonly AOEShapeCone ShapeMinotaurTethered = new(60, 22.5f.Degrees());
 
         public bool CastsActive => _activeAOEs.Count > 0;
 

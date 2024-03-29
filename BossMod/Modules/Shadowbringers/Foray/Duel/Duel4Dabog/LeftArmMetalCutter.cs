@@ -8,7 +8,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
 
         public State CurState { get; private set; }
         private List<AOEInstance> _aoes = new();
-        private static AOEShapeCone _shape = new(40, 45.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 45.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 
@@ -53,11 +53,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
             _distance = distance;
         }
 
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            if (_instance != null)
-                yield return _instance.Value;
-        }
+        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_instance);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

@@ -11,8 +11,8 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
 
         public State CurState { get; private set; }
 
-        private static float _stackRadius = 8;
-        private static float _spreadRadius = 6;
+        private static readonly float _stackRadius = 8;
+        private static readonly float _spreadRadius = 6;
 
         public override void Init(BossModule module)
         {

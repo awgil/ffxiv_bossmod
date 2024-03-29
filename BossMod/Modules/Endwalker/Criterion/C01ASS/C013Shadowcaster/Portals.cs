@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
 {
     static class Portals
     {
-        private static float _portalLength = 10;
+        private static readonly float _portalLength = 10;
 
         // returns null if this is not arrow appear eanim
         public static WPos? DestinationForEAnim(Actor actor, uint state)

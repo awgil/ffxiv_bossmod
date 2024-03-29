@@ -12,8 +12,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public bool AllSpheresSpawned => _plasmaspheres.Count == 4;
         public bool CrystalsDone => NumCasts > 0;
 
-        private static float _crystalRadius = 5;
-        private static float _sphereRadius = 6;
+        private static readonly float _crystalRadius = 5;
+        private static readonly float _sphereRadius = 6;
 
         public P3Inception1() : base(ActionID.MakeSpell(AID.JudgmentCrystalAOE)) { }
 

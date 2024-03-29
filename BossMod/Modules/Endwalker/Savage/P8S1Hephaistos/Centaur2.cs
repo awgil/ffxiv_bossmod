@@ -28,7 +28,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
         private WPos? _source;
         private DateTime _activation;
 
-        private static AOEShapeCircle _shape = new(30);
+        private static readonly AOEShapeCircle _shape = new(30);
 
         public QuadrupedalCrush() : base(ActionID.MakeSpell(AID.QuadrupedalCrushAOE)) { }
 

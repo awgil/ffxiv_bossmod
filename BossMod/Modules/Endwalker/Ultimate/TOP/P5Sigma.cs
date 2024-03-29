@@ -225,7 +225,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
     {
         private BitMask _waveCannonTargets;
 
-        private static AOEShapeCone _shapeWaveCannon = new(100, 22.5f.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shapeWaveCannon = new(100, 22.5f.Degrees()); // TODO: verify angle
 
         public P5SigmaWaveCannon() : base(ActionID.MakeSpell(AID.SigmaWaveCannonAOE)) { }
 
@@ -326,7 +326,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public Angle Rotation { get; private set; }
         private DateTime _activation;
 
-        private static AOEShapeRect _shape = new(25, 6, 25);
+        private static readonly AOEShapeRect _shape = new(25, 6, 25);
 
         public bool Active => Rotation != default;
 

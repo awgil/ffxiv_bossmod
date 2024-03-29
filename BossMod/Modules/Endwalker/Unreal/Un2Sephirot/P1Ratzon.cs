@@ -8,8 +8,8 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
         private BitMask _greenTargets;
         private BitMask _purpleTargets;
 
-        private static float _greenRadius = 5;
-        private static float _purpleRadius = 10;
+        private static readonly float _greenRadius = 5;
+        private static readonly float _purpleRadius = 10;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

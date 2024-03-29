@@ -48,7 +48,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
     class Stormcall : Components.GenericAOEs
     {
         private List<(Actor source, WPos dest, DateTime activation)> _sources = new();
-        private static AOEShapeCircle _shape = new(35);
+        private static readonly AOEShapeCircle _shape = new(35);
 
         public Stormcall() : base(ActionID.MakeSpell(AID.Explosion)) { }
 
@@ -101,9 +101,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow
         private List<(Actor caster, AOEShape? shape)> _addAOEs = new(); // shape is null if add starts cast slightly before boss
         private DateTime _addActivation;
 
-        private static AOEShapeDonut _shapePulse = new(8, 25);
-        private static AOEShapeCone _shapeStorm = new(36, 65.Degrees());
-        private static AOEShapeCircle _shapeGust = new(20);
+        private static readonly AOEShapeDonut _shapePulse = new(8, 25);
+        private static readonly AOEShapeCone _shapeStorm = new(36, 65.Degrees());
+        private static readonly AOEShapeCircle _shapeGust = new(20);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

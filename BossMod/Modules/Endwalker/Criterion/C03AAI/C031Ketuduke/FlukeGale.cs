@@ -13,8 +13,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
         private Debuff[] _debuffs = new Debuff[PartyState.MaxPartySize];
         private Resolve _resolution;
 
-        private static AOEShapeRect _shape = new(20, 10);
-        private static AOEShapeRect _safeZone = new(5, 5, 5);
+        private static readonly AOEShapeRect _shape = new(20, 10);
+        private static readonly AOEShapeRect _safeZone = new(5, 5, 5);
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => _debuffs[slot] != Debuff.FoamyFetters ? Gales : Enumerable.Empty<Source>();
 

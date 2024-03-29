@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
     {
         private int[] _playerOrder = new int[8]; // 0 if unknown, 1-8 otherwise
 
-        private static float _aoeRange = 7;
+        private static readonly float _aoeRange = 7;
 
         public BrightenedFire() : base(ActionID.MakeSpell(AID.BrightenedFireAOE)) { }
 

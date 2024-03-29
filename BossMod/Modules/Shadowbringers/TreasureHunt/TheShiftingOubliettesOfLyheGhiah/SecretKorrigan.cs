@@ -36,7 +36,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public Hypnotize() : base(ActionID.MakeSpell(AID.Hypnotize)) { }
     }
 
-    class Ram : Components.SingleTargetCast
+    class Ram : Components.SingleTargetDelayableCast
     {
         public Ram() : base(ActionID.MakeSpell(AID.Ram)) { }
     }
@@ -97,7 +97,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     [ModuleInfo(CFCID = 745, NameID = 9806)]
     public class Korrigan : BossModule
     {
-        public Korrigan(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Korrigan(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

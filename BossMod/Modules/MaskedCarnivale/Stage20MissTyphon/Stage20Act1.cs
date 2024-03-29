@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage20.Act1
 {
@@ -16,20 +14,22 @@ namespace BossMod.MaskedCarnivale.Stage20.Act1
         Fireball2 = 14707, // 272A->player, no cast, range 8 circle, 3 casts after snort
     };
 
-    class Fireball : LocationTargetedAOEs
+    class Fireball : Components.LocationTargetedAOEs
     {
         public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 8) { }
     }
 
-    class Snort : CastHint
+    class Snort : Components.CastHint
     {
         public Snort() : base(ActionID.MakeSpell(AID.Snort), "Use Diamondback!") { }
     }
 
-    class SnortKB : KnockbackFromCastTarget
-    {
-        public SnortKB() : base(ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin) { } //knockback actually delayed by 0.7s
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) { }
+    class SnortKB : Components.KnockbackFromCastTarget
+    {    //knockback actually delayed by 0.7s
+        public SnortKB() : base(ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin)
+        {
+            StopAtWall = true;
+        }
     }
 
     class Hints : BossComponent
@@ -63,12 +63,6 @@ namespace BossMod.MaskedCarnivale.Stage20.Act1
         public Stage20Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
         {
             ActivateComponent<Hints>();
-        }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
         }
     }
 }

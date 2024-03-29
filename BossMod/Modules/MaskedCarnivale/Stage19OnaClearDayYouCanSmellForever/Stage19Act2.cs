@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage19.Act2
@@ -38,11 +37,30 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         Stun = 149, // 2729->player, extra=0x0
     };
 
-    class ExplosiveDehiscence : CastGaze
+    class ExplosiveDehiscence : Components.CastGaze
     {
-        public static BitMask _blinded;
+        public bool casting;
+        public BitMask _blinded;
 
         public ExplosiveDehiscence() : base(ActionID.MakeSpell(AID.ExplosiveDehiscence)) { }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (!_blinded[slot] && casting)
+                hints.Add("Cast Ink Jet on boss to get blinded!");
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.Schizocarps)
+                casting = true;
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.ExplosiveDehiscence)
+                casting = false;
+        }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -59,29 +77,6 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
         {
             return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
-        }
-    }
-
-    class GazeHint : BossComponent
-    {
-        public static bool casting;
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (!ExplosiveDehiscence._blinded[slot] && casting)
-                hints.Add("Cast Ink Jet on boss to get blinded!");
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.Schizocarps)
-                casting = true;
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.ExplosiveDehiscence)
-                casting = false;
         }
     }
 
@@ -114,17 +109,17 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         }
     }
 
-    class BadBreath : SelfTargetedAOEs
+    class BadBreath : Components.SelfTargetedAOEs
     {
         public BadBreath() : base(ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees())) { }
     }
 
-    class VineProbe : SelfTargetedAOEs
+    class VineProbe : Components.SelfTargetedAOEs
     {
         public VineProbe() : base(ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4)) { }
     }
 
-    class OffalBreath : PersistentVoidzoneAtCastTarget
+    class OffalBreath : Components.PersistentVoidzoneAtCastTarget
     {
         public OffalBreath() : base(6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0) { }
     }
@@ -147,7 +142,6 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
                 .ActivateOnEnter<BadBreath>()
                 .ActivateOnEnter<VineProbe>()
                 .ActivateOnEnter<ExplosiveDehiscence>()
-                .ActivateOnEnter<GazeHint>()
                 .ActivateOnEnter<OffalBreath>();
         }
     }
@@ -158,14 +152,6 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         public Stage19Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
         {
             ActivateComponent<Hints>();
-        }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
-            foreach (var s in Enemies(OID.HotHip))
-                Arena.Actor(s, ArenaColor.Enemy, true);
         }
     }
 }

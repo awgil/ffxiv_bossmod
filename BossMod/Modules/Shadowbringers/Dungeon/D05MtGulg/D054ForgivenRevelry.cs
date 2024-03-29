@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
 using System.Collections.Generic;
 
 namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry
@@ -8,6 +7,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry
     {
         Boss = 0x28F3, //R=7.5
         Helper = 0x2E8, //R=0.5
+        Helper2 = 0x233C,
         Brightsphere = 0x2947, //R=1.0
     }
 
@@ -23,31 +23,21 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry
 
     class PalmAttacks : Components.GenericAOEs //Palm Attacks have a wrong origin, so i made a custom solution
     {
-        private DateTime _activation;
-        private bool left;
-        private bool right;
+
+        private AOEInstance? _aoe;
 
         private static readonly AOEShapeRect rect = new(15, 15);
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (left)
-                yield return new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), -90.Degrees(), _activation);
-            if (right)
-                yield return new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), 90.Degrees(), _activation);
-
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.LeftPalm2:
-                    left = true;
-                    _activation = spell.NPCFinishAt;
+                    _aoe = new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), -90.Degrees(), spell.NPCFinishAt);
                     break;
                 case AID.RightPalm2:
-                    right = true;
-                    _activation = spell.NPCFinishAt;
+                    _aoe = new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), 90.Degrees(), spell.NPCFinishAt);
                     break;
             }
         }
@@ -55,10 +45,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.LeftPalm2 or AID.RightPalm2)
-            {
-                left = false;
-                right = false;
-            }
+                _aoe = null;
         }
     }
 

@@ -8,7 +8,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
         private IReadOnlyList<Actor> _shield = ActorEnumeration.EmptyList;
         public Actor? ActiveShield => _shield.FirstOrDefault(a => a.EventState != 7);
 
-        private static float _radius = 6; // TODO: verify
+        private static readonly float _radius = 6; // TODO: verify
 
         public override void Init(BossModule module)
         {

@@ -7,15 +7,11 @@ namespace BossMod.Endwalker.Alliance.A23Halone
     {
         private AOEInstance? _aoe;
 
-        private static float _impactRadiusIncrement = 6;
+        private static readonly float _impactRadiusIncrement = 6;
 
         public bool Active => _aoe != null;
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_aoe != null)
-                yield return _aoe.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

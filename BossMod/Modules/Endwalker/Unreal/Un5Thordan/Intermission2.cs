@@ -80,7 +80,7 @@ class HoliestOfHoly : Components.RaidwideCast
 
 class SkywardLeap : Components.GenericBaitAway
 {
-    private static AOEShapeCircle _shape = new(20); // not sure about the spread radius, 15 seems to be enough but damage goes up to 20
+    private static readonly AOEShapeCircle _shape = new(20); // not sure about the spread radius, 15 seems to be enough but damage goes up to 20
 
     public SkywardLeap() : base(ActionID.MakeSpell(AID.SkywardLeap), centerAtTarget: true) { }
 

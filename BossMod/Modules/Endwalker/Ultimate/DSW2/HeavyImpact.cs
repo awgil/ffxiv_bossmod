@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private AOEInstance? _aoe;
         private float _activationDelay;
 
-        private static float _impactRadiusIncrement = 6;
+        private static readonly float _impactRadiusIncrement = 6;
 
         public bool Active => _aoe != null;
 
@@ -17,11 +17,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
             _activationDelay = activationDelay;
         }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_aoe != null)
-                yield return _aoe.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
         {

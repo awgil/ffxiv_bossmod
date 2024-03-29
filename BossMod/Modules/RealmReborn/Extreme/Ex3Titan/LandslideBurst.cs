@@ -12,8 +12,8 @@ namespace BossMod.RealmReborn.Extreme.Ex3Titan
         private List<Actor> _bursts = new(); // TODO: reconsider: we can start showing bombs even before cast starts...
         public int NumActiveBursts => _bursts.Count;
 
-        private static AOEShapeRect _shapeLandslide = new(40.25f, 3);
-        private static AOEShapeCircle _shapeBurst = new(6.3f);
+        private static readonly AOEShapeRect _shapeLandslide = new(40.25f, 3);
+        private static readonly AOEShapeCircle _shapeBurst = new(6.3f);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

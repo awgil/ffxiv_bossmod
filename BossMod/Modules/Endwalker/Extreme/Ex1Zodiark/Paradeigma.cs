@@ -14,13 +14,13 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
         private List<(WDir, Angle)> _snakes = new();
         private List<WDir> _fireLine = new();
 
-        private static float _birdBehemothOffset = 10.5f;
-        private static float _snakeNearOffset = 5.5f;
-        private static float _snakeFarOffset = 15.5f;
-        private static float _snakeOrthoOffset = 21;
-        private static AOEShapeDonut _birdAOE = new(5, 15);
-        private static AOEShapeCircle _behemothAOE = new(15);
-        private static AOEShapeRect _snakeAOE = new(42, 5.5f);
+        private static readonly float _birdBehemothOffset = 10.5f;
+        private static readonly float _snakeNearOffset = 5.5f;
+        private static readonly float _snakeFarOffset = 15.5f;
+        private static readonly float _snakeOrthoOffset = 21;
+        private static readonly AOEShapeDonut _birdAOE = new(5, 15);
+        private static readonly AOEShapeCircle _behemothAOE = new(15);
+        private static readonly AOEShapeRect _snakeAOE = new(42, 5.5f);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

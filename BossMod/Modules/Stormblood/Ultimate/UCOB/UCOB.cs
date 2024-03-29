@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 
 namespace BossMod.Stormblood.Ultimate.UCOB
 {
@@ -8,20 +7,9 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public P1Plummet() : base(ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(12, 60.Degrees()), (uint)OID.Twintania) { }
     }
 
-    class P1Twister : Components.CastTwister
-    {
-        public P1Twister() : base(2, (uint)OID.VoidzoneTwister, ActionID.MakeSpell(AID.Twister), 0.3f, 0.5f) { KeepOnPhaseChange = true; } // TODO: verify radius
-    }
-
     class P1Fireball : Components.StackWithIcon
     {
         public P1Fireball() : base((uint)IconID.Fireball, ActionID.MakeSpell(AID.Fireball), 4, 5.3f, 4) { }
-    }
-
-    class P1LiquidHell : Components.PersistentVoidzoneAtCastTarget
-    {
-        public P1LiquidHell() : base(6, ActionID.MakeSpell(AID.LiquidHell), m => m.Enemies(OID.VoidzoneLiquidHell).Where(z => z.EventState != 7), 1.3f) { KeepOnPhaseChange = true; }
-        public void Reset() => NumCasts = 0;
     }
 
     class P2BahamutsClaw : Components.CastCounter
@@ -34,20 +22,29 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public P3FlareBreath() : base(ActionID.MakeSpell(AID.FlareBreath), new AOEShapeCone(29.2f, 45.Degrees()), (uint)OID.BahamutPrime) { } // TODO: verify angle
     }
 
+    class P5MornAfah : Components.StackWithCastTargets
+    {
+        public P5MornAfah() : base(ActionID.MakeSpell(AID.MornAfah), 4, 8) { } // TODO: verify radius
+    }
+
     [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania, CFCID = 280)]
     public class UCOB : BossModule
     {
-        private IReadOnlyList<Actor> _nael;
-        private IReadOnlyList<Actor> _bahamutPrime;
+        private Actor? _nael;
+        private Actor? _bahamutPrime;
 
         public Actor? Twintania() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
-        public Actor? Nael() => _nael.FirstOrDefault();
-        public Actor? BahamutPrime() => _bahamutPrime.FirstOrDefault();
+        public Actor? Nael() => _nael;
+        public Actor? BahamutPrime() => _bahamutPrime;
 
-        public UCOB(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21))
+        public UCOB(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }
+
+        protected override void UpdateModule()
         {
-            _nael = Enemies(OID.NaelDeusDarnus);
-            _bahamutPrime = Enemies(OID.BahamutPrime);
+            // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
+            // the problem is that on wipe, any actor can be deleted and recreated in the same frame
+            _nael ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.NaelDeusDarnus).FirstOrDefault() : null;
+            _bahamutPrime ??= StateMachine.ActivePhaseIndex >= 0 ? Enemies(OID.BahamutPrime).FirstOrDefault() : null;
         }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)

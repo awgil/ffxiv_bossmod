@@ -9,9 +9,9 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
     {
         private List<(Actor, AOEShape)> _sources= new();
 
-        private static AOEShapeRect _aoeSquare = new(21, 21);
-        private static AOEShapeCone _aoeTriangle = new(47, 30.Degrees());
-        private static AOEShapeRect _aoeRay = new(42, 7);
+        private static readonly AOEShapeRect _aoeSquare = new(21, 21);
+        private static readonly AOEShapeCone _aoeTriangle = new(47, 30.Degrees());
+        private static readonly AOEShapeRect _aoeRay = new(42, 7);
 
         public bool Done => _sources.Count == 0;
 

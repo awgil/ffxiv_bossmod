@@ -9,10 +9,10 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
         private List<(Actor, AOEShapeCircle)> _activeLocationTargetedAOEs = new();
         private List<Actor> _crimsonCyclone = new();
 
-        private static AOEShapeCircle _aoeRadiantPlume = new(8);
-        private static AOEShapeCircle _aoeWeightOfLand = new(6);
-        private static AOEShapeCircle _aoeEruption = new(8);
-        private static AOEShapeRect _aoeCrimsonCyclone = new(38, 6);
+        private static readonly AOEShapeCircle _aoeRadiantPlume = new(8);
+        private static readonly AOEShapeCircle _aoeWeightOfLand = new(6);
+        private static readonly AOEShapeCircle _aoeEruption = new(8);
+        private static readonly AOEShapeRect _aoeCrimsonCyclone = new(38, 6);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

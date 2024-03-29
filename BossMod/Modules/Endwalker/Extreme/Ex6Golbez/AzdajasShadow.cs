@@ -31,7 +31,7 @@ namespace BossMod.Endwalker.Extreme.Ex6Golbez
     {
         private int[] _playerStacks = new int[PartyState.MaxPartySize];
 
-        private static AOEShapeRect _shape = new(50, 3);
+        private static readonly AOEShapeRect _shape = new(50, 3);
 
         public FlamesOfEventide() : base(ActionID.MakeSpell(AID.FlamesOfEventide)) { }
 

@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
         public int Progress { get; private set; } // 7 claws + 1 tail total
         private bool _tailFirst;
 
-        private static AOEShapeCone _shape = new(45, 90.Degrees());
+        private static readonly AOEShapeCone _shape = new(45, 90.Degrees());
 
         public ClawTail() : base(new()) { }
 

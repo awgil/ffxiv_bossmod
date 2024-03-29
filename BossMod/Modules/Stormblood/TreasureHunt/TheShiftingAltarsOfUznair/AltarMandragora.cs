@@ -32,7 +32,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarMandragora
         Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
     };
 
-    class OpticalIntrusion : Components.SingleTargetCast
+    class OpticalIntrusion : Components.SingleTargetDelayableCast
     {
         public OpticalIntrusion() : base(ActionID.MakeSpell(AID.OpticalIntrusion)) { }
     }

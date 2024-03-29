@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private Actor?[] _tetheredTo = new Actor?[PartyState.MaxPartySize];
         private BitMask _tooClose;
 
-        private static AOEShapeCone _shape = new(100, 10.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shape = new(100, 10.Degrees()); // TODO: verify angle
 
         public P6Wyrmsbreath(bool allowIntersect) : base(ActionID.MakeSpell(AID.FlameBreath)) // note: cast is arbitrary
         {
@@ -126,7 +126,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private P6Wyrmsbreath? _main;
 
-        private static AOEShapeCircle _shape = new(15);
+        private static readonly AOEShapeCircle _shape = new(15);
 
         public P6WyrmsbreathTankbusterSolo() : base(centerAtTarget: true) { }
 
@@ -149,7 +149,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private P6Wyrmsbreath? _main;
 
-        private static AOEShapeCone _shape = new(50, 15.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shape = new(50, 15.Degrees()); // TODO: verify angle
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

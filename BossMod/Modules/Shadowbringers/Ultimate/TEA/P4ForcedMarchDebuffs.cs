@@ -9,9 +9,9 @@
         protected Actor? LightBeacon;
         protected Actor? DarkBeacon;
 
-        private static float _forcedMarchDistance = 20; // TODO: verify
-        private static float _minLightDistance => 22; // TODO: verify
-        private static float _maxDarkDistance => 5; // TODO: verify
+        private static readonly float _forcedMarchDistance = 20; // TODO: verify
+        private static readonly float _minLightDistance = 22; // TODO: verify
+        private static readonly float _maxDarkDistance = 5; // TODO: verify
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

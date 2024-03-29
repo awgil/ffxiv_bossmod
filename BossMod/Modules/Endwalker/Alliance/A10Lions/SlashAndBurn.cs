@@ -7,8 +7,8 @@ namespace BossMod.Endwalker.Alliance.A10Lions
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shapeOut = new(14);
-        private static AOEShapeDonut _shapeIn = new(6, 30);
+        private static readonly AOEShapeCircle _shapeOut = new(14);
+        private static readonly AOEShapeDonut _shapeIn = new(6, 30);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
 

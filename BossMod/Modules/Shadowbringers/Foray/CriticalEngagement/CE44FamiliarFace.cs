@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
 {
@@ -48,7 +50,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         public TectonicEruption() : base(ActionID.MakeSpell(AID.TectonicEruption), 6) { }
     }
 
-    class RockCutter : Components.SingleTargetCast
+    class RockCutter : Components.SingleTargetDelayableCast
     {
         public RockCutter() : base(ActionID.MakeSpell(AID.RockCutter)) { }
     }
@@ -68,6 +70,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         public ControlTowerAppear() : base(ActionID.MakeSpell(AID.ControlTowerAppear), new AOEShapeCircle(6)) { }
     }
 
+    // note: we could predict aoes way in advance, when FallingTower actors are created - they immediately have correct rotation
+    // if previous cast was TowerRound, delay is ~24.4s; otherwise if previous cast was ControlTower, delay is ~9.6s; otherwise it is ~13s
+    // however, just watching casts normally gives more than enough time to avoid aoes and does not interfere with mechanics that resolve earlier
     class Towerfall : Components.SelfTargetedAOEs
     {
         public Towerfall() : base(ActionID.MakeSpell(AID.Towerfall), new AOEShapeRect(40, 5)) { }
@@ -76,7 +81,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
     class ExtremeEdge : Components.GenericAOEs
     {
         private List<(Actor caster, float offset)> _casters = new();
-        private static AOEShapeRect _shape = new(60, 18);
+
+        private static readonly AOEShapeRect _shape = new(60, 18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -88,8 +94,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         {
             var offset = (AID)spell.Action.ID switch
             {
-                AID.ExtremeEdgeL => 15,
-                AID.ExtremeEdgeR => -15,
+                AID.ExtremeEdgeL => 12,
+                AID.ExtremeEdgeR => -12,
                 _ => 0
             };
             if (offset != 0)
@@ -134,10 +140,24 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         }
     }
 
-    // TODO: consider prediction - actor-create happens ~4.7s before cast start
-    class Hammerfall : Components.SelfTargetedAOEs
+    class Hammerfall : Components.GenericAOEs
     {
-        public Hammerfall() : base(ActionID.MakeSpell(AID.Hammerfall), new AOEShapeCircle(37)) { }
+        private readonly List<AOEInstance> _aoes = [];
+        private static readonly AOEShapeCircle _shape = new(37);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
+
+        public override void OnActorCreated(BossModule module, Actor actor)
+        {
+            if ((OID)actor.OID == OID.Hammer)
+                _aoes.Add(new(_shape, actor.Position, activation: module.WorldState.CurrentTime.AddSeconds(12.6f)));
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.Hammerfall && _aoes.Count > 0)
+                _aoes.RemoveAt(0);
+        }
     }
 
     class CE44FamiliarFaceStates : StateMachineBuilder

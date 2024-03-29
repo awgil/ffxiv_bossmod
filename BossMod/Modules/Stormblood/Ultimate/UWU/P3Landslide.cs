@@ -13,8 +13,8 @@ namespace BossMod.Stormblood.Ultimate.UWU
         protected Actor? PredictedSource;
         private List<Actor> _casters = new();
 
-        public static AOEShapeRect ShapeBoss = new(44.55f, 3, 4.55f);
-        public static AOEShapeRect ShapeHelper = new(40.5f, 3, 0.5f); // difference is only in hitbox radius
+        public static readonly AOEShapeRect ShapeBoss = new(44.55f, 3, 4.55f);
+        public static readonly AOEShapeRect ShapeHelper = new(40.5f, 3, 0.5f); // difference is only in hitbox radius
 
         public bool CastsActive => _casters.Count > 0;
 

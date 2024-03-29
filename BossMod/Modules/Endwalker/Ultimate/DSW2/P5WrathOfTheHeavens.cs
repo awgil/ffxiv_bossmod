@@ -119,7 +119,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private List<WPos> _predicted = new();
         private IReadOnlyList<Actor> _voidzones = ActorEnumeration.EmptyList;
 
-        private static AOEShapeCircle _shape = new(2); // TODO: verify radius
+        private static readonly AOEShapeCircle _shape = new(2); // TODO: verify radius
 
         public bool Active => _voidzones.Count > 0;
 

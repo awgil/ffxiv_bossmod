@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
     // state related to devouring brand mechanic
     class DevouringBrand : BossComponent
     {
-        private static float _halfWidth = 5;
+        private static readonly float _halfWidth = 5;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

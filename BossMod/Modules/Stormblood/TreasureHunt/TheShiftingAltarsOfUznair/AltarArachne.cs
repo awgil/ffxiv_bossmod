@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarArachne
@@ -31,7 +32,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarArachne
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
     };
 
-    class DarkSpike : Components.SingleTargetCast
+    class DarkSpike : Components.SingleTargetDelayableCast
     {
         public DarkSpike() : base(ActionID.MakeSpell(AID.DarkSpike)) { }
     }

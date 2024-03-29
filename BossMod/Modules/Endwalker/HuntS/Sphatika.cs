@@ -54,7 +54,8 @@ namespace BossMod.Endwalker.HuntS.Sphatika
     class Stance : Components.GenericAOEs
     {
         private List<Angle> _pendingCleaves = new();
-        private static AOEShapeCone _shape = new(40, 90.Degrees());
+
+        private static readonly AOEShapeCone _shape = new(40, 90.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

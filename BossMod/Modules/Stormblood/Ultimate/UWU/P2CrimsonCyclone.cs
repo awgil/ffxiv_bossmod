@@ -14,8 +14,8 @@ namespace BossMod.Stormblood.Ultimate.UWU
         private List<(AOEShape shape, WPos pos, Angle rot, DateTime activation)> _predicted = new(); // note: there could be 1/2/4 predicted normal charges and 0 or 2 'cross' charges
         private List<Actor> _casters = new();
 
-        private static AOEShapeRect _shapeMain = new(49, 9, 5);
-        private static AOEShapeRect _shapeCross = new(44.5f, 5, 0.5f);
+        private static readonly AOEShapeRect _shapeMain = new(49, 9, 5);
+        private static readonly AOEShapeRect _shapeCross = new(44.5f, 5, 0.5f);
 
         public bool CastsPredicted => _predicted.Count > 0;
 

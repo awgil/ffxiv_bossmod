@@ -46,9 +46,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn
         private List<(WPos pos, TimeSpan delay)> _clocks = new();
         private List<WPos> _eruptionSafeSpots = new();
 
-        private static AOEShapeCone _shapeBomb = new(60, 45.Degrees());
-        private static AOEShapeRect _shapeCyclone = new(60, 10);
-        private static AOEShapeRect _shapeEruption = new(10, 10, 10);
+        private static readonly AOEShapeCone _shapeBomb = new(60, 45.Degrees());
+        private static readonly AOEShapeRect _shapeCyclone = new(60, 10);
+        private static readonly AOEShapeRect _shapeEruption = new(10, 10, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

@@ -9,8 +9,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public bool Frozen { get; private set; }
         private Mechanic[] _playerMechanics = new Mechanic[PartyState.MaxPartySize];
 
-        private static AOEShapeCone _shapeBJ = new(100, 45.Degrees()); // TODO: verify angle
-        private static AOEShapeCone _shapeCC = new(30, 45.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shapeBJ = new(100, 45.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shapeCC = new(30, 45.Degrees()); // TODO: verify angle
 
         public P3TemporalStasis() : base(ActionID.MakeSpell(AID.FlarethrowerP3)) { }
 

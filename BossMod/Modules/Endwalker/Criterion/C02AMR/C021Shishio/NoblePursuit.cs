@@ -10,8 +10,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
         private List<AOEInstance> _charges = new();
         private List<AOEInstance> _rings = new();
 
-        private static float _chargeHalfWidth = 6;
-        private static AOEShapeRect _shapeRing = new(5, 50, 5);
+        private static readonly float _chargeHalfWidth = 6;
+        private static readonly AOEShapeRect _shapeRing = new(5, 50, 5);
 
         public bool Active => _charges.Count + _rings.Count > 0;
 

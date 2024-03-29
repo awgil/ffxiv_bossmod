@@ -35,14 +35,10 @@ namespace BossMod.Endwalker.HuntS.Ophioneus
     {
         private AOEInstance? _aoe;
 
-        private static AOEShapeCircle _shapeCircle = new(10); // TODO: verify falloff
-        private static AOEShapeDonut _shapeDonut = new(5, 40);
+        private static readonly AOEShapeCircle _shapeCircle = new(10); // TODO: verify falloff
+        private static readonly AOEShapeDonut _shapeDonut = new(5, 40);
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_aoe != null)
-                yield return _aoe.Value;
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

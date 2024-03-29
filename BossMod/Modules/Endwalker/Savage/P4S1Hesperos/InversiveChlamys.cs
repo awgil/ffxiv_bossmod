@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         private BitMask _tetherTargets;
         private BitMask _tetherInAOE;
 
-        private static float _aoeRange = 5;
+        private static readonly float _aoeRange = 5;
 
         public bool TethersActive => _tetherTargets.Any();
 

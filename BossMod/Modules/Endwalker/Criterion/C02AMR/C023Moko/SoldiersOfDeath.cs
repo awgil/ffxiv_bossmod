@@ -8,9 +8,9 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
         public List<AOEInstance> AOEs = new();
         private IaiGiriBait? _bait;
 
-        private static AOEShapeCircle _shapeRain = new(10);
-        private static AOEShapeCircle _shapeStorm = new(20);
-        private static WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+        private static readonly AOEShapeCircle _shapeRain = new(10);
+        private static readonly AOEShapeCircle _shapeStorm = new(20);
+        private static readonly WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
 

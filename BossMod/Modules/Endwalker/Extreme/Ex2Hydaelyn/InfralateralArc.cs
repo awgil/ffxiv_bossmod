@@ -5,7 +5,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
     // component for infralateral arc mechanic (role stacks)
     class InfralateralArc : Components.CastCounter
     {
-        private static Angle _coneHalfAngle = 45.Degrees();
+        private static readonly Angle _coneHalfAngle = 45.Degrees();
 
         public InfralateralArc() : base(ActionID.MakeSpell(AID.InfralateralArcAOE)) { }
 

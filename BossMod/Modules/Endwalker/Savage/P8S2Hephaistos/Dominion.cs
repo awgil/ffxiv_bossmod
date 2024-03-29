@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P8S2
         public List<Actor> Casters = new();
         private BitMask _secondOrder;
 
-        private static float _towerRadius = 3;
+        private static readonly float _towerRadius = 3;
 
         public Dominion() : base(0, 6) { }
 

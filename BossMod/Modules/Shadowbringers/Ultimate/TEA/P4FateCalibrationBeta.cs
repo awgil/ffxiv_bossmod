@@ -121,8 +121,9 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     class P4FateCalibrationBetaJJump : Components.GenericBaitAway
     {
         private bool _enabled;
-        private static AOEShapeCircle _shape = new(10);
         private List<Actor> _jumpers = new();
+
+        private static readonly AOEShapeCircle _shape = new(10);
 
         public void Show() => _enabled = true;
 
@@ -216,7 +217,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         private Actor? _caster;
         private bool _enabled;
 
-        private static AOEShapeDonut _shape = new(10, 60); // TODO: verify inner radius
+        private static readonly AOEShapeDonut _shape = new(10, 60); // TODO: verify inner radius
 
         public void Show() => _enabled = true;
 

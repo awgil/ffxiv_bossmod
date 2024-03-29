@@ -1,5 +1,3 @@
-using BossMod.Components;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage19.Act1
 {
@@ -33,17 +31,17 @@ namespace BossMod.MaskedCarnivale.Stage19.Act1
         Stun = 149, // 2729->player, extra=0x0
     };
 
-    class BadBreath : SelfTargetedAOEs
+    class BadBreath : Components.SelfTargetedAOEs
     {
         public BadBreath() : base(ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees())) { }
     }
 
-    class VineProbe : SelfTargetedAOEs
+    class VineProbe : Components.SelfTargetedAOEs
     {
         public VineProbe() : base(ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4)) { }
     }
 
-    class OffalBreath : PersistentVoidzoneAtCastTarget
+    class OffalBreath : Components.PersistentVoidzoneAtCastTarget
     {
         public OffalBreath() : base(6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0) { }
     }
@@ -104,12 +102,6 @@ namespace BossMod.MaskedCarnivale.Stage19.Act1
         public Stage19Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
         {
             ActivateComponent<Hints>();
-        }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
         }
     }
 }

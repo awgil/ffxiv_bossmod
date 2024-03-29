@@ -56,7 +56,7 @@ namespace BossMod.Endwalker.Alliance.A14Naldthal
 
         public bool Active => _casters.Count > 0;
 
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public DeepestPit() : base(default, "GTFO from puddle!") { }
 

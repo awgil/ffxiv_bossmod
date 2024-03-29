@@ -13,8 +13,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
         public bool Active => _lines.Count > 0;
 
-        private static AOEShapeRect _shapeFirst = new(40, 5);
-        private static AOEShapeRect _shapeRest = new(100, 2.5f);
+        private static readonly AOEShapeRect _shapeFirst = new(40, 5);
+        private static readonly AOEShapeRect _shapeRest = new(100, 2.5f);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

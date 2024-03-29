@@ -10,7 +10,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
         private DateTime _activation;
         private bool _risky;
 
-        private static AOEShapeCircle _shape = new(22);
+        private static readonly AOEShapeCircle _shape = new(22);
 
         public FreedomOfBozja(bool risky)
         {

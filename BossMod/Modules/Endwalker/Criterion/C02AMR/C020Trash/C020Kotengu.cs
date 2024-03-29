@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash2
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCone _shape = new(50, 45.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shape = new(50, 45.Degrees()); // TODO: verify angle
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

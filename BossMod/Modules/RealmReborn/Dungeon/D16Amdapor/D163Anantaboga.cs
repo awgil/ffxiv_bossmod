@@ -64,7 +64,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga
         private Actor? _target;
         private DateTime _activation;
 
-        private static AOEShapeCircle _shape = new(11.5f);
+        private static readonly AOEShapeCircle _shape = new(11.5f);
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {

@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
     {
         private List<Actor> _casters = new();
 
-        private static AOEShapeCircle _shape = new(21);
+        private static readonly AOEShapeCircle _shape = new(21);
 
         public bool Done => _casters.Count == 0;
 

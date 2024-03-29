@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
     // TODO: consider generalizing...
     class Glaukopis : Components.GenericBaitAway
     {
-        private static AOEShapeRect _shape = new(60, 2.5f);
+        private static readonly AOEShapeRect _shape = new(60, 2.5f);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

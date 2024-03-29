@@ -1,5 +1,4 @@
 using System.Linq;
-using BossMod.Components;
 
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage14.Act1
@@ -14,14 +13,14 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
         TheLastSong = 14756, // 271D->self, 6,0s cast, range 60 circle
     };
 
-    class LastSong : GenericLineOfSightAOE
+    class LastSong : Components.GenericLineOfSightAOE
     {
         public LastSong() : base(ActionID.MakeSpell(AID.TheLastSong), 60, true) { } //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
     }
 
     class LastSongHint : BossComponent
     {
-        public static bool casting;
+        public bool casting;
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -58,7 +57,7 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
                 .DeactivateOnEnter<Hints>()
                 .ActivateOnEnter<LastSong>()
                 .ActivateOnEnter<LastSongHint>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !LastSongHint.casting;
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !module.FindComponent<LastSongHint>()!.casting;
         }
     }
 
@@ -74,7 +73,7 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             foreach (var s in Enemies(OID.Boss))
-                Arena.Actor(s, ArenaColor.Enemy, false);
+                Arena.Actor(s, ArenaColor.Enemy);
         }
     }
 }

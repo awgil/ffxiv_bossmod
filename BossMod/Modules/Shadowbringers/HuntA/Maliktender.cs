@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
 {
     public enum OID : uint
     {
-        Boss = 0x2874,
+        Boss = 0x2874, // R=3.06
     };
 
     public enum AID : uint
@@ -28,7 +28,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
 
     class TwentyKNeedles : Components.SelfTargetedAOEs
     {
-        public TwentyKNeedles() : base(ActionID.MakeSpell(AID.TwentyKNeedles), new AOEShapeRect(20,4)) { }
+        public TwentyKNeedles() : base(ActionID.MakeSpell(AID.TwentyKNeedles), new AOEShapeRect(20, 4)) { }
     }
 
     class Haste : BossComponent
@@ -48,7 +48,7 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
 
     class NineNineNineKNeedles : Components.SelfTargetedAOEs
     {
-        public NineNineNineKNeedles() : base(ActionID.MakeSpell(AID.NineNineNineKNeedles), new AOEShapeRect(20,4)) { }
+        public NineNineNineKNeedles() : base(ActionID.MakeSpell(AID.NineNineNineKNeedles), new AOEShapeRect(20, 4)) { }
     }
 
     class MaliktenderStates : StateMachineBuilder
@@ -64,5 +64,5 @@ namespace BossMod.Shadowbringers.HuntA.Maliktender
     }
 
     [ModuleInfo(NotoriousMonsterID = 124)]
-    public class Maliktender(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Maliktender(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

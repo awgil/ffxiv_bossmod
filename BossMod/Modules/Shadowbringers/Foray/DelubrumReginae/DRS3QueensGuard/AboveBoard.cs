@@ -15,7 +15,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
         private BitMask _invertedPlayers; // default for player is 'long', short is considered inverted (has visible status)
         private DateTime _activation;
 
-        private static AOEShapeCircle _shape = new(10);
+        private static readonly AOEShapeCircle _shape = new(10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private BitMask _targets;
         private BitMask _inAOE;
 
-        private static float _aoeRadius = 5;
+        private static readonly float _aoeRadius = 5;
 
         public override void Init(BossModule module)
         {

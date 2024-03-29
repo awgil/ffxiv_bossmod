@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
 {
@@ -7,9 +6,9 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
     class LightwaveCommon : Components.CastCounter
     {
         protected List<Actor> Waves = new();
-        protected static AOEShapeRect WaveAOE = new(50, 8); // note that actual length is 15, but we want to show aoe for full path
+        protected static readonly AOEShapeRect WaveAOE = new(50, 8); // note that actual length is 15, but we want to show aoe for full path
 
-        private static float _losRadius = 1;
+        private static readonly float _losRadius = 1;
 
         public LightwaveCommon() : base(ActionID.MakeSpell(AID.LightOfTheCrystal)) { }
 

@@ -68,7 +68,7 @@ namespace BossMod.Shadowbringers.FATE.Formidable
     {
         private Actor? _caster;
         private DateTime _activation;
-        private static AOEShapeDonut _shape = new(10, 50);
+        private static readonly AOEShapeDonut _shape = new(10, 50);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

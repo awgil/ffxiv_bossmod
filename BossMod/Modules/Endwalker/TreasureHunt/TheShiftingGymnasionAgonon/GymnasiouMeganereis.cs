@@ -43,12 +43,6 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
         HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
     };
 
-    public enum IconID : uint
-    {
-        Tankbuster = 218, // player
-        Spread = 135, // player
-    };
-
     class Ceras : Components.SingleTargetCast
     {
         public Ceras() : base(ActionID.MakeSpell(AID.Ceras)) { }
@@ -60,6 +54,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
         {
             StopAtWall = true;
         }
+
         public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<Hydrobomb>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
     }
 
@@ -83,25 +78,9 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegane
         public Hydrocannon2() : base(ActionID.MakeSpell(AID.Hydrocannon2), new AOEShapeRect(27, 3)) { }
     }
 
-    class FallingWater : Components.UniformStackSpread
+    class FallingWater : Components.SpreadFromCastTargets
     {
-        public FallingWater() : base(0, 8, alwaysShowSpreads: true) { }
-
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.Spread)
-            {
-                AddSpread(actor);
-            }
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.FallingWater)
-            {
-                Spreads.Clear();
-            }
-        }
+        public FallingWater() : base(ActionID.MakeSpell(AID.FallingWater), 8) { }
     }
 
     class Immersion : Components.RaidwideCast

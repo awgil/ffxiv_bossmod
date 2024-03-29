@@ -9,8 +9,8 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         private Actor? _stackTarget;
         private List<Actor> _spreadTargets = new();
 
-        private static AOEShapeRect _shapeStack = new(50, 3);
-        private static AOEShapeRect _shapeSpread = new(50, 2);
+        private static readonly AOEShapeRect _shapeStack = new(50, 3);
+        private static readonly AOEShapeRect _shapeSpread = new(50, 2);
 
         public PandaemoniacMeltdown() : base(ActionID.MakeSpell(AID.PandaemoniacMeltdownStack)) { }
 

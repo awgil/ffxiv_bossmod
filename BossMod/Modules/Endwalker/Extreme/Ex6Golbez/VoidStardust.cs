@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Extreme.Ex6Golbez
     {
         private List<(WPos pos, DateTime activation)> _aoes = new();
 
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

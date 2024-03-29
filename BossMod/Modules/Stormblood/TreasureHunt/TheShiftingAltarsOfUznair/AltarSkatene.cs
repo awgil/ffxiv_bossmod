@@ -8,7 +8,6 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarSkatene
         Boss = 0x2535, //R=4.48
         BossAdd = 0x255E, //R=0.9
         BossHelper = 0x233C,
-        IceVoidzone = 0x1E8D9C,
     };
 
     public enum AID : uint
@@ -36,7 +35,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarSkatene
         public VoidCall() : base(ActionID.MakeSpell(AID.VoidCall), "Calls adds") { }
     }
 
-    class RecklessAbandon : Components.SingleTargetCast
+    class RecklessAbandon : Components.SingleTargetDelayableCast
     {
         public RecklessAbandon() : base(ActionID.MakeSpell(AID.RecklessAbandon)) { }
     }
