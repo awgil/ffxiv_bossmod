@@ -1,52 +1,30 @@
 using System.Collections.Generic;
 
-namespace BossMod.Endwalker.Trials.T02Hydaelyn
+namespace BossMod.Endwalker.Trials.T02Hydaelyn;
+
+class WeaponTracker : Components.GenericAOEs
 {
-    class WeaponTracker : Components.GenericAOEs
+    private AOEInstance? _aoe;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
     {
-        public enum Stance { Sword, Staff, Chakram }
-        public Stance CurStance { get; private set; }
-        private DateTime _activation;
-        private static readonly AOEShapeCross _aoeSword = new(40, 5);
-        private static readonly AOEShapeCircle _aoeStaff = new(10);
-        private static readonly AOEShapeDonut _aoeChakram = new(5, 40);
+        if ((SID)status.ID == SID.HydaelynsWeapon && status.Extra == 0x1B4)
+            _aoe = new(new AOEShapeCircle(10), module.PrimaryActor.Position, activation: module.WorldState.CurrentTime.AddSeconds(6));
+        if ((SID)status.ID == SID.HydaelynsWeapon && status.Extra == 0x1B5)
+            _aoe = new(new AOEShapeDonut(5, 40), module.PrimaryActor.Position, activation: module.WorldState.CurrentTime.AddSeconds(6));
+    }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (_activation != default)
-            {
-                if (CurStance == Stance.Sword)
-                    yield return new(_aoeSword, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
-                if (CurStance == Stance.Staff)
-                    yield return new(_aoeStaff, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
-                if (CurStance == Stance.Chakram)
-                    yield return new(_aoeChakram, module.PrimaryActor.Position, module.PrimaryActor.Rotation, activation: _activation);
-            }
-        }
+    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.HydaelynsWeapon)
+            _aoe = new(new AOEShapeCross(40, 5), module.PrimaryActor.Position, activation: module.WorldState.CurrentTime.AddSeconds(6.9f));
+    }
 
-        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
-        {
-            if ((SID)status.ID == SID.HydaelynsWeapon)
-                _activation = module.WorldState.CurrentTime.AddSeconds(6);
-            if ((SID)status.ID == SID.HydaelynsWeapon && status.Extra == 0x1B4)
-                CurStance = Stance.Staff;
-            if ((SID)status.ID == SID.HydaelynsWeapon && status.Extra == 0x1B5)
-                CurStance = Stance.Chakram;
-        }
-
-        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
-        {
-            if ((SID)status.ID == SID.HydaelynsWeapon)
-            {
-                CurStance = Stance.Sword;
-                _activation = module.WorldState.CurrentTime.AddSeconds(6.9f);
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID is AID.Equinox2 or AID.HighestHoly or AID.Anthelion)
-                _activation = default;
-        }
+    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.Equinox2 or AID.HighestHoly or AID.Anthelion)
+            _aoe = null;
     }
 }

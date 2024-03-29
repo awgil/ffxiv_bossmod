@@ -1,161 +1,160 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BossMod.Components
+namespace BossMod.Components;
+
+// generic unavoidable raidwide, started and finished by a single cast
+public class RaidwideCast : CastHint
 {
-    // generic unavoidable raidwide, started and finished by a single cast
-    public class RaidwideCast : CastHint
-    {
-        public RaidwideCast(ActionID aid, string hint = "Raidwide") : base(aid, hint) { }
+    public RaidwideCast(ActionID aid, string hint = "Raidwide") : base(aid, hint) { }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var c in Casters)
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo?.NPCFinishAt ?? default));
-        }
+    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Casters)
+            hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo?.NPCFinishAt ?? default));
+    }
+}
+
+// generic unavoidable raidwide, initiated by a custom condition and applied by an instant cast after a delay
+public class RaidwideInstant : CastCounter
+{
+    public float Delay;
+    public string Hint;
+    public DateTime Activation; // default if inactive, otherwise expected cast time
+
+    public RaidwideInstant(ActionID aid, float delay, string hint = "Raidwide") : base(aid)
+    {
+        Delay = delay;
+        Hint = hint;
     }
 
-    // generic unavoidable raidwide, initiated by a custom condition and applied by an instant cast after a delay
-    public class RaidwideInstant : CastCounter
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
-        public float Delay;
-        public string Hint;
-        public DateTime Activation; // default if inactive, otherwise expected cast time
+        if (Activation != default && Hint.Length > 0)
+            hints.Add(Hint);
+    }
 
-        public RaidwideInstant(ActionID aid, float delay, string hint = "Raidwide") : base(aid)
+    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Activation != default)
+            hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), Activation));
+    }
+
+    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
         {
-            Delay = delay;
-            Hint = hint;
+            ++NumCasts;
+            Activation = default;
         }
+    }
+}
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (Activation != default && Hint.Length > 0)
-                hints.Add(Hint);
-        }
+// generic unavoidable instant raidwide initiated by a cast (usually visual-only)
+public class RaidwideCastDelay : RaidwideInstant
+{
+    public ActionID ActionVisual;
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            if (Activation != default)
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), Activation));
-        }
+    public RaidwideCastDelay(ActionID actionVisual, ActionID actionAOE, float delay, string hint = "Raidwide") : base(actionAOE, delay, hint)
+    {
+        ActionVisual = actionVisual;
+    }
 
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == ActionVisual)
+            Activation = spell.NPCFinishAt.AddSeconds(Delay);
+    }
+}
+
+// generic unavoidable instant raidwide cast initiated by NPC yell
+public class RaidwideAfterNPCYell : RaidwideInstant
+{
+    public uint NPCYellID;
+
+    public RaidwideAfterNPCYell(ActionID aid, uint npcYellID, float delay, string hint = "Raidwide") : base(aid, delay, hint)
+    {
+        NPCYellID = npcYellID;
+    }
+
+    public override void OnActorNpcYell(BossModule module, Actor actor, ushort id)
+    {
+        if (id == NPCYellID)
+            Activation = module.WorldState.CurrentTime.AddSeconds(Delay);
+    }
+}
+
+// generic unavoidable single-target damage, started and finished by a single cast (typically tankbuster, but not necessary)
+public class SingleTargetCast : CastHint
+{
+    public SingleTargetCast(ActionID aid, string hint = "Tankbuster") : base(aid, hint) { }
+
+    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Casters)
         {
-            if (spell.Action == WatchedAction)
+            if (c.CastInfo != null)
             {
-                ++NumCasts;
-                Activation = default;
+                hints.PredictedDamage.Add((new BitMask().WithBit(module.Raid.FindSlot(c.CastInfo.TargetID)), c.CastInfo.NPCFinishAt));
             }
         }
     }
+}
 
-    // generic unavoidable instant raidwide initiated by a cast (usually visual-only)
-    public class RaidwideCastDelay : RaidwideInstant
+// generic unavoidable single-target damage, initiated by a custom condition and applied by an instant cast after a delay
+public class SingleTargetInstant : CastCounter
+{
+    public float Delay; // delay from visual cast end to cast event
+    public string Hint;
+    public List<(int slot, DateTime activation)> Targets = new();
+
+    public SingleTargetInstant(ActionID aid, float delay, string hint = "Tankbuster") : base(aid)
     {
-        public ActionID ActionVisual;
-
-        public RaidwideCastDelay(ActionID actionVisual, ActionID actionAOE, float delay, string hint = "Raidwide") : base(actionAOE, delay, hint)
-        {
-            ActionVisual = actionVisual;
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == ActionVisual)
-                Activation = spell.NPCFinishAt.AddSeconds(Delay);
-        }
+        Delay = delay;
+        Hint = hint;
     }
 
-    // generic unavoidable instant raidwide cast initiated by NPC yell
-    public class RaidwideAfterNPCYell : RaidwideInstant
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
-        public uint NPCYellID;
-
-        public RaidwideAfterNPCYell(ActionID aid, uint npcYellID, float delay, string hint = "Raidwide") : base(aid, delay, hint)
-        {
-            NPCYellID = npcYellID;
-        }
-
-        public override void OnActorNpcYell(BossModule module, Actor actor, ushort id)
-        {
-            if (id == NPCYellID)
-                Activation = module.WorldState.CurrentTime.AddSeconds(Delay);
-        }
+        if (Targets.Count > 0 && Hint.Length > 0)
+            hints.Add(Hint);
     }
 
-    // generic unavoidable single-target damage, started and finished by a single cast (typically tankbuster, but not necessary)
-    public class SingleTargetCast : CastHint
+    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        public SingleTargetCast(ActionID aid, string hint = "Tankbuster") : base(aid, hint) { }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var c in Casters)
-            {
-                if (c.CastInfo != null)
-                {
-                    hints.PredictedDamage.Add((new BitMask().WithBit(module.Raid.FindSlot(c.CastInfo.TargetID)), c.CastInfo.NPCFinishAt));
-                }
-            }
-        }
+        foreach (var t in Targets)
+            hints.PredictedDamage.Add((new BitMask().WithBit(t.slot), t.activation));
     }
 
-    // generic unavoidable single-target damage, initiated by a custom condition and applied by an instant cast after a delay
-    public class SingleTargetInstant : CastCounter
+    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        public float Delay; // delay from visual cast end to cast event
-        public string Hint;
-        public List<(int slot, DateTime activation)> Targets = new();
-
-        public SingleTargetInstant(ActionID aid, float delay, string hint = "Tankbuster") : base(aid)
+        if (spell.Action == WatchedAction)
         {
-            Delay = delay;
-            Hint = hint;
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (Targets.Count > 0 && Hint.Length > 0)
-                hints.Add(Hint);
-        }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var t in Targets)
-                hints.PredictedDamage.Add((new BitMask().WithBit(t.slot), t.activation));
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if (spell.Action == WatchedAction)
-            {
-                ++NumCasts;
-                Targets.RemoveAll(t => module.Raid[t.slot]?.InstanceID == spell.MainTargetID);
-            }
+            ++NumCasts;
+            Targets.RemoveAll(t => module.Raid[t.slot]?.InstanceID == spell.MainTargetID);
         }
     }
+}
 
-    // generic unavoidable instant single-target damage initiated by a cast (usually visual-only)
-    public class SingleTargetCastDelay : SingleTargetInstant
+// generic unavoidable instant single-target damage initiated by a cast (usually visual-only)
+public class SingleTargetCastDelay : SingleTargetInstant
+{
+    public ActionID ActionVisual;
+
+    public SingleTargetCastDelay(ActionID actionVisual, ActionID actionAOE, float delay, string hint = "Tankbuster") : base(actionAOE, delay, hint)
     {
-        public ActionID ActionVisual;
-
-        public SingleTargetCastDelay(ActionID actionVisual, ActionID actionAOE, float delay, string hint = "Tankbuster") : base(actionAOE, delay, hint)
-        {
-            ActionVisual = actionVisual;
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == ActionVisual)
-                Targets.Add((module.Raid.FindSlot(spell.TargetID), spell.NPCFinishAt.AddSeconds(Delay)));
-        }
+        ActionVisual = actionVisual;
     }
 
-    // generic unavoidable single-target damage, started and finished by a single cast, that can be delayed by moving out of range (typically tankbuster, but not necessary)
-    public class SingleTargetDelayableCast : SingleTargetCastDelay
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        public SingleTargetDelayableCast(ActionID aid, string hint = "Tankbuster") : base(aid, aid, 0, hint) { }
+        if (spell.Action == ActionVisual)
+            Targets.Add((module.Raid.FindSlot(spell.TargetID), spell.NPCFinishAt.AddSeconds(Delay)));
     }
+}
+
+// generic unavoidable single-target damage, started and finished by a single cast, that can be delayed by moving out of range (typically tankbuster, but not necessary)
+public class SingleTargetDelayableCast : SingleTargetCastDelay
+{
+    public SingleTargetDelayableCast(ActionID aid, string hint = "Tankbuster") : base(aid, aid, 0, hint) { }
 }

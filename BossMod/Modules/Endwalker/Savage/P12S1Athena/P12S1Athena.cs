@@ -1,23 +1,22 @@
-﻿namespace BossMod.Endwalker.Savage.P12S1Athena
+﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
+
+class RayOfLight : Components.SelfTargetedAOEs
 {
-    class RayOfLight : Components.SelfTargetedAOEs
-    {
-        public RayOfLight() : base(ActionID.MakeSpell(AID.RayOfLight), new AOEShapeRect(60, 5)) { }
-    }
+    public RayOfLight() : base(ActionID.MakeSpell(AID.RayOfLight), new AOEShapeRect(60, 5)) { }
+}
 
-    class UltimaBlade : Components.CastCounter
-    {
-        public UltimaBlade() : base(ActionID.MakeSpell(AID.UltimaBladeAOE)) { }
-    }
+class UltimaBlade : Components.CastCounter
+{
+    public UltimaBlade() : base(ActionID.MakeSpell(AID.UltimaBladeAOE)) { }
+}
 
-    class Parthenos : Components.SelfTargetedAOEs
-    {
-        public Parthenos() : base(ActionID.MakeSpell(AID.Parthenos), new AOEShapeRect(60, 8, 60)) { }
-    }
+class Parthenos : Components.SelfTargetedAOEs
+{
+    public Parthenos() : base(ActionID.MakeSpell(AID.Parthenos), new AOEShapeRect(60, 8, 60)) { }
+}
 
-    [ModuleInfo(CFCID = 943, NameID = 12377)]
-    public class P12S1Athena : BossModule
-    {
-        public P12S1Athena(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }
-    }
+[ModuleInfo(CFCID = 943, NameID = 12377)]
+public class P12S1Athena : BossModule
+{
+    public P12S1Athena(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }
 }

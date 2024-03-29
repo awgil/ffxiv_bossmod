@@ -1,17 +1,16 @@
-﻿namespace BossMod
+﻿namespace BossMod;
+
+public enum ReplayLogFormat
 {
-    public enum ReplayLogFormat
-    {
-        [PropertyDisplay("Compressed binary")]
-        BinaryCompressed,
+    [PropertyDisplay("Compressed binary")]
+    BinaryCompressed,
 
-        [PropertyDisplay("Raw binary")]
-        BinaryUncompressed,
+    [PropertyDisplay("Raw binary")]
+    BinaryUncompressed,
 
-        [PropertyDisplay("Condensed text")]
-        TextCondensed,
+    [PropertyDisplay("Condensed text")]
+    TextCondensed,
 
-        [PropertyDisplay("Verbose text")]
-        TextVerbose,
-    }
+    [PropertyDisplay("Verbose text")]
+    TextVerbose,
 }
