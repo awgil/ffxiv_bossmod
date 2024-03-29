@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
         private BitMask _second;
         private List<Actor> _towers = new();
 
-        private static float _towerRadius = 3;
+        private static readonly float _towerRadius = 3;
 
         public ScreamOfTheFallen() : base(0, 15, alwaysShowSpreads: true) { }
 

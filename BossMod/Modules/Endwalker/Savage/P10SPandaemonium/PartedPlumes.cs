@@ -15,7 +15,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
 
     class PartedPlumesVoidzone : Components.GenericAOEs
     {
-        private static AOEShapeCircle _shape = new(8);
+        private static readonly AOEShapeCircle _shape = new(8);
 
         public PartedPlumesVoidzone() : base(default, "GTFO from voidzone!") { }
 

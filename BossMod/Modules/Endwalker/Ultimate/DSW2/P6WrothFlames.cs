@@ -8,8 +8,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private List<AOEInstance> _aoes = new(); // cauterize, then flame blasts
         private WPos _startingSpot;
 
-        private static AOEShapeRect _shapeCauterize = new(80, 11);
-        private static AOEShapeCross _shapeBlast = new(44, 3);
+        private static readonly AOEShapeRect _shapeCauterize = new(80, 11);
+        private static readonly AOEShapeCross _shapeBlast = new(44, 3);
 
         public bool ShowStartingSpot => _startingSpot.X != 0 && _startingSpot.Z != 0 && NumCasts == 0;
 

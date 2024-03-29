@@ -27,12 +27,12 @@ namespace BossMod.Components
 
         public bool Inverted; // if inverted, player should face eyes instead of averting
 
-        private static float _eyeOuterH = 10;
-        private static float _eyeOuterV = 6;
-        private static float _eyeInnerR = 4;
-        private static float _eyeOuterR = (_eyeOuterH * _eyeOuterH + _eyeOuterV * _eyeOuterV) / (2 * _eyeOuterV);
-        private static float _eyeOffsetV = _eyeOuterR - _eyeOuterV;
-        private static float _eyeHalfAngle = MathF.Asin(_eyeOuterH / _eyeOuterR);
+        private static readonly float _eyeOuterH = 10;
+        private static readonly float _eyeOuterV = 6;
+        private static readonly float _eyeInnerR = 4;
+        private static readonly float _eyeOuterR = (_eyeOuterH * _eyeOuterH + _eyeOuterV * _eyeOuterV) / (2 * _eyeOuterV);
+        private static readonly float _eyeOffsetV = _eyeOuterR - _eyeOuterV;
+        private static readonly float _eyeHalfAngle = MathF.Asin(_eyeOuterH / _eyeOuterR);
 
         public abstract IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor);
 

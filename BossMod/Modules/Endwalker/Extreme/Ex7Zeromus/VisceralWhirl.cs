@@ -9,8 +9,8 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shapeNormal = new(29, 14);
-        private static AOEShapeRect _shapeOffset = new(60, 14);
+        private static readonly AOEShapeRect _shapeNormal = new(29, 14);
+        private static readonly AOEShapeRect _shapeOffset = new(60, 14);
 
         public bool Active => _aoes.Count > 0;
 
@@ -49,7 +49,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
     {
         private IReadOnlyList<Actor> _bubbles = ActorEnumeration.EmptyList;
 
-        private static AOEShapeCircle _shape = new(2); // TODO: verify explosion radius
+        private static readonly AOEShapeCircle _shape = new(2); // TODO: verify explosion radius
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _bubbles.Where(actor => !actor.IsDead).Select(b => new AOEInstance(_shape, b.Position));
 

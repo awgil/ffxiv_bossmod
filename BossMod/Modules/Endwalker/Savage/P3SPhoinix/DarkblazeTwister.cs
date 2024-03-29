@@ -6,10 +6,10 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
     // state related to darkblaze twister mechanics
     class DarkblazeTwister : BossComponent
     {
-        private static float _knockbackRange = 17;
-        private static float _aoeInnerRadius = 5;
-        private static float _aoeMiddleRadius = 7;
-        private static float _aoeOuterRadius = 20;
+        private static readonly float _knockbackRange = 17;
+        private static readonly float _aoeInnerRadius = 5;
+        private static readonly float _aoeMiddleRadius = 7;
+        private static readonly float _aoeOuterRadius = 20;
 
         public IEnumerable<Actor> BurningTwisters(BossModule module) => module.Enemies(OID.DarkblazeTwister).Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
         public Actor? DarkTwister(BossModule module) => module.Enemies(OID.DarkblazeTwister).FirstOrDefault(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);

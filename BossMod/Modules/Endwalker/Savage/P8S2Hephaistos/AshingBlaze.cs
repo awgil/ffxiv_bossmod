@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Savage.P8S2
     class AshingBlaze : Components.GenericAOEs
     {
         private WPos? _origin;
-        private static AOEShapeRect _shape = new(46, 10);
+        private static readonly AOEShapeRect _shape = new(46, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

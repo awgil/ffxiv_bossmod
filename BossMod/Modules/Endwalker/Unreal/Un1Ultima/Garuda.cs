@@ -7,9 +7,9 @@
         private Actor? _eots;
         private Actor? _geocrush;
 
-        private static AOEShapeCone _aoeMistralSong = new(20, 75.Degrees());
-        private static AOEShapeDonut _aoeEOTS = new(13, 25); // TODO: check inner range
-        private static AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
+        private static readonly AOEShapeCone _aoeMistralSong = new(20, 75.Degrees());
+        private static readonly AOEShapeDonut _aoeEOTS = new(13, 25); // TODO: check inner range
+        private static readonly AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

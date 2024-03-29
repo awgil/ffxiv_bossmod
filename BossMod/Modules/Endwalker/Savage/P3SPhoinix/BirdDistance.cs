@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         private OID _watchedBirdsID;
         private BitMask _birdsAtRisk;
 
-        private static float _radius = 13;
+        private static readonly float _radius = 13;
 
         public BirdDistance(OID watchedBirdsID)
         {

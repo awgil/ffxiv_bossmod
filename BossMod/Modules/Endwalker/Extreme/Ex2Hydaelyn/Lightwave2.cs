@@ -9,12 +9,12 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
         private WPos _safeCrystal;
         private Vector4? _safeCrystalOrigin;
 
-        private static WPos _crystalCenter = new(100, 101);
-        private static WPos _crystalTL = new( 90,  92);
-        private static WPos _crystalTR = new(110,  92);
-        private static WPos _crystalBL = new( 90, 110);
-        private static WPos _crystalBR = new(110, 110);
-        private static AOEShapeCone _gloryAOE = new(40, 90.Degrees());
+        private static readonly WPos _crystalCenter = new(100, 101);
+        private static readonly WPos _crystalTL = new( 90,  92);
+        private static readonly WPos _crystalTR = new(110,  92);
+        private static readonly WPos _crystalBL = new( 90, 110);
+        private static readonly WPos _crystalBR = new(110, 110);
+        private static readonly AOEShapeCone _gloryAOE = new(40, 90.Degrees());
 
         public override void Update(BossModule module)
         {

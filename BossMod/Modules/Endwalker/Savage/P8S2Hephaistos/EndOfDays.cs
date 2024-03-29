@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Savage.P8S2
     {
         public List<(Actor caster, DateTime finish)> Casters = new();
 
-        private static AOEShapeRect _shape = new(60, 5);
+        private static readonly AOEShapeRect _shape = new(60, 5);
 
         public EndOfDays() : base(ActionID.MakeSpell(AID.EndOfDays)) { }
 

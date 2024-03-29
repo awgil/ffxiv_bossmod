@@ -17,8 +17,8 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         private BitMatrix _redExplosionMatrix; // bit (8*i+j) is set if player i is inside explosion of player j; bit [i,i] is never set
         private WPos[] _preferredPositions = new WPos[8];
 
-        private static float _blueExplosionRadius = 4;
-        private static float _redExplosionRadius = 8;
+        private static readonly float _blueExplosionRadius = 4;
+        private static readonly float _redExplosionRadius = 8;
         private static uint TetherColor(bool blue, bool red) => blue ? (red ? 0xff00ffff : 0xffff0080) : (red ? 0xff8080ff : 0xff808080);
 
         public override void Update(BossModule module)

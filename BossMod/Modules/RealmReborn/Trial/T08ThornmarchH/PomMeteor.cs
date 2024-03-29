@@ -13,8 +13,8 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
 
         private const float _towerRadius = 5;
         private const float _cometAvoidRadius = 6;
-        private static Angle[] _towerAngles = { 180.Degrees(), 90.Degrees(), 0.Degrees(), -90.Degrees(), 135.Degrees(), 45.Degrees(), -45.Degrees(), -135.Degrees() };
-        private static WDir[] _towerOffsets = _towerAngles.Select(a => 10 * a.ToDirection()).ToArray();
+        private static readonly Angle[] _towerAngles = { 180.Degrees(), 90.Degrees(), 0.Degrees(), -90.Degrees(), 135.Degrees(), 45.Degrees(), -45.Degrees(), -135.Degrees() };
+        private static readonly WDir[] _towerOffsets = _towerAngles.Select(a => 10 * a.ToDirection()).ToArray();
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {

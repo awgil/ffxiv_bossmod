@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCone _shape = new(90, 15.Degrees());
+        private static readonly AOEShapeCone _shape = new(90, 15.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

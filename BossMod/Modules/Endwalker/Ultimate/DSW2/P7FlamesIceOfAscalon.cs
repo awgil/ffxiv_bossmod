@@ -4,10 +4,10 @@ namespace BossMod.Endwalker.Ultimate.DSW2
 {
     class P7FlamesIceOfAscalon : Components.GenericAOEs
     {
-        private static AOEInstance? _aoe;
+        private AOEInstance? _aoe;
 
-        private static AOEShapeCircle _shapeOut = new(8);
-        private static AOEShapeDonut _shapeIn = new(8, 50);
+        private static readonly AOEShapeCircle _shapeOut = new(8);
+        private static readonly AOEShapeDonut _shapeIn = new(8, 50);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 

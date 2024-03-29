@@ -100,8 +100,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave
         private bool _dualcast;
         private List<AOEInstance> _imminent = new();
 
-        private static AOEShapeCircle _shapeCircle = new(10);
-        private static AOEShapeDonut _shapeDonut = new(10, 30);
+        private static readonly AOEShapeCircle _shapeCircle = new(10);
+        private static readonly AOEShapeDonut _shapeDonut = new(10, 30);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _imminent.Take(1);
 

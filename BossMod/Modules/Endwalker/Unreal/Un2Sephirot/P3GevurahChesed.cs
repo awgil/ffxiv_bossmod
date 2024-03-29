@@ -5,7 +5,7 @@
         private BitMask _physResistMask;
         private int _physSide; // 0 if not active, -1 if left, +1 if right
 
-        private static AOEShape _shape = new AOEShapeRect(40, 10);
+        private static readonly AOEShape _shape = new AOEShapeRect(40, 10);
 
         public P3GevurahChesed() : base(ActionID.MakeSpell(AID.LifeForce)) { } // doesn't matter which spell to track
 

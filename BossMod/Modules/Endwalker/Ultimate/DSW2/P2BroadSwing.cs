@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCone _aoe = new(40, 60.Degrees());
+        private static readonly AOEShapeCone _aoe = new(40, 60.Degrees());
 
         public P2BroadSwing() : base(ActionID.MakeSpell(AID.BroadSwingAOE)) { }
 

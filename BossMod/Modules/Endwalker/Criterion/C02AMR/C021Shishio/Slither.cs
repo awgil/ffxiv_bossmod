@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
         private Actor? _caster;
         private DateTime _predictedActivation;
 
-        private static AOEShapeCone _shape = new(25, 45.Degrees());
+        private static readonly AOEShapeCone _shape = new(25, 45.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

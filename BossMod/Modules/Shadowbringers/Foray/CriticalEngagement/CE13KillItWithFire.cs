@@ -51,7 +51,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE13KillItWithFire
         private List<Actor> _tenderCasters = new();
         private List<Actor> _jealousCasters = new();
 
-        private static AOEShapeCone _shape = new(30, 45.Degrees());
+        private static readonly AOEShapeCone _shape = new(30, 45.Degrees());
 
         public DeadLeaves() : base(new(), "Go to different color!") { }
 

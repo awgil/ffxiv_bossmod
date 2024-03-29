@@ -29,7 +29,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
 
         private List<SphereState> _spheres = new();
         private DateTime _activation;
-        private static AOEShapeCross _shape = new(16, 3);
+        private static readonly AOEShapeCross _shape = new(16, 3);
 
         public bool Active => _spheres.Count > 0;
 

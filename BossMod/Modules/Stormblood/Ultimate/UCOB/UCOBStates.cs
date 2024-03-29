@@ -53,8 +53,8 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P1Plummet(id + 0x50000, 5.8f);
             // repeat
             P1LiquidHell(id + 0x60000, 5.4f);
-            P1Generate(id + 0x70000, 1.2f); // not sure about timing...
-            P1LiquidHell(id + 0x80000, 3.3f);
+            P1Generate(id + 0x70000, 1.2f);
+            P1LiquidHell(id + 0x80000, 3.3f);  // not sure about timing here and below
             P1DeathSentence(id + 0x90000, 3.2f);
             P1GenerateTwister(id + 0xA0000, 4.2f);
             P1Plummet(id + 0xB0000, 5.8f);
@@ -100,7 +100,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P3SeventhUmbralEra(id, 5.3f);
             P3FlareBreath(id + 0x10000, 6.2f);
             P3Flatten(id + 0x20000, 4.1f);
-            P3QuickmarchTrio(id + 0x30000, 3.1f);
+            P3QuickmarchTrio(id + 0x30000, 3.2f);
             P3BlackfireTrio(id + 0x40000, 4.2f);
             P3FellruinTrio(id + 0x50000, 9.2f);
             P3HeavensfallTrio(id + 0x60000, 4.2f);
@@ -110,14 +110,14 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P4PlummetBahamutsClaw(id + 0x100000, 8.2f);
             P4LiquidHell(id + 0x110000, 0.1f);
             P4GenerateTwister(id + 0x120000, 1.2f);
-            P4QuoteTwister(id + 0x130000, 2.3f);
-            P4Megaflare(id + 0x140000, 5.5f);
-            P4DeathSentenceRavensbeak(id + 0x150000, 4.3f);
+            P4QuoteTwister(id + 0x130000, 2.4f);
+            P4Megaflare(id + 0x140000, 5.8f);
+            P4DeathSentenceRavensbeak(id + 0x150000, 4.2f);
 
             P4PlummetBahamutsClaw(id + 0x160000, 4.1f);
             P4LiquidHell(id + 0x170000, 5.9f);
             P4GenerateTwister(id + 0x180000, 1.2f);
-            P4QuoteTwister(id + 0x190000, 2.6f);
+            P4QuoteTwister(id + 0x190000, 2.4f);
             P4DeathSentenceRavensbeak(id + 0x1A0000, 8.8f);
             P4Megaflare(id + 0x1B0000, 7.1f);
 
@@ -130,19 +130,18 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             P5Teraflare(id, 4.1f);
             P5MornAfah(id + 0x10000, 0.1f);
             P5AhkMorn(id + 0x20000, 2.2f, 3);
-            P5Exaflare(id + 0x30000, 5.2f);
+            P5Exaflare(id + 0x30000, 5.1f);
             P5AhkMorn(id + 0x40000, 7.1f, 4);
             P5MornAfah(id + 0x50000, 7.3f);
             P5Exaflare(id + 0x60000, 8.2f);
-            P5MornAfah(id + 0x70000, 7.2f);
+            P5MornAfah(id + 0x70000, 7.1f);
             P5AhkMorn(id + 0x80000, 8.2f, 5);
             P5Exaflare(id + 0x90000, 7.2f);
-            P5MornAfah(id + 0xA0000, 7.2f);
+            P5MornAfah(id + 0xA0000, 7.1f);
             P5AhkMorn(id + 0xB0000, 8.2f, 6);
-            P5Exaflare(id + 0xC0000, 7.2f); // TODO: timings here and below...
-            P5MornAfah(id + 0xD0000, 7.2f);
-            // TODO: enrage
-            SimpleState(id + 0xFF0000, 100, "???");
+            P5Exaflare(id + 0xC0000, 7.1f);
+            P5MornAfah(id + 0xD0000, 7.1f);
+            P5Enrage(id + 0xE0000, 2.1f);
         }
 
         private void P1Plummet(uint id, float delay)
@@ -295,28 +294,28 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .DeactivateOnExit<P2BahamutsFavorWingsOfSalvation>();
             // +1.2s: iceball 5
             // +3.2s: iceball 6
-            ComponentCondition<P2BahamutsClaw>(id + 0x130, 3.4f, comp => comp.NumCasts > 0)
+            ComponentCondition<P2BahamutsClaw>(id + 0x130, 3.3f, comp => comp.NumCasts > 0)
                 .ActivateOnEnter<P2BahamutsClaw>();
             // +0.8s: bahamut's claw 2
-            ComponentCondition<P2BahamutsFavorFireball>(id + 0x132, 1.5f, comp => comp.Target != null)
+            ComponentCondition<P2BahamutsFavorFireball>(id + 0x132, 1.6f, comp => comp.Target != null)
                 .ActivateOnEnter<P2BahamutsFavorFireball>()
                 .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show()); // show hint immediately
             // +0.2s: bahamut's claw 3
             // +0.4s: iceball 7
             // +1.0s: bahamut's claw 4
-            ComponentCondition<P2BahamutsClaw>(id + 0x136, 1.7f, comp => comp.NumCasts > 4, "5-hit tankbuster end")
+            ComponentCondition<P2BahamutsClaw>(id + 0x136, 1.6f, comp => comp.NumCasts > 4, "5-hit tankbuster end")
                 .DeactivateOnExit<P2BahamutsClaw>();
             // +0.6s: iceball 8
 
-            ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x200, 2.4f, comp => comp.ActiveOrSkipped(Module))
+            ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x200, 2.5f, comp => comp.ActiveOrSkipped(Module))
                 .ActivateOnEnter<P2BahamutsFavorChainLightning>();
             ComponentCondition<P2BahamutsFavorFireball>(id + 0x210, 1.0f, comp => !comp.Active, "Fireball 2")
                 .DeactivateOnExit<P2BahamutsFavorFireball>();
-            ComponentCondition<Quote>(id + 0x220, 2.4f, comp => comp.PendingMechanics.Count > 0) // second quote
+            ComponentCondition<Quote>(id + 0x220, 2.3f, comp => comp.PendingMechanics.Count > 0) // second quote
                 .ActivateOnEnter<Quote>();
-            ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x230, 1.7f, comp => !comp.Active, "Lightning spread", checkDelay: 1.7f) // lighting target can die early, which would trigger premature transition
+            ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x230, 1.8f, comp => !comp.Active, "Lightning spread", checkDelay: 1.7f) // lighting target can die early, which would trigger premature transition
                 .DeactivateOnExit<P2BahamutsFavorChainLightning>();
-            ComponentCondition<Quote>(id + 0x240, 3.4f, comp => comp.PendingMechanics.Count == 1, "Stack")
+            ComponentCondition<Quote>(id + 0x240, 3.3f, comp => comp.PendingMechanics.Count == 1, "Stack")
                 .ActivateOnEnter<QuoteThermionicBeam>()
                 .DeactivateOnExit<QuoteThermionicBeam>();
             ComponentCondition<Quote>(id + 0x250, 3.1f, comp => comp.PendingMechanics.Count == 0, "In/out")
@@ -324,7 +323,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
                 .DeactivateOnExit<Quote>();
 
-            ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x300, 0.6f, comp => comp.Casters.Count > 0) // wings of salvation 1 bait
+            ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x300, 0.7f, comp => comp.Casters.Count > 0) // wings of salvation 1 bait
                 .ActivateOnEnter<P2BahamutsFavorWingsOfSalvation>();
             ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x301, 0.8f, comp => comp.NumDeathstorms > 1);
             ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x303, 2.2f, comp => comp.NumCasts > 0);
@@ -339,14 +338,14 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x323, 3.0f, comp => comp.NumCasts > 2)
                 .ActivateOnEnter<P2BahamutsFavorFireball>() // tether appears ~1.5s after salvation cast start
                 .DeactivateOnExit<P2BahamutsFavorWingsOfSalvation>();
-            ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x324, 0.7f, comp => !comp.Active, "Lightning spread", checkDelay: 0.7f) // lighting target can die early, which would trigger premature transition
+            ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x324, 0.8f, comp => !comp.Active, "Lightning spread", checkDelay: 0.7f) // lighting target can die early, which would trigger premature transition
                 .DeactivateOnExit<P2BahamutsFavorChainLightning>()
                 .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show());
             // +0.4s: iceball 12
             ComponentCondition<P2BahamutsFavorFireball>(id + 0x350, 3.0f, comp => !comp.Active, "Fireball 3")
                 .DeactivateOnExit<P2BahamutsFavorFireball>();
 
-            P2BahamutsClaw(id + 0x400, 3.6f);
+            P2BahamutsClaw(id + 0x400, 3.4f);
 
             ComponentCondition<Quote>(id + 0x500, 2.8f, comp => comp.PendingMechanics.Count > 0) // third quote
                 .ActivateOnEnter<Quote>();
@@ -355,23 +354,23 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<Quote>(id + 0x510, 5.2f, comp => comp.PendingMechanics.Count == 1, "Spread")
                 .ActivateOnEnter<QuoteRavenDive>()
                 .DeactivateOnExit<QuoteRavenDive>();
-            ComponentCondition<P2BahamutsFavorFireball>(id + 0x511, 1.3f, comp => comp.Target != null)
+            ComponentCondition<P2BahamutsFavorFireball>(id + 0x511, 1.4f, comp => comp.Target != null)
                 .ActivateOnEnter<P2BahamutsFavorFireball>()
                 .ActivateOnEnter<QuoteIronChariotLunarDynamo>()
                 .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show()); // show hint immediately
             // +0.5s: iceball 15
-            ComponentCondition<Quote>(id + 0x520, 1.8f, comp => comp.PendingMechanics.Count == 0, "In/out")
+            ComponentCondition<Quote>(id + 0x520, 1.7f, comp => comp.PendingMechanics.Count == 0, "In/out")
                 .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
                 .DeactivateOnExit<Quote>();
             // +0.9s: iceball 16
-            ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x530, 1.3f, comp => comp.ActiveOrSkipped(Module))
+            ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x530, 1.4f, comp => comp.ActiveOrSkipped(Module))
                 .ActivateOnEnter<P2BahamutsFavorChainLightning>();
-            ComponentCondition<P2BahamutsFavorFireball>(id + 0x540, 2.0f, comp => !comp.Active, "Fireball 4")
+            ComponentCondition<P2BahamutsFavorFireball>(id + 0x540, 2.1f, comp => !comp.Active, "Fireball 4")
                 .DeactivateOnExit<P2BahamutsFavorFireball>();
 
-            ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x600, 0.3f, comp => comp.Casters.Count > 0) // wings of salvation 1 bait
+            ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x600, 0.2f, comp => comp.Casters.Count > 0) // wings of salvation 1 bait
                 .ActivateOnEnter<P2BahamutsFavorWingsOfSalvation>();
-            ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x601, 0.4f, comp => comp.NumDeathstorms > 2);
+            ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x601, 0.5f, comp => comp.NumDeathstorms > 2);
             ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x610, 2.3f, comp => !comp.Active, "Lightning spread", checkDelay: 2.3f) // lighting target can die early, which would trigger premature transition
                 .DeactivateOnExit<P2BahamutsFavorChainLightning>();
             ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x611, 0.2f, comp => comp.NumCasts > 0);
@@ -404,12 +403,12 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .ActivateOnEnter<QuoteMeteorStream>();
             ComponentCondition<P2Hypernova>(id + 2, 1.2f, comp => comp.NumCasts >= 1);
             ComponentCondition<P2Hypernova>(id + 3, 1.6f, comp => comp.NumCasts >= 2);
-            ComponentCondition<P2Cauterize>(id + 0x10, 0.5f, comp => comp.Casters.Count + comp.NumCasts >= 2, "Divebomb bait 1")
+            ComponentCondition<P2Cauterize>(id + 0x10, 0.6f, comp => comp.Casters.Count + comp.NumCasts >= 2, "Divebomb bait 1")
                 .ActivateOnEnter<P2BlockTransition>(); // if this mechanic has started, transition won't happen until the end; nael would still briefly disappear
-            ComponentCondition<P2Cauterize>(id + 0x11, 0.7f, comp => comp.NumBaitsAssigned >= 3);
+            ComponentCondition<P2Cauterize>(id + 0x11, 0.6f, comp => comp.NumBaitsAssigned >= 3);
             ComponentCondition<P2Hypernova>(id + 0x12, 0.4f, comp => comp.NumCasts >= 3);
             ComponentCondition<P2Hypernova>(id + 0x13, 1.6f, comp => comp.NumCasts >= 4);
-            ComponentCondition<P2Cauterize>(id + 0x20, 1.3f, comp => comp.Casters.Count + comp.NumCasts >= 3, "Divebomb bait 2");
+            ComponentCondition<P2Cauterize>(id + 0x20, 1.4f, comp => comp.Casters.Count + comp.NumCasts >= 3, "Divebomb bait 2");
             ComponentCondition<Quote>(id + 0x30, 3.3f, comp => comp.PendingMechanics.Count == 1, "Spread/tankbuster")
                 .DeactivateOnExit<QuoteMeteorStream>();
             ComponentCondition<P2Cauterize>(id + 0x40, 0.7f, comp => comp.Casters.Count + comp.NumCasts >= 5, "Divebomb bait 3")
@@ -487,7 +486,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private void P3QuickmarchTrio(uint id, float delay)
         {
             ActorCast(id, _module.BahamutPrime, AID.QuickmarchTrio, delay, 4, true);
-            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (quickmarch trio)")
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (quickmarch trio)")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
             ComponentCondition<P3QuickmarchTrio>(id + 0x20, 1.2f, comp => comp.Active)
                 .ExecOnEnter<Hatch>(comp => comp.Active = false)
@@ -502,10 +501,10 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .DeactivateOnExit<P3LunarDive>()
                 .DeactivateOnExit<P3MegaflareDive>()
                 .DeactivateOnExit<P3QuickmarchTrio>();
-            ComponentCondition<P3Twister>(id + 0x40, 1.4f, comp => comp.Active, "Twisters")
+            ComponentCondition<P3Twister>(id + 0x40, 1.3f, comp => comp.Active, "Twisters")
                 .ActivateOnEnter<P3Twister>();
 
-            ComponentCondition<P3MegaflarePuddle>(id + 0x50, 1.6f, comp => comp.Casters.Count > 0)
+            ComponentCondition<P3MegaflarePuddle>(id + 0x50, 1.8f, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<P3MegaflareSpreadStack>() // stack icons appear ~0.1s before puddles start
                 .ActivateOnEnter<P3MegaflarePuddle>();
             ComponentCondition<P3MegaflareSpreadStack>(id + 0x51, 1, comp => comp.Spreads.Count == 0, "Spread");
@@ -536,7 +535,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private void P3BlackfireTrio(uint id, float delay)
         {
             ActorCast(id, _module.BahamutPrime, AID.BlackfireTrio, delay, 4, true);
-            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (blackfire trio)")
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (blackfire trio)")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
             ComponentCondition<P3BlackfireTrio>(id + 0x20, 1.2f, comp => comp.Active)
                 .ExecOnEnter<Hatch>(comp => comp.Active = false)
@@ -555,7 +554,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
 
             ComponentCondition<P3MegaflareTower>(id + 0x100, 2.0f, comp => comp.Towers.Count > 0)
                 .ActivateOnEnter<P3MegaflareTower>();
-            ComponentCondition<P3MegaflareStack>(id + 0x101, 1.0f, comp => comp.Active)
+            ComponentCondition<P3MegaflareStack>(id + 0x101, 0.9f, comp => comp.Active)
                 .ActivateOnEnter<P3MegaflareStack>();
             // +3.2s: hypernova 1
             // +4.8s: hypernova 2
@@ -582,7 +581,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private void P3FellruinTrio(uint id, float delay)
         {
             ActorCast(id, _module.BahamutPrime, AID.FellruinTrio, delay, 4, true);
-            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (fellruin trio)")
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (fellruin trio)")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
 
             ComponentCondition<Quote>(id + 0x20, 2.3f, comp => comp.PendingMechanics.Count > 0)
@@ -599,7 +598,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P3TempestWing>(id + 0x50, 2.9f, comp => comp.NumCasts > 0, "Tethers")
                 .ExecOnEnter<P3AethericProfusion>(comp => comp.Active = true)
                 .DeactivateOnExit<P3TempestWing>();
-            ComponentCondition<P3AethericProfusion>(id + 0x60, 1.0f, comp => comp.NumCasts > 0, "Neurolinks")
+            ComponentCondition<P3AethericProfusion>(id + 0x60, 0.9f, comp => comp.NumCasts > 0, "Neurolinks")
                 .DeactivateOnExit<P3AethericProfusion>();
 
             ActorTargetable(id + 0x100, _module.BahamutPrime, true, 2.2f, "Boss reappears")
@@ -607,13 +606,13 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .ActivateOnEnter<QuoteMeteorStream>()
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
             ActorCastStart(id + 0x101, _module.BahamutPrime, AID.Gigaflare, 0.1f, true);
-            ComponentCondition<Quote>(id + 0x102, 1.1f, comp => comp.PendingMechanics.Count == 0, "Spread")
+            ComponentCondition<Quote>(id + 0x102, 1.2f, comp => comp.PendingMechanics.Count == 0, "Spread")
                 .DeactivateOnExit<QuoteMeteorStream>()
                 .DeactivateOnExit<Quote>();
-            ActorCastEnd(id + 0x103, _module.BahamutPrime, 4.9f, true, "Raidwide")
+            ActorCastEnd(id + 0x103, _module.BahamutPrime, 4.8f, true, "Raidwide")
                 .SetHint(StateMachine.StateHint.Raidwide);
 
-            P3FlareBreath(id + 0x1000, 5.2f);
+            P3FlareBreath(id + 0x1000, 5.4f);
             P3Flatten(id + 0x2000, 5.2f);
             P3FlareBreath(id + 0x3000, 5.2f);
         }
@@ -621,7 +620,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private void P3HeavensfallTrio(uint id, float delay)
         {
             ActorCast(id, _module.BahamutPrime, AID.HeavensfallTrio, delay, 4, true);
-            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (heavensfall trio)")
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (heavensfall trio)")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
             ComponentCondition<P3HeavensfallTrio>(id + 0x20, 1.2f, comp => comp.Active)
                 .ExecOnEnter<Hatch>(comp => comp.Active = false)
@@ -634,10 +633,10 @@ namespace BossMod.Stormblood.Ultimate.UCOB
                 .DeactivateOnExit<P3TwistingDive>()
                 .DeactivateOnExit<P3MegaflareDive>()
                 .DeactivateOnExit<P3HeavensfallTrio>();
-            ComponentCondition<P3Twister>(id + 0x50, 1.4f, comp => comp.Active, "Twisters")
+            ComponentCondition<P3Twister>(id + 0x50, 1.3f, comp => comp.Active, "Twisters")
                 .ActivateOnEnter<P3Twister>();
 
-            ComponentCondition<P3HeavensfallTowers>(id + 0x60, 0.5f, comp => comp.Towers.Count > 0)
+            ComponentCondition<P3HeavensfallTowers>(id + 0x60, 0.7f, comp => comp.Towers.Count > 0)
                 .ActivateOnEnter<P3HeavensfallTowers>();
             ComponentCondition<P3MegaflarePuddle>(id + 0x61, 1.0f, comp => comp.Casters.Count > 0)
                 .ActivateOnEnter<P3MegaflarePuddle>()
@@ -684,10 +683,10 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private void P3TenstrikeTrio(uint id, float delay)
         {
             ActorCast(id, _module.BahamutPrime, AID.TenstrikeTrio, delay, 4, true);
-            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (tenstrike trio)")
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (tenstrike trio)")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
 
-            ComponentCondition<Hatch>(id + 0x20, 2.3f, comp => comp.NumTargetsAssigned > 0)
+            ComponentCondition<Hatch>(id + 0x20, 2.2f, comp => comp.NumTargetsAssigned > 0)
                 .ExecOnEnter<Hatch>(comp => comp.Reset())
                 .ActivateOnEnter<P2MeteorStream>();
             ActorCast(id + 0x30, _module.Twintania, AID.Generate, 0.1f, 3, true, "Hatch 1");
@@ -722,7 +721,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private void P3GrandOctet(uint id, float delay)
         {
             ActorCast(id, _module.BahamutPrime, AID.GrandOctet, delay, 4, true);
-            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2, "Boss disappears (grand octet)")
+            ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (grand octet)")
                 .SetHint(StateMachine.StateHint.DowntimeStart);
             ComponentCondition<P3GrandOctet>(id + 0x20, 1.2f, comp => comp.Casters.Count == 8)
                 .ExecOnEnter<Hatch>(comp => comp.Active = false)
@@ -733,8 +732,8 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P3GrandOctet>(id + 0x33, 2, comp => comp.NumBaitsAssigned >= 5);
             ComponentCondition<P3GrandOctet>(id + 0x34, 2, comp => comp.NumBaitsAssigned >= 6);
             ComponentCondition<P3GrandOctet>(id + 0x40, 9, comp => comp.NumBaitsAssigned >= 7, "Bahamut bait");
-            ComponentCondition<P3GrandOctet>(id + 0x50, 4.2f, comp => comp.NumCasts >= 7);
-            ComponentCondition<P3MegaflareTower>(id + 0x60, 1.9f, comp => comp.Towers.Count > 0)
+            ComponentCondition<P3GrandOctet>(id + 0x50, 4.3f, comp => comp.NumCasts >= 7);
+            ComponentCondition<P3MegaflareTower>(id + 0x60, 1.8f, comp => comp.Towers.Count > 0)
                 .ActivateOnEnter<P3MegaflareTower>();
             ComponentCondition<P3MegaflareStack>(id + 0x61, 0.9f, comp => comp.Active)
                 .ActivateOnEnter<P3MegaflareStack>();
@@ -746,9 +745,9 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P3MegaflareTower>(id + 0x73, 0.8f, comp => comp.NumCasts > 0, "Towers")
                 .ActivateOnEnter<P3Twister>()
                 .DeactivateOnExit<P3MegaflareTower>();
-            ComponentCondition<P3Twister>(id + 0x74, 0.6f, comp => comp.Active, "Twisters");
+            ComponentCondition<P3Twister>(id + 0x74, 0.5f, comp => comp.Active, "Twisters");
 
-            ActorTargetable(id + 0x1000, _module.Twintania, true, 16, "Adds appear")
+            ActorTargetable(id + 0x1000, _module.Twintania, true, 15.9f, "Adds appear")
                 .ExecOnEnter<Hatch>(comp => comp.Active = true)
                 .DeactivateOnExit<P3Twister>()
                 .SetHint(StateMachine.StateHint.DowntimeEnd);
@@ -865,6 +864,13 @@ namespace BossMod.Stormblood.Ultimate.UCOB
             ComponentCondition<P5Exaflare>(id + 0x20, 3, comp => comp.NumCasts >= 8, "Exaflares 2");
             ComponentCondition<P5Exaflare>(id + 0x30, 3, comp => comp.NumCasts >= 18, "Exaflares 3");
             // +7.5s: resolve
+        }
+
+        private void P5Enrage(uint id, float delay)
+        {
+            ActorCast(id, _module.BahamutPrime, AID.Enrage, delay, 10, true, "Enrage")
+                .ActivateOnEnter<P5Enrage>();
+            // second hit after 2.2s, then every ~1.2s
         }
     }
 }

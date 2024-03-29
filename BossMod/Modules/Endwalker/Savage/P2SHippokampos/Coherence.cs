@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
         private AOEShapeRect _rayShape = new(50, 3);
         private BitMask _inRay;
 
-        private static float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff? i have very few data points < 15
+        private static readonly float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff? i have very few data points < 15
 
         public Coherence() : base(ActionID.MakeSpell(AID.CoherenceRay)) { }
 

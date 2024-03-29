@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
         public int NumStunned { get; private set; }
         private (WDir, DateTime)[] _arrows = new (WDir, DateTime)[PartyState.MaxPartySize];
 
-        private static float _typhoonHalfWidth = 2.5f;
+        private static readonly float _typhoonHalfWidth = 2.5f;
 
         public bool SlotActive(BossModule module, int slot)
         {

@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
         private bool _risky;
         private float _delay;
 
-        private static AOEShapeRect _shape = new(38, 5, 38);
+        private static readonly AOEShapeRect _shape = new(38, 5, 38);
 
         public SpringCrystalsRect(bool moveCasters, bool risky, float delay)
         {
@@ -64,7 +64,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
         private List<AOEInstance> _aoes = new();
         private bool _active;
 
-        private static AOEShapeCircle _shape = new(8);
+        private static readonly AOEShapeCircle _shape = new(8);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _active ? _aoes : Enumerable.Empty<AOEInstance>();
 

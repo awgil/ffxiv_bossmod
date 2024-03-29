@@ -6,7 +6,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
     class WickedWheel : Components.CastCounter
     {
         private DateTime _expectedNext;
-        private static float _radius = 8.7f;
+        private static readonly float _radius = 8.7f;
 
         public WickedWheel() : base(ActionID.MakeSpell(AID.WickedWheel)) { }
 

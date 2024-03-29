@@ -11,9 +11,9 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private Angle _centerStartingRotation;
         private (Actor? Actor, int Rings)[] _heads = new (Actor?, int)[(int)HeadID.Count];
 
-        private static AOEShapeCone _aoeCenter = new(20, 90.Degrees());
-        private static AOEShapeCircle _aoeDanger = new(15);
-        private static AOEShapeDonut _aoeSafe = new(5, 15);
+        private static readonly AOEShapeCone _aoeCenter = new(20, 90.Degrees());
+        private static readonly AOEShapeCircle _aoeDanger = new(15);
+        private static readonly AOEShapeDonut _aoeSafe = new(5, 15);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

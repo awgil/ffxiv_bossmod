@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
         private int[] _order = new int[PartyState.MaxPartySize];
         private BitMask _tethers;
 
-        private static AOEShapeCone _shape = new(20, 45.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shape = new(20, 45.Degrees()); // TODO: verify angle
 
         public FlamespireClaw() : base(ActionID.MakeSpell(AID.FlamespireClawAOE)) { }
 

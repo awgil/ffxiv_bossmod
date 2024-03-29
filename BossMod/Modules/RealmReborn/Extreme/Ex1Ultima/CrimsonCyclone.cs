@@ -10,7 +10,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
 
         public bool Active => _ifrit != null;
 
-        private static AOEShapeRect _shape = new(43, 6, 5);
+        private static readonly AOEShapeRect _shape = new(43, 6, 5);
 
         public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
 

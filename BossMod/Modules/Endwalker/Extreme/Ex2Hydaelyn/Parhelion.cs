@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
         private List<Actor> _completedParhelions = new();
         private bool _subparhelions;
 
-        private static AOEShapeRect _beacon = new(45, 3);
+        private static readonly AOEShapeRect _beacon = new(45, 3);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Extreme.Ex6Golbez
         private List<Side> _sides = new();
         private List<Actor>[] _spheres = { new(), new(), new(), new() };
 
-        private static AOEShapeRect _shape = new(30, 2.5f);
+        private static readonly AOEShapeRect _shape = new(30, 2.5f);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

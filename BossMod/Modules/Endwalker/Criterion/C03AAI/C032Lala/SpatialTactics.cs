@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
         private List<Actor> _fonts = new();
         private int[] _remainingStacks = new int[4];
 
-        private static AOEShapeCross _shape = new(50, 4);
+        private static readonly AOEShapeCross _shape = new(50, 4);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

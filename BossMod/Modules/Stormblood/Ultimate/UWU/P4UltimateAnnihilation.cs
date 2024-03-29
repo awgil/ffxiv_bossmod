@@ -7,7 +7,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
     {
         private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
 
-        private static float _radius = 6;
+        private static readonly float _radius = 6;
 
         public override void Init(BossModule module)
         {

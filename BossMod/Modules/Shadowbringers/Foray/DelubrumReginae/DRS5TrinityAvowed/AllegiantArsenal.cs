@@ -13,9 +13,9 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
 
         public bool Active => _pendingAOE != null;
 
-        private static AOEShapeCone _shapeSword = new(70, 135.Degrees(), 180.Degrees());
-        private static AOEShapeCone _shapeBow = new(70, 135.Degrees());
-        private static AOEShapeCircle _shapeStaff = new(10);
+        private static readonly AOEShapeCone _shapeSword = new(70, 135.Degrees(), 180.Degrees());
+        private static readonly AOEShapeCone _shapeBow = new(70, 135.Degrees());
+        private static readonly AOEShapeCircle _shapeStaff = new(10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

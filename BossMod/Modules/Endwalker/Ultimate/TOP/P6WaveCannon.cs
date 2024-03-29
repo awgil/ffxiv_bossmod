@@ -38,7 +38,7 @@
 
     class P6WaveCannonProteans : Components.GenericBaitAway
     {
-        private static AOEShapeRect _shape = new(100, 4);
+        private static readonly AOEShapeRect _shape = new(100, 4);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {

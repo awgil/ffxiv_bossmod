@@ -13,8 +13,8 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     {
         private Angle _blasterStartingDirection;
 
-        private static float _blasterOffset = 14;
-        private static AOEShapeCircle _blasterShape = new(10);
+        private static readonly float _blasterOffset = 14;
+        private static readonly AOEShapeCircle _blasterShape = new(10);
 
         public P2IntermissionHawkBlaster() : base(ActionID.MakeSpell(AID.HawkBlasterIntermission)) { }
 

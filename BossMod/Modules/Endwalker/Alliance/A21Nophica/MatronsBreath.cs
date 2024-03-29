@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Alliance.A21Nophica
         private IReadOnlyList<Actor> _goldSafe = ActorEnumeration.EmptyList;
         private List<Actor> _towers = new();
 
-        private static AOEShapeDonut _shape = new(8, 40); // TODO: verify safe zone radius
+        private static readonly AOEShapeDonut _shape = new(8, 40); // TODO: verify safe zone radius
 
         public override void Init(BossModule module)
         {

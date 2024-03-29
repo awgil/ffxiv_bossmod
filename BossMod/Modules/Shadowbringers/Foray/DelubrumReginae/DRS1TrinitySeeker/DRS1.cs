@@ -35,7 +35,7 @@
     [ModuleInfo(CFCID = 761, NameID = 9834)]
     public class DRS1 : BossModule
     {
-        public static float BarricadeRadius = 20;
+        public static readonly float BarricadeRadius = 20;
 
         public DRS1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 278), 25)) { }
 

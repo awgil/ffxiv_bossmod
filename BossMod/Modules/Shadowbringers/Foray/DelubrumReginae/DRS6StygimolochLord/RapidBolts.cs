@@ -18,7 +18,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord
     class RapidBoltsAOE : Components.GenericAOEs
     {
         private List<(WPos pos, int numCasts)> _puddles = new();
-        private static AOEShapeCircle _shape = new(5);
+        private static readonly AOEShapeCircle _shape = new(5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

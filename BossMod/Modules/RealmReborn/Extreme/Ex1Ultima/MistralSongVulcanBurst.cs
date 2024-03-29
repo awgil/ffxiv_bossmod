@@ -9,7 +9,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
         private Actor? _garuda; // non-null while mechanic is active
         private DateTime _resolve;
         private bool _burstImminent;
-        private static AOEShapeCone _shape = new(23.4f, 75.Degrees());
+        private static readonly AOEShapeCone _shape = new(23.4f, 75.Degrees());
 
         public MistralSongVulcanBurst() : base(ActionID.MakeSpell(AID.MistralSong)) { }
 

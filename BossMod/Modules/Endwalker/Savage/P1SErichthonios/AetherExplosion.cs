@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         private Actor? _memberWithSOT = null; // if not null, then every update exploding cells are recalculated based on this raid member's position
         private Cell _explodingCells = Cell.None;
 
-        private static uint _colorSOTActor = 0xff8080ff;
+        private static readonly uint _colorSOTActor = 0xff8080ff;
 
         public bool SOTActive => _memberWithSOT != null;
 

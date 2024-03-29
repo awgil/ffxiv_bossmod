@@ -65,9 +65,9 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shapeOut = new(12);
-        private static AOEShapeDonut _shapeIn = new(8, 20);
-        private static AOEShapeCone _shapeCleave = new(40, 90.Degrees());
+        private static readonly AOEShapeCircle _shapeOut = new(12);
+        private static readonly AOEShapeDonut _shapeIn = new(8, 20);
+        private static readonly AOEShapeCone _shapeCleave = new(40, 90.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

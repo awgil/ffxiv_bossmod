@@ -177,7 +177,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
     {
         private Palladion? _palladion;
 
-        private static AOEShapeCircle _shape = new(4); // note: it's really a 270? degree cone, but we don't really know rotation early enough, and we just shouldn't stay in center anyway
+        private static readonly AOEShapeCircle _shape = new(4); // note: it's really a 270? degree cone, but we don't really know rotation early enough, and we just shouldn't stay in center anyway
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -197,7 +197,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         private Palladion? _palladion;
         private Actor _fakeSource = new(0, 0, -1, "dummy", ActorType.None, Class.None, 0, new(100, 0, 100, 0)); // fake actor used as bait source
 
-        private static AOEShapeRect _shape = new(100, 2);
+        private static readonly AOEShapeRect _shape = new(100, 2);
 
         public override void Init(BossModule module)
         {
@@ -256,7 +256,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
 
     class PalladionDestroyPlatforms : Components.GenericAOEs
     {
-        private static AOEShapeRect _shape = new(10, 20, 10);
+        private static readonly AOEShapeRect _shape = new(10, 20, 10);
 
         public PalladionDestroyPlatforms() : base(ActionID.MakeSpell(AID.PalladionDestroyPlatforms), "Go to safe platform!") { }
 

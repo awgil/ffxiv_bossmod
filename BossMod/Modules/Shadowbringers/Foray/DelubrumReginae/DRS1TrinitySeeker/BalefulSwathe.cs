@@ -6,7 +6,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
     class BalefulSwathe : Components.GenericAOEs
     {
         private DateTime _activation;
-        private static AOEShapeRect _shape = new(50, 50, -5);
+        private static readonly AOEShapeRect _shape = new(50, 50, -5);
 
         public BalefulSwathe() : base(ActionID.MakeSpell(AID.BalefulSwathe)) { }
 

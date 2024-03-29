@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private AOEInstance? _aoe;
         private float _activationDelay;
 
-        private static float _impactRadiusIncrement = 6;
+        private static readonly float _impactRadiusIncrement = 6;
 
         public bool Active => _aoe != null;
 

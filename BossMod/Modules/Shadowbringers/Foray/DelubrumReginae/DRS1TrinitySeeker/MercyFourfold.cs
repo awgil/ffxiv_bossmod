@@ -7,8 +7,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
     {
         private List<AOEInstance> _aoes = new();
         private List<AOEInstance?> _safezones = new();
-        private static AOEShapeCone _shapeAOE = new(50, 90.Degrees());
-        private static AOEShapeCone _shapeSafe = new(50, 45.Degrees());
+        private static readonly AOEShapeCone _shapeAOE = new(50, 90.Degrees());
+        private static readonly AOEShapeCone _shapeSafe = new(50, 45.Degrees());
 
         public MercyFourfold() : base(ActionID.MakeSpell(AID.MercyFourfoldAOE)) { }
 

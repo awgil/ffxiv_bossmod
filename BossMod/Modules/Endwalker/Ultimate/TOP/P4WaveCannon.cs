@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
     {
         private Actor? _source;
 
-        private static AOEShapeRect _shape = new(100, 3);
+        private static readonly AOEShapeRect _shape = new(100, 3);
 
         public void Show(BossModule module)
         {
@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private int[] _playerGroups = Utils.MakeArray(PartyState.MaxPartySize, -1);
         private BitMask _westStack;
 
-        private static AOEShapeRect _shape = new(100, 3);
+        private static readonly AOEShapeRect _shape = new(100, 3);
 
         public bool Active => _targets.Any();
 

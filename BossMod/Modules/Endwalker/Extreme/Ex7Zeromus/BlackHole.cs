@@ -12,9 +12,9 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
         private DateTime _growthStart;
 
         // TODO: verify...
-        private static float _startingRadius = 5;
-        private static float _maxRadius = 35;
-        private static float _growthPerSecond = 3.3f;
+        private static readonly float _startingRadius = 5;
+        private static readonly float _maxRadius = 35;
+        private static readonly float _growthPerSecond = 3.3f;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
@@ -87,8 +87,8 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
         private Angle _increment;
         private DateTime _startingActivation;
 
-        private static AOEShapeRect _shape = new(60, 4);
-        private static int _maxCasts = 21;
+        private static readonly AOEShapeRect _shape = new(60, 4);
+        private static readonly int _maxCasts = 21;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

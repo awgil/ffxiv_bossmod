@@ -7,8 +7,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shapeWing = new(50, 10.5f);
-        private static AOEShapeRect _shapeTail = new(50, 8);
+        private static readonly AOEShapeRect _shapeWing = new(50, 10.5f);
+        private static readonly AOEShapeRect _shapeTail = new(50, 8);
 
         public int NumAOEs => _aoes.Count; // 0 if not started, 1 if tail, 2 if wings
 

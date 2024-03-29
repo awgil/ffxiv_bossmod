@@ -57,7 +57,7 @@ namespace BossMod.RealmReborn.Trial.T05IfritH
     {
         private List<Actor> _casters = new();
 
-        private static AOEShape _shape = new AOEShapeRect(43, 6);
+        private static readonly AOEShape _shape = new AOEShapeRect(43, 6);
 
         public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
 

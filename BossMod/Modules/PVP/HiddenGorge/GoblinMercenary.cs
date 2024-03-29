@@ -78,7 +78,7 @@ namespace BossMod.PVP.HiddenGorge.GoblinMercenary
         private Angle _rotation;
         private DateTime _activation;
 
-        private static AOEShapeRect _shape = new AOEShapeRect(32, 3);
+        private static readonly AOEShapeRect _shape = new AOEShapeRect(32, 3);
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {

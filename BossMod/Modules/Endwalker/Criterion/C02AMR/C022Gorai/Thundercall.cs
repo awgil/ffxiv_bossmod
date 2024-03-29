@@ -10,8 +10,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
         private Actor? _miniTarget;
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shapeSmall = new(8);
-        private static AOEShapeCircle _shapeLarge = new(18);
+        private static readonly AOEShapeCircle _shapeSmall = new(8);
+        private static readonly AOEShapeCircle _shapeLarge = new(18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

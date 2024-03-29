@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Alliance.A23Halone
     {
         private AOEInstance? _aoe;
 
-        private static float _impactRadiusIncrement = 6;
+        private static readonly float _impactRadiusIncrement = 6;
 
         public bool Active => _aoe != null;
 

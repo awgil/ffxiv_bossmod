@@ -9,7 +9,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     {
         private List<(WPos pos, DateTime activation)> _casters = new();
 
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public bool Active => _casters.Count > 0;
 

@@ -10,8 +10,8 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         private DateTime _activation;
         private BitMask _forbidden;
 
-        private static float _distance = 17;
-        private static AOEShapeRect _shape = new(50, 2.5f);
+        private static readonly float _distance = 17;
+        private static readonly AOEShapeRect _shape = new(50, 2.5f);
 
         public Turrets() : base(ActionID.MakeSpell(AID.PealOfCondemnation), true, 1) { } // TODO: verify whether it ignores immunes
 

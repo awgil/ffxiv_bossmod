@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
         public bool Active => _targets.Any() && NumCasts < 2;
 
-        private static AOEShape _shape = new AOEShapeCone(60, 15.Degrees());
+        private static readonly AOEShape _shape = new AOEShapeCone(60, 15.Degrees());
 
         public P3Earthshaker() : base(ActionID.MakeSpell(AID.EarthShakerAOE)) { }
 

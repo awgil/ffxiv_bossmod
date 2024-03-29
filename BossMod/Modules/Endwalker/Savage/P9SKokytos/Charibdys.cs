@@ -86,7 +86,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
     {
         private Comet? _comet;
 
-        private static AOEShapeCone _shape = new(40, 22.5f.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 22.5f.Degrees());
 
         public Thunderbolt() : base(ActionID.MakeSpell(AID.ThunderboltAOE)) { }
 

@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
     {
         private List<Actor> _active = new();
 
-        private static AOEShape _shape = new AOEShapeCircle(10); // TODO: verify radius
+        private static readonly AOEShape _shape = new AOEShapeCircle(10); // TODO: verify radius
 
         public bool Active => _active.Count > 0;
 

@@ -2,7 +2,7 @@
 {
     class TorchingTorment : Components.GenericBaitAway
     {
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public TorchingTorment() : base(centerAtTarget: true) { }
 

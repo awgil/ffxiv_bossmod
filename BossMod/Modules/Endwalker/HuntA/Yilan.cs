@@ -45,12 +45,12 @@ namespace BossMod.Endwalker.HuntA.Yilan
     {
         private DateTime _activation;
 
-        private static readonly AOEShapeCircle Shape = new(18);
+        private static readonly AOEShapeCircle _shape = new(18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_activation != default)
-                yield return new(Shape, module.PrimaryActor.Position, default, _activation);
+                yield return new(_shape, module.PrimaryActor.Position, default, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

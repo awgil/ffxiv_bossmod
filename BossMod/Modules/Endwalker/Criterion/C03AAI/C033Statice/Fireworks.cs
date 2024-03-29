@@ -110,8 +110,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
         public List<Sequence> Sequences = new();
         private Angle _rotation;
 
-        private static AOEShapeRect _shape = new(20, 2.5f, -8);
-        private static int _maxShownExplosions = 3;
+        private static readonly AOEShapeRect _shape = new(20, 2.5f, -8);
+        private static readonly int _maxShownExplosions = 3;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

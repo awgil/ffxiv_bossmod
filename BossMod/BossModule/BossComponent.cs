@@ -58,6 +58,7 @@ namespace BossMod
         public virtual void OnActorEAnim(BossModule module, Actor actor, uint state) { }
         public virtual void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id) { }
         public virtual void OnActorNpcYell(BossModule module, Actor actor, ushort id) { }
+        public virtual void OnActorModelStateChange(BossModule module, Actor actor, byte modelState, byte animState1, byte animState2) { }
         public virtual void OnEventEnvControl(BossModule module, byte index, uint state) { }
     }
 }

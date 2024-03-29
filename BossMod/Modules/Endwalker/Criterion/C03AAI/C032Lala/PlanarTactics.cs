@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
         public List<AOEInstance> Mines = new();
         public PlayerState[] Players = new PlayerState[4];
 
-        private static AOEShapeRect _shape = new(4, 4, 4);
+        private static readonly AOEShapeRect _shape = new(4, 4, 4);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Mines;
 

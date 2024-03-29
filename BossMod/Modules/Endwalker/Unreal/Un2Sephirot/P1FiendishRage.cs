@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
     {
         private BitMask _targets;
 
-        private static float _range = 6;
+        private static readonly float _range = 6;
 
         public P1FiendishRage() : base(ActionID.MakeSpell(AID.FiendishRage)) { }
 

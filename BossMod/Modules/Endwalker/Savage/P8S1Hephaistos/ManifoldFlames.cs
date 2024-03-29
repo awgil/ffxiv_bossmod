@@ -16,7 +16,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
     {
         protected BitMask BaitingPlayers;
 
-        private static AOEShapeRect _shape = new(60, 2.5f);
+        private static readonly AOEShapeRect _shape = new(60, 2.5f);
 
         public NestOfFlamevipersCommon() : base(ActionID.MakeSpell(AID.NestOfFlamevipersAOE)) { }
 

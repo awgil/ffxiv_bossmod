@@ -8,8 +8,8 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
     {
         private Actor?[] _towers = { null, null };
 
-        private static float _towerRadius = 4;
-        private static float _knockbackRadius = 36;
+        private static readonly float _towerRadius = 4;
+        private static readonly float _knockbackRadius = 36;
 
         public WickedStep() : base(ignoreImmunes: true) { }
 

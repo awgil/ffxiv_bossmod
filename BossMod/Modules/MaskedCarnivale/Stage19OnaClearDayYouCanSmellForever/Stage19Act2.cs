@@ -39,9 +39,28 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
 
     class ExplosiveDehiscence : Components.CastGaze
     {
-        public static BitMask _blinded;
+        public bool casting;
+        public BitMask _blinded;
 
         public ExplosiveDehiscence() : base(ActionID.MakeSpell(AID.ExplosiveDehiscence)) { }
+
+        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        {
+            if (!_blinded[slot] && casting)
+                hints.Add("Cast Ink Jet on boss to get blinded!");
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.Schizocarps)
+                casting = true;
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.ExplosiveDehiscence)
+                casting = false;
+        }
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
@@ -58,29 +77,6 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
         public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
         {
             return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
-        }
-    }
-
-    class GazeHint : BossComponent
-    {
-        public static bool casting;
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-        {
-            if (!ExplosiveDehiscence._blinded[slot] && casting)
-                hints.Add("Cast Ink Jet on boss to get blinded!");
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.Schizocarps)
-                casting = true;
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.ExplosiveDehiscence)
-                casting = false;
         }
     }
 
@@ -146,7 +142,6 @@ namespace BossMod.MaskedCarnivale.Stage19.Act2
                 .ActivateOnEnter<BadBreath>()
                 .ActivateOnEnter<VineProbe>()
                 .ActivateOnEnter<ExplosiveDehiscence>()
-                .ActivateOnEnter<GazeHint>()
                 .ActivateOnEnter<OffalBreath>();
         }
     }

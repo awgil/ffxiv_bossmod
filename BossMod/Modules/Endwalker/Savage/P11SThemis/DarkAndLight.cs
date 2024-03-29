@@ -17,8 +17,8 @@ namespace BossMod.Endwalker.Savage.P11SThemis
         public bool ShowSafespots = true;
         private PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
 
-        private static float _farOffset = 13;
-        private static float _nearOffset = 7;
+        private static readonly float _farOffset = 13;
+        private static readonly float _nearOffset = 7;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private int _doneTowers = 0;
         private int _activeTethers = 0;
 
-        private static float _waterExplosionRange = 10;
+        private static readonly float _waterExplosionRange = 10;
 
         public override void Update(BossModule module)
         {

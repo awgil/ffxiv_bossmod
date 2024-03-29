@@ -7,8 +7,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shapeCircle = new(15);
-        private static AOEShapeDonut _shapeDonut = new(8, 30);
+        private static readonly AOEShapeCircle _shapeCircle = new(15);
+        private static readonly AOEShapeDonut _shapeDonut = new(8, 30);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
 

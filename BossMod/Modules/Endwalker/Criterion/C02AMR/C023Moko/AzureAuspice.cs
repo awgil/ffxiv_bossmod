@@ -33,8 +33,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
 
         private List<LineSequence> _lines = new();
 
-        private static AOEShapeRect _shapeWide = new(30, 5, 30);
-        private static AOEShapeRect _shapeNarrow = new(30, 2.5f, 30);
+        private static readonly AOEShapeRect _shapeWide = new(30, 5, 30);
+        private static readonly AOEShapeRect _shapeNarrow = new(30, 2.5f, 30);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

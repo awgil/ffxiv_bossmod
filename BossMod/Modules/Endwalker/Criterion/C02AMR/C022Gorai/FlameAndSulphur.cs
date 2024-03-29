@@ -6,10 +6,10 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shapeFlameExpand = new(46, 5);
-        private static AOEShapeRect _shapeFlameSplit = new(46, 2.5f);
-        private static AOEShapeCircle _shapeRockExpand = new(11);
-        private static AOEShapeDonut _shapeRockSplit = new(6, 16);
+        private static readonly AOEShapeRect _shapeFlameExpand = new(46, 5);
+        private static readonly AOEShapeRect _shapeFlameSplit = new(46, 2.5f);
+        private static readonly AOEShapeCircle _shapeRockExpand = new(11);
+        private static readonly AOEShapeDonut _shapeRockSplit = new(6, 16);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         public List<Actor> FirstAOECasters = new();
         public List<Actor> SecondAOECasters = new();
 
-        private static AOEShape _shape = new AOEShapeCone(65, 15.Degrees());
+        private static readonly AOEShape _shape = new AOEShapeCone(65, 15.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

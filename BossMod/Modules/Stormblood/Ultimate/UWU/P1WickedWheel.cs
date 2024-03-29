@@ -11,10 +11,10 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public DateTime AwakenedResolve { get; private set; }
         public List<(Actor source, AOEShape shape, DateTime activation)> Sources = new();
 
-        public static AOEShapeCircle ShapeWheel = new(8.7f);
-        public static AOEShapeDonut ShapeTornado = new(7, 20);
-        public static AOEShapeCircle ShapeSister = new(8.36f);
-        public static AOEShapeCircle ShapeCombined = new(20); // wheel+tornado, used when players are expected to outrange both - e.g. during ultimate predation
+        public static readonly AOEShapeCircle ShapeWheel = new(8.7f);
+        public static readonly AOEShapeDonut ShapeTornado = new(7, 20);
+        public static readonly AOEShapeCircle ShapeSister = new(8.36f);
+        public static readonly AOEShapeCircle ShapeCombined = new(20); // wheel+tornado, used when players are expected to outrange both - e.g. during ultimate predation
 
         public bool Active => Sources.Count > 0;
 

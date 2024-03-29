@@ -6,7 +6,7 @@
         private int _numAetheroplasmsDone;
         private BitMask _taken;
 
-        private static AOEShapeCone _shape = new(100, 45.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shape = new(100, 45.Degrees()); // TODO: verify angle
 
         public override void Init(BossModule module)
         {

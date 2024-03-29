@@ -78,9 +78,9 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
         public int NumConcurrentAOEs { get; private set; }
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shapeLine = new(20, 2);
-        private static AOEShapeCircle _shapeCircle = new(2);
-        private static AOEShapeDonut _shapeDonut = new(3, 7);
+        private static readonly AOEShapeRect _shapeLine = new(20, 2);
+        private static readonly AOEShapeCircle _shapeCircle = new(2);
+        private static readonly AOEShapeDonut _shapeDonut = new(3, 7);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 
@@ -150,7 +150,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
         private List<(Actor source, Actor target)> _tethers = new();
         private BitMask _vulnerable;
 
-        private static AOEShapeRect _shape = new(20, 3);
+        private static readonly AOEShapeRect _shape = new(20, 3);
 
         public UltimaBlow() : base(ActionID.MakeSpell(AID.UltimaBlow)) { }
 

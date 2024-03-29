@@ -6,8 +6,8 @@ namespace BossMod.Endwalker.Alliance.A14Naldthal
     {
         public List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shapeOut = new(8);
-        private static AOEShapeDonut _shapeIn = new(8, 30);
+        private static readonly AOEShapeCircle _shapeOut = new(8);
+        private static readonly AOEShapeDonut _shapeIn = new(8, 30);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

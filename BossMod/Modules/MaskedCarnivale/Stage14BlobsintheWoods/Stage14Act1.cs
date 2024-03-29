@@ -20,7 +20,7 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
 
     class LastSongHint : BossComponent
     {
-        public static bool casting;
+        public bool casting;
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -57,7 +57,7 @@ namespace BossMod.MaskedCarnivale.Stage14.Act1
                 .DeactivateOnEnter<Hints>()
                 .ActivateOnEnter<LastSong>()
                 .ActivateOnEnter<LastSongHint>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !LastSongHint.casting;
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !module.FindComponent<LastSongHint>()!.casting;
         }
     }
 
