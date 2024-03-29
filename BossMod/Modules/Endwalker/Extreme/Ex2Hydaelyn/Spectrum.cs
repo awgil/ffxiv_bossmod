@@ -2,7 +2,7 @@
 {
     class Spectrum : Components.CastCounter
     {
-        private static float _radius = 5;
+        private static readonly float _radius = 5;
 
         public Spectrum() : base(ActionID.MakeSpell(AID.BrightSpectrum)) { }
 

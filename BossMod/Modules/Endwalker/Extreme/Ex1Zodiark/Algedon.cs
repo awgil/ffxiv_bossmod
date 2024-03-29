@@ -5,7 +5,7 @@
     {
         private Actor? _caster;
 
-        private static AOEShapeRect _shape = new(60, 15);
+        private static readonly AOEShapeRect _shape = new(60, 15);
 
         public bool Done => _caster == null;
 

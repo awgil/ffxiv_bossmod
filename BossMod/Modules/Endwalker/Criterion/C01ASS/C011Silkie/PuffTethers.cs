@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie
         private PuffTracker? _tracker;
         private SlipperySoap.Color _bossColor;
 
-        private static uint _hintColor = 0x40008080;
+        private static readonly uint _hintColor = 0x40008080;
 
         public PuffTethers(bool originAtBoss)
         {

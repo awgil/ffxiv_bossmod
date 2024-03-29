@@ -41,7 +41,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shape = new(5);
+        private static readonly AOEShapeCircle _shape = new(5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 
@@ -64,7 +64,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
     {
         private List<(Angle rot, DateTime activation)> _angles = new();
 
-        private static AOEShapeCone _shape = new(60, 20.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 20.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

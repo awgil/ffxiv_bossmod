@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
     {
         private Actor? _source;
 
-        private static AOEShapeCircle _shape = new(5);
+        private static readonly AOEShapeCircle _shape = new(5);
 
         public P6FlashGale() : base(centerAtTarget: true) { }
 

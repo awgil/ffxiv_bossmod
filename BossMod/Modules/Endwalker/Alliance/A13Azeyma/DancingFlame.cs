@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Alliance.A13Azeyma
     {
         public List<AOEInstance> AOEs = new();
 
-        private static AOEShapeRect _shape = new(17.5f, 17.5f, 17.5f); // 15 for diagonal 'squares' + 2.5 for central cross
+        private static readonly AOEShapeRect _shape = new(17.5f, 17.5f, 17.5f); // 15 for diagonal 'squares' + 2.5 for central cross
 
         public DancingFlame() : base(ActionID.MakeSpell(AID.DancingFlameFirst)) { }
 

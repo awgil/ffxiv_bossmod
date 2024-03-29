@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
     {
         private Actor? _target;
 
-        private static float _aoeRadius = 3;
+        private static readonly float _aoeRadius = 3;
 
         public bool Done => _target == null;
 

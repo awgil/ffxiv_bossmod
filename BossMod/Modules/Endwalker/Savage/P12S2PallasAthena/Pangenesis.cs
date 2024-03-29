@@ -124,7 +124,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
     {
         private List<(Actor source, Actor target)> _slimes = new();
 
-        private static AOEShapeCircle _shape = new(20);
+        private static readonly AOEShapeCircle _shape = new(20);
 
         public FactorIn() : base(ActionID.MakeSpell(AID.FactorIn), centerAtTarget: true) { }
 

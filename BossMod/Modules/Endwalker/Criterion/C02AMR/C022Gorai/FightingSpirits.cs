@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
     {
         private int[] _order = { -1, -1, -1, -1 };
 
-        private static AOEShapeCross _shape = new(60, 10);
+        private static readonly AOEShapeCross _shape = new(60, 10);
 
         public WorldlyPursuitBait() : base(centerAtTarget: true) { }
 
@@ -70,7 +70,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai
     {
         private DateTime _activation;
 
-        private static AOEShapeCross _shape = new(60, 10);
+        private static readonly AOEShapeCross _shape = new(60, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

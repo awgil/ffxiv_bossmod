@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 
         public bool Active => _towers.Count > 0;
 
-        private static float _radius = 5;
+        private static readonly float _radius = 5;
 
         public P3FiendishWail() : base(ActionID.MakeSpell(AID.FiendishWailAOE)) { }
 

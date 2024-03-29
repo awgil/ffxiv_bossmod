@@ -11,8 +11,8 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         private (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
         private BitMask _playersInAOE;
 
-        private static float _chargeHalfWidth = 3;
-        private static float _chargeMinSafeDistance = 30;
+        private static readonly float _chargeHalfWidth = 3;
+        private static readonly float _chargeMinSafeDistance = 30;
 
         public override void Update(BossModule module)
         {

@@ -48,8 +48,8 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
         private Angle _offset;
         private DateTime _activation;
 
-        private static AOEShapeCross _first = new(20, 6);
-        private static AOEShapeRect _rest = new(8, 20);
+        private static readonly AOEShapeCross _first = new(20, 6);
+        private static readonly AOEShapeRect _rest = new(8, 20);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

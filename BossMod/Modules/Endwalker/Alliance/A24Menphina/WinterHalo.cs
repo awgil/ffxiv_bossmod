@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Alliance.A24Menphina
     {
         private AOEInstance? _aoe;
 
-        private static AOEShapeDonut _shape = new(10, 60);
+        private static readonly AOEShapeDonut _shape = new(10, 60);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 

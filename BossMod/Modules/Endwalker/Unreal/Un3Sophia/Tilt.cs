@@ -5,8 +5,8 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
 {
     class Tilt : Components.Knockback
     {
-        public static float DistanceShort = 28;
-        public static float DistanceLong = 37;
+        public static readonly float DistanceShort = 28;
+        public static readonly float DistanceLong = 37;
 
         public float Distance;
         public Angle Direction;

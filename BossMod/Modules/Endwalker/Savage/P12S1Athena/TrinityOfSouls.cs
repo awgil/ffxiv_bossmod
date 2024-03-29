@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         private uint _moves; // bit 0 - move after first, bit1 - move after second
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCone _shape = new(60, 90.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 90.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
 

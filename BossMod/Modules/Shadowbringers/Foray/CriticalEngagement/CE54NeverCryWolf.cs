@@ -116,7 +116,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         private List<Actor> _casters = new();
         private DateTime _activation;
 
-        private static AOEShapeRect _shape = new(60, 2);
+        private static readonly AOEShapeRect _shape = new(60, 2);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.NPCFinishAt ?? _activation));
 
@@ -142,7 +142,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf
         private List<Angle> _angles = new();
         private DateTime _nextActivation;
 
-        private static AOEShapeCone _shape = new(40, 10.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 10.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

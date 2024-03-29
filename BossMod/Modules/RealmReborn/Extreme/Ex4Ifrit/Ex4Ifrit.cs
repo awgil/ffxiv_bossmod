@@ -4,7 +4,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
 {
     class Incinerate : Components.Cleave
     {
-        public static AOEShapeCone CleaveShape = new(21, 60.Degrees());
+        public static readonly AOEShapeCone CleaveShape = new(21, 60.Degrees());
 
         public Incinerate() : base(ActionID.MakeSpell(AID.Incinerate), CleaveShape) { }
     }

@@ -11,7 +11,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         private List<Actor> _casters = new();
         private DateTime _activation;
 
-        private static AOEShapeCircle _shape = new(3);
+        private static readonly AOEShapeCircle _shape = new(3);
 
         public bool CastsPredicted => _predicted.Count > 0;
         public bool CastsActive => _casters.Count > 0;

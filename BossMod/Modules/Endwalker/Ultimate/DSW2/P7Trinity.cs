@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private Actor? _source;
 
-        private static AOEShapeCircle _shape = new(3);
+        private static readonly AOEShapeCircle _shape = new(3);
 
         public P7Trinity() : base(centerAtTarget: true) { }
 

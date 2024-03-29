@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Alliance.A13Azeyma
 {
     class WildfireWard : Components.KnockbackFromCastTarget
     {
-        private static WPos[] _tri = { new(-750, -762), new(-760.392f, -744), new(-739.608f, -744) };
+        private static readonly WPos[] _tri = { new(-750, -762), new(-760.392f, -744), new(-739.608f, -744) };
 
         public WildfireWard() : base(ActionID.MakeSpell(AID.IlluminatingGlimpse), 15, false, 1, kind: Kind.DirLeft) { }
 

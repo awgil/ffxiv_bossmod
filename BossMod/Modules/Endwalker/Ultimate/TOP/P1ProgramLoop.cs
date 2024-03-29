@@ -11,8 +11,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private List<Actor> _towers = new();
         private BitMask _tethers;
 
-        private static float _towerRadius = 3;
-        private static float _tetherRadius = 15;
+        private static readonly float _towerRadius = 3;
+        private static readonly float _tetherRadius = 15;
 
         protected override (GroupAssignmentUnique assignment, bool global) Assignments()
         {

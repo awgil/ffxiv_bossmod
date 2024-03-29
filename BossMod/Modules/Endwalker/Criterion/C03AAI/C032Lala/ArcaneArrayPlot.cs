@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala
         public List<AOEInstance> AOEs = new();
         public List<WPos> SafeZoneCenters = new();
 
-        public static AOEShapeRect Shape = new(4, 4, 4);
+        public static readonly AOEShapeRect Shape = new(4, 4, 4);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
 

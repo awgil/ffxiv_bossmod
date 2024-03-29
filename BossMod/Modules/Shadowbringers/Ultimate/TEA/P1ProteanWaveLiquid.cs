@@ -18,7 +18,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     {
         private Actor? _source;
 
-        private static AOEShapeCone _shape = new(40, 15.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
 
         public P1ProteanWaveLiquidInvisFixed() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidInvisBoss)) { }
 
@@ -39,7 +39,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     {
         private Actor? _source;
 
-        private static AOEShapeCone _shape = new(40, 15.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
 
         public P1ProteanWaveLiquidInvisBaited() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidInvisHelper)) { }
 

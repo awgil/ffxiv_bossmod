@@ -9,7 +9,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
         private DateTime _resolve;
         public bool Active => _casters.Count > 0;
 
-        private static AOEShapeCircle _shape = new(15);
+        private static readonly AOEShapeCircle _shape = new(15);
 
         public Freefire() : base(ActionID.MakeSpell(AID.Freefire)) { }
 

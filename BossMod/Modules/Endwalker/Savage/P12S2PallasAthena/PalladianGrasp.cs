@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Savage.P12S2PallasAthena
     {
         private ulong _firstPrimaryTarget;
 
-        private static AOEShapeRect _shape = new(P12S2PallasAthena.DefaultBounds.HalfHeight, P12S2PallasAthena.DefaultBounds.HalfWidth / 2, P12S2PallasAthena.DefaultBounds.HalfHeight);
+        private static readonly AOEShapeRect _shape = new(P12S2PallasAthena.DefaultBounds.HalfHeight, P12S2PallasAthena.DefaultBounds.HalfWidth / 2, P12S2PallasAthena.DefaultBounds.HalfHeight);
 
         public PalladianGrasp() : base(default) { }
 

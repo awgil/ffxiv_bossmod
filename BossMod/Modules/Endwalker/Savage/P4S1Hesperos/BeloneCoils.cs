@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
         private List<Actor> _activeTowers = new();
 
-        private static float _towerRadius = 4;
+        private static readonly float _towerRadius = 4;
 
         public bool IsValidSoaker(Actor player)
         {

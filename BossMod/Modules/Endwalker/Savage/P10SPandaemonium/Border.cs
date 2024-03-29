@@ -5,12 +5,12 @@
         public bool LBridgeActive { get; private set; }
         public bool RBridgeActive { get; private set; }
 
-        public static float MainPlatformCenterZ = 100;
-        public static WDir MainPlatformHalfSize = new(13, 15);
-        public static float SidePlatformOffsetX = 25;
-        public static float SidePlayformCenterZ = 85;
-        public static WDir SidePlatformHalfSize = new(4, 15);
-        public static float BridgeHalfWidth = 1;
+        public static readonly float MainPlatformCenterZ = 100;
+        public static readonly WDir MainPlatformHalfSize = new(13, 15);
+        public static readonly float SidePlatformOffsetX = 25;
+        public static readonly float SidePlayformCenterZ = 85;
+        public static readonly WDir SidePlatformHalfSize = new(4, 15);
+        public static readonly float BridgeHalfWidth = 1;
 
         public static bool InsideMainPlatform(BossModule module, WPos pos) => pos.InRect(new(module.Bounds.Center.X, MainPlatformCenterZ), new WDir(1, 0), MainPlatformHalfSize.X, MainPlatformHalfSize.X, MainPlatformHalfSize.Z);
 

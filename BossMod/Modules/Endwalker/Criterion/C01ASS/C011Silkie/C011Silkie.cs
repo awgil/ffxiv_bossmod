@@ -51,9 +51,9 @@
 
     public abstract class C011Silkie : BossModule
     {
-        public static AOEShapeCross ShapeBlue = new(60, 5);
-        public static AOEShapeDonut ShapeGreen = new(5, 60);
-        public static AOEShapeCone ShapeYellow = new(60, 22.5f.Degrees());
+        public static readonly AOEShapeCross ShapeBlue = new(60, 5);
+        public static readonly AOEShapeDonut ShapeGreen = new(5, 60);
+        public static readonly AOEShapeCone ShapeYellow = new(60, 22.5f.Degrees());
 
         public C011Silkie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-335, -155), 20)) { }
     }

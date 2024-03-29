@@ -1,33 +1,36 @@
 ﻿using System;
 using System.Linq;
 
-// CONTRIB: made by dhoggpt, improvements by veyn & Malediktus, not checked
+// CONTRIB: made by dhoggpt, not checked
 namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
 {
     public enum OID : uint
     {
-        Boss = 0x3EAA, // R=26.0
-        MammothTentacle = 0x3EAB, // R=6.0
-        Crystals = 0x3EAC, // R=0.5
-        Helper = 0x233C,
+        Boss = 0x3EAA, // R26.000, x1
+        MammothTentacle = 0x3EAB, // R6.000, x8, 523 type
+        Helper = 0x233C, // ???
     };
 
     public enum AID : uint
     {
-        AutoAttack = 33357, // Boss->player, no cast, single-target
+        BossSelfUKN = 33350, // Boss->self, no cast, single-target (ignored)
         Breathstroke = 34551, // Boss->self, 16.5s cast, range 35 180-degree cone
         Clearout = 33348, // MammothTentacle->self, 9.0s cast, range 16 120-degree cone
-        Octostroke = 33347, // Boss->self, 16.0s cast, single-target
+        Octostroke = 33347, // Boss->self, 16.0s cast, single-target (GUESSING SIZE)
         SalineSpit1 = 33352, // Boss->self, 3.0s cast, single-target
         SalineSpit2 = 33353, // Helper->self, 6.0s cast, range 8 circle
-        Telekinesis1 = 33349, // Boss->self, 5.0s cast, single-target
+        Telekinesis1 = 33349, // Boss->self, 5.0s cast, single-target (ignored. the helper does the telegraph)
         Telekinesis2 = 33351, // Helper->self, 10.0s cast, range 12 circle
         TidalBreath = 33354, // Boss->self, 10.0s cast, range 35 180-degree cone
         TidalRoar = 33356, // Boss->self, 5.0s cast, range 60 circle
-        VividEyes = 33355, // Boss->self, 4.0s cast, range 20-26 donut
+        VividEyes = 33355, // Boss->self, 4.0s cast, range ?-26 donut
         WaterDrop = 34436, // Helper->player, 5.0s cast, range 6 circle
-        WallopVisual = 33350, // Boss->self, no cast, single-target, visual, starts tentacle wallops
-        Wallop = 33346, // MammothTentacle->self, 3.0s cast, range 22 width 8 rect
+        Wallop = 33346, // MammothTentacle->self, 3.0s cast, range 22 width 8 rect - idk if i did this one right
+    };
+
+    public enum TetherID : uint
+    {
+        Telekinesis = 167, // Actor3eac->Boss
     };
 
     class Border : BossComponent
@@ -37,7 +40,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
         private static readonly Angle[] _platformDirections = [-90.Degrees(), -45.Degrees(), 0.Degrees(), 45.Degrees(), 90.Degrees()];
         private static readonly WDir[] _platformCenters = _platformDirections.Select(d => _platformOffset * d.ToDirection()).ToArray();
 
-        private static readonly float _bridgeInner = 22;
+        private static readonly float _bridgeInner = 20;
         private static readonly float _bridgeOuter = 26;
         private static readonly Angle _offInner = DirToPointAtDistance(_bridgeInner);
         private static readonly Angle _offOuter = DirToPointAtDistance(_bridgeOuter);
@@ -83,7 +86,12 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
 
     class Wallop : Components.SelfTargetedAOEs
     {
-        public Wallop() : base(ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(22, 4)) { }
+        public Wallop() : base(ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(11, 5.5f, 16)) { }
+    }
+
+    class SalineSpit1 : Components.SpreadFromCastTargets
+    {
+        public SalineSpit1() : base(ActionID.MakeSpell(AID.SalineSpit1), 3) { }
     }
 
     class VividEyes : Components.SelfTargetedAOEs
@@ -106,24 +114,29 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
         public Breathstroke() : base(ActionID.MakeSpell(AID.Breathstroke), new AOEShapeCone(35, 90.Degrees())) { }
     }
 
+    class Octostroke : Components.SelfTargetedAOEs
+    {
+        public Octostroke() : base(ActionID.MakeSpell(AID.Octostroke), new AOEShapeCircle(3)) { }
+    }
+
     class TidalRoar : Components.RaidwideCast
     {
         public TidalRoar() : base(ActionID.MakeSpell(AID.TidalRoar)) { }
     }
 
-    class WaterDrop : Components.SpreadFromCastTargets
+    class WaterDrop : Components.SelfTargetedAOEs
     {
-        public WaterDrop() : base(ActionID.MakeSpell(AID.WaterDrop), 6) { }
+        public WaterDrop() : base(ActionID.MakeSpell(AID.WaterDrop), new AOEShapeCircle(6)) { }
     }
 
-    class SalineSpit : Components.SelfTargetedAOEs
+    class SalineSpit2 : Components.SelfTargetedAOEs
     {
-        public SalineSpit() : base(ActionID.MakeSpell(AID.SalineSpit2), new AOEShapeCircle(8)) { }
+        public SalineSpit2() : base(ActionID.MakeSpell(AID.SalineSpit2), new AOEShapeCircle(8)) { }
     }
 
-    class Telekinesis : Components.SelfTargetedAOEs
+    class Telekinesis2 : Components.SelfTargetedAOEs
     {
-        public Telekinesis() : base(ActionID.MakeSpell(AID.Telekinesis2), new AOEShapeCircle(12)) { }
+        public Telekinesis2() : base(ActionID.MakeSpell(AID.Telekinesis2), new AOEShapeCircle(12)) { }
     }
 
     class D123OctomammothStates : StateMachineBuilder
@@ -131,24 +144,24 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
         public D123OctomammothStates(BossModule module) : base(module)
         {
             TrivialPhase()
+                .ActivateOnEnter<Border>()
                 .ActivateOnEnter<Wallop>()
                 .ActivateOnEnter<Clearout>()
                 .ActivateOnEnter<VividEyes>()
+                .ActivateOnEnter<Octostroke>()
                 .ActivateOnEnter<WaterDrop>()
                 .ActivateOnEnter<TidalRoar>()
                 .ActivateOnEnter<TidalBreath>()
-                .ActivateOnEnter<Telekinesis>()
+                .ActivateOnEnter<Telekinesis2>()
                 .ActivateOnEnter<Breathstroke>()
-                .ActivateOnEnter<SalineSpit>();
+                .ActivateOnEnter<SalineSpit1>()
+                .ActivateOnEnter<SalineSpit2>();
         }
     }
 
     [ModuleInfo(CFCID = 822, NameID = 12334)]
     class D123Octomammoth : BossModule
     {
-        public D123Octomammoth(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-370, -368), 33.3f))
-        {
-            ActivateComponent<Border>();
-        }
+        public D123Octomammoth(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-370, -368), 36)) { }
     }
 }

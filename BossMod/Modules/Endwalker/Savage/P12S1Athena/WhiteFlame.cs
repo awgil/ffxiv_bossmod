@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         private bool _enabled;
         private List<Actor> _sources = new();
 
-        private static AOEShapeRect _shape = new(100, 2);
+        private static readonly AOEShapeRect _shape = new(100, 2);
 
         public void Enable() => _enabled = true;
 

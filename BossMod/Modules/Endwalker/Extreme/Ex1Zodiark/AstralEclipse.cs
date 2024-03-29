@@ -12,12 +12,12 @@ namespace BossMod.Endwalker.Extreme.Ex1Zodiark
     {
         private int[] _patterns = new int[3]; // W -> S -> E
 
-        private static AOEShapeCircle _aoe = new(10);
+        private static readonly AOEShapeCircle _aoe = new(10);
 
         // transform from 'pattern space' (X goes to the right, Y goes to the bottom) to world space
-        private static float _centerOffset = 14;
-        private static Vector3[] _basisX = new Vector3[3] { -Vector3.UnitZ, -Vector3.UnitX, Vector3.UnitZ };
-        private static Vector3[] _basisY = new Vector3[3] { -Vector3.UnitX,  Vector3.UnitZ, Vector3.UnitX };
+        private static readonly float _centerOffset = 14;
+        private static readonly Vector3[] _basisX = new Vector3[3] { -Vector3.UnitZ, -Vector3.UnitX, Vector3.UnitZ };
+        private static readonly Vector3[] _basisY = new Vector3[3] { -Vector3.UnitX,  Vector3.UnitZ, Vector3.UnitX };
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

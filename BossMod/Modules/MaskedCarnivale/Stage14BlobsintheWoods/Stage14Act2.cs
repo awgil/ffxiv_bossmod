@@ -57,7 +57,7 @@ namespace BossMod.MaskedCarnivale.Stage14.Act2
                 .DeactivateOnEnter<Hints>()
                 .ActivateOnEnter<LastSong>()
                 .ActivateOnEnter<LastSongHint>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !(module.FindComponent<LastSongHint>()?.casting ?? false);
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && !module.FindComponent<LastSongHint>()!.casting;
         }
     }
 

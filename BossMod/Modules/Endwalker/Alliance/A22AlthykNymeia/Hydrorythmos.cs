@@ -8,8 +8,8 @@ namespace BossMod.Endwalker.Alliance.A22AlthykNymeia
         private Angle _dir;
         private DateTime _activation;
 
-        private static AOEShapeRect _shapeFirst = new(25, 5, 25);
-        private static AOEShapeRect _shapeRest = new(25, 2.5f, 25);
+        private static readonly AOEShapeRect _shapeFirst = new(25, 5, 25);
+        private static readonly AOEShapeRect _shapeRest = new(25, 2.5f, 25);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

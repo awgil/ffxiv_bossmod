@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
     // TODO: consider generalizing - same as P12S1 Glaukopis and others...
     class P5SolarRay : Components.GenericBaitAway
     {
-        private static AOEShapeCircle _shape = new(5);
+        private static readonly AOEShapeCircle _shape = new(5);
 
         public P5SolarRay() : base(centerAtTarget: true) { }
 

@@ -13,7 +13,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
         private List<Actor> _orbsToPop = new();
         public bool OrbsActive => _waitingForOrbs || _orbsToPop.Count > 0;
 
-        private static float _explosionRadius = 8;
+        private static readonly float _explosionRadius = 8;
 
         public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), "Knockback + orbs") { }
 

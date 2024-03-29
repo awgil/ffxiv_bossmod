@@ -10,8 +10,8 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
         private BitMask _playersInTides;
         private BitMask _playersInDepths;
 
-        private static float _tidesRadius = 10;
-        private static float _depthsRadius = 6;
+        private static readonly float _tidesRadius = 10;
+        private static readonly float _depthsRadius = 6;
 
         public bool Active => (_playersWithTides | _playersWithDepths).Any();
 

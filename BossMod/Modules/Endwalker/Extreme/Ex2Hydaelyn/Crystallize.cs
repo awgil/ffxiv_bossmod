@@ -7,9 +7,9 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
         public enum Element { None, Water, Earth, Ice }
         public Element CurElement { get; private set; }
 
-        private static float _waterRadius = 6;
-        private static float _earthRadius = 6;
-        private static float _iceRadius = 5;
+        private static readonly float _waterRadius = 6;
+        private static readonly float _earthRadius = 6;
+        private static readonly float _iceRadius = 5;
 
         public override void Init(BossModule module)
         {

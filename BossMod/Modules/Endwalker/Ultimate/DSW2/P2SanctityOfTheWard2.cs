@@ -89,8 +89,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private string _preySwap = "";
         private string _preyHint = "";
 
-        private static float _stormPlacementOffset = 10;
-        private static float _cometLinkRange = 5;
+        private static readonly float _stormPlacementOffset = 10;
+        private static readonly float _cometLinkRange = 5;
 
         public bool Active => Towers.Count == 8;
 

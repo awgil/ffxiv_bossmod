@@ -49,7 +49,7 @@ namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur
         private BitMask _dooms;
         private Actor?[] _platforms = { null, null, null };
 
-        private static AOEShapeCircle _platformShape = new(2);
+        private static readonly AOEShapeCircle _platformShape = new(2);
 
         private Actor? ActivePlatform => _platforms.FirstOrDefault(a => a != null && a.EventState == 0);
 

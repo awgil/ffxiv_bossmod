@@ -10,7 +10,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen
         private List<Actor> _purple = new();
         private BitMask _invertedPlayers;
 
-        private static AOEShapeCircle _shape = new(20);
+        private static readonly AOEShapeCircle _shape = new(20);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
     {
         public List<AOEInstance> AOEs = new();
 
-        private static AOEShapeCone _shape = new(27, 90.Degrees()); // TODO: verify range, it's definitely bigger than what table suggests... maybe origin is wrong?
+        private static readonly AOEShapeCone _shape = new(27, 90.Degrees()); // TODO: verify range, it's definitely bigger than what table suggests... maybe origin is wrong?
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
 
@@ -28,8 +28,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
         private Mechanic _curMechanic;
         private Clearout? _clearout;
 
-        private static AOEShapeCircle _shape = new(6);
-        private static WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+        private static readonly AOEShapeCircle _shape = new(6);
+        private static readonly WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
         public AccursedEdge() : base(centerAtTarget: true) { }
 

@@ -7,7 +7,7 @@ abstract class SpiralThrust : Components.GenericAOEs
     private float _predictionDelay;
     private List<AOEInstance> _aoes = new();
 
-    private static AOEShapeRect _shape = new(54.2f, 6);
+    private static readonly AOEShapeRect _shape = new(54.2f, 6);
 
     public SpiralThrust(float predictionDelay) : base(ActionID.MakeSpell(AID.SpiralThrust))
     {

@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
     {
         private ulong _firstFireTarget;
 
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public DualityOfDeath() : base(ActionID.MakeSpell(AID.DualityOfDeathFire), centerAtTarget: true) { }
 

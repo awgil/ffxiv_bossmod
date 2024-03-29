@@ -13,7 +13,7 @@
 
         public PlayerState[] States = new PlayerState[PartyState.MaxPartySize];
 
-        private static AOEShapeRect _shape = new(60, 3);
+        private static readonly AOEShapeRect _shape = new(60, 3);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

@@ -40,8 +40,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _aoeGnash = new(8);
-        private static AOEShapeDonut _aoeLash = new(8, 40);
+        private static readonly AOEShapeCircle _aoeGnash = new(8);
+        private static readonly AOEShapeDonut _aoeLash = new(8, 40);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
 
@@ -100,8 +100,8 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private BitMask _ordersWithArrows; // bit 1 = order 1, etc.
         private List<Tower> _predictedTowers = new();
 
-        private static float _towerOffset = 14;
-        private static float _spotOffset = 7f;
+        private static readonly float _towerOffset = 14;
+        private static readonly float _spotOffset = 7f;
 
         public P3DiveFromGrace() : base(ActionID.MakeSpell(AID.DarkdragonDive), 5) { }
 

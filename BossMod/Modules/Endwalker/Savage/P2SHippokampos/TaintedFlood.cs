@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Savage.P2SHippokampos
     {
         private BitMask _ignoredTargets;
 
-        private static float _radius = 6;
+        private static readonly float _radius = 6;
 
         public TaintedFlood() : base(ActionID.MakeSpell(AID.TaintedFloodAOE)) { }
 

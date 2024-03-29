@@ -2,7 +2,7 @@
 {
     class P1ProteanWaveTornado : Components.GenericBaitAway
     {
-        private static AOEShapeCone _shape = new(40, 15.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
 
         public P1ProteanWaveTornado(bool enableHints) : base(ActionID.MakeSpell(AID.ProteanWaveTornadoInvis))
         {

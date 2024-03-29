@@ -14,9 +14,9 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shape1 = new(100, 1);
-        private static AOEShapeRect _shape2 = new(100, 3);
-        private static AOEShapeRect _shape3 = new(100, 6);
+        private static readonly AOEShapeRect _shape1 = new(100, 1);
+        private static readonly AOEShapeRect _shape2 = new(100, 3);
+        private static readonly AOEShapeRect _shape3 = new(100, 6);
 
         public bool Active => _aoes.Count > 0;
 

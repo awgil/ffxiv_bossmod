@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
 {
     class SnakingKick : Components.GenericAOEs
     {
-        private static AOEShapeCircle _shape = new(10);
+        private static readonly AOEShapeCircle _shape = new(10);
 
         public SnakingKick() : base(ActionID.MakeSpell(AID.SnakingKick)) { }
 

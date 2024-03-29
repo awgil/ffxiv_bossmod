@@ -9,7 +9,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         private List<Actor> _casters = new();
         private DateTime _activation;
 
-        private static AOEShape _shape = new AOEShapeCircle(15); // TODO: verify falloff
+        private static readonly AOEShape _shape = new AOEShapeCircle(15); // TODO: verify falloff
 
         public P4Freefire() : base(ActionID.MakeSpell(AID.FreefireIntermission)) { }
 

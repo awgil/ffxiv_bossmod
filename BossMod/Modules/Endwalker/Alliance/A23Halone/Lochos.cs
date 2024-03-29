@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Alliance.A23Halone
         private List<AOEInstance> _aoes = new();
         private float _activationDelay;
 
-        private static AOEShapeRect _shape = new(60, 15);
+        private static readonly AOEShapeRect _shape = new(60, 15);
 
         public Lochos(float activationDelay)
         {

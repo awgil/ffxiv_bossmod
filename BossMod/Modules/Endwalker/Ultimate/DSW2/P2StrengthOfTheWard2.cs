@@ -111,7 +111,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private List<Actor> _chargeSources = new();
 
-        private static float _chargeHalfWidth = 4;
+        private static readonly float _chargeHalfWidth = 4;
 
         public P2StrengthOfTheWard2Charges() : base(ActionID.MakeSpell(AID.HolyShieldBash)) { }
 

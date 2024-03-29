@@ -6,7 +6,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
     {
         private Actor? _source;
 
-        private static AOEShapeCone _shape = new(100, 45.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shape = new(100, 45.Degrees()); // TODO: verify angle
 
         public P2Flarethrower() : base(ActionID.MakeSpell(AID.FlarethrowerP2AOE)) { }
 

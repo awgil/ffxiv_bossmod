@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         private int[] _playerRuinCount = new int[8];
         private Role[] _playerActingRole = new Role[8];
 
-        private static float _burstRadius = 8;
+        private static readonly float _burstRadius = 8;
 
         private Role OrbTarget(ulong instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
 

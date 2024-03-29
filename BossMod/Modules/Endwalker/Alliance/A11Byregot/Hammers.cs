@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Alliance.A11Byregot
         private int[] _lineOffset = new int[5];
         private int[] _lineMovement = new int[5];
 
-        private static AOEShapeRect _shape = new(5, 5, 5);
+        private static readonly AOEShapeRect _shape = new(5, 5, 5);
 
         public HammersCells() : base(ActionID.MakeSpell(AID.DestroySideTiles), "GTFO from dangerous cell!") { }
 

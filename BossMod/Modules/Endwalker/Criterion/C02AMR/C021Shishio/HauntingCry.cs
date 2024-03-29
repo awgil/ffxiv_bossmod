@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
     {
         private List<Actor> _casters = new();
 
-        private static AOEShapeCone _shape = new(40, 90.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 90.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -37,7 +37,7 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
         private DateTime _activation;
         private DateTime _ignoreBefore;
 
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _ghosts.Select(g => new AOEInstance(_shape, g.Position, default, _activation));
 

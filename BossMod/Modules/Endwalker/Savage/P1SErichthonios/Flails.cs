@@ -9,10 +9,10 @@
         private bool _detectSecond;
         private bool _showSecond;
 
-        private static AOEShape _aoeLeft = new AOEShapeCone(60, 135.Degrees(), 90.Degrees());
-        private static AOEShape _aoeRight = new AOEShapeCone(60, 135.Degrees(), -90.Degrees());
-        private static AOEShape _aoeInner = new AOEShapeCircle(P1S.InnerCircleRadius);
-        private static AOEShape _aoeOuter = new AOEShapeDonut(P1S.InnerCircleRadius, 60);
+        private static readonly AOEShape _aoeLeft = new AOEShapeCone(60, 135.Degrees(), 90.Degrees());
+        private static readonly AOEShape _aoeRight = new AOEShapeCone(60, 135.Degrees(), -90.Degrees());
+        private static readonly AOEShape _aoeInner = new AOEShapeCircle(P1S.InnerCircleRadius);
+        private static readonly AOEShape _aoeOuter = new AOEShapeDonut(P1S.InnerCircleRadius, 60);
 
         public override void Init(BossModule module)
         {

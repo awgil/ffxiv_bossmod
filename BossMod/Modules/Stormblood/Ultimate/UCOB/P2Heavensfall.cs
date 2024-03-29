@@ -16,7 +16,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     {
         private AOEInstance? _aoe;
 
-        private static AOEShapeRect _shape = new(5, 5, 5);
+        private static readonly AOEShapeRect _shape = new(5, 5, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
@@ -71,7 +71,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     {
         private Actor? _target;
 
-        private static AOEShapeCircle _shape = new(5);
+        private static readonly AOEShapeCircle _shape = new(5);
 
         public P2HeavensfallDalamudDive() : base(ActionID.MakeSpell(AID.DalamudDive), true, true) { }
 

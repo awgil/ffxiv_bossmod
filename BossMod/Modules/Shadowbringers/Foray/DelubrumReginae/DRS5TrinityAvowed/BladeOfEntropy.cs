@@ -8,7 +8,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
     {
         private List<(Actor caster, WDir dir, int temperature)> _casters = new();
 
-        private static AOEShapeRect _shapeCell = new(5, 5, 5);
+        private static readonly AOEShapeRect _shapeCell = new(5, 5, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

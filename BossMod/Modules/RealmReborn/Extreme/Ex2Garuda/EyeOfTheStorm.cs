@@ -7,7 +7,7 @@ namespace BossMod.RealmReborn.Extreme.Ex2Garuda
     {
         private Actor? _caster;
         private DateTime _nextCastAt;
-        private static AOEShapeDonut _shape = new(12, 25); // TODO: verify inner radius
+        private static readonly AOEShapeDonut _shape = new(12, 25); // TODO: verify inner radius
 
         public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStorm)) { }
 

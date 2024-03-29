@@ -18,8 +18,8 @@ namespace BossMod.Endwalker.Alliance.A13Azeyma
         private List<WPos> _sunstorms = new();
         private BitMask _adjusted;
 
-        private static float _kickDistance = 18;
-        private static AOEShapeCircle _shape = new(15);
+        private static readonly float _kickDistance = 18;
+        private static readonly AOEShapeCircle _shape = new(15);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _sunstorms.Select(p => new AOEInstance(_shape, p));
 

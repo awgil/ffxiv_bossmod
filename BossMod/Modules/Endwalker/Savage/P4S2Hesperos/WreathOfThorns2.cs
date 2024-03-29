@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private IEnumerable<Actor> _firstSet => _relevantHelpers.Take(4);
         private IEnumerable<Actor> _secondSet => _relevantHelpers.Skip(4);
 
-        private static float _fireExplosionRadius = 6;
+        private static readonly float _fireExplosionRadius = 6;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

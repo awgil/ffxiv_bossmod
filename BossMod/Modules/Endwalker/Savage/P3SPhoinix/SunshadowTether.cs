@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         private HashSet<ulong> _chargedSunshadows = new();
         private BitMask _playersInAOE;
 
-        private static float _chargeHalfWidth = 3;
+        private static readonly float _chargeHalfWidth = 3;
 
         public int NumCharges => _chargedSunshadows.Count;
 

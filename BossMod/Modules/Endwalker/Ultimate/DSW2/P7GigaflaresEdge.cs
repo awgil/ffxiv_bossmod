@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shape = new(20); // TODO: verify falloff
+        private static readonly AOEShapeCircle _shape = new(20); // TODO: verify falloff
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
 

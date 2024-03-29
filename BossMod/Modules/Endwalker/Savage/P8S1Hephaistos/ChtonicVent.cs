@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
     {
         public int NumTotalCasts { get; private set; }
         private List<WPos> _centers = new();
-        private static AOEShapeCircle _shape = new(23);
+        private static readonly AOEShapeCircle _shape = new(23);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

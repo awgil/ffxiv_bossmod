@@ -20,9 +20,9 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS4Phantom
         private LaneState[,] _laneStates = new LaneState[4, 2];
         private Order _order;
 
-        private static AOEShapeRect _shapeRect = new(50, 6);
-        private static AOEShapeCircle _shapeCircle = new(8);
-        private static AOEShapeDonut _shapeDonut = new(5, 19);
+        private static readonly AOEShapeRect _shapeRect = new(50, 6);
+        private static readonly AOEShapeCircle _shapeCircle = new(8);
+        private static readonly AOEShapeDonut _shapeDonut = new(5, 19);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

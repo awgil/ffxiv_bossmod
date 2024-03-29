@@ -7,7 +7,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
     class P1Mesohigh : Components.CastCounter
     {
         private IReadOnlyList<Actor> _sisters = ActorEnumeration.EmptyList;
-        private static float _radius = 3;
+        private static readonly float _radius = 3;
 
         public P1Mesohigh() : base(ActionID.MakeSpell(AID.Mesohigh)) { }
 

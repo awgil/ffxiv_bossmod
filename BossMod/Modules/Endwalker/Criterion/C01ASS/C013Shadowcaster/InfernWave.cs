@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         private int _maxActive;
         private List<Beacon> _beacons = new();
 
-        private static AOEShapeCone _shape = new(60, 45.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 45.Degrees());
 
         public InfernWave(bool savage, bool showHints, int maxActive) : base(ActionID.MakeSpell(savage ? AID.SInfernWaveAOE : AID.NInfernWaveAOE))
         {

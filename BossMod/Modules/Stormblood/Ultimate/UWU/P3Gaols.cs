@@ -11,7 +11,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         public State CurState { get; private set; }
         private BitMask _targets;
 
-        private static AOEShapeCircle _freefireShape = new(6);
+        private static readonly AOEShapeCircle _freefireShape = new(6);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

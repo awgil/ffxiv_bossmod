@@ -25,8 +25,8 @@ namespace BossMod.Endwalker.Extreme.Ex5Rubicante
         private Symbol[] _symbols = new Symbol[8];
         private DateTime _activation;
 
-        private static AOEShapeCone _shapeTri = new(60, 30.Degrees());
-        private static AOEShapeRect _shapeSq = new(20, 40);
+        private static readonly AOEShapeCone _shapeTri = new(60, 30.Degrees());
+        private static readonly AOEShapeRect _shapeSq = new(20, 40);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

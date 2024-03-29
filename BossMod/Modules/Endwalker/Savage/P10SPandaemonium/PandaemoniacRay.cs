@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Savage.P10SPandaemonium
         private IReadOnlyList<Actor> _spheres = ActorEnumeration.EmptyList;
         private DateTime _activation;
 
-        private static AOEShapeRect _shape = new(40, 1, 40);
+        private static readonly AOEShapeRect _shape = new(40, 1, 40);
 
         public JadePassage() : base(ActionID.MakeSpell(AID.JadePassage)) { }
 

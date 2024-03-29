@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shape = new(20, 5, 20);
+        private static readonly AOEShapeRect _shape = new(20, 5, 20);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 
@@ -21,7 +21,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
     class AngrySeasKnockback : Components.Knockback
     {
         private List<Source> _sources = new();
-        private static AOEShapeCone _shape = new(30, 90.Degrees());
+        private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
         public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => _sources;
 

@@ -21,9 +21,9 @@ namespace BossMod.Endwalker.Savage.P8S2
         protected int SlotForRole(PlayerRole r) => _roleSlots[(int)r];
         protected PlayerRole RoleForSlot(int slot) => _playerRoles[slot];
 
-        protected static float ShiftRadius = 20;
-        protected static float SpliceRadius = 6;
-        protected static float TowerRadius = 3;
+        protected static readonly float ShiftRadius = 20;
+        protected static readonly float SpliceRadius = 6;
+        protected static readonly float TowerRadius = 3;
 
         public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         {

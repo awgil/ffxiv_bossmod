@@ -14,10 +14,10 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         private Actor? _water;
         private Actor? _lighting;
 
-        private static float _acidAOERadius = 5;
-        private static float _fireAOERadius = 6;
-        private static float _knockbackRadius = 13;
-        private static float _lightingSafeDistance = 16; // linear falloff until 16, then constant (not sure whether it is true distance-based or max-coord-based)
+        private static readonly float _acidAOERadius = 5;
+        private static readonly float _fireAOERadius = 6;
+        private static readonly float _knockbackRadius = 13;
+        private static readonly float _lightingSafeDistance = 16; // linear falloff until 16, then constant (not sure whether it is true distance-based or max-coord-based)
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

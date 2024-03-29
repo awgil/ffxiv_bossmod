@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private int _numPlayerAngles;
         private List<int> _monitorOrder = new();
 
-        private static AOEShapeRect _shape = new(50, 50);
+        private static readonly AOEShapeRect _shape = new(50, 50);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

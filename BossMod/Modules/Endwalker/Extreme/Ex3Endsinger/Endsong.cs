@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
     {
         private List<Actor> _active = new();
 
-        private static AOEShapeCircle _aoe = new(15);
+        private static readonly AOEShapeCircle _aoe = new(15);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

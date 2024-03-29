@@ -24,7 +24,7 @@ namespace BossMod.Endwalker.Ultimate.DSW2
     {
         private List<Actor> _knights = new();
 
-        private static AOEShapeRect _shape = new(52, 8);
+        private static readonly AOEShapeRect _shape = new(52, 8);
 
         public P2StrengthOfTheWard1SpiralThrust() : base(ActionID.MakeSpell(AID.SpiralThrust), "GTFO from charge aoe!") { }
 

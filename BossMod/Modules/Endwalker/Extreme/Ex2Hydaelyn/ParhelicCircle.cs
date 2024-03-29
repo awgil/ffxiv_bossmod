@@ -7,9 +7,9 @@ namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn
     {
         private List<WPos> _positions = new();
 
-        private static float _triRadius = 8;
-        private static float _hexRadius = 17;
-        private static AOEShapeCircle _aoeShape = new(6);
+        private static readonly float _triRadius = 8;
+        private static readonly float _hexRadius = 17;
+        private static readonly AOEShapeCircle _aoeShape = new(6);
 
         public ParhelicCircle() : base(ActionID.MakeSpell(AID.Incandescence)) { }
 

@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator
 
         public bool Active => _goldenFlames.Count + _silverFlames.Count > 0;
 
-        private static AOEShapeRect _shape = new(60, 5);
+        private static readonly AOEShapeRect _shape = new(60, 5);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

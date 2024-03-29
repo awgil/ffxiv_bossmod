@@ -6,9 +6,9 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
     class PomStone : Components.GenericAOEs
     {
         private List<(Actor caster, AOEShape shape)> _casters = new();
-        private static AOEShapeCircle _shapeIn = new(10);
-        private static AOEShapeDonut _shapeMid = new(10, 20);
-        private static AOEShapeDonut _shapeOut = new(20, 30);
+        private static readonly AOEShapeCircle _shapeIn = new(10);
+        private static readonly AOEShapeDonut _shapeMid = new(10, 20);
+        private static readonly AOEShapeDonut _shapeOut = new(20, 30);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

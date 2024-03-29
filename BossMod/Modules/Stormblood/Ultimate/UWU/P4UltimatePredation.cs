@@ -13,8 +13,8 @@ namespace BossMod.Stormblood.Ultimate.UWU
         private ArcList _first = new(new(), _dodgeRadius);
         private ArcList _second = new(new(), _dodgeRadius);
 
-        private static float _dodgeRadius = 19;
-        private static Angle _dodgeCushion = 2.5f.Degrees();
+        private static readonly float _dodgeRadius = 19;
+        private static readonly Angle _dodgeCushion = 2.5f.Degrees();
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

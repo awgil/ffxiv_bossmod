@@ -106,7 +106,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
     class P3WaveRepeater : Components.ConcentricAOEs
     {
-        private static AOEShape[] _shapes = { new AOEShapeCircle(6), new AOEShapeDonut(6, 12), new AOEShapeDonut(12, 18), new AOEShapeDonut(18, 24) };
+        private static readonly AOEShape[] _shapes = { new AOEShapeCircle(6), new AOEShapeDonut(6, 12), new AOEShapeDonut(12, 18), new AOEShapeDonut(18, 24) };
 
         public P3WaveRepeater() : base(_shapes) { }
 
@@ -140,7 +140,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
     {
         public List<AOEInstance> AOEs = new();
 
-        private static AOEShapeCircle _shape = new(11);
+        private static readonly AOEShapeCircle _shape = new(11);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs.Take(3);
 

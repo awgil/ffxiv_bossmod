@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
 {
     class PureOfHeartBrightwing : Components.GenericBaitAway
     {
-        private static AOEShapeCone _shape = new(18, 15.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shape = new(18, 15.Degrees()); // TODO: verify angle
 
         public override void Update(BossModule module)
         {
@@ -30,7 +30,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     {
         private BitMask _baiters;
 
-        private static float _radius = 3;
+        private static readonly float _radius = 3;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

@@ -21,7 +21,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         private LimitCut? _limitCut;
         private List<WPos> _wormholes = new();
 
-        private static float[] _radiuses = { 8, 6, 3 };
+        private static readonly float[] _radiuses = { 8, 6, 3 };
 
         public override void Init(BossModule module)
         {

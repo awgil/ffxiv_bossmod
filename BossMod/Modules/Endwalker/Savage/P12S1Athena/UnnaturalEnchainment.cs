@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shape = new(5, 10, 5);
+        private static readonly AOEShapeRect _shape = new(5, 10, 5);
 
         public UnnaturalEnchainment() : base(ActionID.MakeSpell(AID.Sample)) { }
 

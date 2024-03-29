@@ -9,7 +9,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
     {
         private List<(Actor target, Actor source, DateTime activation)> _earthshakers = new();
 
-        private static AOEShapeCone _shape = new(50, 15.Degrees());
+        private static readonly AOEShapeCone _shape = new(50, 15.Degrees());
 
         public DeadIron() : base(ActionID.MakeSpell(AID.DeadIronAOE), "GTFO from earthshaker!") { }
 

@@ -59,9 +59,9 @@ namespace BossMod.Endwalker.Ultimate.DSW2
         private List<WPos> _cleanses = new();
         private WDir _relSouth; // TODO: this is quite hacky, works for LPDU...
 
-        private static float _knockbackDistance = 16;
-        private static float _aoeRadius = 10;
-        private static float _tetherBreakDistance = 32; // TODO: verify...
+        private static readonly float _knockbackDistance = 16;
+        private static readonly float _aoeRadius = 10;
+        private static readonly float _tetherBreakDistance = 32; // TODO: verify...
 
         public P5DeathOfTheHeavensHeavensflame() : base(ActionID.MakeSpell(AID.HeavensflameAOE)) { }
 
