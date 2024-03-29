@@ -1,41 +1,40 @@
-﻿namespace BossMod.Stormblood.Ultimate.UWU
+﻿namespace BossMod.Stormblood.Ultimate.UWU;
+
+class P2InfernalFetters : BossComponent
 {
-    class P2InfernalFetters : BossComponent
+    public BitMask Fetters;
+    private int _fettersStrength;
+
+    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
-        public BitMask Fetters;
-        private int _fettersStrength;
+        return Fetters[playerSlot] ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
+    }
 
-        public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        if (Fetters.NumSetBits() > 1)
         {
-            return Fetters[playerSlot] ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
+            var from = module.Raid[Fetters.LowestSetBit()];
+            var to = module.Raid[Fetters.HighestSetBit()];
+            if (from != null && to != null)
+                arena.AddLine(from.Position, to.Position, _fettersStrength > 1 ? ArenaColor.Danger : ArenaColor.Safe);
         }
+    }
 
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.InfernalFetters)
         {
-            if (Fetters.NumSetBits() > 1)
-            {
-                var from = module.Raid[Fetters.LowestSetBit()];
-                var to = module.Raid[Fetters.HighestSetBit()];
-                if (from != null && to != null)
-                    arena.AddLine(from.Position, to.Position, _fettersStrength > 1 ? ArenaColor.Danger : ArenaColor.Safe);
-            }
+            Fetters.Set(module.Raid.FindSlot(actor.InstanceID));
+            _fettersStrength = status.Extra;
         }
+    }
 
-        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.InfernalFetters)
         {
-            if ((SID)status.ID == SID.InfernalFetters)
-            {
-                Fetters.Set(module.Raid.FindSlot(actor.InstanceID));
-                _fettersStrength = status.Extra;
-            }
-        }
-
-        public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
-        {
-            if ((SID)status.ID == SID.InfernalFetters)
-            {
-                Fetters.Clear(module.Raid.FindSlot(actor.InstanceID));
-            }
+            Fetters.Clear(module.Raid.FindSlot(actor.InstanceID));
         }
     }
 }

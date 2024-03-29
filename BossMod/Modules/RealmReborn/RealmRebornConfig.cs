@@ -1,7 +1,6 @@
-﻿namespace BossMod.RealmReborn
+﻿namespace BossMod.RealmReborn;
+
+[ConfigDisplay(Order = 0, Parent = typeof(ModuleConfig))]
+public class RealmRebornConfig : ConfigNode
 {
-    [ConfigDisplay(Order = 0, Parent = typeof(ModuleConfig))]
-    public class RealmRebornConfig : ConfigNode
-    {
-    }
 }

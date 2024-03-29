@@ -1,13 +1,12 @@
-﻿namespace BossMod.Endwalker.Savage.P1SErichthonios
+﻿namespace BossMod.Endwalker.Savage.P1SErichthonios;
+
+[ConfigDisplay(Order = 0x110, Parent = typeof(EndwalkerConfig))]
+public class P1SConfig : CooldownPlanningConfigNode
 {
-    [ConfigDisplay(Order = 0x110, Parent = typeof(EndwalkerConfig))]
-    public class P1SConfig : CooldownPlanningConfigNode
-    {
-        public enum Corner { NW, NE, SE, SW }
+    public enum Corner { NW, NE, SE, SW }
 
-        [PropertyDisplay("Intemperance: corner that swaps with N on asymmetrical pattern")]
-        public Corner IntemperanceAsymmetricalSwapCorner = Corner.NW;
+    [PropertyDisplay("Intemperance: corner that swaps with N on asymmetrical pattern")]
+    public Corner IntemperanceAsymmetricalSwapCorner = Corner.NW;
 
-        public P1SConfig() : base(90) { }
-    }
+    public P1SConfig() : base(90) { }
 }
