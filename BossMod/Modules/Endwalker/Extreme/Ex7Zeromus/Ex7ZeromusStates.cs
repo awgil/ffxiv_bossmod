@@ -176,7 +176,7 @@
                 .DeactivateOnExit<ProminenceSpine>();
 
             ComponentCondition<Nox>(id + 0x30, 4, comp => comp.NumCasts > 0, "Chaser start");
-            ComponentCondition<Nox>(id + 0x40, 6.3f, comp => !comp.Active, "Chaser resolve")
+            ComponentCondition<Nox>(id + 0x40, 6.3f, comp => comp.Chasers.Count == 0, "Chaser resolve")
                 .DeactivateOnExit<Nox>();
         }
 
