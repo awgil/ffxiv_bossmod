@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
+﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
 // note that it could be a GenericAOEs, but we customize everything anyway...
 class EyeOfTheStormGeocrush : BossComponent

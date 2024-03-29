@@ -1,7 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Shadowbringers.HuntA.Rusalka;
 
 public enum OID : uint

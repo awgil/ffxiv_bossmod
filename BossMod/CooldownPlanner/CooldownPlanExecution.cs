@@ -1,8 +1,4 @@
 ﻿using ImGuiNET;
-using Lumina.Excel.GeneratedSheets2;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod;
 

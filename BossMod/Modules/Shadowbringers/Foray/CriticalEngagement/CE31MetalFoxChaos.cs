@@ -1,8 +1,4 @@
 ﻿// CONTRIB: made by malediktus, not checked
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos;
 
 public enum OID : uint

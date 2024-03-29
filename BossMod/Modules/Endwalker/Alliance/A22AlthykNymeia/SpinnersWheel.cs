@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
+﻿namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
 
 class SpinnersWheelSelect : BossComponent
 {

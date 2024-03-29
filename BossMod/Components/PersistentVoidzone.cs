@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-// TODO: revise and refactor voidzone components; 'persistent' part of name is redundant
+﻿// TODO: revise and refactor voidzone components; 'persistent' part of name is redundant
 namespace BossMod.Components;
 
 // voidzone (circle aoe that stays active for some time) centered at each existing object with specified OID, assumed to be persistent voidzone center

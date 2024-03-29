@@ -1,7 +1,4 @@
 // CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva;
 
 public enum OID : uint

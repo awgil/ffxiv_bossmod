@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias;
+﻿namespace BossMod.RealmReborn.Dungeon.D05Totorak.D053Graffias;
 
 public enum OID : uint
 {

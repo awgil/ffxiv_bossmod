@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Alliance.A13Azeyma;
+﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
 class DancingFlame : Components.GenericAOEs
 {

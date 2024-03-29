@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Unreal.Un5Thordan;
+﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
 abstract class SpiralThrust : Components.GenericAOEs
 {

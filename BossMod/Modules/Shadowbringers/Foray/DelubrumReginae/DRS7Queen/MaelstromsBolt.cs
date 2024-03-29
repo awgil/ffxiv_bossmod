@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
 
 // TODO: show reflect hints, show stay under dome hints
 class MaelstromsBolt : Components.CastCounter

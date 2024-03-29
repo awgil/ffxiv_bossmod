@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster;
+﻿namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster;
 
 class FiresteelStrike : Components.UniformStackSpread
 {

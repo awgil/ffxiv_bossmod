@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A10Lions;
+﻿namespace BossMod.Endwalker.Alliance.A10Lions;
 
 class DoubleImmolation : Components.RaidwideCast
 {

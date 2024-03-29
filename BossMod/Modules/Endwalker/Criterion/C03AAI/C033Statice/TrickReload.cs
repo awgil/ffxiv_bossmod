@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice;
 
 class TrickReload : BossComponent
 {

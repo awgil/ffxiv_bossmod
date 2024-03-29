@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
+﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
 
 // state related to ania mechanic
 class Ania : BossComponent

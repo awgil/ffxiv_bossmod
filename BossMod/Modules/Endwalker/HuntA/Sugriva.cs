@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.HuntA.Sugriva;
+﻿namespace BossMod.Endwalker.HuntA.Sugriva;
 
 public enum OID : uint
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntA.Yilan;
+﻿namespace BossMod.Endwalker.HuntA.Yilan;
 
 public enum OID : uint
 {

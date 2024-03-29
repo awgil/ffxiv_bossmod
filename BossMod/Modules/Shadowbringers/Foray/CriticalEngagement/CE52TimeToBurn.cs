@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn;
 
 public enum OID : uint
 {

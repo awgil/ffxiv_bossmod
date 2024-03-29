@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash2;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash2;
 
 class BladeOfTheTengu : Components.GenericAOEs
 {

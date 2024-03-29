@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.RealmReborn.Raid.T02MultiADS;
+﻿namespace BossMod.RealmReborn.Raid.T02MultiADS;
 
 public enum OID : uint
 {

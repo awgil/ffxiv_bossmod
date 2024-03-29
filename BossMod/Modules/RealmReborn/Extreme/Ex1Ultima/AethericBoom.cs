@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
+﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
 // AI idea: we want to run as a group and pop all orbs, without necessarily involving tanks
 // for 1/2 casts, we first try to stack S of boss, since everyone is somewhat close to that point, to get knocked back to the south edge; we then pop S orb and E orb(s) in order S->N

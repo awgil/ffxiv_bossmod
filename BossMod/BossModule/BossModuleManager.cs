@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // class that creates and manages instances of proper boss modules in response to world state changes
 public class BossModuleManager : IDisposable

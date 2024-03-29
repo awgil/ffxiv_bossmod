@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Quest.Endwalker;
+﻿namespace BossMod.Endwalker.Quest.Endwalker;
 
 class SilveredEdge : Components.GenericAOEs
 {

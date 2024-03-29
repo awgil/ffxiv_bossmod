@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu;
 
 class FeralHowl : Components.Knockback
 {

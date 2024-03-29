@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
+﻿namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
 
 class Ex5RubicanteStates : StateMachineBuilder
 {

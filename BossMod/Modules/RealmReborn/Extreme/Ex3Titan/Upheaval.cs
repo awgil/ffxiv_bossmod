@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.RealmReborn.Extreme.Ex3Titan;
+﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
 // TODO: most of what's here should be handled by KnockbackFromCastTarget component...
 class Upheaval : Components.Knockback

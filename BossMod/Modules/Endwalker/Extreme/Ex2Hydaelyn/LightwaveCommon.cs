@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
+﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
 // common base for lightwaves components
 class LightwaveCommon : Components.CastCounter

@@ -1,6 +1,5 @@
 ﻿using Dalamud.Game.Gui;
 using ImGuiNET;
-using System;
 
 namespace BossMod;
 

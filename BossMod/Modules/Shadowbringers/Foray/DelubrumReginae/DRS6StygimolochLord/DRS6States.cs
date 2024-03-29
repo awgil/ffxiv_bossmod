@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord;
 
 class DRS6States : StateMachineBuilder
 {

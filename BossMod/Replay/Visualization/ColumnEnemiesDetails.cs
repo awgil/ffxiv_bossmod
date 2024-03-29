@@ -1,6 +1,4 @@
 ﻿using ImGuiNET;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod.ReplayVisualization;
 

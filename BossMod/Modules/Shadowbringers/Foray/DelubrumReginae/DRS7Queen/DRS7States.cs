@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
 
 class DRS7States : StateMachineBuilder
 {

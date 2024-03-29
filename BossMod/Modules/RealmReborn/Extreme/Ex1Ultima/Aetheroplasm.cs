@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
+﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
 // note: I don't know any good way to associate kiter to orb; markers and orb actor creation can happen in arbitrary order
 // so currently I do the following hack:

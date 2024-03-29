@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 public enum Waymark : byte
 {

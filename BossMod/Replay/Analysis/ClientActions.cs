@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.ReplayAnalysis;
+﻿namespace BossMod.ReplayAnalysis;
 
 class ClientActions
 {

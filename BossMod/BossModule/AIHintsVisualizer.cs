@@ -1,7 +1,5 @@
 ﻿using BossMod.Pathfinding;
 using ImGuiNET;
-using System;
-using System.Linq;
 
 namespace BossMod;
 

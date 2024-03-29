@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.HuntS.NarrowRift;
+﻿namespace BossMod.Endwalker.HuntS.NarrowRift;
 
 public enum OID : uint
 {

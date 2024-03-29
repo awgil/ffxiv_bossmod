@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalry;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalry;
 
 public enum OID : uint
 {

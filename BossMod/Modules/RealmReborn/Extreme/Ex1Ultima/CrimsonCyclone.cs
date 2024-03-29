@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
+﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
 class CrimsonCyclone : Components.GenericAOEs
 {

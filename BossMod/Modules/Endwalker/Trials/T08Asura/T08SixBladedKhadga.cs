@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Endwalker.Trials.T08Asura;
 
 class SixBladedKhadga : Components.GenericAOEs

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Raid.T05Twintania;
+﻿namespace BossMod.RealmReborn.Raid.T05Twintania;
 
 // P3 mechanics
 // TODO: preposition for divebombs? it seems that boss spawns in one of the fixed spots that is closest to target...

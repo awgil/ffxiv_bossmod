@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic 'rotating aoes' component - a sequence of aoes (typically cones) with same origin and increasing rotation
 public class GenericRotatingAOE : GenericAOEs

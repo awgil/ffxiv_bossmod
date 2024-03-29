@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un3Sophia;
+﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
 class Un3SophiaStates : StateMachineBuilder
 {

@@ -1,7 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
-using System.Linq;
-
 namespace BossMod.Events.FF15Collab.Garuda;
 
 public enum OID : uint

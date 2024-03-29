@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga;
+﻿namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D163Anantaboga;
 
 public enum OID : uint
 {

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A23Halone;
+﻿namespace BossMod.Endwalker.Alliance.A23Halone;
 
 class A23HaloneStates : StateMachineBuilder
 {

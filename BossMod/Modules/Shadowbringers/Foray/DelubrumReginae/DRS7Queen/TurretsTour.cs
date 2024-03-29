@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
 
 class TurretsTour : Components.GenericAOEs
 {

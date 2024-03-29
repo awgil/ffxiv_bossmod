@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un1Ultima;
+﻿namespace BossMod.Endwalker.Unreal.Un1Ultima;
 
 // common mechanics that are used for entire fight
 // TODO: consider splitting into multiple components, at least for mechanics that start in later phases...

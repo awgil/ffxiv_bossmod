@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
 
 class MalformedReincarnation : Components.CastCounter
 {

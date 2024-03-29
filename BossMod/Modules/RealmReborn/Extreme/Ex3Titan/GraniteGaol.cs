@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Extreme.Ex3Titan;
+﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
 class GraniteGaol : BossComponent
 {

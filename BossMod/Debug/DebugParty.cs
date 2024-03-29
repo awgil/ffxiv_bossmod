@@ -1,7 +1,6 @@
 ﻿using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
-using System;
 
 namespace BossMod;
 

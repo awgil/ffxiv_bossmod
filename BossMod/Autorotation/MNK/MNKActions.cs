@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
-using System;
 
 namespace BossMod.MNK;
 

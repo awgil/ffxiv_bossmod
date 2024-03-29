@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P9SKokytos;
+﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
 class Charibdys : Components.PersistentVoidzoneAtCastTarget
 {

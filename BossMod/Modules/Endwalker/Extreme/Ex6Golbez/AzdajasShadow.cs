@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex6Golbez;
+﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
 class AzdajasShadow : BossComponent
 {

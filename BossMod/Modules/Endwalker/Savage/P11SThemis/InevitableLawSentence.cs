@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P11SThemis;
+﻿namespace BossMod.Endwalker.Savage.P11SThemis;
 
 // note: currently we start showing stacks right after previous mechanic ends
 class InevitableLawSentence : Components.GenericStackSpread

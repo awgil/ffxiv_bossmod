@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Collections.Generic;
-
 namespace BossMod.Shadowbringers.HuntA.Nuckelavee;
 
 public enum OID : uint

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.ReplayVisualization;
+﻿namespace BossMod.ReplayVisualization;
 
 public class ColumnEnemyCasts : ColumnGenericHistory, IToggleableColumn
 {

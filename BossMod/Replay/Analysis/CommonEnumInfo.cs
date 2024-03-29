@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.ReplayAnalysis;
+﻿namespace BossMod.ReplayAnalysis;
 
 class CommonEnumInfo
 {

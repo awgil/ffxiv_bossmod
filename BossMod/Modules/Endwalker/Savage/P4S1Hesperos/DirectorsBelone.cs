@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P4S1Hesperos;
+﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos;
 
 // state related to director's belone (debuffs) mechanic
 // note that forbidden targets are selected either from bloodrake tethers (first instance of mechanic) or from tower types (second instance of mechanic)

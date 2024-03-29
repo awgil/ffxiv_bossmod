@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P6SHegemone;
+﻿namespace BossMod.Endwalker.Savage.P6SHegemone;
 
 class Transmission : Components.CastCounter
 {

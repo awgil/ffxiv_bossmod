@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
+﻿namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
 
 class Hydrorythmos : Components.GenericAOEs
 {

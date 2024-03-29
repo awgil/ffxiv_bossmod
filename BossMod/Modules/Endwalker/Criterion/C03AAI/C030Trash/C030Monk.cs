@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
 
 class Hydroshot : Components.Knockback
 {

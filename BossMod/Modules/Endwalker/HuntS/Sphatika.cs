@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.HuntS.Sphatika;
+﻿namespace BossMod.Endwalker.HuntS.Sphatika;
 
 public enum OID : uint
 {

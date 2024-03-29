@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A21Nophica;
+﻿namespace BossMod.Endwalker.Alliance.A21Nophica;
 
 class MatronsBreath : BossComponent
 {

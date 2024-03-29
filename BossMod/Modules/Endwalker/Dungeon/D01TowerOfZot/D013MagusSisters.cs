@@ -1,8 +1,4 @@
 // CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters;
 
 public enum OID : uint

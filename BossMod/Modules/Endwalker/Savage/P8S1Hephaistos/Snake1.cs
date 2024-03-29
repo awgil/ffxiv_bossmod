@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
+﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
 // TODO: add various hints for gaze/explode
 class Snake1 : PetrifactionCommon

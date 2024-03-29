@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic unavoidable raidwide, started and finished by a single cast
 public class RaidwideCast : CastHint

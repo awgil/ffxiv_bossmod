@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P4S2Hesperos;
+﻿namespace BossMod.Endwalker.Savage.P4S2Hesperos;
 
 // state related to act 4 wreath of thorns
 class WreathOfThorns4 : BossComponent

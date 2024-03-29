@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow;
 
 public enum OID : uint
 {

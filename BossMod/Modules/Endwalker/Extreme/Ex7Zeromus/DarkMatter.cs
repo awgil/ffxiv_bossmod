@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
+﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
 class DarkMatter : Components.GenericBaitAway
 {

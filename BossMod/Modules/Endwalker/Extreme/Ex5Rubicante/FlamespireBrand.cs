@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
+﻿namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
 
 class Welts : Components.GenericStackSpread
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // list of disjoint segments (defined by min/max values)
 public class DisjointSegmentList

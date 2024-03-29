@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
+﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
 
 class LeftArmMetalCutterAOE : Components.GenericAOEs
 {

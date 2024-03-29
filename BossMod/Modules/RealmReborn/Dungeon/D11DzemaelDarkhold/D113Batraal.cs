@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D113Batraal;
+﻿namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D113Batraal;
 
 public enum OID : uint
 {

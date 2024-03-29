@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P1SErichthonios;
+﻿namespace BossMod.Endwalker.Savage.P1SErichthonios;
 
 // state related to normal and fourfold shackles
 class Shackles : BossComponent

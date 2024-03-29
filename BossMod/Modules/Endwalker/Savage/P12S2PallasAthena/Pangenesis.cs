@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
+﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
 
 // note: this assumes standard strategy, not sure whether alternatives are possible...
 // TODO: assign sides...

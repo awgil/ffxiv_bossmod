@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 public static class CommonRotation
 {

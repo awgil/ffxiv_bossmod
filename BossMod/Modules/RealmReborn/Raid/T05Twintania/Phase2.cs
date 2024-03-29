@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Raid.T05Twintania;
+﻿namespace BossMod.RealmReborn.Raid.T05Twintania;
 
 // P2 mechanics
 class P2Fireball : BossComponent

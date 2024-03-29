@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage06.Act1;
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Raid.T05Twintania;
+﻿namespace BossMod.RealmReborn.Raid.T05Twintania;
 
 // P1 mechanics
 class P1LiquidHellAdds : Components.PersistentVoidzoneAtCastTarget

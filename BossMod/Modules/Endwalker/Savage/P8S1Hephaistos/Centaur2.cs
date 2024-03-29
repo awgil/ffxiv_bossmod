@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
+﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
 class QuadrupedalImpact : Components.Knockback
 {

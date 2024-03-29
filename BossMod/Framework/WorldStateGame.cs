@@ -2,10 +2,6 @@
 using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 
 namespace BossMod;
 

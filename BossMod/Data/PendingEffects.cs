@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // game is somewhat weird in how it handles hp updates and status gains by cast events - these are typically delayed by 0.5-1s
 // when we receive ActionEffectN packet, it contains damage/heal effects and status gain effects - these are applied when later EffectResult[Basic] packet is received

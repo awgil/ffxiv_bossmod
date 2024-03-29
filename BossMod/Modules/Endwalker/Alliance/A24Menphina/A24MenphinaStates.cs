@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A24Menphina;
+﻿namespace BossMod.Endwalker.Alliance.A24Menphina;
 
 class A24MenphinaStates : StateMachineBuilder
 {

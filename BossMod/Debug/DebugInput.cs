@@ -1,9 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
 using ImGuiNET;
-using System;
-using System.Linq;
-using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 

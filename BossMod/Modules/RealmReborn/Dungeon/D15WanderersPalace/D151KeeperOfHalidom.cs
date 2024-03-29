@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D151KeeperOfHalidom;
+﻿namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D151KeeperOfHalidom;
 
 public enum OID : uint
 {

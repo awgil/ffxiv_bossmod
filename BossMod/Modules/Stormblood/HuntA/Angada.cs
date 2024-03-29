@@ -1,7 +1,4 @@
 ﻿// CONTRIB: made by malediktus, not checked
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Stormblood.HuntA.Angada;
 
 public enum OID : uint

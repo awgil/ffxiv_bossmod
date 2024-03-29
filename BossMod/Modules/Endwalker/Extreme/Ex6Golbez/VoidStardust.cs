@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex6Golbez;
+﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
 class VoidStardust : Components.GenericAOEs
 {

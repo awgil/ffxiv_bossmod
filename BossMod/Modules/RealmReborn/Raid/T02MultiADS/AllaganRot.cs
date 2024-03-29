@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Raid.T02MultiADS;
+﻿namespace BossMod.RealmReborn.Raid.T02MultiADS;
 
 // note: currently we assume that there is max 1 rot being passed around
 class AllaganRot : BossComponent

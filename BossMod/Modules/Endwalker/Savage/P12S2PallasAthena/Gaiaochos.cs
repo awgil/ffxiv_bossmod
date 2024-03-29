@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
+﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
 
 class Gaiaochos : Components.SelfTargetedAOEs
 {

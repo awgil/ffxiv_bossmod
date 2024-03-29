@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Raid.T05Twintania;
+﻿namespace BossMod.RealmReborn.Raid.T05Twintania;
 
 public enum OID : uint
 {

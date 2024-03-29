@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.RealmReborn.Trial.T08ThornmarchH;
+﻿namespace BossMod.RealmReborn.Trial.T08ThornmarchH;
 
 public enum OID : uint
 {

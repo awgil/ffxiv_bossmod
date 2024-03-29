@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un3Sophia;
+﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
 // shows all three demiurges + handles directional parry from first; the reason is to simplify condition checks
 class Demiurges : Components.DirectionalParry

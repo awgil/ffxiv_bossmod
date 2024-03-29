@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Raid.T01Caduceus;
+﻿namespace BossMod.RealmReborn.Raid.T01Caduceus;
 
 // we have 12 hexagonal platforms and 1 octagonal; sorted S to N, then E to W - so entrance platform has index 0, octagonal (NW) platform has index 12
 class Platforms : BossComponent

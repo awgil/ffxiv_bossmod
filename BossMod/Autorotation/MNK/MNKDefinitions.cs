@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.MNK;
+﻿namespace BossMod.MNK;
 
 public enum AID : uint
 {

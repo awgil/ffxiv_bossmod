@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMain;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMain;
 
 public enum OID : uint
 {

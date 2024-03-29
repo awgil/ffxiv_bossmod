@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
+﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
 
 class EyeOfTheStorm : Components.GenericAOEs
 {

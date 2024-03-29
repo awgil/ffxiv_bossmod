@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // component for mechanics that either require players to move or stay still
 public class StayMove : BossComponent

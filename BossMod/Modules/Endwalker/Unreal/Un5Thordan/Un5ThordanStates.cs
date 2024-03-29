@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
 class Un5ThordanStates : StateMachineBuilder

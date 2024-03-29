@@ -1,5 +1,3 @@
-using System.Linq;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.MaskedCarnivale.Stage02.Act2;
 

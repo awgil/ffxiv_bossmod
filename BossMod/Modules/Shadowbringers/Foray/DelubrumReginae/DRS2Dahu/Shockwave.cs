@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu;
 
 class Shockwave : Components.GenericAOEs
 {

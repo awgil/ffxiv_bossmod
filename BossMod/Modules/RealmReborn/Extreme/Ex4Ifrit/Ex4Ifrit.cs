@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
+﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
 class Incinerate : Components.Cleave
 {

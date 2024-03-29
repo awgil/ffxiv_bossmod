@@ -1,8 +1,4 @@
 ﻿using BossMod.Shadowbringers.Ultimate.TEA;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 
 namespace BossMod.ReplayAnalysis;
 

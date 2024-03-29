@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
 
 class BodySlamKB : Components.Knockback

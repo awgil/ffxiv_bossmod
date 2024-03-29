@@ -1,10 +1,4 @@
-﻿using SharpDX.Multimedia;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using static BossMod.BossComponent;
-
-namespace BossMod.Endwalker.Savage.P9SKokytos;
+﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
 class ArchaicRockbreakerCenter : Components.LocationTargetedAOEs
 {

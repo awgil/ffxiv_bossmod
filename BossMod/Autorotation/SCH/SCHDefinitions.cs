@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.SCH;
+﻿namespace BossMod.SCH;
 
 public enum AID : uint
 {

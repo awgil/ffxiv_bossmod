@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P11SThemis;
+﻿namespace BossMod.Endwalker.Savage.P11SThemis;
 
 class Lightstream : Components.GenericAOEs
 {

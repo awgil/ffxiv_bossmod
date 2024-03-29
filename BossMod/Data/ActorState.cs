@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Numerics;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // a set of existing actors in world; part of the world state structure
 public class ActorState : IEnumerable<Actor>

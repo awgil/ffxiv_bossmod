@@ -1,5 +1,3 @@
-using System;
-
 namespace BossMod.Endwalker.Trials.T02Hydaelyn;
 
 class Exodus : BossComponent

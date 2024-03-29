@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex3Titan;
+﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
 class WeightOfTheLand : Components.LocationTargetedAOEs
 {

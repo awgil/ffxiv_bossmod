@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P2SHippokampos;
+﻿namespace BossMod.Endwalker.Savage.P2SHippokampos;
 
 // state related to channeling [over]flow mechanics
 class ChannelingFlow : BossComponent

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A13Azeyma;
+﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
 class SolarFans : Components.ChargeAOEs
 {

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
+﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
 
 class Ex1ZodiarkStates : StateMachineBuilder
 {

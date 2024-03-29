@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Linq;
-
 namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D110AlbusGriffin;
 
 public enum OID : uint

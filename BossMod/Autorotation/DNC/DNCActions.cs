@@ -1,5 +1,3 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
 using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace BossMod.DNC;
@@ -62,14 +60,14 @@ class Actions : CommonActions
         if (AutoAction < AutoActionAIFight)
             return new();
 
-        if (
-            _strategy.AutoPartner
+        if (_strategy.AutoPartner
             && _state.Unlocked(AID.ClosedPosition)
             && StatusDetails(Player, SID.ClosedPosition, Player.InstanceID).Left == 0
             && _state.CanWeave(CDGroup.Ending, 0.6f, deadline)
-            && FindDancePartner(out var partner)
-        )
+            && FindDancePartner() is var partner && partner != null)
+        {
             return MakeResult(ActionID.MakeSpell(AID.ClosedPosition), partner);
+        }
 
         ActionID res = new();
         if (_state.CanWeave(deadline - _state.OGCDSlotLength)) // first ogcd slot
@@ -217,38 +215,23 @@ class Actions : CommonActions
         return new(newBest, newBest.StayAtLongRange ? 25 : 15);
     }
 
-    private bool FindDancePartner([NotNullWhen(true)] out Actor? actor)
+    private Actor? FindDancePartner()
     {
-        actor = null;
-
-        var target = Autorot
-            .WorldState.Party.WithoutSlot()
-            .Exclude(Player)
-            .MaxBy(
-                p =>
-                    p.Class switch
-                    {
-                        Class.SAM => 100,
-                        Class.NIN => 99,
-                        Class.MNK => 88,
-                        Class.RPR => 87,
-                        Class.DRG => 86,
-                        Class.BLM => 79,
-                        Class.SMN => 78,
-                        Class.RDM => 77,
-                        Class.MCH => 69,
-                        Class.BRD => 68,
-                        Class.DNC => 67,
-                        _ => 1
-                    }
-            );
-        if (target != null)
+        return Autorot.WorldState.Party.WithoutSlot().Exclude(Player).MaxBy(p => p.Class switch
         {
-            actor = target;
-            return true;
-        }
-
-        return false;
+            Class.SAM => 100,
+            Class.NIN => 99,
+            Class.MNK => 88,
+            Class.RPR => 87,
+            Class.DRG => 86,
+            Class.BLM => 79,
+            Class.SMN => 78,
+            Class.RDM => 77,
+            Class.MCH => 69,
+            Class.BRD => 68,
+            Class.DNC => 67,
+            _ => 1
+        });
     }
 
     private float StatusLeft(SID status) => StatusDetails(Player, status, Player.InstanceID).Left;

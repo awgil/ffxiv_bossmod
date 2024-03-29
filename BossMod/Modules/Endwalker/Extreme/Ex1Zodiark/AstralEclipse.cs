@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-
-namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
+﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
 
 // state related to astral eclipse mechanic
 // 'pattern' is a mask containing explosion spots; index is 4 bits, with low 2 bits describing world X position and 2 high bits describing world Z position

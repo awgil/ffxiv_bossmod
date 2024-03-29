@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Shadowbringers.FATE.Archaeotania;
+﻿namespace BossMod.Shadowbringers.FATE.Archaeotania;
 
 public enum OID : uint
 {

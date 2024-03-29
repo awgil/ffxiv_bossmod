@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntA.Aegeiros;
+﻿namespace BossMod.Endwalker.HuntA.Aegeiros;
 
 public enum OID : uint
 {

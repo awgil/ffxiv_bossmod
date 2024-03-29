@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
+﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
 // common features for ruby glow mechanics
 // quadrants:

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie;
+﻿namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie;
 
 class PuffTracker : BossComponent
 {

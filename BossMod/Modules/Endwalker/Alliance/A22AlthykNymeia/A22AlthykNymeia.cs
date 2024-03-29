@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
+﻿namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
 
 class MythrilGreataxe : Components.SelfTargetedAOEs
 {

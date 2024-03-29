@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius;
+﻿namespace BossMod.RealmReborn.Dungeon.D14Praetorium.D143Gaius;
 
 public enum OID : uint
 {

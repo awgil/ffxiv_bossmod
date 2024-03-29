@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un3Sophia;
+﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
 // TODO: there doesn't seem to be any event if mechanic is resolved correctly?..
 class Pairs : BossComponent

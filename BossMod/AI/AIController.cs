@@ -1,6 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
-using System;
 
 namespace BossMod.AI;
 

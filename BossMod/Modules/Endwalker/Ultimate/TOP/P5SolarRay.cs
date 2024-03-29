@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Ultimate.TOP;
+﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 // TODO: not sure how exactly second target is selected, I think it is snapshotted to the current target when first cast happens?
 // TODO: consider generalizing - same as P12S1 Glaukopis and others...

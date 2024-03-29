@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.ReplayVisualization;
+﻿namespace BossMod.ReplayVisualization;
 
 public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColumn
 {

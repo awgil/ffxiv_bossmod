@@ -4,7 +4,6 @@ using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using System;
 using System.Reflection;
 
 namespace BossMod;

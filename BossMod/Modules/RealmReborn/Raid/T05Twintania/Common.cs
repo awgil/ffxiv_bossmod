@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Raid.T05Twintania;
+﻿namespace BossMod.RealmReborn.Raid.T05Twintania;
 
 // mechanics used for the whole fight
 class Plummet : Components.Cleave

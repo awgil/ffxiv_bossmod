@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P6SHegemone;
+﻿namespace BossMod.Endwalker.Savage.P6SHegemone;
 
 class ChorosIxou : Components.GenericAOEs
 {

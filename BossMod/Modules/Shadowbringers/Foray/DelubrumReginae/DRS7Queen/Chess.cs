@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
 
 abstract class Chess : Components.GenericAOEs
 {

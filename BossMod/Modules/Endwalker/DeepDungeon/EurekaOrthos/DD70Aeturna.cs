@@ -1,7 +1,4 @@
 // CONTRIB: made by legendoficeman, changes by Malediktus, not checked
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD70Aeturna;
 
 public enum OID : uint

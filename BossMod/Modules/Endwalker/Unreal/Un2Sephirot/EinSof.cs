@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un2Sephirot;
+﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
 class EinSof : Components.GenericAOEs
 {

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P3SPhoinix;
+﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
 // state related to ashplumes (normal or parts of gloryplume)
 // normal ashplume is boss cast (with different IDs depending on stack/spread) + instant aoe some time later

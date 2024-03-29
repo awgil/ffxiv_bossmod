@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Stormblood.Ultimate.UWU;
+﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 // wicked wheel is used in phase 1 (depending on 'woken' status, it can be used with followup wicked tornado - this can happen with low dps late in the phase) - it is triggered by cast start
 // it is also used during phase 4 as part of some mechanics (ultimate predation, ???) - in such case we typically want to show it earlier (based on PATE)

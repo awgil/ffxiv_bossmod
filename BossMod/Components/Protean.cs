@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic protean mechanic is a bunch of aoes baited in some manner by players that have to hit that player only
 // TODO: combine with BaitAway

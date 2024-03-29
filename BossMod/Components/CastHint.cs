@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Components;
 
 // generic component that is 'active' when any actor casts specific spell

@@ -1,7 +1,5 @@
 ﻿using Dalamud.Hooking;
 using ImGuiNET;
-using System;
-using System.Linq;
 
 namespace BossMod;
 

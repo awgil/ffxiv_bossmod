@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D103Isgebind;
+﻿namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D103Isgebind;
 
 public enum OID : uint
 {

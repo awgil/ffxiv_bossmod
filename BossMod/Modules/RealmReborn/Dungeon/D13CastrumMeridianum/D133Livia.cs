@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia;
+﻿namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia;
 
 public enum OID : uint
 {

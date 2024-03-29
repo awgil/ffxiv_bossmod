@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P12S1Athena;
+﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 // TODO: consider using envcontrols instead
 class UnnaturalEnchainment : Components.GenericAOEs

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Stormblood.Ultimate.UWU;
+﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 // TODO: is it baited on farthest dps or any roles? can subsequent eruptions bait on other targets?
 // casts are 3s long and 2s apart (overlapping)

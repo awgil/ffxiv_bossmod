@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
+﻿namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
 
 class A22AlthykNymeiaStates : StateMachineBuilder
 {

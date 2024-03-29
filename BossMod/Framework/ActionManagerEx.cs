@@ -2,8 +2,6 @@
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using System;
-using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace BossMod;

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
+﻿namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
 
 class FlamespireClaw : Components.GenericBaitAway
 {

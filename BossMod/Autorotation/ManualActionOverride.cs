@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // when running autorotation, we typically still want the ability to execute actions manually (e.g. if there is no plan available, or if some emergency happens)
 // there are some problematic interactions with autorotation that this class solves:

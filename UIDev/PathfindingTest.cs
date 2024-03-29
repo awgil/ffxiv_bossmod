@@ -1,9 +1,6 @@
 ﻿using BossMod;
 using BossMod.Pathfinding;
 using ImGuiNET;
-using System;
-using System.Linq;
-using System.Numerics;
 
 namespace UIDev;
 

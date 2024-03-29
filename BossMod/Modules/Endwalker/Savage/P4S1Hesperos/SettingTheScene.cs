@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P4S1Hesperos;
+﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos;
 
 // component detecting corner assignments for 'setting the scene'; it is used by other components to show various warnings
 class SettingTheScene : BossComponent

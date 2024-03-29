@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
+﻿namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
 
 class Ex4BarbaricciaStates : StateMachineBuilder
 {

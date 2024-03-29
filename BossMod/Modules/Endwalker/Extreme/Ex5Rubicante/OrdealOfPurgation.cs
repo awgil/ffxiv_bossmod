@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
+﻿namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
 
 // mechanic implementation:
 // 1. all three circles gain a status that determines their pattern; this pattern is relative to actor's direction

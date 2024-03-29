@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A14Naldthal;
+﻿namespace BossMod.Endwalker.Alliance.A14Naldthal;
 
 class FortuneFluxOrder : BossComponent
 {

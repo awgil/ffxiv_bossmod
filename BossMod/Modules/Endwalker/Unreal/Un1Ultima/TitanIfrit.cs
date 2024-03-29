@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un1Ultima;
+﻿namespace BossMod.Endwalker.Unreal.Un1Ultima;
 
 // both phases use radiant plumes
 class TitanIfrit : BossComponent

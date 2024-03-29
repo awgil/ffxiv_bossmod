@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P11SThemis;
+﻿namespace BossMod.Endwalker.Savage.P11SThemis;
 
 class DivisiveOverruling : Components.GenericAOEs
 {

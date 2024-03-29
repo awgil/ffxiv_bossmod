@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
 // TODO: cast start/end?
 class Clearout : Components.GenericAOEs

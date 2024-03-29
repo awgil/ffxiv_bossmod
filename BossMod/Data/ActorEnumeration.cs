@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // for raid members, we support both indexed and non-indexed enumeration
 public static class ActorEnumeration

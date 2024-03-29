@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Quest.Endwalker;
+﻿namespace BossMod.Endwalker.Quest.Endwalker;
 
 class TidalWave : Components.KnockbackFromCastTarget
 {

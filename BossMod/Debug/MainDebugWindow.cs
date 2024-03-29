@@ -1,9 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
-using System;
-using System.Linq;
-using System.Numerics;
 
 namespace BossMod;
 

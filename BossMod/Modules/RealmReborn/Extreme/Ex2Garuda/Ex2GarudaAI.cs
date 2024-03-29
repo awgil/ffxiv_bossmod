@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
+﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
 
 // common AI for all phases
 class Ex2GarudaAI : BossComponent

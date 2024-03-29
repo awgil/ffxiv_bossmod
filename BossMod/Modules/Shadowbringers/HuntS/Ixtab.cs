@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-// CONTRIB: made by malediktus, not checked
+﻿// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.Ixtab;
 
 public enum OID : uint
