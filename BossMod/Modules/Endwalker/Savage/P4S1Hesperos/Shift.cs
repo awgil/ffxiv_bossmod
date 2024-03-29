@@ -7,7 +7,7 @@
         private Actor? _swordCaster;
         private Actor? _cloakCaster;
 
-        private static float _knockbackRange = 30;
+        private static readonly float _knockbackRange = 30;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

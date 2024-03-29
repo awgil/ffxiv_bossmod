@@ -25,10 +25,10 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         private Cube[] _cubes = new Cube[24]; // [3*i+j] corresponds to cell i [NW N NE E SE S SW W], cube j [bottom center top]
         private int[]? _playerAssignment; // cell index assigned to player, null if not assigned yet
 
-        private static AOEShapeRect _delimiterAOE = new(20, 1, 20);
-        private static (WPos, Angle)[] _delimiterCenters = { (new(93, 100), 0.Degrees()), (new(107, 100), 0.Degrees()), (new(100, 93), 90.Degrees()), (new(100, 107), 90.Degrees()) };
+        private static readonly AOEShapeRect _delimiterAOE = new(20, 1, 20);
+        private static readonly (WPos, Angle)[] _delimiterCenters = { (new(93, 100), 0.Degrees()), (new(107, 100), 0.Degrees()), (new(100, 93), 90.Degrees()), (new(100, 107), 90.Degrees()) };
 
-        private static Cube[] _patternSymm = {
+        private static readonly Cube[] _patternSymm = {
             Cube.R, Cube.P, Cube.R,
             Cube.B, Cube.R, Cube.B,
             Cube.R, Cube.P, Cube.R,
@@ -38,7 +38,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             Cube.R, Cube.P, Cube.R,
             Cube.R, Cube.P, Cube.B,
         };
-        private static Cube[] _patternAsymm = {
+        private static readonly Cube[] _patternAsymm = {
             Cube.B, Cube.P, Cube.R,
             Cube.R, Cube.R, Cube.B,
             Cube.B, Cube.P, Cube.R,
@@ -48,7 +48,7 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
             Cube.B, Cube.P, Cube.R,
             Cube.R, Cube.P, Cube.R,
         };
-        private static WDir[] _offsets = { new(-1, -1), new(0, -1), new(1, -1), new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(0, 0) };
+        private static readonly WDir[] _offsets = { new(-1, -1), new(0, -1), new(1, -1), new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(0, 0) };
 
         public override void Update(BossModule module)
         {

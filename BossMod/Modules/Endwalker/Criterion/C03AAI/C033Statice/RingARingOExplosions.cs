@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice
         private List<Actor> _bombs = new();
         private DateTime _activation;
 
-        private static AOEShapeCircle _shape = new(12);
+        private static readonly AOEShapeCircle _shape = new(12);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => ActiveBombs.Select(b => new AOEInstance(_shape, b.Position, default, _activation));
 

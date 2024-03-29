@@ -13,7 +13,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shape = new(5);
+        private static readonly AOEShapeCircle _shape = new(5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 
@@ -75,9 +75,9 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
 
         public bool Active => _chasers.Count > 0;
 
-        private static AOEShapeCircle _shape = new(10);
-        private static int _maxCasts = 5;
-        private static float _moveDist = 5.5f;
+        private static readonly AOEShapeCircle _shape = new(10);
+        private static readonly int _maxCasts = 5;
+        private static readonly float _moveDist = 5.5f;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _chasers.Select(c => new AOEInstance(_shape, c.PredictedPosition(), default, c.Activation));
 

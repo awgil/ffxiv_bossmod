@@ -152,7 +152,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private Actor? _source;
         private DateTime _activation;
 
-        private static AOEShapeRect _shape = new(100, 8);
+        private static readonly AOEShapeRect _shape = new(100, 8);
 
         public P2PartySynergyOpticalLaser() : base(ActionID.MakeSpell(AID.OpticalLaser)) { }
 
@@ -223,7 +223,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private BitMask _firstGroup;
         private string _swaps = "";
 
-        private static AOEShapeCircle _shape = new(10);
+        private static readonly AOEShapeCircle _shape = new(10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

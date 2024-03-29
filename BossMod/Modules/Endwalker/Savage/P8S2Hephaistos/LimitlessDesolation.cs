@@ -13,8 +13,8 @@ namespace BossMod.Endwalker.Savage.P8S2
         private int[] _towerSlots = Utils.MakeArray(_towerOffsets.Length, -1); // [tower index] = slot
         private bool _thRight = Service.Config.Get<P8S2Config>().LimitlessDesolationTHRight;
 
-        private static float _towerRadius = 4;
-        private static WDir[] _towerOffsets = { new(-15, -15), new(-15, -5), new(-15, 5), new(-5, -15), new(-5, -5), new(-5, 5), new(5, -15), new(5, -5), new(5, 5), new(15, -15), new(15, -5), new(15, 5) };
+        private static readonly float _towerRadius = 4;
+        private static readonly WDir[] _towerOffsets = { new(-15, -15), new(-15, -5), new(-15, 5), new(-5, -15), new(-5, -5), new(-5, 5), new(5, -15), new(5, -5), new(5, 5), new(15, -15), new(15, -5), new(15, 5) };
 
         public LimitlessDesolation() : base(0, 6, alwaysShowSpreads: true, raidwideOnResolve: false) { }
 

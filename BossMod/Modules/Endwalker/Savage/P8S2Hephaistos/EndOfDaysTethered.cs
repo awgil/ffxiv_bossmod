@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Savage.P8S2
     {
         private List<(Actor source, Actor target)> _tethers = new(); // enemy -> player
 
-        private static AOEShapeRect _shape = new(60, 5);
+        private static readonly AOEShapeRect _shape = new(60, 5);
 
         public bool Active => _tethers.Count > 0;
 

@@ -359,7 +359,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public Actor? Source { get; private set; }
         private DateTime _activation;
 
-        private static AOEShapeRect _shape = new(100, 8);
+        private static readonly AOEShapeRect _shape = new(100, 8);
 
         public P5DeltaOpticalLaser() : base(ActionID.MakeSpell(AID.OpticalLaser)) { }
 
@@ -404,8 +404,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private P5Delta? _delta;
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shape = new(100, 4);
-        private static int _numRepeats = 6;
+        private static readonly AOEShapeRect _shape = new(100, 4);
+        private static readonly int _numRepeats = 6;
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -469,7 +469,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private Angle _playerAngle;
         private BitMask _playerIntendedTargets;
 
-        private static AOEShapeRect _shape = new(50, 50);
+        private static readonly AOEShapeRect _shape = new(50, 50);
 
         public P5DeltaOversampledWaveCannon() : base(0, 7) { }
 
@@ -562,7 +562,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
     {
         public AOEInstance? AOE;
 
-        private static AOEShapeCone _shape = new(60, 105.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 105.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 

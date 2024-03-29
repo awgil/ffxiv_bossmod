@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         private BitMatrix _clips; // row = player, col = others that he clips
         private BitMask _clippedByOthers;
 
-        private static AOEShapeCone _shape = new(60, 15.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 15.Degrees());
 
         public bool StunsActive => _stuns.Any();
 

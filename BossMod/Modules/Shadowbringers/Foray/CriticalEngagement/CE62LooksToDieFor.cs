@@ -51,8 +51,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shapeBolt = new(4);
-        private static AOEShapeDonut _shapeClap = new(4, 10);
+        private static readonly AOEShapeCircle _shapeBolt = new(4);
+        private static readonly AOEShapeDonut _shapeClap = new(4, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 
@@ -122,7 +122,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor
         private IReadOnlyList<Actor> _flames = ActorEnumeration.EmptyList;
         private List<(Actor actor, AOEInstance? aoe)> _casters = new();
 
-        private static AOEShapeCircle _shape = new(8);
+        private static readonly AOEShapeCircle _shape = new(8);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shape = new(20, 5);
+        private static readonly AOEShapeRect _shape = new(20, 5);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(4);
 
@@ -35,8 +35,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCircle _shapeOut = new(14);
-        private static AOEShapeDonut _shapeIn = new(8, 60);
+        private static readonly AOEShapeCircle _shapeOut = new(14);
+        private static readonly AOEShapeDonut _shapeIn = new(8, 60);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Skip(NumCasts).Take(1);
 

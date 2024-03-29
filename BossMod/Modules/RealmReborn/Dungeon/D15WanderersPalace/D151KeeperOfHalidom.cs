@@ -29,8 +29,8 @@ namespace BossMod.RealmReborn.Dungeon.D15WanderersPalace.D151KeeperOfHalidom
         private bool _showGrief;
         private DateTime _griefActivation;
 
-        private static AOEShapeCone _shapeInhale = new(22.85f, 45.Degrees());
-        private static AOEShapeCircle _shapeGrief = new(8.85f);
+        private static readonly AOEShapeCone _shapeInhale = new(22.85f, 45.Degrees());
+        private static readonly AOEShapeCircle _shapeGrief = new(8.85f);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

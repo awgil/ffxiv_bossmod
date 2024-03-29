@@ -7,7 +7,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
     class BalefulFirestorm : Components.GenericAOEs
     {
         private List<(Actor caster, AOEInstance aoe)> _casters = new();
-        private static AOEShapeRect _shape = new(50, 10);
+        private static readonly AOEShapeRect _shape = new(50, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

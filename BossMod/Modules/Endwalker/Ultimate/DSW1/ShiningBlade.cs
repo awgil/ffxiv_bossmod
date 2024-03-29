@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private WDir _dirToAdelphel; // we don't want to be knocked near adelphel
         private IReadOnlyList<Actor> _tears = ActorEnumeration.EmptyList; // we don't want to be knocked into them
 
-        private static float _tearRadius = 9; // TODO: verify
+        private static readonly float _tearRadius = 9; // TODO: verify
 
         public ShiningBladeKnockback() : base(ActionID.MakeSpell(AID.FaithUnmoving), 16) { }
 
@@ -46,7 +46,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     {
         private List<WDir> _flares = new(); // [0] = initial boss offset from center, [2] = first charge offset, [5] = second charge offset, [7] = third charge offset, [10] = fourth charge offset == [0]
 
-        private static AOEShapeCircle _shape = new(9);
+        private static readonly AOEShapeCircle _shape = new(9);
 
         public bool Done => NumCasts >= _flares.Count;
 
@@ -104,7 +104,7 @@ namespace BossMod.Endwalker.Ultimate.DSW1
     {
         private Actor? _target;
 
-        private static float _executionRadius = 5;
+        private static readonly float _executionRadius = 5;
 
         public ShiningBladeExecution() : base(ActionID.MakeSpell(AID.Execution)) { }
 

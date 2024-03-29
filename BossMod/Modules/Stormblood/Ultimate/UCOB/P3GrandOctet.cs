@@ -16,9 +16,9 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         private int[] _baitOrder = new int[PartyState.MaxPartySize];
         public int NumBaitsAssigned = 1; // reserve for lunar dive
 
-        private static AOEShapeRect _shapeNaelTwin = new(60, 4);
-        private static AOEShapeRect _shapeBahamut = new(60, 6);
-        private static AOEShapeRect _shapeDrake = new(52, 10);
+        private static readonly AOEShapeRect _shapeNaelTwin = new(60, 4);
+        private static readonly AOEShapeRect _shapeBahamut = new(60, 6);
+        private static readonly AOEShapeRect _shapeDrake = new(52, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
 

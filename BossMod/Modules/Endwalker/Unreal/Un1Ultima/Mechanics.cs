@@ -16,14 +16,14 @@ namespace BossMod.Endwalker.Unreal.Un1Ultima
 
         private Angle? _magitekOffset;
 
-        private static AOEShapeCircle _aoeCleave = new(2);
-        private static AOEShapeCone _aoeDiffractive = new(12, 60.Degrees());
-        private static AOEShapeRect _aoeAssaultCannon = new(45, 1);
-        private static AOEShapeRect _aoeMagitekRay = new(40, 3);
-        //private static float _homingLasersRange = 4;
-        //private static float _ceruleumVentRange = 8;
-        private static float _orbSharedRange = 8;
-        private static float _orbFixateRange = 6;
+        private static readonly AOEShapeCircle _aoeCleave = new(2);
+        private static readonly AOEShapeCone _aoeDiffractive = new(12, 60.Degrees());
+        private static readonly AOEShapeRect _aoeAssaultCannon = new(45, 1);
+        private static readonly AOEShapeRect _aoeMagitekRay = new(40, 3);
+        //private static readonly float _homingLasersRange = 4;
+        //private static readonly float _ceruleumVentRange = 8;
+        private static readonly float _orbSharedRange = 8;
+        private static readonly float _orbFixateRange = 6;
 
         public override void Update(BossModule module)
         {

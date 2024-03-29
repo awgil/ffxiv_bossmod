@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster
         private List<Actor> _jumpTargets = new();
         private List<Actor> _interceptors = new();
 
-        private static AOEShapeRect _cleaveShape = new(65, 4);
+        private static readonly AOEShapeRect _cleaveShape = new(65, 4);
 
         public FiresteelStrike() : base(0, 10, alwaysShowSpreads: true) { }
 

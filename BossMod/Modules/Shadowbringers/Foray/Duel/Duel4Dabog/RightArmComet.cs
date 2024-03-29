@@ -4,7 +4,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
 {
     class RightArmComet : Components.KnockbackFromCastTarget
     {
-        private static float _radius = 5;
+        private static readonly float _radius = 5;
 
         public RightArmComet(AID aid, float distance) : base(ActionID.MakeSpell(aid), distance, shape: new AOEShapeCircle(_radius)) { }
 

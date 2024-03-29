@@ -3,7 +3,7 @@
     [ModuleInfo(CFCID = 809, NameID = 10576)]
     public class P1S : BossModule
     {
-        public static float InnerCircleRadius { get; } = 12; // this determines in/out flails and cells boundary
+        public static readonly float InnerCircleRadius = 12; // this determines in/out flails and cells boundary
 
         public P1S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }
 

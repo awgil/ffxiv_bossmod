@@ -57,7 +57,7 @@ class MeteorCircle : Components.Adds
 
 class HeavyImpact : Components.ConcentricAOEs
 {
-    private static AOEShape[] _shapes = { new AOEShapeCone(6.5f, 135.Degrees()), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees()), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees()), new AOEShapeDonutSector(18.5f, 27.5f, 135.Degrees()) };
+    private static readonly AOEShape[] _shapes = { new AOEShapeCone(6.5f, 135.Degrees()), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees()), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees()), new AOEShapeDonutSector(18.5f, 27.5f, 135.Degrees()) };
 
     public HeavyImpact() : base(_shapes) { }
 

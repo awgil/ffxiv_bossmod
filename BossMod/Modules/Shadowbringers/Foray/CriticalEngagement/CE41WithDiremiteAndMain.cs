@@ -126,7 +126,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMai
         private Actor?[] _targets = new Actor?[4];
         private DateTime _activation;
 
-        private static AOEShapeRect _shape = new(40, 2);
+        private static readonly AOEShapeRect _shape = new(40, 2);
 
         private Actor? NextTarget => NumCasts < _targets.Length ? _targets[NumCasts] : null;
 

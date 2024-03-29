@@ -14,8 +14,8 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCone _shape1 = new(9, 45.Degrees());
-        private static AOEShapeCone _shape2 = new(6, 60.Degrees());
+        private static readonly AOEShapeCone _shape1 = new(9, 45.Degrees());
+        private static readonly AOEShapeCone _shape2 = new(6, 60.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
 

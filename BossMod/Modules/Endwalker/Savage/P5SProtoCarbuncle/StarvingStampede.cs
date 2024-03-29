@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
     {
         private List<WPos> _positions = new();
 
-        private static AOEShape _shape = new AOEShapeCircle(12);
+        private static readonly AOEShape _shape = new AOEShapeCircle(12);
 
         public StarvingStampede() : base(ActionID.MakeSpell(AID.StarvingStampede)) { }
 

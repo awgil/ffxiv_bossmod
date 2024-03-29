@@ -29,10 +29,10 @@ namespace BossMod.Endwalker.Savage.P12S1Athena
         public int NumCasts { get; private set; }
         private List<Actor> _pendingTethers = new(); // unfortunately, sometimes tether targets are created after tether events - recheck such tethers every frame
 
-        private static AOEShapeCircle _shapeCircle = new(7);
-        private static AOEShapeDonut _shapeDonut = new(6, 70);
-        private static AOEShapeCone _shapeSpread = new(100, 15.Degrees()); // TODO: verify angle
-        private static AOEShapeCone _shapePair = new(100, 20.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCircle _shapeCircle = new(7);
+        private static readonly AOEShapeDonut _shapeDonut = new(6, 70);
+        private static readonly AOEShapeCone _shapeSpread = new(100, 15.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shapePair = new(100, 20.Degrees()); // TODO: verify angle
 
         public IEnumerable<Chain> ImminentChains()
         {

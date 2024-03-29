@@ -6,7 +6,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
     {
         private List<Actor> _actors = new();
 
-        private static AOEShapeCircle _shape = new(5);
+        private static readonly AOEShapeCircle _shape = new(5);
 
         public override void OnActorCreated(BossModule module, Actor actor)
         {

@@ -11,7 +11,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public List<Actor> Casters = new();
         private List<(Actor actor, int position)> _dragons = new(); // position 0 is N, then CW
 
-        private static AOEShapeRect _shape = new(52, 10);
+        private static readonly AOEShapeRect _shape = new(52, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

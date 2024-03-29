@@ -17,7 +17,7 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         private BitMask _dangerCells;
         private bool _dangerDirty;
 
-        private static AOEShape _shape = new AOEShapeRect(5, 5, 5);
+        private static readonly AOEShape _shape = new AOEShapeRect(5, 5, 5);
 
         public Polyominoid() : base(ActionID.MakeSpell(AID.PolyominousDark)) { }
 

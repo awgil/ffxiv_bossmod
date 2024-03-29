@@ -55,7 +55,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeCone _shape = new(100, 60.Degrees());
+        private static readonly AOEShapeCone _shape = new(100, 60.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
 
@@ -126,7 +126,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         private Actor? _boss;
         private Angle _bossAngle;
 
-        private static AOEShapeRect _shape = new(50, 50);
+        private static readonly AOEShapeRect _shape = new(50, 50);
 
         public bool IsActive => _boss != null;
 

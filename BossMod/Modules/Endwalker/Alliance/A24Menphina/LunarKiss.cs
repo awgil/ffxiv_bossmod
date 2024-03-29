@@ -2,7 +2,7 @@
 {
     class LunarKiss : Components.GenericBaitAway
     {
-        private static AOEShapeRect _shape = new(60, 3);
+        private static readonly AOEShapeRect _shape = new(60, 3);
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {

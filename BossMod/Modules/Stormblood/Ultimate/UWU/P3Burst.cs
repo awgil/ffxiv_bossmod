@@ -9,7 +9,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         private IReadOnlyList<Actor> _bombs = ActorEnumeration.EmptyList;
         private Dictionary<ulong, DateTime?> _bombActivation = new();
 
-        private static AOEShape _shape = new AOEShapeCircle(6.3f);
+        private static readonly AOEShape _shape = new AOEShapeCircle(6.3f);
 
         public P3Burst() : base(ActionID.MakeSpell(AID.Burst)) { }
 

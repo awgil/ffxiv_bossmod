@@ -14,7 +14,7 @@ namespace BossMod.Stormblood.Ultimate.UWU
         private AOEShapeDonut? _shapeReduced;
 
         //private static WDir[] _possibleOffsets = { new(14, 0), new(0, 14), new(-14, 0), new(0, -14) };
-        private static AOEShapeCircle _shapeCrush = new(24);
+        private static readonly AOEShapeCircle _shapeCrush = new(24);
 
         public P3Geocrush2() : base(ActionID.MakeSpell(AID.Geocrush2)) { }
 

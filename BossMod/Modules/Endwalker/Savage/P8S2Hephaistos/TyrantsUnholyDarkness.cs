@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Savage.P8S2
 {
     class TyrantsUnholyDarkness : Components.CastCounter
     {
-        private static float _radius = 6;
+        private static readonly float _radius = 6;
 
         // TODO: we need some sort of a threat info in worldstate to determine targets properly...
         public bool IsTarget(Actor actor) => actor.Role == Role.Tank;

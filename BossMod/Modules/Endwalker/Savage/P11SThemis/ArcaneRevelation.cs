@@ -9,8 +9,8 @@ namespace BossMod.Endwalker.Savage.P11SThemis
         private uint _activeSpheres;
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShapeRect _shapeMirror = new(50, 5);
-        private static AOEShapeCircle _shapeSphere = new(15);
+        private static readonly AOEShapeRect _shapeMirror = new(50, 5);
+        private static readonly AOEShapeCircle _shapeSphere = new(15);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

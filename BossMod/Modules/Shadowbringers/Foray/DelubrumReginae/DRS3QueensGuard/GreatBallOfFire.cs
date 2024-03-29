@@ -9,8 +9,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard
         private IReadOnlyList<Actor> _bigFlames = ActorEnumeration.EmptyList;
         private DateTime _activation;
 
-        private static AOEShapeCircle _shapeSmall = new(10);
-        private static AOEShapeCircle _shapeBig = new(18);
+        private static readonly AOEShapeCircle _shapeSmall = new(10);
+        private static readonly AOEShapeCircle _shapeBig = new(18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

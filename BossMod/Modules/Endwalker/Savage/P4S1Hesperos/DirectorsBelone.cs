@@ -11,7 +11,7 @@ namespace BossMod.Endwalker.Savage.P4S1Hesperos
         private BitMask _debuffTargets;
         private BitMask _debuffImmune;
 
-        private static float _debuffPassRange = 3; // not sure about this...
+        private static readonly float _debuffPassRange = 3; // not sure about this...
 
         public override void Update(BossModule module)
         {

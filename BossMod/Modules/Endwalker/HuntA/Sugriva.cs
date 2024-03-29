@@ -80,7 +80,7 @@ namespace BossMod.Endwalker.HuntA.Sugriva
     class RockThrow : Components.GenericAOEs
     {
         private Actor? _target;
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public RockThrow() : base(ActionID.MakeSpell(AID.RockThrowRest)) { }
 

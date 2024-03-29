@@ -9,8 +9,8 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
         private Actor? _geocrushCaster;
         public bool Active => _eotsCaster != null || _geocrushCaster != null;
 
-        private static AOEShapeDonut _aoeEOTS = new(12, 25);
-        private static AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
+        private static readonly AOEShapeDonut _aoeEOTS = new(12, 25);
+        private static readonly AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

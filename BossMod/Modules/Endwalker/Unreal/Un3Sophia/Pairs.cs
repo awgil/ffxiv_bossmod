@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Unreal.Un3Sophia
         private BitMask _players2;
         private DateTime _activation;
 
-        private static float _radius = 4; // TODO: verify
+        private static readonly float _radius = 4; // TODO: verify
 
         public bool Active => (_players1 | _players2).Any();
 

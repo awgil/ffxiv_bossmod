@@ -8,7 +8,7 @@ namespace BossMod.RealmReborn.Extreme.Ex4Ifrit
         private DateTime _baitDetectDeadline;
         public BitMask Baiters;
 
-        public static float Radius = 8;
+        public static readonly float Radius = 8;
 
         public Eruption() : base(ActionID.MakeSpell(AID.EruptionAOE), Radius) { }
 

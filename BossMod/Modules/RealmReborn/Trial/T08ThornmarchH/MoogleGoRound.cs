@@ -7,7 +7,7 @@ namespace BossMod.RealmReborn.Trial.T08ThornmarchH
     class MoogleGoRound : Components.GenericAOEs
     {
         private List<Actor> _casters = new();
-        private static AOEShape _shape = new AOEShapeCircle(20);
+        private static readonly AOEShape _shape = new AOEShapeCircle(20);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

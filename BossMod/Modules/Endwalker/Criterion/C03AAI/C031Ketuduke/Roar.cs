@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke
         private List<(Actor actor, bool bubble)> _snakes = new();
         private bool _highlightSnakes;
 
-        private static AOEShapeCone _shape = new(60, 90.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 90.Degrees());
 
         public override void Update(BossModule module)
         {

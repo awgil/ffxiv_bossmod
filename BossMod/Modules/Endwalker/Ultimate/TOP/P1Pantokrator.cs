@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public List<Actor> Casters = new();
         private P1Pantokrator? _pantokrator;
 
-        private static AOEShapeCone _shape = new(65, 30.Degrees());
+        private static readonly AOEShapeCone _shape = new(65, 30.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -76,8 +76,8 @@ namespace BossMod.Endwalker.Ultimate.TOP
         public int NumSpreadsDone { get; private set; }
         public int NumStacksDone { get; private set; }
 
-        private static float _spreadRadius = 5;
-        private static AOEShapeRect _stackShape = new(50, 3);
+        private static readonly float _spreadRadius = 5;
+        private static readonly AOEShapeRect _stackShape = new(50, 3);
 
         protected override (GroupAssignmentUnique assignment, bool global) Assignments()
         {
@@ -154,7 +154,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
     class P1DiffuseWaveCannonKyrios : Components.GenericBaitAway
     {
-        private static AOEShape _shape = new AOEShapeCone(60, 60.Degrees()); // TODO: verify angle
+        private static readonly AOEShape _shape = new AOEShapeCone(60, 60.Degrees()); // TODO: verify angle
 
         public P1DiffuseWaveCannonKyrios() : base(ActionID.MakeSpell(AID.DiffuseWaveCannonKyrios)) { }
 
@@ -172,7 +172,7 @@ namespace BossMod.Endwalker.Ultimate.TOP
 
     class P1WaveCannonKyrios : Components.GenericBaitAway
     {
-        private static AOEShapeRect _shape = new(50, 3);
+        private static readonly AOEShapeRect _shape = new(50, 3);
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {

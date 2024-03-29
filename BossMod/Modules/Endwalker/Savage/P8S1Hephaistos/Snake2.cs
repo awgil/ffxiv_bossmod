@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Savage.P8S1Hephaistos
     {
         public List<(Actor caster, DateTime finish)> Casters = new();
 
-        private static AOEShapeRect _shape = new(60, 5);
+        private static readonly AOEShapeRect _shape = new(60, 5);
 
         public Gorgospit() : base(ActionID.MakeSpell(AID.Gorgospit)) { }
 

@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Alliance.A10RhalgrEmissary
     {
         private List<AOEInstance> _aoes = new();
 
-        private static AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30) };
+        private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30) };
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Skip(NumCasts).Take(2);
 

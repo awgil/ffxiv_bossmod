@@ -68,8 +68,8 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     {
         private Quote? _quote;
 
-        private static AOEShapeCircle _shapeChariot = new(8.55f);
-        private static AOEShapeDonut _shapeDynamo = new(6, 22); // TODO: verify inner radius
+        private static readonly AOEShapeCircle _shapeChariot = new(8.55f);
+        private static readonly AOEShapeDonut _shapeDynamo = new(6, 22); // TODO: verify inner radius
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -147,7 +147,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
     {
         private Quote? _quote;
 
-        private static AOEShapeCircle _shape = new(5);
+        private static readonly AOEShapeCircle _shape = new(5);
 
         public QuoteDalamudDive() : base(ActionID.MakeSpell(AID.DalamudDive), true, true) { }
 

@@ -89,7 +89,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
     class RideDownKnockback : Components.Knockback
     {
         private List<Source> _sources = new();
-        private static AOEShapeCone _shape = new(30, 90.Degrees());
+        private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
         public RideDownKnockback() : base(ActionID.MakeSpell(AID.RideDownAOE), false, 1) { }
 
@@ -124,7 +124,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalr
     // since hitbox is 7.2 it is probably starting to be optimal around distance 15
     class RawSteel : Components.BaitAwayChargeCast
     {
-        private static float _safeDistance = 15;
+        private static readonly float _safeDistance = 15;
 
         public RawSteel() : base(ActionID.MakeSpell(AID.RawSteel), 2) { }
 

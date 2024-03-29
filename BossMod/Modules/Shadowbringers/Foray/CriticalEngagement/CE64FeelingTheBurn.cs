@@ -55,7 +55,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
     class AntiPersonnelMissile : Components.GenericAOEs
     {
         private List<WPos> _positions = new();
-        private static AOEShapeRect _shape = new(12, 12, 12);
+        private static readonly AOEShapeRect _shape = new(12, 12, 12);
 
         public AntiPersonnelMissile() : base(ActionID.MakeSpell(AID.BallisticImpact)) { }
 
@@ -81,7 +81,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
     class ChainCannonEscort : Components.GenericAOEs
     {
         private List<(Actor caster, int numCasts, DateTime activation)> _casters = new();
-        private static AOEShapeRect _shape = new(60, 2.5f);
+        private static readonly AOEShapeRect _shape = new(60, 2.5f);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
@@ -122,7 +122,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn
     class ChainCannonBoss : Components.GenericAOEs
     {
         private AOEInstance? _instance;
-        private static AOEShapeRect _shape = new(60, 2.5f);
+        private static readonly AOEShapeRect _shape = new(60, 2.5f);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_instance);
 

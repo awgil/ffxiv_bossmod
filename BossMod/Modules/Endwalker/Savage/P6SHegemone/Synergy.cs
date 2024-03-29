@@ -9,8 +9,8 @@ namespace BossMod.Endwalker.Savage.P6SHegemone
         private Actor?[] _targets = { null, null }; // second target is for non-chelic synergy
         private bool _chelic;
 
-        private static AOEShapeCircle _shapeNormal = new(5);
-        private static AOEShapeCone _shapeChelic = new(60, 30.Degrees());
+        private static readonly AOEShapeCircle _shapeNormal = new(5);
+        private static readonly AOEShapeCone _shapeChelic = new(60, 30.Degrees());
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

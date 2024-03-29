@@ -46,8 +46,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed
         private float _spawnToActivation;
         private DateTime _activation;
 
-        private static AOEShapeRect _shapeCell = new(5, 5, 5);
-        private static int[,] _remap = { { 0, 1, 2, 3, 4 }, { 4, 2, 3, 0, 1 }, { 3, 4, 1, 2, 0 }, { 3, 4, 1, 2, 0 }, { 4, 2, 3, 0, 1 } };
+        private static readonly AOEShapeRect _shapeCell = new(5, 5, 5);
+        private static readonly int[,] _remap = { { 0, 1, 2, 3, 4 }, { 4, 2, 3, 0, 1 }, { 3, 4, 1, 2, 0 }, { 3, 4, 1, 2, 0 }, { 4, 2, 3, 0, 1 } };
 
         public ShimmeringShot(float spawnToActivation)
         {

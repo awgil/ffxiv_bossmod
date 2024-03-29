@@ -9,7 +9,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         private IReadOnlyList<Actor> _dolls = ActorEnumeration.EmptyList;
         private HashSet<ulong> _exhaustsDone = new();
 
-        private static float _exhaustRadius = 8.8f;
+        private static readonly float _exhaustRadius = 8.8f;
 
         private IEnumerable<Actor> ActiveDolls => _dolls.Where(d => d.IsTargetable && !d.IsDead);
         public bool Active => ActiveDolls.Any();

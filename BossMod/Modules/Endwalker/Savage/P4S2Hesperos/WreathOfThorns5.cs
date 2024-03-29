@@ -10,7 +10,7 @@ namespace BossMod.Endwalker.Savage.P4S2Hesperos
         private List<Actor> _towersOrder = new();
         private int _castsDone = 0;
 
-        private static float _impulseAOERadius = 5;
+        private static readonly float _impulseAOERadius = 5;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

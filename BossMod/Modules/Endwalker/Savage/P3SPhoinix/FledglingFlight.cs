@@ -12,8 +12,8 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         private int[] _playerDeathTollStacks = new int[8];
         private int[] _playerAOECount = new int[8];
 
-        private static Angle _coneHalfAngle = 45.Degrees();
-        private static float _eyePlacementOffset = 10;
+        private static readonly Angle _coneHalfAngle = 45.Degrees();
+        private static readonly float _eyePlacementOffset = 10;
 
         public override void Update(BossModule module)
         {

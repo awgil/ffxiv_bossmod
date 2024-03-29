@@ -8,9 +8,9 @@
         private int _multiStartedCasts = 0;
         private int _multiFinishedCasts = 0;
 
-        private static float _singleRadius = 15;
-        private static float _multiRadius = 10;
-        private static float _multiPairOffset = 15;
+        private static readonly float _singleRadius = 15;
+        private static readonly float _multiRadius = 10;
+        private static readonly float _multiPairOffset = 15;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

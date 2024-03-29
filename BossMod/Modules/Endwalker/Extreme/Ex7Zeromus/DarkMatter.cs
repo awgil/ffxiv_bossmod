@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Extreme.Ex7Zeromus
     {
         private List<int> _remainingCasts = new();
 
-        private static AOEShapeCircle _shape = new(8);
+        private static readonly AOEShapeCircle _shape = new(8);
 
         public int RemainingCasts => _remainingCasts.Count > 0 ? _remainingCasts.Min() : 0;
 

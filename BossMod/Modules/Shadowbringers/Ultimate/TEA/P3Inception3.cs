@@ -9,7 +9,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
 
         private Actor? _source;
         private DateTime _activation;
-        private static AOEShapeCross _shape = new(100, 8);
+        private static readonly AOEShapeCross _shape = new(100, 8);
 
         public P3Inception3Sacrament() : base(ActionID.MakeSpell(AID.SacramentInception)) { }
 
@@ -23,7 +23,7 @@ namespace BossMod.Shadowbringers.Ultimate.TEA
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_source != null)
-                yield return new(_shape, _source.Position, _source.Rotation);
+                yield return new(_shape, _source.Position, _source.Rotation, _activation);
         }
     }
 

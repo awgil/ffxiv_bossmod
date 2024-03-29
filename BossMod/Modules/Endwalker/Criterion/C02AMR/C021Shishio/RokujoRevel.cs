@@ -11,8 +11,8 @@ namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio
         private List<(Angle dir, DateTime activation)> _pendingLines = new();
         private List<(WPos origin, DateTime activation)> _pendingCircles = new();
 
-        private static AOEShapeRect _shapeLine = new(30, 7, 30);
-        private static AOEShapeCircle[] _shapesCircle = { new(8), new(12), new(23) };
+        private static readonly AOEShapeRect _shapeLine = new(30, 7, 30);
+        private static readonly AOEShapeCircle[] _shapesCircle = { new(8), new(12), new(23) };
 
         private AOEShapeCircle? ShapeCircle => _numBreaths is > 0 and <= 3 ? _shapesCircle[_numBreaths - 1] : null;
 

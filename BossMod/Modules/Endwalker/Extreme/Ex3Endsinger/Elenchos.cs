@@ -8,8 +8,8 @@ namespace BossMod.Endwalker.Extreme.Ex3Endsigner
         private Actor? _center;
         private List<Actor> _sides = new();
 
-        private static AOEShapeRect _aoeCenter = new(40, 7);
-        private static AOEShapeRect _aoeSides = new(40, 6.5f, 40);
+        private static readonly AOEShapeRect _aoeCenter = new(40, 7);
+        private static readonly AOEShapeRect _aoeSides = new(40, 6.5f, 40);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

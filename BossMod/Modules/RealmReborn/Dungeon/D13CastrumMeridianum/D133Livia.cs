@@ -55,8 +55,8 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         private List<Actor> _castersRoundhouse = new();
         private List<Actor> _castersDischarge = new();
 
-        private static AOEShape _shapeRoundhouse = new AOEShapeCircle(10);
-        private static AOEShape _shapeDischarge = new AOEShapeCircle(8);
+        private static readonly AOEShape _shapeRoundhouse = new AOEShapeCircle(10);
+        private static readonly AOEShape _shapeDischarge = new AOEShapeCircle(8);
 
         public Roundhouse() : base(ActionID.MakeSpell(AID.Roundhouse)) { }
 
@@ -94,9 +94,9 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         private List<Actor?> _castersDischarge = new();
         private List<Actor?> _castersSalamander = new();
 
-        private static AOEShapeRect _shapeRect = new(40, 2);
-        private static AOEShapeCircle _shapeDischarge = new(8);
-        private static AOEShapeCross _shapeSalamander = new(20, 2);
+        private static readonly AOEShapeRect _shapeRect = new(40, 2);
+        private static readonly AOEShapeCircle _shapeDischarge = new(8);
+        private static readonly AOEShapeCross _shapeSalamander = new(20, 2);
 
         public InfiniteReach() : base(ActionID.MakeSpell(AID.InfiniteReachDischarge)) { }
 
@@ -153,8 +153,8 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         private List<Actor> _castersSweepDischarge = new();
         private List<Actor> _castersThermobaric = new();
 
-        private static AOEShape _shapeSweepDischarge = new AOEShapeCircle(8);
-        private static AOEShape _shapeThermobaric = new AOEShapeCircle(13); // TODO: verify falloff
+        private static readonly AOEShape _shapeSweepDischarge = new AOEShapeCircle(8);
+        private static readonly AOEShape _shapeThermobaric = new AOEShapeCircle(13); // TODO: verify falloff
 
         public StunningSweep() : base(ActionID.MakeSpell(AID.StunningSweep)) { }
 
@@ -189,8 +189,8 @@ namespace BossMod.RealmReborn.Dungeon.D13CastrumMeridianum.D133Livia
         private List<Actor> _castersSalamander = new();
         private List<Actor> _castersThermobaric = new();
 
-        private static AOEShape _shapeSalamander = new AOEShapeCross(20, 2);
-        private static AOEShape _shapeThermobaric = new AOEShapeCircle(13); // TODO: verify falloff
+        private static readonly AOEShape _shapeSalamander = new AOEShapeCross(20, 2);
+        private static readonly AOEShape _shapeThermobaric = new AOEShapeCircle(13); // TODO: verify falloff
 
         public AngrySalamander() : base(ActionID.MakeSpell(AID.AngrySalamander)) { }
 

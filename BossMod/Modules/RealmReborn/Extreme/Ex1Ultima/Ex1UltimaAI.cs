@@ -7,8 +7,8 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
     {
         private ViscousAetheroplasm? _viscousAetheroplasm;
 
-        private static float _meleeRange = 7;
-        private static float _rangedRange = 15; // outside ceruleum vent range, which is 14
+        private static readonly float _meleeRange = 7;
+        private static readonly float _rangedRange = 15; // outside ceruleum vent range, which is 14
 
         public override void Init(BossModule module)
         {

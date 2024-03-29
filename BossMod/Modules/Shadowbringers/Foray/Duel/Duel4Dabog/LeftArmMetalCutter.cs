@@ -8,7 +8,7 @@ namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog
 
         public State CurState { get; private set; }
         private List<AOEInstance> _aoes = new();
-        private static AOEShapeCone _shape = new(40, 45.Degrees());
+        private static readonly AOEShapeCone _shape = new(40, 45.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

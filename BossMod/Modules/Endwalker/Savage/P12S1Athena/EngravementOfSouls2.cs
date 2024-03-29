@@ -9,7 +9,7 @@
         private BitMask _lightCamp;
         private BitMask _darkCamp;
 
-        private static AOEShapeRect _shape = new(100, 3);
+        private static readonly AOEShapeRect _shape = new(100, 3);
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

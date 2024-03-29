@@ -37,7 +37,7 @@ namespace BossMod.RealmReborn.Raid.T04Gauntlet
 
     class GravityThrustPox : Components.GenericAOEs
     {
-        private static AOEShape _shape = new AOEShapeRect(50, 50);
+        private static readonly AOEShape _shape = new AOEShapeRect(50, 50);
 
         public GravityThrustPox() : base(new(), "Move behind rook!") { }
 

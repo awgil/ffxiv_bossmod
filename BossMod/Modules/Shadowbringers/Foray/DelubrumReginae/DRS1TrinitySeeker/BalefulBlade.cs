@@ -6,8 +6,8 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker
     {
         private bool _phantomEdge;
 
-        private static AOEShapeCone _shapeFront = new(DRS1.BarricadeRadius, 22.5f.Degrees());
-        private static AOEShapeDonutSector _shapeBehind = new(DRS1.BarricadeRadius, 30, 22.5f.Degrees());
+        private static readonly AOEShapeCone _shapeFront = new(DRS1.BarricadeRadius, 22.5f.Degrees());
+        private static readonly AOEShapeDonutSector _shapeBehind = new(DRS1.BarricadeRadius, 30, 22.5f.Degrees());
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

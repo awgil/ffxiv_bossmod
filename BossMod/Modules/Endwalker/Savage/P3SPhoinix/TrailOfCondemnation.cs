@@ -8,9 +8,9 @@ namespace BossMod.Endwalker.Savage.P3SPhoinix
         public bool Done { get; private set; } = false;
         private bool _isCenter;
 
-        private static float _halfWidth = 7.5f;
-        private static float _sidesOffset = 12.5f;
-        private static float _aoeRadius = 6;
+        private static readonly float _halfWidth = 7.5f;
+        private static readonly float _sidesOffset = 12.5f;
+        private static readonly float _aoeRadius = 6;
 
         public override void Init(BossModule module)
         {

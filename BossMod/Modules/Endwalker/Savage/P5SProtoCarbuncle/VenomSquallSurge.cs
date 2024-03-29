@@ -14,7 +14,7 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
         public int Progress { get; private set; }
         public bool _reverse;
 
-        private static float _radius = 5;
+        private static readonly float _radius = 5;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

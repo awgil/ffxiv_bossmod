@@ -9,7 +9,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
     {
         private List<Actor> _pendingBaiters = new(); // we only want to show max 1 baiter at a time
 
-        private static AOEShapeCircle _shape = new(20);
+        private static readonly AOEShapeCircle _shape = new(20);
 
         public LevinstrikeSummoningIcemeld() : base(centerAtTarget: true) { }
 
@@ -45,7 +45,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
     {
         private Actor?[] _baitOrder = { null, null, null, null };
 
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public LevinstrikeSummoningFiremeld() : base(ActionID.MakeSpell(AID.Firemeld), centerAtTarget: true) { }
 
@@ -92,7 +92,7 @@ namespace BossMod.Endwalker.Savage.P9SKokytos
         private Actor?[] _soakerOrder = { null, null, null, null };
         private DateTime _firstExplosion;
 
-        private static AOEShapeCircle _shape = new(6);
+        private static readonly AOEShapeCircle _shape = new(6);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

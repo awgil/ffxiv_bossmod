@@ -12,7 +12,7 @@ namespace BossMod.RealmReborn.Extreme.Ex1Ultima
         private BitMask _kiters;
         private HashSet<ulong> _explodedOrbs = new();
 
-        private static float _explosionRadius = 6;
+        private static readonly float _explosionRadius = 6;
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {

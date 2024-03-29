@@ -5,7 +5,7 @@
         private Actor? _target;
         private BitMask _otherHit;
 
-        private static AOEShapeCone _aoeShape = new(40, 45.Degrees());
+        private static readonly AOEShapeCone _aoeShape = new(40, 45.Degrees());
 
         public override void Init(BossModule module)
         {

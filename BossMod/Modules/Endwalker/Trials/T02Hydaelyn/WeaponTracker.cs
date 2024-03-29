@@ -8,9 +8,9 @@ namespace BossMod.Endwalker.Trials.T02Hydaelyn
         public enum Stance { Sword, Staff, Chakram }
         public Stance CurStance { get; private set; }
         private DateTime _activation;
-        private static AOEShapeCross _aoeSword = new(40, 5);
-        private static AOEShapeCircle _aoeStaff = new(10);
-        private static AOEShapeDonut _aoeChakram = new(5, 40);
+        private static readonly AOEShapeCross _aoeSword = new(40, 5);
+        private static readonly AOEShapeCircle _aoeStaff = new(10);
+        private static readonly AOEShapeDonut _aoeChakram = new(5, 40);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

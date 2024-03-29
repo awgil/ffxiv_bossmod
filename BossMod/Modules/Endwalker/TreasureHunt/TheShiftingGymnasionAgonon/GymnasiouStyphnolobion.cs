@@ -64,7 +64,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
 
     class EarthQuaker : Components.ConcentricAOEs
     {
-        private static AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20) };
+        private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20) };
 
         public EarthQuaker() : base(_shapes) { }
 

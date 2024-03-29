@@ -19,9 +19,9 @@ namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle
         public IEnumerable<Actor> MagicStones => _magicStones.Where(s => !s.IsDestroyed);
         public IEnumerable<Actor> PoisonStones => _poisonStones.Where(s => !s.IsDestroyed);
 
-        public static AOEShape ShapeQuadrant = new AOEShapeRect(7.5f, 7.5f, 7.5f);
-        public static AOEShape ShapeHalf = new AOEShapeRect(45, 45);
-        public static AOEShape ShapePoison = new AOEShapeCircle(13);
+        public static readonly AOEShape ShapeQuadrant = new AOEShapeRect(7.5f, 7.5f, 7.5f);
+        public static readonly AOEShape ShapeHalf = new AOEShapeRect(45, 45);
+        public static readonly AOEShape ShapePoison = new AOEShapeCircle(13);
 
         public RubyGlowCommon(ActionID watchedAction = new()) : base(watchedAction) { }
 

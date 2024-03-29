@@ -2,7 +2,7 @@
 {
     class Dualfire : Components.GenericBaitAway
     {
-        private static AOEShapeCone _shape = new(60, 60.Degrees()); // TODO: verify angle
+        private static readonly AOEShapeCone _shape = new(60, 60.Degrees()); // TODO: verify angle
 
         public Dualfire() : base(ActionID.MakeSpell(AID.DualfireAOE)) { }
 

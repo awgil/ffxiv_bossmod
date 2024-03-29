@@ -14,8 +14,8 @@ namespace BossMod.Endwalker.Ultimate.DSW1
         private int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple
         private BitMask _brokenTethers;
 
-        private static float _aoeRadius = 10;
-        private static float _tetherBreakDistance = 32; // TODO: verify...
+        private static readonly float _aoeRadius = 10;
+        private static readonly float _tetherBreakDistance = 32; // TODO: verify...
 
         public HeavensflameKnockback() : base(ActionID.MakeSpell(AID.FaithUnmoving), 16) { }
 

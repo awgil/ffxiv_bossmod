@@ -7,15 +7,15 @@
 
         private Corner _blockedCorner = Corner.None;
 
-        private static float _offsetCorner = 9.5f; // not sure
-        private static float _cornerHalfSize = 4; // not sure
-        private static float _connectHalfWidth = 2; // not sure
-        private static float _cornerInner = _offsetCorner - _cornerHalfSize;
-        private static float _cornerOuter = _offsetCorner + _cornerHalfSize;
-        private static float _connectInner = _offsetCorner - _connectHalfWidth;
-        private static float _connectOuter = _offsetCorner + _connectHalfWidth;
+        private static readonly float _offsetCorner = 9.5f; // not sure
+        private static readonly float _cornerHalfSize = 4; // not sure
+        private static readonly float _connectHalfWidth = 2; // not sure
+        private static readonly float _cornerInner = _offsetCorner - _cornerHalfSize;
+        private static readonly float _cornerOuter = _offsetCorner + _cornerHalfSize;
+        private static readonly float _connectInner = _offsetCorner - _connectHalfWidth;
+        private static readonly float _connectOuter = _offsetCorner + _connectHalfWidth;
 
-        private static WDir[] _corners = { new(), new(-1, -1), new(1, -1), new(-1, 1), new(1, 1) };
+        private static readonly WDir[] _corners = { new(), new(-1, -1), new(1, -1), new(-1, 1), new(1, 1) };
 
         public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
         {

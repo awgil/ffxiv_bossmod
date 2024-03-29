@@ -115,7 +115,7 @@ namespace BossMod.Endwalker.Alliance.A14Naldthal
     {
         private FortuneFluxOrder? _order;
 
-        private static AOEShapeCircle _shape = new(20);
+        private static readonly AOEShapeCircle _shape = new(20);
 
         public override void Init(BossModule module)
         {

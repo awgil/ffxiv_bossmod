@@ -11,7 +11,7 @@ namespace BossMod.RealmReborn.Raid.T05Twintania
         public WPos? Target { get; private set; }
         public DateTime HitAt { get; private set; }
 
-        private static AOEShapeRect _shape = new(35, 6);
+        private static readonly AOEShapeRect _shape = new(35, 6);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

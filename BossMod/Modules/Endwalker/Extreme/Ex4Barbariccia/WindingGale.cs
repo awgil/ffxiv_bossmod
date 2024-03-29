@@ -8,7 +8,7 @@ namespace BossMod.Endwalker.Extreme.Ex4Barbariccia
     {
         private List<Actor> _casters = new();
 
-        private static AOEShapeDonutSector _shape = new(9, 11, 90.Degrees());
+        private static readonly AOEShapeDonutSector _shape = new(9, 11, 90.Degrees());
 
         public WindingGale() : base(ActionID.MakeSpell(AID.WindingGale)) { }
 

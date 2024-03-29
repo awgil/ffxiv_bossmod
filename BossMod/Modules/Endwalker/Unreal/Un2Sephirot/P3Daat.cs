@@ -4,7 +4,7 @@ namespace BossMod.Endwalker.Unreal.Un2Sephirot
 {
     class P3Daat : Components.CastCounter
     {
-        private static float radius = 5;
+        private static readonly float radius = 5;
 
         public P3Daat() : base(ActionID.MakeSpell(AID.DaatRandom)) { }
 

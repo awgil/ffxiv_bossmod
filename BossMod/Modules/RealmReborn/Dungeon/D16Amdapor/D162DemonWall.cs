@@ -46,7 +46,7 @@ namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall
 
     class ForbiddenZones : Components.GenericAOEs
     {
-        private static AOEShapeRect _shape = new(50, 10);
+        private static readonly AOEShapeRect _shape = new(50, 10);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

@@ -12,7 +12,7 @@ namespace BossMod.Endwalker.Alliance.A13Azeyma
     {
         private IReadOnlyList<Actor> _flames = ActorEnumeration.EmptyList;
 
-        private static AOEShapeDonutSector _shape = new(20, 30, 45.Degrees());
+        private static readonly AOEShapeDonutSector _shape = new(20, 30, 45.Degrees());
 
         public RadiantRhythm() : base(ActionID.MakeSpell(AID.RadiantFlight)) { }
 

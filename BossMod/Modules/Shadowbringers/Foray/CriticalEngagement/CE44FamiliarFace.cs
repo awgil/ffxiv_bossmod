@@ -76,7 +76,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
     class ExtremeEdge : Components.GenericAOEs
     {
         private List<(Actor caster, float offset)> _casters = new();
-        private static AOEShapeRect _shape = new(60, 18);
+        private static readonly AOEShapeRect _shape = new(60, 18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

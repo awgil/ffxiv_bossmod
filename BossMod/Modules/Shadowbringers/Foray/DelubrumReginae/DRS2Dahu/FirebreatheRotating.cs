@@ -8,7 +8,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2Dahu
         private Angle _increment;
         private Angle _nextRotation;
         private DateTime _nextActivation;
-        private static AOEShapeCone _shape = new(60, 45.Degrees());
+        private static readonly AOEShapeCone _shape = new(60, 45.Degrees());
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

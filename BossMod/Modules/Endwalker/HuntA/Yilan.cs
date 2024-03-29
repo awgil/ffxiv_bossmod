@@ -44,7 +44,7 @@ namespace BossMod.Endwalker.HuntA.Yilan
     {
         private DateTime _activation;
 
-        public static AOEShapeCircle Shape = new(18);
+        public static readonly AOEShapeCircle Shape = new(18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {

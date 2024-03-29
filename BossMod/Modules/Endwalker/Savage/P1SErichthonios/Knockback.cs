@@ -11,10 +11,10 @@ namespace BossMod.Endwalker.Savage.P1SErichthonios
         private Actor? _knockbackTarget = null;
         private WPos _knockbackPos = new();
 
-        private static float _kbDistance = 15;
-        private static float _flareRange = 24; // max range is 50, but it has distance falloff - linear up to ~24, then constant ~3k
-        private static float _holyRange = 6;
-        private static uint _colorAOETarget = 0xff8080ff;
+        private static readonly float _kbDistance = 15;
+        private static readonly float _flareRange = 24; // max range is 50, but it has distance falloff - linear up to ~24, then constant ~3k
+        private static readonly float _holyRange = 6;
+        private static readonly uint _colorAOETarget = 0xff8080ff;
 
         public override void Init(BossModule module)
         {

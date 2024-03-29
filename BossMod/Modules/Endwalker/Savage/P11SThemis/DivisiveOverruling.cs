@@ -7,8 +7,8 @@ namespace BossMod.Endwalker.Savage.P11SThemis
     {
         public List<AOEInstance> AOEs = new();
 
-        private static AOEShapeRect _shapeNarrow = new(46, 8, 23); // note: boss variants are 23+23, clone variants are 46+0, doesn't matter too much
-        private static AOEShapeRect _shapeWide = new(46, 13, 23);
+        private static readonly AOEShapeRect _shapeNarrow = new(46, 8, 23); // note: boss variants are 23+23, clone variants are 46+0, doesn't matter too much
+        private static readonly AOEShapeRect _shapeWide = new(46, 13, 23);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
