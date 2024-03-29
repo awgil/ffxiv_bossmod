@@ -28,6 +28,10 @@
         [PropertyDisplay("Show cardinal direction names")]
         public bool ShowCardinals = false;
 
+        [PropertyDisplay("Cardinal direction font size")]
+        [PropertySlider(0.1f, 100, Speed = 1)]
+        public float CadrdinalsFontSize = 17;
+
         [PropertyDisplay("Show waymarks on radar")]
         public bool ShowWaymarks = false;
 
