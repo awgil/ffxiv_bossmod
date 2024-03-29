@@ -1,4 +1,5 @@
-﻿namespace BossMod.Modules.Endwalker.SoloDuty.Endwalker;
+﻿namespace BossMod.Endwalker.Quest.Endwalker;
+
 class Exaflare : Components.Exaflare
 {
     public Exaflare() : base(6) { }
