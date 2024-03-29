@@ -1,6 +1,7 @@
 ﻿// CONTRIB: made by malediktus, not checked
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
 {
@@ -25,199 +26,73 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos
 
     class MagitekBitLasers : Components.GenericAOEs
     {
-        private int numcasts;
-        private bool SatelliteLaser;
-        private bool DiffractiveLaserAngle0;
-        private bool DiffractiveLaserAngle90;
-        private bool DiffractiveLaserAngle180;
-        private bool DiffractiveLaserAngleM90;
-        private bool LaserShowerAngle90;
-        private bool LaserShowerAngleM90;
-        private bool LaserShowerAngle0;
-        private bool LaserShowerAngle180;
-        private DateTime time;
-        private DateTime _activation1;
-        private DateTime _activation2;
-        private DateTime _activation3;
+        private static readonly Angle[] rotations = [0.Degrees(), 90.Degrees(), 180.Degrees(), -90.Degrees()];
+        private readonly List<DateTime> _times = [];
+        private Angle startrotation;
+        public enum Types { None, SatelliteLaser, DiffractiveLaser, LaserShower }
+        public Types Type { get; private set; }
         private const float maxError = MathF.PI / 180;
         private static readonly AOEShapeRect rect = new(100, 3);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            foreach (var p in module.Enemies(OID.MagitekBit))
-            {
-                if (module.Bounds.Contains(p.Position))
+            if (_times.Count > 0)
+                foreach (var p in module.Enemies(OID.MagitekBit))
                 {
-                    if (SatelliteLaser && module.WorldState.CurrentTime > time.AddSeconds(2.5f) && (p.Rotation.AlmostEqual(180.Degrees(), maxError) || p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                        yield return new(rect, p.Position, p.Rotation, _activation1);
-                    if (DiffractiveLaserAngle0 && module.WorldState.CurrentTime > time.AddSeconds(2))
+                    if (Type == Types.SatelliteLaser && module.WorldState.CurrentTime > _times[0])
+                        yield return new(rect, p.Position, p.Rotation, _times[1]);
+                    if ((Type == Types.DiffractiveLaser && module.WorldState.CurrentTime > _times[0]) || Type == Types.LaserShower)
                     {
-                        if (numcasts < 5 && p.Rotation.AlmostEqual(180.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation1, ArenaColor.Danger);
-                        if (numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2);
-                        if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2, ArenaColor.Danger);
-                        if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(0.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3);
-                        if (numcasts >= 9 && p.Rotation.AlmostEqual(0.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3, ArenaColor.Danger);
-                    }
-                    if (DiffractiveLaserAngleM90 && module.WorldState.CurrentTime > time.AddSeconds(2))
-                    {
-                        if (numcasts < 5 && p.Rotation.AlmostEqual(90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation1, ArenaColor.Danger);
-                        if (numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(180.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2);
-                        if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(180.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2, ArenaColor.Danger);
-                        if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3);
-                        if (numcasts >= 9 && p.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3, ArenaColor.Danger);
-                    }
-                    if (DiffractiveLaserAngle90 && module.WorldState.CurrentTime > time.AddSeconds(2))
-                    {
-                        if (numcasts < 5 && p.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation1, ArenaColor.Danger);
-                        if (numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(180.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2);
-                        if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(180.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2, ArenaColor.Danger);
-                        if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3);
-                        if (numcasts >= 9 && p.Rotation.AlmostEqual(90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3, ArenaColor.Danger);
-                    }
-                    if (DiffractiveLaserAngle180 && module.WorldState.CurrentTime > time.AddSeconds(2))
-                    {
-                        if (numcasts < 5 && p.Rotation.AlmostEqual(0.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation1, ArenaColor.Danger);
-                        if (numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2);
-                        if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2, ArenaColor.Danger);
-                        if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(180.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3);
-                        if (numcasts >= 9 && p.Rotation.AlmostEqual(180.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3, ArenaColor.Danger);
-                    }
-                    if (LaserShowerAngle90)
-                    {
-                        if (numcasts < 5 && p.Rotation.AlmostEqual(90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation1, ArenaColor.Danger);
-                        if (numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(180.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2);
-                        if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(180.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2, ArenaColor.Danger);
-                        if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3);
-                        if (numcasts >= 9 && p.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3, ArenaColor.Danger);
-                    }
-                    if (LaserShowerAngleM90)
-                    {
-                        if (numcasts < 5 && p.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation1, ArenaColor.Danger);
-                        if (numcasts < 5 && (p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(180.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2);
-                        if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(0.Degrees(), maxError) || p.Rotation.AlmostEqual(180.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2, ArenaColor.Danger);
-                        if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3);
-                        if (numcasts >= 9 && p.Rotation.AlmostEqual(90.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3, ArenaColor.Danger);
-                    }
-                    if (LaserShowerAngle0)
-                    {
-                        if (numcasts < 5 && p.Rotation.AlmostEqual(0.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation1, ArenaColor.Danger);
-                        if (numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2);
-                        if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2, ArenaColor.Danger);
-                        if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(180.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3);
-                        if (numcasts >= 9 && p.Rotation.AlmostEqual(180.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3, ArenaColor.Danger);
-                    }
-                    if (LaserShowerAngle180)
-                    {
-                        if (numcasts < 5 && p.Rotation.AlmostEqual(180.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation1, ArenaColor.Danger);
-                        if (numcasts < 5 && (p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2);
-                        if (numcasts >= 5 && numcasts < 9 && (p.Rotation.AlmostEqual(90.Degrees(), maxError) || p.Rotation.AlmostEqual(-90.Degrees(), maxError)))
-                            yield return new(rect, p.Position, p.Rotation, _activation2, ArenaColor.Danger);
-                        if (numcasts >= 5 && numcasts < 9 && p.Rotation.AlmostEqual(0.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3);
-                        if (numcasts >= 9 && p.Rotation.AlmostEqual(0.Degrees(), maxError))
-                            yield return new(rect, p.Position, p.Rotation, _activation3, ArenaColor.Danger);
+                        if (NumCasts < 5 && p.Rotation.AlmostEqual(startrotation, maxError))
+                            yield return new(rect, p.Position, p.Rotation, _times[1], ArenaColor.Danger);
+                        if (NumCasts < 5 && (p.Rotation.AlmostEqual(startrotation + 90.Degrees(), maxError) || p.Rotation.AlmostEqual(startrotation - 90.Degrees(), maxError)))
+                            yield return new(rect, p.Position, p.Rotation, _times[2]);
+                        if (NumCasts >= 5 && NumCasts < 9 && (p.Rotation.AlmostEqual(startrotation + 90.Degrees(), maxError) || p.Rotation.AlmostEqual(startrotation - 90.Degrees(), maxError)))
+                            yield return new(rect, p.Position, p.Rotation, _times[2], ArenaColor.Danger);
+                        if (NumCasts >= 5 && NumCasts < 9 && p.Rotation.AlmostEqual(startrotation + 180.Degrees(), maxError))
+                            yield return new(rect, p.Position, p.Rotation, _times[3]);
+                        if (NumCasts >= 9 && p.Rotation.AlmostEqual(startrotation + 180.Degrees(), maxError))
+                            yield return new(rect, p.Position, p.Rotation, _times[3], ArenaColor.Danger);
                     }
                 }
-            }
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
+            var _time = module.WorldState.CurrentTime;
             if ((AID)spell.Action.ID == AID.SatelliteLaser)
             {
-                SatelliteLaser = true;
-                time = module.WorldState.CurrentTime;
-                _activation1 = module.WorldState.CurrentTime.AddSeconds(12.3f);
+                Type = Types.SatelliteLaser;
+                _times.Add(_time.AddSeconds(2.5f));
+                _times.Add(_time.AddSeconds(12.3f));
             }
             if ((AID)spell.Action.ID == AID.DiffractiveLaser)
             {
-                {
-                    if (spell.Rotation.AlmostEqual(0.Degrees(), maxError))
-                        DiffractiveLaserAngle0 = true;
-                    if (spell.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                        DiffractiveLaserAngleM90 = true;
-                    if (spell.Rotation.AlmostEqual(90.Degrees(), maxError))
-                        DiffractiveLaserAngle90 = true;
-                    if (spell.Rotation.AlmostEqual(180.Degrees(), maxError))
-                        DiffractiveLaserAngle180 = true;
-                }
-                time = module.WorldState.CurrentTime;
-                _activation1 = module.WorldState.CurrentTime.AddSeconds(8.8f);
-                _activation2 = module.WorldState.CurrentTime.AddSeconds(10.6f);
-                _activation3 = module.WorldState.CurrentTime.AddSeconds(12.4f);
+                DateTime[] times = [_time.AddSeconds(2), _time.AddSeconds(8.8f), _time.AddSeconds(10.6f), _time.AddSeconds(12.4f)];
+                startrotation = rotations.FirstOrDefault(r => spell.Rotation.AlmostEqual(r, maxError)) + 180.Degrees();
+                Type = Types.DiffractiveLaser;
+                _times.AddRange(times);
             }
             if ((AID)spell.Action.ID == AID.LaserShower2)
             {
-                {
-                    if (caster.Rotation.AlmostEqual(90.Degrees(), maxError))
-                        LaserShowerAngle90 = true;
-                    if (caster.Rotation.AlmostEqual(0.Degrees(), maxError))
-                        LaserShowerAngle0 = true;
-                    if (caster.Rotation.AlmostEqual(180.Degrees(), maxError))
-                        LaserShowerAngle180 = true;
-                    if (caster.Rotation.AlmostEqual(-90.Degrees(), maxError))
-                        LaserShowerAngleM90 = true;
-                }
-                _activation1 = module.WorldState.CurrentTime.AddSeconds(6.5f);
-                _activation2 = module.WorldState.CurrentTime.AddSeconds(8.3f);
-                _activation3 = module.WorldState.CurrentTime.AddSeconds(10.1f);
+                DateTime[] times = [_time, _time.AddSeconds(6.5f), _time.AddSeconds(8.3f), _time.AddSeconds(10.1f)];
+                startrotation = rotations.FirstOrDefault(r => caster.Rotation.AlmostEqual(r, maxError));
+                Type = Types.LaserShower;
+                _times.AddRange(times);
             }
         }
 
         public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
         {
-            base.OnEventCast(module, caster, spell);
             if ((AID)spell.Action.ID == AID.RefractedLaser)
-                ++numcasts;
-            if (numcasts == 14)
             {
-                numcasts = 0;
-                DiffractiveLaserAngle0 = false;
-                DiffractiveLaserAngle90 = false;
-                DiffractiveLaserAngleM90 = false;
-                DiffractiveLaserAngle180 = false;
-                SatelliteLaser = false;
-                LaserShowerAngle90 = false;
-                LaserShowerAngleM90 = false;
-                LaserShowerAngle0 = false;
-                LaserShowerAngle180 = false;
+                ++NumCasts;
+                if (NumCasts == 14)
+                {
+                    NumCasts = 0;
+                    _times.Clear();
+                    Type = Types.None;
+                }
             }
         }
     }

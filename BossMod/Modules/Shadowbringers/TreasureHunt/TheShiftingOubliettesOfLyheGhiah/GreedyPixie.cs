@@ -75,7 +75,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
 
     class NatureCall2 : Components.SelfTargetedAOEs
     {
-        public NatureCall2() : base(ActionID.MakeSpell(AID.NatureCall), new AOEShapeCone(30, 60.Degrees())) { }
+        public NatureCall2() : base(ActionID.MakeSpell(AID.NatureCall2), new AOEShapeCone(30, 60.Degrees())) { }
     }
 
     class PluckAndPrune : Components.SelfTargetedAOEs
@@ -145,7 +145,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Gree
     [ModuleInfo(CFCID = 745, NameID = 9797)]
     public class GreedyPixie : BossModule
     {
-        public GreedyPixie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public GreedyPixie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

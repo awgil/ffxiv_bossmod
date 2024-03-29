@@ -34,7 +34,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarMandragora
 
     class OpticalIntrusion : Components.SingleTargetCast
     {
-        public OpticalIntrusion() : base(ActionID.MakeSpell(AID.OpticalIntrusion)) { }
+        public OpticalIntrusion() : base(ActionID.MakeSpell(AID.OpticalIntrusion)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class Hypnotize : Components.SelfTargetedAOEs

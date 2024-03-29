@@ -25,7 +25,7 @@ namespace BossMod.Endwalker.HuntS.Burfurlur
     class QuintupleSneeze : Components.GenericAOEs
     {
         private Angle _referenceAngle;
-        private List<Angle> _pendingOffsets = new();
+        private readonly List<Angle> _pendingOffsets = [];
         private DateTime _nextSneeze;
 
         private static readonly AOEShapeCone _shape = new(40, 45.Degrees());

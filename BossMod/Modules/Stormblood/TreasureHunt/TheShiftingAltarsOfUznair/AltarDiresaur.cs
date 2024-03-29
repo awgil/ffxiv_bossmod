@@ -1,4 +1,5 @@
 // CONTRIB: made by malediktus, not checked
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
@@ -40,7 +41,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
 
     class DeadlyHold : Components.SingleTargetCast
     {
-        public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) { }
+        public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class HeatBreath : Components.SelfTargetedAOEs
@@ -68,17 +72,21 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         public HardStomp() : base(ActionID.MakeSpell(AID.HardStomp), new AOEShapeCircle(10)) { }
     }
 
-    class Fireball : Components.UniformStackSpread
+    class Fireball : Components.LocationTargetedAOEs
     {
-        public Fireball() : base(0, 6, alwaysShowSpreads: true) { }
+        public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 6) { }
+    }
+
+    class FireballBait : Components.GenericBaitAway
+    {
         private bool targeted;
-        private int numcasts;
         private Actor? target;
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Baitaway)
             {
-                AddSpread(actor);
+                CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(6)));
                 targeted = true;
                 target = actor;
             }
@@ -87,11 +95,11 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Fireball)
-                ++numcasts;
-            if (numcasts == 3)
+                ++NumCasts;
+            if (NumCasts == 3)
             {
-                Spreads.Clear();
-                numcasts = 0;
+                CurrentBaits.Clear();
+                NumCasts = 0;
                 targeted = false;
             }
         }
@@ -106,13 +114,13 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (target == actor && targeted)
-                hints.Add("Bait away (3 times!)");
+                hints.Add("Bait voidzone away! (3 times)");
         }
     }
 
-    class FireballVoidzone : Components.PersistentVoidzoneAtCastTarget
+    class FireballVoidzone : Components.PersistentVoidzone
     {
-        public FireballVoidzone() : base(6, ActionID.MakeSpell(AID.Fireball), m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7), 1) { }
+        public FireballVoidzone() : base(6,m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7)) { }
     }
 
     class RaucousScritch : Components.SelfTargetedAOEs
@@ -142,6 +150,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
                 .ActivateOnEnter<Comet>()
                 .ActivateOnEnter<HardStomp>()
                 .ActivateOnEnter<Fireball>()
+                .ActivateOnEnter<FireballBait>()
                 .ActivateOnEnter<FireballVoidzone>()
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()

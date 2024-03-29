@@ -39,7 +39,7 @@ namespace BossMod.Endwalker.HuntS.NarrowRift
 
     class EmptyPromise : Components.GenericAOEs
     {
-        private List<AOEShape> _pendingShapes = new();
+        private readonly List<AOEShape> _pendingShapes = [];
 
         private static readonly AOEShapeCircle _shapeCircle = new(10);
         private static readonly AOEShapeDonut _shapeDonut = new(6, 40);

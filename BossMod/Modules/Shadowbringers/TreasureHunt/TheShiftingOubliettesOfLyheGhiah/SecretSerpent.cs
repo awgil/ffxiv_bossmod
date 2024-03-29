@@ -8,6 +8,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         Boss = 0x3025, //R=5.29
         BossAdd = 0x3026, //R=3.45
         BossHelper = 0x233C,
+        WaterVoidzone = 0x1EA7D5,
         SecretQueen = 0x3021, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
         SecretGarlic = 0x301F, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
         SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
@@ -33,9 +34,9 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
     };
 
-    class Douse : Components.LocationTargetedAOEs
+    class Douse : Components.PersistentVoidzoneAtCastTarget
     {
-        public Douse() : base(ActionID.MakeSpell(AID.Douse), 8) { }
+        public Douse() : base(8, ActionID.MakeSpell(AID.Douse), m => m.Enemies(OID.WaterVoidzone).Where(z => z.EventState != 7), 0) { }
     }
 
     class FangsEnd : Components.SingleTargetCast
@@ -105,7 +106,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     [ModuleInfo(CFCID = 745, NameID = 9776)]
     public class Serpent : BossModule
     {
-        public Serpent(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Serpent(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

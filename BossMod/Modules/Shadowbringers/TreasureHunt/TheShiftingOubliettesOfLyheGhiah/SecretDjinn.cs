@@ -16,7 +16,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         AutoAttack2 = 872, // BossAdd->player, no cast, single-target
         Gust = 21655, // Boss->location, 3,0s cast, range 6 circle
         ChangelessWinds = 21657, // Boss->self, 3,0s cast, range 40 width 8 rect
-        WhirlingGaol = 21654, // Boss->self, 4,0s cast, range 40 circle
+        WhirlingGaol = 21654, // Boss->self, 4,0s cast, range 40 circle, knockback 25 away from source
         Whipwind = 21656, // Boss->self, 5,0s cast, range 55 width 40 rect
         GentleBreeze = 21653, // BossAdd->self, 3,0s cast, range 15 width 4 rect
     };
@@ -43,7 +43,15 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
 
     class WhirlingGaol : Components.RaidwideCast
     {
-        public WhirlingGaol() : base(ActionID.MakeSpell(AID.WhirlingGaol)) { }
+        public WhirlingGaol() : base(ActionID.MakeSpell(AID.WhirlingGaol), "Raidwide + Knockback") { }
+    }
+
+    class WhirlingGaolKB : Components.KnockbackFromCastTarget
+    {
+        public WhirlingGaolKB() : base(ActionID.MakeSpell(AID.WhirlingGaol), 25)
+        {
+            StopAtWall = true;
+        }
     }
 
     class DjinnStates : StateMachineBuilder
@@ -56,6 +64,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
                 .ActivateOnEnter<Whipwind>()
                 .ActivateOnEnter<GentleBreeze>()
                 .ActivateOnEnter<WhirlingGaol>()
+                .ActivateOnEnter<WhirlingGaolKB>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
         }
     }
@@ -63,7 +72,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     [ModuleInfo(CFCID = 745, NameID = 9788)]
     public class Djinn : BossModule
     {
-        public Djinn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Djinn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

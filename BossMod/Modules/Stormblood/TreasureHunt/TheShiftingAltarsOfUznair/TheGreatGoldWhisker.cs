@@ -21,7 +21,10 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheGreatGoldWhi
 
     class TripleTrident : Components.SingleTargetCast
     {
-        public TripleTrident() : base(ActionID.MakeSpell(AID.TripleTrident)) { }
+        public TripleTrident() : base(ActionID.MakeSpell(AID.TripleTrident)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class FishOutOfWater : Components.CastHint

@@ -46,9 +46,9 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
         public TheRamsVoice() : base(ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9.92f)) { }
     }
 
-    class TheRamsVoiceHint : Components.CastHint
+    class TheRamsVoiceHint : Components.CastInterruptHint
     {
-        public TheRamsVoiceHint() : base(ActionID.MakeSpell(AID.TheRamsVoice), "Interrupt!") { }
+        public TheRamsVoiceHint() : base(ActionID.MakeSpell(AID.TheRamsVoice)) { }
     }
 
     class TheLionsBreath : Components.SelfTargetedAOEs
@@ -66,21 +66,26 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
         public TheDragonsVoice() : base(ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30)) { }
     }
 
-    class TheDragonsVoiceHint : Components.CastHint
+    class TheDragonsVoiceHint : Components.CastInterruptHint
     {
-        public TheDragonsVoiceHint() : base(ActionID.MakeSpell(AID.TheDragonsVoice), "Interrupt!") { }
+        public TheDragonsVoiceHint() : base(ActionID.MakeSpell(AID.TheDragonsVoice)) { }
     }
 
-    class TheRamsKeeper : Components.UniformStackSpread
+    class TheRamsKeeper : Components.LocationTargetedAOEs
     {
-        public TheRamsKeeper() : base(0, 6, alwaysShowSpreads: true) { }
+        public TheRamsKeeper() : base(ActionID.MakeSpell(AID.TheRamsKeeper), 6) { }
+    }
+
+    class TheRamsKeeperBait : Components.GenericBaitAway
+    {
         private bool targeted;
         private Actor? target;
+
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
         {
             if (iconID == (uint)IconID.Baitaway)
             {
-                AddSpread(actor);
+                CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(6)));
                 targeted = true;
                 target = actor;
             }
@@ -90,7 +95,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
         {
             if ((AID)spell.Action.ID == AID.TheRamsKeeper)
             {
-                Spreads.Clear();
+                CurrentBaits.Clear();
                 targeted = false;
             }
         }
@@ -104,14 +109,15 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
 
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
+            base.AddHints(module, slot, actor, hints, movementHints);
             if (target == actor && targeted)
-                hints.Add("Bait away!");
+                hints.Add("Bait voidzone away!");
         }
     }
 
-    class IceVoidzone : Components.PersistentVoidzoneAtCastTarget
+    class IceVoidzone : Components.PersistentVoidzone
     {
-        public IceVoidzone() : base(6, ActionID.MakeSpell(AID.TheRamsKeeper), m => m.Enemies(OID.IceVoidzone).Where(z => z.EventState != 7), 0) { }
+        public IceVoidzone() : base(6, m => m.Enemies(OID.IceVoidzone).Where(z => z.EventState != 7)) { }
     }
 
     class RaucousScritch : Components.SelfTargetedAOEs
@@ -129,7 +135,6 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
         public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
     }
 
-
     class ChimeraStates : StateMachineBuilder
     {
         public ChimeraStates(BossModule module) : base(module)
@@ -143,6 +148,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
                 .ActivateOnEnter<TheLionsBreath>()
                 .ActivateOnEnter<LanguorousGaze>()
                 .ActivateOnEnter<TheRamsKeeper>()
+                .ActivateOnEnter<TheRamsKeeperBait>()
                 .ActivateOnEnter<IceVoidzone>()
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()

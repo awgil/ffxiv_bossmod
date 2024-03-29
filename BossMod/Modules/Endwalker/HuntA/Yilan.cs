@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Endwalker.HuntA.Yilan
 {
@@ -31,7 +32,7 @@ namespace BossMod.Endwalker.HuntA.Yilan
     {
         public Soundstorm() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
 
-        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => MiniLight.Shape.Check(pos, module.PrimaryActor);
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<MiniLight>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
@@ -44,12 +45,12 @@ namespace BossMod.Endwalker.HuntA.Yilan
     {
         private DateTime _activation;
 
-        public static readonly AOEShapeCircle Shape = new(18);
+        private static readonly AOEShapeCircle _shape = new(18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_activation != default)
-                yield return new(Shape, module.PrimaryActor.Position, default, _activation);
+                yield return new(_shape, module.PrimaryActor.Position, default, _activation);
         }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

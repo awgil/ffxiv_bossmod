@@ -24,31 +24,21 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry
 
     class PalmAttacks : Components.GenericAOEs //Palm Attacks have a wrong origin, so i made a custom solution
     {
-        private DateTime _activation;
-        private bool left;
-        private bool right;
+
+        private AOEInstance? _aoe;
 
         private static readonly AOEShapeRect rect = new(15, 15);
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            if (left)
-                yield return new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), -90.Degrees(), _activation);
-            if (right)
-                yield return new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), 90.Degrees(), _activation);
-
-        }
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             switch ((AID)spell.Action.ID)
             {
                 case AID.LeftPalm2:
-                    left = true;
-                    _activation = spell.NPCFinishAt;
+                    _aoe = new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), -90.Degrees(), spell.NPCFinishAt);
                     break;
                 case AID.RightPalm2:
-                    right = true;
-                    _activation = spell.NPCFinishAt;
+                    _aoe = new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), 90.Degrees(), spell.NPCFinishAt);
                     break;
             }
         }
@@ -56,10 +46,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID is AID.LeftPalm2 or AID.RightPalm2)
-            {
-                left = false;
-                right = false;
-            }
+                _aoe = null;
         }
     }
 

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
 {
@@ -50,7 +52,10 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
 
     class RockCutter : Components.SingleTargetCast
     {
-        public RockCutter() : base(ActionID.MakeSpell(AID.RockCutter)) { }
+        public RockCutter() : base(ActionID.MakeSpell(AID.RockCutter)) 
+        {
+            EndsOnCastEvent = true;
+        }
     }
 
     class AncientQuake : Components.RaidwideCast
@@ -68,14 +73,52 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         public ControlTowerAppear() : base(ActionID.MakeSpell(AID.ControlTowerAppear), new AOEShapeCircle(6)) { }
     }
 
-    class Towerfall : Components.SelfTargetedAOEs
+    class Towerfall : Components.GenericAOEs
     {
-        public Towerfall() : base(ActionID.MakeSpell(AID.Towerfall), new AOEShapeRect(40, 5)) { }
+        private readonly List<(Actor tower, DateTime activation)> _towers = [];
+        public enum Types { None, TowerRound, ControlTower }
+        public Types Type { get; private set; }
+        private readonly static AOEShapeRect _shape = new(40, 5);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+        {
+            foreach (var c in _towers)
+                yield return new(_shape, c.tower.Position, c.tower.Rotation, c.activation);
+        }
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            switch ((AID)spell.Action.ID)
+            {
+                case AID.TowerRound:
+                    Type = Types.TowerRound;
+                    break;
+                case AID.ControlTower:
+                    Type = Types.ControlTower;
+                    break;
+                case AID.Towerfall:
+                    Type = Types.None;
+                    break;
+            }
+        }
+
+        public override void OnActorCreated(BossModule module, Actor actor)
+        {
+            if ((OID)actor.OID == OID.FallingTower)
+                _towers.Add((actor, Type == Types.TowerRound ? module.WorldState.CurrentTime.AddSeconds(24.4f) : Type == Types.ControlTower ? module.WorldState.CurrentTime.AddSeconds(9.6f) : module.WorldState.CurrentTime.AddSeconds(13)));
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.Towerfall)
+                _towers.RemoveAll(c => c.tower.Position.AlmostEqual(caster.Position, 1));
+        }
     }
 
     class ExtremeEdge : Components.GenericAOEs
     {
         private List<(Actor caster, float offset)> _casters = new();
+
         private static readonly AOEShapeRect _shape = new(60, 18);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
@@ -88,8 +131,8 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         {
             var offset = (AID)spell.Action.ID switch
             {
-                AID.ExtremeEdgeL => 15,
-                AID.ExtremeEdgeR => -15,
+                AID.ExtremeEdgeL => 12,
+                AID.ExtremeEdgeR => -12,
                 _ => 0
             };
             if (offset != 0)
@@ -134,10 +177,24 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         }
     }
 
-    // TODO: consider prediction - actor-create happens ~4.7s before cast start
-    class Hammerfall : Components.SelfTargetedAOEs
+    class Hammerfall : Components.GenericAOEs
     {
-        public Hammerfall() : base(ActionID.MakeSpell(AID.Hammerfall), new AOEShapeCircle(37)) { }
+        private readonly List<AOEInstance> _aoes = [];
+        private readonly static AOEShapeCircle _shape = new(37);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
+
+        public override void OnActorCreated(BossModule module, Actor actor)
+        {
+            if ((OID)actor.OID == OID.Hammer)
+                _aoes.Add(new(_shape, actor.Position, activation: module.WorldState.CurrentTime.AddSeconds(12.6f)));
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.Hammerfall)
+                _aoes.RemoveAt(0);
+        }
     }
 
     class CE44FamiliarFaceStates : StateMachineBuilder

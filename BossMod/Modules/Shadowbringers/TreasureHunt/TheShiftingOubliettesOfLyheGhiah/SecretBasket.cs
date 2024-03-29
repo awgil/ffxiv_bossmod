@@ -151,7 +151,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     [ModuleInfo(CFCID = 745, NameID = 9784)]
     public class Basket : BossModule
     {
-        public Basket(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Basket(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

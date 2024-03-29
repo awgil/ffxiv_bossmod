@@ -17,7 +17,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         BurningBright = 21667, // Boss->self, 3,0s cast, range 47 width 6 rect
         Nicker = 21668, // Boss->self, 4,0s cast, range 12 circle
         CloudCall = 21666, // Boss->self, 3,0s cast, single-target, calls clouds
-        Gallop = 21665, // Boss->players, no cast, width 10 rect charge
+        Gallop = 21665, // Boss->players, no cast, width 10 rect charge, seems to target random player 5-6s after CloudCall
         LightningBolt = 21669, // Thunderhead->self, 3,0s cast, range 8 circle
 
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
@@ -81,7 +81,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     [ModuleInfo(CFCID = 745, NameID = 9793)]
     public class Pegasus : BossModule
     {
-        public Pegasus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Pegasus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
