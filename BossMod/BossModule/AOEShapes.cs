@@ -234,4 +234,61 @@ namespace BossMod
             yield return origin + dx1 + dy2;
         }
     }
+    
+    public class AOEShapeTriangle : AOEShape
+    {
+        public float SideLength;
+        public Angle DirectionOffset;
+
+        public AOEShapeTriangle(float sideLength, Angle directionOffset = new())
+        {
+            SideLength = sideLength;
+            DirectionOffset = directionOffset;
+        }
+
+        public override bool Check(WPos position, WPos origin, Angle rotation)
+        {
+            var vertices = CalculateVertices(origin, rotation + DirectionOffset);
+            return position.InTri(vertices.p1, vertices.p2, vertices.p3);
+        }
+
+        public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE)
+        {
+            var vertices = CalculateVertices(origin, rotation + DirectionOffset);
+            arena.AddTriangleFilled(vertices.p1, vertices.p2, vertices.p3, color);
+        }
+
+        public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
+        {
+            var vertices = CalculateVertices(origin, rotation + DirectionOffset);
+            arena.AddTriangle(vertices.p1, vertices.p2, vertices.p3, color);
+        }
+
+        public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset = 0, float maxError = 1)
+        {
+            var vertices = CalculateVertices(origin, rotation + DirectionOffset, offset);
+            return new List<IEnumerable<WPos>> { new[] { vertices.p1, vertices.p2, vertices.p3 } };
+        }
+
+        public override Func<WPos, float> Distance(WPos origin, Angle rotation)
+        {
+            // Implementing an exact distance calculation for a triangle shape might be complex and is beyond the scope of this basic implementation.
+            return p => (p - origin).Length(); // Simplified placeholder
+        }
+
+        private (WPos p1, WPos p2, WPos p3) CalculateVertices(WPos origin, Angle rotation, float offset = 0)
+        {
+            // Calculate vertex positions for an equilateral triangle with origin as one vertex
+            var sideOffset = (SideLength + offset) / 2;
+            var height = MathF.Sqrt(3) / 2 * (SideLength + offset);
+            var direction = rotation.ToDirection();
+            var ortho = direction.OrthoR();
+
+            var p1 = origin; // The origin is one of the vertices
+            var p2 = origin + direction * height - ortho * sideOffset;
+            var p3 = origin + direction * height + ortho * sideOffset;
+
+            return (p1, p2, p3);
+        }
+    }
 }
