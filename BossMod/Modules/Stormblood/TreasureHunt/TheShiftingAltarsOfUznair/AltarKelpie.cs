@@ -69,7 +69,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
             if ((OID)actor.OID == OID.Hydrosphere)
             {
                 _spheres.Add(actor);
-                _activation = module.WorldState.CurrentTime.AddSeconds(3);
+                _activation = module.WorldState.CurrentTime.AddSeconds(8.6f);
             }
         }
 
