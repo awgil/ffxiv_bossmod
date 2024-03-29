@@ -1,4 +1,5 @@
 // CONTRIB: made by legendoficeman, changes by Malediktus
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
@@ -13,17 +14,17 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
 
     public enum AID : uint
     {
-        BossAutoAttack = 6497, // 3D1B->player, no cast, single-target
+        AutoAttack = 6497, // 3D1B->player, no cast, single-target
         FallingRock = 31441, // 233C->self, 2.5s cast, range 3 circle
         Ferocity = 31442, // 3D1B->self, 5.0s cast, single-target
         FerocityTetherStretchSuccess = 31443, // 3D1B->player, no cast, single-target
         FerocityTetherStretchFail = 31444, // 3D1B->player, no cast, single-target
-        ImpactAOE = 31438, // 3D1C->self, 2.5s cast, range 5 circle
-        PreternaturalTurnCirc = 31436, // 3D1B->self, 6.0s cast, range 15 circle
+        Impact = 31438, // 3D1C->self, 2.5s cast, range 5 circle
+        PreternaturalTurnCircle = 31436, // 3D1B->self, 6.0s cast, range 15 circle
         PreternaturalTurnDonut = 31437, // 3D1B->self, 6.0s cast, range 6-30 donut
         Roar = 31435, // 3D1B->self, 5.0s cast, range 60 circle
-        ShatterDonutAOE = 31439, // 3D1C->self, 3.0s cast, range 8 circle
-        ShatterCircleAOE = 31440, // 3D1C->self, 2.5s cast, range 18+R 150-degree cone
+        ShatterCircle = 31439, // 3D1C->self, 3.0s cast, range 8 circle
+        ShatterCone = 31440, // 3D1C->self, 2.5s cast, range 18+R 150-degree cone
         SteelClaw = 31445, // 3D1B->player, 5.0s cast, single-target
         Teleport = 31446, // 3D1B->location, no cast, single-target, boss teleports mid
     };
@@ -123,9 +124,9 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
         }
     }
 
-    class PreternaturalTurnCirc : Components.SelfTargetedAOEs
+    class PreternaturalTurnCircle : Components.SelfTargetedAOEs
     {
-        public PreternaturalTurnCirc() : base(ActionID.MakeSpell(AID.PreternaturalTurnCirc), new AOEShapeCircle(15)) { }
+        public PreternaturalTurnCircle() : base(ActionID.MakeSpell(AID.PreternaturalTurnCircle), new AOEShapeCircle(15)) { }
     }
 
     class PreternaturalTurnDonut : Components.SelfTargetedAOEs
@@ -133,19 +134,45 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
         public PreternaturalTurnDonut() : base(ActionID.MakeSpell(AID.PreternaturalTurnDonut), new AOEShapeDonut(6, 30)) { }
     }
 
+    class Shatter : Components.GenericAOEs
+    {
+        private static readonly AOEShapeCone cone = new(23.95f, 75.Degrees());
+        private static readonly AOEShapeCircle circle = new(8);
+        private bool FerocityCasted;
+        public readonly List<Actor> _crystals = [];
+        private readonly List<AOEInstance> _aoes = [];
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(4);
+
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID == AID.Impact)
+                _crystals.Add(caster);
+            if ((AID)spell.Action.ID == AID.Ferocity)
+                FerocityCasted = true;
+            if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnDonut)
+                foreach (var c in module.Enemies(OID.AllaganCrystal))
+                    _aoes.Add(new (circle, c.Position, activation: spell.NPCFinishAt.AddSeconds(0.5f)));
+            if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnCircle)
+                foreach (var c in module.Enemies(OID.AllaganCrystal))
+                    _aoes.Add(new (cone, c.Position, c.Rotation, spell.NPCFinishAt.AddSeconds(0.5f)));
+        }
+
+        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        {
+            if ((AID)spell.Action.ID is AID.ShatterCircle or AID.ShatterCone)
+            {
+                _aoes.Clear();
+                _crystals.Clear();
+            }
+            if ((AID)spell.Action.ID is AID.PreternaturalTurnCircle or AID.PreternaturalTurnDonut)
+                FerocityCasted = false;
+        }
+    }
+
     class Roar : Components.RaidwideCast
     {
         public Roar() : base(ActionID.MakeSpell(AID.Roar)) { }
-    }
-
-    class ShatterDonutAOE : Components.SelfTargetedAOEs
-    {
-        public ShatterDonutAOE() : base(ActionID.MakeSpell(AID.ShatterDonutAOE), new AOEShapeCircle(8)) { }
-    }
-
-    class ShatterCircleAOE : Components.SelfTargetedAOEs
-    {
-        public ShatterCircleAOE() : base(ActionID.MakeSpell(AID.ShatterCircleAOE), new AOEShapeCone(23.95f, 75.Degrees())) { }
     }
 
     class FallingRock : Components.SelfTargetedAOEs
@@ -153,9 +180,9 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
         public FallingRock() : base(ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3)) { }
     }
 
-    class ImpactAOE : Components.SelfTargetedAOEs
+    class Impact : Components.SelfTargetedAOEs
     {
-        public ImpactAOE() : base(ActionID.MakeSpell(AID.ImpactAOE), new AOEShapeCircle(5)) { }
+        public Impact() : base(ActionID.MakeSpell(AID.Impact), new AOEShapeCircle(5)) { }
     }
 
     class DD70AeturnaStates : StateMachineBuilder
@@ -166,13 +193,12 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
                 .ActivateOnEnter<SteelClaw>()
                 .ActivateOnEnter<FerocityGood>()
                 .ActivateOnEnter<FerocityBad>()
-                .ActivateOnEnter<PreternaturalTurnCirc>()
+                .ActivateOnEnter<PreternaturalTurnCircle>()
                 .ActivateOnEnter<PreternaturalTurnDonut>()
-                .ActivateOnEnter<ShatterDonutAOE>()
-                .ActivateOnEnter<ShatterCircleAOE>()
+                .ActivateOnEnter<Shatter>()
                 .ActivateOnEnter<FallingRock>()
                 .ActivateOnEnter<Roar>()
-                .ActivateOnEnter<ImpactAOE>();
+                .ActivateOnEnter<Impact>();
         }
     }
 
@@ -184,8 +210,9 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            foreach (var s in Enemies(OID.AllaganCrystal).Where(x => !x.Position.AlmostEqual(Bounds.Center, 1)))
-                Arena.Actor(s, ArenaColor.Vulnerable, true);
+            if (FindComponent<Shatter>() != null)
+                foreach (var s in FindComponent<Shatter>()!._crystals)
+                    Arena.Actor(s, ArenaColor.Object, true);
         }
     }
 }
