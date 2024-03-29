@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Raid.T01Caduceus;
+﻿namespace BossMod.RealmReborn.Raid.T01Caduceus;
 
 public enum OID : uint
 {

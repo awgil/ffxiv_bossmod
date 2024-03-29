@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster;
+﻿namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster;
 
 class CrypticFlames : BossComponent
 {

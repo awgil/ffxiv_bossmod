@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Linq;
-
 namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath;
 
 public enum OID : uint

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A12Rhalgr;
+﻿namespace BossMod.Endwalker.Alliance.A12Rhalgr;
 
 class HandOfTheDestroyer : Components.GenericAOEs
 {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Quest.Endwalker;
+﻿namespace BossMod.Endwalker.Quest.Endwalker;
 
 class AetherialRay : Components.GenericBaitAway
 {

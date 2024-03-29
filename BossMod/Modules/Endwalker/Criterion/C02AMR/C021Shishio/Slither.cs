@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
 class Slither : Components.GenericAOEs
 {

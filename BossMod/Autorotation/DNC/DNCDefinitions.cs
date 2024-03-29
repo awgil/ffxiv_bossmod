@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace BossMod.DNC;
 
 public enum AID : uint

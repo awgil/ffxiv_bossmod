@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex3Endsigner;
+﻿namespace BossMod.Endwalker.Extreme.Ex3Endsigner;
 
 class Elenchos : BossComponent
 {

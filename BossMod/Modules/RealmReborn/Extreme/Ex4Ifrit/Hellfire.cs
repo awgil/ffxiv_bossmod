@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
+﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
 class Hellfire : BossComponent
 {

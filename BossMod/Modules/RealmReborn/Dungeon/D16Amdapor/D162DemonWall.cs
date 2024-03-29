@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall;
+﻿namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D162DemonWall;
 
 public enum OID : uint
 {

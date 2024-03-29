@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Ultimate.TEA;
+﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 class ApocalypticRay : Components.GenericAOEs
 {

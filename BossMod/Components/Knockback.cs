@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic knockback/attract component; it's a cast counter for convenience
 public abstract class Knockback : CastCounter

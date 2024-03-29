@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
 
 // aoe starts at cast and ends with envcontrol; it's not considered 'risky' when paired with quick march
 class FlamesOfBozja : Components.GenericAOEs

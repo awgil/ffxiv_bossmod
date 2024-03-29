@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P1SErichthonios;
+﻿namespace BossMod.Endwalker.Savage.P1SErichthonios;
 
 class P1SStates : StateMachineBuilder
 {

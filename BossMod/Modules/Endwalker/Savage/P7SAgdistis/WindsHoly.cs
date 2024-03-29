@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P7SAgdistis;
+﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 class WindsHoly : Components.UniformStackSpread
 {

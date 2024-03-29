@@ -1,8 +1,4 @@
 // CONTRIB: made by malediktus, verified
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Shadowbringers.HuntA.Sugaar;
 
 public enum OID : uint

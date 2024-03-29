@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.Endwalker.Ultimate.TOP;
+﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 class P2OptimizedSagittariusArrow : Components.SelfTargetedAOEs
 {

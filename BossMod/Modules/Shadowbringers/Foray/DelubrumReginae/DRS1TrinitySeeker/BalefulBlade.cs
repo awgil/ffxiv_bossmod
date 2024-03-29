@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
 class BalefulBlade : BossComponent
 {

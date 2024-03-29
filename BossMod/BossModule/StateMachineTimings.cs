@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // values of flexible timings of state machine phases and states
 // this is used for e.g. cooldown planning

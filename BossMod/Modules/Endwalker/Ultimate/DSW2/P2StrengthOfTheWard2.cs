@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Ultimate.DSW2;
+﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
 // leap (icons spread) + rage (rest stack)
 // note: we currently don't show stack hints, that happens automatically if mechanic is resolved properly

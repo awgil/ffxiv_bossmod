@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D08Qarn.D083Adjudicator;
+﻿namespace BossMod.RealmReborn.Dungeon.D08Qarn.D083Adjudicator;
 
 public enum OID : uint
 {

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace BossMod.MaskedCarnivale;
 
 public class Layout2Corners : BossComponent

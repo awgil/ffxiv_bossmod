@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Shadowbringers.Ultimate.TEA;
+﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 // TODO: determine when mechanic is selected; determine threshold
 class P1HandOfPartingPrayer : BossComponent

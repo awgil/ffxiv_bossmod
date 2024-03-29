@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Alliance.A11Byregot;
+﻿namespace BossMod.Endwalker.Alliance.A11Byregot;
 
 class ByregotStrikeJump : Components.LocationTargetedAOEs
 {

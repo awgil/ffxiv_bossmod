@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
+﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
 
 class CrushHelm : BossComponent
 {

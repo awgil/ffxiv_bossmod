@@ -2,8 +2,6 @@
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using ImGuiNET;
-using System;
-using System.Linq;
 
 namespace BossMod.AI;
 

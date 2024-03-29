@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Linq;
-
 namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros;
 
 public enum OID : uint

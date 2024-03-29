@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P10SPandaemonium;
+﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
 class HarrowingHell : BossComponent
 {

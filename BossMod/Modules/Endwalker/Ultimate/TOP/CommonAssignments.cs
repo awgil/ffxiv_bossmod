@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Ultimate.TOP;
+﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 // common assignments for multiple mechanics in the fight
 abstract class CommonAssignments : BossComponent

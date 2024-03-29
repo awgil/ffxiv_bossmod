@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex3Titan;
+﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
 class Ex3TitanAI : BossComponent
 {

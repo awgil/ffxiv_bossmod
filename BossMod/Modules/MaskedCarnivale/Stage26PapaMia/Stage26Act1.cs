@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Linq;
-
 namespace BossMod.MaskedCarnivale.Stage26.Act1;
 
 public enum OID : uint

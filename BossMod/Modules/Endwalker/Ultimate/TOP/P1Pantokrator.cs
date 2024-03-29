@@ -1,8 +1,4 @@
-﻿using System.Linq;
-using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Ultimate.TOP;
+﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 class P1BallisticImpact : Components.LocationTargetedAOEs
 {

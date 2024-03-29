@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntA.Storsie;
+﻿namespace BossMod.Endwalker.HuntA.Storsie;
 
 public enum OID : uint
 {

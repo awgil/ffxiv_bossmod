@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
+﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
 // note on mechanic: typically boss casts inferno howl, then target gains status, then a total of 3 searing wind casts are baited on target
 // however, sometimes (typically on phase switches) boss might cast new inferno howl while previous target still has debuff with large timer

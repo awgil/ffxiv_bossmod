@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P2SHippokampos;
+﻿namespace BossMod.Endwalker.Savage.P2SHippokampos;
 
 // state related to coherence mechanic
 // TODO: i'm not 100% sure how exactly it selects target for aoe ray, I assume it is closest player except tether target?..

@@ -1,8 +1,4 @@
-﻿using BossMod.AI;
-using System;
-using System.Linq;
-
-namespace BossMod.Endwalker.Ultimate.DSW2;
+﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
 class P2SanctityOfTheWard2HeavensStakeCircles : Components.LocationTargetedAOEs
 {

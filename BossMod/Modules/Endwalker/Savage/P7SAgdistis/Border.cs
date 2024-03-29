@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P7SAgdistis;
+﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 // TODO: consider setting up 'real' bounds to match the borders
 // TODO: consider showing some aoe zone outside bounds?..

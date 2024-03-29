@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
 class LightningBolt : Components.LocationTargetedAOEs
 {

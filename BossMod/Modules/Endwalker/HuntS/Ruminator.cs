@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.HuntS.Ruminator;
+﻿namespace BossMod.Endwalker.HuntS.Ruminator;
 
 public enum OID : uint
 {

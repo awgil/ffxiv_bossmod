@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
+﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
 // TODO: revise & generalize to 'baited aoe' component, with nice utilities for AI
 class Eruption : Components.LocationTargetedAOEs

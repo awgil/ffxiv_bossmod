@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P4S2Hesperos;
+﻿namespace BossMod.Endwalker.Savage.P4S2Hesperos;
 
 // state related to hell's sting mechanic (part of curtain call sequence)
 class HellsSting : BossComponent

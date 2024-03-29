@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P10SPandaemonium;
+﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
 // TODO: generalize (line stack/spread)
 class PandaemoniacMeltdown : Components.CastCounter

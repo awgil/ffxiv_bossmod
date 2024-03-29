@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Alliance.A14Naldthal;
+﻿namespace BossMod.Endwalker.Alliance.A14Naldthal;
 
 class HeatAboveFlamesBelow : Components.GenericAOEs
 {

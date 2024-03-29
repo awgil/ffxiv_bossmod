@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
 class FlukeGale : Components.Knockback
 {

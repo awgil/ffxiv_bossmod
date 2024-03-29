@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Ultimate.DSW2;
+﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
 // spreads
 class P2StrengthOfTheWard1LightningStorm : Components.UniformStackSpread

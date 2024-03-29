@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
+﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
 
 // TODO: allow invulning instead
 // TODO: not sure at what point target is snapshotted - assume first hit is on primary target when cast starts, second on current main target?..

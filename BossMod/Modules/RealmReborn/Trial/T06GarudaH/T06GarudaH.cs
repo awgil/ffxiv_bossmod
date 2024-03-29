@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.RealmReborn.Trial.T06GarudaH;
+﻿namespace BossMod.RealmReborn.Trial.T06GarudaH;
 
 public enum OID : uint
 {

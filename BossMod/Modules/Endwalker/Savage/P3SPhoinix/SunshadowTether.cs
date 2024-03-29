@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P3SPhoinix;
+﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
 // state related to sunshadow tethers during fountain of fire mechanics
 class SunshadowTether : BossComponent

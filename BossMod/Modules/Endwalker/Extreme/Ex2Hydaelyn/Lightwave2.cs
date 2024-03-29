@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using System.Numerics;
-
-namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
+﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
 // component for second lightwave (3 waves, 5 crystals) + hero's glory mechanics
 class Lightwave2 : LightwaveCommon

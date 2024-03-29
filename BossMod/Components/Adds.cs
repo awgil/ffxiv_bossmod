@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic component used for drawing adds
 public class Adds : BossComponent

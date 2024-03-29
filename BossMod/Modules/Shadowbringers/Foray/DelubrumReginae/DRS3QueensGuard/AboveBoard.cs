@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard;
 
 class AboveBoard : Components.GenericAOEs
 {

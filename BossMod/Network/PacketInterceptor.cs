@@ -1,5 +1,4 @@
 ﻿using Dalamud.Hooking;
-using System;
 using System.Runtime.InteropServices;
 
 namespace BossMod.Network;

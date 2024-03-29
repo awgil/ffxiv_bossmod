@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-// CONTRIB: made by legendoficeman & malediktus, not checked
+﻿// CONTRIB: made by legendoficeman & malediktus, not checked
 namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D012TesleentheForgiven;
 
 public enum OID : uint

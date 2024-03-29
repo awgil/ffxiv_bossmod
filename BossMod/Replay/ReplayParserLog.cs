@@ -1,11 +1,6 @@
-﻿using BossMod.Endwalker.Extreme.Ex5Rubicante;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading;
 

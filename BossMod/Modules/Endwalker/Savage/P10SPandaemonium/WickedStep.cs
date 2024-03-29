@@ -1,8 +1,4 @@
-﻿using BossMod.Components;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P10SPandaemonium;
+﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
 class WickedStep : Components.Knockback
 {
@@ -34,7 +30,7 @@ class WickedStep : Components.Knockback
         base.DrawArenaForeground(module, pcSlot, pc, arena);
         foreach (var t in _towers)
             if (t != null)
-                GenericTowers.DrawTower(arena, t.Position, _towerRadius, pc.Role == Role.Tank);
+                Components.GenericTowers.DrawTower(arena, t.Position, _towerRadius, pc.Role == Role.Tank);
     }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)

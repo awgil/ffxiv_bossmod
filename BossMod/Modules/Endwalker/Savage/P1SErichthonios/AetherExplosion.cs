@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P1SErichthonios;
+﻿namespace BossMod.Endwalker.Savage.P1SErichthonios;
 
 // state related to aether explosion mechanics, done as part of aetherflails, aetherchain and shackles of time abilities
 class AetherExplosion : BossComponent

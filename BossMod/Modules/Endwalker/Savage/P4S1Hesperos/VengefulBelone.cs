@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P4S1Hesperos;
+﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos;
 
 // state related to vengeful belone mechanic
 class VengefulBelone : BossComponent

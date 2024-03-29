@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D161Psycheflayer;
+﻿namespace BossMod.RealmReborn.Dungeon.D16Amdapor.D161Psycheflayer;
 
 public enum OID : uint
 {

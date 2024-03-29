@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
 
 // note: instead of trying to figure out cone intersections and shit, we use the fact that clones are always positioned on grid and just check each cell
 class BladeOfEntropy : TemperatureAOE

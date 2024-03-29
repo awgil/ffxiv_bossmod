@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Alliance.A11Byregot;
+﻿namespace BossMod.Endwalker.Alliance.A11Byregot;
 
 class Reproduce : Components.Exaflare
 {

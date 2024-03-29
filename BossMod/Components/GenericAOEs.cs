@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic component that shows arbitrary shapes representing avoidable aoes
 public abstract class GenericAOEs : CastCounter

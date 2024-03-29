@@ -1,7 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
-using System.Linq;
-
 namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.SecretCladoselache;
 
 public enum OID : uint

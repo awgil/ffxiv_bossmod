@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P9SKokytos;
+﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
 class DualspellFire : Components.GenericStackSpread
 {

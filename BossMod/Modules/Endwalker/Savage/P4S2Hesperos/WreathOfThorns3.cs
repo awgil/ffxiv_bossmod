@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P4S2Hesperos;
+﻿namespace BossMod.Endwalker.Savage.P4S2Hesperos;
 
 // state related to act 3 wreath of thorns
 // note: there should be four tethered helpers on activation

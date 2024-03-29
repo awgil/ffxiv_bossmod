@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un4Zurvan;
+﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
 class P1MetalCutter : Components.Cleave
 {

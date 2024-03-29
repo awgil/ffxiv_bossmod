@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Stormblood.Ultimate.UCOB;
+﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
 class P2Heavensfall : Components.Knockback
 {

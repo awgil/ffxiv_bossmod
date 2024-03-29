@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D09Cutter.D093Chimera;
+﻿namespace BossMod.RealmReborn.Dungeon.D09Cutter.D093Chimera;
 
 public enum OID : uint
 {

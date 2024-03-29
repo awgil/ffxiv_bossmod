@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
+﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
 
 // note: rows at Z=100, 92, 84; columns at X=88, 96, 104, 112
 // note: assumes standard assignments (BPOG columns, alpha to tri, beta to square)

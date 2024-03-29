@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Stormblood.Ultimate.UWU;
+﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 // TODO: kill priorities
 class P2Nails : BossComponent

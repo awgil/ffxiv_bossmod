@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-
-namespace BossMod.Pathfinding;
+﻿namespace BossMod.Pathfinding;
 
 // 'map' used for running pathfinding algorithms
 // this is essentially a square grid representing an arena (or immediate neighbourhood of the player) where we rasterize forbidden/desired zones

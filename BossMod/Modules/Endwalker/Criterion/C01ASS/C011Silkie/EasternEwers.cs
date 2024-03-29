@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie;
+﻿namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie;
 
 class EasternEwers : Components.Exaflare
 {

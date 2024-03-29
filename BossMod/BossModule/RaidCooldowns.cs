@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // TODO: this should probably store available-at per player per cooldown group...
 public class RaidCooldowns : IDisposable

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A23Halone;
+﻿namespace BossMod.Endwalker.Alliance.A23Halone;
 
 class Tetrapagos : Components.GenericAOEs
 {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P7SAgdistis;
+﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 // TODO: implement!
 class ForbiddenFruit9 : ForbiddenFruitCommon

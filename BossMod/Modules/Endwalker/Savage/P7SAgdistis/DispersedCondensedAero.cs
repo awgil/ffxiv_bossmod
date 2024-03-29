@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P7SAgdistis;
+﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 // TODO: currently we don't expose aggro to components, so we just assume tanks are doing their job...
 class DispersedCondensedAero : BossComponent

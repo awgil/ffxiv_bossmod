@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un4Zurvan;
+﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
 class P2BrokenSeal : BossComponent
 {

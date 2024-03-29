@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
+﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
 class MeteorImpactProximity : Components.SelfTargetedAOEs
 {

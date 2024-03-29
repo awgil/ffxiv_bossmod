@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.RealmReborn.Dungeon.D08Qarn.D082TempleGuardian;
+﻿namespace BossMod.RealmReborn.Dungeon.D08Qarn.D082TempleGuardian;
 
 public enum OID : uint
 {

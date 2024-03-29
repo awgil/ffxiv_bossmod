@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Alliance.A23Halone;
+﻿namespace BossMod.Endwalker.Alliance.A23Halone;
 
 class WillOfTheFury : Components.GenericAOEs
 {

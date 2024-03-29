@@ -1,9 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 

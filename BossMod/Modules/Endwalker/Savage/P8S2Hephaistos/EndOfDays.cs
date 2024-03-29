@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P8S2;
+﻿namespace BossMod.Endwalker.Savage.P8S2;
 
 class EndOfDays : Components.GenericAOEs
 {

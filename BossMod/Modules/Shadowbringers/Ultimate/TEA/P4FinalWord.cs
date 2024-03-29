@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Shadowbringers.Ultimate.TEA;
+﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 class P4FinalWordDebuffs : P4ForcedMarchDebuffs
 {

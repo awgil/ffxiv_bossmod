@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace BossMod.Endwalker.Trials.T02Hydaelyn;
 
 class Lightwave : Components.GenericAOEs

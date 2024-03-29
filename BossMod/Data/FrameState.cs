@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // game updates its timings every frame (in the beginning of the tick)
 // it's all based on QueryPerformanceCounter; we assume that its frequency can never change (indeed, game never tries to update it anyway, and OS guarantees that too)

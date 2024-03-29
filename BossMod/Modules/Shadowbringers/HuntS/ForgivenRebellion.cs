@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-// CONTRIB: made by malediktus, not checked
+﻿// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion;
 
 public enum OID : uint

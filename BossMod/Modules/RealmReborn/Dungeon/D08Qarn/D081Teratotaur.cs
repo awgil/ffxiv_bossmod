@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur;
+﻿namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur;
 
 public enum OID : uint
 {

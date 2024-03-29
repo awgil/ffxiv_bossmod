@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-// CONTRIB: made by croizat, not checked
+﻿// CONTRIB: made by croizat, not checked
 namespace BossMod.Endwalker.Quest.Endwalker;
 
 class EndwalkerStates : StateMachineBuilder

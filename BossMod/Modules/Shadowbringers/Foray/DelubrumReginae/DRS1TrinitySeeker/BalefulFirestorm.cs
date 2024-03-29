@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
 // TODO: consider showing something before clones jump?
 class BalefulFirestorm : Components.GenericAOEs

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
+﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
 
 class RightArmRayNormal : Components.SelfTargetedAOEs
 {

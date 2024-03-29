@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P12S1Athena;
+﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 // TODO: not sure how exactly second target is selected, I think it is snapshotted to the current target when first cast happens? I can definitely taunt between casts without dying...
 // TODO: consider generalizing...

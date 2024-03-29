@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
 class UnnaturalWail : Components.UniformStackSpread
 {

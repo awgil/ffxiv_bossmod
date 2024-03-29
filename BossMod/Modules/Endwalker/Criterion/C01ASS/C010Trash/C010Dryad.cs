@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad;
+﻿namespace BossMod.Endwalker.Criterion.C01ASS.C010Dryad;
 
 public enum OID : uint
 {

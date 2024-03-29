@@ -1,8 +1,5 @@
 ﻿using ImGuiNET;
-using System.Numerics;
 using BossMod;
-using System;
-using System.Collections.Generic;
 
 namespace UIDev;
 

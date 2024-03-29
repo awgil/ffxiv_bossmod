@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Extreme.Ex3Endsigner;
+﻿namespace BossMod.Endwalker.Extreme.Ex3Endsigner;
 
 // used both for single planets (elegeia) and successions (fatalism)
 class Planets : BossComponent

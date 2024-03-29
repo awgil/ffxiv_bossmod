@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
 
 class FightingSpirits : Components.KnockbackFromCastTarget
 {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P1SErichthonios;
+﻿namespace BossMod.Endwalker.Savage.P1SErichthonios;
 
 // we have two cube patterns (symmetrical and asymmetrical) and two explosion orders, which gives us three movement patterns (symmetrical, asymmetrical top-bottom and asymmetrical bottom-top)
 // each pattern has four distinct kinds of squares that have identical cubes (N, S, E/W and intercardinals); one of the intercardinals should do special movement to swap with N for asymmetrical patterns

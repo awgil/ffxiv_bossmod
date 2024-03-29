@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // attribute that specifies group count and names for group assignment property
 [AttributeUsage(AttributeTargets.Field)]

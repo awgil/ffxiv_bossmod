@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.BRD;
+﻿namespace BossMod.BRD;
 
 public static class Rotation
 {

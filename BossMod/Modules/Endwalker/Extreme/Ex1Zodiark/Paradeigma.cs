@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
+﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
 
 // state related to paradeigma and astral flow mechanics
 class Paradeigma : BossComponent

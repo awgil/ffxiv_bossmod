@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Stormblood.Ultimate.UCOB;
+﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
 class P3SeventhUmbralEra : Components.Knockback
 {

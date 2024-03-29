@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Linq;
-
 namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.SecretWorm;
 
 public enum OID : uint

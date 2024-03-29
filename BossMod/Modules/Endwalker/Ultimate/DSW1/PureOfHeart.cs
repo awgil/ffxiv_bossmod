@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Ultimate.DSW1;
+﻿namespace BossMod.Endwalker.Ultimate.DSW1;
 
 class PureOfHeartBrightwing : Components.GenericBaitAway
 {

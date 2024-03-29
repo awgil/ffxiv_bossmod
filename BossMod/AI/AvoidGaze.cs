@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.AI;
+﻿namespace BossMod.AI;
 
 // utility that determines safe orientation based on ai hints
 class AvoidGaze

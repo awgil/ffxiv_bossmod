@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // shapes can be defined by distance from point to shape's border; distance is positive for points outside shape and negative for points inside shape
 // union is min, intersection is max

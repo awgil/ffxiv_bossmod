@@ -50,8 +50,6 @@
 
 #pragma warning disable CS8767, CS8618, CS8765, CS8625, CS8603, CS8601, CS8600, CS8604
 
-using System;
-using System.Collections.Generic;
 //using System.Text;          //for Int128.AsString() & StringBuilder
 //using System.IO;            //debugging with streamReader & StreamWriter
 //using System.Windows.Forms; //debugging to clipboard

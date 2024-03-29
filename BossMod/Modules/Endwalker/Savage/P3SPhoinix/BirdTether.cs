@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P3SPhoinix;
+﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
 // state related to large bird tethers
 // TODO: simplify and make more robust, e.g. in case something goes wrong and bird dies without tether update

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 class IPCProvider : IDisposable
 {

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
+﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
 
 class RightArmComet : Components.KnockbackFromCastTarget
 {

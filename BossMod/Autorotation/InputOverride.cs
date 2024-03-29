@@ -1,6 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
-using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 

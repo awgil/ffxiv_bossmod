@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // a bunch of utilities for approximating curves with line segments
 // we need them, since clipping and rendering works with polygons

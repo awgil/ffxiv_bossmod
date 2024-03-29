@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex6Golbez;
+﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
 class GaleSphere : Components.GenericAOEs
 {

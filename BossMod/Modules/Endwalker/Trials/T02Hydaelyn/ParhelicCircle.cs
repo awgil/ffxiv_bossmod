@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Endwalker.Trials.T02Hydaelyn;
 
 class ParhelicCircle : Components.GenericAOEs

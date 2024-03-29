@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS4Phantom;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS4Phantom;
 
 // TODO: improve hints, currently they are not good... we probably don't need a fully generic implementation, since there are few possible patterns
 class Miasma : Components.GenericAOEs

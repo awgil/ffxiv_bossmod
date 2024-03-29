@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Ultimate.DSW2;
+﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
 // TODO: improve...
 class P7Trinity : Components.GenericBaitAway

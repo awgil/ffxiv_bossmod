@@ -1,5 +1,4 @@
 ﻿// CONTRIB: made by xan, not checked
-using System.Linq;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 
 namespace BossMod.MNK;

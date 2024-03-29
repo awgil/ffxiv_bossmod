@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
 class ScarletAuspice : Components.SelfTargetedAOEs
 {

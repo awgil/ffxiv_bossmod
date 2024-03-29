@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P7SAgdistis;
+﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 // common parts of various forbidden fruit / harvest mechanics
 // platform id's: 0 = W, 1 = S, 2 = E

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // ray-shape intersection functions return parameter along ray dir of intersection point; if intersection does not happen, they return float.MaxValue
 public static class Intersect

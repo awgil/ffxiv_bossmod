@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
+﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
 
 // state related to exoterikos, trimorphos exoterikos and triple esoteric ray mechanics
 class Exoterikos : BossComponent

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Alliance.A12Rhalgr;
+﻿namespace BossMod.Endwalker.Alliance.A12Rhalgr;
 
 class RhalgrBeaconAOE : Components.SelfTargetedAOEs
 {

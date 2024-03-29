@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P8S2;
+﻿namespace BossMod.Endwalker.Savage.P8S2;
 
 class AshingBlaze : Components.GenericAOEs
 {

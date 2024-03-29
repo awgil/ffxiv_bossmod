@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic component for cleaving autoattacks; shows shape outline and warns when anyone other than main target is inside
 public class Cleave : CastCounter

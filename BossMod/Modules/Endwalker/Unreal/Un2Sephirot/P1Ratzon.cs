@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un2Sephirot;
+﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
 // TODO: generalize
 class P1Ratzon : BossComponent

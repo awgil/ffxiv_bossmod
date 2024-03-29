@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7Queen;
 
 // TODO: this is essentialy copy-paste of DRS3 component, generalize?.. the only different thing is AIDs
 class WindsOfWeight : Components.GenericAOEs

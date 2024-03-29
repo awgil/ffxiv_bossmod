@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Raid.T01Caduceus;
+﻿namespace BossMod.RealmReborn.Raid.T01Caduceus;
 
 class T01AI : BossComponent
 {

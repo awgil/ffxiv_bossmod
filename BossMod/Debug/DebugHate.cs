@@ -1,6 +1,5 @@
 ﻿using Dalamud.Memory;
 using ImGuiNET;
-using System;
 using System.Runtime.InteropServices;
 
 namespace BossMod;

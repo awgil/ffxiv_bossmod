@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-// CONTRIB: made by dhoggpt, improvements by veyn & Malediktus, not checked
+﻿// CONTRIB: made by dhoggpt, improvements by veyn & Malediktus, not checked
 namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth;
 
 public enum OID : uint

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Stormblood.Ultimate.UCOB;
+﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
 class P3EarthShaker : Components.GenericBaitAway
 {

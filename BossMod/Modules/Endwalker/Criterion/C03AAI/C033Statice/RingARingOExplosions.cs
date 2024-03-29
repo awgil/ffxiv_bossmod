@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice;
 
 class RingARingOExplosions : Components.GenericAOEs
 {

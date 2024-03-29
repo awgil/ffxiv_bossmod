@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // wrapper around float, stores angle in radians, provides type-safety and convenience
 // when describing rotation in world, common convention is 0 for 'south'/'down'/(0, -1) and increasing counterclockwise - so +90 is 'east'/'right'/(1, 0)

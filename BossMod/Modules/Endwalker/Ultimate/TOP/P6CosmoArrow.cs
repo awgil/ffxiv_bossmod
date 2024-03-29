@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace BossMod.Endwalker.Ultimate.TOP;
+﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 class P6CosmoArrow : Components.GenericAOEs
 {

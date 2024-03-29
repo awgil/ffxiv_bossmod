@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
 
 abstract class TemperatureAOE : Components.GenericAOEs
 {

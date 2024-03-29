@@ -1,9 +1,6 @@
 ﻿using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace BossMod;

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
 
 class ArcaneArrayPlot : Components.GenericAOEs
 {

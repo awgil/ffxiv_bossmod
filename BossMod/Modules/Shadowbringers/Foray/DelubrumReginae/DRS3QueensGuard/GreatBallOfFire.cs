@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3QueensGuard;
 
 class GreatBallOfFire : Components.GenericAOEs
 {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P9SKokytos;
+﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
 class ChimericSuccession : Components.UniformStackSpread
 {

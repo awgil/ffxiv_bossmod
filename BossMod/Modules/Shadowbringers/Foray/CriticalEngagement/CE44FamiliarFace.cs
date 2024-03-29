@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace;
 
 public enum OID : uint
 {

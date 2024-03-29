@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P9SKokytos;
+﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
 // TODO: positioning hints for unmarked players
 // TODO: or is it a spread?.. one thing i like about bait-away better here is that it better distinguishes bait vs avoid

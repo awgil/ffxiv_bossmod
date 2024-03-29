@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-// CONTRIB: made by malediktus, not checked
+﻿// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.FATE.Daivadipa;
 
 public enum OID : uint

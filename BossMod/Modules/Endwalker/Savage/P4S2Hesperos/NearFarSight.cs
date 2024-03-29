@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P4S2Hesperos;
+﻿namespace BossMod.Endwalker.Savage.P4S2Hesperos;
 
 // state related to nearsight & farsight mechanics
 class NearFarSight : BossComponent

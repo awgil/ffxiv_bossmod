@@ -1,7 +1,4 @@
 ﻿// CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas;
 
 public enum OID : uint

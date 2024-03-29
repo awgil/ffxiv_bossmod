@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
 public class AIHints

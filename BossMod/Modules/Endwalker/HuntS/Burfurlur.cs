@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntS.Burfurlur;
+﻿namespace BossMod.Endwalker.HuntS.Burfurlur;
 
 public enum OID : uint
 {

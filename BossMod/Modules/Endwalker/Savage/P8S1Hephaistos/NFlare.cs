@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
+﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
 // component dealing with tetra/octaflare mechanics (conceptual or not)
 class TetraOctaFlareCommon : Components.UniformStackSpread

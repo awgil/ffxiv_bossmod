@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
+﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
 // component for first lightwave (2 waves, 4 crystals) mechanic
 // first we wait until we find two helpers with Z=70 - these are our lightwaves

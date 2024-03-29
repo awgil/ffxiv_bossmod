@@ -1,6 +1,4 @@
 // CONTRIB: made by xan, not checked
-using System;
-using System.Collections.Generic;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 
 namespace BossMod.SAM;

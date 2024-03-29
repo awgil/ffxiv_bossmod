@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Extreme.Ex3Endsigner;
+﻿namespace BossMod.Endwalker.Extreme.Ex3Endsigner;
 
 class TwinsongAporrhoia : BossComponent
 {

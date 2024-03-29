@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-
-namespace BossMod.Endwalker.Savage.P4S1Hesperos;
+﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos;
 
 // state related to elemental belone mechanic (3 of 4 corners exploding)
 class ElementalBelone : BossComponent

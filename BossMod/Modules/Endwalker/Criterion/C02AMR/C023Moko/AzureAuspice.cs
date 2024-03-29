@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
 class AzureAuspice : Components.SelfTargetedAOEs
 {

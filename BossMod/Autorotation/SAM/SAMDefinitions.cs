@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace BossMod.SAM;
 
 public enum AID : uint

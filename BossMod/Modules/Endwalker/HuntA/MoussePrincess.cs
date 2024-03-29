@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntA.MoussePrincess;
+﻿namespace BossMod.Endwalker.HuntA.MoussePrincess;
 
 public enum OID : uint
 {

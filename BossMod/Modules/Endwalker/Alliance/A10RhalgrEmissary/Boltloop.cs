@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A10RhalgrEmissary;
+﻿namespace BossMod.Endwalker.Alliance.A10RhalgrEmissary;
 
 class Boltloop : Components.GenericAOEs
 {

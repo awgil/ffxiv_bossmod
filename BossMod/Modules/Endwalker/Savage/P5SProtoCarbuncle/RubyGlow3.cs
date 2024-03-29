@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
+﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
 // note: currently we use visual casts to determine all safespots, these happen much earlier than animation changes...
 class RubyGlow3 : RubyGlowCommon

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
 
 class AllegiantArsenal : Components.GenericAOEs
 {

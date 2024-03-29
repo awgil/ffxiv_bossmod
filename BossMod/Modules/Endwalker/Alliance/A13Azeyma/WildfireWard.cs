@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A13Azeyma;
+﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
 class WildfireWard : Components.KnockbackFromCastTarget
 {

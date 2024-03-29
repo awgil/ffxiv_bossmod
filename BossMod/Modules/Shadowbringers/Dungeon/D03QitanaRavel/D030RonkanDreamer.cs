@@ -1,7 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D030RonkanDreamer;
 
 public enum OID : uint

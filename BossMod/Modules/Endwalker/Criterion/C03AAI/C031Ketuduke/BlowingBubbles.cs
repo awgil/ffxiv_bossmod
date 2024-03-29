@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
 class BlowingBubbles : BossComponent
 {

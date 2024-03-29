@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
+﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
 // this includes venom pools and raging claw/searing ray aoes
 class RubyGlow4 : RubyGlowRecolor

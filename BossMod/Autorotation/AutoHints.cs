@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // utility that determines ai hints automatically based on actor casts
 // this is used e.g. in outdoor or on trash, where we have no active bossmodules

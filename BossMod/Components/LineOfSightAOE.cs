@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic component that shows line-of-sight cones for arbitrary origin and blocking shapes
 public abstract class GenericLineOfSightAOE : CastCounter

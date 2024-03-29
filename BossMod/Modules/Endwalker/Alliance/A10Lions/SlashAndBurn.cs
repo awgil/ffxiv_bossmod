@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A10Lions;
+﻿namespace BossMod.Endwalker.Alliance.A10Lions;
 
 class SlashAndBurn : Components.GenericAOEs
 {

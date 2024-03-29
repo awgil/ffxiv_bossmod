@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P12S1Athena;
+﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 class EngravementOfSouls1Spread : Components.UniformStackSpread
 {

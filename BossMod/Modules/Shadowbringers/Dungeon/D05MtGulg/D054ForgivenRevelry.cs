@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Collections.Generic;
-
 namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D054ForgivenRevelry;
 
 public enum OID : uint

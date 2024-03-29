@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Ultimate.TOP;
+﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 class P5NearDistantWorld : Components.GenericStackSpread
 {

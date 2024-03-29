@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Trial.T01IfritN;
+﻿namespace BossMod.RealmReborn.Trial.T01IfritN;
 
 public enum OID : uint
 {

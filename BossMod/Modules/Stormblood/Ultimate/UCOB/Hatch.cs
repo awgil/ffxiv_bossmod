@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Stormblood.Ultimate.UCOB;
+﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
 class Hatch : Components.CastCounter
 {

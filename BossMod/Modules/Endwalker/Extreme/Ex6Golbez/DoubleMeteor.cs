@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Extreme.Ex6Golbez;
+﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
 class DragonsDescent : Components.Knockback
 {

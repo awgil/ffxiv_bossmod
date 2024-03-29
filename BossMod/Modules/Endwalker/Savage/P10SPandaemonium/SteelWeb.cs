@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Savage.P10SPandaemonium;
+﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
 class SteelWebStack : Components.UniformStackSpread
 {

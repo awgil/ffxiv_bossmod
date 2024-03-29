@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P3SPhoinix;
+﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
 // state related to devouring brand mechanic
 class DevouringBrand : BossComponent

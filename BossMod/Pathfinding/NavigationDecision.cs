@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.Pathfinding;
+﻿namespace BossMod.Pathfinding;
 
 // utility for selecting player's navigation target
 // there are several goals that navigation has to meet, in following rough priority

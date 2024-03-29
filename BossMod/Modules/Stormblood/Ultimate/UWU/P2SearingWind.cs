@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Stormblood.Ultimate.UWU;
+﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 class P2SearingWind : Components.UniformStackSpread
 {

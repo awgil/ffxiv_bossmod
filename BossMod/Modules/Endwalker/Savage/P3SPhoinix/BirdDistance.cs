@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P3SPhoinix;
+﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
 // bird distance utility
 // when small birds die and large birds appear, they cast 26328, and if it hits any other large bird, they buff

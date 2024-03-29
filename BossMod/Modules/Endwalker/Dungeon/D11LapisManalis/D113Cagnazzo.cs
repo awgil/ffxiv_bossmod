@@ -1,7 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D113Cagnazzo;
 
 public enum OID : uint

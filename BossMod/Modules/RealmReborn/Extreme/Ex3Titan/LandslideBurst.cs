@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex3Titan;
+﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
 // burst (bomb explosion) needs to be shown in particular moment (different for different patterns) so that ai can avoid them nicely
 class LandslideBurst : Components.GenericAOEs

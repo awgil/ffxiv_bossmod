@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Ultimate.DSW1;
+﻿namespace BossMod.Endwalker.Ultimate.DSW1;
 
 class HeavensflameAOE : Components.CastCounter
 {

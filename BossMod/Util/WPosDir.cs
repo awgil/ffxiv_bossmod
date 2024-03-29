@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // 2d vector that represents world-space direction on XZ plane
 public struct WDir

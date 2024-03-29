@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Pathfinding;
+﻿namespace BossMod.Pathfinding;
 
 public class ThetaStar
 {

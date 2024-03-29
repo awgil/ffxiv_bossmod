@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
+﻿namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
 
 // TODO: not sure how 'spiral arms' are really implemented
 class WindingGale : Components.GenericAOEs

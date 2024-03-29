@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Unreal.Un3Sophia;
+﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
 class ArmsOfWisdom : Components.Knockback
 {

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Alliance.A14Naldthal;
+﻿namespace BossMod.Endwalker.Alliance.A14Naldthal;
 
 public class A14NaldthalStates : StateMachineBuilder
 {

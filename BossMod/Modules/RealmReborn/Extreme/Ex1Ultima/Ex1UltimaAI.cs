@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
+﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
 class Ex1UltimaAI : BossComponent
 {

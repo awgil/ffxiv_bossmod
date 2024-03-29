@@ -1,7 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace BossMod;
 

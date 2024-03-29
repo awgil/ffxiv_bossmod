@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf;
 
 public enum OID : uint
 {

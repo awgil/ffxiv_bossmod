@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Trial.T08ThornmarchH;
+﻿namespace BossMod.RealmReborn.Trial.T08ThornmarchH;
 
 class PomMeteor : BossComponent
 {

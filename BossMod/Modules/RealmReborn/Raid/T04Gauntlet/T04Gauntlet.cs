@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Raid.T04Gauntlet;
+﻿namespace BossMod.RealmReborn.Raid.T04Gauntlet;
 
 public enum OID : uint
 {

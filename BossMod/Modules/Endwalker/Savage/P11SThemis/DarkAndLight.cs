@@ -1,7 +1,4 @@
-﻿using Lumina.Data.Parsing.Layer;
-using static BossMod.BossComponent;
-
-namespace BossMod.Endwalker.Savage.P11SThemis;
+﻿namespace BossMod.Endwalker.Savage.P11SThemis;
 
 class DarkAndLight : BossComponent
 {

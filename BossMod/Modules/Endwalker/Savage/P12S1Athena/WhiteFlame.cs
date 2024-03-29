@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P12S1Athena;
+﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 // TODO: for first instance, common strategy has tanks baiting everything and invulning - accomodate that
 // TODO: for second instance, set forbidden baiters

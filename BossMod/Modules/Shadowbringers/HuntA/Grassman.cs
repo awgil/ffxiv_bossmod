@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System;
-
 namespace BossMod.Shadowbringers.HuntA.Grassman;
 
 public enum OID : uint

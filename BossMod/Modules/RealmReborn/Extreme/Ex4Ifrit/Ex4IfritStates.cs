@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
+﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
 // note: boss has multiple phases triggered by hp, but we represent them as states
 // I don't really understand the trigger for phase changes

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // utility for applying replay operations to world state, accurate scrolling, etc.
 public class ReplayPlayer

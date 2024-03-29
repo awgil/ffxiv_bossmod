@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
+﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
 class VenomDrops : Components.LocationTargetedAOEs
 {

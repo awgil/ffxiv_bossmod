@@ -1,6 +1,4 @@
 // CONTRIB: made by taurenkey, changed by malediktus, not checked
-using System.Linq;
-
 namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
 
 class GrandFall : Components.LocationTargetedAOEs

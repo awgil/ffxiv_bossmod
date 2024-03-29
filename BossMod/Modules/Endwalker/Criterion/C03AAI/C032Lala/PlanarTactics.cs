@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
 
 class PlanarTactics : Components.GenericAOEs
 {

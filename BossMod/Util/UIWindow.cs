@@ -1,8 +1,5 @@
 ﻿using Dalamud.Interface.Windowing;
 using ImGuiNET;
-using System;
-using System.Linq;
-using System.Numerics;
 
 namespace BossMod;
 

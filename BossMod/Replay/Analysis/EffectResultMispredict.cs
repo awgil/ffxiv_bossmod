@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.ReplayAnalysis;
+﻿namespace BossMod.ReplayAnalysis;
 
 // note: there are tons of 'unexpected' effect results that we don't do much about, at least now:
 // - SGE kardia reapplication: caster won't get confirmation for ApplyStatusEffectSource (initial application has ER)

@@ -1,8 +1,4 @@
 ﻿// CONTRIB: made by Malediktus, not checked
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D131DarkElf;
 
 public enum OID : uint

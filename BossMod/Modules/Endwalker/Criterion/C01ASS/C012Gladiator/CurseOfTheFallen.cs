@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator;
+﻿namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator;
 
 class CurseOfTheFallen : Components.UniformStackSpread
 {

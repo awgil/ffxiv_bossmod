@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine;
+﻿namespace BossMod.RealmReborn.Dungeon.D06Haukke.D063LadyAmandine;
 
 public enum OID : uint
 {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Trial.T02TitanN;
+﻿namespace BossMod.RealmReborn.Trial.T02TitanN;
 
 public enum OID : uint
 {

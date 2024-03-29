@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Alliance.A24Menphina;
+﻿namespace BossMod.Endwalker.Alliance.A24Menphina;
 
 class MidnightFrostWaxingClaw : Components.GenericAOEs
 {

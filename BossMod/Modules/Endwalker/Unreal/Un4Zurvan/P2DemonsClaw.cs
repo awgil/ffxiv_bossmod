@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using static BossMod.ActorCastEvent;
-
-namespace BossMod.Endwalker.Unreal.Un4Zurvan;
+﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
 class P2DemonsClawKnockback : Components.Knockback
 {

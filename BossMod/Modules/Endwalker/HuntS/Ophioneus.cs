@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntS.Ophioneus;
+﻿namespace BossMod.Endwalker.HuntS.Ophioneus;
 
 public enum OID : uint
 {

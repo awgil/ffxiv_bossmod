@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.WHM;
+﻿namespace BossMod.WHM;
 
 public static class Rotation
 {

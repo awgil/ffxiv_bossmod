@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord;
 
 // TODO: generalize to 'baited puddles' component
 class RapidBoltsBait : Components.UniformStackSpread

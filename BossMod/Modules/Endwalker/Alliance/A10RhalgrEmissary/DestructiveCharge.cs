@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Alliance.A10RhalgrEmissary;
+﻿namespace BossMod.Endwalker.Alliance.A10RhalgrEmissary;
 
 class DestructiveCharge : Components.GenericAOEs
 {

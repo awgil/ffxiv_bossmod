@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Linq;
-
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarBeast;
 
 public enum OID : uint

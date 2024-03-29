@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-// CONTRIB: made by malediktus, not checked
+﻿// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.FATE.Chi;
 
 public enum OID : uint

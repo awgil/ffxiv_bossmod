@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds;
 
 public enum OID : uint
 {

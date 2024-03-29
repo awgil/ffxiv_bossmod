@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BossMod.Endwalker.HuntA.Minerva;
+﻿namespace BossMod.Endwalker.HuntA.Minerva;
 
 public enum OID : uint
 {

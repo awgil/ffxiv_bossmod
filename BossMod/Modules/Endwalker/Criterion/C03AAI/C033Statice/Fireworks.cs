@@ -1,9 +1,4 @@
-﻿using BossMod.RealmReborn.Raid.T02MultiADS;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice;
 
 class Fireworks : Components.UniformStackSpread
 {

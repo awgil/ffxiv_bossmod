@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P2SHippokampos;
+﻿namespace BossMod.Endwalker.Savage.P2SHippokampos;
 
 // state related to dissociation mechanic
 class Dissociation : BossComponent

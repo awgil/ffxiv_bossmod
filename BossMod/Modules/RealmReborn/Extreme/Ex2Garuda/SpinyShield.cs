@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
+﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
 
 class SpinyShield : BossComponent
 {

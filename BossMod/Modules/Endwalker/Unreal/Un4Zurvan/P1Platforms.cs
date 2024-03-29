@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.Endwalker.Unreal.Un4Zurvan;
+﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
 class P1Platforms : Components.GenericAOEs
 {

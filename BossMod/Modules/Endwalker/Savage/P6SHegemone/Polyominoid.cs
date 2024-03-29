@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Savage.P6SHegemone;
+﻿namespace BossMod.Endwalker.Savage.P6SHegemone;
 
 // our grid looks like this:
 // 0  1  2  3

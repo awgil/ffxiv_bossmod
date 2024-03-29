@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // different encounter mechanics can be split into independent components
 // individual components should be activated and deactivated when needed (typically by state machine transitions)

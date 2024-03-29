@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Shadowbringers.Ultimate.TEA;
+﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 class TEAStates : StateMachineBuilder
 {

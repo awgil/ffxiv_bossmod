@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.Endwalker.Savage.P12S1Athena;
+﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 class Dialogos : Components.UniformStackSpread
 {

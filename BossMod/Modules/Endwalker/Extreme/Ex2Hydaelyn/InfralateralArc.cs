@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
+﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
 // component for infralateral arc mechanic (role stacks)
 class InfralateralArc : Components.CastCounter
