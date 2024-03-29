@@ -1,8 +1,8 @@
-// CONTRIB: made by legendoficeman, changes by Malediktus
+// CONTRIB: made by legendoficeman, changes by Malediktus, not checked
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
+namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD70Aeturna
 {
     public enum OID : uint
     {
@@ -10,7 +10,6 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
         AllaganCrystal = 0x3D1C, // R1.500, x4
         Helper = 0x233C, // R0.500, x12, 523 type
     };
-
 
     public enum AID : uint
     {
@@ -40,18 +39,17 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
         FerocityTetherStretch = 57, // Boss->player
     };
 
-    class SteelClaw : Components.SingleTargetCast
+    class SteelClaw : Components.SingleTargetDelayableCast
     {
-        public SteelClaw() : base(ActionID.MakeSpell(AID.SteelClaw))
-        {
-            EndsOnCastEvent = true;
-        }
+        public SteelClaw() : base(ActionID.MakeSpell(AID.SteelClaw)) { }
     }
 
     class FerocityGood : Components.BaitAwayTethers  //TODO: consider generalizing stretched tethers?
     {
         private ulong target;
+
         public FerocityGood() : base(new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherGood) { }
+
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             base.OnTethered(module, source, tether);
@@ -89,7 +87,9 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
     class FerocityBad : Components.BaitAwayTethers
     {
         private ulong target;
+
         public FerocityBad() : base(new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherStretch) { }
+
         public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
         {
             base.OnTethered(module, source, tether);
@@ -136,13 +136,20 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
 
     class Shatter : Components.GenericAOEs
     {
-        private static readonly AOEShapeCone cone = new(23.95f, 75.Degrees());
-        private static readonly AOEShapeCircle circle = new(8);
         private bool FerocityCasted;
-        public readonly List<Actor> _crystals = [];
+        private readonly List<Actor> _crystals = [];
         private readonly List<AOEInstance> _aoes = [];
 
+        private static readonly AOEShapeCone cone = new(23.95f, 75.Degrees());
+        private static readonly AOEShapeCircle circle = new(8);
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(4);
+
+        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        {
+            foreach (var s in _crystals)
+                arena.Actor(s, ArenaColor.Object, true);
+        }
 
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
@@ -152,10 +159,10 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
                 FerocityCasted = true;
             if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnDonut)
                 foreach (var c in module.Enemies(OID.AllaganCrystal))
-                    _aoes.Add(new (circle, c.Position, activation: spell.NPCFinishAt.AddSeconds(0.5f)));
+                    _aoes.Add(new(circle, c.Position, activation: spell.NPCFinishAt.AddSeconds(0.5f)));
             if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnCircle)
                 foreach (var c in module.Enemies(OID.AllaganCrystal))
-                    _aoes.Add(new (cone, c.Position, c.Rotation, spell.NPCFinishAt.AddSeconds(0.5f)));
+                    _aoes.Add(new(cone, c.Position, c.Rotation, spell.NPCFinishAt.AddSeconds(0.5f)));
         }
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -206,13 +213,5 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
     public class DD70Aeturna : BossModule
     {
         public DD70Aeturna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -300), 20)) { }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-            if (FindComponent<Shatter>() != null)
-                foreach (var s in FindComponent<Shatter>()!._crystals)
-                    Arena.Actor(s, ArenaColor.Object, true);
-        }
     }
 }

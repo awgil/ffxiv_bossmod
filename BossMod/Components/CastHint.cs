@@ -7,7 +7,6 @@ namespace BossMod.Components
     public class CastHint : CastCounter
     {
         public string Hint;
-        public bool EndsOnCastEvent;
         public bool ShowCastTimeLeft; // if true, show cast time left until next instance
         private List<Actor> _casters = new();
         public IReadOnlyList<Actor> Casters => _casters;
@@ -33,13 +32,7 @@ namespace BossMod.Components
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if (spell.Action == WatchedAction && !EndsOnCastEvent)
-                _casters.Remove(caster);
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if (spell.Action == WatchedAction && EndsOnCastEvent)
+            if (spell.Action == WatchedAction)
                 _casters.Remove(caster);
         }
     }

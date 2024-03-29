@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.Tarchia
 {
     public enum OID : uint
@@ -101,7 +102,7 @@ namespace BossMod.Shadowbringers.HuntS.Tarchia
     [ModuleInfo(NotoriousMonsterID = 126)]
     public class Tarchia : SimpleBossModule
     {
-        public Tarchia(WorldState ws, Actor primary) : base(ws, primary) 
+        public Tarchia(WorldState ws, Actor primary) : base(ws, primary)
         {
             ActivateComponent<MightySpin2>();
         }

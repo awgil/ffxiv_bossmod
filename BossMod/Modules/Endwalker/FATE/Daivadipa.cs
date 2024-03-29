@@ -241,15 +241,9 @@ namespace BossMod.Endwalker.FATE.Daivadipa
         public YawningHells() : base(ActionID.MakeSpell(AID.YawningHells2), 8) { }
     }
 
-    class InfernalRedemption : Components.RaidwideCast //Note: actual raidwide happens about 1s later by helper with 0s cast
+    class InfernalRedemption : Components.RaidwideCastDelay
     {
-        public InfernalRedemption() : base(ActionID.MakeSpell(AID.InfernalRedemption)) { }
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var c in Casters)
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo!.NPCFinishAt.AddSeconds(1)));
-        }
+        public InfernalRedemption() : base(ActionID.MakeSpell(AID.InfernalRedemption), ActionID.MakeSpell(AID.InfernalRedemption2), 1) { }
     }
 
     class DivineCall : Components.StatusDrivenForcedMarch

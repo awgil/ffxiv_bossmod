@@ -199,7 +199,7 @@ namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D112GalateaMagna
                         position = new(340, -394);
                         break;
                 }
-            Towers.Add(new(position, 5, 1, 1));
+                Towers.Add(new(position, 5, 1, 1));
             }
         }
 

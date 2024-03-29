@@ -46,7 +46,6 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
     };
 
-
     class BrewingStorm : Components.SelfTargetedAOEs
     {
         public BrewingStorm() : base(ActionID.MakeSpell(AID.BrewingStorm), new AOEShapeCone(5, 30.Degrees())) { }

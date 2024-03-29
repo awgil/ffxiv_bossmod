@@ -17,33 +17,9 @@ namespace BossMod.Shadowbringers.HuntA.Nuckelavee
         Spite = 18037, // 288F->self, no cast, range 8 circle
     };
 
-    class Torpedo : Components.SingleTargetCast
-    { //Tankbuster resolves on cast event instead of cast finished
-        private List<Actor> _casters = new();
-        public new IReadOnlyList<Actor> Casters => _casters;
-        public new bool Active => _casters.Count > 0;
-
+    class Torpedo : Components.SingleTargetDelayableCast
+    {
         public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo)) { }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-                _casters.Add(caster);
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if (spell.Action == WatchedAction)
-                _casters.Remove(caster);
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (Active)
-                hints.Add("Tankbuster");
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)  { }
     }
 
     class BogBody : Components.SpreadFromCastTargets
@@ -82,5 +58,5 @@ namespace BossMod.Shadowbringers.HuntA.Nuckelavee
     }
 
     [ModuleInfo(NotoriousMonsterID = 114)]
-    public class Nuckelavee(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Nuckelavee(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

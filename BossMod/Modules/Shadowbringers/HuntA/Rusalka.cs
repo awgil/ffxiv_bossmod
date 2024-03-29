@@ -67,5 +67,5 @@ namespace BossMod.Shadowbringers.HuntA.Rusalka
     }
 
     [ModuleInfo(NotoriousMonsterID = 139)]
-    public class Rusalka(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Rusalka(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

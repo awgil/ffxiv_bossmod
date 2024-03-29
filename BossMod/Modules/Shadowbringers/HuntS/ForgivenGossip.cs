@@ -1,4 +1,5 @@
-﻿namespace BossMod.Shadowbringers.HuntS.ForgivenGossip
+﻿// CONTRIB: made by malediktus, not checked
+namespace BossMod.Shadowbringers.HuntS.ForgivenGossip
 {
     public enum OID : uint
     {

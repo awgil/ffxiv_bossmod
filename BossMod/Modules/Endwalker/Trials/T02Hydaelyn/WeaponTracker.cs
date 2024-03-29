@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace BossMod.Endwalker.Trials.T02Hydaelyn

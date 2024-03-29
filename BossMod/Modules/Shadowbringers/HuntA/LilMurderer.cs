@@ -18,7 +18,6 @@ namespace BossMod.Shadowbringers.HuntA.LilMurderer
         GoblinSlash = 17489, // Boss->self, no cast, range 8 circle, sometimes boss uses Gobthunder II on itself, next attack after is this
     };
 
-
     class GoblinSlash : Components.GenericAOEs
     {
         private AOEInstance? _aoe;
@@ -37,7 +36,6 @@ namespace BossMod.Shadowbringers.HuntA.LilMurderer
                 _aoe = null;
         }
     }
-
 
     class GobthunderIII : Components.SpreadFromCastTargets
     {
@@ -64,7 +62,6 @@ namespace BossMod.Shadowbringers.HuntA.LilMurderer
         public GobthunderII() : base(ActionID.MakeSpell(AID.GobthunderII), 8) { }
     }
 
-
     class LilMurdererStates : StateMachineBuilder
     {
         public LilMurdererStates(BossModule module) : base(module)
@@ -80,5 +77,5 @@ namespace BossMod.Shadowbringers.HuntA.LilMurderer
     }
 
     [ModuleInfo(NotoriousMonsterID = 119)]
-    public class LilMurderer(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class LilMurderer(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

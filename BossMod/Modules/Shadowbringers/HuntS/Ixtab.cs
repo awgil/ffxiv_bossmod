@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.Ixtab
 {
     public enum OID : uint
@@ -140,7 +139,7 @@ namespace BossMod.Shadowbringers.HuntS.Ixtab
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-              if ((SID)status.ID == SID.Doom)
+            if ((SID)status.ID == SID.Doom)
                 _doomed.Add(actor);
         }
 

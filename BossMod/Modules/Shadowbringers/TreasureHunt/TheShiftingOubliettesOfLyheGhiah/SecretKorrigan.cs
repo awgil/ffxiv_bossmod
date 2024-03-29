@@ -36,12 +36,9 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public Hypnotize() : base(ActionID.MakeSpell(AID.Hypnotize)) { }
     }
 
-    class Ram : Components.SingleTargetCast
+    class Ram : Components.SingleTargetDelayableCast
     {
-        public Ram() : base(ActionID.MakeSpell(AID.Ram)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public Ram() : base(ActionID.MakeSpell(AID.Ram)) { }
     }
 
     class SaibaiMandragora : Components.CastHint

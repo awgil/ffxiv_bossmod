@@ -65,13 +65,11 @@ namespace BossMod.Endwalker.HuntA.Sugriva
         {
             EndsOnCastEvent = true;
         }
-    }
 
-    class ButcherHint : Components.SingleTargetCast
-    {
-        public ButcherHint() : base(ActionID.MakeSpell(AID.Butcher), "Tankbuster cleave") 
+        public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
-            EndsOnCastEvent = true;
+            if (CurrentBaits.Count > 0)
+                hints.Add("Tankbuster cleave");
         }
     }
 
@@ -139,7 +137,6 @@ namespace BossMod.Endwalker.HuntA.Sugriva
                 .ActivateOnEnter<Spark>()
                 .ActivateOnEnter<ScytheTail>()
                 .ActivateOnEnter<Butcher>()
-                .ActivateOnEnter<ButcherHint>()
                 .ActivateOnEnter<Rip>()
                 .ActivateOnEnter<RockThrow>()
                 .ActivateOnEnter<Crosswind>();

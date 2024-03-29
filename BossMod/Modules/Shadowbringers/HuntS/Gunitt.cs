@@ -1,3 +1,4 @@
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.Gunitt
 {
     public enum OID : uint

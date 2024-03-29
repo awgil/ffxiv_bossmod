@@ -99,5 +99,5 @@ namespace BossMod.Shadowbringers.HuntA.Grassman
     }
 
     [ModuleInfo(NotoriousMonsterID = 135)]
-    public class Grassman(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Grassman(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

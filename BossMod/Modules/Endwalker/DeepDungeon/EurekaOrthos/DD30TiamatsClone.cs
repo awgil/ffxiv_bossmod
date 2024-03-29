@@ -1,7 +1,8 @@
 // CONTRIB: made by Malediktus based on replay by legendoficeman
 using System.Collections.Generic;
 
-namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors21to30.DD30TiamatsClone
+// CONTRIB: made by malediktus, not checked
+namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD30TiamatsClone
 {
     public enum OID : uint
     {

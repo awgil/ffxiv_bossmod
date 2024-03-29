@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.ForgivenPedantry
 {
     public enum OID : uint

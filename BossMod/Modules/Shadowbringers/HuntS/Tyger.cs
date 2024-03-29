@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.Tyger
 {
     public enum OID : uint
@@ -89,7 +90,6 @@ namespace BossMod.Shadowbringers.HuntS.Tyger
     {
         public TheDragonsVoiceHint() : base(ActionID.MakeSpell(AID.TheDragonsVoice), hintExtra: "(Donut Raidwide)") { }
     }
-
 
     class TygerStates : StateMachineBuilder
     {

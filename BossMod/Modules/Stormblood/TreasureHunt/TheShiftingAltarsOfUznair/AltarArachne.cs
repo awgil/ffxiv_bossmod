@@ -32,12 +32,9 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarArachne
         Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
     };
 
-    class DarkSpike : Components.SingleTargetCast
+    class DarkSpike : Components.SingleTargetDelayableCast
     {
-        public DarkSpike() : base(ActionID.MakeSpell(AID.DarkSpike)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public DarkSpike() : base(ActionID.MakeSpell(AID.DarkSpike)) { }
     }
 
     class FrondAffeared : Components.CastGaze

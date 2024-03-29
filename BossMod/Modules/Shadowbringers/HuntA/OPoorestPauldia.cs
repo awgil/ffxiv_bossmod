@@ -48,5 +48,5 @@ namespace BossMod.Shadowbringers.HuntA.OPoorestPauldia
     }
 
     [ModuleInfo(NotoriousMonsterID = 130)]
-    public class OPoorestPauldia(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class OPoorestPauldia(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

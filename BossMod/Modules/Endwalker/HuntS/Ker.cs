@@ -152,23 +152,23 @@ namespace BossMod.Endwalker.HuntS.Ker
                 Type = Types.None;
         }
 
-       public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+        public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
             if (actor == module.PrimaryActor)
-            switch ((SID)status.ID)
-            {
-                case SID.MirroredIncantation:
-                    var stacks = status.Extra switch
-                    {
-                        0x1 => 1,
-                        0x2 => 2,
-                        0x3 => 3,
-                        0x4 => 4,
-                        _ => 0
-                    };
-                    Mirrorstacks = stacks;
-                    break;
-            }
+                switch ((SID)status.ID)
+                {
+                    case SID.MirroredIncantation:
+                        var stacks = status.Extra switch
+                        {
+                            0x1 => 1,
+                            0x2 => 2,
+                            0x3 => 3,
+                            0x4 => 4,
+                            _ => 0
+                        };
+                        Mirrorstacks = stacks;
+                        break;
+                }
         }
 
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
@@ -183,11 +183,11 @@ namespace BossMod.Endwalker.HuntS.Ker
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (Mirrorstacks > 0)
-                  hints.Add($"Mirrored interments left: {Mirrorstacks}!");
+                hints.Add($"Mirrored interments left: {Mirrorstacks}!");
             if (Type == Types.Mirroredx3)
-                  hints.Add("The next three interments will be mirrored!");
+                hints.Add("The next three interments will be mirrored!");
             if (Type == Types.Mirroredx4)
-                  hints.Add("The next four interments will be mirrored!");                 
+                hints.Add("The next four interments will be mirrored!");
         }
     }
 
@@ -211,10 +211,10 @@ namespace BossMod.Endwalker.HuntS.Ker
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-              if ((SID)status.ID == SID.Pyretic)
+            if ((SID)status.ID == SID.Pyretic)
                 _pyretic.Set(module.Raid.FindSlot(actor.InstanceID));
         }
-    
+
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
             if ((SID)status.ID == SID.Pyretic)
@@ -224,13 +224,13 @@ namespace BossMod.Endwalker.HuntS.Ker
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_pyretic[slot] != Pyretic)
-            hints.Add("Pyretic on you! STOP everything!");
+                hints.Add("Pyretic on you! STOP everything!");
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (casting)
-            hints.Add("Applies Pyretic - STOP everything until it runs out!");  
+                hints.Add("Applies Pyretic - STOP everything until it runs out!");
         }
     }
 

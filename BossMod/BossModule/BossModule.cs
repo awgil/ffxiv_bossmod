@@ -274,6 +274,7 @@ namespace BossMod
             return hints;
         }
 
+        // TODO: should not be virtual
         public virtual void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             hints.Bounds = Bounds;

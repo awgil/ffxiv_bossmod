@@ -17,7 +17,7 @@ namespace BossMod.Shadowbringers.HuntA.TheMudman
 
     public enum IconID : uint
     {
-        Baitaway     = 140, // player
+        Baitaway = 140, // player
     };
 
     class BogBequest : Components.SelfTargetedAOEs
@@ -86,5 +86,5 @@ namespace BossMod.Shadowbringers.HuntA.TheMudman
     }
 
     [ModuleInfo(NotoriousMonsterID = 129)]
-    public class TheMudman(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class TheMudman(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

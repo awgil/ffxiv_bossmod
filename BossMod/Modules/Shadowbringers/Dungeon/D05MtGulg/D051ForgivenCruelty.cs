@@ -24,12 +24,9 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D051ForgivenCruelty
         HurricaneWing = 15619, // 233C->self, 5,0s cast, range 10 circle
     };
 
-    class Rake : Components.SingleTargetCast
+    class Rake : Components.SingleTargetDelayableCast
     {
-        public Rake() : base(ActionID.MakeSpell(AID.Rake)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public Rake() : base(ActionID.MakeSpell(AID.Rake)) { }
     }
 
     class CycloneWing : Components.RaidwideCast

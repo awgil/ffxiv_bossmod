@@ -144,13 +144,13 @@ namespace BossMod.Endwalker.FATE.Chi
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
                 if (_casters.Count >= 7 && NumCasts == 0)
                     for (int i = 2; i < 7; ++i)
-                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky : false);
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky: false);
                 if (_casters.Count >= 5 && NumCasts == 2)
                     for (int i = 0; i < 5; ++i)
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
                 if (_casters.Count >= 13 && NumCasts == 2)
                     for (int i = 5; i < 13; ++i)
-                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky : false);
+                        yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky: false);
                 if (_casters.Count >= 8 && NumCasts == 7)
                     for (int i = 0; i < 8; ++i)
                         yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);

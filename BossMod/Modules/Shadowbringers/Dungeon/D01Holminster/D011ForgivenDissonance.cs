@@ -52,12 +52,9 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D011ForgivenDissonance
         public WoodenHorse() : base(ActionID.MakeSpell(AID.WoodenHorse), new AOEShapeCone(40, 45.Degrees())) { }
     }
 
-    class Pillory : Components.SingleTargetCast
+    class Pillory : Components.SingleTargetDelayableCast
     {
-        public Pillory() : base(ActionID.MakeSpell(AID.Pillory)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public Pillory() : base(ActionID.MakeSpell(AID.Pillory)) { }
     }
 
     class D011ForgivenDissonanceStates : StateMachineBuilder

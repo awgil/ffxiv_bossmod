@@ -35,12 +35,9 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarSkatene
         public VoidCall() : base(ActionID.MakeSpell(AID.VoidCall), "Calls adds") { }
     }
 
-    class RecklessAbandon : Components.SingleTargetCast
+    class RecklessAbandon : Components.SingleTargetDelayableCast
     {
-        public RecklessAbandon() : base(ActionID.MakeSpell(AID.RecklessAbandon)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public RecklessAbandon() : base(ActionID.MakeSpell(AID.RecklessAbandon)) { }
     }
 
     class SkateneStates : StateMachineBuilder

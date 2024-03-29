@@ -106,5 +106,5 @@ namespace BossMod.Shadowbringers.HuntA.Huracan
     }
 
     [ModuleInfo(NotoriousMonsterID = 120)]
-    public class Huracan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Huracan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

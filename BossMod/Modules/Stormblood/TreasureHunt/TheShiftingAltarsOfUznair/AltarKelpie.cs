@@ -80,12 +80,9 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarKelpie
         }
     }
 
-    class Torpedo : Components.SingleTargetCast
+    class Torpedo : Components.SingleTargetDelayableCast
     {
-        public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo))
-        {
-            EndsOnCastEvent = true;
-        }
+        public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo)) { }
     }
 
     class RisingSeas : Components.RaidwideCast

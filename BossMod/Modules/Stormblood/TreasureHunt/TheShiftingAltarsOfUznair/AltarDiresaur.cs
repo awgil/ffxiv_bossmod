@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Collections.Generic;
 using System.Linq;
 
 namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
@@ -39,12 +38,9 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         Baitaway = 23, // player
     };
 
-    class DeadlyHold : Components.SingleTargetCast
+    class DeadlyHold : Components.SingleTargetDelayableCast
     {
-        public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) { }
     }
 
     class HeatBreath : Components.SelfTargetedAOEs
@@ -120,7 +116,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
 
     class FireballVoidzone : Components.PersistentVoidzone
     {
-        public FireballVoidzone() : base(6,m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7)) { }
+        public FireballVoidzone() : base(6, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7)) { }
     }
 
     class RaucousScritch : Components.SelfTargetedAOEs

@@ -47,7 +47,8 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth
 
         public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
-            hints.AddForbiddenZone(p => {
+            hints.AddForbiddenZone(p =>
+            {
                 // union of platforms
                 var res = _platformCenters.Select(off => ShapeDistance.Circle(module.Bounds.Center + off, _platformRadius)(p)).Min();
                 // union of bridges
