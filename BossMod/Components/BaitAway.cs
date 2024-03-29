@@ -31,7 +31,6 @@ namespace BossMod.Components
         public bool CenterAtTarget; // if true, aoe source is at target
         public bool AllowDeadTargets = true; // if false, baits with dead targets are ignored
         public bool EnableHints = true;
-        public bool EndsOnCastEvent;
         public bool IgnoreOtherBaits = false; // if true, don't show hints/aoes for baits by others
         public PlayerPriority BaiterPriority = PlayerPriority.Interesting;
         public BitMask ForbiddenPlayers; // these players should avoid baiting
@@ -189,6 +188,7 @@ namespace BossMod.Components
     public class BaitAwayCast : GenericBaitAway
     {
         public AOEShape Shape;
+        public bool EndsOnCastEvent;
 
         public BaitAwayCast(ActionID aid, AOEShape shape, bool centerAtTarget = false) : base(aid, centerAtTarget: centerAtTarget)
         {

@@ -19,12 +19,9 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheGreatGoldWhi
         Telega = 9630, // BonusAdd_GoldWhisker->self, no cast, single-target
     };
 
-    class TripleTrident : Components.SingleTargetCast
+    class TripleTrident : Components.SingleTargetDelayableCast
     {
-        public TripleTrident() : base(ActionID.MakeSpell(AID.TripleTrident)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public TripleTrident() : base(ActionID.MakeSpell(AID.TripleTrident)) { }
     }
 
     class FishOutOfWater : Components.CastHint

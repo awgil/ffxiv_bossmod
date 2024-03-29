@@ -58,7 +58,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouStyphn
 
     class EarthShaker : Components.BaitAwayCast
     {
-        public EarthShaker() : base(ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 15.Degrees())) 
+        public EarthShaker() : base(ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 15.Degrees()))
         {
             EndsOnCastEvent = true;
         }

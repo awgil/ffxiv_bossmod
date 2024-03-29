@@ -50,12 +50,9 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         public TectonicEruption() : base(ActionID.MakeSpell(AID.TectonicEruption), 6) { }
     }
 
-    class RockCutter : Components.SingleTargetCast
+    class RockCutter : Components.SingleTargetDelayableCast
     {
-        public RockCutter() : base(ActionID.MakeSpell(AID.RockCutter)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public RockCutter() : base(ActionID.MakeSpell(AID.RockCutter)) { }
     }
 
     class AncientQuake : Components.RaidwideCast
@@ -73,46 +70,12 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
         public ControlTowerAppear() : base(ActionID.MakeSpell(AID.ControlTowerAppear), new AOEShapeCircle(6)) { }
     }
 
-    class Towerfall : Components.GenericAOEs
+    // note: we could predict aoes way in advance, when FallingTower actors are created - they immediately have correct rotation
+    // if previous cast was TowerRound, delay is ~24.4s; otherwise if previous cast was ControlTower, delay is ~9.6s; otherwise it is ~13s
+    // however, just watching casts normally gives more than enough time to avoid aoes and does not interfere with mechanics that resolve earlier
+    class Towerfall : Components.SelfTargetedAOEs
     {
-        private readonly List<(Actor tower, DateTime activation)> _towers = [];
-        public enum Types { None, TowerRound, ControlTower }
-        public Types Type { get; private set; }
-        private readonly static AOEShapeRect _shape = new(40, 5);
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            foreach (var c in _towers)
-                yield return new(_shape, c.tower.Position, c.tower.Rotation, c.activation);
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.TowerRound:
-                    Type = Types.TowerRound;
-                    break;
-                case AID.ControlTower:
-                    Type = Types.ControlTower;
-                    break;
-                case AID.Towerfall:
-                    Type = Types.None;
-                    break;
-            }
-        }
-
-        public override void OnActorCreated(BossModule module, Actor actor)
-        {
-            if ((OID)actor.OID == OID.FallingTower)
-                _towers.Add((actor, Type == Types.TowerRound ? module.WorldState.CurrentTime.AddSeconds(24.4f) : Type == Types.ControlTower ? module.WorldState.CurrentTime.AddSeconds(9.6f) : module.WorldState.CurrentTime.AddSeconds(13)));
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.Towerfall)
-                _towers.RemoveAll(c => c.tower.Position.AlmostEqual(caster.Position, 1));
-        }
+        public Towerfall() : base(ActionID.MakeSpell(AID.Towerfall), new AOEShapeRect(40, 5)) { }
     }
 
     class ExtremeEdge : Components.GenericAOEs
@@ -180,7 +143,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
     class Hammerfall : Components.GenericAOEs
     {
         private readonly List<AOEInstance> _aoes = [];
-        private readonly static AOEShapeCircle _shape = new(37);
+        private static readonly AOEShapeCircle _shape = new(37);
 
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
 
@@ -192,7 +155,7 @@ namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace
 
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID == AID.Hammerfall)
+            if ((AID)spell.Action.ID == AID.Hammerfall && _aoes.Count > 0)
                 _aoes.RemoveAt(0);
         }
     }

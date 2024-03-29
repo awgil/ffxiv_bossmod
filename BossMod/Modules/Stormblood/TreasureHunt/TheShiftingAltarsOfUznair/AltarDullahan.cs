@@ -173,7 +173,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDullahan
                     OID.AltarEgg => 6,
                     OID.AltarGarlic => 5,
                     OID.AltarTomato => 4,
-                    OID.AltarQueen or  OID.BonusAdd_AltarMatanga => 3,
+                    OID.AltarQueen or OID.BonusAdd_AltarMatanga => 3,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0

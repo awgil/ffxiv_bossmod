@@ -1,5 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-
 namespace BossMod.Shadowbringers.HuntA.Supay
 {
     public enum OID : uint
@@ -68,5 +67,5 @@ namespace BossMod.Shadowbringers.HuntA.Supay
     }
 
     [ModuleInfo(NotoriousMonsterID = 134)]
-    public class Supay(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Supay(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 // CONTRIB: made by malediktus, not checked
-namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
+namespace BossMod.GoldSaucer.SliceIsRight
 {
     public enum OID : uint
     {
@@ -146,16 +146,11 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
         }
     }
 
-    [ModuleInfo(NameID = 9066)] //GoldSaucerTextData ID 181 
+    [ModuleInfo(NameID = 9066)] //GoldSaucerTextData ID 181
     public class TheSliceIsRight : BossModule
     {
         public TheSliceIsRight(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(70.5f, -36), 15)) { }
 
         protected override bool CheckPull() { return PrimaryActor != null; }
-
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-        }
     }
 }

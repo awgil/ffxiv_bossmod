@@ -75,9 +75,9 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
 
     class Chains : BossComponent
     {
-        public bool chained;
+        private bool chained;
         private bool chainsactive;
-        public Actor? chaintarget;
+        private Actor? chaintarget;
         private bool casting;
 
         public override void Update(BossModule module)
@@ -101,6 +101,22 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
                 hints.Add($"{chaintarget.Name} is about to be chained!");
             if (chaintarget != null && chainsactive)
                 hints.Add($"Destroy chains on {chaintarget.Name}!");
+        }
+
+        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        {
+            if (chained && actor != chaintarget)
+            {
+                foreach (var e in hints.PotentialTargets)
+                {
+                    e.Priority = (OID)e.Actor.OID switch
+                    {
+                        OID.IronChain => 1,
+                        OID.Boss => -1,
+                        _ => 0
+                    };
+                }
+            }
         }
 
         public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -380,21 +396,5 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia
     public class D013Philia : BossModule
     {
         public D013Philia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(134, -465), 19.5f)) { }
-
-        public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            if (FindComponent<Chains>()?.chained ?? true && (FindComponent<Chains>()?.chaintarget == actor))
-                foreach (var e in hints.PotentialTargets)
-                {
-                    e.Priority = (OID)e.Actor.OID switch
-                    {
-                        OID.IronChain => 1,
-                        OID.Boss => -1,
-                        _ => 0
-                    };
-                }
-            else
-            base.CalculateAIHints(slot, actor, assignment, hints);
-        }
     }
 }

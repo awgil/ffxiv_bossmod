@@ -36,12 +36,9 @@ namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D012TesleentheForgiven
         Stackmarker = 62, // player
     };
 
-    class TheTickler : Components.SingleTargetCast
+    class TheTickler : Components.SingleTargetDelayableCast
     {
-        public TheTickler() : base(ActionID.MakeSpell(AID.TheTickler)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public TheTickler() : base(ActionID.MakeSpell(AID.TheTickler)) { }
     }
 
     class ScoldsBridle : Components.RaidwideCast

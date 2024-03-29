@@ -70,12 +70,9 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.TheOlderOne
         public MysticLevin() : base(ActionID.MakeSpell(AID.MysticLevin)) { }
     }
 
-    class MysticFlash : Components.SingleTargetCast
+    class MysticFlash : Components.SingleTargetDelayableCast
     {
-        public MysticFlash() : base(ActionID.MakeSpell(AID.MysticFlash)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public MysticFlash() : base(ActionID.MakeSpell(AID.MysticFlash)) { }
     }
 
     class PluckAndPrune : Components.SelfTargetedAOEs

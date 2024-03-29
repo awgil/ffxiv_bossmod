@@ -120,7 +120,7 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine
         public override void OnActorCreated(BossModule module, Actor actor)
         {
             if ((OID)actor.OID == OID.IcePillars)
-                _aoes.Add(new (new AOEShapeCircle(6), actor.Position, activation: module.WorldState.CurrentTime.AddSeconds(3.75f)));
+                _aoes.Add(new(new AOEShapeCircle(6), actor.Position, activation: module.WorldState.CurrentTime.AddSeconds(3.75f)));
         }
         public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
         {

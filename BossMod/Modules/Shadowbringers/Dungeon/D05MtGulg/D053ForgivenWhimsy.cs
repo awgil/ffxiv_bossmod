@@ -33,30 +33,14 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy
         PerfectContrition = 15630, // 27CD->self, 6,0s cast, range 5-15 donut
     };
 
-    class Catechism : Components.SingleTargetCast
+    class Catechism : Components.SingleTargetCastDelay
     {
-        public Catechism() : base(ActionID.MakeSpell(AID.Catechism)) { } //Note: actual tb happens about 0.5s later by helper with 0s cast
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var c in Casters)
-            {
-                BitMask targets = new();
-                targets.Set(module.Raid.FindSlot(c.CastInfo!.TargetID));
-                hints.PredictedDamage.Add((targets, c.CastInfo!.NPCFinishAt.AddSeconds(0.5f)));
-            }
-        }
+        public Catechism() : base(ActionID.MakeSpell(AID.Catechism), ActionID.MakeSpell(AID.Catechism2), 0.5f) { }
     }
 
-    class SacramentOfPenance : Components.RaidwideCast
+    class SacramentOfPenance : Components.RaidwideCastDelay
     {
-        public SacramentOfPenance() : base(ActionID.MakeSpell(AID.SacramentOfPenance)) { } //Note: actual raidwide happens about 0.5s later by helper with 0s cast
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var c in Casters)
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo!.NPCFinishAt.AddSeconds(0.5f)));
-        }
+        public SacramentOfPenance() : base(ActionID.MakeSpell(AID.SacramentOfPenance), ActionID.MakeSpell(AID.SacramentOfPenance2), 0.5f) { }
     }
 
     class PerfectContrition : Components.SelfTargetedAOEs

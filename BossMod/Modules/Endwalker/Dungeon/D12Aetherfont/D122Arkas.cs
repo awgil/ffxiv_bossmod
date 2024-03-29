@@ -107,7 +107,7 @@ namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas
                     _patternEnd.AddRange(patternIndex01End);
                 }
                 for (int i = 0; i < _patternEnd.Count; ++i)
-                    _aoes.Add(new (new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), module.WorldState.CurrentTime.AddSeconds(6)));
+                    _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), module.WorldState.CurrentTime.AddSeconds(6)));
             }
         }
 

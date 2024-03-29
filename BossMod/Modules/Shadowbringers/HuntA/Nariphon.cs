@@ -26,7 +26,6 @@ namespace BossMod.Shadowbringers.HuntA.Nariphon
         Stackmarker = 62, // player
     };
 
-
     class OdiousMiasma : Components.SelfTargetedAOEs
     {
         public OdiousMiasma() : base(ActionID.MakeSpell(AID.OdiousMiasma), new AOEShapeCone(12, 60.Degrees())) { }
@@ -104,5 +103,5 @@ namespace BossMod.Shadowbringers.HuntA.Nariphon
     }
 
     [ModuleInfo(NotoriousMonsterID = 115)]
-    public class Nariphon(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Nariphon(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

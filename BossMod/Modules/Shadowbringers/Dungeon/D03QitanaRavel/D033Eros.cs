@@ -216,12 +216,9 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros
         public Glossolalia() : base(ActionID.MakeSpell(AID.Glossolalia)) { }
     }
 
-    class Rend : Components.SingleTargetCast
+    class Rend : Components.SingleTargetDelayableCast
     {
-        public Rend() : base(ActionID.MakeSpell(AID.Rend)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public Rend() : base(ActionID.MakeSpell(AID.Rend)) { }
     }
 
     class D033ErosStates : StateMachineBuilder

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion
 {
     public enum OID : uint
@@ -200,7 +201,7 @@ namespace BossMod.Shadowbringers.HuntS.ForgivenRebellion
         public RoyalDecree() : base(ActionID.MakeSpell(AID.RoyalDecree)) { }
     }
 
-   class MindJack : Components.StatusDrivenForcedMarch
+    class MindJack : Components.StatusDrivenForcedMarch
     {
         public MindJack() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
 

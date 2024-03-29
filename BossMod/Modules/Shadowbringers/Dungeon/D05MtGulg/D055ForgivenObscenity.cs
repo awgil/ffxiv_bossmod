@@ -177,29 +177,14 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
         }
     }
 
-    class SacramentSforzando : Components.SingleTargetCast
+    class SacramentSforzando : Components.SingleTargetCastDelay
     {
-        public SacramentSforzando() : base(ActionID.MakeSpell(AID.SacramentSforzando)) { } //Note: actual tb happens about 0.8s later by helper with 0s cast
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var c in Casters)
-            {
-                BitMask targets = new();
-                targets.Set(module.Raid.FindSlot(c.CastInfo!.TargetID));
-                hints.PredictedDamage.Add((targets, c.CastInfo!.NPCFinishAt.AddSeconds(0.8f)));
-            }
-        }
+        public SacramentSforzando() : base(ActionID.MakeSpell(AID.SacramentSforzando), ActionID.MakeSpell(AID.SacramentSforzando2), 0.8f) { }
     }
 
-    class OrisonFortissimo : Components.RaidwideCast
+    class OrisonFortissimo : Components.RaidwideCastDelay
     {
-        public OrisonFortissimo() : base(ActionID.MakeSpell(AID.OrisonFortissimo)) { } //Note: actual raidwide happens about 0.8s later by helper with 0s cast
-
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            foreach (var c in Casters)
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), c.CastInfo!.NPCFinishAt.AddSeconds(0.8f)));
-        }
+        public OrisonFortissimo() : base(ActionID.MakeSpell(AID.OrisonFortissimo), ActionID.MakeSpell(AID.OrisonFortissimo2), 0.8f) { }
     }
 
     class DivineDiminuendo : Components.SelfTargetedAOEs
@@ -255,7 +240,7 @@ namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity
             if (state == 0x00010002)
             {
                 active = true;
-                module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15); 
+                module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15);
             }
         }
 

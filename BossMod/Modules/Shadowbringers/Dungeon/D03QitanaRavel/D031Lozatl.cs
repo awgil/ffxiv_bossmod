@@ -33,12 +33,9 @@ namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D031Lozatl
         public LozatlsFuryB() : base(ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, directionOffset: -90.Degrees())) { } // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
     }
 
-    class Stonefist : Components.SingleTargetCast
+    class Stonefist : Components.SingleTargetDelayableCast
     {
-        public Stonefist() : base(ActionID.MakeSpell(AID.Stonefist)) 
-        {
-            EndsOnCastEvent = true;
-        }
+        public Stonefist() : base(ActionID.MakeSpell(AID.Stonefist)) { }
     }
 
     class LozatlsScorn : Components.RaidwideCast

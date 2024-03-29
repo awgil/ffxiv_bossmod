@@ -57,10 +57,10 @@ namespace BossMod.Stormblood.HuntS.Gamma
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-              if ((SID)status.ID == SID.Pyretic)
+            if ((SID)status.ID == SID.Pyretic)
                 _pyretic.Set(module.Raid.FindSlot(actor.InstanceID));
         }
-    
+
         public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
         {
             if ((SID)status.ID == SID.Pyretic)
@@ -70,13 +70,13 @@ namespace BossMod.Stormblood.HuntS.Gamma
         public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
         {
             if (_pyretic[slot] != Pyretic)
-            hints.Add("Pyretic on you! STOP everything!");
+                hints.Add("Pyretic on you! STOP everything!");
         }
 
         public override void AddGlobalHints(BossModule module, GlobalHints hints)
         {
             if (casting)
-            hints.Add("Applies Pyretic - STOP everything until it runs out!");  
+                hints.Add("Applies Pyretic - STOP everything until it runs out!");
         }
     }
 

@@ -87,5 +87,5 @@ namespace BossMod.Shadowbringers.HuntA.Baal
     }
 
     [ModuleInfo(NotoriousMonsterID = 140)]
-    public class Baal(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) {}
+    public class Baal(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
 }

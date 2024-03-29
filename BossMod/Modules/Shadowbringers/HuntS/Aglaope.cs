@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.HuntS.Aglaope
 {
     public enum OID : uint
@@ -31,8 +32,8 @@ namespace BossMod.Shadowbringers.HuntS.Aglaope
         public SongOfTorment() : base(ActionID.MakeSpell(AID.SongOfTorment), hint: "(Raidwide + Bleed)") { }
     }
 
-//TODO: ideally this AOE should just wait for Effect Results, since they can be delayed by over 2.1s, which would cause unknowning players and AI to run back into the death zone, 
-//not sure how to do this though considering there can be anywhere from 0-32 targets with different time for effect results each
+    //TODO: ideally this AOE should just wait for Effect Results, since they can be delayed by over 2.1s, which would cause unknowning players and AI to run back into the death zone, 
+    //not sure how to do this though considering there can be anywhere from 0-32 targets with different time for effect results each
     class SeductiveSonata : Components.GenericAOEs
     {
         private DateTime _activation;
