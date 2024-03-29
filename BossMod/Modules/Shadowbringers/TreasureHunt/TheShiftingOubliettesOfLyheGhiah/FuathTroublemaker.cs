@@ -66,7 +66,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Fuat
     [ModuleInfo(CFCID = 745, NameID = 9786)]
     public class FuathTroublemaker : BossModule
     {
-        public FuathTroublemaker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public FuathTroublemaker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

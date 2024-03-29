@@ -9,6 +9,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         Boss = 0x3027, //R=2.47
         BossAdd = 0x3028, //R=3.0 
         BossHelper = 0x233C,
+        BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
     };
 
     public enum AID : uint
@@ -22,6 +23,12 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         PelagicCleaverDuringRotation = 21707, // Boss->self, no cast, range 40 60-degree cone
         BiteAndRun = 21709, // BossAdd->player, 5,0s cast, width 5 rect charge
         AquaticLance = 21708, // Boss->player, 5,0s cast, range 8 circle
+
+        Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
+        Mash = 21767, // 3034->self, 3,0s cast, range 13 width 4 rect
+        Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
+        Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
+        Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
     };
 
     public enum IconID : uint
@@ -101,23 +108,24 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public BiteAndRun() : base(ActionID.MakeSpell(AID.BiteAndRun), 2.5f) { }
     }
 
-    class AquaticLance : Components.UniformStackSpread
+    class AquaticLance : Components.SpreadFromCastTargets
     {
-        public AquaticLance() : base(0, 8, alwaysShowSpreads: true) { }
-        public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-        {
-            if (iconID == (uint)IconID.spreadmarker)
-            {
-                AddSpread(actor);
-            }
-        }
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID == AID.AquaticLance)
-            {
-                Spreads.Clear();
-            }
-        }
+        public AquaticLance() : base(ActionID.MakeSpell(AID.AquaticLance), 8) { }
+    }
+
+    class Spin : Components.SelfTargetedAOEs
+    {
+        public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
+    }
+
+    class Mash : Components.SelfTargetedAOEs
+    {
+        public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2)) { }
+    }
+
+    class Scoop : Components.SelfTargetedAOEs
+    {
+        public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
     }
 
     class CladoselacheStates : StateMachineBuilder
@@ -131,20 +139,25 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
                 .ActivateOnEnter<ProtolithicPuncture>()
                 .ActivateOnEnter<BiteAndRun>()
                 .ActivateOnEnter<AquaticLance>()
-                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
+                .ActivateOnEnter<Spin>()
+                .ActivateOnEnter<Mash>()
+                .ActivateOnEnter<Scoop>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
         }
     }
 
     [ModuleInfo(CFCID = 745, NameID = 9778)]
     public class Cladoselache : BossModule
     {
-        public Cladoselache(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Cladoselache(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {
             Arena.Actor(PrimaryActor, ArenaColor.Enemy);
             foreach (var s in Enemies(OID.BossAdd))
                 Arena.Actor(s, ArenaColor.Object);
+            foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+                Arena.Actor(s, ArenaColor.Vulnerable);
         }
 
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -154,6 +167,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
             {
                 e.Priority = (OID)e.Actor.OID switch
                 {
+                    OID.BonusAdd_TheKeeperOfTheKeys => 3,
                     OID.BossAdd => 2,
                     OID.Boss => 1,
                     _ => 0

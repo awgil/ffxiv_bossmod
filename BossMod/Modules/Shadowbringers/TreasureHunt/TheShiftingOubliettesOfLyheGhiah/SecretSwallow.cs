@@ -16,9 +16,9 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         ElectricWhorl = 21720, // 302B->self, 4,5s cast, range 8-60 donut
         Hydrocannon = 21712, // 302B->self, no cast, single-target
         Hydrocannon2 = 21766, // 233C->location, 3,0s cast, range 8 circle
-        Ceras = 21716, // 302B->player, 4,0s cast, single-target
+        Ceras = 21716, // 302B->player, 4,0s cast, single-target, applies poison
         SeventhWave = 21719, // 302B->self, 4,5s cast, range 11 circle
-        BodySlam = 21718, // 302B->location, 4,0s cast, range 10 circle
+        BodySlam = 21718, // 302B->location, 4,0s cast, range 10 circle, knockback 20, away from source
         PrevailingCurrent = 21717, // 302C->self, 3,0s cast, range 22+R width 6 rect
     };
 
@@ -52,6 +52,16 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
         public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), 10) { }
     }
 
+    class BodySlamKB : Components.KnockbackFromCastTarget
+    {
+        public BodySlamKB() : base(ActionID.MakeSpell(AID.BodySlam), 20, shape: new AOEShapeCircle(10))
+        {
+            StopAtWall = true;
+        }
+
+        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<PrevailingCurrent>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
+    }
+
     class SwallowStates : StateMachineBuilder
     {
         public SwallowStates(BossModule module) : base(module)
@@ -63,6 +73,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
                 .ActivateOnEnter<Hydrocannon>()
                 .ActivateOnEnter<Ceras>()
                 .ActivateOnEnter<BodySlam>()
+                .ActivateOnEnter<BodySlamKB>()
                 .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead);
         }
     }
@@ -70,7 +81,7 @@ namespace BossMod.Shadowbringers.TreasureHunt.ShiftingOubliettesOfLyheGhiah.Secr
     [ModuleInfo(CFCID = 745, NameID = 9782)]
     public class Swallow : BossModule
     {
-        public Swallow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
+        public Swallow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
 
         protected override void DrawEnemies(int pcSlot, Actor pc)
         {

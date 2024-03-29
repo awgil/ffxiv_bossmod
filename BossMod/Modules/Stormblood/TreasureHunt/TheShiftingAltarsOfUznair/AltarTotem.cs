@@ -55,7 +55,12 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarTotem
         public TheWardensVerdict() : base(ActionID.MakeSpell(AID.TheWardensVerdict), new AOEShapeRect(45.06f, 2)) { }
     }
 
-    class FlamesOfFury : Components.GenericBaitAway
+    class FlamesOfFury : Components.LocationTargetedAOEs
+    {
+        public FlamesOfFury() : base(ActionID.MakeSpell(AID.FlamesOfFury), 10) { }
+    }
+
+    class FlamesOfFuryBait : Components.GenericBaitAway
     {
         private bool targeted;
         private Actor? target;
@@ -70,7 +75,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarTotem
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.FlamesOfFury)
                 ++NumCasts;
@@ -126,6 +131,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarTotem
                 .ActivateOnEnter<WhorlOfFrenzy>()
                 .ActivateOnEnter<TheWardensVerdict>()
                 .ActivateOnEnter<FlamesOfFury>()
+                .ActivateOnEnter<FlamesOfFuryBait>()
                 .ActivateOnEnter<FlamesOfFuryVoidzone>()
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()
