@@ -146,7 +146,7 @@ namespace BossMod.GoldSaucer.SliceIsRight.Yojimbo
         }
     }
 
-    [ModuleInfo(NameID = 9066)] //GoldSaucerTextData ID 181 
+    [ModuleInfo(NameID = 9066, ExVersion = 0, DisplayName = "The Slice is Right")]
     public class TheSliceIsRight : BossModule
     {
         public TheSliceIsRight(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(70.5f, -36), 15)) { }

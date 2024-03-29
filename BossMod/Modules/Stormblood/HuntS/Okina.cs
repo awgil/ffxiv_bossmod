@@ -1,7 +1,4 @@
 ﻿// CONTRIB: made by malediktus, not checked
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Stormblood.HuntS.Okina
 {
     public enum OID : uint

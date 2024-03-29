@@ -71,7 +71,12 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
         public TheDragonsVoiceHint() : base(ActionID.MakeSpell(AID.TheDragonsVoice)) { }
     }
 
-    class TheRamsKeeper : Components.GenericBaitAway
+    class TheRamsKeeper : Components.LocationTargetedAOEs
+    {
+        public TheRamsKeeper() : base(ActionID.MakeSpell(AID.TheRamsKeeper), 6) { }
+    }
+
+    class TheRamsKeeperBait : Components.GenericBaitAway
     {
         private bool targeted;
         private Actor? target;
@@ -86,7 +91,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.TheRamsKeeper)
             {
@@ -143,6 +148,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarChimera
                 .ActivateOnEnter<TheLionsBreath>()
                 .ActivateOnEnter<LanguorousGaze>()
                 .ActivateOnEnter<TheRamsKeeper>()
+                .ActivateOnEnter<TheRamsKeeperBait>()
                 .ActivateOnEnter<IceVoidzone>()
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()

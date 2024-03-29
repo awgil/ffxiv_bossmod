@@ -1,5 +1,4 @@
 // CONTRIB: made by legendoficeman, changes by Malediktus
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -152,10 +151,10 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
             if ((AID)spell.Action.ID == AID.Ferocity)
                 FerocityCasted = true;
             if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnDonut)
-                foreach (var c in module.Enemies(OID.AllaganCrystal).Where(x => !x.Position.AlmostEqual(module.Bounds.Center, 1)))
+                foreach (var c in module.Enemies(OID.AllaganCrystal))
                     _aoes.Add(new (circle, c.Position, activation: spell.NPCFinishAt.AddSeconds(0.5f)));
             if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnCircle)
-                foreach (var c in module.Enemies(OID.AllaganCrystal).Where(x => !x.Position.AlmostEqual(module.Bounds.Center, 1)))
+                foreach (var c in module.Enemies(OID.AllaganCrystal))
                     _aoes.Add(new (cone, c.Position, c.Rotation, spell.NPCFinishAt.AddSeconds(0.5f)));
         }
 

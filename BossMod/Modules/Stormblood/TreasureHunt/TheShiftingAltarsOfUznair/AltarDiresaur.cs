@@ -72,7 +72,12 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
         public HardStomp() : base(ActionID.MakeSpell(AID.HardStomp), new AOEShapeCircle(10)) { }
     }
 
- class Fireball : Components.GenericBaitAway
+    class Fireball : Components.LocationTargetedAOEs
+    {
+        public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 6) { }
+    }
+
+    class FireballBait : Components.GenericBaitAway
     {
         private bool targeted;
         private Actor? target;
@@ -87,7 +92,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
             }
         }
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
             if ((AID)spell.Action.ID == AID.Fireball)
                 ++NumCasts;
@@ -145,6 +150,7 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarDiresaur
                 .ActivateOnEnter<Comet>()
                 .ActivateOnEnter<HardStomp>()
                 .ActivateOnEnter<Fireball>()
+                .ActivateOnEnter<FireballBait>()
                 .ActivateOnEnter<FireballVoidzone>()
                 .ActivateOnEnter<Hurl>()
                 .ActivateOnEnter<RaucousScritch>()
