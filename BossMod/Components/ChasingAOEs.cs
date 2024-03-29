@@ -56,7 +56,7 @@ namespace BossMod.Components
         }
 
         // return false if chaser was not found
-        public bool Advance(WPos pos, DateTime currentTime, bool removeWhenFinished = true)
+        public bool Advance(WPos pos, float moveDistance, DateTime currentTime, bool removeWhenFinished = true)
         {
             ++NumCasts;
             var c = Chasers.MinBy(c => (c.PredictedPosition() - pos).LengthSq());
@@ -70,6 +70,7 @@ namespace BossMod.Components
             else
             {
                 c.PrevPos = pos;
+                c.MoveDist = moveDistance;
                 c.NextActivation = currentTime.AddSeconds(c.SecondsBetweenActivations);
             }
             return true;
@@ -131,7 +132,7 @@ namespace BossMod.Components
             if (spell.Action == ActionFirst || spell.Action == ActionRest)
             {
                 var pos = spell.MainTargetID == caster.InstanceID ? caster.Position : module.WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ;
-                Advance(pos, module.WorldState.CurrentTime);
+                Advance(pos, MoveDistance, module.WorldState.CurrentTime);
             }
         }
     }
