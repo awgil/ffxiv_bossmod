@@ -1,6 +1,3 @@
-// CONTRIB: made by Malediktus based on replay by legendoficeman
-using System.Collections.Generic;
-
 // CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD30TiamatsClone;
 
