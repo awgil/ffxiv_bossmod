@@ -29,20 +29,22 @@ public static class UIMisc
         ImGui.TextColored(colour, text);
     }
 
-    public static void TextV(string s)
+    public static bool ImageToggleButton(IDalamudTextureWrap? icon, Vector2 size, bool state, string text)
     {
-        var cur = ImGui.GetCursorPos();
-        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0);
-        ImGui.Button("");
-        ImGui.PopStyleVar();
-        ImGui.SameLine();
-        ImGui.SetCursorPos(cur);
-        ImGui.TextUnformatted(s);
-    }
+        var cursor = ImGui.GetCursorPos();
+        var padding = ImGui.GetStyle().FramePadding;
+        ImGui.SetCursorPos(new(cursor.X + size.X + 2 * padding.X, cursor.Y + 0.5f * (size.Y - ImGui.GetFontSize())));
+        ImGui.TextUnformatted(text);
+        ImGui.SetCursorPos(cursor);
 
-    public static bool ImageToggleButton(IDalamudTextureWrap icon, Vector2 size, bool state)
-    {
-        Vector4 tintColor = state ? new(1f, 1f, 1f, 1f) : new(0.5f, 0.5f, 0.5f, 0.85f);
-        return ImGui.ImageButton(icon.ImGuiHandle, size, Vector2.Zero, Vector2.One, 1, Vector4.Zero, tintColor);
+        if (icon != null)
+        {
+            Vector4 tintColor = state ? new(1f, 1f, 1f, 1f) : new(0.5f, 0.5f, 0.5f, 0.85f);
+            return ImGui.ImageButton(icon.ImGuiHandle, size, Vector2.Zero, Vector2.One, 1, Vector4.Zero, tintColor);
+        }
+        else
+        {
+            return ImGui.Button("", size);
+        }
     }
 }
