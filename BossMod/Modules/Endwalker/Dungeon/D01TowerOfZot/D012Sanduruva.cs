@@ -44,6 +44,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva
         private DateTime _activation;
         private readonly List<Actor> _casters = [];
         private static readonly AOEShapeCircle circle = new(15);
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_casters.Count > 0)
@@ -98,12 +99,12 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva
         public D012SanduruvaStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<ManusyaConfuse>()
-            .ActivateOnEnter<IsitvaSiddhi>()
-            .ActivateOnEnter<ManusyaStop>()
-            .ActivateOnEnter<PrakamyaSiddhi>()
-            .ActivateOnEnter<SphereShatter>()
-            .ActivateOnEnter<PraptiSiddhi>();
+                .ActivateOnEnter<ManusyaConfuse>()
+                .ActivateOnEnter<IsitvaSiddhi>()
+                .ActivateOnEnter<ManusyaStop>()
+                .ActivateOnEnter<PrakamyaSiddhi>()
+                .ActivateOnEnter<SphereShatter>()
+                .ActivateOnEnter<PraptiSiddhi>();
         }
     }
 
@@ -112,24 +113,17 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva
     {
         public D012Sanduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-258, -26), 20)) { }
 
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-        }
-
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
+            foreach (var e in hints.PotentialTargets)
             {
-                foreach (var e in hints.PotentialTargets)
+                e.Priority = (OID)e.Actor.OID switch
                 {
-                    e.Priority = (OID)e.Actor.OID switch
-                    {
-                        OID.Boss => 1,
-                        OID.BerserkerSphere => -1,
-                        _ => 0
-                    };
-                }
+                    OID.Boss => 1,
+                    OID.BerserkerSphere => -1,
+                    _ => 0
+                };
             }
         }
     }

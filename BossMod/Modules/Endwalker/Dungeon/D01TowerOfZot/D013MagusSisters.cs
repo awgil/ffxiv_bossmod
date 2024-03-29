@@ -20,7 +20,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
         AutoAttack = 871, // Sanduruva->player, no cast, single-target
         Teleport = 25254, // Sanduruva->location, no cast, single-target
         DeltaAttack = 25260, // Minduruva->Boss, 5.0s cast, single-target
-        DeltaAttack1= 25261, // Minduruva->Boss, 5.0s cast, single-target
+        DeltaAttack1 = 25261, // Minduruva->Boss, 5.0s cast, single-target
         DeltaAttack2 = 25262, // Minduruva->Boss, 5.0s cast, single-target
         DeltaBlizzardIII1 = 25266, // Helper->self, 3.0s cast, range 40+R 20-degree cone
         DeltaBlizzardIII2 = 25267, // Helper->self, 3.0s cast, range 44 width 4 rect
@@ -66,9 +66,10 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
     {
         private int NumCasts;
         private bool active;
+
         public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
         {
-            if ((AID)spell.Action.ID  == AID.Dhrupad)
+            if ((AID)spell.Action.ID == AID.Dhrupad)
                 active = true;
         }
 
@@ -103,7 +104,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
 
         public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
         {
-              if ((SID)status.ID == SID.Poison)
+            if ((SID)status.ID == SID.Poison)
                 _poisoned.Add(actor);
         }
 
@@ -168,17 +169,17 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
     }
 
     class DeltaBlizzardIII1 : Components.SelfTargetedAOEs
-    { 
+    {
         public DeltaBlizzardIII1() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII1), new AOEShapeCone(40.5f, 10.Degrees())) { }
     }
 
     class DeltaBlizzardIII2 : Components.SelfTargetedAOEs
-    { 
+    {
         public DeltaBlizzardIII2() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII2), new AOEShapeRect(44, 2)) { }
     }
 
     class DeltaBlizzardIII3 : Components.SelfTargetedAOEs
-    { 
+    {
         public DeltaBlizzardIII3() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII3), new AOEShapeCircle(15)) { }
     }
 
@@ -207,6 +208,7 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
         private DateTime _activation;
         private readonly List<Actor> _casters = [];
         private static readonly AOEShapeCircle circle = new(15);
+
         public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
             if (_casters.Count > 0)
@@ -248,26 +250,26 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
         public D013MagusSistersStates(BossModule module) : base(module)
         {
             TrivialPhase()
-            .ActivateOnEnter<IsitvaSiddhi>()
-            .ActivateOnEnter<ManusyaBio>()
-            .ActivateOnEnter<Poison>()
-            .ActivateOnEnter<Samsara>()
-            .ActivateOnEnter<ManusyaBlizzardIII>()
-            .ActivateOnEnter<PrakamyaSiddhi>()
-            .ActivateOnEnter<SphereShatter>()
-            .ActivateOnEnter<PraptiSiddhi>()
-            .ActivateOnEnter<DeltaFireIII1>()
-            .ActivateOnEnter<DeltaFireIII2>()
-            .ActivateOnEnter<DeltaFireIII3>()
-            .ActivateOnEnter<DeltaThunderIII1>()
-            .ActivateOnEnter<DeltaThunderIII2>()
-            .ActivateOnEnter<DeltaThunderIII3>()
-            .ActivateOnEnter<DeltaThunderIII4>()
-            .ActivateOnEnter<Dhrupad>()
-            .ActivateOnEnter<DeltaBlizzardIII1>()
-            .ActivateOnEnter<DeltaBlizzardIII2>()
-            .ActivateOnEnter<DeltaBlizzardIII3>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Sanduruva).All(e => e.IsDead) && module.Enemies(OID.Minduruva).All(e => e.IsDead);
+                .ActivateOnEnter<IsitvaSiddhi>()
+                .ActivateOnEnter<ManusyaBio>()
+                .ActivateOnEnter<Poison>()
+                .ActivateOnEnter<Samsara>()
+                .ActivateOnEnter<ManusyaBlizzardIII>()
+                .ActivateOnEnter<PrakamyaSiddhi>()
+                .ActivateOnEnter<SphereShatter>()
+                .ActivateOnEnter<PraptiSiddhi>()
+                .ActivateOnEnter<DeltaFireIII1>()
+                .ActivateOnEnter<DeltaFireIII2>()
+                .ActivateOnEnter<DeltaFireIII3>()
+                .ActivateOnEnter<DeltaThunderIII1>()
+                .ActivateOnEnter<DeltaThunderIII2>()
+                .ActivateOnEnter<DeltaThunderIII3>()
+                .ActivateOnEnter<DeltaThunderIII4>()
+                .ActivateOnEnter<Dhrupad>()
+                .ActivateOnEnter<DeltaBlizzardIII1>()
+                .ActivateOnEnter<DeltaBlizzardIII2>()
+                .ActivateOnEnter<DeltaBlizzardIII3>()
+                .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.Sanduruva).All(e => e.IsDead) && module.Enemies(OID.Minduruva).All(e => e.IsDead);
         }
     }
 
@@ -288,17 +290,15 @@ namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters
         public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
         {
             base.CalculateAIHints(slot, actor, assignment, hints);
+            foreach (var e in hints.PotentialTargets)
             {
-                foreach (var e in hints.PotentialTargets)
+                e.Priority = (OID)e.Actor.OID switch
                 {
-                    e.Priority = (OID)e.Actor.OID switch
-                    {
-                        OID.Boss => 3,
-                        OID.Minduruva => 2,
-                        OID.Sanduruva => 1,
-                        _ => 0
-                    };
-                }
+                    OID.Boss => 3,
+                    OID.Minduruva => 2,
+                    OID.Sanduruva => 1,
+                    _ => 0
+                };
             }
         }
     }
