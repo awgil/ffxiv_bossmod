@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BossMod.Modules.Endwalker.SoloDuty.Endwalker;
+namespace BossMod.Endwalker.Quest.Endwalker;
+
 class SilveredEdge : Components.GenericAOEs
 {
     private DateTime _activation;

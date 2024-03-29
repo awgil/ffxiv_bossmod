@@ -12,7 +12,7 @@ using System.Numerics;
 
 namespace BossMod;
 
-internal class ModuleViewer
+public class ModuleViewer
 {
     private const int SpaceBetweenFilterWidgets = 3;
     private const int IconSize = 30;
@@ -46,7 +46,9 @@ internal class ModuleViewer
         using (var group = ImRaii.Group())
         {
             using var table = ImRaii.Table("Filters", 1, ImGuiTableFlags.BordersOuter | ImGuiTableFlags.NoHostExtendX | ImGuiTableFlags.SizingFixedSame | ImGuiTableFlags.ScrollY);
-            if (!table) return;
+            if (!table)
+                return;
+
             ImGui.TableNextColumn();
             ImGui.TableHeader("Expansion");
 
@@ -74,8 +76,10 @@ internal class ModuleViewer
             if (icon != null)
             {
                 UIMisc.ImageToggleButton(icon, new Vector2(IconSize, IconSize), ExpansionFilter[expac]);
-                if (ImGui.IsItemClicked()) ExpansionFilter[expac] = !ExpansionFilter[expac];
-                if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) ExpansionFilter.Keys.Except([expac]).ToList().ForEach(k => ExpansionFilter[k] = !ExpansionFilter[k]);
+                if (ImGui.IsItemClicked())
+                    ExpansionFilter[expac] = !ExpansionFilter[expac];
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                    ExpansionFilter.Keys.Except([expac]).ToList().ForEach(k => ExpansionFilter[k] = !ExpansionFilter[k]);
                 ImGui.SameLine();
             }
             UIMisc.TextV($"{_exSheet.GetRow(expac)!.Name}");
@@ -90,8 +94,10 @@ internal class ModuleViewer
             if (icon != null)
             {
                 UIMisc.ImageToggleButton(icon, new Vector2(IconSize, IconSize), ContentFilter[cont.Key]);
-                if (ImGui.IsItemClicked()) ContentFilter[cont.Key] = !ContentFilter[cont.Key];
-                if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) ContentFilter.Keys.Except([cont.Key]).ToList().ForEach(k => ContentFilter[k] = !ContentFilter[k]);
+                if (ImGui.IsItemClicked())
+                    ContentFilter[cont.Key] = !ContentFilter[cont.Key];
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                    ContentFilter.Keys.Except([cont.Key]).ToList().ForEach(k => ContentFilter[k] = !ContentFilter[k]);
                 ImGui.SameLine();
             }
             UIMisc.TextV($"{cont.Key}");
@@ -101,7 +107,8 @@ internal class ModuleViewer
     public void DrawModules(UITree _tree)
     {
         using var table = ImRaii.Table("ModulesTable", 2, TABLE_FLAG);
-        if (!table) return;
+        if (!table)
+            return;
 
         DrawRows(ModuleRegistry.CataloguedModules.DistinctBy(x => x.DisplayName), _tree);
         DrawRows(ModuleRegistry.UncataloguedModules, _tree);
@@ -111,7 +118,8 @@ internal class ModuleViewer
     {
         foreach (var mod in enumerable)
         {
-            if (!ContentFilter[mod.ContentType ?? new()] || !ExpansionFilter[mod.ExVersion]) continue;
+            if (!ContentFilter[mod.ContentType ?? new()] || !ExpansionFilter[mod.ExVersion])
+                continue;
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();

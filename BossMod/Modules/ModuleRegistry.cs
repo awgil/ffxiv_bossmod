@@ -224,8 +224,9 @@ namespace BossMod
                     displayName = _questSheet.GetRow(questID)!.Name;
                     exVersion = _questSheet.GetRow(questID)!.Expansion.Value?.RowId ?? 0;
                 }
-                
-                return new Info(module, statesType) {
+
+                return new Info(module, statesType)
+                {
                     ConfigType = configType,
                     ObjectIDType = oidType,
                     ActionIDType = aidType,
@@ -239,7 +240,7 @@ namespace BossMod
                     ContentIcon = contentIcon,
                     DisplayName = infoAttr?.DisplayName != null ? _displayName : displayName,
                     ExVersion = exVersion,
-                    BossName = bossName, 
+                    BossName = bossName,
                     FateName = fateName,
                     ForayName = forayName,
                     HuntRank = huntRank,

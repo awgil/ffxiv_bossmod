@@ -1,20 +1,29 @@
 ﻿using System;
 
-namespace BossMod.Modules.Endwalker.SoloDuty.Endwalker;
+namespace BossMod.Endwalker.Quest.Endwalker;
+
 class AetherialRay : Components.GenericBaitAway
 {
     private DateTime _activation;
-    private bool active;
 
     public AetherialRay() : base(centerAtTarget: true) { }
+
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    {
+        if (_activation != default)
+            hints.Add("Tankbuster 5x");
+    }
+
+    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_activation != default)
+            hints.PredictedDamage.Add((new(1), _activation));
+    }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AetherialRay)
-        {
-            active = true;
             _activation = spell.NPCFinishAt;
-        }
     }
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -32,24 +41,8 @@ class AetherialRay : Components.GenericBaitAway
             {
                 CurrentBaits.Clear();
                 NumCasts = 0;
-                active = false;
+                _activation = default;
             }
-        }
-    }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
-    {
-        if (active)
-            hints.Add("Tankbuster 5x");
-    }
-
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (active)
-        {
-            BitMask targets = new();
-            targets.Set(module.Raid.FindSlot(module.Raid.Player()!.TargetID));
-            hints.PredictedDamage.Add((targets, _activation));
         }
     }
 }

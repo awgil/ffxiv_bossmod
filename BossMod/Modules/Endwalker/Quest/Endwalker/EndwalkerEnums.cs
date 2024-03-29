@@ -1,4 +1,5 @@
-﻿namespace BossMod.Modules.Endwalker.SoloDuty.Endwalker;
+﻿namespace BossMod.Endwalker.Quest.Endwalker;
+
 public enum OID : uint
 {
     Helpers = 0x233C, // R0.500, x28, 523 type

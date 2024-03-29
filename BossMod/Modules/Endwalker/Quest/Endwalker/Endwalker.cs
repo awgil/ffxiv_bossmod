@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace BossMod.Modules.Endwalker.SoloDuty.Endwalker;
+// CONTRIB: made by croizat, not checked
+namespace BossMod.Endwalker.Quest.Endwalker;
 
 class EndwalkerStates : StateMachineBuilder
 {
@@ -29,7 +30,7 @@ class EndwalkerStates : StateMachineBuilder
             .ActivateOnEnter<MortalCoil>()
             .ActivateOnEnter<TidalWave2>();
 
-        DeathPhase(1, id => { SimpleState(id, 10000, "Enrage"); })
+        SimplePhase(1, id => { SimpleState(id, 10000, "Enrage"); }, "P2")
             .ActivateOnEnter<AetherialRay>()
             .ActivateOnEnter<SilveredEdge>()
             .ActivateOnEnter<VeilAsunder>()
@@ -49,9 +50,9 @@ class Megaflare : Components.LocationTargetedAOEs
     public Megaflare() : base(ActionID.MakeSpell(AID.Megaflare), 6) { }
 }
 
-class Puddles : Components.PersistentInvertibleVoidzone
+class Puddles : Components.PersistentInvertibleVoidzoneByCast
 {
-    public Puddles() : base(5, ActionID.MakeSpell(AID.Hellfire), m => m.Enemies(OID.Puddles).Where(e => e.EventState != 7)) { }
+    public Puddles() : base(5, m => m.Enemies(OID.Puddles).Where(e => e.EventState != 7), ActionID.MakeSpell(AID.Hellfire)) { }
 }
 
 class JudgementBolt : Components.RaidwideCast
@@ -147,6 +148,7 @@ public class Endwalker : BossModule
 
     public Actor? ZenosP1() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
     public Actor? ZenosP2() => _zenosP2.FirstOrDefault();
+
     public Endwalker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
     {
         _zenosP2 = Enemies(OID.ZenosP2);
