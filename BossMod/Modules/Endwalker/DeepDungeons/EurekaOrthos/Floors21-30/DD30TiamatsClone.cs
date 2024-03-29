@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors21to30.DD30TiamatsClone
 {
@@ -30,9 +29,9 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors21to30.DD30TiamatsCl
         ChasingAOE = 197, // player
     };
 
-    class WheiMorn : Components.ChasingAOEs
+    class WheiMorn : Components.StandardChasingAOEs
     {
-        public WheiMorn() : base((uint)IconID.ChasingAOE, new AOEShapeCircle(6), ActionID.MakeSpell(AID.WheiMornFirst), ActionID.MakeSpell(AID.WheiMornRest), 6, 5, 2, true) { }
+        public WheiMorn() : base(new AOEShapeCircle(6), ActionID.MakeSpell(AID.WheiMornFirst), ActionID.MakeSpell(AID.WheiMornRest), 6, 2, 5) { }
     }
 
     class DarkMegaflare : Components.LocationTargetedAOEs
@@ -51,31 +50,31 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors21to30.DD30TiamatsCl
     }
 
     class CreatureOfDarkness : Components.GenericAOEs
+    {
+        private readonly List<Actor> _heads = new();
+        private static readonly AOEShapeRect rect = new(2, 2, 2);
+        private static readonly AOEShapeRect rect2 = new(6, 2);
+
+        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
         {
-            private readonly List<Actor> _heads = new();
-            private static readonly AOEShapeRect rect = new(2, 2, 2);
-            private static readonly AOEShapeRect rect2 = new(6, 2);
-
-            public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+            foreach (var c in _heads)
             {
-                foreach (var c in _heads)
-                {
-                    yield return new(rect, c.Position, c.Rotation, color: ArenaColor.Danger);
-                    yield return new(rect2, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
-                }
-            }
-
-            public override void OnActorModelStateChange(BossModule module, Actor actor, byte ModelState, byte AnimState1, byte AnimState2)
-            {
-                if ((OID)actor.OID == OID.DarkWanderer)
-                {
-                    if (AnimState1 == 1)
-                        _heads.Add(actor);
-                    if (AnimState1 == 0)
-                        _heads.Remove(actor);
-                }
+                yield return new(rect, c.Position, c.Rotation, color: ArenaColor.Danger);
+                yield return new(rect2, c.Position + 2 * c.Rotation.ToDirection(), c.Rotation);
             }
         }
+
+        public override void OnActorModelStateChange(BossModule module, Actor actor, byte modelState, byte animState1, byte animState2)
+        {
+            if ((OID)actor.OID == OID.DarkWanderer)
+            {
+                if (animState1 == 1)
+                    _heads.Add(actor);
+                if (animState1 == 0)
+                    _heads.Remove(actor);
+            }
+        }
+    }
 
     class DD30TiamatsCloneStates : StateMachineBuilder
     {
