@@ -27,7 +27,7 @@ namespace BossMod.Stormblood.Ultimate.UCOB
         public P5MornAfah() : base(ActionID.MakeSpell(AID.MornAfah), 4, 8) { } // TODO: verify radius
     }
 
-    [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania)]
+    [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania, CFCID = 280)]
     public class UCOB : BossModule
     {
         private Actor? _nael;
