@@ -211,14 +211,13 @@ namespace BossMod
 
         public void CardinalNames()
         {
-            var fontsize = Service.Config.Get<BossModuleConfig>().CadrdinalsFontSize;
             var offCenter = ScreenHalfSize + ScreenMarginSize / 2;
             var offS = RotatedCoords(new(0, offCenter));
             var offE = RotatedCoords(new(offCenter, 0));
-            TextScreen(ScreenCenter - offS, "N", ArenaColor.Border, fontsize);
-            TextScreen(ScreenCenter + offS, "S", ArenaColor.Border, fontsize);
-            TextScreen(ScreenCenter + offE, "E", ArenaColor.Border, fontsize);
-            TextScreen(ScreenCenter - offE, "W", ArenaColor.Border, fontsize);
+            TextScreen(ScreenCenter - offS, "N", ArenaColor.Border, Config.CardinalsFontSize);
+            TextScreen(ScreenCenter + offS, "S", ArenaColor.Border, Config.CardinalsFontSize);
+            TextScreen(ScreenCenter + offE, "E", ArenaColor.Border, Config.CardinalsFontSize);
+            TextScreen(ScreenCenter - offE, "W", ArenaColor.Border, Config.CardinalsFontSize);
         }
 
         // draw actor representation
