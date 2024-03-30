@@ -1,6 +1,5 @@
 // CONTRIB: made by legendoficeman, changes by Malediktus
-using System.Collections.Generic;
-using System.Linq;
+using BossMod;
 
 namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
 {
@@ -40,12 +39,9 @@ namespace BossMod.Endwalker.DeepDungeons.EurekaOrthos.Floors61to70.DD30Aeturna
         FerocityTetherStretch = 57, // Boss->player
     };
 
-    class SteelClaw : Components.SingleTargetCast
+    class SteelClaw : Components.SingleTargetDelayableCast
     {
-        public SteelClaw() : base(ActionID.MakeSpell(AID.SteelClaw))
-        {
-            EndsOnCastEvent = true;
-        }
+        public SteelClaw() : base(ActionID.MakeSpell(AID.SteelClaw)) { }
     }
 
     class FerocityGood : Components.BaitAwayTethers  //TODO: consider generalizing stretched tethers?

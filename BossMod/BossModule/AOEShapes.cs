@@ -231,8 +231,9 @@ public class AOEShapeCross : AOEShape
         yield return origin + dx1 + dy2;
     }
 }
+
 public class AOEShapeTriangle : AOEShape
-    {
+ {
         public float SideLength;
         public Angle DirectionOffset;
 
@@ -287,4 +288,4 @@ public class AOEShapeTriangle : AOEShape
             return (p1, p2, p3);
         }
     }
-}
+

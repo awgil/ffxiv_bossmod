@@ -270,4 +270,3 @@ public class ArenaBoundsTri : ArenaBounds
             return new WDir(0, 0); // Placeholder to indicate that clamping logic is needed
         }
     }
-}
