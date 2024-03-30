@@ -230,6 +230,7 @@ public class AOEShapeCross : AOEShape
         yield return origin + dx2 + dy2;
         yield return origin + dx1 + dy2;
     }
+}
 public class AOEShapeTriangle : AOEShape
     {
         public float SideLength;
