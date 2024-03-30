@@ -1,4 +1,4 @@
-namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
+namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
 class SpinningDive : Components.GenericAOEs //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
 {

@@ -1,4 +1,4 @@
-namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
+namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
 class BodySlamKB : Components.Knockback
 {
