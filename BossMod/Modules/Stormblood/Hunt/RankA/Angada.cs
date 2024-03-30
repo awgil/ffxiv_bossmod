@@ -67,7 +67,7 @@ class AngadaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 90)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5999)]
 public class Angada : SimpleBossModule
 {
     public Angada(WorldState ws, Actor primary) : base(ws, primary) { }

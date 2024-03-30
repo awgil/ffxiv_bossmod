@@ -121,7 +121,7 @@ class D163AnantabogaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 14, NameID = 1696)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1696)]
 public class D163Anantaboga : BossModule
 {
     public D163Anantaboga(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(10, 0), 25)) { }

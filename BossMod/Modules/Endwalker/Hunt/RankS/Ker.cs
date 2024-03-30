@@ -280,7 +280,7 @@ class KerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 181)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10615)]
 public class Ker : SimpleBossModule
 {
     public Ker(WorldState ws, Actor primary) : base(ws, primary) { }

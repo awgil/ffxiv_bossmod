@@ -114,7 +114,7 @@ class GunittStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 141)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8895)]
 public class Gunitt : SimpleBossModule
 {
     public Gunitt(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -47,5 +47,5 @@ class OPoorestPauldiaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 130)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8655)]
 public class OPoorestPauldia(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

@@ -181,7 +181,7 @@ class CE64FeelingTheBurnStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 778, DynamicEventID = 18)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 18)]
 public class CE64FeelingTheBurn : BossModule
 {
     public IReadOnlyList<Actor> Escorts;

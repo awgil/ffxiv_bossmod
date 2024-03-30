@@ -72,7 +72,7 @@ class AegeirosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 195)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10628)]
 public class Aegeiros : SimpleBossModule
 {
     public Aegeiros(WorldState ws, Actor primary) : base(ws, primary) { }

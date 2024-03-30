@@ -54,7 +54,7 @@ class ArchEtaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 224)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10634)]
 public class ArchEta : SimpleBossModule
 {
     public ArchEta(WorldState ws, Actor primary) : base(ws, primary) { }

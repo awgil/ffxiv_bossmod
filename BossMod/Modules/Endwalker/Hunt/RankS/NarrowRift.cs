@@ -125,7 +125,7 @@ class NarrowRiftStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 226)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10622)]
 public class NarrowRift : SimpleBossModule
 {
     public NarrowRift(WorldState ws, Actor primary) : base(ws, primary) { }

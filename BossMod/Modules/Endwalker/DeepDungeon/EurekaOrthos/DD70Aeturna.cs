@@ -206,7 +206,7 @@ class DD70AeturnaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 903, NameID = 12246)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 903, NameID = 12246)]
 public class DD70Aeturna : BossModule
 {
     public DD70Aeturna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -300), 20)) { }

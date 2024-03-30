@@ -142,7 +142,7 @@ class PorxieStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 745, NameID = 9795)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9795)]
 public class Porxie : BossModule
 {
     public Porxie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }

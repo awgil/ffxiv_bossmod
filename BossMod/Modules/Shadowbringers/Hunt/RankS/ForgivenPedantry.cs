@@ -159,7 +159,7 @@ class ForgivenPedantryStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 121)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8910)]
 public class ForgivenPedantry : SimpleBossModule
 {
     public ForgivenPedantry(WorldState ws, Actor primary) : base(ws, primary) { }

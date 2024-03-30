@@ -1,10 +1,9 @@
 ﻿using Dalamud.Utility;
 using Lumina.Excel;
-using Lumina;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
+using System.Globalization;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace BossMod;
 
@@ -24,49 +23,11 @@ public static class ModuleRegistry
 
         public BossModuleInfo.Expansion Expansion;
         public BossModuleInfo.Category Category;
-        public uint CFCID;
-        public SeString? DisplayName;
-        public SeString? ForayName;
-        public SeString? FateName;
-        public SeString? BossName;
-        public string HuntRank = "";
-        public int CarnivaleStage;
-        public uint QuestID;
-
-        public bool IsUncatalogued;
-
-        public enum HuntRanks : byte
-        {
-            None = 0,
-            B = 1,
-            A = 2,
-            S = 3,
-        }
+        public BossModuleInfo.GroupType GroupType;
+        public uint GroupID;
+        public uint NameID;
 
         public bool CooldownPlanningSupported => ConfigType?.IsSubclassOf(typeof(CooldownPlanningConfigNode)) ?? false;
-
-        public bool IsFate() => !FateName!.RawString.IsNullOrEmpty();
-        public bool IsHunt() => !HuntRank.IsNullOrEmpty();
-        public bool IsCarnivale() => CarnivaleStage != 0;
-        public bool IsCriticalEngagement() => !ForayName!.RawString.IsNullOrEmpty();
-
-        // AFAIK, unreals are the only piece of content that regularly get removed. Their CFCID stays but the properties are all reverted to default.
-        public bool IsRemovedContent()
-        {
-            var cfcRow = _cfcSheet.GetRow(CFCID);
-
-            if (cfcRow == null)
-                return true;
-
-            foreach (var prop in cfcRow.GetType().GetProperties())
-            {
-                var propValue = prop.GetValue(cfcRow);
-                if (propValue != null && !propValue.Equals(default(PropertyInfo)))
-                    return false; // Property has a non-default value, module is not removed content
-            }
-
-            return true; // All properties have default values, module is considered removed content
-        }
 
         public static Info? Build(Type module)
         {
@@ -158,89 +119,12 @@ public static class ModuleRegistry
                 category = BossModuleInfo.Category.Uncategorized;
             }
 
-
-            uint nameID = infoAttr?.NameID ?? 0;
-            uint nmID = infoAttr?.NotoriousMonsterID ?? 0;
-            uint fateID = infoAttr?.FateID ?? 0;
-            uint dynamicEventID = infoAttr?.DynamicEventID ?? 0;
-            uint cfcID = infoAttr?.CFCID ?? 0;
-            uint questID = infoAttr?.QuestID ?? 0;
-            SeString displayName = new SeString(infoAttr?.DisplayName ?? string.Empty);
-
-            SeString _displayName = displayName;
-
-            bool uncatalogued = (cfcID == 0 && nameID == 0 && nmID == 0 && fateID == 0 && dynamicEventID == 0 && questID == 0) || (cfcID != 0 && _cfcSheet.GetRow(cfcID)!.ShortCode.RawString.IsNullOrEmpty());
-            if (uncatalogued)
-                Service.Log($"[{nameof(ModuleRegistry)}] Module {module.Name} is uncatalogued. It does not provide sufficient {nameof(Info)} tags.");
-
-            string huntRank = "";
-            int carnivaleStage = 0;
-            SeString fateName = new();
-            SeString forayName = new();
-            SeString bossName = new();
-
-            if (cfcID != 0)
+            var groupType = infoAttr?.GroupType ?? BossModuleInfo.GroupType.None;
+            var groupID = infoAttr?.GroupID ?? 0;
+            var nameID = infoAttr?.NameID ?? 0;
+            if (groupType == BossModuleInfo.GroupType.None && groupID == 0)
             {
-                var cfcRow = _cfcSheet.GetRow(cfcID)!;
-                //contentType = cfcRow.ContentType?.Value?.Name ?? new SeString();
-                if ((uint)expansion != cfcRow.TerritoryType.Value?.ExVersion.Row)
-                    Service.Log($"[ModuleRegistry] Module {module.Name} potentially has wrong expansion assignment: {expansion} instead of {cfcRow.TerritoryType.Value?.ExVersion.Row}");
-                displayName = cfcRow.Name;
-
-                if (cfcID is 735 or 760 or 761 or 778) // bozja et al
-                {
-                    //contentType = _playStyleSheet!.GetRow(6)!.Name;
-                    //contentIcon = (uint)_playStyleSheet!.GetRow(6)!.Icon;
-                }
-                else if (cfcRow.ShortCode.RawString.StartsWith("aoz")) // masked carnivale
-                {
-                    //contentType = _playStyleSheet!.GetRow(8)!.Name;
-                    //contentIcon = (uint)_playStyleSheet!.GetRow(8)!.Icon;
-                    carnivaleStage = int.Parse(Regex.Replace(cfcRow.ShortCode.RawString, @"\D", "").TrimStart('0'));
-                    //displayName = new SeString($"{displayName} (Stage {carnivaleStage})");
-                }
-                else
-                {
-                    //contentIcon = cfcRow.ContentType?.Value?.Icon ?? 0;
-                }
-            }
-
-            if (nameID != 0)
-            {
-                bossName = _npcNamesSheet.GetRow(nameID)!.Singular;
-            }
-
-            if (nmID != 0)
-            {
-                displayName = bossName = _nmSheet.GetRow(nmID)!.BNpcName.Value?.Singular ?? new SeString();
-                huntRank = Enum.Parse<HuntRanks>(_nmSheet.GetRow(nmID)!.Rank.ToString()).ToString();
-                //displayName = new SeString($"{displayName} ({huntRank} Rank)");
-                //contentType = _playStyleSheet.GetRow(10)!.Name;
-                //contentIcon = (uint)_playStyleSheet.GetRow(10)!.Icon;
-            }
-
-            // ideally you could parse the location field to get the exversion in the fate sheet but that requires parsing lgb files
-            if (fateID != 0) // needs exversion
-            {
-                //contentType = _contentTypeSheet.GetRow(8)!.Name;
-                //contentIcon = _contentTypeSheet.GetRow(8)!.Icon;
-                displayName = _fateSheet.GetRow(fateID)!.Name;
-            }
-
-            if (dynamicEventID != 0) // needs exversion?
-            {
-                //contentType = _playStyleSheet.GetRow(6)!.Name;
-                //contentIcon = (uint)_playStyleSheet.GetRow(6)!.Icon;
-                displayName = forayName = _dynamicEventSheet.GetRow(dynamicEventID)!.Name;
-            }
-
-            if (_questSheet.GetRow(questID) is var quest && quest != null)
-            {
-                //contentType = _contentTypeSheet.GetRow(7)!.Name;
-                //contentIcon = _contentTypeSheet.GetRow(7)!.Icon;
-                displayName = quest.Name;
-                if ((uint)expansion != quest.Expansion.Row)
-                    Service.Log($"[ModuleRegistry] Module {module.Name} potentially has wrong expansion assignment: {expansion} instead of {quest.Expansion.Row}");
+                Service.Log($"[ModuleRegistry] Module {module.Name} does not have group type/id assignments.");
             }
 
             return new Info(module, statesType)
@@ -255,16 +139,9 @@ public static class ModuleRegistry
 
                 Expansion = expansion,
                 Category = category,
-                CFCID = cfcID,
-                DisplayName = infoAttr?.DisplayName != null ? _displayName : displayName,
-                BossName = bossName,
-                FateName = fateName,
-                ForayName = forayName,
-                HuntRank = huntRank,
-                CarnivaleStage = carnivaleStage,
-                QuestID = questID,
-
-                IsUncatalogued = uncatalogued,
+                GroupType = groupType,
+                GroupID = groupID,
+                NameID = nameID,
             };
         }
 
@@ -277,54 +154,8 @@ public static class ModuleRegistry
 
     private static Dictionary<uint, Info> _modules = new(); // [primary-actor-oid] = module type
 
-    private static readonly Dictionary<uint, TerritoryType> _notoriousMonsterToTerritory = new();
-
-    private static readonly ExcelSheet<CharaCardPlayStyle> _playStyleSheet;
-    private static readonly ExcelSheet<ContentFinderCondition> _cfcSheet;
-    private static readonly ExcelSheet<DynamicEvent> _dynamicEventSheet;
-    private static readonly ExcelSheet<ContentType> _contentTypeSheet;
-    private static readonly ExcelSheet<TerritoryType> _territorySheet;
-    private static readonly ExcelSheet<NotoriousMonster> _nmSheet;
-    private static readonly ExcelSheet<BNpcName> _npcNamesSheet;
-    private static readonly ExcelSheet<Quest> _questSheet;
-    private static readonly ExcelSheet<Fate> _fateSheet;
-
-    private static readonly List<Info> _catalogued;
-    private static readonly List<Info> _uncatalogued;
-
     static ModuleRegistry()
     {
-        var territorySheet = Service.LuminaGameData?.GetExcelSheet<TerritoryType>();
-        var nmtSheet = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets2.NotoriousMonsterTerritory>();
-        if (territorySheet != null)
-        {
-            foreach (var terr in territorySheet.Where(terr => terr.Unknown42 != 0))
-            {
-                var nmt = nmtSheet?.GetRowParser(terr.Unknown42);
-                if (nmt != null)
-                {
-                    for (int i = 0; i < 10; ++i)
-                    {
-                        var nmId = nmt.ReadColumn<ushort>(i);
-                        if (nmId != 0)
-                        {
-                            _notoriousMonsterToTerritory.Add(nmId, terr);
-                        }
-                    }
-                }
-            }
-        }
-
-        _playStyleSheet = Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!;
-        _cfcSheet = Service.LuminaGameData!.GetExcelSheet<ContentFinderCondition>()!;
-        _dynamicEventSheet = Service.LuminaGameData!.GetExcelSheet<DynamicEvent>()!;
-        _contentTypeSheet = Service.LuminaGameData!.GetExcelSheet<ContentType>()!;
-        _territorySheet = territorySheet!;
-        _nmSheet = Service.LuminaGameData!.GetExcelSheet<NotoriousMonster>()!;
-        _npcNamesSheet = Service.LuminaGameData!.GetExcelSheet<BNpcName>()!;
-        _questSheet = Service.LuminaGameData!.GetExcelSheet<Quest>()!;
-        _fateSheet = Service.LuminaGameData!.GetExcelSheet<Fate>()!;
-
         foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
         {
             var info = Info.Build(t);
@@ -335,20 +166,9 @@ public static class ModuleRegistry
                 throw new Exception($"Two boss modules have same primary actor OID: {t.Name} and {_modules[info.PrimaryActorOID].ModuleType.Name}");
             _modules[info.PrimaryActorOID] = info;
         }
-
-        _catalogued = _modules.Values
-            .Where(x => !x.IsUncatalogued)
-            .GroupBy(x => new { x.Expansion, x.Category })
-            .OrderBy(g => g.Key.Expansion)
-            .SelectMany(group => group.OrderBy(x => _cfcSheet.GetRow(x.CFCID)?.SortKey))
-            .ToList();
-        _uncatalogued = _modules.Values.Where(x => x.IsUncatalogued || x.Expansion == BossModuleInfo.Expansion.Count).Select(x => x).ToList();
     }
 
     public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modules;
-    public static IReadOnlyList<Info> CataloguedModules => _catalogued;
-    public static IReadOnlyList<Info> UncataloguedModules => _uncatalogued;
-
 
     public static Info? FindByOID(uint oid) => _modules.GetValueOrDefault(oid);
 

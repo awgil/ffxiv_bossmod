@@ -19,7 +19,7 @@ class A10LionsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.Lion, CFCID = 866, NameID = 11294)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.Lion, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11294)]
 public class A10Lions : BossModule
 {
     private Actor? _lioness;

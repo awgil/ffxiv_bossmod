@@ -40,7 +40,7 @@ class GajasuraStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 89)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5998)]
 public class Gajasura : SimpleBossModule
 {
     public Gajasura(WorldState ws, Actor primary) : base(ws, primary) { }

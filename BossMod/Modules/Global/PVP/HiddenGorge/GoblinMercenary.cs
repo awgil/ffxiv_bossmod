@@ -137,7 +137,7 @@ class GoblinMercenaryStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 599, NameID = 7906)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 599, NameID = 7906)]
 public class GoblinMercenary : BossModule
 {
     public GoblinMercenary(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 0)) { }

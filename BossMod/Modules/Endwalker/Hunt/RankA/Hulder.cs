@@ -53,7 +53,7 @@ class HulderStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 174)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10624)]
 public class Hulder : SimpleBossModule
 {
     public Hulder(WorldState ws, Actor primary) : base(ws, primary) { }

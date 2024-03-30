@@ -86,7 +86,7 @@ class T02HydaelynStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 790, NameID = 10453)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 790, NameID = 10453)]
 public class T02Hydaelyn : BossModule
 {
     public T02Hydaelyn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

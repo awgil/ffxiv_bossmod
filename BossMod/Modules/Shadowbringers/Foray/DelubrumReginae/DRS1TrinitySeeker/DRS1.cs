@@ -32,7 +32,7 @@ class IronRose : Components.SelfTargetedAOEs
     public IronRose() : base(ActionID.MakeSpell(AID.IronRose), new AOEShapeRect(50, 4)) { }
 }
 
-[ModuleInfo(CFCID = 761, NameID = 9834)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9834)]
 public class DRS1 : BossModule
 {
     public static readonly float BarricadeRadius = 20;

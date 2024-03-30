@@ -35,10 +35,36 @@ public static class BossModuleInfo
         PVP,
         MaskedCarnivale,
         GoldSaucer,
-        Event,
 
         Count
     }
+
+    public enum GroupType
+    {
+        None,
+        CFC, // group id is ContentFinderCondition row
+        MaskedCarnivale, // group id is ContentFinderCondition row
+        RemovedUnreal, // group id is ContentFinderCondition row
+        Quest, // group id is Quest row
+        Fate, // group id is Fate row
+        Hunt, // group id is HuntRank
+        BozjaCE, // group id is ContentFinderCondition row, name id is DynamicEvent row
+        BozjaDuel, // group id is ContentFinderCondition row, name id is DynamicEvent row
+        GoldSaucer, // group id is GoldSaucerTextData row
+    }
+
+    public enum HuntRank : uint { B, A, S, SS }
+
+    // shorthand expansion names
+    public static string ShortName(this Expansion e) => e switch
+    {
+        Expansion.RealmReborn => "ARR",
+        Expansion.Heavensward => "HW",
+        Expansion.Stormblood => "SB",
+        Expansion.Shadowbringers => "ShB",
+        Expansion.Endwalker => "EW",
+        _ => e.ToString()
+    };
 }
 
 // attribute that allows customizing boss module's metadata; it is optional, each field has some defaults that are fine in most cases
@@ -53,13 +79,9 @@ public class ModuleInfoAttribute : Attribute
     public Type? TetherIDType; // default: ns.TetherID
     public Type? IconIDType; // default: ns.IconID
     public uint PrimaryActorOID; // default: OID.Boss
-    public string? DisplayName;
     public BossModuleInfo.Expansion Expansion = BossModuleInfo.Expansion.Count; // default: second namespace level
     public BossModuleInfo.Category Category = BossModuleInfo.Category.Count; // default: third namespace level
-    public uint QuestID; // default: 0
-    public uint DynamicEventID; // default: 0
-    public uint FateID; // default: 0
-    public uint NotoriousMonsterID; // default: 0
-    public uint NameID; // default: 0
-    public uint CFCID; // default: 0
+    public BossModuleInfo.GroupType GroupType = BossModuleInfo.GroupType.None;
+    public uint GroupID;
+    public uint NameID; // usually BNpcName row, unless GroupType uses it differently
 }

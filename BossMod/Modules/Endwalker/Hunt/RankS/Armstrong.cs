@@ -94,7 +94,8 @@ class ArmstrongStates : StateMachineBuilder
             .ActivateOnEnter<SoporificGas>();
     }
 }
-[ModuleInfo(NotoriousMonsterID = 196)]
+
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10619)]
 public class Armstrong : SimpleBossModule
 {
     public Armstrong(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -80,7 +80,7 @@ class OkinaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 86)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5984)]
 public class Okina : SimpleBossModule
 {
     public Okina(WorldState ws, Actor primary) : base(ws, primary) { }

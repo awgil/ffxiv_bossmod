@@ -132,7 +132,7 @@ class GoliathStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 688, NameID = 8953)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 688, NameID = 8953)]
 public class Goliath : BossModule
 {
     public Goliath(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -390), 20)) { }

@@ -55,5 +55,5 @@ class NuckelaveeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 114)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8906)]
 public class Nuckelavee(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

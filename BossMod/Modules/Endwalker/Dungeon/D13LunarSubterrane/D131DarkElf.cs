@@ -145,7 +145,7 @@ class D131DarkElfStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 823, NameID = 12500)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12500)]
 public class D131DarkElf : BossModule
 {
     public D131DarkElf(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-401, -231), 15.5f)) { }

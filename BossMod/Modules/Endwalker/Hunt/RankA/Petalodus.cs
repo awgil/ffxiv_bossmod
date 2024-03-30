@@ -48,7 +48,7 @@ class PetalodusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 214)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10632)]
 public class Petalodus : SimpleBossModule
 {
     public Petalodus(WorldState ws, Actor primary) : base(ws, primary) { }

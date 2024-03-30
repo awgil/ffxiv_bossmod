@@ -96,7 +96,7 @@ class TarchiaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 126)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8900)]
 public class Tarchia : SimpleBossModule
 {
     public Tarchia(WorldState ws, Actor primary) : base(ws, primary)

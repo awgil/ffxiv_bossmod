@@ -13,7 +13,7 @@ class HeartStake : Components.CastCounter
     public HeartStake() : base(ActionID.MakeSpell(AID.HeartStakeSecond)) { }
 }
 
-[ModuleInfo(CFCID = 801, NameID = 10744)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 801, NameID = 10744)]
 public class P4S2 : BossModule
 {
     // common wreath of thorns constants

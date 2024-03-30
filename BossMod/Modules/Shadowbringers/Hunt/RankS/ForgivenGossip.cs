@@ -33,7 +33,7 @@ class ForgivenGossipStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 142)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8916)]
 public class ForgivenGossip : SimpleBossModule
 {
     public ForgivenGossip(WorldState ws, Actor primary) : base(ws, primary) { }
