@@ -8,6 +8,7 @@ public enum OID : uint
     Helper = 0x233C,
     Noctis = 0x2529,
 }
+
 public enum AID : uint
 {
     AutoAttack = 14675, // 252A->player/Noctis, no cast, single-target
@@ -46,10 +47,11 @@ class MAxStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(FateID = 1409, NameID = 7898, ExVersion = 0)]
+[ModuleInfo(FateID = 1409, NameID = 7898, Expansion = BossModuleInfo.Expansion.RealmReborn)]
 public class MAx : BossModule
 {
     public MAx(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(295, -22), 25)) { }
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

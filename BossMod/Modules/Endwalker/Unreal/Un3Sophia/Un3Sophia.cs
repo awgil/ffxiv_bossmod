@@ -72,7 +72,7 @@ public class Un3SophiaConfig : CooldownPlanningConfigNode
     public Un3SophiaConfig() : base(90) { }
 }
 
-[ModuleInfo(CFCID = 926, NameID = 5199, ExVersion = 4, DisplayName = "Containment Bay P1T6 (Unreal)")]
+[ModuleInfo(CFCID = 926, NameID = 5199, DisplayName = "Containment Bay P1T6 (Unreal)")]
 public class Un3Sophia : BossModule
 {
     public Un3Sophia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 0), 20, 15)) { }

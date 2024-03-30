@@ -142,7 +142,7 @@ class TheSliceIsRightStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NameID = 9066)] //GoldSaucerTextData ID 181
+[ModuleInfo(NameID = 9066, Expansion = BossModuleInfo.Expansion.Shadowbringers)] //GoldSaucerTextData ID 181
 public class TheSliceIsRight : BossModule
 {
     public TheSliceIsRight(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(70.5f, -36), 15)) { }

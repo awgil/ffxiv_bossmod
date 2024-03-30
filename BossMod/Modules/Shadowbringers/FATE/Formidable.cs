@@ -271,5 +271,5 @@ class FormidableStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(FateID = 1464, ExVersion = 3, NameID = 8822)]
+[ModuleInfo(FateID = 1464, NameID = 8822)]
 public class Formidable(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
