@@ -205,6 +205,7 @@ public class ArenaBoundsRect : ArenaBounds
             offset *= HalfHeight * scale / dy;
         return offset;
     }
+}
 public class ArenaBoundsTri : ArenaBounds
     {
         private const float sqrt3 = 1.73205080757f; // Square root of 3
