@@ -45,7 +45,7 @@ class Earthquake : Components.RaidwideCast
 
 class HeavyStrike1 : Components.SelfTargetedAOEs
 {
-    public HeavyStrike1() : base(ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(1, 6.5f, 135.Degrees()))
+    public HeavyStrike1() : base(ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(0.5f, 6.5f, 135.Degrees()))
     {
         Color = ArenaColor.Danger;
     }
