@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Interface;
+using ImGuiNET;
 
 namespace BossMod;
 
@@ -12,6 +13,7 @@ public class BossModuleMainWindow : UIWindow
     {
         _mgr = mgr;
         RespectCloseHotkey = false;
+        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => OpenModuleConfig() });
     }
 
     public override void PreOpenCheck()
@@ -93,5 +95,11 @@ public class BossModuleMainWindow : UIWindow
             Camera.Instance.DrawWorldLine(arrowStart + offset, end3, color);
             Camera.Instance.DrawWorldLine(arrowStart - offset, end3, color);
         }
+    }
+
+    private void OpenModuleConfig()
+    {
+        if (_mgr.ActiveModule?.Info?.ConfigType != null)
+            new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
     }
 }

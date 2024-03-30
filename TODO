@@ -24,7 +24,7 @@ general:
 -- button to 'keep' last (add as temp to replay manager) or to 'save' last (save into replay file)
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - constrain bossmodules to zone id (e.g. for T04)
-- module registry improvements
+- revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?
 - refactor pendingeffects
 
 boss modules:
