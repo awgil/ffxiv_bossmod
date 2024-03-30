@@ -190,7 +190,7 @@ class D053ForgivenWhimsyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 659, NameID = 8261)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8261)]
 public class D053ForgivenWhimsy : BossModule
 {
     public D053ForgivenWhimsy(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15)) { }

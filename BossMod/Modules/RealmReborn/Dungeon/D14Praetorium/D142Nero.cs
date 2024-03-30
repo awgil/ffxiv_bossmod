@@ -71,7 +71,7 @@ class D142NeroStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 16, NameID = 2135)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2135)]
 public class D142Nero : BossModule
 {
     public D142Nero(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-164, 0), 20)) { }

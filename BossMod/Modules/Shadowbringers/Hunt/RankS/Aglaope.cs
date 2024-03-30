@@ -110,7 +110,7 @@ class AglaopeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 131)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8653)]
 public class Aglaope : SimpleBossModule
 {
     public Aglaope(WorldState ws, Actor primary) : base(ws, primary) { }

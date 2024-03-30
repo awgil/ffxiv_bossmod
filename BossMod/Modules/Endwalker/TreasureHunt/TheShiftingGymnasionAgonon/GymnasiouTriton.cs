@@ -54,7 +54,7 @@ class TritonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 909, NameID = 12006)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12006)]
 public class Triton : BossModule
 {
     public Triton(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

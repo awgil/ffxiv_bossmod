@@ -229,7 +229,7 @@ class ForgivenRebellionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 146)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8915)]
 public class ForgivenRebellion : SimpleBossModule
 {
     public ForgivenRebellion(WorldState ws, Actor primary) : base(ws, primary) { }

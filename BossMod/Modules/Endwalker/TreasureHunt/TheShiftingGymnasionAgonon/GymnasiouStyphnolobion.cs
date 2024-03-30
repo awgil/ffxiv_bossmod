@@ -139,7 +139,7 @@ class StyphnolobionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 909, NameID = 12012)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12012)]
 public class Styphnolobion : BossModule
 {
     public Styphnolobion(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

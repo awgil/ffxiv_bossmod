@@ -70,7 +70,7 @@ class BoneCrawlerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 106)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5988)]
 public class BoneCrawler : SimpleBossModule
 {
     public BoneCrawler(WorldState ws, Actor primary) : base(ws, primary) { }

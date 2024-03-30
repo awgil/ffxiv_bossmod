@@ -56,7 +56,7 @@ class FanAilStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 225)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10633)]
 public class FanAil : SimpleBossModule
 {
     public FanAil(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -1,5 +1,5 @@
 // CONTRIB: made by malediktus, not checked
-namespace BossMod.Global.Event.FF15Collab.MAx;
+namespace BossMod.Global.Quest.FF15Collab.MAx;
 
 public enum OID : uint
 {
@@ -47,7 +47,7 @@ class MAxStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(FateID = 1409, NameID = 7898)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68694, NameID = 7898)] // also: fate 1409
 public class MAx : BossModule
 {
     public MAx(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(295, -22), 25)) { }

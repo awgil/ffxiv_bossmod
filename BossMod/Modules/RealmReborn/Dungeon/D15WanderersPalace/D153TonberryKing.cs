@@ -32,7 +32,7 @@ class D153TonberryKingStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 10, NameID = 1547)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1547)]
 public class D153TonberryKing : BossModule
 {
     public D153TonberryKing(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(73, -435), 30)) { }

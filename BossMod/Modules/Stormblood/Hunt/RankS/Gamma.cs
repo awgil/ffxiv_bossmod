@@ -92,7 +92,7 @@ class GammaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 91)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5985)]
 public class Gamma : SimpleBossModule
 {
     public Gamma(WorldState ws, Actor primary) : base(ws, primary) { }

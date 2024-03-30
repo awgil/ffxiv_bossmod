@@ -102,5 +102,5 @@ class HuracanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 120)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8912)]
 public class Huracan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

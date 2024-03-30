@@ -56,7 +56,7 @@ class D063LadyAmandineStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 6, NameID = 422)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 6, NameID = 422)]
 public class D063LadyAmandine : BossModule
 {
     public D063LadyAmandine(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 4), 20)) { }

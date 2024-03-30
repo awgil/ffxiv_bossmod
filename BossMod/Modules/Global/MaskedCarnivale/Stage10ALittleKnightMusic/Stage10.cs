@@ -97,7 +97,7 @@ class Stage10States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 620, NameID = 8100)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 620, NameID = 8100)]
 public class Stage10 : BossModule
 {
     public Stage10(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))

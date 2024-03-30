@@ -66,7 +66,7 @@ class T01ADSStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 93, NameID = 1459)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1459)]
 public class T01ADS : BossModule
 {
     public T01ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-3, 27), 7, 28)) { }

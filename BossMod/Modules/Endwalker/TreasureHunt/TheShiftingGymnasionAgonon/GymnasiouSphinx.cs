@@ -133,7 +133,7 @@ class SphinxStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 909, NameID = 12016)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12016)]
 public class Sphinx : BossModule
 {
     public Sphinx(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

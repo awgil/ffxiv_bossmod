@@ -189,7 +189,7 @@ class IxtabStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 136)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8890)]
 public class Ixtab : SimpleBossModule
 {
     public Ixtab(WorldState ws, Actor primary) : base(ws, primary) { }

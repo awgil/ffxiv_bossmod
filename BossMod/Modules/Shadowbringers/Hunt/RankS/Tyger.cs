@@ -105,7 +105,7 @@ class TygerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 116)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8905)]
 public class Tyger : SimpleBossModule
 {
     public Tyger(WorldState ws, Actor primary) : base(ws, primary) { }

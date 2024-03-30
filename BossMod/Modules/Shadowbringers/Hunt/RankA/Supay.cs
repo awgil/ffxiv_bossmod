@@ -66,5 +66,5 @@ class SupayStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 134)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8891)]
 public class Supay(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

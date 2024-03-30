@@ -85,7 +85,7 @@ class D031LozatlStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 651, NameID = 8231)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8231)]
 public class D031Lozatl : BossModule
 {
     public D031Lozatl(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 315), 20)) { }

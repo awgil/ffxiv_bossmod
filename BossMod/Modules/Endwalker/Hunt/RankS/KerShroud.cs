@@ -32,7 +32,7 @@ class KerShroudStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 177)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10616)]
 public class KerShroud : SimpleBossModule
 {
     public KerShroud(WorldState ws, Actor primary) : base(ws, primary) { }

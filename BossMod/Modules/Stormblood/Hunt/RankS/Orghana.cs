@@ -42,7 +42,7 @@ class OrghanaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 96)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5986)]
 public class Orghana : SimpleBossModule
 {
     public Orghana(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -158,7 +158,7 @@ public class T02ADSConfig : CooldownPlanningConfigNode
     public T02ADSConfig() : base(50) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.ADS, CFCID = 94, NameID = 1459)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.ADS, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1459)]
 public class T02ADS : BossModule
 {
     public T02ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 77), 18, 13)) { }
@@ -177,7 +177,7 @@ class T02QuarantineNodeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.QuarantineNode, CFCID = 94, NameID = 1468)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.QuarantineNode, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1468)]
 public class T02QuarantineNode : BossModule
 {
     public T02QuarantineNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 112), 14, 13)) { }
@@ -197,7 +197,7 @@ class T02AttackNodeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.AttackNode, CFCID = 94, NameID = 1469)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.AttackNode, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1469)]
 public class T02AttackNode : BossModule
 {
     public T02AttackNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-44, 94), 17)) { }
@@ -219,7 +219,7 @@ class T02SanitaryNodeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SanitaryNode, CFCID = 94, NameID = 1470)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SanitaryNode, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1470)]
 public class T02SanitaryNode : BossModule
 {
     public T02SanitaryNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-43, 52), 18, 15)) { }
@@ -238,7 +238,7 @@ class T02MonitoringNodeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.MonitoringNode, CFCID = 94, NameID = 1471)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.MonitoringNode, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1471)]
 public class T02MonitoringNode : BossModule
 {
     public T02MonitoringNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 39), 17, 15)) { }
@@ -257,7 +257,7 @@ class T02DefenseNodeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.DefenseNode, CFCID = 94, NameID = 1472)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.DefenseNode, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1472)]
 public class T02DefenseNode : BossModule
 {
     public T02DefenseNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(46, 52), 17, 14)) { }
@@ -277,7 +277,7 @@ class T02DisposalNodeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.DisposalNode, CFCID = 94, NameID = 1473)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.DisposalNode, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1473)]
 public class T02DisposalNode : BossModule
 {
     public T02DisposalNode(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(41, 94), 14, 20)) { }

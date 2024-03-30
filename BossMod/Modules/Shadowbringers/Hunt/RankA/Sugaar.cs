@@ -103,5 +103,5 @@ class SugaarStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 125)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8902)]
 public class Sugaar(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

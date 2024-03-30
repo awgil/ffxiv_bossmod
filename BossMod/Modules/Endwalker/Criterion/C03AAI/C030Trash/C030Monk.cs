@@ -58,13 +58,13 @@ class C030MonkStates : StateMachineBuilder
 class C030NMonkStates : C030MonkStates { public C030NMonkStates(BossModule module) : base(module, false) { } }
 class C030SMonkStates : C030MonkStates { public C030SMonkStates(BossModule module) : base(module, true) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NMonk, CFCID = 979, NameID = 12631)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NMonk, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12631)]
 public class C030NMonk : C030Trash1
 {
     public C030NMonk(WorldState ws, Actor primary) : base(ws, primary) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SMonk, CFCID = 980, NameID = 12631)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SMonk, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12631)]
 public class C030SMonk : C030Trash1
 {
     public C030SMonk(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -19,8 +19,8 @@ public abstract class C021Shishio : BossModule
     public C021Shishio(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, -100), 20)) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, CFCID = 946, NameID = 12428)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12428)]
 public class C021NShishio : C021Shishio { public C021NShishio(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, CFCID = 947, NameID = 12428)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12428)]
 public class C021SShishio : C021Shishio { public C021SShishio(WorldState ws, Actor primary) : base(ws, primary) { } }

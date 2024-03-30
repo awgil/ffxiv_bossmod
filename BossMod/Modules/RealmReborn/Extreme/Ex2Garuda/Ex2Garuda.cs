@@ -50,7 +50,7 @@ class GreatWhirlwind : Components.LocationTargetedAOEs
     public GreatWhirlwind() : base(ActionID.MakeSpell(AID.GreatWhirlwind), 8) { }
 }
 
-[ModuleInfo(CFCID = 65, NameID = 1644)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 65, NameID = 1644)]
 public class Ex2Garuda : BossModule
 {
     public IReadOnlyList<Actor> Monoliths;

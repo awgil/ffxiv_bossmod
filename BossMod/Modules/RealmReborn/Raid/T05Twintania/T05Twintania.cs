@@ -138,7 +138,7 @@ class T05TwintaniaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 97, NameID = 1482)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 97, NameID = 1482)]
 public class T05Twintania : BossModule
 {
     public const float NeurolinkRadius = 2;

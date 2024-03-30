@@ -83,5 +83,5 @@ class BaalStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 140)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8897)]
 public class Baal(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

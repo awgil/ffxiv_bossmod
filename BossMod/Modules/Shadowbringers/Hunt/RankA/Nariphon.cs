@@ -102,5 +102,5 @@ class NariphonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 115)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8907)]
 public class Nariphon(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

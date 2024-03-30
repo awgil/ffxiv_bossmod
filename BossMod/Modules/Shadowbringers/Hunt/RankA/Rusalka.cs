@@ -63,5 +63,5 @@ class RusalkaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 139)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8896)]
 public class Rusalka(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

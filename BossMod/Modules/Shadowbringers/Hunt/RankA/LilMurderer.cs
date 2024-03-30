@@ -74,5 +74,5 @@ class LilMurdererStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 119)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8911)]
 public class LilMurderer(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

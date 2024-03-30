@@ -85,5 +85,5 @@ class TheMudmanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 129)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8654)]
 public class TheMudman(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

@@ -148,7 +148,7 @@ class SphatikaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 186)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10618)]
 public class Sphatika : SimpleBossModule
 {
     public Sphatika(WorldState ws, Actor primary) : base(ws, primary) { }

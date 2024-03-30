@@ -1,5 +1,5 @@
 // CONTRIB: made by malediktus, not checked
-namespace BossMod.Global.Event.FF15Collab.Garuda;
+namespace BossMod.Global.Quest.FF15Collab.Garuda;
 
 public enum OID : uint
 {
@@ -209,7 +209,7 @@ class GarudaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 646, NameID = 7893)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68696, NameID = 7893)] // also: CFC 646
 public class Garuda : BossModule
 {
     public Garuda(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 22)) { }

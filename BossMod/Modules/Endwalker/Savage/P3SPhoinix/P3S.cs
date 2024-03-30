@@ -11,7 +11,7 @@ class HeatOfCondemnation : Components.TankbusterTether
     public HeatOfCondemnation() : base(ActionID.MakeSpell(AID.HeatOfCondemnationAOE), (uint)TetherID.HeatOfCondemnation, 6) { }
 }
 
-[ModuleInfo(CFCID = 807, NameID = 10720)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 807, NameID = 10720)]
 public class P3S : BossModule
 {
     public P3S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

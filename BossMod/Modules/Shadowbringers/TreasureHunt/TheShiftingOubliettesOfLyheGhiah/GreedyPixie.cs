@@ -140,7 +140,7 @@ class GreedyPixieStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 745, NameID = 9797)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9797)]
 public class GreedyPixie : BossModule
 {
     public GreedyPixie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }

@@ -307,7 +307,7 @@ class DaivadipaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(FateID = 1763)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1763, NameID = 10269)]
 public class Daivadipa : BossModule
 {
     public Daivadipa(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-608, 811), 24.5f)) { }

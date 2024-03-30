@@ -70,7 +70,7 @@ class D032BatsquatchStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 651, NameID = 8232)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8232)]
 public class D032Batsquatch : BossModule
 {
     public D032Batsquatch(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(62, -35), 15)) { }

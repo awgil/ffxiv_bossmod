@@ -96,7 +96,7 @@ class YilanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(NotoriousMonsterID = 184)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10625)]
 public class Yilan : SimpleBossModule
 {
     public Yilan(WorldState ws, Actor primary) : base(ws, primary) { }
