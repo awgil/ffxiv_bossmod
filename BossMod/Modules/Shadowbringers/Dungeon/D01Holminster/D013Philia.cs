@@ -73,7 +73,7 @@ class HeadCrusher : Components.SingleTargetCast
 
 class Chains : BossComponent
 {
-    public bool chained;
+    private bool chained;
     private bool chainsactive;
     private Actor? chaintarget;
     private bool casting;
