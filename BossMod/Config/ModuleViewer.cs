@@ -10,7 +10,7 @@ namespace BossMod;
 
 public class ModuleViewer : IDisposable
 {
-    private record struct ModuleInfo(Type Type, string Name, uint SortOrder);
+    private record struct ModuleInfo(Type Type, string Name, int SortOrder);
     private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, IDalamudTextureWrap? Icon = null);
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
@@ -89,8 +89,17 @@ public class ModuleViewer : IDisposable
         foreach (var groups in _groups)
         {
             groups.SortBy(g => g.Info.SortOrder);
+            foreach (var (g1, g2) in groups.Pairwise())
+                if (g1.Info.SortOrder == g2.Info.SortOrder)
+                    Service.Log($"[ModuleViewer] Same sort order between groups {g1.Info} and {g2.Info}");
+
             foreach (var g in groups)
+            {
                 g.Modules.SortBy(m => m.SortOrder);
+                foreach (var (m1, m2) in g.Modules.Pairwise())
+                    if (m1.SortOrder == m2.SortOrder)
+                        Service.Log($"[ModuleViewer] Same sort order between modules {m1.Type.FullName} and {m2.Type.FullName}");
+            }
         }
     }
 
@@ -229,38 +238,38 @@ public class ModuleViewer : IDisposable
                 var cfcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
                 var cfcSort = cfcRow?.SortKey ?? 0u;
                 var cfcName = FixCase(cfcRow?.Name);
-                return (new(cfcName, groupId, cfcSort != 0 ? cfcSort : groupId), new(module.ModuleType, BNpcName(module.NameID), module.GroupID)); // TODO: sort order...
+                return (new(cfcName, groupId, cfcSort != 0 ? cfcSort : groupId), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.MaskedCarnivale:
                 groupId |= module.GroupID;
                 var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
                 var mcSort = uint.Parse((mcRow?.ShortCode ?? "").Substring(3)); // 'aozNNN'
                 var mcName = $"Stage {mcSort}: {FixCase(mcRow?.Name)}";
-                return (new(mcName, groupId, mcSort), new(module.ModuleType, BNpcName(module.NameID), module.GroupID)); // TODO: sort order...
+                return (new(mcName, groupId, mcSort), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.RemovedUnreal:
-                return (new("Removed Content", groupId, groupId), new(module.ModuleType, BNpcName(module.NameID), module.GroupID)); // TODO: sort order...
+                return (new("Removed Content", groupId, groupId), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.Quest:
                 var questRow = Service.LuminaRow<Quest>(module.GroupID);
                 groupId |= questRow?.JournalGenre.Row ?? 0;
                 var questCategoryName = questRow?.JournalGenre.Value?.Name ?? "";
-                return (new(questCategoryName, groupId, groupId), new(module.ModuleType, $"{questRow?.Name}: {BNpcName(module.NameID)}", module.GroupID));
+                return (new(questCategoryName, groupId, groupId), new(module.ModuleType, $"{questRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Fate:
                 var fateRow = Service.LuminaRow<Fate>(module.GroupID);
-                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module.ModuleType, $"{fateRow?.Name}: {BNpcName(module.NameID)}", module.GroupID));
+                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module.ModuleType, $"{fateRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Hunt:
                 groupId |= module.GroupID;
-                return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module.ModuleType, BNpcName(module.NameID), module.GroupID));
+                return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaCE:
                 groupId |= module.GroupID;
                 var ceName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)?.Name)} CE";
-                return (new(ceName, groupId, groupId), new(module.ModuleType, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.GroupID)); // TODO: sort order...
+                return (new(ceName, groupId, groupId), new(module.ModuleType, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
             case BossModuleInfo.GroupType.BozjaDuel:
                 groupId |= module.GroupID;
                 var duelName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)?.Name)} Duel";
-                return (new(duelName, groupId, groupId), new(module.ModuleType, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.GroupID)); // TODO: sort order...
+                return (new(duelName, groupId, groupId), new(module.ModuleType, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
             case BossModuleInfo.GroupType.GoldSaucer:
-                return (new("Gold saucer", groupId, groupId), new(module.ModuleType, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.GroupID));
+                return (new("Gold saucer", groupId, groupId), new(module.ModuleType, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
             default:
-                return (new("Ungrouped", groupId, groupId), new(module.ModuleType, BNpcName(module.NameID), module.GroupID));
+                return (new("Ungrouped", groupId, groupId), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
         }
     }
 }

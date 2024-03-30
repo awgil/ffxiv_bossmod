@@ -84,4 +84,5 @@ public class ModuleInfoAttribute : Attribute
     public BossModuleInfo.GroupType GroupType = BossModuleInfo.GroupType.None;
     public uint GroupID;
     public uint NameID; // usually BNpcName row, unless GroupType uses it differently
+    public int SortOrder; // default: first number in type name
 }

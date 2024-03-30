@@ -54,8 +54,8 @@ class C010KalukStates : StateMachineBuilder
 class C010NKalukStates : C010KalukStates { public C010NKalukStates(BossModule module) : base(module, false) { } }
 class C010SKalukStates : C010KalukStates { public C010SKalukStates(BossModule module) : base(module, true) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11510)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11510, SortOrder = 2)]
 public class C010NKaluk : SimpleBossModule { public C010NKaluk(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11510)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11510, SortOrder = 2)]
 public class C010SKaluk : SimpleBossModule { public C010SKaluk(WorldState ws, Actor primary) : base(ws, primary) { } }
