@@ -1,6 +1,4 @@
 ﻿// CONTRIB: made by malediktus, not checked
-using BossMod.BLM;
-
 namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D013Philia;
 
 public enum OID : uint
