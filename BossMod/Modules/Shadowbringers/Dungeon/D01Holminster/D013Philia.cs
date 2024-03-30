@@ -131,7 +131,7 @@ class Aethersup : Components.GenericAOEs
 {
     private DateTime _activation;
     private Angle _rotation;
-    private readonly static AOEShapeCone cone = new(24, 60.Degrees());
+    private static readonly AOEShapeCone cone = new(24, 60.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
