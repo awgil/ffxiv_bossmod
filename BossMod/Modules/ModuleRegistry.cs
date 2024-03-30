@@ -23,9 +23,8 @@ public static class ModuleRegistry
         public uint PrimaryActorOID;
 
         public BossModuleInfo.Expansion Expansion;
+        public BossModuleInfo.Category Category;
         public uint CFCID;
-        public uint ContentIcon;
-        public SeString? ContentType;
         public SeString? DisplayName;
         public SeString? ForayName;
         public SeString? FateName;
@@ -135,7 +134,31 @@ public static class ModuleRegistry
                 return null;
             }
 
+            var splitNamespace = module.Namespace?.Split('.') ?? []; // expected to be 'BossMod.expansion.category.rest'
+
             var expansion = infoAttr?.Expansion ?? BossModuleInfo.Expansion.Count;
+            if (expansion == BossModuleInfo.Expansion.Count && splitNamespace.Length > 1 && Enum.TryParse(splitNamespace[1], out BossModuleInfo.Expansion parsedExpansion))
+            {
+                expansion = parsedExpansion;
+            }
+            if (expansion == BossModuleInfo.Expansion.Count)
+            {
+                Service.Log($"[ModuleRegistry] Module {module.Name} does not have valid expansion assigned; consider fixing namespace or specifying value manually");
+                expansion = BossModuleInfo.Expansion.Global;
+            }
+
+            var category = infoAttr?.Category ?? BossModuleInfo.Category.Count;
+            if (category == BossModuleInfo.Category.Count && splitNamespace.Length > 2 && Enum.TryParse(splitNamespace[2], out BossModuleInfo.Category parsedCategory))
+            {
+                category = parsedCategory;
+            }
+            if (category == BossModuleInfo.Category.Count)
+            {
+                Service.Log($"[ModuleRegistry] Module {module.Name} does not have valid category assigned; consider fixing namespace or specifying value manually");
+                category = BossModuleInfo.Category.Uncategorized;
+            }
+
+
             uint nameID = infoAttr?.NameID ?? 0;
             uint nmID = infoAttr?.NotoriousMonsterID ?? 0;
             uint fateID = infoAttr?.FateID ?? 0;
@@ -150,8 +173,6 @@ public static class ModuleRegistry
             if (uncatalogued)
                 Service.Log($"[{nameof(ModuleRegistry)}] Module {module.Name} is uncatalogued. It does not provide sufficient {nameof(Info)} tags.");
 
-            SeString contentType = new();
-            uint contentIcon = default;
             string huntRank = "";
             int carnivaleStage = 0;
             SeString fateName = new();
@@ -161,25 +182,27 @@ public static class ModuleRegistry
             if (cfcID != 0)
             {
                 var cfcRow = _cfcSheet.GetRow(cfcID)!;
-                contentType = cfcRow.ContentType?.Value?.Name ?? new SeString();
-                if (expansion == BossModuleInfo.Expansion.Count && cfcRow.TerritoryType.Value is var terr && terr != null)
-                    expansion = (BossModuleInfo.Expansion)terr.ExVersion.Row;
+                //contentType = cfcRow.ContentType?.Value?.Name ?? new SeString();
+                if ((uint)expansion != cfcRow.TerritoryType.Value?.ExVersion.Row)
+                    Service.Log($"[ModuleRegistry] Module {module.Name} potentially has wrong expansion assignment: {expansion} instead of {cfcRow.TerritoryType.Value?.ExVersion.Row}");
                 displayName = cfcRow.Name;
 
                 if (cfcID is 735 or 760 or 761 or 778) // bozja et al
                 {
-                    contentType = _playStyleSheet!.GetRow(6)!.Name;
-                    contentIcon = (uint)_playStyleSheet!.GetRow(6)!.Icon;
+                    //contentType = _playStyleSheet!.GetRow(6)!.Name;
+                    //contentIcon = (uint)_playStyleSheet!.GetRow(6)!.Icon;
                 }
                 else if (cfcRow.ShortCode.RawString.StartsWith("aoz")) // masked carnivale
                 {
-                    contentType = _playStyleSheet!.GetRow(8)!.Name;
-                    contentIcon = (uint)_playStyleSheet!.GetRow(8)!.Icon;
+                    //contentType = _playStyleSheet!.GetRow(8)!.Name;
+                    //contentIcon = (uint)_playStyleSheet!.GetRow(8)!.Icon;
                     carnivaleStage = int.Parse(Regex.Replace(cfcRow.ShortCode.RawString, @"\D", "").TrimStart('0'));
                     //displayName = new SeString($"{displayName} (Stage {carnivaleStage})");
                 }
                 else
-                    contentIcon = cfcRow.ContentType?.Value?.Icon ?? 0;
+                {
+                    //contentIcon = cfcRow.ContentType?.Value?.Icon ?? 0;
+                }
             }
 
             if (nameID != 0)
@@ -192,50 +215,33 @@ public static class ModuleRegistry
                 displayName = bossName = _nmSheet.GetRow(nmID)!.BNpcName.Value?.Singular ?? new SeString();
                 huntRank = Enum.Parse<HuntRanks>(_nmSheet.GetRow(nmID)!.Rank.ToString()).ToString();
                 //displayName = new SeString($"{displayName} ({huntRank} Rank)");
-                contentType = _playStyleSheet.GetRow(10)!.Name;
-                contentIcon = (uint)_playStyleSheet.GetRow(10)!.Icon;
-
-                if (expansion == BossModuleInfo.Expansion.Count && _notoriousMonsterToTerritory.TryGetValue(nmID, out var terr))
-                    expansion = (BossModuleInfo.Expansion)terr.ExVersion.Row;
+                //contentType = _playStyleSheet.GetRow(10)!.Name;
+                //contentIcon = (uint)_playStyleSheet.GetRow(10)!.Icon;
             }
 
             // ideally you could parse the location field to get the exversion in the fate sheet but that requires parsing lgb files
             if (fateID != 0) // needs exversion
             {
-                contentType = _contentTypeSheet.GetRow(8)!.Name;
-                contentIcon = _contentTypeSheet.GetRow(8)!.Icon;
+                //contentType = _contentTypeSheet.GetRow(8)!.Name;
+                //contentIcon = _contentTypeSheet.GetRow(8)!.Icon;
                 displayName = _fateSheet.GetRow(fateID)!.Name;
             }
 
             if (dynamicEventID != 0) // needs exversion?
             {
-                contentType = _playStyleSheet.GetRow(6)!.Name;
-                contentIcon = (uint)_playStyleSheet.GetRow(6)!.Icon;
+                //contentType = _playStyleSheet.GetRow(6)!.Name;
+                //contentIcon = (uint)_playStyleSheet.GetRow(6)!.Icon;
                 displayName = forayName = _dynamicEventSheet.GetRow(dynamicEventID)!.Name;
             }
 
             if (_questSheet.GetRow(questID) is var quest && quest != null)
             {
-                contentType = _contentTypeSheet.GetRow(7)!.Name;
-                contentIcon = _contentTypeSheet.GetRow(7)!.Icon;
+                //contentType = _contentTypeSheet.GetRow(7)!.Name;
+                //contentIcon = _contentTypeSheet.GetRow(7)!.Icon;
                 displayName = quest.Name;
-                if (expansion == BossModuleInfo.Expansion.Count)
-                    expansion = (BossModuleInfo.Expansion)quest.Expansion.Row;
+                if ((uint)expansion != quest.Expansion.Row)
+                    Service.Log($"[ModuleRegistry] Module {module.Name} potentially has wrong expansion assignment: {expansion} instead of {quest.Expansion.Row}");
             }
-
-            if (expansion == BossModuleInfo.Expansion.Count && (module.Namespace?.StartsWith("BossMod.") ?? false))
-            {
-                // try to determine expansion from module namespace
-                var exName = module.Namespace.Substring(8);
-                var exEnd = exName.IndexOf(".");
-                if (exEnd > 0)
-                    exName = exName.Substring(0, exEnd);
-                if (Enum.TryParse(exName, out BossModuleInfo.Expansion guessedExpansion))
-                    expansion = guessedExpansion;
-            }
-
-            if (expansion == BossModuleInfo.Expansion.Count)
-                Service.Log($"[ModuleRegistry] Module {module.Name} does not have valid expansion assigned; autodetection failed, consider specifying value manually");
 
             return new Info(module, statesType)
             {
@@ -248,9 +254,8 @@ public static class ModuleRegistry
                 PrimaryActorOID = primaryOID,
 
                 Expansion = expansion,
+                Category = category,
                 CFCID = cfcID,
-                ContentType = contentType,
-                ContentIcon = contentIcon,
                 DisplayName = infoAttr?.DisplayName != null ? _displayName : displayName,
                 BossName = bossName,
                 FateName = fateName,
@@ -284,11 +289,8 @@ public static class ModuleRegistry
     private static readonly ExcelSheet<Quest> _questSheet;
     private static readonly ExcelSheet<Fate> _fateSheet;
 
-    //private static readonly List<uint> _expacs;
     private static readonly List<Info> _catalogued;
     private static readonly List<Info> _uncatalogued;
-    private static readonly List<SeString> _contentTypes;
-    private static readonly Dictionary<SeString, uint> _contentTypesIcons;
 
     static ModuleRegistry()
     {
@@ -336,23 +338,17 @@ public static class ModuleRegistry
 
         _catalogued = _modules.Values
             .Where(x => !x.IsUncatalogued)
-            .GroupBy(x => new { x.Expansion, ContentType = x.ContentType ?? new() })
+            .GroupBy(x => new { x.Expansion, x.Category })
             .OrderBy(g => g.Key.Expansion)
             .SelectMany(group => group.OrderBy(x => _cfcSheet.GetRow(x.CFCID)?.SortKey))
             .ToList();
         _uncatalogued = _modules.Values.Where(x => x.IsUncatalogued || x.Expansion == BossModuleInfo.Expansion.Count).Select(x => x).ToList();
-        _contentTypes = _modules.Select(x => x.Value.ContentType ?? new()).Distinct().ToList();
-        _contentTypesIcons = _modules
-            .Where(x => x.Value.ContentType != null && x.Value.ContentIcon != default)
-            .Select(x => (x.Value.ContentType!, x.Value.ContentIcon))
-            .Distinct().OrderBy(x => x.ContentIcon).ToDictionary(x => x.Item1, x => x.ContentIcon);
     }
 
     public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modules;
     public static IReadOnlyList<Info> CataloguedModules => _catalogued;
     public static IReadOnlyList<Info> UncataloguedModules => _uncatalogued;
-    public static IReadOnlyList<SeString> AvailableContent => _contentTypes;
-    public static IReadOnlyDictionary<SeString, uint> AvailableContentIcons => _contentTypesIcons;
+
 
     public static Info? FindByOID(uint oid) => _modules.GetValueOrDefault(oid);
 
@@ -380,20 +376,4 @@ public static class ModuleRegistry
     {
         return CreateModule(FindByOID(oid)?.ModuleType, new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, "", ActorType.None, Class.None, 0, new()));
     }
-
-    //[Sheet("NotoriousMonsterTerritory", columnHash: 0xf057da9c)]
-    //public partial class NotoriousMonsterTerritory : ExcelRow
-    //{
-    //    public const int Length = 10;
-    //    public ushort[] Monster { get; private set; } = new ushort[Length];
-
-    //    public override void PopulateData(RowParser parser, GameData gameData, Lumina.Data.Language language)
-    //    {
-    //        base.PopulateData(parser, gameData, language);
-    //        for (var i = 0; i < Length; ++i)
-    //        {
-    //            Monster[i] = parser.ReadOffset<ushort>(2 * i);
-    //        }
-    //    }
-    //}
 }

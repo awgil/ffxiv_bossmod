@@ -1,5 +1,5 @@
 // CONTRIB: made by taurenkey, changed by malediktus, not checked
-namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
+namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
 class GrandFall : Components.LocationTargetedAOEs
 {

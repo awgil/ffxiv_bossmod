@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace BossMod;
 
-public class ConfigUI
+public class ConfigUI : IDisposable
 {
     private class UINode
     {
@@ -52,6 +52,11 @@ public class ConfigUI
         }
 
         SortByOrder(_roots);
+    }
+
+    public void Dispose()
+    {
+        _mv.Dispose();
     }
 
     public void Draw()
