@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface.Internal;
+﻿using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
@@ -10,7 +11,7 @@ namespace BossMod;
 
 public class ModuleViewer : IDisposable
 {
-    private record struct ModuleInfo(Type Type, string Name, int SortOrder);
+    private record struct ModuleInfo(ModuleRegistry.Info Info, string Name, int SortOrder);
     private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, IDalamudTextureWrap? Icon = null);
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
@@ -98,7 +99,7 @@ public class ModuleViewer : IDisposable
                 g.Modules.SortBy(m => m.SortOrder);
                 foreach (var (m1, m2) in g.Modules.Pairwise())
                     if (m1.SortOrder == m2.SortOrder)
-                        Service.Log($"[ModuleViewer] Same sort order between modules {m1.Type.FullName} and {m2.Type.FullName}");
+                        Service.Log($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
             }
         }
     }
@@ -204,8 +205,16 @@ public class ModuleViewer : IDisposable
                     ImGui.TableNextColumn();
 
                     foreach (var _ in _tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
+                    {
                         foreach (var mod in group.Modules)
-                            ImGui.TextUnformatted($"{mod.Name} [{mod.Type.Name}]");
+                        {
+                            using (ImRaii.Disabled(mod.Info.ConfigType == null))
+                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}"))
+                                    new BossModuleConfigWindow(mod.Info, new(TimeSpan.TicksPerSecond, "fake"));
+                            ImGui.SameLine();
+                            ImGui.TextUnformatted($"{mod.Name} [{mod.Info.ModuleType.Name}]");
+                        }
+                    }
                 }
             }
         }
@@ -238,38 +247,38 @@ public class ModuleViewer : IDisposable
                 var cfcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
                 var cfcSort = cfcRow?.SortKey ?? 0u;
                 var cfcName = FixCase(cfcRow?.Name);
-                return (new(cfcName, groupId, cfcSort != 0 ? cfcSort : groupId), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
+                return (new(cfcName, groupId, cfcSort != 0 ? cfcSort : groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.MaskedCarnivale:
                 groupId |= module.GroupID;
                 var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
                 var mcSort = uint.Parse((mcRow?.ShortCode ?? "").Substring(3)); // 'aozNNN'
                 var mcName = $"Stage {mcSort}: {FixCase(mcRow?.Name)}";
-                return (new(mcName, groupId, mcSort), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
+                return (new(mcName, groupId, mcSort), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.RemovedUnreal:
-                return (new("Removed Content", groupId, groupId), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
+                return (new("Removed Content", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.Quest:
                 var questRow = Service.LuminaRow<Quest>(module.GroupID);
                 groupId |= questRow?.JournalGenre.Row ?? 0;
                 var questCategoryName = questRow?.JournalGenre.Value?.Name ?? "";
-                return (new(questCategoryName, groupId, groupId), new(module.ModuleType, $"{questRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new(questCategoryName, groupId, groupId), new(module, $"{questRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Fate:
                 var fateRow = Service.LuminaRow<Fate>(module.GroupID);
-                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module.ModuleType, $"{fateRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module, $"{fateRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Hunt:
                 groupId |= module.GroupID;
-                return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
+                return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaCE:
                 groupId |= module.GroupID;
                 var ceName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)?.Name)} CE";
-                return (new(ceName, groupId, groupId), new(module.ModuleType, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
+                return (new(ceName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
             case BossModuleInfo.GroupType.BozjaDuel:
                 groupId |= module.GroupID;
                 var duelName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)?.Name)} Duel";
-                return (new(duelName, groupId, groupId), new(module.ModuleType, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
+                return (new(duelName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
             case BossModuleInfo.GroupType.GoldSaucer:
-                return (new("Gold saucer", groupId, groupId), new(module.ModuleType, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new("Gold saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
             default:
-                return (new("Ungrouped", groupId, groupId), new(module.ModuleType, BNpcName(module.NameID), module.SortOrder));
+                return (new("Ungrouped", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
         }
     }
 }
