@@ -66,7 +66,7 @@ public class Un4ZurvanConfig : CooldownPlanningConfigNode
     public Un4ZurvanConfig() : base(90) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, CFCID = 951, NameID = 5567, ExVersion = 4, DisplayName = "Containment Bay Z1T9 (Unreal)")]
+[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, CFCID = 951, NameID = 5567, DisplayName = "Containment Bay Z1T9 (Unreal)")]
 public class Un4Zurvan : BossModule
 {
     private Actor? _bossP2;

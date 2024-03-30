@@ -168,7 +168,7 @@ class ArchaeotaniaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(FateID = 1432, ExVersion = 3, NameID = 8234)]
+[ModuleInfo(FateID = 1432, NameID = 8234)]
 public class Archaeotania : BossModule
 {
     public Archaeotania(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(279, 249), 29)) { }

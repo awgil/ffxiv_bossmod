@@ -22,8 +22,8 @@ public static class ModuleRegistry
         public Type? IconIDType;
         public uint PrimaryActorOID;
 
+        public BossModuleInfo.Expansion Expansion;
         public uint CFCID;
-        public uint ExVersion;
         public uint ContentIcon;
         public SeString? ContentType;
         public SeString? DisplayName;
@@ -135,16 +135,15 @@ public static class ModuleRegistry
                 return null;
             }
 
+            var expansion = infoAttr?.Expansion ?? BossModuleInfo.Expansion.Count;
             uint nameID = infoAttr?.NameID ?? 0;
             uint nmID = infoAttr?.NotoriousMonsterID ?? 0;
             uint fateID = infoAttr?.FateID ?? 0;
             uint dynamicEventID = infoAttr?.DynamicEventID ?? 0;
             uint cfcID = infoAttr?.CFCID ?? 0;
             uint questID = infoAttr?.QuestID ?? 0;
-            uint exVersion = infoAttr?.ExVersion ?? 69;
             SeString displayName = new SeString(infoAttr?.DisplayName ?? string.Empty);
 
-            uint _exVersion = exVersion;
             SeString _displayName = displayName;
 
             bool uncatalogued = (cfcID == 0 && nameID == 0 && nmID == 0 && fateID == 0 && dynamicEventID == 0 && questID == 0) || (cfcID != 0 && _cfcSheet.GetRow(cfcID)!.ShortCode.RawString.IsNullOrEmpty());
@@ -163,7 +162,8 @@ public static class ModuleRegistry
             {
                 var cfcRow = _cfcSheet.GetRow(cfcID)!;
                 contentType = cfcRow.ContentType?.Value?.Name ?? new SeString();
-                exVersion = cfcRow.TerritoryType?.Value?.ExVersion.Value?.RowId ?? 0;
+                if (expansion == BossModuleInfo.Expansion.Count && cfcRow.TerritoryType.Value is var terr && terr != null)
+                    expansion = (BossModuleInfo.Expansion)terr.ExVersion.Row;
                 displayName = cfcRow.Name;
 
                 if (cfcID is 735 or 760 or 761 or 778) // bozja et al
@@ -194,9 +194,9 @@ public static class ModuleRegistry
                 //displayName = new SeString($"{displayName} ({huntRank} Rank)");
                 contentType = _playStyleSheet.GetRow(10)!.Name;
                 contentIcon = (uint)_playStyleSheet.GetRow(10)!.Icon;
-                foreach (var row in _nmtSheet)
-                    if (row.Monster.Contains((ushort)nmID))
-                        exVersion = _territorySheet.FirstOrDefault(x => x.Unknown42 == row.RowId)?.ExVersion.Value?.RowId ?? 0;
+
+                if (expansion == BossModuleInfo.Expansion.Count && _notoriousMonsterToTerritory.TryGetValue(nmID, out var terr))
+                    expansion = (BossModuleInfo.Expansion)terr.ExVersion.Row;
             }
 
             // ideally you could parse the location field to get the exversion in the fate sheet but that requires parsing lgb files
@@ -214,13 +214,28 @@ public static class ModuleRegistry
                 displayName = forayName = _dynamicEventSheet.GetRow(dynamicEventID)!.Name;
             }
 
-            if (questID != 0)
+            if (_questSheet.GetRow(questID) is var quest && quest != null)
             {
                 contentType = _contentTypeSheet.GetRow(7)!.Name;
                 contentIcon = _contentTypeSheet.GetRow(7)!.Icon;
-                displayName = _questSheet.GetRow(questID)!.Name;
-                exVersion = _questSheet.GetRow(questID)!.Expansion.Value?.RowId ?? 0;
+                displayName = quest.Name;
+                if (expansion == BossModuleInfo.Expansion.Count)
+                    expansion = (BossModuleInfo.Expansion)quest.Expansion.Row;
             }
+
+            if (expansion == BossModuleInfo.Expansion.Count && (module.Namespace?.StartsWith("BossMod.") ?? false))
+            {
+                // try to determine expansion from module namespace
+                var exName = module.Namespace.Substring(8);
+                var exEnd = exName.IndexOf(".");
+                if (exEnd > 0)
+                    exName = exName.Substring(0, exEnd);
+                if (Enum.TryParse(exName, out BossModuleInfo.Expansion guessedExpansion))
+                    expansion = guessedExpansion;
+            }
+
+            if (expansion == BossModuleInfo.Expansion.Count)
+                Service.Log($"[ModuleRegistry] Module {module.Name} does not have valid expansion assigned; autodetection failed, consider specifying value manually");
 
             return new Info(module, statesType)
             {
@@ -232,11 +247,11 @@ public static class ModuleRegistry
                 IconIDType = iidType,
                 PrimaryActorOID = primaryOID,
 
+                Expansion = expansion,
                 CFCID = cfcID,
                 ContentType = contentType,
                 ContentIcon = contentIcon,
                 DisplayName = infoAttr?.DisplayName != null ? _displayName : displayName,
-                ExVersion = exVersion,
                 BossName = bossName,
                 FateName = fateName,
                 ForayName = forayName,
@@ -257,7 +272,8 @@ public static class ModuleRegistry
 
     private static Dictionary<uint, Info> _modules = new(); // [primary-actor-oid] = module type
 
-    private static readonly ExcelSheet<NotoriousMonsterTerritory> _nmtSheet;
+    private static readonly Dictionary<uint, TerritoryType> _notoriousMonsterToTerritory = new();
+
     private static readonly ExcelSheet<CharaCardPlayStyle> _playStyleSheet;
     private static readonly ExcelSheet<ContentFinderCondition> _cfcSheet;
     private static readonly ExcelSheet<DynamicEvent> _dynamicEventSheet;
@@ -268,7 +284,7 @@ public static class ModuleRegistry
     private static readonly ExcelSheet<Quest> _questSheet;
     private static readonly ExcelSheet<Fate> _fateSheet;
 
-    private static readonly List<uint> _expacs;
+    //private static readonly List<uint> _expacs;
     private static readonly List<Info> _catalogued;
     private static readonly List<Info> _uncatalogued;
     private static readonly List<SeString> _contentTypes;
@@ -276,12 +292,32 @@ public static class ModuleRegistry
 
     static ModuleRegistry()
     {
-        _nmtSheet = Service.LuminaGameData!.GetExcelSheet<NotoriousMonsterTerritory>()!;
+        var territorySheet = Service.LuminaGameData?.GetExcelSheet<TerritoryType>();
+        var nmtSheet = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets2.NotoriousMonsterTerritory>();
+        if (territorySheet != null)
+        {
+            foreach (var terr in territorySheet.Where(terr => terr.Unknown42 != 0))
+            {
+                var nmt = nmtSheet?.GetRowParser(terr.Unknown42);
+                if (nmt != null)
+                {
+                    for (int i = 0; i < 10; ++i)
+                    {
+                        var nmId = nmt.ReadColumn<ushort>(i);
+                        if (nmId != 0)
+                        {
+                            _notoriousMonsterToTerritory.Add(nmId, terr);
+                        }
+                    }
+                }
+            }
+        }
+
         _playStyleSheet = Service.LuminaGameData!.GetExcelSheet<CharaCardPlayStyle>()!;
         _cfcSheet = Service.LuminaGameData!.GetExcelSheet<ContentFinderCondition>()!;
         _dynamicEventSheet = Service.LuminaGameData!.GetExcelSheet<DynamicEvent>()!;
         _contentTypeSheet = Service.LuminaGameData!.GetExcelSheet<ContentType>()!;
-        _territorySheet = Service.LuminaGameData!.GetExcelSheet<TerritoryType>()!;
+        _territorySheet = territorySheet!;
         _nmSheet = Service.LuminaGameData!.GetExcelSheet<NotoriousMonster>()!;
         _npcNamesSheet = Service.LuminaGameData!.GetExcelSheet<BNpcName>()!;
         _questSheet = Service.LuminaGameData!.GetExcelSheet<Quest>()!;
@@ -300,12 +336,11 @@ public static class ModuleRegistry
 
         _catalogued = _modules.Values
             .Where(x => !x.IsUncatalogued)
-            .GroupBy(x => new { x.ExVersion, ContentType = x.ContentType ?? new() })
-            .OrderBy(g => g.Key.ExVersion)
+            .GroupBy(x => new { x.Expansion, ContentType = x.ContentType ?? new() })
+            .OrderBy(g => g.Key.Expansion)
             .SelectMany(group => group.OrderBy(x => _cfcSheet.GetRow(x.CFCID)?.SortKey))
             .ToList();
-        _uncatalogued = _modules.Values.Where(x => x.IsUncatalogued || x.ExVersion == 69).Select(x => x).ToList();
-        _expacs = _modules.Where(x => x.Value.ExVersion != 69).Select(x => x.Value.ExVersion).Distinct().OrderBy(x => x).ToList();
+        _uncatalogued = _modules.Values.Where(x => x.IsUncatalogued || x.Expansion == BossModuleInfo.Expansion.Count).Select(x => x).ToList();
         _contentTypes = _modules.Select(x => x.Value.ContentType ?? new()).Distinct().ToList();
         _contentTypesIcons = _modules
             .Where(x => x.Value.ContentType != null && x.Value.ContentIcon != default)
@@ -316,7 +351,6 @@ public static class ModuleRegistry
     public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modules;
     public static IReadOnlyList<Info> CataloguedModules => _catalogued;
     public static IReadOnlyList<Info> UncataloguedModules => _uncatalogued;
-    public static IReadOnlyList<uint> AvailableExpansions => _expacs;
     public static IReadOnlyList<SeString> AvailableContent => _contentTypes;
     public static IReadOnlyDictionary<SeString, uint> AvailableContentIcons => _contentTypesIcons;
 
@@ -347,19 +381,19 @@ public static class ModuleRegistry
         return CreateModule(FindByOID(oid)?.ModuleType, new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, "", ActorType.None, Class.None, 0, new()));
     }
 
-    [Sheet("NotoriousMonsterTerritory", columnHash: 0xf057da9c)]
-    public partial class NotoriousMonsterTerritory : ExcelRow
-    {
-        public const int Length = 10;
-        public ushort[] Monster { get; private set; } = new ushort[Length];
+    //[Sheet("NotoriousMonsterTerritory", columnHash: 0xf057da9c)]
+    //public partial class NotoriousMonsterTerritory : ExcelRow
+    //{
+    //    public const int Length = 10;
+    //    public ushort[] Monster { get; private set; } = new ushort[Length];
 
-        public override void PopulateData(RowParser parser, GameData gameData, Lumina.Data.Language language)
-        {
-            base.PopulateData(parser, gameData, language);
-            for (var i = 0; i < Length; ++i)
-            {
-                Monster[i] = parser.ReadOffset<ushort>(2 * i);
-            }
-        }
-    }
+    //    public override void PopulateData(RowParser parser, GameData gameData, Lumina.Data.Language language)
+    //    {
+    //        base.PopulateData(parser, gameData, language);
+    //        for (var i = 0; i < Length; ++i)
+    //        {
+    //            Monster[i] = parser.ReadOffset<ushort>(2 * i);
+    //        }
+    //    }
+    //}
 }

@@ -29,6 +29,14 @@ public static class UIMisc
         ImGui.TextColored(colour, text);
     }
 
+    public static void Image(IDalamudTextureWrap? icon, Vector2 size)
+    {
+        if (icon != null)
+            ImGui.Image(icon.ImGuiHandle, size);
+        else
+            ImGui.Dummy(size);
+    }
+
     public static bool ImageToggleButton(IDalamudTextureWrap? icon, Vector2 size, bool state, string text)
     {
         var cursor = ImGui.GetCursorPos();

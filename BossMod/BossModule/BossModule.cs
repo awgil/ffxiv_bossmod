@@ -2,28 +2,6 @@
 
 namespace BossMod;
 
-// attribute that allows customizing boss module's metadata; it is optional, each field has some defaults that are fine in most cases
-[AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public class ModuleInfoAttribute : Attribute
-{
-    public Type? StatesType; // default: ns.xxxStates
-    public Type? ConfigType; // default: ns.xxxConfig
-    public Type? ObjectIDType; // default: ns.OID
-    public Type? ActionIDType; // default: ns.AID
-    public Type? StatusIDType; // default: ns.SID
-    public Type? TetherIDType; // default: ns.TetherID
-    public Type? IconIDType; // default: ns.IconID
-    public string? DisplayName;
-    public uint ExVersion; // default: 0
-    public uint QuestID; // default: 0
-    public uint DynamicEventID; // default: 0
-    public uint FateID; // default: 0
-    public uint NotoriousMonsterID; // default: 0
-    public uint NameID; // default: 0
-    public uint CFCID; // default: 0
-    public uint PrimaryActorOID; // default: OID.Boss
-}
-
 // base for boss modules - provides all the common features, so that look is standardized
 // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
 public abstract class BossModule : IDisposable
