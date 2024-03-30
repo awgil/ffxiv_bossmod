@@ -99,7 +99,7 @@ class CE51ThereWouldBeBloodStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 778, DynamicEventID = 24)]
+[ModuleInfo(CFCID = 778, DynamicEventID = 24, NameID = 10064)]
 public class CE51ThereWouldBeBlood : BossModule
 {
     public CE51ThereWouldBeBlood(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-390, 230), 25)) { }

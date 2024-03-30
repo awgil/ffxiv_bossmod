@@ -173,7 +173,7 @@ class CE44FamiliarFaceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 778, DynamicEventID = 29)]
+[ModuleInfo(CFCID = 778, DynamicEventID = 29, NameID = 9693)]
 public class CE44FamiliarFace : BossModule
 {
     public CE44FamiliarFace(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(330, 390), 30)) { }

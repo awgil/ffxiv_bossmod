@@ -46,8 +46,8 @@ class DeadLeaves : Components.GenericAOEs
 {
     private BitMask _tenderStatuses;
     private BitMask _jealousStatuses;
-    private List<Actor> _tenderCasters = new();
-    private List<Actor> _jealousCasters = new();
+    private readonly List<Actor> _tenderCasters = [];
+    private readonly List<Actor> _jealousCasters = [];
 
     private static readonly AOEShapeCone _shape = new(30, 45.Degrees());
 
@@ -147,7 +147,7 @@ class CE13KillItWithFireStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 735, DynamicEventID = 1)]
+[ModuleInfo(CFCID = 735, DynamicEventID = 1, NameID = 9391)]
 public class CE13KillItWithFire : BossModule
 {
     public CE13KillItWithFire(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-90, 700), 25)) { }

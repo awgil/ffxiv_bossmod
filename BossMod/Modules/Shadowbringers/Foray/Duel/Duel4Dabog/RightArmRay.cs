@@ -23,7 +23,7 @@ class RightArmRayBuffed : Components.GenericAOEs
         }
     }
 
-    private List<SphereState> _spheres = new();
+    private readonly List<SphereState> _spheres = [];
     private DateTime _activation;
     private static readonly AOEShapeCross _shape = new(16, 3);
 

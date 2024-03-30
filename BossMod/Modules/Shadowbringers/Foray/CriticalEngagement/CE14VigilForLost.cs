@@ -86,7 +86,7 @@ class CE14VigilForLostStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 735, DynamicEventID = 3)]
+[ModuleInfo(CFCID = 735, DynamicEventID = 3, NameID = 9396)]
 public class CE14VigilForLost : BossModule
 {
     public CE14VigilForLost(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(451, 830), 30)) { }

@@ -122,7 +122,7 @@ class CE11ShadowOfDeathHandStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 735, DynamicEventID = 5)]
+[ModuleInfo(CFCID = 735, DynamicEventID = 5, NameID = 9400)]
 public class CE11ShadowOfDeathHand : BossModule
 {
     public CE11ShadowOfDeathHand(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(825, 640), 20)) { }

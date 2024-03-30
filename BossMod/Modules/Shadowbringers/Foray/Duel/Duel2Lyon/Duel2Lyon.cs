@@ -23,7 +23,7 @@ class Duel2LyonStates : StateMachineBuilder
             .ActivateOnEnter<SkyrendingStrike>();
     }
 }
-[ModuleInfo(CFCID = 735, DynamicEventID = 8)]
+[ModuleInfo(CFCID = 735, DynamicEventID = 8, NameID = 9409)]
 public class Duel2Lyon: BossModule
 {
     public Duel2Lyon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(211, 380), 20)) {}
