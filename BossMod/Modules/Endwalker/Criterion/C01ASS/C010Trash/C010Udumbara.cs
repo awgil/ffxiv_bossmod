@@ -68,7 +68,7 @@ class C010UdumbaraStates : StateMachineBuilder
 class C010NUdumbaraStates : C010UdumbaraStates { public C010NUdumbaraStates(BossModule module) : base(module, false) { } }
 class C010SUdumbaraStates : C010UdumbaraStates { public C010SUdumbaraStates(BossModule module) : base(module, true) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11511)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11511, SortOrder = 3)]
 public class C010NUdumbara : SimpleBossModule
 {
     public C010NUdumbara(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -80,7 +80,7 @@ public class C010NUdumbara : SimpleBossModule
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11511)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11511, SortOrder = 3)]
 public class C010SUdumbara : SimpleBossModule
 {
     public C010SUdumbara(WorldState ws, Actor primary) : base(ws, primary) { }

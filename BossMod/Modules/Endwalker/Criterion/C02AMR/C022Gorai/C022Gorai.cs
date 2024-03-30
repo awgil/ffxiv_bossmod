@@ -12,8 +12,8 @@ public abstract class C022Gorai : BossModule
     public C022Gorai(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(300, -120), 20)) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12373)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12373, SortOrder = 7)]
 public class C022NGorai : C022Gorai { public C022NGorai(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12373)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12373, SortOrder = 7)]
 public class C022SGorai : C022Gorai { public C022SGorai(WorldState ws, Actor primary) : base(ws, primary) { } }

@@ -1,9 +1,4 @@
-﻿using Dalamud.Utility;
-using Lumina.Excel;
-using Lumina.Excel.GeneratedSheets;
-using Lumina.Text;
-using System.Globalization;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace BossMod;
 
@@ -26,6 +21,7 @@ public static class ModuleRegistry
         public BossModuleInfo.GroupType GroupType;
         public uint GroupID;
         public uint NameID;
+        public int SortOrder;
 
         public bool CooldownPlanningSupported => ConfigType?.IsSubclassOf(typeof(CooldownPlanningConfigNode)) ?? false;
 
@@ -42,43 +38,43 @@ public static class ModuleRegistry
 
             if (statesType == null || !statesType.IsSubclassOf(typeof(StateMachineBuilder)) || statesType.GetConstructor(new[] { module }) == null)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated states type: it should be derived from StateMachineBuilder and have a constructor accepting module");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated states type: it should be derived from StateMachineBuilder and have a constructor accepting module");
                 return null;
             }
 
             if (configType != null && !configType.IsSubclassOf(typeof(ConfigNode)))
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated config type: it should be derived from ConfigNode");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated config type: it should be derived from ConfigNode");
                 configType = null;
             }
 
             if (oidType != null && !oidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated object ID type: it should be an enum");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated object ID type: it should be an enum");
                 oidType = null;
             }
 
             if (aidType != null && !aidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated action ID type: it should be an enum");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated action ID type: it should be an enum");
                 aidType = null;
             }
 
             if (sidType != null && !sidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated status ID type: it should be an enum");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated status ID type: it should be an enum");
                 sidType = null;
             }
 
             if (tidType != null && !tidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated tether ID type: it should be an enum");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated tether ID type: it should be an enum");
                 tidType = null;
             }
 
             if (iidType != null && !iidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} has incorrect associated icon ID type: it should be an enum");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated icon ID type: it should be an enum");
                 iidType = null;
             }
 
@@ -91,7 +87,7 @@ public static class ModuleRegistry
             }
             if (primaryOID == 0)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} has no associated primary actor OID: either specify one explicitly or ensure OID enum has Boss entry");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} has no associated primary actor OID: either specify one explicitly or ensure OID enum has Boss entry");
                 return null;
             }
 
@@ -104,7 +100,7 @@ public static class ModuleRegistry
             }
             if (expansion == BossModuleInfo.Expansion.Count)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} does not have valid expansion assigned; consider fixing namespace or specifying value manually");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} does not have valid expansion assigned; consider fixing namespace or specifying value manually");
                 expansion = BossModuleInfo.Expansion.Global;
             }
 
@@ -115,7 +111,7 @@ public static class ModuleRegistry
             }
             if (category == BossModuleInfo.Category.Count)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} does not have valid category assigned; consider fixing namespace or specifying value manually");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} does not have valid category assigned; consider fixing namespace or specifying value manually");
                 category = BossModuleInfo.Category.Uncategorized;
             }
 
@@ -124,7 +120,17 @@ public static class ModuleRegistry
             var nameID = infoAttr?.NameID ?? 0;
             if (groupType == BossModuleInfo.GroupType.None && groupID == 0)
             {
-                Service.Log($"[ModuleRegistry] Module {module.Name} does not have group type/id assignments.");
+                Service.Log($"[ModuleRegistry] Module {module.FullName} does not have group type/id assignments.");
+            }
+
+            var sortOrder = infoAttr?.SortOrder ?? 0;
+            if (sortOrder == 0 && int.TryParse(module.Name.SkipWhile(c => !char.IsAsciiDigit(c)).TakeWhile(char.IsAsciiDigit).ToArray(), out var inferredSortOrder))
+            {
+                sortOrder = inferredSortOrder;
+            }
+            if (sortOrder == 0)
+            {
+                sortOrder = (int)primaryOID;
             }
 
             return new Info(module, statesType)
@@ -142,6 +148,7 @@ public static class ModuleRegistry
                 GroupType = groupType,
                 GroupID = groupID,
                 NameID = nameID,
+                SortOrder = sortOrder,
             };
         }
 

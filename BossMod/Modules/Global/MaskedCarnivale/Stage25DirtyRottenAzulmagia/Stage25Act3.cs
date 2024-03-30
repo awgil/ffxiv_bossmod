@@ -139,9 +139,9 @@ class Hints2 : BossComponent
     }
 }
 
-class Stage25Act2States : StateMachineBuilder
+class Stage25Act3States : StateMachineBuilder
 {
-    public Stage25Act2States(BossModule module) : base(module)
+    public Stage25Act3States(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<ApocalypticBolt>()
@@ -161,10 +161,10 @@ class Stage25Act2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 635, NameID = 8129)]
-public class Stage25Act2 : BossModule
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 635, NameID = 8129, SortOrder = 3)]
+public class Stage25Act3 : BossModule
 {
-    public Stage25Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
+    public Stage25Act3(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
     {
         ActivateComponent<Hints>();
     }

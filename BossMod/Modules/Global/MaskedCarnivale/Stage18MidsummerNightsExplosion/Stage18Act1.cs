@@ -84,9 +84,9 @@ class Hints : BossComponent
     }
 }
 
-class Stage18Act2States : StateMachineBuilder
+class Stage18Act1States : StateMachineBuilder
 {
-    public Stage18Act2States(BossModule module) : base(module)
+    public Stage18Act1States(BossModule module) : base(module)
     {
         TrivialPhase()
             .DeactivateOnEnter<Hints>()
@@ -100,10 +100,10 @@ class Stage18Act2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 628, NameID = 8116)]
-public class Stage18Act2 : BossModule
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 628, NameID = 8116, SortOrder = 1)]
+public class Stage18Act1 : BossModule
 {
-    public Stage18Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+    public Stage18Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
     {
         ActivateComponent<Hints>();
         ActivateComponent<KegExplosion>();

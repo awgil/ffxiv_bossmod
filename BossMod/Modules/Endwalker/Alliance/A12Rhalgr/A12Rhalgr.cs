@@ -15,7 +15,7 @@ class BronzeLightning : Components.SelfTargetedAOEs
     public BronzeLightning() : base(ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, 22.5f.Degrees()), 4) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11273)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11273, SortOrder = 3)]
 public class A12Rhalgr : BossModule
 {
     public A12Rhalgr(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-15, 275), 30)) // note: arena has a really complex shape...

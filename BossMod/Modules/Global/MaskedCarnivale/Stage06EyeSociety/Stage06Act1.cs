@@ -103,9 +103,9 @@ class Hints : BossComponent
     }
 }
 
-class Stage06Act2States : StateMachineBuilder
+class Stage06Act1States : StateMachineBuilder
 {
-    public Stage06Act2States(BossModule module) : base(module)
+    public Stage06Act1States(BossModule module) : base(module)
     {
         TrivialPhase()
             .DeactivateOnEnter<Hints>()
@@ -114,10 +114,10 @@ class Stage06Act2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 616, NameID = 8090)]
-public class Stage06Act2 : BossModule
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 616, NameID = 8090, SortOrder = 1)]
+public class Stage06Act1 : BossModule
 {
-    public Stage06Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
+    public Stage06Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
     {
         ActivateComponent<Hints>();
         ActivateComponent<LayoutBigQuad>();
