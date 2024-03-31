@@ -149,8 +149,8 @@ namespace BossMod.SAM
                 [PropertyDisplay("Never use", 0xff000080)]
                 Never = 1,
 
-                [PropertyDisplay("Ignore downtime prediction", 0xff008080)]
-                Eager = 2,
+                [PropertyDisplay("Use as soon as possible", 0xff008080)]
+                Force = 2,
             }
 
             public HiganbanaUse HiganbanaStrategy;
@@ -260,6 +260,9 @@ namespace BossMod.SAM
             if (state.SenCount == 3 && canCast)
                 return AID.MidareSetsugekka;
 
+            if (strategy.HiganbanaStrategy == Strategy.HiganbanaUse.Force && state.SenCount == 1)
+                return canCast ? AID.Higanbana : AID.None;
+
             if (state.HasCombatBuffs && canCast)
             {
                 if (state.SenCount == 1 && state.Unlocked(AID.Higanbana) && ShouldRefreshHiganbana(state, strategy))
@@ -363,7 +366,7 @@ namespace BossMod.SAM
         {
             if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
             {
-                if (strategy.CombatTimer > -9 && state.MeikyoLeft == 0)
+                if (strategy.CombatTimer > -9 && state.MeikyoLeft == 0 && strategy.MeikyoStrategy != Strategy.MeikyoUse.Never)
                     return ActionID.MakeSpell(AID.MeikyoShisui);
                 if (
                     strategy.CombatTimer > -5
@@ -492,14 +495,14 @@ namespace BossMod.SAM
             if (strategy.HiganbanaStrategy == Strategy.HiganbanaUse.Never || !state.HasCombatBuffs)
                 return false;
 
+            if (strategy.HiganbanaStrategy == Strategy.HiganbanaUse.Force)
+                return true;
+
             if (strategy.NumAOETargets > 0)
                 return false;
 
             // force use to get shoha even if the target is dying, dot overwrite doesn't matter
-            if (
-                strategy.HiganbanaStrategy != Strategy.HiganbanaUse.Eager
-                && strategy.ActualFightEndIn - state.GCD < 45
-            )
+            if (strategy.ActualFightEndIn - state.GCD < 45)
                 return state.MeditationStacks == 2;
 
             return state.TargetHiganbanaLeft < (5 + state.GCD + state.GCDTime * gcdsInAdvance);
