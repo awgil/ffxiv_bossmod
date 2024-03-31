@@ -187,7 +187,7 @@ class CE41WithDiremiteAndMainStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 778, DynamicEventID = 21)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 21)]
 public class CE41WithDiremiteAndMain : BossModule
 {
     private IReadOnlyList<Actor> _dimCrystals;

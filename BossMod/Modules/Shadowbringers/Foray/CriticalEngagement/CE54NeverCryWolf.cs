@@ -227,7 +227,7 @@ class CE54NeverCryWolfStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 778, DynamicEventID = 25)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 25)]
 public class CE54NeverCryWolf : BossModule
 {
     private IReadOnlyList<Actor> _adds;

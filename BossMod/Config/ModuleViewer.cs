@@ -1,6 +1,6 @@
-﻿using Dalamud.Interface.Internal;
+﻿using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
@@ -9,117 +9,276 @@ using System.Globalization;
 
 namespace BossMod;
 
-public class ModuleViewer
+public class ModuleViewer : IDisposable
 {
-    private const int SpaceBetweenFilterWidgets = 3;
-    private const int IconSize = 30;
-    private readonly Dictionary<uint, bool> ExpansionFilter;
-    private readonly Dictionary<SeString, bool> ContentFilter;
-    private readonly Lumina.Excel.ExcelSheet<ExVersion> _exSheet = Service.LuminaGameData!.GetExcelSheet<ExVersion>()!;
+    private record struct ModuleInfo(ModuleRegistry.Info Info, string Name, int SortOrder);
+    private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, IDalamudTextureWrap? Icon = null);
+    private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
-    private Dictionary<uint, int> exversionToIconID = new()
-    {
-        {0, 61875},
-        {1, 61876},
-        {2, 61877},
-        {3, 61878},
-        {4, 61879},
-    };
+    private BitMask _filterExpansions;
+    private BitMask _filterCategories;
+
+    private (string name, IDalamudTextureWrap? icon)[] _expansions;
+    private (string name, IDalamudTextureWrap? icon)[] _categories;
+    private IDalamudTextureWrap? _iconFATE;
+    private IDalamudTextureWrap? _iconHunt;
+    private List<ModuleGroup>[,] _groups;
+    private Vector2 _iconSize = new(30, 30);
 
     public ModuleViewer()
     {
-        ExpansionFilter = ModuleRegistry.AvailableExpansions.ToDictionary(e => e, e => true);
-        ContentFilter = ModuleRegistry.AvailableContent.ToDictionary(c => c, c => true);
+        var defaultIcon = GetIcon(61762);
+        _expansions = Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon)).ToArray();
+        _categories = Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon)).ToArray();
+
+        var exVersion = Service.LuminaGameData?.GetExcelSheet<ExVersion>();
+        Customize(BossModuleInfo.Expansion.RealmReborn, 61875, exVersion?.GetRow(0)?.Name);
+        Customize(BossModuleInfo.Expansion.Heavensward, 61876, exVersion?.GetRow(1)?.Name);
+        Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion?.GetRow(2)?.Name);
+        Customize(BossModuleInfo.Expansion.Shadowbringers, 61878, exVersion?.GetRow(3)?.Name);
+        Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion?.GetRow(4)?.Name);
+
+        var contentType = Service.LuminaGameData?.GetExcelSheet<ContentType>();
+        Customize(BossModuleInfo.Category.Dungeon, contentType?.GetRow(2));
+        Customize(BossModuleInfo.Category.Trial, contentType?.GetRow(4));
+        Customize(BossModuleInfo.Category.Raid, contentType?.GetRow(5));
+        Customize(BossModuleInfo.Category.PVP, contentType?.GetRow(6));
+        Customize(BossModuleInfo.Category.Quest, contentType?.GetRow(7));
+        Customize(BossModuleInfo.Category.FATE, contentType?.GetRow(8));
+        Customize(BossModuleInfo.Category.TreasureHunt, contentType?.GetRow(9));
+        Customize(BossModuleInfo.Category.GoldSaucer, contentType?.GetRow(19));
+        Customize(BossModuleInfo.Category.DeepDungeon, contentType?.GetRow(21));
+        Customize(BossModuleInfo.Category.Ultimate, contentType?.GetRow(28));
+        Customize(BossModuleInfo.Category.Criterion, contentType?.GetRow(30));
+
+        var playStyle = Service.LuminaGameData?.GetExcelSheet<CharaCardPlayStyle>();
+        Customize(BossModuleInfo.Category.Foray, playStyle?.GetRow(6));
+        Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle?.GetRow(8));
+        Customize(BossModuleInfo.Category.Hunt, playStyle?.GetRow(10));
+
+        _categories[(int)BossModuleInfo.Category.Extreme].icon = _categories[(int)BossModuleInfo.Category.Trial].icon;
+        _categories[(int)BossModuleInfo.Category.Unreal].icon = _categories[(int)BossModuleInfo.Category.Trial].icon;
+        _categories[(int)BossModuleInfo.Category.Savage].icon = _categories[(int)BossModuleInfo.Category.Raid].icon;
+        _categories[(int)BossModuleInfo.Category.Alliance].icon = _categories[(int)BossModuleInfo.Category.Raid].icon;
+        //_categories[(int)BossModuleInfo.Category.Event].icon = GetIcon(61757);
+
+        _iconFATE = GetIcon(contentType?.GetRow(8)?.Icon ?? 0);
+        _iconHunt = GetIcon((uint)(playStyle?.GetRow(10)?.Icon ?? 0));
+
+        _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
+        for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
+            for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
+                _groups[i, j] = new();
+
+        foreach (var info in ModuleRegistry.RegisteredModules.Values)
+        {
+            var groups = _groups[(int)info.Expansion, (int)info.Category];
+            var (groupInfo, moduleInfo) = Classify(info);
+            var groupIndex = groups.FindIndex(g => g.Info.Id == groupInfo.Id);
+            if (groupIndex < 0)
+            {
+                groupIndex = groups.Count;
+                groups.Add(new(groupInfo, new()));
+            }
+            else if (groups[groupIndex].Info != groupInfo)
+            {
+                Service.Log($"[ModuleViewer] Group properties mismatch between {groupInfo} and {groups[groupIndex].Info}");
+            }
+            groups[groupIndex].Modules.Add(moduleInfo);
+        }
+
+        foreach (var groups in _groups)
+        {
+            groups.SortBy(g => g.Info.SortOrder);
+            foreach (var (g1, g2) in groups.Pairwise())
+                if (g1.Info.SortOrder == g2.Info.SortOrder)
+                    Service.Log($"[ModuleViewer] Same sort order between groups {g1.Info} and {g2.Info}");
+
+            foreach (var g in groups)
+            {
+                g.Modules.SortBy(m => m.SortOrder);
+                foreach (var (m1, m2) in g.Modules.Pairwise())
+                    if (m1.SortOrder == m2.SortOrder)
+                        Service.Log($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
+            }
+        }
     }
 
-    public string GetExpansionName(uint id) => _exSheet.GetRow(id)!.Name;
-
-    public static IDalamudTextureWrap? GetIcon(int iconId) => Service.Texture.GetIcon((uint)iconId, Dalamud.Plugin.Services.ITextureProvider.IconFlags.HiRes);
-    public static IDalamudTextureWrap? GetIcon(uint iconId) => GetIcon((int)iconId);
+    public void Dispose()
+    {
+        foreach (var e in _expansions)
+            e.icon?.Dispose();
+        foreach (var c in _categories)
+            c.icon?.Dispose();
+        _iconFATE?.Dispose();
+        _iconHunt?.Dispose();
+    }
 
     public void Draw(UITree _tree)
     {
         using (var group = ImRaii.Group())
-        {
-            using var table = ImRaii.Table("Filters", 1, ImGuiTableFlags.BordersOuter | ImGuiTableFlags.NoHostExtendX | ImGuiTableFlags.SizingFixedSame | ImGuiTableFlags.ScrollY);
-            if (!table)
-                return;
-
-            ImGui.TableNextColumn();
-            ImGui.TableHeader("Expansion");
-            ImGui.TableNextRow(ImGuiTableRowFlags.None);
-            ImGui.TableNextColumn();
-            DrawExpansionFilters();
-
-            ImGui.TableNextRow();
-
-            ImGui.TableNextColumn();
-            ImGui.TableHeader("Content");
-            ImGui.TableNextRow(ImGuiTableRowFlags.None);
-            ImGui.TableNextColumn();
-            DrawContentTypeFilters();
-        }
+            DrawFilters();
         ImGui.SameLine();
         using (var group = ImRaii.Group())
             DrawModules(_tree);
     }
 
-    public void DrawExpansionFilters()
+    private void DrawFilters()
     {
-        foreach (var expac in ModuleRegistry.AvailableExpansions)
+        using var table = ImRaii.Table("Filters", 1, ImGuiTableFlags.BordersOuter | ImGuiTableFlags.NoHostExtendX | ImGuiTableFlags.SizingFixedSame | ImGuiTableFlags.ScrollY);
+        if (!table)
+            return;
+
+        ImGui.TableNextColumn();
+        ImGui.TableHeader("Expansion");
+        ImGui.TableNextRow(ImGuiTableRowFlags.None);
+        ImGui.TableNextColumn();
+        DrawExpansionFilters();
+
+        ImGui.TableNextRow();
+
+        ImGui.TableNextColumn();
+        ImGui.TableHeader("Content");
+        ImGui.TableNextRow(ImGuiTableRowFlags.None);
+        ImGui.TableNextColumn();
+        DrawContentTypeFilters();
+    }
+
+    private void DrawExpansionFilters()
+    {
+        for (var e = BossModuleInfo.Expansion.RealmReborn; e < BossModuleInfo.Expansion.Count; ++e)
         {
-            UIMisc.ImageToggleButton(GetIcon(exversionToIconID[expac]), new Vector2(IconSize, IconSize), ExpansionFilter[expac], GetExpansionName(expac));
+            ref var expansion = ref _expansions[(int)e];
+            UIMisc.ImageToggleButton(expansion.icon, _iconSize, !_filterExpansions[(int)e], expansion.name);
             if (ImGui.IsItemClicked())
-                ExpansionFilter[expac] = !ExpansionFilter[expac];
+            {
+                _filterExpansions.Toggle((int)e);
+            }
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                ExpansionFilter.Keys.Except([expac]).ToList().ForEach(k => ExpansionFilter[k] = !ExpansionFilter[k]);
+            {
+                _filterExpansions = ~_filterExpansions;
+                _filterExpansions.Toggle((int)e);
+            }
         }
     }
 
-    public void DrawContentTypeFilters()
+    private void DrawContentTypeFilters()
     {
-        foreach (var cont in ModuleRegistry.AvailableContentIcons)
+        for (var c = BossModuleInfo.Category.Uncategorized; c < BossModuleInfo.Category.Count; ++c)
         {
-            UIMisc.ImageToggleButton(GetIcon(cont.Value), new Vector2(IconSize, IconSize), ContentFilter[cont.Key], cont.Key);
+            ref var category = ref _categories[(int)c];
+            UIMisc.ImageToggleButton(category.icon, _iconSize, !_filterCategories[(int)c], category.name);
             if (ImGui.IsItemClicked())
-                ContentFilter[cont.Key] = !ContentFilter[cont.Key];
+            {
+                _filterCategories.Toggle((int)c);
+            }
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                ContentFilter.Keys.Except([cont.Key]).ToList().ForEach(k => ContentFilter[k] = !ContentFilter[k]);
+            {
+                _filterCategories = ~_filterCategories;
+                _filterCategories.Toggle((int)c);
+            }
         }
     }
 
-    public void DrawModules(UITree _tree)
+    private void DrawModules(UITree _tree)
     {
         using var table = ImRaii.Table("ModulesTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersV | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.NoHostExtendX);
         if (!table)
             return;
 
-        DrawRows(ModuleRegistry.CataloguedModules.DistinctBy(x => x.DisplayName), _tree);
-        DrawRows(ModuleRegistry.UncataloguedModules, _tree);
-    }
-
-    private void DrawRows(IEnumerable<ModuleRegistry.Info> enumerable, UITree _tree)
-    {
-        foreach (var mod in enumerable)
+        for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
         {
-            if (!ContentFilter[mod.ContentType ?? new()] || !ExpansionFilter[mod.ExVersion])
+            if (_filterExpansions[i])
                 continue;
+            for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
+            {
+                if (_filterCategories[j])
+                    continue;
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-            ImGui.Image(GetIcon(exversionToIconID[mod.ExVersion])!.ImGuiHandle, new Vector2(36));
-            ImGui.SameLine();
-            ImGui.Image(GetIcon(mod.ContentIcon)!.ImGuiHandle, new Vector2(36));
-            ImGui.TableNextColumn();
-            foreach (var _ in _tree.Node($"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(mod.DisplayName!)}##{mod.PrimaryActorOID}"))
-                DrawBosses(ModuleRegistry.RegisteredModules.Values, mod.DisplayName ?? new());
+                foreach (var group in _groups[i, j])
+                {
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    UIMisc.Image(_expansions[i].icon, new(36));
+                    ImGui.SameLine();
+                    UIMisc.Image(group.Info.Icon ?? _categories[j].icon, new(36));
+                    ImGui.TableNextColumn();
+
+                    foreach (var _ in _tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
+                    {
+                        foreach (var mod in group.Modules)
+                        {
+                            using (ImRaii.Disabled(mod.Info.ConfigType == null))
+                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}"))
+                                    new BossModuleConfigWindow(mod.Info, new(TimeSpan.TicksPerSecond, "fake"));
+                            ImGui.SameLine();
+                            ImGui.TextUnformatted($"{mod.Name} [{mod.Info.ModuleType.Name}]");
+                        }
+                    }
+                }
+            }
         }
     }
 
-    private void DrawBosses(IEnumerable<ModuleRegistry.Info> modules, SeString name)
+    private void Customize((string name, IDalamudTextureWrap? icon)[] array, int element, uint iconId, SeString? name)
     {
-        foreach (var mod in modules.Where(x => x.DisplayName == name))
-            if (!mod.BossName!.RawString.IsNullOrEmpty())
-                ImGui.TextUnformatted($"{CultureInfo.InvariantCulture.TextInfo.ToTitleCase(mod.BossName)}");
+        var icon = GetIcon(iconId);
+        if (icon != null)
+            array[element].icon = icon;
+        if (name != null)
+            array[element].name = name;
+    }
+    private void Customize(BossModuleInfo.Expansion expansion, uint iconId, SeString? name) => Customize(_expansions, (int)expansion, iconId, name);
+    private void Customize(BossModuleInfo.Category category, uint iconId, SeString? name) => Customize(_categories, (int)category, iconId, name);
+    private void Customize(BossModuleInfo.Category category, ContentType? ct) => Customize(category, ct?.Icon ?? 0, ct?.Name);
+    private void Customize(BossModuleInfo.Category category, CharaCardPlayStyle? ps) => Customize(category, (uint)(ps?.Icon ?? 0), ps?.Name);
+
+    private static IDalamudTextureWrap? GetIcon(uint iconId) => iconId != 0 ? Service.Texture?.GetIcon(iconId, Dalamud.Plugin.Services.ITextureProvider.IconFlags.HiRes) : null;
+    private static string FixCase(SeString? str) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(str ?? "");
+    private static string BNpcName(uint id) => FixCase(Service.LuminaRow<BNpcName>(id)?.Singular);
+
+    private (ModuleGroupInfo, ModuleInfo) Classify(ModuleRegistry.Info module)
+    {
+        var groupId = (uint)module.GroupType << 24;
+        switch (module.GroupType)
+        {
+            case BossModuleInfo.GroupType.CFC:
+                groupId |= module.GroupID;
+                var cfcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
+                var cfcSort = cfcRow?.SortKey ?? 0u;
+                var cfcName = FixCase(cfcRow?.Name);
+                return (new(cfcName, groupId, cfcSort != 0 ? cfcSort : groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+            case BossModuleInfo.GroupType.MaskedCarnivale:
+                groupId |= module.GroupID;
+                var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
+                var mcSort = uint.Parse((mcRow?.ShortCode ?? "").Substring(3)); // 'aozNNN'
+                var mcName = $"Stage {mcSort}: {FixCase(mcRow?.Name)}";
+                return (new(mcName, groupId, mcSort), new(module, BNpcName(module.NameID), module.SortOrder));
+            case BossModuleInfo.GroupType.RemovedUnreal:
+                return (new("Removed Content", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+            case BossModuleInfo.GroupType.Quest:
+                var questRow = Service.LuminaRow<Quest>(module.GroupID);
+                groupId |= questRow?.JournalGenre.Row ?? 0;
+                var questCategoryName = questRow?.JournalGenre.Value?.Name ?? "";
+                return (new(questCategoryName, groupId, groupId), new(module, $"{questRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
+            case BossModuleInfo.GroupType.Fate:
+                var fateRow = Service.LuminaRow<Fate>(module.GroupID);
+                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module, $"{fateRow?.Name}: {BNpcName(module.NameID)}", module.SortOrder));
+            case BossModuleInfo.GroupType.Hunt:
+                groupId |= module.GroupID;
+                return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module, BNpcName(module.NameID), module.SortOrder));
+            case BossModuleInfo.GroupType.BozjaCE:
+                groupId |= module.GroupID;
+                var ceName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)?.Name)} CE";
+                return (new(ceName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
+            case BossModuleInfo.GroupType.BozjaDuel:
+                groupId |= module.GroupID;
+                var duelName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)?.Name)} Duel";
+                return (new(duelName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)?.Name ?? "", module.SortOrder));
+            case BossModuleInfo.GroupType.GoldSaucer:
+                return (new("Gold saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
+            default:
+                return (new("Ungrouped", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+        }
     }
 }

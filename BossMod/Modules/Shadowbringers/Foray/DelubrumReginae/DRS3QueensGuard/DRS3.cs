@@ -42,7 +42,7 @@ class Fracture : Components.CastCounter
     public Fracture() : base(ActionID.MakeSpell(AID.Fracture)) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.Knight, CFCID = 761, NameID = 9838)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.Knight, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9838)]
 public class DRS3 : BossModule
 {
     private IReadOnlyList<Actor> _warrior;

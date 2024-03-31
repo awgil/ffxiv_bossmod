@@ -138,7 +138,7 @@ class TotemStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 586, NameID = 7586)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7586)]
 public class Totem : BossModule
 {
     public Totem(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

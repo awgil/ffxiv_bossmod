@@ -84,7 +84,7 @@ class D161PsycheflayerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, CFCID = 14, NameID = 1689)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1689)]
 public class D161Psycheflayer : BossModule
 {
     private Actor? _bossP2;

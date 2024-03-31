@@ -41,7 +41,7 @@ class D110AlbusGriffinStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 896, NameID = 12245)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 12245)]
 public class D110AlbusGriffin : BossModule
 {
     public D110AlbusGriffin(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }

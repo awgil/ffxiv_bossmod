@@ -28,7 +28,7 @@ class D110CaladriusMaturusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 896, NameID = 12078)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 12078)]
 public class D110CaladriusMaturus : BossModule
 {
     public D110CaladriusMaturus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }

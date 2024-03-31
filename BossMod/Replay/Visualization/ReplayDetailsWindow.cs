@@ -40,6 +40,7 @@ class ReplayDetailsWindow : UIWindow
     protected override void Dispose(bool disposing)
     {
         _mgr.Dispose();
+        _config.Dispose();
     }
 
     public override void Draw()

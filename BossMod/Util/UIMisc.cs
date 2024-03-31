@@ -1,4 +1,6 @@
-﻿using Dalamud.Interface.Internal;
+﻿using Dalamud.Interface;
+using Dalamud.Interface.Internal;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 
 namespace BossMod;
@@ -29,6 +31,14 @@ public static class UIMisc
         ImGui.TextColored(colour, text);
     }
 
+    public static void Image(IDalamudTextureWrap? icon, Vector2 size)
+    {
+        if (icon != null)
+            ImGui.Image(icon.ImGuiHandle, size);
+        else
+            ImGui.Dummy(size);
+    }
+
     public static bool ImageToggleButton(IDalamudTextureWrap? icon, Vector2 size, bool state, string text)
     {
         var cursor = ImGui.GetCursorPos();
@@ -46,5 +56,14 @@ public static class UIMisc
         {
             return ImGui.Button("", size);
         }
+    }
+
+    // works around issues with fonts in uidev
+    public static unsafe bool IconButton(FontAwesomeIcon icon, string fallback, string text)
+    {
+        if (Service.PluginInterface == null)
+            return ImGui.Button(fallback + text);
+        using var scope = ImRaii.PushFont(UiBuilder.IconFont);
+        return ImGui.Button(icon.ToIconString() + text);
     }
 }

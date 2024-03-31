@@ -111,7 +111,7 @@ class D121LyngbakrStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 822, NameID = 12336)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12336)]
 public class D121Lyngbakr : BossModule
 {
     public D121Lyngbakr(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-322, 120), 20)) { }

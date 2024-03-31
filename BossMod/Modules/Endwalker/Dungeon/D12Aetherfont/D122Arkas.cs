@@ -197,7 +197,7 @@ class D122ArkasStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 822, NameID = 12337)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12337)]
 public class D122Arkas : BossModule
 {
     public D122Arkas(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(425, -440), 14.5f)) { }

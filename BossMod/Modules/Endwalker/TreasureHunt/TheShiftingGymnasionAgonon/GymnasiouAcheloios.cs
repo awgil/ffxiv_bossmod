@@ -182,7 +182,7 @@ class AcheloiosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 909, NameID = 12019)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12019)]
 public class Acheloios : BossModule
 {
     public Acheloios(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

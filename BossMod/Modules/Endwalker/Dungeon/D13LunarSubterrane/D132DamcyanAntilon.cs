@@ -184,7 +184,7 @@ class D132DamcyanAntilonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 823, NameID = 12484)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
 public class D132DamcyanAntilon : BossModule
 {
     public D132DamcyanAntilon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 60), 19.5f, 25)) { }

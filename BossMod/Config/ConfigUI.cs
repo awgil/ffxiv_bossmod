@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace BossMod;
 
-public class ConfigUI
+public class ConfigUI : IDisposable
 {
     private class UINode
     {
@@ -54,6 +54,11 @@ public class ConfigUI
         SortByOrder(_roots);
     }
 
+    public void Dispose()
+    {
+        _mv.Dispose();
+    }
+
     public void Draw()
     {
         using var tabs = ImRaii.TabBar("Tabs");
@@ -66,6 +71,29 @@ public class ConfigUI
                 if (tab)
                     _mv.Draw(_tree);
         }
+    }
+
+    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)
+    {
+        // draw standard properties
+        foreach (var field in node.GetType().GetFields())
+        {
+            var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
+            if (props == null)
+                continue;
+
+            _ = field.GetValue(node) switch
+            {
+                bool v => DrawProperty(props, node, field, v),
+                Enum v => DrawProperty(props, node, field, v),
+                float v => DrawProperty(props, node, field, v),
+                GroupAssignment v => DrawProperty(props, node, field, v, root, tree, ws),
+                _ => false
+            };
+        }
+
+        // draw custom stuff
+        node.DrawCustom(tree, ws);
     }
 
     private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config") ? t.Name.Remove(t.Name.Length - "Config".Length) : t.Name;
@@ -81,32 +109,12 @@ public class ConfigUI
     {
         foreach (var n in _tree.Nodes(nodes, n => new(n.Name)))
         {
-            // draw standard properties
-            foreach (var field in n.Node.GetType().GetFields())
-            {
-                var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
-                if (props == null)
-                    continue;
-
-                _ = field.GetValue(n.Node) switch
-                {
-                    bool v => DrawProperty(props, n.Node, field, v),
-                    Enum v => DrawProperty(props, n.Node, field, v),
-                    float v => DrawProperty(props, n.Node, field, v),
-                    GroupAssignment v => DrawProperty(props, n.Node, field, v),
-                    _ => false
-                };
-            }
-
-            // draw custom stuff
-            n.Node.DrawCustom(_tree, _ws);
-
-            // draw subnodes
+            DrawNode(n.Node, _root, _tree, _ws);
             DrawNodes(n.Children);
         }
     }
 
-    private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, bool v)
+    private static bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, bool v)
     {
         var combo = member.GetCustomAttribute<PropertyComboAttribute>();
         if (combo != null)
@@ -128,7 +136,7 @@ public class ConfigUI
         return true;
     }
 
-    private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, Enum v)
+    private static bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, Enum v)
     {
         if (UICombo.Enum(props.Label, ref v))
         {
@@ -138,7 +146,7 @@ public class ConfigUI
         return true;
     }
 
-    private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, float v)
+    private static bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, float v)
     {
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         if (slider != null)
@@ -163,15 +171,15 @@ public class ConfigUI
         return true;
     }
 
-    private bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, GroupAssignment v)
+    private static bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
     {
         var group = member.GetCustomAttribute<GroupDetailsAttribute>();
         if (group == null)
             return false;
 
-        foreach (var tn in _tree.Node(props.Label, false, v.Validate() ? 0xffffffff : 0xff00ffff, () => DrawPropertyContextMenu(node, member, v)))
+        foreach (var tn in tree.Node(props.Label, false, v.Validate() ? 0xffffffff : 0xff00ffff, () => DrawPropertyContextMenu(node, member, v)))
         {
-            var assignments = _root.Get<PartyRolesConfig>().SlotsPerAssignment(_ws.Party);
+            var assignments = root.Get<PartyRolesConfig>().SlotsPerAssignment(ws.Party);
             if (ImGui.BeginTable("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit))
             {
                 foreach (var n in group.Names)
@@ -201,7 +209,7 @@ public class ConfigUI
 
                     string name = r.ToString();
                     if (assignments.Length > 0)
-                        name += $" ({_ws.Party[assignments[i]]?.Name})";
+                        name += $" ({ws.Party[assignments[i]]?.Name})";
                     ImGui.TableNextColumn();
                     ImGui.TextUnformatted(name);
                 }
@@ -211,7 +219,7 @@ public class ConfigUI
         return true;
     }
 
-    private void DrawPropertyContextMenu(ConfigNode node, FieldInfo member, GroupAssignment v)
+    private static void DrawPropertyContextMenu(ConfigNode node, FieldInfo member, GroupAssignment v)
     {
         foreach (var preset in member.GetCustomAttributes<GroupPresetAttribute>())
         {

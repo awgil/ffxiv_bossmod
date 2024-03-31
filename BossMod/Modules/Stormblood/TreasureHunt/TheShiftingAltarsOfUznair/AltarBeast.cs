@@ -131,7 +131,7 @@ class BeastStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 586, NameID = 7588)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7588)]
 public class Beast : BossModule
 {
     public Beast(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

@@ -62,7 +62,7 @@ class D054ForgivenRevelryStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 659, NameID = 8270)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8270)]
 public class D054ForgivenRevelry : BossModule
 {
     public D054ForgivenRevelry(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, 176), 15)) { }

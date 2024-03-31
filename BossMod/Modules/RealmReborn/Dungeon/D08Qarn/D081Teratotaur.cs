@@ -106,7 +106,7 @@ class D081TeratotaurStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 9, NameID = 1567)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1567)]
 public class D081Teratotaur : BossModule
 {
     public D081Teratotaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-70, -60), 20)) { }

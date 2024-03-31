@@ -66,7 +66,7 @@ public class Ex1UltimaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 68, NameID = 2137)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 68, NameID = 2137)]
 public class Ex1Ultima : BossModule
 {
     public Ex1Ultima(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20)) { }

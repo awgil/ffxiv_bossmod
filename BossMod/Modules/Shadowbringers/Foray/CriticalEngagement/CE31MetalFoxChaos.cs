@@ -126,7 +126,7 @@ class CE31MetalFoxChaosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 735, DynamicEventID = 13)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 13)]
 public class CE31MetalFoxChaos : BossModule
 {
     public CE31MetalFoxChaos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-234, 262), 30.2f)) { }

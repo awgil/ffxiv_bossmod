@@ -240,7 +240,7 @@ class D033ErosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 651, NameID = 8233)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8233)]
 public class D033Eros : BossModule
 {
     public D033Eros(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(17, -538), 15, 20)) { }
