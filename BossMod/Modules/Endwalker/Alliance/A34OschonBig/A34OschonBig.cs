@@ -7,7 +7,7 @@ namespace BossMod.Endwalker.Alliance.A34OschonBig
 
 {   
 
-    [ModuleInfo(CFCID = 962, PrimaryActorOID = 0x406F)]
+    [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, PrimaryActorOID = 0x406F)]
     public class A34Oschon : BossModule
     {
         public A34Oschon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-0.015f, 749.996f), 20, 20)) { }
