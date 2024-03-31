@@ -16,6 +16,19 @@ BossmodReborn is a community-driven fork of the original Bossmod plugin for Fina
 - **User-Friendly Interface**: Designed with accessibility in mind with a wonderful module viewer by Croizat, the interface is intuitive, allowing players of all skill levels to benefit from the plugin.
 - **Regular Updates**: Committed to staying current with the latest game patches, class updates, and community feedback. PRs will be reviewed, tested, and approved.
 
+## Installing
+- Enter `/xlsettings` in the chat window and go to the Experimental tab in the opening window.
+- **Skip below the DevPlugins section to the Custom Plugin Repositories section.**
+- Copy and paste the repo.json link into the first free text input field.
+```
+https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json
+```
+- Click on the + button and make sure the checkmark beside the new field is set afterwards.
+- **Click on the Save-icon in the bottom right.**
+
+Following these steps, you should be able to see all contained plugins in the Available Plugins tab in the Dalamud Plugin Installer.
+No Plugins will be installed, you have just made them available. You can now select which of these plugins you actually want to install.
+
 ## Want to contribute?
 
 - Create a fork
