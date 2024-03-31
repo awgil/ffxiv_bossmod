@@ -103,14 +103,18 @@ class ForkedFissures : Components.GenericAOEs
                 _patternStart.AddRange(patternIndex01Start);
                 _patternEnd.AddRange(patternIndex01End);
             }
-            for (int i = 0; i < _patternEnd.Count; ++i)
-                _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), module.WorldState.CurrentTime.AddSeconds(6)));
+            if (_aoes.Count < 16 && _patternStart.Count > 0 && _patternEnd.Count > 0)
+                for (int i = 0; i < 16; ++i)
+                    _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), module.WorldState.CurrentTime.AddSeconds(6)));
+            if (_aoes.Count >= 16 && _patternStart.Count > 16 && _patternEnd.Count > 16)
+                for (int i = 16; i < 32; ++i)
+                    _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), module.WorldState.CurrentTime.AddSeconds(6)));
+            }
         }
-    }
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.ForkedFissures && _aoes.Count > 0 && _patternStart.Count > 0 && _patternEnd.Count > 0)
+        if ((AID)spell.Action.ID == AID.ForkedFissures)
         {
             _aoes.RemoveAt(0);
             _patternStart.RemoveAt(0);
