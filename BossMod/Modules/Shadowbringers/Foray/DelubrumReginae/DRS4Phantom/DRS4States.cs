@@ -12,6 +12,7 @@ class DRS4States : StateMachineBuilder
         MaledictionOfAgony(id, 7.1f);
         ManipulateInvertMiasma(id + 0x10000, 4.5f);
         ManipulateInvertMiasma(id + 0x20000, 3.0f);
+        SummonMaledictionOfRuin(id + 0x30000, 0.4f);
         // TODO: summon + malediction of ruin > miasma + knockback > vile wave > ice spikes > excruciation > malediction of agony > repeat?
         SimpleState(id + 0xFF0000, 100, "???");
     }
@@ -47,5 +48,22 @@ class DRS4States : StateMachineBuilder
         // +21.2-22.2s: rest(1,7)
         ComponentCondition<Miasma>(id + 0x20, 22.2f, comp => comp.NumLanesFinished >= 8, "Miasma resolve")
             .DeactivateOnExit<Miasma>();
+    }
+
+    private void SummonMaledictionOfRuin(uint id, float delay)
+    {
+        Cast(id, AID.Summon, delay, 3);
+        Targetable(id + 0x10, false, 1.0f, "Boss disappears");
+        ComponentCondition<BloodyWraith>(id + 0x20, 3, comp => comp.ActiveActors.Any(), "Adds appear") // 2x bloody + 1x misty
+            .ActivateOnEnter<BloodyWraith>()
+            .ActivateOnEnter<MistyWraith>()
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+        CastStart(id + 0x30, AID.MaledictionOfRuin, 2.1f);
+        // +5.7s: second set of adds created (2x bloody + 2x misty)
+        // +8.3s: second set of adds targetable
+        // +17.7s: third set of adds created (3x bloody + 3x misty)
+        // +20.6s: third set of adds targetable
+        Timeout(id + 0x40, 43, "Adds resolve");
     }
 }

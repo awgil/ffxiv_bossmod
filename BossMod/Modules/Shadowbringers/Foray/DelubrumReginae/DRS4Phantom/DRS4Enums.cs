@@ -3,6 +3,8 @@
 public enum OID : uint
 {
     Boss = 0x30AE, // R2.400, x1
+    BloodyWraith = 0x30B0, // R2.000, spawn during fight
+    MistyWraith = 0x30B1, // R2.000, spawn during fight
     Helper = 0x233C, // R0.500, x18
     MiasmaLowRect = 0x1EB0DD, // R0.500, EventObj type, spawn during fight
     MiasmaLowCircle = 0x1EB0DE, // R0.500, EventObj type, spawn during fight
@@ -26,4 +28,7 @@ public enum AID : uint
     LingeringMiasmaRest = 22455, // Helper->location, 1.0s cast, range 8 circle
     SwirlingMiasmaFirst = 22456, // Helper->location, 10.0s cast, range 5-19 donut
     SwirlingMiasmaRest = 22457, // Helper->location, 1.0s cast, range 5-19 donut
+    Transference = 22445, // Boss->location, no cast, single-target, teleport
+    Summon = 22464, // Boss->self, 3.0s cast, single-target, visual (go untargetable and spawn adds)
+    MaledictionOfRuin = 22465, // Boss->self, 43.0s cast, single-target
 };
