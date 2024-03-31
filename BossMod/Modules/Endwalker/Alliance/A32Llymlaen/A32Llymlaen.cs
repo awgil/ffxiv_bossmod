@@ -6,7 +6,7 @@ using BossMod.Components;
 namespace BossMod.Endwalker.Alliance.A32Llymlaen
 {   
     //
-    [ModuleInfo(CFCID = 962, PrimaryActorOID = 0x4024)]
+    [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, PrimaryActorOID = 0x4024)]
     public class A32Llymlaen : BossModule
     {
         public A32Llymlaen(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-0.015f, -900.023f),20, 30))
