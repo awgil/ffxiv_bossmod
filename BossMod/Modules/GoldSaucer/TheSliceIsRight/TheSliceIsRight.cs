@@ -62,12 +62,12 @@ class BambooSplits : Components.GenericAOEs
         foreach (var b in _circle)
             yield return new(circle, b.Position, b.Rotation, _activation.AddSeconds(7));
         foreach (var b in _bamboospawn)
-            yield return new(bamboospawn, b.Position, b.Rotation); //activation time varies a lot (depending on the set?), just avoid entirely
+            yield return new(bamboospawn, b.Position); //activation time varies a lot (depending on the set?), just avoid entirely
     }
 
     public override void OnActorCreated(BossModule module, Actor actor)
     {
-        if ((OID)actor.OID == OID.Bamboo && !_bamboospawn.Any(b => b.Position.AlmostEqual(actor.Position, 1)))
+        if ((OID)actor.OID is OID.HelperCircle or OID.HelperDoubleRect or OID.HelperSingleRect && !_bamboospawn.Any(b => b.Position.AlmostEqual(actor.Position, 1)))
             _bamboospawn.Add(actor);
     }
 
