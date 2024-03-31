@@ -234,7 +234,7 @@ class D113CagnazzoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 896, NameID = 11995)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11995)]
 public class D113Cagnazzo : BossModule
 {
     public D113Cagnazzo(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-250, 130), 20)) { }

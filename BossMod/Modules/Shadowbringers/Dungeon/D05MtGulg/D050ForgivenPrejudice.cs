@@ -48,7 +48,7 @@ class D050ForgivenPrejudiceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 659, NameID = 8269)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8269)]
 public class D050ForgivenPrejudice : SimpleBossModule
 {
     public D050ForgivenPrejudice(WorldState ws, Actor primary) : base(ws, primary) { }

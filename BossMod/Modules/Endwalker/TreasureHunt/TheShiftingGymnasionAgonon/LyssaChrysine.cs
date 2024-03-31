@@ -149,7 +149,7 @@ class LyssaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 909, NameID = 12024)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12024)]
 public class Lyssa : BossModule
 {
     public Lyssa(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

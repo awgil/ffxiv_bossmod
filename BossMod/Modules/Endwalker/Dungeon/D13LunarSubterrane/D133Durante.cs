@@ -194,7 +194,7 @@ class D133DuranteStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 823, NameID = 12584)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
 class D133Durante : BossModule
 {
     public D133Durante(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -422), 23)) { }

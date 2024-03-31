@@ -76,7 +76,7 @@ class PegasusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 745, NameID = 9793)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9793)]
 public class Pegasus : BossModule
 {
     public Pegasus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }

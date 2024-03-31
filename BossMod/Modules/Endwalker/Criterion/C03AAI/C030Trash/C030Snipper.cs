@@ -74,7 +74,7 @@ class C030SnipperStates : StateMachineBuilder
 class C030NSnipperStates : C030SnipperStates { public C030NSnipperStates(BossModule module) : base(module, false) { } }
 class C030SSnipperStates : C030SnipperStates { public C030SSnipperStates(BossModule module) : base(module, true) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NSnipper, CFCID = 979, NameID = 12537)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NSnipper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12537, SortOrder = 2)]
 public class C030NSnipper : C030Trash1
 {
     public C030NSnipper(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -86,7 +86,7 @@ public class C030NSnipper : C030Trash1
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SSnipper, CFCID = 980, NameID = 12537)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SSnipper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12537, SortOrder = 2)]
 public class C030SSnipper : C030Trash1
 {
     public C030SSnipper(WorldState ws, Actor primary) : base(ws, primary) { }

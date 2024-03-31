@@ -60,7 +60,7 @@ class MoonsetRays : Components.StackWithCastTargets
     public MoonsetRays() : base(ActionID.MakeSpell(AID.MoonsetRaysAOE), 6, 4) { }
 }
 
-[ModuleInfo(CFCID = 911, NameID = 12063)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12063)]
 public class A24Menphina : BossModule
 {
     public A24Menphina(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(800, 750), 30)) { }

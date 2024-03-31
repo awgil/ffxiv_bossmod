@@ -340,7 +340,7 @@ class ChiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(FateID = 1855)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
 public class Chi : BossModule
 {
     public Chi(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(650, 0), 30)) { }

@@ -270,7 +270,7 @@ class D055ForgivenObscenityStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 659, NameID = 8262)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
 public class D055ForgivenObscenity : BossModule
 {
     public D055ForgivenObscenity(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-240, 237), 15, 20)) { }

@@ -73,7 +73,7 @@ class T02TitanNStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 57, NameID = 1801)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 57, NameID = 1801)]
 public class T02TitanN : BossModule
 {
     private IReadOnlyList<Actor> _heart;

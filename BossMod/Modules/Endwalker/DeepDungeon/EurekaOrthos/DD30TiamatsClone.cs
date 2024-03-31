@@ -88,7 +88,7 @@ class DD30TiamatsCloneStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 899, NameID = 12242)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 899, NameID = 12242)]
 public class DD30TiamatsClone : BossModule
 {
     public DD30TiamatsClone(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-300, -300), 20)) { }

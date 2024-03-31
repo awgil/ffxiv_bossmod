@@ -13,6 +13,11 @@ class ConfigTest : TestWindow
         _ui = new(Service.Config, new(TimeSpan.TicksPerSecond, "fake"));
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        _ui.Dispose();
+    }
+
     public override void Draw()
     {
         ImGui.InputText("##console", ref _command, 1024);

@@ -44,7 +44,7 @@ class TheGreatGoldWhiskerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 586, NameID = 7599)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7599)]
 public class TheGreatGoldWhisker : BossModule
 {
     public TheGreatGoldWhisker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

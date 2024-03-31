@@ -273,7 +273,7 @@ class D111AlbionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 896, NameID = 11992)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11992)]
 public class D111Albion : BossModule
 {
     public D111Albion(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(24, -744), 19.5f)) { }

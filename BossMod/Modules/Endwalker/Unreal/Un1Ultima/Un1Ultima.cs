@@ -33,7 +33,7 @@ public class Un1UltimaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 825, NameID = 3632, ExVersion = 4, DisplayName = "Ultima's Bane (Unreal)")]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 825, NameID = 2137)]
 public class Un1Ultima : BossModule
 {
     public Un1Ultima(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20)) { }

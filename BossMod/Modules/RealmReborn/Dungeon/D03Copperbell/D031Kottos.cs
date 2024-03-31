@@ -49,7 +49,7 @@ class D031KottosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 3, NameID = 548)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 3, NameID = 548)]
 public class D031Kottos : BossModule
 {
     public D031Kottos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(43, -89.56f), 15)) { }

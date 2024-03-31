@@ -388,7 +388,7 @@ class D013PhiliaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 676, NameID = 8301)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8301)]
 public class D013Philia : BossModule
 {
     public D013Philia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(134, -465), 19.5f)) { }
