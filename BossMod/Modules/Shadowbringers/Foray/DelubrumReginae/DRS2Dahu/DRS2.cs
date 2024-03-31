@@ -25,6 +25,11 @@ class HuntersClaw : Components.SelfTargetedAOEs
     public HuntersClaw() : base(ActionID.MakeSpell(AID.HuntersClaw), new AOEShapeCircle(8)) { }
 }
 
+class Burn : Components.BaitAwayIcon
+{
+    public Burn() : base(new AOEShapeCircle(30), (uint)IconID.Burn, ActionID.MakeSpell(AID.Burn), 8.2f) { CenterAtTarget = true; }
+}
+
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9751)]
 public class DRS2 : BossModule
 {

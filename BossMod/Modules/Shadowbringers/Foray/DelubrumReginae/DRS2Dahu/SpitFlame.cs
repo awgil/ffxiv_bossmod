@@ -12,6 +12,12 @@ class SpitFlame : Components.UniformStackSpread
         _adds = module.Enemies(OID.Marchosias);
     }
 
+    public override void Update(BossModule module)
+    {
+        Spreads.RemoveAll(s => s.Target.IsDead); // if target dies after being marked, cast will be skipped
+        base.Update(module);
+    }
+
     public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
     {
         base.AddHints(module, slot, actor, hints, movementHints);

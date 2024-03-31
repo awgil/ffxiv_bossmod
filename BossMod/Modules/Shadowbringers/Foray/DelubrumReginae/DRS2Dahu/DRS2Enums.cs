@@ -23,11 +23,14 @@ public enum AID : uint
     RightSidedShockwaveFirst = 22384, // Boss->self, 3.0s cast, range 15 180-degree cone
     LeftSidedShockwaveSecond = 22385, // Boss->self, 1.0s cast, range 15 180-degree cone
     RightSidedShockwaveSecond = 22386, // Boss->self, 1.0s cast, range 15 180-degree cone
-    FeralHowl = 22375, // Boss->self, 5.0s cast, single-target
+    FeralHowl = 22375, // Boss->self, 5.0s cast, single-target, visual (knockback)
     FeralHowlAOE = 23349, // Helper->self, no cast, range 50 circle, raidwide knockback 30
     HuntersClaw = 22377, // Marchosias->self, 8.5s cast, range 8 circle puddle
     FirebreatheRotating = 22379, // Boss->self, 5.0s cast, single-target, visual (rotating cone)
     FirebreatheRotatingAOE = 22380, // Boss->self, 0.5s cast, range 60 90-degree cone
+    HystericAssault = 22392, // Boss->self, 5.0s cast, single-target, visual (knockback)
+    HystericAssaultAOE = 23363, // Helper->self, no cast, range 50 circle, raidwide knockback 30
+    Burn = 21603, // Helper->players, no cast, range 45 circle with ? falloff
 };
 
 public enum IconID : uint
@@ -38,4 +41,5 @@ public enum IconID : uint
     SpitFlame4 = 82, // player
     FirebreatheCW = 167, // Boss
     FirebreatheCCW = 168, // Boss
+    Burn = 87, // player
 };
