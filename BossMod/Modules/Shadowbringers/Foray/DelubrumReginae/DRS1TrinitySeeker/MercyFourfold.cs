@@ -2,8 +2,8 @@
 
 class MercyFourfold : Components.GenericAOEs
 {
-    private List<AOEInstance> _aoes = new();
-    private List<AOEInstance?> _safezones = new();
+    public readonly List<AOEInstance> AOEs = new();
+    private readonly List<AOEInstance?> _safezones = new();
     private static readonly AOEShapeCone _shapeAOE = new(50, 90.Degrees());
     private static readonly AOEShapeCone _shapeSafe = new(50, 45.Degrees());
 
@@ -11,8 +11,8 @@ class MercyFourfold : Components.GenericAOEs
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-            yield return _aoes[0];
+        if (AOEs.Count > 0)
+            yield return AOEs[0];
         if (_safezones.Count > 0 && _safezones[0] != null)
             yield return _safezones[0]!.Value;
     }
@@ -34,18 +34,18 @@ class MercyFourfold : Components.GenericAOEs
             return;
 
         var dir = actor.Rotation + dirOffset;
-        if (_aoes.Count > 0)
+        if (AOEs.Count > 0)
         {
             // see whether there is a safezone for two contiguous aoes
-            var mid = dir.ToDirection() + _aoes.Last().Rotation.ToDirection(); // length should be either ~sqrt(2) or ~0
+            var mid = dir.ToDirection() + AOEs.Last().Rotation.ToDirection(); // length should be either ~sqrt(2) or ~0
             if (mid.LengthSq() > 1)
                 _safezones.Add(new(_shapeSafe, actor.Position, Angle.FromDirection(-mid), new(), ArenaColor.SafeFromAOE, false));
             else
                 _safezones.Add(null);
         }
 
-        var activationDelay = 15 - 1.3f * _aoes.Count;
-        _aoes.Add(new(_shapeAOE, actor.Position, dir, module.WorldState.CurrentTime.AddSeconds(activationDelay)));
+        var activationDelay = 15 - 1.3f * AOEs.Count;
+        AOEs.Add(new(_shapeAOE, actor.Position, dir, module.WorldState.CurrentTime.AddSeconds(activationDelay)));
     }
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
@@ -53,8 +53,8 @@ class MercyFourfold : Components.GenericAOEs
         base.OnEventCast(module, caster, spell);
         if (spell.Action == WatchedAction)
         {
-            if (_aoes.Count > 0)
-                _aoes.RemoveAt(0);
+            if (AOEs.Count > 0)
+                AOEs.RemoveAt(0);
             if (_safezones.Count > 0)
                 _safezones.RemoveAt(0);
         }
