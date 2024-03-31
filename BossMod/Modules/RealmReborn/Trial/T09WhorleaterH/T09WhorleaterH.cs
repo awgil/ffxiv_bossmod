@@ -1,5 +1,5 @@
 // CONTRIB: made by taurenkey, changed by malediktus, not checked
-namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH;
+namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
 class GrandFall : Components.LocationTargetedAOEs
 {
@@ -32,7 +32,7 @@ class T09WhorleaterHStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 72, NameID = 2505)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 72, NameID = 2505)]
 public class T09WhorleaterH(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-0, 0), 14.5f, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -51,7 +51,7 @@ class SkateneStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 586, NameID = 7587)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7587)]
 public class Skatene : BossModule
 {
     public Skatene(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

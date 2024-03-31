@@ -161,7 +161,7 @@ class AiravataStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 586, NameID = 7601)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7601)]
 public class Airavata : BossModule
 {
     public Airavata(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

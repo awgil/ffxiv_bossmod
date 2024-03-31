@@ -73,7 +73,7 @@ class D011ForgivenDissonanceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 676, NameID = 8299)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8299)]
 public class D011ForgivenDissonance : BossModule
 {
     public D011ForgivenDissonance(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-15, 240), 19.5f)) { }

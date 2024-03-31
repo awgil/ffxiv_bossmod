@@ -255,6 +255,22 @@ public static class Utils
             yield return value.Value;
     }
 
+    // enumerate pairs of neighbouring elements
+    public static IEnumerable<(T, T)> Pairwise<T>(this IEnumerable<T> source)
+    {
+        using var e = source.GetEnumerator();
+        if (!e.MoveNext())
+            yield break;
+
+        var prev = e.Current;
+        while (e.MoveNext())
+        {
+            var curr = e.Current;
+            yield return (prev, curr);
+            prev = curr;
+        }
+    }
+
     // swap to values
     public static void Swap<T>(ref T l, ref T r)
     {

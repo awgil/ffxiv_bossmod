@@ -71,8 +71,8 @@ class C020KotenguStates : StateMachineBuilder
 class C020NKotenguStates : C020KotenguStates { public C020NKotenguStates(BossModule module) : base(module, false) { } }
 class C020SKotenguStates : C020KotenguStates { public C020SKotenguStates(BossModule module) : base(module, true) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NKotengu, CFCID = 946, NameID = 12410)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NKotengu, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12410, SortOrder = 6)]
 public class C020NKotengu : C020Trash2 { public C020NKotengu(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SKotengu, CFCID = 947, NameID = 12410)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SKotengu, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12410, SortOrder = 6)]
 public class C020SKotengu : C020Trash2 { public C020SKotengu(WorldState ws, Actor primary) : base(ws, primary) { } }

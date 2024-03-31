@@ -64,7 +64,7 @@ class D132MagitekVanguardF1States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 15, NameID = 2116)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 15, NameID = 2116)]
 public class D132MagitekVanguardF1 : BossModule
 {
     public D132MagitekVanguardF1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-13, 31), 20, 20, 20.Degrees())) { }

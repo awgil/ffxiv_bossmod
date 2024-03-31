@@ -269,7 +269,7 @@ class D013MagusSistersStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 783, NameID = 10265)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10265)]
 class D013MagusSisters : BossModule
 {
     public D013MagusSisters(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-27.5f, -49.5f), 20)) { }

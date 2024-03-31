@@ -152,7 +152,7 @@ class D011MinduruvaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 783, NameID = 10256)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10256)]
 public class D011Minduruva : BossModule
 {
     public D011Minduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(68, -124), 19.5f)) { }

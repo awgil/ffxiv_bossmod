@@ -130,7 +130,7 @@ class T04PortaDecumana1States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 830, NameID = 2137)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 1)]
 public class T04PortaDecumana1 : BossModule
 {
     public T04PortaDecumana1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-772, -600), 20)) { }

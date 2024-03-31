@@ -105,7 +105,7 @@ class D012SanduruvaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 783, NameID = 10257)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10257)]
 public class D012Sanduruva : BossModule
 {
     public D012Sanduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-258, -26), 20)) { }

@@ -141,7 +141,7 @@ class D123OctomammothStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 822, NameID = 12334)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
 class D123Octomammoth : BossModule
 {
     public D123Octomammoth(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-370, -368), 33.3f))

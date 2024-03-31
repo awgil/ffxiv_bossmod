@@ -1,6 +1,6 @@
 namespace BossMod.Endwalker.Alliance.A31Thaliak
 {   
-    [ModuleInfo(CFCID = 962, PrimaryActorOID = 0x404C)]
+    [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, PrimaryActorOID = 0x404C)]
     public class A31Thaliak : BossModule
     {
       public static ArenaBoundsSquare BoundsSquare = new ArenaBoundsSquare(new(-945.006f, 944.976f), 24f);

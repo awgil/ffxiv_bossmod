@@ -23,7 +23,7 @@ namespace BossMod.Endwalker.Alliance.A35Eulogia
         }
     }
 
-    [ModuleInfo(CFCID = 962, PrimaryActorOID = 0x4086)]
+    [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, PrimaryActorOID = 0x4086)]
     public class A35Eulogia : BossModule
     {
         public A35Eulogia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(944.976f, -945.006f), 30f)) { }

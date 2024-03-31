@@ -67,7 +67,7 @@ class DjinnStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 745, NameID = 9788)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9788)]
 public class Djinn : BossModule
 {
     public Djinn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }

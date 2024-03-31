@@ -61,7 +61,7 @@ class FuathTroublemakerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 745, NameID = 9786)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9786)]
 public class FuathTroublemaker : BossModule
 {
     public FuathTroublemaker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }

@@ -15,7 +15,7 @@ class HoliestHallowing : Components.CastHint
     public HoliestHallowing() : base(ActionID.MakeSpell(AID.HoliestHallowing), "Interrupt!") { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SerAdelphel, CFCID = 788)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SerAdelphel, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788)]
 public class DSW1 : BossModule
 {
     private Actor? _grinnaux;

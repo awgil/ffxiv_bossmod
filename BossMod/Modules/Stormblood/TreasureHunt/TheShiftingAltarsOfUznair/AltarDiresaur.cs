@@ -153,7 +153,7 @@ class DiresaurStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 586, NameID = 7627)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7627)]
 public class Diresaur : BossModule
 {
     public Diresaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

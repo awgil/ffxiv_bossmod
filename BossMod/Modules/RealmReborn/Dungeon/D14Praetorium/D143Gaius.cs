@@ -110,7 +110,7 @@ class D143GaiusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(CFCID = 16, NameID = 2136)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2136)]
 public class D143Gaius : BossModule
 {
     public D143Gaius(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-562, 220), 15, 20)) { }

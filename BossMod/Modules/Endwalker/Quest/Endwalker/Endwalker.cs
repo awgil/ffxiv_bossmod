@@ -138,7 +138,7 @@ class UnmovingDvenadkatik : Components.SelfTargetedAOEs
         => ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.ZenosP1, QuestID = 70000, NameID = 10393)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.ZenosP1, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70000, NameID = 10393)]
 public class Endwalker : BossModule
 {
     private IReadOnlyList<Actor> _zenosP2;
