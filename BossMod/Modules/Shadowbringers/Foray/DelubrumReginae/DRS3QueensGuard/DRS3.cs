@@ -36,6 +36,11 @@ class IcyPortent : Components.CastHint
     public IcyPortent() : base(ActionID.MakeSpell(AID.IcyPortent), "Move!") { }
 }
 
+class PawnOff : Components.SelfTargetedAOEs
+{
+    public PawnOff() : base(ActionID.MakeSpell(AID.PawnOffReal), new AOEShapeCircle(20)) { }
+}
+
 // TODO: consider showing reflect hints
 class Fracture : Components.CastCounter
 {

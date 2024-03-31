@@ -87,6 +87,8 @@ public enum AID : uint
     SecretsRevealed = 23407, // Soldier->self, 5.0s cast, single-target, visual (tether 2 of 4 avatars that will be activated)
     SecretsRevealedExtra = 23408, // SoldierAvatar->self, no cast, single-target, visual (untether after secrets revealed?)
     AvatarJump = 22584, // SoldierAvatar->location, no cast, single-target, teleport
+    PawnOffReal = 22585, // SoldierAvatar->self, 7.0s cast, range 20 circle aoe
+    PawnOffFake = 22586, // SoldierAvatar->self, 7.0s cast, range 20 circle fake aoe
 
     SpitefulSpirit = 22574, // Warrior->self, 5.0s cast, single-target, visual (summon spheres?)
     StrongpointDefense = 22558, // Knight->self, 5.0s cast, single-target, visual (summon wards?)
@@ -100,6 +102,7 @@ public enum AID : uint
     Burst = 23446, // SpiritualSphere->self, no cast, range 60 circle, raidwide if no one soaked the sphere
 
     EnrageP1Knight = 22563, // Knight->self, 10.0s cast, wipe (starts when warrior is killed)
+    EnrageP1Warrior = 22579, // Warrior->self, 10.0s cast, wipe (starts when knight is killed)
     EnrageP2Soldier = 22595, // Soldier->self, 10.0s cast, wipe (starts when gunner is killed)
     EnrageP2Gunner = 22614, // Gunner->self, 10.0s cast, wipe (starts when soldier is killed)
     EnrageP3Knight = 22793, // Knight->self, 70.0s cast

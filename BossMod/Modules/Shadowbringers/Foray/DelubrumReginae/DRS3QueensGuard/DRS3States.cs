@@ -27,7 +27,7 @@ class DRS3States : StateMachineBuilder
     private void Phase1(uint id)
     {
         ActorTargetable(id, _module.Knight, true, 3.3f, "Warrior + Knight appear");
-        Phase1Repeat(id + 0x100000, 8.2f);
+        Phase1Repeat(id + 0x100000, 8.1f);
         Phase1Repeat(id + 0x200000, 8.1f);
         // TODO: enrage
         SimpleState(id + 0xFF0000, 100, "???");
@@ -37,7 +37,7 @@ class DRS3States : StateMachineBuilder
     {
         P1SelectVulnerability(id, delay);
         P1OptimalOffensiveAboveBoard(id + 0x10000, 9.1f);
-        P1WindsOfWeightOptimalPlay(id + 0x20000, 10.4f);
+        P1WindsOfWeightOptimalPlay(id + 0x20000, 10.3f);
         P1RapidSever(id + 0x30000, 4.2f);
     }
 
@@ -112,8 +112,8 @@ class DRS3States : StateMachineBuilder
         // +1.0s: create 2x6 bombs (aetherial bolt/burst)
 
         ActorCastStart(id + 0x20, _module.Warrior, AID.ReversalOfForces, 3.2f); // tethers/icons for reversal appear ~0.1s before cast start
-        ActorTargetable(id + 0x21, _module.Knight, false, 2.9f, "Knight disappear");
-        ActorCastEnd(id + 0x22, _module.Warrior, 1.1f);
+        ActorTargetable(id + 0x21, _module.Knight, false, 3, "Knight disappear");
+        ActorCastEnd(id + 0x22, _module.Warrior, 1);
         // +0.7s: create aetherial sphere in center
         // +0.9s: replace tethers with statuses
         // +2.2s: tether sphere to knight
@@ -136,12 +136,12 @@ class DRS3States : StateMachineBuilder
         ComponentCondition<AboveBoard>(id + 0x40, 0.9f, comp => comp.CurState == AboveBoard.State.ThrowUpDone, "Throw up")
             .DeactivateOnExit<UnluckyLot>(); // cast finishes 0.2s or 1.2s before that
         ComponentCondition<AboveBoard>(id + 0x50, 2.1f, comp => comp.CurState == AboveBoard.State.ShortExplosionsDone, "Bombs 1");
-        ActorTargetable(id + 0x60, _module.Knight, true, 1.3f, "Knight reappear");
-        ComponentCondition<AboveBoard>(id + 0x70, 2.9f, comp => comp.CurState == AboveBoard.State.LongExplosionsDone, "Bombs 2")
+        ActorTargetable(id + 0x60, _module.Knight, true, 1.4f, "Knight reappear");
+        ComponentCondition<AboveBoard>(id + 0x70, 2.8f, comp => comp.CurState == AboveBoard.State.LongExplosionsDone, "Bombs 2")
             .DeactivateOnExit<AboveBoard>();
 
         ActorCast(id + 0x1000, _module.Warrior, AID.Boost, 5.0f, 4, false, "Damage up");
-        P1BloodAndBone(id + 0x1010, 3);
+        P1BloodAndBone(id + 0x1010, 3.1f);
     }
 
     private void P1WindsOfWeightOptimalPlay(uint id, float delay)
@@ -151,10 +151,10 @@ class DRS3States : StateMachineBuilder
         // +0.9s: replace tethers with statuses
 
         ActorCastStart(id + 0x20, _module.Warrior, AID.WindsOfWeight, 3.2f);
-        ActorCastStartMulti(id + 0x21, _module.Knight, new[] { AID.SwordOmen, AID.ShieldOmen }, 2)
+        ActorCastStartMulti(id + 0x21, _module.Knight, new[] { AID.SwordOmen, AID.ShieldOmen }, 1.9f)
             .ActivateOnEnter<WindsOfWeight>();
         ActorCastEnd(id + 0x22, _module.Knight, 3);
-        ActorCastEnd(id + 0x23, _module.Warrior, 1, false, "Wind/gravity")
+        ActorCastEnd(id + 0x23, _module.Warrior, 1.1f, false, "Wind/gravity")
             .DeactivateOnExit<WindsOfWeight>();
 
         ActorCastStartMulti(id + 0x30, _module.Knight, new[] { AID.OptimalPlaySword, AID.OptimalPlayShield }, 2.1f);
@@ -236,7 +236,6 @@ class DRS3States : StateMachineBuilder
             .DeactivateOnExit<IcyPortent>();
     }
 
-    // TODO: explosions component - never seen it so far...
     private void P2DoubleGambit(uint id, float delay)
     {
         ActorCast(id, _module.Soldier, AID.RelentlessBatterySoldier, delay, 5); // both soldier and gunner cast their visual
@@ -251,11 +250,13 @@ class DRS3States : StateMachineBuilder
 
         ActorCast(id + 0x40, _module.Gunner, AID.QueensShotUnseen, 3.1f, 7, false, "Face gunner")
             .ActivateOnEnter<QueensShotUnseen>()
+            .ActivateOnEnter<PawnOff>() // casts start ~0.4s into gunner's cast
             .DeactivateOnExit<QueensShotUnseen>();
 
         // +0.5s: turrets start their casts
         ComponentCondition<TurretsTourUnseen>(id + 0x50, 3.5f, comp => comp.NumCasts > 0, "Face turret")
             .ActivateOnEnter<TurretsTourUnseen>()
-            .DeactivateOnExit<TurretsTourUnseen>();
+            .DeactivateOnExit<TurretsTourUnseen>()
+            .DeactivateOnExit<PawnOff>();
     }
 }
