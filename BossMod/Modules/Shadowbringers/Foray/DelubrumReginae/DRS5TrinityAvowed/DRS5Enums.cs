@@ -93,13 +93,19 @@ public enum AID : uint
     BladeOfEntropyAC22 = 22877, // Helper->self, 10.0s cast, range 40 180-degree cone
     ElementalBrandSword = 23473, // Boss->self, 3.0s cast, single-target, visual (applies brand debuffs)
 
-    UnseenEye = 23476, // Boss->self, 3.0s cast, single-target, visual (show clones for crisscross aoe)
+    UnseenEyeBow = 23476, // Boss->self, 3.0s cast, single-target, visual (show clones for crisscross aoe)
+    UnseenEyeStaff = 22912, // Boss->self, 3.0s cast, single-target, visual (show clones for crisscross aoe)
     GleamingArrow = 22861, // AvowedAvatar->self, 6.0s cast, range 60 width 10 rect aoe
     ApplyHotBrand1 = 22837, // Helper->self, no cast, range 60 circle, converts brand to temperature
     ApplyHotBrand2 = 22838, // Helper->self, no cast, range 60 circle, converts brand to temperature
     ApplyColdBrand1 = 22839, // Helper->self, no cast, range 60 circle, converts brand to temperature
     ApplyColdBrand2 = 22840, // Helper->self, no cast, range 60 circle, converts brand to temperature
     ClearTemperatures = 23332, // Helper->self, no cast, range 60 circle, visual (clear temperatures?)
+
+    Enrage = 22868, // Boss->self, 12.0s cast, range 85 circle, enrage
+    EnrageSecondary = 23355, // Helper->self, 12.6s cast, range 85 circle, enrage hitting second half of raid
+    EnrageRepeat = 22869, // Boss->self, no cast, range 85 circle, enrage repeat in 3s
+    EnrageRepeatSecondary = 23356, // Helper->self, 0.6s cast, range 85 circle, secondary enrage repeat in 3s
 };
 
 public enum SID : uint

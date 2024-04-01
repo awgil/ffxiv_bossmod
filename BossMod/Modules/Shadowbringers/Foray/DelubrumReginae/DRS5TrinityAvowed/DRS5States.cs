@@ -10,7 +10,7 @@ class DRS5States : StateMachineBuilder
 
     private void SinglePhase(uint id)
     {
-        WrathOfBozja(id, 8.5f);
+        WrathOfBozja(id, 7.4f, false);
         GloryOfBozja(id + 0x10000, 3.2f);
         AllegiantArsenalAOE(id + 0x20000, 6.3f);
         AllegiantArsenalAOE(id + 0x30000, 5.2f);
@@ -34,7 +34,7 @@ class DRS5States : StateMachineBuilder
         Staff2(id + 0x300000, 8);
         Sword2(id + 0x400000, 8);
         Bow2(id + 0x500000, 8);
-        SimpleState(id + 0xFF0000, 10, "Enrage"); // TODO: action
+        Enrage(id + 0x600000, 16);
     }
 
     private void ForkBowSwordStaff(uint id)
@@ -45,18 +45,18 @@ class DRS5States : StateMachineBuilder
         Bow2(id + 0x300000, 9.6f);
         Sword2(id + 0x400000, 8);
         Staff2(id + 0x500000, 8);
-        SimpleState(id + 0xFF0000, 10, "Enrage"); // TODO: action
+        Enrage(id + 0x600000, 16); // TODO: timing
     }
 
     private void ForkSwordBowStaff(uint id)
     {
         Sword1(id, 5.3f);
         Bow1(id + 0x100000, 8.6f);
-        Staff1(id + 0x200000, 7.5f);
+        Staff1(id + 0x200000, 8); // note: very high variance here...
         Sword2(id + 0x300000, 7.4f);
-        Bow2(id + 0x400000, 8.5f);
-        Staff2(id + 0x500000, 8); // TODO: timing
-        SimpleState(id + 0xFF0000, 10, "Enrage"); // TODO: action
+        Bow2(id + 0x400000, 8.6f);
+        Staff2(id + 0x500000, 8.4f);
+        Enrage(id + 0x600000, 16); // TODO: timing
     }
 
     private void ForkStaffBowSword(uint id)
@@ -68,42 +68,41 @@ class DRS5States : StateMachineBuilder
         Staff2(id + 0x300000, 8);
         Bow2(id + 0x400000, 8);
         Sword2(id + 0x500000, 8);
-        SimpleState(id + 0xFF0000, 10, "Enrage"); // TODO: action
+        Enrage(id + 0x600000, 16); // TODO: timing
     }
 
     private void ForkSwordStaffBow(uint id)
     {
-        // TODO: no idea about timings here
-        Sword1(id, 8);
-        Staff1(id + 0x100000, 8);
-        Bow1(id + 0x200000, 8);
-        Sword2(id + 0x300000, 8);
-        Staff2(id + 0x400000, 8);
-        Bow2(id + 0x500000, 8);
-        SimpleState(id + 0xFF0000, 10, "Enrage"); // TODO: action
+        Sword1(id, 5.2f);
+        Staff1(id + 0x100000, 7.6f);
+        Bow1(id + 0x200000, 8.9f);
+        Sword2(id + 0x300000, 7.7f);
+        Staff2(id + 0x400000, 7.6f);
+        Bow2(id + 0x500000, 9.7f);
+        Enrage(id + 0x600000, 15.8f);
     }
 
     private void ForkBowStaffSword(uint id)
     {
-        Bow1(id, 6.3f);
-        Staff1(id + 0x100000, 7.9f);
+        Bow1(id, 6); // note: very high variance here...
+        Staff1(id + 0x100000, 7.9f); // note: very high variance here...
         Sword1(id + 0x200000, 7.5f);
-        Bow2(id + 0x300000, 8.4f);
-        Staff2(id + 0x400000, 7.6f);
-        Sword2(id + 0x500000, 7.5f); // TODO: timing
-        SimpleState(id + 0xFF0000, 10, "Enrage"); // TODO: timing, action
+        Bow2(id + 0x300000, 8.5f);
+        Staff2(id + 0x400000, 8); // note: very high variance here...
+        Sword2(id + 0x500000, 7.5f);
+        Enrage(id + 0x600000, 20.5f);
     }
 
     private void Sword1(uint id, float delay)
     {
         AllegiantArsenalAOE(id, delay);
 
-        Cast(id + 0x10000, AID.HotAndColdSword, 4.9f, 3);
+        Cast(id + 0x10000, AID.HotAndColdSword, 4.5f, 3); // note: large variance
         // +1.1s: temperature statuses
-        Cast(id + 0x10010, AID.UnwaveringApparition, 4.1f, 3);
-        Targetable(id + 0x10020, false, 5.7f, "Disappear");
+        Cast(id + 0x10010, AID.UnwaveringApparition, 6, 3);
+        Targetable(id + 0x10020, false, 5.7f, "Disappear"); // note: large variance
         BladeOfEntropy(id + 0x10030, 0.1f, "Sword 1");
-        BladeOfEntropy(id + 0x10040, 3.7f, "Sword 2");
+        BladeOfEntropy(id + 0x10040, 4.0f, "Sword 2"); // note: large variance
         Targetable(id + 0x10050, true, 3.1f, "Reappear");
 
         GloryOfBozja(id + 0x20000, 6.5f);
@@ -113,10 +112,10 @@ class DRS5States : StateMachineBuilder
     {
         AllegiantArsenalAOE(id, delay);
 
-        Cast(id + 0x10000, AID.QuickMarchBow, 3.2f, 3)
+        Cast(id + 0x10000, AID.QuickMarchBow, 3.1f, 3)
             .ActivateOnEnter<FlamesOfBozja1>()
             .ActivateOnEnter<QuickMarchBow1>(); // debuffs are applied ~1s after cast end
-        WrathOfBozja(id + 0x10010, 3.1f);
+        WrathOfBozja(id + 0x10010, 3.1f, true);
         Cast(id + 0x10020, AID.FlamesOfBozja, 3.2f, 3);
         // +1.1s: flames of bozja aoe cast start
         ComponentCondition<QuickMarch>(id + 0x10030, 5.7f, comp => comp.NumActiveForcedMarches > 0, "Forced march start");
@@ -132,7 +131,7 @@ class DRS5States : StateMachineBuilder
         ComponentCondition<FlamesOfBozja>(id + 0x20030, 2.2f, comp => comp.AOE == null, "Bow 1 resolve")
             .DeactivateOnExit<FlamesOfBozja>();
 
-        GloryOfBozja(id + 0x30000, 5.3f);
+        GloryOfBozja(id + 0x30000, 5.3f); // TODO: this seems to have slightly different timings depending on forks...
     }
 
     private void Staff1(uint id, float delay)
@@ -155,26 +154,26 @@ class DRS5States : StateMachineBuilder
         // +0.3s: actual aoes (who cares)
         // +2.0s: blast cast starts
 
-        ComponentCondition<QuickMarch>(id + 0x20000, 6.7f, comp => comp.NumActiveForcedMarches > 0, "Forced march start")
+        ComponentCondition<QuickMarch>(id + 0x20000, 6.8f, comp => comp.NumActiveForcedMarches > 0, "Forced march start")
             .ActivateOnEnter<FreedomOfBozja1>()
             .ActivateOnEnter<QuickMarchStaff1>();
         ComponentCondition<FreedomOfBozja>(id + 0x20010, 3.3f, comp => comp.NumCasts > 0, "Orbs hit")
             .DeactivateOnExit<QuickMarch>()
             .DeactivateOnExit<FreedomOfBozja>();
 
-        GloryOfBozja(id + 0x30000, 7.9f);
+        GloryOfBozja(id + 0x30000, 7.9f); // TODO: this seems to have slightly different timings depending on forks...
     }
 
     private void Sword2(uint id, float delay)
     {
         AllegiantArsenalAOE(id, delay);
 
-        Cast(id + 0x10000, AID.HotAndColdSword, 4.4f, 3);
+        Cast(id + 0x10000, AID.HotAndColdSword, 4.4f, 3); // note: large variance
         Cast(id + 0x10010, AID.ElementalBrandSword, 4.1f, 3);
         Cast(id + 0x10020, AID.UnwaveringApparition, 3.2f, 3);
         Targetable(id + 0x10030, false, 6.0f, "Disappear");
         BladeOfEntropy(id + 0x10040, 0.1f, "Sword 1");
-        BladeOfEntropy(id + 0x10050, 3.9f, "Sword 2");
+        BladeOfEntropy(id + 0x10050, 4.0f, "Sword 2");
         Targetable(id + 0x10060, true, 3.1f, "Reappear");
 
         GloryOfBozja(id + 0x20000, 6.5f);
@@ -184,7 +183,7 @@ class DRS5States : StateMachineBuilder
     {
         AllegiantArsenalAOE(id, delay);
 
-        Cast(id + 0x10000, AID.UnseenEye, 3.1f, 3);
+        Cast(id + 0x10000, AID.UnseenEyeBow, 3.1f, 3);
         Cast(id + 0x10010, AID.FlamesOfBozja, 3.1f, 3)
             .ActivateOnEnter<GleamingArrow>(); // PATE events happen together with cast-start, actual casts start ~2.1s later - if we want to rely on former, need to activate earlier
         ComponentCondition<GleamingArrow>(id + 0x10020, 5.1f, comp => comp.NumCasts > 0, "Criss-cross")
@@ -192,7 +191,7 @@ class DRS5States : StateMachineBuilder
         ComponentCondition<FlamesOfBozja>(id + 0x10030, 5, comp => comp.NumCasts > 0, "Single safe row")
             .ActivateOnEnter<FlamesOfBozja2>(); // activate late, since criss-cross have to be resolved first
 
-        Cast(id + 0x20000, AID.HotAndColdBow, 0, 3); // this can start slightly earlier than flames of bozja end, but whatever...
+        Cast(id + 0x20000, AID.HotAndColdBow, 0, 3); // note: very high variance, sometimes even starts slightly beofre flames of bozja end...
         Cast(id + 0x20010, AID.ElementalBrandBow, 4.2f, 3);
         Cast(id + 0x20020, AID.QuickMarchBow, 3.2f, 3);
         Cast(id + 0x20030, AID.ShimmeringShot, 3.9f, 3);
@@ -202,11 +201,11 @@ class DRS5States : StateMachineBuilder
         ComponentCondition<ShimmeringShot>(id + 0x20050, 4, comp => comp.NumCasts > 0, "Arrows hit")
             .DeactivateOnExit<QuickMarch>()
             .DeactivateOnExit<ShimmeringShot>();
-        ComponentCondition<FlamesOfBozja>(id + 0x20060, 2.1f, comp => comp.AOE == null, "Bow 1 resolve")
+        ComponentCondition<FlamesOfBozja>(id + 0x20060, 2.2f, comp => comp.AOE == null, "Bow 2 resolve")
             .DeactivateOnExit<FlamesOfBozja>();
 
         GloryOfBozja(id + 0x30000, 5.3f);
-        WrathOfBozja(id + 0x40000, 3.2f);
+        WrathOfBozja(id + 0x40000, 3.2f, false);
     }
 
     private void Staff2(uint id, float delay)
@@ -215,12 +214,11 @@ class DRS5States : StateMachineBuilder
 
         Cast(id + 0x10000, AID.HotAndColdStaff, 3.1f, 3);
         Cast(id + 0x10010, AID.ElementalBrandStaff, 4.1f, 3);
-        // TODO: timings below are guesses until i get a log
         Cast(id + 0x10020, AID.FreedomOfBozja, 3.2f, 3)
             .ActivateOnEnter<ElementalImpact1>()
             .ActivateOnEnter<ElementalImpact2>();
-        Cast(id + 0x10030, AID.UnseenEye, 3.1f, 3);
-        ComponentCondition<ElementalImpact1>(id + 0x10040, 1.2f, comp => comp.NumCasts > 0, "Proximity", 10)
+        Cast(id + 0x10030, AID.UnseenEyeStaff, 3.1f, 3);
+        ComponentCondition<ElementalImpact1>(id + 0x10040, 1.0f, comp => comp.NumCasts > 0, "Proximity", 10)
             .DeactivateOnExit<ElementalImpact1>()
             .DeactivateOnExit<ElementalImpact2>();
 
@@ -230,13 +228,16 @@ class DRS5States : StateMachineBuilder
             .DeactivateOnExit<FreedomOfBozja>()
             .DeactivateOnExit<GleamingArrow>();
 
-        GloryOfBozja(id + 0x30000, 7.9f);
+        GloryOfBozja(id + 0x30000, 8);
     }
 
-    // TODO: component
-    private void WrathOfBozja(uint id, float delay)
+    private void WrathOfBozja(uint id, float delay, bool bow)
     {
-        CastMulti(id, new[] { AID.WrathOfBozja, AID.WrathOfBozjaBow }, delay, 5, "Tankbuster")
+        Cast(id, bow ? AID.WrathOfBozjaBow : AID.WrathOfBozja, delay, 5, "Tankbuster")
+            .ActivateOnEnter<WrathOfBozja>(!bow)
+            .ActivateOnEnter<WrathOfBozjaBow>(bow)
+            .DeactivateOnExit<WrathOfBozja>(!bow)
+            .DeactivateOnExit<WrathOfBozjaBow>(bow)
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
 
@@ -258,5 +259,10 @@ class DRS5States : StateMachineBuilder
         CastMulti(id, new[] { AID.BladeOfEntropyBC11, AID.BladeOfEntropyBC21, AID.BladeOfEntropyBH11, AID.BladeOfEntropyBH21, AID.BladeOfEntropyAC11, AID.BladeOfEntropyAC21, AID.BladeOfEntropyAH11, AID.BladeOfEntropyAH21 }, delay, 10, name)
             .ActivateOnEnter<BladeOfEntropy>()
             .DeactivateOnExit<BladeOfEntropy>();
+    }
+
+    private void Enrage(uint id, float delay)
+    {
+        Cast(id, AID.Enrage, delay, 12, "Enrage"); // boss becomes untargetable at the end of the cast
     }
 }

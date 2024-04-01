@@ -1,5 +1,15 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5TrinityAvowed;
 
+class WrathOfBozja : Components.CastSharedTankbuster
+{
+    public WrathOfBozja() : base(ActionID.MakeSpell(AID.WrathOfBozja), new AOEShapeCone(60, 45.Degrees())) { } // TODO: verify angle
+}
+
+class WrathOfBozjaBow : Components.CastSharedTankbuster
+{
+    public WrathOfBozjaBow() : base(ActionID.MakeSpell(AID.WrathOfBozjaBow), new AOEShapeCone(60, 45.Degrees())) { } // TODO: verify angle
+}
+
 // note: it is combined with different AOEs (bow1, bow2, staff1)
 class QuickMarch : Components.StatusDrivenForcedMarch
 {
