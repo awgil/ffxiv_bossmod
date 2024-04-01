@@ -36,7 +36,6 @@ class Rip : Components.GenericAOEs
             yield return new(cone, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
     }
 
-
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Butcher) // boss can move after cast started, so we can't use aoe instance, since that would cause outdated position data to be used
