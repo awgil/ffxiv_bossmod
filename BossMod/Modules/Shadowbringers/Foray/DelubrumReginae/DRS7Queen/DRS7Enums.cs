@@ -12,6 +12,8 @@ public enum OID : uint
     BallLightning = 0x2FB0, // R2.000, spawn during fight
     AutomaticTurret = 0x311F, // R3.000, spawn during fight
     AetherialSphere = 0x3117, // R2.500, spawn during fight
+    AetherialBolt = 0x3119, // R0.600, spawn during fight (small bomb)
+    AetherialBurst = 0x311A, // R1.200, spawn during fight (big bomb)
     ProtectiveDome = 0x1EB12C, // R0.500, EventObj type, spawn during fight
 };
 
@@ -60,6 +62,7 @@ public enum AID : uint
     QueensShotAOE = 23086, // Helper->self, 7.0s cast, range 60 circle, raidwide that requires directing unseen side to caster
     TurretsTourUnseen = 23087, // AutomaticTurret->self, 3.0s cast, range 50 width 5 rect aoe that requires directing unseen side to caster
 
+    SwordOmen = 23037, // QueensKnight->self, 3.0s cast, single-target, apply sword-bearer status
     ShieldOmen = 23038, // QueensKnight->self, 3.0s cast, single-target, apply shield-bearer status
     DoubleGambit = 23067, // QueensSoldier->self, 5.0s cast, single-target, visual (summon 4 pawns)
     OptimalOffensive = 23043, // QueensKnight->location, 7.0s cast, width 5 rect charge
@@ -76,13 +79,34 @@ public enum AID : uint
     PawnOffFake = 23070, // SoldierAvatar->self, 7.0s cast, range 20 circle fake aoe
 
     AutomaticTurretRP3 = 23078, // QueensGunner->self, 3.0s cast, single-target, visual (spawn turrets)
-    // OptimalPlaySword = 23039?
+    OptimalPlaySword = 23039, // QueensKnight->self, 5.0s cast, range 10 circle
     OptimalPlayShield = 23040, // QueensKnight->self, 5.0s cast, range 5-60 donut
     OptimalPlayCone = 23041, // Helper->self, 5.0s cast, range 60 270-degree cone
     TurretsTour = 23079, // QueensGunner->self, 5.0s cast, single-target, visual (turret aoes)
     TurretsTourAOE1 = 23080, // Helper->location, 5.0s cast, width 6 rect charge aoe
     TurretsTourAOE2 = 23082, // AutomaticTurret->self, no cast, range 50 width 6 rect
     TurretsTourAOE3 = 23081, // AutomaticTurret->location, no cast, width 6 rect charge
+
+    Bombslinger = 23359, // QueensWarrior->self, 3.0s cast, single-target, visual (spawn bombs)
+    HeavensWrath = 23030, // Boss->self, 3.0s cast, single-target, visual (preparation for knockback)
+    HeavensWrathKnockback = 23031, // Helper->self, 5.0s cast, range 60 width 100 rect, knockback 15
+    HeavensWrathVisual = 23032, // Helper->self, 5.0s cast, single-target, visual (knockback)
+    FieryPortent = 23073, // QueensSoldier->self, 6.0s cast, range 60 circle, visual (pyretic buff application)
+    IcyPortent = 23074, // QueensSoldier->self, 6.0s cast, range 60 circle, visual (move to avoid effect)
+    AboveBoard = 23051, // QueensWarrior->self, 6.0s cast, range 60 circle, visual (throw up)
+    AboveBoardExtra = 23438, // Helper->self, 6.0s cast, range 60 circle, visual (???)
+    LotsCastBigShort = 23433, // AetherialBurst->location, no cast, range 10 circle
+    LotsCastSmallLong = 23432, // AetherialBolt->location, no cast, range 10 circle visual
+    LotsCastLong = 23478, // Helper->location, 1.2s cast, range 10 circle
+
+    SoftEnrageW = 23062, // QueensWarrior->self, 5.0s cast, range 60 circle, visual (raidwide)
+    SoftEnrageWAOE = 23412, // Helper->self, 5.0s cast, range 60 circle, raidwide
+    SoftEnrageK = 23048, // QueensKnight->self, 5.0s cast, range 60 circle, visual (raidwide)
+    SoftEnrageKAOE = 23411, // Helper->self, 5.0s cast, range 60 circle, raidwide
+    SoftEnrageG = 23093, // QueensGunner->self, 5.0s cast, range 60 circle, visual (raidwide)
+    SoftEnrageGAOE = 23414, // Helper->self, 5.0s cast, range 60 circle, raidwide
+    SoftEnrageS = 23075, // QueensSoldier->self, 5.0s cast, range 60 circle, visual (raidwide)
+    SoftEnrageSAOE = 23413, // Helper->self, 5.0s cast, range 60 circle, raidwide
 };
 
 public enum SID : uint
@@ -106,4 +130,8 @@ public enum SID : uint
     LeftUnseen = 1708, // none->player, extra=0xEA
     BackUnseen = 1709, // none->player, extra=0xE8
     ShieldBearer = 2446, // QueensKnight->QueensKnight, extra=0x0
+    AboveBoardPlayerLong = 2426, // none->player, extra=0x3E8
+    AboveBoardPlayerShort = 2427, // none->player, extra=0x3E8
+    AboveBoardBombLong = 2428, // none->AetherialBurst/AetherialBolt, extra=0x3E8
+    AboveBoardBombShort = 2429, // none->AetherialBolt/AetherialBurst, extra=0x3E8
 };

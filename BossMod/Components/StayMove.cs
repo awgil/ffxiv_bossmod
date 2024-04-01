@@ -22,7 +22,7 @@ public class StayMove : BossComponent
                 hints.Add("Stay!", _lastPositions[slot].prev != _lastPositions[slot].curr || actor.CastInfo != null || actor.TargetID != 0); // note: assume if target is selected, we might autoattack...
                 break;
             case Requirement.Move:
-                hints.Add("Move!", _lastPositions[slot].prev == _lastPositions[slot].curr && actor.CastInfo == null);
+                hints.Add("Move!", _lastPositions[slot].prev == _lastPositions[slot].curr);
                 break;
         }
     }

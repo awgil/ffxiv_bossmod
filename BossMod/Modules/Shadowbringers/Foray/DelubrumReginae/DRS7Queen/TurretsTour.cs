@@ -6,8 +6,6 @@ class TurretsTour : Components.GenericAOEs
     private List<(Actor caster, AOEShapeRect shape)> _casters = new();
     private DateTime _activation;
 
-    private static readonly AOEShapeRect _turretShape = new(50, 3);
-
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
         foreach (var t in _turrets)

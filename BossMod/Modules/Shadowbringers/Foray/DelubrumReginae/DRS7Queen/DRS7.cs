@@ -43,6 +43,11 @@ class PawnOff : Components.SelfTargetedAOEs
     public PawnOff() : base(ActionID.MakeSpell(AID.PawnOffReal), new AOEShapeCircle(20)) { }
 }
 
+class OptimalPlaySword : Components.SelfTargetedAOEs
+{
+    public OptimalPlaySword() : base(ActionID.MakeSpell(AID.OptimalPlaySword), new AOEShapeCircle(10)) { }
+}
+
 class OptimalPlayShield : Components.SelfTargetedAOEs
 {
     public OptimalPlayShield() : base(ActionID.MakeSpell(AID.OptimalPlayShield), new AOEShapeDonut(5, 60)) { }
