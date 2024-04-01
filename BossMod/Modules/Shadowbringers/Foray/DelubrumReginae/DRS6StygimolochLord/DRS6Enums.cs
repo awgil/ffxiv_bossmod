@@ -15,6 +15,7 @@ public enum AID : uint
     AutoAttack = 6497, // Boss->player, no cast, single-target
     Teleport = 22490, // Boss->location, no cast, single-target, teleport
     FoeSplitter = 22487, // Boss->player, 5.0s cast, range 9 ?-degree cone tankbuster
+    ViciousSwipe = 21842, // Boss->self, no cast, range 8 circle, knockback 15
     ThunderousDischarge = 22482, // Boss->self, 5.0s cast, single-target, visual (raidwide)
     ThunderousDischargeExtra = 22483, // Helper->self, no cast, single-target, visual?
     ThunderousDischargeAOE = 23352, // Helper->self, no cast, range 70 circle raidwide
@@ -52,5 +53,6 @@ public enum SID : uint
 
 public enum IconID : uint
 {
+    FoeSplitter = 198, // player
     RapidBolts = 160, // player
 };

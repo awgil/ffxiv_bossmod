@@ -1,5 +1,10 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6StygimolochLord;
 
+class FoeSplitter : Components.Cleave
+{
+    public FoeSplitter() : base(ActionID.MakeSpell(AID.FoeSplitter), new AOEShapeCone(9, 45.Degrees())) { } // TODO: verify angle
+}
+
 class ThunderousDischarge : Components.CastCounter
 {
     public ThunderousDischarge() : base(ActionID.MakeSpell(AID.ThunderousDischargeAOE)) { }
