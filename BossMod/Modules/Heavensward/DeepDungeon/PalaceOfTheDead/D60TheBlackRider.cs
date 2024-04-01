@@ -4,7 +4,6 @@ namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D60TheBlackRider;
 public enum OID : uint
 {
     Boss = 0x1814, // R3.920, x1
-    Actor1e86e0 = 0x1E86E0, // R2.000, x1, EventObj type // Used to spawn the lingering puddles
     Voidzone = 0x1E858E, // R0.500, EventObj type, spawn during fight
     VoidsentDiscarnate = 0x18E6, // R1.000, spawn during fight
     Helper = 0x233C, // R0.500, x12, 523 type
