@@ -67,7 +67,7 @@ class BambooSplits : Components.GenericAOEs
 
     public override void OnActorCreated(BossModule module, Actor actor)
     {
-        if ((OID)actor.OID is OID.HelperCircle or OID.HelperDoubleRect or OID.HelperSingleRect && !_bamboospawn.Any(b => b.Position.AlmostEqual(actor.Position, 1)))
+        if ((OID)actor.OID is OID.HelperCircle or OID.HelperDoubleRect or OID.HelperSingleRect)
             _bamboospawn.Add(actor);
     }
 
@@ -112,7 +112,7 @@ class BambooSplits : Components.GenericAOEs
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BambooSpawn)
-            _bamboospawn.RemoveAll(b => b.Position.AlmostEqual(caster.Position, 1));
+            _bamboospawn.RemoveAt(0);
     }
 }
 
