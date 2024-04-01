@@ -114,7 +114,7 @@ class ForkedFissures : Components.GenericAOEs
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.ForkedFissures)
+        if (_aoes.Count > 0 && (AID)spell.Action.ID == AID.ForkedFissures)
             _aoes.RemoveAt(0);
     }
 }

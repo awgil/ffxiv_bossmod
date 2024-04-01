@@ -111,7 +111,7 @@ class BambooSplits : Components.GenericAOEs
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.BambooSpawn)
+        if (_bamboospawn.Count > 0 && (AID)spell.Action.ID == AID.BambooSpawn)
             _bamboospawn.RemoveAt(0);
     }
 }
