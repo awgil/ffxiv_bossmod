@@ -13,7 +13,7 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 7179, // Boss->player, no cast, range 8+R 90-degree cone
-    Geirrothr = 7087, // Boss->self, no cast, range 6+R 90-degree cone, 7.1s after Valfodr + 8.1s after the first HallofSorrow in each set of two
+    Geirrothr = 7087, // Boss->self, no cast, range 6+R 90-degree cone, 5.1s after pull, 7.1s after Valfodr + 8.1s after every 2nd HallofSorrow
     HallOfSorrow = 7088, // Boss->location, no cast, range 9 circle
     Infaturation = 7157, // VoidsentDiscarnate->self, 6.5s cast, range 6+R circle
     Valfodr = 7089, // Boss->player, 4.0s cast, width 6 rect charge, knockback 25, dir forward
@@ -28,6 +28,16 @@ class Geirrothr : Components.GenericAOEs
 {
     private DateTime _activation;
     private static readonly AOEShapeCone cone = new(9.92f, 45.Degrees());
+    private bool Pulled;
+
+    public override void Update(BossModule module)
+    {
+        if (!Pulled)
+        {
+            _activation = module.WorldState.CurrentTime.AddSeconds(5.1f);
+            Pulled = true;
+        }
+    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
@@ -35,10 +45,10 @@ class Geirrothr : Components.GenericAOEs
             yield return new(cone, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Valfodr) // boss can move after cast started, so we can't use aoe instance, since that would cause outdated position data to be used
-            _activation = spell.NPCFinishAt.AddSeconds(7.1f);
+            _activation = module.WorldState.CurrentTime.AddSeconds(7.1f);
     }
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
