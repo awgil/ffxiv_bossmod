@@ -32,10 +32,10 @@ class Entrapment : Components.CastCounter
     }
 
     protected TrapType TrapToTake; // note that 'normal' means none here
+    private readonly Pattern[] _allowedPatterns;
     private Pattern _curPattern;
     private BitMask _uncovered;
     private BitMask _exploded;
-    private Pattern[] _allowedPatterns;
     private BitMask _possiblePatterns;
     private Pattern _potentiallyUnsafe;
     private bool _possiblePatternsDirty;
@@ -218,7 +218,7 @@ class Entrapment : Components.CastCounter
 
 class EntrapmentNormal : Entrapment
 {
-    private static Pattern[] _allowedPatterns = [
+    private readonly static Pattern[] _allowedPatterns = [
         new() { Normal = BuildMask( 8,  9, 10, 11, 12, 13, 18, 20, 34, 35, 36, 37, 38, 40, 42, 45) },
         new() { Normal = BuildMask( 8,  9, 11, 16, 19, 20, 21, 22, 26, 30, 32, 36, 40, 41, 42, 45) },
         new() { Normal = BuildMask( 9, 11, 12, 13, 14, 16, 17, 27, 28, 32, 33, 38, 41, 42, 43, 44) },
@@ -231,7 +231,7 @@ class EntrapmentNormal : Entrapment
 class EntrapmentInescapable : Entrapment
 {
     // TODO: don't think these patterns are actually correct...
-    private static Pattern[] _allowedPatterns = [
+    private readonly static Pattern[] _allowedPatterns = [
         new() { Normal = BuildMask(3, 8, 20, 25, 38, 43, 46, 49, 52), Toad = BuildMask(10, 50, 53), Ice = BuildMask(40), Mini = BuildMask(29) },
         new() { Normal = BuildMask(2, 8, 11, 16, 25, 29, 38, 46), Toad = BuildMask(0, 4, 44), Ice = BuildMask(49), Mini = BuildMask(34) },
         new() { Normal = BuildMask(5, 8, 11, 16, 18, 22, 24, 29, 43, 49, 53), Toad = BuildMask(6, 33, 38), Ice = BuildMask(4), Mini = BuildMask(48) },
