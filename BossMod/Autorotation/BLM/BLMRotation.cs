@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BossMod.BLM;
+﻿namespace BossMod.BLM;
 
 public static class Rotation
 {
@@ -415,17 +413,17 @@ public static class Rotation
                 if (state.FontOfMagicLeft > state.TimeToManaTick)
                 {
                     if (state.CurMP >= 9000 && state.CurMP < 10000)
-                        return (AID)LostActionID.LostFlareStar;
+                        return (AID)BozjaActionID.GetNormal(BozjaHolsterID.LostFlareStar).ID;
                 }
                 else if (state.DutyActionCD(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfMagic)) == 0 && CanFoM(state, strategy))
                 {
                     if (state.LucidDreamingLeft == 0 && state.CD(CDGroup.LucidDreaming) == 0)
                         return AID.LucidDreaming;
 
-                    return (AID)LostActionID.LostFontofMagic;
+                    return (AID)BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfMagic).ID;
                 }
                 else if (state.CurMP >= 9000)
-                    return (AID)LostActionID.LostFlareStar;
+                    return (AID)BozjaActionID.GetNormal(BozjaHolsterID.LostFlareStar).ID;
                 else if (state.Polyglot > 0)
                     return AID.Xenoglossy;
             }

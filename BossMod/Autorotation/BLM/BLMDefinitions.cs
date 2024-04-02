@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BossMod.BLM;
+﻿namespace BossMod.BLM;
 
 public enum AID : uint
 {
@@ -223,7 +221,6 @@ public static class Definitions
     }
 
     public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-
     static Definitions()
     {
         SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionInt);

@@ -1,9 +1,4 @@
-﻿using BossMod;
-using BossMod.WAR;
-using ImGuiNET;
-using System;
-
-#if false
+﻿#if false
 namespace UIDev
 {
     class WARSimulator : TestWindow

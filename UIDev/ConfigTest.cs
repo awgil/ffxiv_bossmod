@@ -1,33 +1,36 @@
 ﻿using BossMod;
 using ImGuiNET;
-using System;
 
-namespace UIDev
+namespace UIDev;
+
+class ConfigTest : TestWindow
 {
-    class ConfigTest : TestWindow
+    private string _command = "";
+    private ConfigUI _ui;
+
+    public ConfigTest() : base("Config", new(400, 400), ImGuiWindowFlags.None)
     {
-        private string _command = "";
-        private ConfigUI _ui;
+        _ui = new(Service.Config, new(TimeSpan.TicksPerSecond, "fake"));
+    }
 
-        public ConfigTest() : base("Config", new(400, 400), ImGuiWindowFlags.None)
-        {
-            _ui = new(Service.Config, new(TimeSpan.TicksPerSecond, "fake"));
-        }
+    protected override void Dispose(bool disposing)
+    {
+        _ui.Dispose();
+    }
 
-        public override void Draw()
+    public override void Draw()
+    {
+        ImGui.InputText("##console", ref _command, 1024);
+        ImGui.SameLine();
+        if (ImGui.Button("Execute"))
         {
-            ImGui.InputText("##console", ref _command, 1024);
-            ImGui.SameLine();
-            if (ImGui.Button("Execute"))
+            var output = Service.Config.ConsoleCommand(_command.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            foreach (var msg in output)
             {
-                var output = Service.Config.ConsoleCommand(_command.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-                foreach (var msg in output)
-                {
-                    Service.Log(msg);
-                }
+                Service.Log(msg);
             }
-
-            _ui.Draw();
         }
+
+        _ui.Draw();
     }
 }

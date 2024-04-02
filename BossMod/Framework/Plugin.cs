@@ -4,7 +4,6 @@ using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using System;
 using System.Reflection;
 
 namespace BossMod;
@@ -45,6 +44,7 @@ public sealed class Plugin : IDalamudPlugin
         Service.LuminaGameData = Service.DataManager.GameData;
         Service.WindowSystem = new("vbm");
         //Service.Device = pluginInterface.UiBuilder.Device;
+        Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
         Network.IDScramble.Initialize();
         Camera.Instance = new();
@@ -80,6 +80,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        Service.Condition.ConditionChange -= OnConditionChanged;
         _wndDebug.Dispose();
         _wndReplay.Dispose();
         _wndBossmodHints.Dispose();
@@ -152,5 +153,10 @@ public sealed class Plugin : IDalamudPlugin
 
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
+    }
+
+    private void OnConditionChanged(ConditionFlag flag, bool value)
+    {
+        Service.Log($"Condition chage: {flag}={value}");
     }
 }

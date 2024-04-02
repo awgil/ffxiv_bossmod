@@ -1,38 +1,37 @@
-﻿namespace BossMod.Shadowbringers.Ultimate.TEA
+﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
+
+class P1ProteanWaveTornado : Components.GenericBaitAway
 {
-    class P1ProteanWaveTornado : Components.GenericBaitAway
+    private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
+
+    public P1ProteanWaveTornado(bool enableHints) : base(ActionID.MakeSpell(AID.ProteanWaveTornadoInvis))
     {
-        private static AOEShapeCone _shape = new(40, 15.Degrees());
+        EnableHints = enableHints;
+    }
 
-        public P1ProteanWaveTornado(bool enableHints) : base(ActionID.MakeSpell(AID.ProteanWaveTornadoInvis))
+    public override void Update(BossModule module)
+    {
+        CurrentBaits.Clear();
+        foreach (var tornado in module.Enemies(OID.LiquidRage))
         {
-            EnableHints = enableHints;
-        }
-
-        public override void Update(BossModule module)
-        {
-            CurrentBaits.Clear();
-            foreach (var tornado in module.Enemies(OID.LiquidRage))
-            {
-                var target = module.Raid.WithoutSlot().Closest(tornado.Position);
-                if (target != null)
-                    CurrentBaits.Add(new(tornado, target, _shape));
-            }
+            var target = module.Raid.WithoutSlot().Closest(tornado.Position);
+            if (target != null)
+                CurrentBaits.Add(new(tornado, target, _shape));
         }
     }
+}
 
-    class P1ProteanWaveTornadoVisCast : Components.SelfTargetedAOEs
-    {
-        public P1ProteanWaveTornadoVisCast() : base(ActionID.MakeSpell(AID.ProteanWaveTornadoVis), new AOEShapeCone(40, 15.Degrees())) { }
-    }
+class P1ProteanWaveTornadoVisCast : Components.SelfTargetedAOEs
+{
+    public P1ProteanWaveTornadoVisCast() : base(ActionID.MakeSpell(AID.ProteanWaveTornadoVis), new AOEShapeCone(40, 15.Degrees())) { }
+}
 
-    class P1ProteanWaveTornadoVisBait : P1ProteanWaveTornado
-    {
-        public P1ProteanWaveTornadoVisBait() : base(false) { }
-    }
+class P1ProteanWaveTornadoVisBait : P1ProteanWaveTornado
+{
+    public P1ProteanWaveTornadoVisBait() : base(false) { }
+}
 
-    class P1ProteanWaveTornadoInvis : P1ProteanWaveTornado
-    {
-        public P1ProteanWaveTornadoInvis() : base(true) { }
-    }
+class P1ProteanWaveTornadoInvis : P1ProteanWaveTornado
+{
+    public P1ProteanWaveTornadoInvis() : base(true) { }
 }

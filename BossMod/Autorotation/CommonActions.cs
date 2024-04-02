@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using FFXIVGame = FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace BossMod;
@@ -21,8 +17,6 @@ abstract class CommonActions : IDisposable
         public Actor? Target;
         public Vector3 TargetPos;
         public ActionSource Source;
-        public CommandID Command;
-        public (uint, uint, uint, int) Arguments;
 
         public NextAction(ActionID action, Actor? target, Vector3 targetPos, ActionSource source)
         {
@@ -30,14 +24,6 @@ abstract class CommonActions : IDisposable
             Target = target;
             TargetPos = targetPos;
             Source = source;
-        }
-
-        public static NextAction ExecuteCommand(CommandID id, uint arg1, uint arg2, uint arg3, int arg4)
-        {
-            return new NextAction() {
-                Command = id, 
-                Arguments = (arg1, arg2, arg3, arg4)
-            };
         }
     }
 
@@ -125,8 +111,7 @@ abstract class CommonActions : IDisposable
         else if (!Player.InCombat && wasInCombat)
         {
             _playerCombatStart = new();
-            if (Autorot.Config.AutoExpireAfterCombat)
-                _autoActionExpire = new(); // immediately expire auto actions, if any
+            _autoActionExpire = new(); // immediately expire auto actions, if any
         }
 
         // prepull expiration logic: if we queue up any action during countdown, and then countdown is cancelled, we don't really want to pull
@@ -171,7 +156,7 @@ abstract class CommonActions : IDisposable
     {
         if (actor == null)
             return (0, 0);
-        var pending = pendingDuration > 0 ? Autorot.WorldState.PendingEffects.PendingStatus(actor.InstanceID, sid, sourceID) : null;
+        var pending = Autorot.WorldState.PendingEffects.PendingStatus(actor.InstanceID, sid, sourceID);
         if (pending != null)
             return (pendingDuration, pending.Value);
         var status = actor.FindStatus(sid, sourceID);
@@ -315,7 +300,7 @@ abstract class CommonActions : IDisposable
 
         // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
         var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : new();
-        if (nextOGCD.Action || nextOGCD.Command != CommandID.None)
+        if (nextOGCD.Action)
             return nextOGCD;
 
         // finally see whether there are any low-priority planned actions
@@ -407,16 +392,16 @@ abstract class CommonActions : IDisposable
         // TODO: also check damage-taken debuffs on target
     }
 
-    private static CommonRotation.DutyAction GetDutyAction(ushort slot) 
-    {
-        var d = FFXIVGame.ActionManager.GetDutyActionId(slot);
-        var hasCharge = false;
+    // private static CommonRotation.DutyAction GetDutyAction(ushort slot) 
+    // {
+    //     var d = FFXIVGame.ActionManager.GetDutyActionId(slot);
+    //     var hasCharge = false;
 
-        if (d > 0)
-            hasCharge = ActionManagerEx.Instance!.GetEventActionHasCharge(d);
+    //     if (d > 0)
+    //         hasCharge = ActionManagerEx.Instance!.GetEventActionHasCharge(d);
 
-        return new CommonRotation.DutyAction { ActionID = d, HasCharge = hasCharge };
-    }
+    //     return new CommonRotation.DutyAction { ActionID = d, HasCharge = hasCharge };
+    // }
 
     // fill common strategy properties
     protected void FillCommonStrategy(CommonRotation.Strategy strategy, ActionID potion)
@@ -429,8 +414,8 @@ abstract class CommonActions : IDisposable
         strategy.CombatTimer = CombatTimer();
         strategy.ForbidDOTs = targetEnemy?.ForbidDOTs ?? false;
         strategy.ForceMovementIn = ActionManagerEx.Instance!.InputOverride.IsMoveRequested() ? 0 : MaxCastTime;
-        strategy.FightEndIn = downtime.Item1 ? 10000f : downtime.Item2;
-        strategy.RaidBuffsIn = vuln.Item1 ? 10000f : vuln.Item2;
+        strategy.FightEndIn = downtime.Item1 ? 0 : downtime.Item2;
+        strategy.RaidBuffsIn = vuln.Item1 ? 0 : vuln.Item2;
         if (Autorot.Bossmods.ActiveModule?.PlanConfig != null) // assumption: if there is no planning support for encounter (meaning it's something trivial, like outdoor boss), don't expect any cooldowns
             strategy.RaidBuffsIn = Math.Min(strategy.RaidBuffsIn, Autorot.Bossmods.RaidCooldowns.NextDamageBuffIn(Autorot.WorldState.CurrentTime));
         strategy.PositionLockIn = Autorot.Config.EnableMovement && !poslock.Item1 ? poslock.Item2 : 0;

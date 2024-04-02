@@ -1,73 +1,69 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos;
 
-namespace BossMod.Endwalker.Savage.P4S1Hesperos
+// state related to belone coils mechanic (role towers)
+class BeloneCoils : BossComponent
 {
-    // state related to belone coils mechanic (role towers)
-    class BeloneCoils : BossComponent
+    public enum Soaker { Unknown, TankOrHealer, DamageDealer }
+
+    public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
+    private List<Actor> _activeTowers = new();
+
+    private static readonly float _towerRadius = 4;
+
+    public bool IsValidSoaker(Actor player)
     {
-        public enum Soaker { Unknown, TankOrHealer, DamageDealer }
-
-        public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
-        private List<Actor> _activeTowers = new();
-
-        private static float _towerRadius = 4;
-
-        public bool IsValidSoaker(Actor player)
+        return ActiveSoakers switch
         {
-            return ActiveSoakers switch
-            {
-                Soaker.TankOrHealer => player.Role == Role.Tank || player.Role == Role.Healer,
-                Soaker.DamageDealer => player.Role == Role.Melee || player.Role == Role.Ranged,
-                _ => false
-            };
+            Soaker.TankOrHealer => player.Role == Role.Tank || player.Role == Role.Healer,
+            Soaker.DamageDealer => player.Role == Role.Melee || player.Role == Role.Ranged,
+            _ => false
+        };
+    }
+
+    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    {
+        if (ActiveSoakers == Soaker.Unknown)
+            return;
+
+        bool isSoaking = _activeTowers.InRadius(actor.Position, _towerRadius).Any();
+        if (IsValidSoaker(actor))
+        {
+            hints.Add("Soak the tower", !isSoaking);
         }
-
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        else
         {
-            if (ActiveSoakers == Soaker.Unknown)
-                return;
-
-            bool isSoaking = _activeTowers.InRadius(actor.Position, _towerRadius).Any();
-            if (IsValidSoaker(actor))
-            {
-                hints.Add("Soak the tower", !isSoaking);
-            }
-            else
-            {
-                hints.Add("GTFO from tower", isSoaking);
-            }
+            hints.Add("GTFO from tower", isSoaking);
         }
+    }
 
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        if (ActiveSoakers == Soaker.Unknown)
+            return;
+
+        bool validSoaker = IsValidSoaker(pc);
+        foreach (var tower in _activeTowers)
         {
-            if (ActiveSoakers == Soaker.Unknown)
-                return;
-
-            bool validSoaker = IsValidSoaker(pc);
-            foreach (var tower in _activeTowers)
-            {
-                arena.AddCircle(tower.Position, _towerRadius, validSoaker ? ArenaColor.Safe : ArenaColor.Danger);
-            }
+            arena.AddCircle(tower.Position, _towerRadius, validSoaker ? ArenaColor.Safe : ArenaColor.Danger);
         }
+    }
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.BeloneCoilsDPS or AID.BeloneCoilsTH)
         {
-            if ((AID)spell.Action.ID is AID.BeloneCoilsDPS or AID.BeloneCoilsTH)
-            {
-                _activeTowers.Add(caster);
-                ActiveSoakers = (AID)spell.Action.ID == AID.BeloneCoilsDPS ? Soaker.DamageDealer : Soaker.TankOrHealer;
-            }
+            _activeTowers.Add(caster);
+            ActiveSoakers = (AID)spell.Action.ID == AID.BeloneCoilsDPS ? Soaker.DamageDealer : Soaker.TankOrHealer;
         }
+    }
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.BeloneCoilsDPS or AID.BeloneCoilsTH)
         {
-            if ((AID)spell.Action.ID is AID.BeloneCoilsDPS or AID.BeloneCoilsTH)
-            {
-                _activeTowers.Remove(caster);
-                if (_activeTowers.Count == 0)
-                    ActiveSoakers = Soaker.Unknown;
-            }
+            _activeTowers.Remove(caster);
+            if (_activeTowers.Count == 0)
+                ActiveSoakers = Soaker.Unknown;
         }
     }
 }

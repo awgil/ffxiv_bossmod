@@ -1,81 +1,78 @@
-﻿using System.Linq;
+﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
-namespace BossMod.Endwalker.Savage.P8S1Hephaistos
+// component dealing with tetra/octaflare mechanics (conceptual or not)
+class TetraOctaFlareCommon : Components.UniformStackSpread
 {
-    // component dealing with tetra/octaflare mechanics (conceptual or not)
-    class TetraOctaFlareCommon : Components.UniformStackSpread
+    public enum Concept { None, Tetra, Octa }
+
+    public TetraOctaFlareCommon() : base(3, 6, 2, 2) { }
+
+    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        public enum Concept { None, Tetra, Octa }
-
-        public TetraOctaFlareCommon() : base(3, 6, 2, 2) { }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+        if ((AID)spell.Action.ID is AID.EmergentOctaflare or AID.EmergentTetraflare)
         {
-            if ((AID)spell.Action.ID is AID.EmergentOctaflare or AID.EmergentTetraflare)
-            {
-                Stacks.Clear();
-                Spreads.Clear();
-            }
-        }
-
-        protected void SetupMasks(BossModule module, Concept concept)
-        {
-            switch (concept)
-            {
-                case Concept.Tetra:
-                    // note that targets are either all dps or all tanks/healers, it seems to be unknown until actual cast, so for simplicity assume it will target tanks/healers (not that it matters much in practice)
-                    AddStacks(module.Raid.WithoutSlot().Where(a => a.Role is Role.Tank or Role.Healer));
-                    break;
-                case Concept.Octa:
-                    AddSpreads(module.Raid.WithoutSlot());
-                    break;
-            }
+            Stacks.Clear();
+            Spreads.Clear();
         }
     }
 
-    class TetraOctaFlareImmediate : TetraOctaFlareCommon
+    protected void SetupMasks(BossModule module, Concept concept)
     {
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+        switch (concept)
         {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.Octaflare:
-                    SetupMasks(module, Concept.Octa);
-                    break;
-                case AID.Tetraflare:
-                    SetupMasks(module, Concept.Tetra);
-                    break;
-            }
+            case Concept.Tetra:
+                // note that targets are either all dps or all tanks/healers, it seems to be unknown until actual cast, so for simplicity assume it will target tanks/healers (not that it matters much in practice)
+                AddStacks(module.Raid.WithoutSlot().Where(a => a.Role is Role.Tank or Role.Healer));
+                break;
+            case Concept.Octa:
+                AddSpreads(module.Raid.WithoutSlot());
+                break;
         }
     }
+}
 
-    class TetraOctaFlareConceptual : TetraOctaFlareCommon
+class TetraOctaFlareImmediate : TetraOctaFlareCommon
+{
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        private Concept _concept;
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        switch ((AID)spell.Action.ID)
         {
-            if (_concept != Concept.None)
-                hints.Add(_concept == Concept.Tetra ? "Prepare to stack in pairs" : "Prepare to spread");
+            case AID.Octaflare:
+                SetupMasks(module, Concept.Octa);
+                break;
+            case AID.Tetraflare:
+                SetupMasks(module, Concept.Tetra);
+                break;
         }
+    }
+}
 
-        public void Show(BossModule module)
-        {
-            SetupMasks(module, _concept);
-            _concept = Concept.None;
-        }
+class TetraOctaFlareConceptual : TetraOctaFlareCommon
+{
+    private Concept _concept;
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    {
+        if (_concept != Concept.None)
+            hints.Add(_concept == Concept.Tetra ? "Prepare to stack in pairs" : "Prepare to spread");
+    }
+
+    public void Show(BossModule module)
+    {
+        SetupMasks(module, _concept);
+        _concept = Concept.None;
+    }
+
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
         {
-            switch ((AID)spell.Action.ID)
-            {
-                case AID.ConceptualOctaflare:
-                    _concept = Concept.Octa;
-                    break;
-                case AID.ConceptualTetraflare:
-                    _concept = Concept.Tetra;
-                    break;
-            }
+            case AID.ConceptualOctaflare:
+                _concept = Concept.Octa;
+                break;
+            case AID.ConceptualTetraflare:
+                _concept = Concept.Tetra;
+                break;
         }
     }
 }

@@ -1,29 +1,26 @@
-﻿using System.Collections.Generic;
+﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
-namespace BossMod.Endwalker.Savage.P7SAgdistis
+// TODO: improve!
+class ForbiddenFruit5 : ForbiddenFruitCommon
 {
-    // TODO: improve!
-    class ForbiddenFruit5 : ForbiddenFruitCommon
+    private IReadOnlyList<Actor> _towers = ActorEnumeration.EmptyList;
+
+    private const float _towerRadius = 5;
+
+    public ForbiddenFruit5() : base(ActionID.MakeSpell(AID.Burst)) { }
+
+    public override void Init(BossModule module)
     {
-        private IReadOnlyList<Actor> _towers = ActorEnumeration.EmptyList;
+        _towers = module.Enemies(OID.Tower);
+    }
 
-        private const float _towerRadius = 5;
+    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        var tetherSource = TetherSources[pcSlot];
+        if (tetherSource != null)
+            arena.AddLine(tetherSource.Position, pc.Position, TetherColor(tetherSource));
 
-        public ForbiddenFruit5() : base(ActionID.MakeSpell(AID.Burst)) { }
-
-        public override void Init(BossModule module)
-        {
-            _towers = module.Enemies(OID.Tower);
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            var tetherSource = TetherSources[pcSlot];
-            if (tetherSource != null)
-                arena.AddLine(tetherSource.Position, pc.Position, TetherColor(tetherSource));
-
-            foreach (var tower in _towers)
-                arena.AddCircle(tower.Position, _towerRadius, tetherSource == null ? ArenaColor.Safe : ArenaColor.Danger);
-        }
+        foreach (var tower in _towers)
+            arena.AddCircle(tower.Position, _towerRadius, tetherSource == null ? ArenaColor.Safe : ArenaColor.Danger);
     }
 }

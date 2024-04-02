@@ -1,101 +1,99 @@
 ﻿using ImGuiNET;
-using System.Collections.Generic;
 using System.Reflection;
 
-namespace BossMod
+namespace BossMod;
+
+public class ColumnPlannerTrackStrategy : ColumnPlannerTrack
 {
-    public class ColumnPlannerTrackStrategy : ColumnPlannerTrack
+    public class OverrideElement : Element
     {
-        public class OverrideElement : Element
-        {
-            public uint Value;
-            public string Comment;
+        public uint Value;
+        public string Comment;
 
-            public OverrideElement(Entry window, uint value, string comment, float cooldown) : base(window)
+        public OverrideElement(Entry window, uint value, string comment, float cooldown) : base(window)
+        {
+            Value = value;
+            Comment = comment;
+            CooldownLength = cooldown;
+        }
+    }
+
+    public PlanDefinitions.ClassData ClassDef;
+    public PlanDefinitions.StrategyTrack TrackDef;
+
+    public ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, PlanDefinitions.ClassData classDef, PlanDefinitions.StrategyTrack trackDef)
+        : base(timeline, tree, phaseBranches, name)
+    {
+        ClassDef = classDef;
+        TrackDef = trackDef;
+    }
+
+    public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, uint value, string comment)
+    {
+        var elem = (OverrideElement)AddElement(attachNode, delay, windowLength);
+        elem.Comment = comment;
+        SetElementValue(elem, value);
+    }
+
+    protected override Element CreateElement(Entry window)
+    {
+        return SetElementValue(new OverrideElement(window, 0, "", TrackDef.Cooldown), 1);
+    }
+
+    protected override List<string> DescribeElement(Element e)
+    {
+        var cast = (OverrideElement)e;
+        List<string> res = new();
+        res.Add($"Comment: {cast.Comment}");
+        if (TrackDef.Values != null)
+        {
+            res.Add($"Value: {ValueString(cast.Value)}");
+        }
+        return res;
+    }
+
+    protected override void EditElement(Element e)
+    {
+        var cast = (OverrideElement)e;
+        if (TrackDef.Values != null && ImGui.BeginCombo("Value", ValueString(cast.Value)))
+        {
+            foreach (var opt in TrackDef.Values.GetEnumValues())
             {
-                Value = value;
-                Comment = comment;
-                CooldownLength = cooldown;
-            }
-        }
+                var uopt = (uint)opt;
+                if (uopt == 0)
+                    continue;
 
-        public PlanDefinitions.ClassData ClassDef;
-        public PlanDefinitions.StrategyTrack TrackDef;
-
-        public ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, PlanDefinitions.ClassData classDef, PlanDefinitions.StrategyTrack trackDef)
-            : base(timeline, tree, phaseBranches, name)
-        {
-            ClassDef = classDef;
-            TrackDef = trackDef;
-        }
-
-        public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, uint value, string comment)
-        {
-            var elem = (OverrideElement)AddElement(attachNode, delay, windowLength);
-            elem.Comment = comment;
-            SetElementValue(elem, value);
-        }
-
-        protected override Element CreateElement(Entry window)
-        {
-            return SetElementValue(new OverrideElement(window, 0, "", TrackDef.Cooldown), 1);
-        }
-
-        protected override List<string> DescribeElement(Element e)
-        {
-            var cast = (OverrideElement)e;
-            List<string> res = new();
-            res.Add($"Comment: {cast.Comment}");
-            if (TrackDef.Values != null)
-            {
-                res.Add($"Value: {ValueString(cast.Value)}");
-            }
-            return res;
-        }
-
-        protected override void EditElement(Element e)
-        {
-            var cast = (OverrideElement)e;
-            if (TrackDef.Values != null && ImGui.BeginCombo("Value", ValueString(cast.Value)))
-            {
-                foreach (var opt in TrackDef.Values.GetEnumValues())
+                if (ImGui.Selectable(ValueString(uopt), cast.Value == uopt))
                 {
-                    var uopt = (uint)opt;
-                    if (uopt == 0)
-                        continue;
-
-                    if (ImGui.Selectable(ValueString(uopt), cast.Value == uopt))
-                    {
-                        SetElementValue(cast, uopt);
-                        NotifyModified();
-                    }
+                    SetElementValue(cast, uopt);
+                    NotifyModified();
                 }
-                ImGui.EndCombo();
             }
-            if (ImGui.InputText("Comment", ref cast.Comment, 256))
-            {
-                NotifyModified();
-            }
+            ImGui.EndCombo();
         }
-
-        private string ValueString(uint value)
+        if (ImGui.InputText("Comment", ref cast.Comment, 256))
         {
-            var name = TrackDef.Values?.GetEnumName(value);
-            if (name == null)
-                return value.ToString();
-            return TrackDef.Values?.GetField(name)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Label ?? name;
+            NotifyModified();
         }
+    }
 
-        private OverrideElement SetElementValue(OverrideElement e, uint value)
-        {
-            e.Value = value;
+    private string ValueString(uint value)
+    {
+        var name = TrackDef.Values?.GetEnumName(value);
+        if (name == null)
+            return value.ToString();
+        return TrackDef.Values?.GetField(name)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Label ?? name;
+    }
 
-            var fn = TrackDef.Values?.GetEnumName(value);
-            var prop = fn != null ? TrackDef.Values?.GetField(fn)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Color : null;
-            if (prop != null)
-                e.Window.Color = prop.Value;
+    private OverrideElement SetElementValue(OverrideElement e, uint value)
+    {
+        e.Value = value;
 
-            return e;
-        }
+        var fn = TrackDef.Values?.GetEnumName(value);
+        var prop = fn != null ? TrackDef.Values?.GetField(fn)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Color : null;
+        if (prop != null)
+            e.Window.Color = prop.Value;
+
+        return e;
     }
 }

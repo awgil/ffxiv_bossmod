@@ -1,63 +1,60 @@
 ﻿using ImGuiNET;
-using System;
 using System.Reflection;
-using System.Reflection.Emit;
 
-namespace BossMod
+namespace BossMod;
+
+public static class UICombo
 {
-    public static class UICombo
+    public static string EnumString(Enum v)
     {
-        public static string EnumString(Enum v)
-        {
-            var name = v.ToString();
-            return v.GetType().GetField(name)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Label ?? name;
-        }
+        var name = v.ToString();
+        return v.GetType().GetField(name)?.GetCustomAttribute<PropertyDisplayAttribute>()?.Label ?? name;
+    }
 
-        public static bool Enum<T>(string label, ref T v) where T : Enum
+    public static bool Enum<T>(string label, ref T v) where T : Enum
+    {
+        bool res = false;
+        ImGui.SetNextItemWidth(200);
+        if (ImGui.BeginCombo(label, EnumString(v)))
         {
-            bool res = false;
-            ImGui.SetNextItemWidth(200);
-            if (ImGui.BeginCombo(label, EnumString(v)))
+            foreach (var opt in System.Enum.GetValues(v.GetType()))
             {
-                foreach (var opt in System.Enum.GetValues(v.GetType()))
+                if (ImGui.Selectable(EnumString((Enum)opt), opt.Equals(v)))
                 {
-                    if (ImGui.Selectable(EnumString((Enum)opt), opt.Equals(v)))
-                    {
-                        v = (T)opt;
-                        res =  true;
-                    }
+                    v = (T)opt;
+                    res =  true;
                 }
-                ImGui.EndCombo();
             }
-            return res;
+            ImGui.EndCombo();
         }
+        return res;
+    }
 
-        public static bool Int(string label, string[] values, ref int v)
+    public static bool Int(string label, string[] values, ref int v)
+    {
+        bool res = false;
+        ImGui.SetNextItemWidth(200);
+        if (ImGui.BeginCombo(label, v < values.Length ? values[v] : v.ToString()))
         {
-            bool res = false;
-            ImGui.SetNextItemWidth(200);
-            if (ImGui.BeginCombo(label, v < values.Length ? values[v] : v.ToString()))
+            for (int i = 0; i < values.Length; ++i)
             {
-                for (int i = 0; i < values.Length; ++i)
+                if (ImGui.Selectable(values[i], v == i))
                 {
-                    if (ImGui.Selectable(values[i], v == i))
-                    {
-                        v = i;
-                        res = true;
-                    }
+                    v = i;
+                    res = true;
                 }
-                ImGui.EndCombo();
             }
-            return res;
+            ImGui.EndCombo();
         }
+        return res;
+    }
 
-        public static bool Bool(string label, string[] values, ref bool v)
-        {
-            int val = v ? 1 : 0;
-            if (!Int(label, values, ref val))
-                return false;
-            v = val != 0;
-            return true;
-        }
+    public static bool Bool(string label, string[] values, ref bool v)
+    {
+        int val = v ? 1 : 0;
+        if (!Int(label, values, ref val))
+            return false;
+        v = val != 0;
+        return true;
     }
 }

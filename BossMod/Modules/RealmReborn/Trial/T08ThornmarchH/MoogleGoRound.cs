@@ -1,42 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿namespace BossMod.RealmReborn.Trial.T08ThornmarchH;
 
-namespace BossMod.RealmReborn.Trial.T08ThornmarchH
+class MoogleGoRound : Components.GenericAOEs
 {
-    class MoogleGoRound : Components.GenericAOEs
+    private List<Actor> _casters = new();
+    private static readonly AOEShape _shape = new AOEShapeCircle(20);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
-        private List<Actor> _casters = new();
-        private static AOEShape _shape = new AOEShapeCircle(20);
+        return _casters.Take(2).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
+    }
 
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(module, slot, actor, assignment, hints);
+
+        // if there is a third cast, add a smaller shape to ensure people stay closer to eventual safespot
+        if (_casters.Count > 2)
         {
-            return _casters.Take(2).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo!.NPCFinishAt));
+            var f1 = ShapeDistance.InvertedCircle(_casters[0].Position, 23);
+            var f2 = ShapeDistance.Circle(_casters[2].Position, 10);
+            hints.AddForbiddenZone(p => Math.Min(f1(p), f2(p)), _casters[1].CastInfo!.NPCFinishAt);
         }
+    }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-        {
-            base.AddAIHints(module, slot, actor, assignment, hints);
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.MoogleGoRoundBoss or AID.MoogleGoRoundAdd)
+            _casters.Add(caster);
+    }
 
-            // if there is a third cast, add a smaller shape to ensure people stay closer to eventual safespot
-            if (_casters.Count > 2)
-            {
-                var f1 = ShapeDistance.InvertedCircle(_casters[0].Position, 23);
-                var f2 = ShapeDistance.Circle(_casters[2].Position, 10);
-                hints.AddForbiddenZone(p => Math.Min(f1(p), f2(p)), _casters[1].CastInfo!.NPCFinishAt);
-            }
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.MoogleGoRoundBoss or AID.MoogleGoRoundAdd)
-                _casters.Add(caster);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.MoogleGoRoundBoss or AID.MoogleGoRoundAdd)
-                _casters.Remove(caster);
-        }
+    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.MoogleGoRoundBoss or AID.MoogleGoRoundAdd)
+            _casters.Remove(caster);
     }
 }

@@ -1,7 +1,6 @@
-﻿namespace BossMod
+﻿namespace BossMod;
+
+[ConfigDisplay(Name = "Encounter-specific settings", Order = 3)]
+public class ModuleConfig : ConfigNode
 {
-    [ConfigDisplay(Name = "Encounter-specific settings", Order = 3)]
-    public class ModuleConfig : ConfigNode
-    {
-    }
 }

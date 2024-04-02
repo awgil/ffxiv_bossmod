@@ -2,10 +2,7 @@
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using System;
-using System.Numerics;
 using System.Runtime.InteropServices;
-
 
 namespace BossMod;
 
@@ -111,12 +108,6 @@ unsafe class ActionManagerEx : IDisposable
     private (Angle pre, Angle post)? _restoreRotation; // if not null, we'll try restoring rotation to pre while it is equal to post
     private int _restoreCntr;
 
-    private DateTime _lastExecCommandRequest;
-    private static readonly uint EXEC_COMMAND_RATELIMIT_MS = 250;
-
-    private delegate byte ExecuteCommandDelegate(int commandId, uint a1, uint a2, uint a3, int a4);
-    private readonly ExecuteCommandDelegate _executeCommand;
-
     private delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
     private GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
 
@@ -143,9 +134,6 @@ unsafe class ActionManagerEx : IDisposable
     private delegate bool CancelStatusDelegate(uint statusId, uint sourceId);
     private CancelStatusDelegate _cancelStatusFunc;
 
-    private delegate bool HasChargesDelegate(long actionId, byte resourceType, int actionCost);
-    private HasChargesDelegate _hasChargesFunc;
-
     public ActionManagerEx()
     {
         InputOverride = new();
@@ -153,10 +141,6 @@ unsafe class ActionManagerEx : IDisposable
 
         _inst = ActionManager.Instance();
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
-
-        var executeCommandAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8D 43 0A");
-        _executeCommand = Marshal.GetDelegateForFunctionPointer<ExecuteCommandDelegate>(executeCommandAddress);
-        Service.Log($"[AMEx] ExecuteCommand address = 0x{executeCommandAddress:X}");
 
         var getGroundTargetPositionAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 44 8B 84 24 80 00 00 00 33 C0");
         _getGroundTargetPositionFunc = Marshal.GetDelegateForFunctionPointer<GetGroundTargetPositionDelegate>(getGroundTargetPositionAddress);
@@ -193,25 +177,6 @@ unsafe class ActionManagerEx : IDisposable
         var cancelStatusAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 2C 48 8B 07");
         _cancelStatusFunc = Marshal.GetDelegateForFunctionPointer<CancelStatusDelegate>(cancelStatusAddress);
         Service.Log($"[AMEx] CancelStatus address = 0x{cancelStatusAddress:X}");
-
-        var hasChargeAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? B8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 8B C2");
-        _hasChargesFunc = Marshal.GetDelegateForFunctionPointer<HasChargesDelegate>(hasChargeAddress);
-        Service.Log($"[AMEx] EventActionHasCharges address = 0x{hasChargeAddress:X}");
-    }
-
-    public bool GetEventActionHasCharge(uint actionid)
-    {
-        var row = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(actionid);
-        if (row == null) return false;
-
-        var ty = row.PrimaryCostType;
-        var cost = row.PrimaryCostValue;
-        // if PrimaryCostType is below 20, this is a normal non-duty action, meaning it costs MP or a job-specific resource, or has no resource cost (e.g. weaponskill GCD)
-        // in these cases we assume the action is baseline usable, and the rotation should do its own relevant checks
-        if (ty < 20)
-            return true;
-
-        return _hasChargesFunc(actionid, ty, cost);
     }
 
     public void Dispose()
@@ -358,22 +323,8 @@ unsafe class ActionManagerEx : IDisposable
                 _restoreRotation = null;
         }
 
-        if (AutoQueue.Command != CommandID.None && (EffectiveAnimationLock <= 0 || !AutoQueue.Command.CausesAnimationLock()))
-        {
-            var delay = DateTime.Now - _lastExecCommandRequest;
-            if (delay.TotalMilliseconds > EXEC_COMMAND_RATELIMIT_MS) {
-                _lastExecCommandRequest = DateTime.Now;
-                (var a1, var a2, var a3, var a4) = AutoQueue.Arguments;
-                Service.Log(
-                    $"[AMEx] ExecuteCommand({AutoQueue.Command} = {(int)AutoQueue.Command}, {a1}, {a2}, {a3}, {a4})"
-                );
-                _executeCommand.Invoke((int)AutoQueue.Command, a1, a2, a3, a4);
-            } else {
-                // Service.Log($"[AMEx] ExecuteCommand throttled - last request was {delay.TotalMilliseconds}ms ago");
-            }
-        }
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
-        else if (EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && InputOverride.IsMoving()))
+        if (EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && InputOverride.IsMoving()))
         {
             // extra safety checks (should no longer be needed, but leaving them for now)
             // hack for sprint support

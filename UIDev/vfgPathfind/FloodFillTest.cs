@@ -1,7 +1,4 @@
 ﻿using ImGuiNET;
-using System;
-using System.Linq;
-using System.Numerics;
 
 namespace UIDev.vfgPathfind;
 

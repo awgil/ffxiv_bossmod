@@ -1,47 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-namespace BossMod.RealmReborn.Extreme.Ex1Ultima
+class CrimsonCyclone : Components.GenericAOEs
 {
-    class CrimsonCyclone : Components.GenericAOEs
+    private Actor? _ifrit; // non-null while mechanic is active
+    private DateTime _resolve;
+
+    public bool Active => _ifrit != null;
+
+    private static readonly AOEShapeRect _shape = new(43, 6, 5);
+
+    public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
-        private Actor? _ifrit; // non-null while mechanic is active
-        private DateTime _resolve;
+        if (_ifrit != null)
+            yield return new(_shape, _ifrit.Position, _ifrit.Rotation, _resolve);
+    }
 
-        public bool Active => _ifrit != null;
-
-        private static AOEShapeRect _shape = new(43, 6, 5);
-
-        public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
         {
-            if (_ifrit != null)
-                yield return new(_shape, _ifrit.Position, _ifrit.Rotation, _resolve);
+            _ifrit = caster;
+            _resolve = spell.NPCFinishAt;
         }
+    }
 
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if (spell.Action == WatchedAction)
-            {
-                _ifrit = caster;
-                _resolve = spell.NPCFinishAt;
-            }
-        }
+    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _ifrit = null;
+    }
 
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    {
+        if ((OID)actor.OID == OID.UltimaIfrit && id == 0x008D)
         {
-            if (spell.Action == WatchedAction)
-                _ifrit = null;
-        }
-
-        public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
-        {
-            if ((OID)actor.OID == OID.UltimaIfrit && id == 0x008D)
-            {
-                _ifrit = actor;
-                _resolve = module.WorldState.CurrentTime.AddSeconds(5);
-            }
+            _ifrit = actor;
+            _resolve = module.WorldState.CurrentTime.AddSeconds(5);
         }
     }
 }

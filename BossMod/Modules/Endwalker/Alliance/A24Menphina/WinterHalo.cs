@@ -1,28 +1,25 @@
-﻿using System.Collections.Generic;
+﻿namespace BossMod.Endwalker.Alliance.A24Menphina;
 
-namespace BossMod.Endwalker.Alliance.A24Menphina
+class WinterHalo : Components.GenericAOEs
 {
-    class WinterHalo : Components.GenericAOEs
+    private AOEInstance? _aoe;
+
+    private static readonly AOEShapeDonut _shape = new(10, 60);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        private AOEInstance? _aoe;
+        if ((AID)spell.Action.ID is AID.WinterHaloShortAOE or AID.WinterHaloLongMountedAOE or AID.WinterHaloLongDismountedAOE)
+            _aoe = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt);
+    }
 
-        private static AOEShapeDonut _shape = new(10, 60);
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.WinterHaloShortAOE or AID.WinterHaloLongMountedAOE or AID.WinterHaloLongDismountedAOE)
         {
-            if ((AID)spell.Action.ID is AID.WinterHaloShortAOE or AID.WinterHaloLongMountedAOE or AID.WinterHaloLongDismountedAOE)
-                _aoe = new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt);
-        }
-
-        public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            if ((AID)spell.Action.ID is AID.WinterHaloShortAOE or AID.WinterHaloLongMountedAOE or AID.WinterHaloLongDismountedAOE)
-            {
-                ++NumCasts;
-                _aoe = null;
-            }
+            ++NumCasts;
+            _aoe = null;
         }
     }
 }

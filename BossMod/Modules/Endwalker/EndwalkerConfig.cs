@@ -1,7 +1,6 @@
-﻿namespace BossMod.Endwalker
+﻿namespace BossMod.Endwalker;
+
+[ConfigDisplay(Order = 4, Parent = typeof(ModuleConfig))]
+public class EndwalkerConfig : ConfigNode
 {
-    [ConfigDisplay(Order = 4, Parent = typeof(ModuleConfig))]
-    public class EndwalkerConfig : ConfigNode
-    {
-    }
 }

@@ -1,7 +1,3 @@
-using BossMod.Components;
-using System;
-using System.Collections.Generic;
-
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
 
 class Enaero : BossComponent
@@ -42,9 +38,9 @@ class Enaero : BossComponent
     }
 }
 
-class HeartOfNatureConcentric : ConcentricAOEs
+class HeartOfNatureConcentric : Components.ConcentricAOEs
 {
-    private static AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30) };
+    private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30) };
 
     public HeartOfNatureConcentric() : base(_shapes) { }
 
@@ -70,17 +66,17 @@ class HeartOfNatureConcentric : ConcentricAOEs
     }
 }
 
-class TasteOfBlood : SelfTargetedAOEs
+class TasteOfBlood : Components.SelfTargetedAOEs
 {
     public TasteOfBlood() : base(ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40, 90.Degrees())) { }
 }
 
-class TasteOfBloodHint : CastHint
+class TasteOfBloodHint : Components.CastHint
 {
     public TasteOfBloodHint() : base(ActionID.MakeSpell(AID.TasteOfBlood), "Go behind Lyon!") { }
 }
 
-class RavenousGale : GenericAOEs
+class RavenousGale : Components.GenericAOEs
 {
     private bool activeTwister;
     private bool casting;
@@ -129,17 +125,17 @@ class RavenousGale : GenericAOEs
     }
 }
 
-class TwinAgonies : SingleTargetCast
+class TwinAgonies : Components.SingleTargetCast
 {
     public TwinAgonies() : base(ActionID.MakeSpell(AID.TwinAgonies), "Heavy Tankbuster, use Manawall or tank mitigations") { }
 }
 
-class WindsPeak : SelfTargetedAOEs
+class WindsPeak : Components.SelfTargetedAOEs
 {
     public WindsPeak() : base(ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5)) { }
 }
 
-class WindsPeakKB : Knockback
+class WindsPeakKB : Components.Knockback
 {
     private DateTime Time;
     private bool watched;
@@ -162,17 +158,17 @@ class WindsPeakKB : Knockback
     }
 }
 
-class TheKingsNotice : CastGaze
+class TheKingsNotice : Components.CastGaze
 {
     public TheKingsNotice() : base(ActionID.MakeSpell(AID.TheKingsNotice)) { }
 }
 
-class SplittingRage : CastHint
+class SplittingRage : Components.CastHint
 {
     public SplittingRage() : base(ActionID.MakeSpell(AID.SplittingRage), "Applies temporary misdirection") { }
 }
 
-class NaturesBlood : Exaflare
+class NaturesBlood : Components.Exaflare
 {
     public NaturesBlood() : base(4) { }
 
@@ -210,7 +206,7 @@ class NaturesBlood : Exaflare
     }
 }
 
-class SpitefulFlameCircleVoidzone : GenericAOEs
+class SpitefulFlameCircleVoidzone : Components.GenericAOEs
 {
     private bool activeOrb;
     private int casts;
@@ -241,12 +237,12 @@ class SpitefulFlameCircleVoidzone : GenericAOEs
     }
 }
 
-class SpitefulFlameRect : SelfTargetedAOEs
+class SpitefulFlameRect : Components.SelfTargetedAOEs
 {
     public SpitefulFlameRect() : base(ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80, 2)) { }
 }
 
-class DynasticFlame : BaitAwayTethers
+class DynasticFlame : Components.BaitAwayTethers
 {
     private ulong target;
     private int orbcount;
@@ -283,7 +279,7 @@ class DynasticFlame : BaitAwayTethers
     }
 }
 
-class SkyrendingStrike : CastHint
+class SkyrendingStrike : Components.CastHint
 {
     public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), "Enrage!", true) { }
 }

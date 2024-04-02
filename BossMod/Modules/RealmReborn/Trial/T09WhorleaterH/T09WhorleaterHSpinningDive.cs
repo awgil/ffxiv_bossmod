@@ -1,73 +1,48 @@
-using System.Linq;
-using System.Collections.Generic;
-using System;
+namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
-namespace BossMod.Modules.RealmReborn.Trial.T09WhorleaterH
+class SpinningDive : Components.GenericAOEs //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
 {
-    class SpinningDive : Components.GenericAOEs //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
+    private AOEInstance? _aoe;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnActorCreated(BossModule module, Actor actor)
     {
-        private DateTime _activation;
-        private Actor? SpinningDiveHelper;
-        private bool dived;
-        private static readonly AOEShapeRect rect = new(46, 8);
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-        {
-            SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
-            if (SpinningDiveHelper != null && !dived)
-                yield return new(rect, SpinningDiveHelper.Position, SpinningDiveHelper.Rotation, _activation);
-        }
-
-        public override void OnActorCreated(BossModule module, Actor actor)
-        {
-            if ((OID)actor.OID == OID.SpinningDiveHelper)
-            {
-                dived = false;
-                _activation = module.WorldState.CurrentTime.AddSeconds(0.6f);
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.SpinningDiveSnapshot)
-                dived = true;
-        }
+        var SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
+        if ((OID)actor.OID == OID.SpinningDiveHelper)
+            _aoe = new(new AOEShapeRect(46, 8), SpinningDiveHelper!.Position, SpinningDiveHelper.Rotation, module.WorldState.CurrentTime.AddSeconds(0.6f));
     }
 
-    class SpinningDiveKB : Components.Knockback //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
+    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        private DateTime _activation;
-        private Actor? SpinningDiveHelper;
-        private bool dived;
-        private static readonly AOEShapeRect rect = new(46, 8);
-
-        public SpinningDiveKB()
-        {
-            StopAtWall = true;
-        }
-
-        public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
-        {
-            SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
-            if (SpinningDiveHelper != null && !dived)
-                yield return new(SpinningDiveHelper.Position, 10, _activation, rect, SpinningDiveHelper.Rotation);
-        }
-
-        public override void OnActorCreated(BossModule module, Actor actor)
-        {
-            if ((OID)actor.OID == OID.SpinningDiveHelper)
-            {
-                dived = false;
-                _activation = module.WorldState.CurrentTime.AddSeconds(1.4f);
-            }
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID == AID.SpinningDiveEffect)
-                dived = true;
-        }
-
-        public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<Hydroshot>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<Dreadstorm>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+        if ((AID)spell.Action.ID == AID.SpinningDiveSnapshot)
+            _aoe = null;
     }
+}
+
+class SpinningDiveKB : Components.Knockback //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
+{
+    private Source? _knockback;
+
+    public SpinningDiveKB()
+    {
+        StopAtWall = true;
+    }
+
+    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
+
+    public override void OnActorCreated(BossModule module, Actor actor)
+    {
+        var SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
+        if ((OID)actor.OID == OID.SpinningDiveHelper)
+            _knockback = new(SpinningDiveHelper!.Position, 10, module.WorldState.CurrentTime.AddSeconds(1.4f), new AOEShapeRect(46, 8), SpinningDiveHelper!.Rotation);
+    }
+
+    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.SpinningDiveEffect)
+            _knockback = null;
+    }
+
+    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<Hydroshot>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<Dreadstorm>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 }

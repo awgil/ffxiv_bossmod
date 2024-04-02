@@ -1,104 +1,100 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
-namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko
+// TODO: cast start/end?
+class Clearout : Components.GenericAOEs
 {
-    // TODO: cast start/end?
-    class Clearout : Components.GenericAOEs
+    public List<AOEInstance> AOEs = new();
+
+    private static readonly AOEShapeCone _shape = new(27, 90.Degrees()); // TODO: verify range, it's definitely bigger than what table suggests... maybe origin is wrong?
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
+
+    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
     {
-        public List<AOEInstance> AOEs = new();
-
-        private static AOEShapeCone _shape = new(27, 90.Degrees()); // TODO: verify range, it's definitely bigger than what table suggests... maybe origin is wrong?
-
-        public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
-
-        public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+        if (id == 0x1E43 && (OID)actor.OID is OID.NOniClaw or OID.SOniClaw)
         {
-            if (id == 0x1E43 && (OID)actor.OID is OID.NOniClaw or OID.SOniClaw)
+            AOEs.Add(new(_shape, actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(8.3f)));
+        }
+    }
+}
+
+class AccursedEdge : Components.GenericBaitAway
+{
+    public enum Mechanic { None, Far, Near }
+
+    private Mechanic _curMechanic;
+    private Clearout? _clearout;
+
+    private static readonly AOEShapeCircle _shape = new(6);
+    private static readonly WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+
+    public AccursedEdge() : base(centerAtTarget: true) { }
+
+    public override void Init(BossModule module)
+    {
+        _clearout = module.FindComponent<Clearout>();
+        var baits = module.FindComponent<IaiGiriBait>();
+        if (baits != null)
+            foreach (var i in baits.Instances)
+                ForbiddenPlayers.Set(module.Raid.FindSlot(i.Target?.InstanceID ?? 0));
+    }
+
+    public override void Update(BossModule module)
+    {
+        CurrentBaits.Clear();
+        if (_curMechanic != Mechanic.None)
+        {
+            var players = module.Raid.WithoutSlot().SortedByRange(module.PrimaryActor.Position).ToList();
+            foreach (var p in _curMechanic == Mechanic.Far ? players.TakeLast(2) : players.Take(2))
+                CurrentBaits.Add(new(module.PrimaryActor, p, _shape));
+        }
+    }
+
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    {
+        if (_curMechanic != Mechanic.None)
+            hints.Add($"Untethered bait: {_curMechanic}");
+    }
+
+    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        base.DrawArenaForeground(module, pcSlot, pc, arena);
+
+        // draw safespots (TODO: consider assigning specific side)
+        if (_curMechanic != Mechanic.None && _clearout != null)
+        {
+            bool shouldBait = !ForbiddenPlayers[pcSlot];
+            bool baitClose = _curMechanic == Mechanic.Near;
+            bool stayClose = baitClose == shouldBait;
+            var baitDistance = stayClose ? 12 : 19;
+            foreach (var dir in _safespotDirections)
             {
-                AOEs.Add(new(_shape, actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(8.3f)));
+                var potentialSafespot = module.Bounds.Center + baitDistance * dir;
+                if (!_clearout.AOEs.Any(aoe => aoe.Check(potentialSafespot)))
+                    arena.AddCircle(potentialSafespot, 1, ArenaColor.Safe);
             }
         }
     }
 
-    class AccursedEdge : Components.GenericBaitAway
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        public enum Mechanic { None, Far, Near }
-
-        private Mechanic _curMechanic;
-        private Clearout? _clearout;
-
-        private static AOEShapeCircle _shape = new(6);
-        private static WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
-
-        public AccursedEdge() : base(centerAtTarget: true) { }
-
-        public override void Init(BossModule module)
+        var mechanic = (AID)spell.Action.ID switch
         {
-            _clearout = module.FindComponent<Clearout>();
-            var baits = module.FindComponent<IaiGiriBait>();
-            if (baits != null)
-                foreach (var i in baits.Instances)
-                    ForbiddenPlayers.Set(module.Raid.FindSlot(i.Target?.InstanceID ?? 0));
-        }
+            AID.FarEdge => Mechanic.Far,
+            AID.NearEdge => Mechanic.Near,
+            _ => Mechanic.None
+        };
+        if (mechanic != Mechanic.None)
+            _curMechanic = mechanic;
+    }
 
-        public override void Update(BossModule module)
+    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.NAccursedEdge or AID.SAccursedEdge)
         {
+            ++NumCasts;
+            _curMechanic = Mechanic.None;
             CurrentBaits.Clear();
-            if (_curMechanic != Mechanic.None)
-            {
-                var players = module.Raid.WithoutSlot().SortedByRange(module.PrimaryActor.Position).ToList();
-                foreach (var p in _curMechanic == Mechanic.Far ? players.TakeLast(2) : players.Take(2))
-                    CurrentBaits.Add(new(module.PrimaryActor, p, _shape));
-            }
-        }
-
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
-        {
-            if (_curMechanic != Mechanic.None)
-                hints.Add($"Untethered bait: {_curMechanic}");
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            base.DrawArenaForeground(module, pcSlot, pc, arena);
-
-            // draw safespots (TODO: consider assigning specific side)
-            if (_curMechanic != Mechanic.None && _clearout != null)
-            {
-                bool shouldBait = !ForbiddenPlayers[pcSlot];
-                bool baitClose = _curMechanic == Mechanic.Near;
-                bool stayClose = baitClose == shouldBait;
-                var baitDistance = stayClose ? 12 : 19;
-                foreach (var dir in _safespotDirections)
-                {
-                    var potentialSafespot = module.Bounds.Center + baitDistance * dir;
-                    if (!_clearout.AOEs.Any(aoe => aoe.Check(potentialSafespot)))
-                        arena.AddCircle(potentialSafespot, 1, ArenaColor.Safe);
-                }
-            }
-        }
-
-        public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
-        {
-            var mechanic = (AID)spell.Action.ID switch
-            {
-                AID.FarEdge => Mechanic.Far,
-                AID.NearEdge => Mechanic.Near,
-                _ => Mechanic.None
-            };
-            if (mechanic != Mechanic.None)
-                _curMechanic = mechanic;
-        }
-
-        public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-        {
-            if ((AID)spell.Action.ID is AID.NAccursedEdge or AID.SAccursedEdge)
-            {
-                ++NumCasts;
-                _curMechanic = Mechanic.None;
-                CurrentBaits.Clear();
-            }
         }
     }
 }

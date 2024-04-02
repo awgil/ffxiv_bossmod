@@ -1,86 +1,82 @@
-﻿using System;
-using System.Linq;
+﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
 
-namespace BossMod.RealmReborn.Extreme.Ex2Garuda
+// common AI for all phases
+class Ex2GarudaAI : BossComponent
 {
-    // common AI for all phases
-    class Ex2GarudaAI : BossComponent
-    {
-        private AerialBlast? _aerialBlast;
+    private AerialBlast? _aerialBlast;
 
-        public override void Init(BossModule module)
+    public override void Init(BossModule module)
+    {
+        _aerialBlast = module.FindComponent<AerialBlast>();
+    }
+
+    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var e in hints.PotentialTargets)
         {
-            _aerialBlast = module.FindComponent<AerialBlast>();
+            e.StayAtLongRange = true;
+            switch ((OID)e.Actor.OID)
+            {
+                case OID.Boss:
+                    e.Priority = 1;
+                    e.AttackStrength = 0.2f;
+                    if (_aerialBlast?.NumCasts > 0)
+                    {
+                        e.DesiredRotation = 135.Degrees();
+                        e.DesiredPosition = module.Bounds.Center + 18 * e.DesiredRotation.ToDirection();
+                    }
+                    else
+                    {
+                        e.DesiredRotation = 180.Degrees();
+                        e.DesiredPosition = module.Bounds.Center + 8 * e.DesiredRotation.ToDirection();
+                    }
+                    break;
+                case OID.Chirada:
+                    e.Priority = 2;
+                    e.AttackStrength = 0.15f;
+                    break;
+                case OID.Suparna:
+                    e.Priority = assignment != PartyRolesConfig.Assignment.MT ? 3 : 0;
+                    e.AttackStrength = 0.15f;
+                    e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
+                    e.DesiredRotation = (_aerialBlast?.NumCasts > 0 ? -45 : 0).Degrees();
+                    e.DesiredPosition = module.Bounds.Center + 18 * e.DesiredRotation.ToDirection();
+                    break;
+                case OID.RazorPlume:
+                    e.Priority = assignment != PartyRolesConfig.Assignment.MT ? 4 : 0;
+                    e.AttackStrength = 0;
+                    e.ShouldBeTanked = false;
+                    break;
+                case OID.SatinPlume:
+                    e.Priority = assignment != PartyRolesConfig.Assignment.MT ? 5 : 0;
+                    e.AttackStrength = 0;
+                    e.ShouldBeTanked = false;
+                    break;
+                case OID.SpinyPlume:
+                    e.Priority = module.PrimaryActor.IsTargetable ? AIHints.Enemy.PriorityForbidAI : 6;
+                    e.AttackStrength = 0;
+                    e.ShouldBeTanked = false;
+                    if (actor.Role == Role.Tank && e.Actor.TargetID != actor.InstanceID && (module.WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.ThermalLow)?.Extra ?? 0) >= 2)
+                    {
+                        e.Priority = 6;
+                        e.ShouldBeTanked = e.PreferProvoking = true;
+                    }
+                    break;
+            }
         }
 
-        public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        // don't stand near monoliths to avoid clipping them with friction
+        bool haveMonoliths = false;
+        foreach (var monolith in module.Enemies(OID.Monolith).Where(a => !a.IsDead))
         {
-            foreach (var e in hints.PotentialTargets)
-            {
-                e.StayAtLongRange = true;
-                switch ((OID)e.Actor.OID)
-                {
-                    case OID.Boss:
-                        e.Priority = 1;
-                        e.AttackStrength = 0.2f;
-                        if (_aerialBlast?.NumCasts > 0)
-                        {
-                            e.DesiredRotation = 135.Degrees();
-                            e.DesiredPosition = module.Bounds.Center + 18 * e.DesiredRotation.ToDirection();
-                        }
-                        else
-                        {
-                            e.DesiredRotation = 180.Degrees();
-                            e.DesiredPosition = module.Bounds.Center + 8 * e.DesiredRotation.ToDirection();
-                        }
-                        break;
-                    case OID.Chirada:
-                        e.Priority = 2;
-                        e.AttackStrength = 0.15f;
-                        break;
-                    case OID.Suparna:
-                        e.Priority = assignment != PartyRolesConfig.Assignment.MT ? 3 : 0;
-                        e.AttackStrength = 0.15f;
-                        e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
-                        e.DesiredRotation = (_aerialBlast?.NumCasts > 0 ? -45 : 0).Degrees();
-                        e.DesiredPosition = module.Bounds.Center + 18 * e.DesiredRotation.ToDirection();
-                        break;
-                    case OID.RazorPlume:
-                        e.Priority = assignment != PartyRolesConfig.Assignment.MT ? 4 : 0;
-                        e.AttackStrength = 0;
-                        e.ShouldBeTanked = false;
-                        break;
-                    case OID.SatinPlume:
-                        e.Priority = assignment != PartyRolesConfig.Assignment.MT ? 5 : 0;
-                        e.AttackStrength = 0;
-                        e.ShouldBeTanked = false;
-                        break;
-                    case OID.SpinyPlume:
-                        e.Priority = module.PrimaryActor.IsTargetable ? AIHints.Enemy.PriorityForbidAI : 6;
-                        e.AttackStrength = 0;
-                        e.ShouldBeTanked = false;
-                        if (actor.Role == Role.Tank && e.Actor.TargetID != actor.InstanceID && (module.WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.ThermalLow)?.Extra ?? 0) >= 2)
-                        {
-                            e.Priority = 6;
-                            e.ShouldBeTanked = e.PreferProvoking = true;
-                        }
-                        break;
-                }
-            }
+            hints.AddForbiddenZone(ShapeDistance.Circle(monolith.Position, 5));
+            haveMonoliths = true;
+        }
 
-            // don't stand near monoliths to avoid clipping them with friction
-            bool haveMonoliths = false;
-            foreach (var monolith in module.Enemies(OID.Monolith).Where(a => !a.IsDead))
-            {
-                hints.AddForbiddenZone(ShapeDistance.Circle(monolith.Position, 5));
-                haveMonoliths = true;
-            }
-
-            if (haveMonoliths && actor.Role is Role.Healer or Role.Ranged)
-            {
-                // have ranged stay in center to avoid los issues
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, 7), DateTime.MaxValue);
-            }
+        if (haveMonoliths && actor.Role is Role.Healer or Role.Ranged)
+        {
+            // have ranged stay in center to avoid los issues
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, 7), DateTime.MaxValue);
         }
     }
 }

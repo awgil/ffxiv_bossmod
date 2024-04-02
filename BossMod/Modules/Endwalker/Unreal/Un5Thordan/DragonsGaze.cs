@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace BossMod.Endwalker.Unreal.Un5Thordan;
+﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
 class DragonsGaze : Components.GenericGaze
 {

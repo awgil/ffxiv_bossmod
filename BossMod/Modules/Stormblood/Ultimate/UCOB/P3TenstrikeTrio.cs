@@ -1,4 +1,3 @@
-﻿namespace BossMod.Stormblood.Ultimate.UCOB
-{
-    class P3TenstrikeTrio : BossComponent { }
-}
+﻿namespace BossMod.Stormblood.Ultimate.UCOB;
+
+class P3TenstrikeTrio : BossComponent { }

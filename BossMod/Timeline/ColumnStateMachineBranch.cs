@@ -1,31 +1,27 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿namespace BossMod;
 
-namespace BossMod
+public class ColumnStateMachineBranch : ColumnStateMachine
 {
-    public class ColumnStateMachineBranch : ColumnStateMachine
+    private List<int> _phaseBranches;
+
+    public ColumnStateMachineBranch(Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
+        : base(timeline, tree)
     {
-        private List<int> _phaseBranches;
+        _phaseBranches = phaseBranches;
+    }
 
-        public ColumnStateMachineBranch(Timeline timeline, StateMachineTree tree, List<int> phaseBranches)
-            : base(timeline, tree)
-        {
-            _phaseBranches = phaseBranches;
-        }
+    public override void Update()
+    {
+        Width = PixelsPerBranch;
+    }
 
-        public override void Update()
+    public override void Draw()
+    {
+        foreach (var (phase, branch) in Tree.Phases.Zip(_phaseBranches))
         {
-            Width = PixelsPerBranch;
-        }
-
-        public override void Draw()
-        {
-            foreach (var (phase, branch) in Tree.Phases.Zip(_phaseBranches))
+            foreach (var node in phase.BranchNodes(branch).TakeWhile(node => node.Time < phase.Duration))
             {
-                foreach (var node in phase.BranchNodes(branch).TakeWhile(node => node.Time < phase.Duration))
-                {
-                    DrawNode(node, true);
-                }
+                DrawNode(node, true);
             }
         }
     }

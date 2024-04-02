@@ -1,26 +1,22 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-namespace BossMod.Stormblood.Ultimate.UWU
+class P4UltimateAnnihilation : BossComponent
 {
-    class P4UltimateAnnihilation : BossComponent
+    private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
+
+    private static readonly float _radius = 6;
+
+    public override void Init(BossModule module)
     {
-        private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
+        _orbs = module.Enemies(OID.Aetheroplasm);
+    }
 
-        private static float _radius = 6;
-
-        public override void Init(BossModule module)
+    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        foreach (var orb in _orbs.Where(o => !o.IsDead))
         {
-            _orbs = module.Enemies(OID.Aetheroplasm);
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            foreach (var orb in _orbs.Where(o => !o.IsDead))
-            {
-                arena.Actor(orb, ArenaColor.Object, true);
-                arena.AddCircle(orb.Position, _radius, ArenaColor.Object);
-            }
+            arena.Actor(orb, ArenaColor.Object, true);
+            arena.AddCircle(orb.Position, _radius, ArenaColor.Object);
         }
     }
 }

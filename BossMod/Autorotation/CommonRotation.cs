@@ -1,15 +1,7 @@
-﻿using System;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 public static class CommonRotation
 {
-    public struct DutyAction
-    {
-        public uint ActionID;
-        public bool HasCharge;
-    }
-
     public static int SpellCDGroup<AID>(AID spell) where AID : Enum
     {
         var cg = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>((uint)(object)spell)?.CooldownGroup ?? 0;

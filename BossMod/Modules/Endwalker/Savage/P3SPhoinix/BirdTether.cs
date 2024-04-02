@@ -1,164 +1,160 @@
-﻿using System;
-using System.Linq;
+﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
-namespace BossMod.Endwalker.Savage.P3SPhoinix
+// state related to large bird tethers
+// TODO: simplify and make more robust, e.g. in case something goes wrong and bird dies without tether update
+class BirdTether : BossComponent
 {
-    // state related to large bird tethers
-    // TODO: simplify and make more robust, e.g. in case something goes wrong and bird dies without tether update
-    class BirdTether : BossComponent
+    public int NumFinishedChains { get; private set; } = 0;
+    private (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
+    private BitMask _playersInAOE;
+
+    private static readonly float _chargeHalfWidth = 3;
+    private static readonly float _chargeMinSafeDistance = 30;
+
+    public override void Update(BossModule module)
     {
-        public int NumFinishedChains { get; private set; } = 0;
-        private (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
-        private BitMask _playersInAOE;
-
-        private static float _chargeHalfWidth = 3;
-        private static float _chargeMinSafeDistance = 30;
-
-        public override void Update(BossModule module)
+        _playersInAOE.Reset();
+        var birdsLarge = module.Enemies(OID.SunbirdLarge);
+        for (int i = 0; i < Math.Min(birdsLarge.Count, _chains.Length); ++i)
         {
-            _playersInAOE.Reset();
-            var birdsLarge = module.Enemies(OID.SunbirdLarge);
-            for (int i = 0; i < Math.Min(birdsLarge.Count, _chains.Length); ++i)
+            if (_chains[i].Item3 == 2)
+                continue; // this is finished
+
+            var bird = birdsLarge[i];
+            if (_chains[i].Item1 == null && bird.Tether.Target != 0)
             {
-                if (_chains[i].Item3 == 2)
-                    continue; // this is finished
+                _chains[i].Item1 = module.WorldState.Actors.Find(bird.Tether.Target); // first target found
+            }
+            if (_chains[i].Item2 == null && (_chains[i].Item1?.Tether.Target ?? 0) != 0)
+            {
+                _chains[i].Item2 = module.WorldState.Actors.Find(_chains[i].Item1!.Tether.Target); // second target found
+            }
+            if (_chains[i].Item3 == 0 && _chains[i].Item1 != null && bird.Tether.Target == 0)
+            {
+                _chains[i].Item3 = 1; // first charge (bird is no longer tethered to anyone)
+            }
+            if (_chains[i].Item3 == 1 && (_chains[i].Item1?.Tether.Target ?? 0) == 0)
+            {
+                _chains[i].Item3 = 2;
+                ++NumFinishedChains;
+                continue;
+            }
 
-                var bird = birdsLarge[i];
-                if (_chains[i].Item1 == null && bird.Tether.Target != 0)
+            // find players hit by next bird charge
+            var nextTarget = _chains[i].Item3 > 0 ? _chains[i].Item2 : _chains[i].Item1;
+            if (nextTarget != null && nextTarget.Position != bird.Position)
+            {
+                var fromTo = nextTarget.Position - bird.Position;
+                float len = fromTo.Length();
+                fromTo /= len;
+                foreach ((int j, var player) in module.Raid.WithSlot().Exclude(nextTarget))
                 {
-                    _chains[i].Item1 = module.WorldState.Actors.Find(bird.Tether.Target); // first target found
-                }
-                if (_chains[i].Item2 == null && (_chains[i].Item1?.Tether.Target ?? 0) != 0)
-                {
-                    _chains[i].Item2 = module.WorldState.Actors.Find(_chains[i].Item1!.Tether.Target); // second target found
-                }
-                if (_chains[i].Item3 == 0 && _chains[i].Item1 != null && bird.Tether.Target == 0)
-                {
-                    _chains[i].Item3 = 1; // first charge (bird is no longer tethered to anyone)
-                }
-                if (_chains[i].Item3 == 1 && (_chains[i].Item1?.Tether.Target ?? 0) == 0)
-                {
-                    _chains[i].Item3 = 2;
-                    ++NumFinishedChains;
-                    continue;
-                }
-
-                // find players hit by next bird charge
-                var nextTarget = _chains[i].Item3 > 0 ? _chains[i].Item2 : _chains[i].Item1;
-                if (nextTarget != null && nextTarget.Position != bird.Position)
-                {
-                    var fromTo = nextTarget.Position - bird.Position;
-                    float len = fromTo.Length();
-                    fromTo /= len;
-                    foreach ((int j, var player) in module.Raid.WithSlot().Exclude(nextTarget))
+                    if (player.Position.InRect(bird.Position, fromTo, len, 0, _chargeHalfWidth))
                     {
-                        if (player.Position.InRect(bird.Position, fromTo, len, 0, _chargeHalfWidth))
-                        {
-                            _playersInAOE.Set(j);
-                        }
+                        _playersInAOE.Set(j);
                     }
                 }
             }
         }
+    }
 
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    {
+        var birdsLarge = module.Enemies(OID.SunbirdLarge);
+        foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
         {
-            var birdsLarge = module.Enemies(OID.SunbirdLarge);
-            foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
-            {
-                if (numCharges == 2)
-                    continue;
+            if (numCharges == 2)
+                continue;
 
-                var nextTarget = numCharges > 0 ? p2 : p1;
-                if (actor == nextTarget)
+            var nextTarget = numCharges > 0 ? p2 : p1;
+            if (actor == nextTarget)
+            {
+                // check that tether is 'safe'
+                var tetherSource = numCharges > 0 ? p1 : bird;
+                if (tetherSource?.Tether.ID != (uint)TetherID.LargeBirdFar)
                 {
-                    // check that tether is 'safe'
-                    var tetherSource = numCharges > 0 ? p1 : bird;
-                    if (tetherSource?.Tether.ID != (uint)TetherID.LargeBirdFar)
-                    {
-                        hints.Add("Too close!");
-                    }
-                }
-            }
-
-            if (_playersInAOE[slot])
-            {
-                hints.Add("GTFO from charge zone!");
-            }
-        }
-
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            // draw aoe zones for imminent charges, except one towards player
-            var birdsLarge = module.Enemies(OID.SunbirdLarge);
-            foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
-            {
-                if (numCharges == 2)
-                    continue;
-
-                var nextTarget = numCharges > 0 ? p2 : p1;
-                if (nextTarget != null && nextTarget != pc && nextTarget.Position != bird.Position)
-                {
-                    var fromTo = nextTarget.Position - bird.Position;
-                    float len = fromTo.Length();
-                    arena.ZoneRect(bird.Position, fromTo / len, len, 0, _chargeHalfWidth, ArenaColor.AOE);
+                    hints.Add("Too close!");
                 }
             }
         }
 
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        if (_playersInAOE[slot])
         {
-            // draw all birds and all players
-            var birdsLarge = module.Enemies(OID.SunbirdLarge);
-            foreach (var bird in birdsLarge)
-                arena.Actor(bird, ArenaColor.Enemy);
-            foreach ((int i, var player) in module.Raid.WithSlot())
-                arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+            hints.Add("GTFO from charge zone!");
+        }
+    }
 
-            // draw chains containing player
-            foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
+    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        // draw aoe zones for imminent charges, except one towards player
+        var birdsLarge = module.Enemies(OID.SunbirdLarge);
+        foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
+        {
+            if (numCharges == 2)
+                continue;
+
+            var nextTarget = numCharges > 0 ? p2 : p1;
+            if (nextTarget != null && nextTarget != pc && nextTarget.Position != bird.Position)
             {
-                if (numCharges == 2)
-                    continue;
+                var fromTo = nextTarget.Position - bird.Position;
+                float len = fromTo.Length();
+                arena.ZoneRect(bird.Position, fromTo / len, len, 0, _chargeHalfWidth, ArenaColor.AOE);
+            }
+        }
+    }
 
-                if (p1 == pc)
+    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        // draw all birds and all players
+        var birdsLarge = module.Enemies(OID.SunbirdLarge);
+        foreach (var bird in birdsLarge)
+            arena.Actor(bird, ArenaColor.Enemy);
+        foreach ((int i, var player) in module.Raid.WithSlot())
+            arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+
+        // draw chains containing player
+        foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
+        {
+            if (numCharges == 2)
+                continue;
+
+            if (p1 == pc)
+            {
+                // bird -> pc -> other
+                if (numCharges == 0)
                 {
-                    // bird -> pc -> other
-                    if (numCharges == 0)
+                    arena.AddLine(bird.Position, pc.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
+                    if (p2 != null)
                     {
-                        arena.AddLine(bird.Position, pc.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
-                        if (p2 != null)
-                        {
-                            arena.AddLine(pc.Position, p2.Position, (pc.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
-                        }
-
-                        if (bird.Position != module.Bounds.Center)
-                        {
-                            var safespot = bird.Position + (module.Bounds.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
-                            arena.AddCircle(safespot, 1, ArenaColor.Safe);
-                        }
+                        arena.AddLine(pc.Position, p2.Position, (pc.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
                     }
-                    // else: don't care, charge to pc already happened
+
+                    if (bird.Position != module.Bounds.Center)
+                    {
+                        var safespot = bird.Position + (module.Bounds.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
+                        arena.AddCircle(safespot, 1, ArenaColor.Safe);
+                    }
                 }
-                else if (p2 == pc && p1 != null)
+                // else: don't care, charge to pc already happened
+            }
+            else if (p2 == pc && p1 != null)
+            {
+                // bird -> other -> pc
+                if (numCharges == 0)
                 {
-                    // bird -> other -> pc
-                    if (numCharges == 0)
-                    {
-                        arena.AddLine(bird.Position, p1.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
-                        arena.AddLine(p1.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
+                    arena.AddLine(bird.Position, p1.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
+                    arena.AddLine(p1.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
 
-                        arena.AddCircle(bird.Position, 1, ArenaColor.Safe); // draw safespot near bird
-                    }
-                    else
-                    {
-                        arena.AddLine(bird.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
+                    arena.AddCircle(bird.Position, 1, ArenaColor.Safe); // draw safespot near bird
+                }
+                else
+                {
+                    arena.AddLine(bird.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? ArenaColor.Safe : ArenaColor.Danger);
 
-                        if (bird.Position != module.Bounds.Center)
-                        {
-                            var safespot = bird.Position + (module.Bounds.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
-                            arena.AddCircle(safespot, 1, ArenaColor.Safe);
-                        }
+                    if (bird.Position != module.Bounds.Center)
+                    {
+                        var safespot = bird.Position + (module.Bounds.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
+                        arena.AddCircle(safespot, 1, ArenaColor.Safe);
                     }
                 }
             }

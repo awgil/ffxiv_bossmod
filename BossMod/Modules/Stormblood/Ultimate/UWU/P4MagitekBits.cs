@@ -1,22 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-namespace BossMod.Stormblood.Ultimate.UWU
+class P4MagitekBits : BossComponent
 {
-    class P4MagitekBits : BossComponent
+    private IReadOnlyList<Actor> _bits = ActorEnumeration.EmptyList;
+
+    public bool Active => _bits.Any(b => b.IsTargetable);
+
+    public override void Init(BossModule module)
     {
-        private IReadOnlyList<Actor> _bits = ActorEnumeration.EmptyList;
+        _bits = module.Enemies(OID.MagitekBit);
+    }
 
-        public bool Active => _bits.Any(b => b.IsTargetable);
-
-        public override void Init(BossModule module)
-        {
-            _bits = module.Enemies(OID.MagitekBit);
-        }
-
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-        {
-            arena.Actors(_bits, ArenaColor.Enemy);
-        }
+    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    {
+        arena.Actors(_bits, ArenaColor.Enemy);
     }
 }

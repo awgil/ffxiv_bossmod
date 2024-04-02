@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Numerics;
-
-namespace UIDev.vfgPathfind;
+﻿namespace UIDev.vfgPathfind;
 
 public class Map
 {
