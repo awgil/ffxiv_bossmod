@@ -23,6 +23,6 @@ public static unsafe class IDScramble
         Service.Log($"IDScramble address = 0x{scrambleAddr:X}");
         OffsetBaseChanging = (int*)scrambleAddr;
         OffsetAdjusted = OffsetBaseChanging + 1;
-        OffsetBaseFixed = OffsetBaseChanging + 3;
+        OffsetBaseFixed = OffsetBaseChanging + 2;
     }
 }
