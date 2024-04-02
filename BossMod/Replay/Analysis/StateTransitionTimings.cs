@@ -22,7 +22,7 @@ class StateTransitionTimings
 
     class TransitionMetrics
     {
-        public double MinTime = Double.MaxValue;
+        public double MinTime = double.MaxValue;
         public double MaxTime;
         public double AvgTime;
         public double StdDev;
@@ -42,16 +42,11 @@ class StateTransitionTimings
         }
     }
 
-    class MetricsToRemove
-    {
-        public List<(StateMetrics state, uint to, TransitionMetrics trans, TransitionMetric metric)> Instances = new();
-        public List<(StateMetrics state, uint to)> Transitions = new();
-    }
-
     private SortedDictionary<uint, StateMetrics> _metrics = new();
     private List<(Replay, Replay.Encounter, Replay.EncounterError)> _errors = new();
     private List<(Replay, Replay.Encounter)> _encounters = new();
     private float _lastSecondsToIgnore = 0;
+    private object? _selected;
 
     public StateTransitionTimings(List<Replay> replays, uint oid)
     {
@@ -88,7 +83,6 @@ class StateTransitionTimings
         {
             foreach (var (_, trans) in state.Transitions)
             {
-                trans.Instances.SortBy(e => e.Duration);
                 RecalculateMetrics(trans);
             }
         }
@@ -109,7 +103,7 @@ class StateTransitionTimings
             tree.LeafNodes(_errors.Where(e => (e.Item2.Time.End - e.Item3.Timestamp).TotalSeconds >= _lastSecondsToIgnore), error => $"{LocationString(error.Item1, error.Item2, error.Item3.Timestamp)} [{error.Item3.CompType}] {error.Item3.Message}");
         }
 
-        MetricsToRemove delContext = new();
+        List<Action> actions = new();
         foreach (var from in _metrics.Values)
         {
             Func<KeyValuePair<uint, TransitionMetrics>, UITree.NodeProperties> map = kv =>
@@ -121,22 +115,25 @@ class StateTransitionTimings
                 bool warn = Math.Abs(from.ExpectedTime - kv.Value.AvgTime) > Math.Ceiling(kv.Value.StdDev * 10) / 10;
                 return new($"{name}: {value}###{name}", false, warn ? 0xff00ffff : 0xffffffff);
             };
-            foreach (var (toID, m) in tree.Nodes(from.Transitions, map, kv => TransitionContextMenu(from, kv.Key, delContext)))
+            foreach (var (toID, m) in tree.Nodes(from.Transitions, map, kv => TransitionContextMenu(from, kv.Key, kv.Value, tree, actions), select: kv => _selected = kv.Value))
             {
                 foreach (var inst in m.Instances)
                 {
                     bool warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
-                    tree.LeafNode($"{inst.Duration:f2}: {LocationString(inst.Replay, inst.Encounter, inst.Time)}", warn ? 0xff00ffff : 0xffffffff, () => TransitionInstanceContextMenu(from, toID, m, inst, delContext));
+                    tree.LeafNode($"{inst.Duration:f2}: {LocationString(inst.Replay, inst.Encounter, inst.Time)}", warn ? 0xff00ffff : 0xffffffff, () => TransitionInstanceContextMenu(from, toID, m, inst, actions), select: () => _selected = inst);
                 }
             }
         }
-        ExecuteDeletes(delContext);
+
+        foreach (var a in actions)
+            a();
     }
 
     private string LocationString(Replay replay, Replay.Encounter enc, DateTime timestamp) => $"{replay.Path} @ {enc.Time.Start:O} + {(timestamp - enc.Time.Start).TotalSeconds:f3} / {enc.Time.Duration:f3}";
 
     private void RecalculateMetrics(TransitionMetrics trans)
     {
+        trans.Instances.SortBy(e => e.Duration);
         trans.MinTime = trans.Instances.First().Duration;
         trans.MaxTime = trans.Instances.Last().Duration;
         double sum = 0, sumSq = 0;
@@ -149,36 +146,39 @@ class StateTransitionTimings
         trans.StdDev = trans.Instances.Count > 0 ? Math.Sqrt((sumSq - sum * sum / trans.Instances.Count) / (trans.Instances.Count - 1)) : 0;
     }
 
-    private void ExecuteDeletes(MetricsToRemove delContext)
-    {
-        // note: we can't delete collection elements while iterating
-        foreach (var e in delContext.Instances)
-        {
-            e.trans.Instances.Remove(e.metric);
-            if (e.trans.Instances.Count > 0)
-                RecalculateMetrics(e.trans);
-            else
-                e.state.Transitions.Remove(e.to);
-        }
-        foreach (var e in delContext.Transitions)
-        {
-            e.state.Transitions.Remove(e.to);
-        }
-    }
-
-    private void TransitionContextMenu(StateMetrics state, uint to, MetricsToRemove delContext)
+    private void TransitionContextMenu(StateMetrics state, uint to, TransitionMetrics trans, UITree tree, List<Action> actions)
     {
         if (ImGui.MenuItem("Ignore this transition"))
         {
-            delContext.Transitions.Add((state, to));
+            actions.Add(() =>
+            {
+                if (_selected == trans)
+                    _selected = null;
+                state.Transitions.Remove(to);
+            });
+        }
+        if (_selected is TransitionMetrics dest && trans != dest && ImGui.MenuItem("Merge to selected transition"))
+        {
+            dest.Instances.AddRange(trans.Instances);
+            RecalculateMetrics(dest);
+            state.Transitions.Remove(to);
         }
     }
 
-    private void TransitionInstanceContextMenu(StateMetrics state, uint to, TransitionMetrics trans, TransitionMetric metric, MetricsToRemove delContext)
+    private void TransitionInstanceContextMenu(StateMetrics state, uint to, TransitionMetrics trans, TransitionMetric metric, List<Action> actions)
     {
         if (ImGui.MenuItem("Ignore this instance"))
         {
-            delContext.Instances.Add((state, to, trans, metric));
+            actions.Add(() =>
+            {
+                if (_selected == metric)
+                    _selected = null;
+                trans.Instances.Remove(metric);
+                if (trans.Instances.Count > 0)
+                    RecalculateMetrics(trans);
+                else
+                    state.Transitions.Remove(to);
+            });
         }
     }
 }

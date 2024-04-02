@@ -180,6 +180,36 @@ public class BaitAwayTethers : GenericBaitAway
     }
 }
 
+// component for mechanics requiring icon targets to bait their aoe away from raid
+public class BaitAwayIcon : GenericBaitAway
+{
+    public AOEShape Shape;
+    public uint IID;
+    public float ActivationDelay;
+
+    public virtual Actor? BaitSource(BossModule module, Actor target) => module.PrimaryActor;
+
+    public BaitAwayIcon(AOEShape shape, uint iconID, ActionID aid = default, float activationDelay = 5.1f) : base(aid)
+    {
+        Shape = shape;
+        IID = iconID;
+        ActivationDelay = activationDelay;
+    }
+
+    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    {
+        if (iconID == IID && BaitSource(module, actor) is var source && source != null)
+            CurrentBaits.Add(new(source, actor, Shape, module.WorldState.CurrentTime.AddSeconds(ActivationDelay)));
+    }
+
+    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(module, caster, spell);
+        if (spell.Action == WatchedAction)
+            CurrentBaits.Clear();
+    }
+}
+
 // component for mechanics requiring cast targets to gtfo from raid (aoe tankbusters etc)
 public class BaitAwayCast : GenericBaitAway
 {

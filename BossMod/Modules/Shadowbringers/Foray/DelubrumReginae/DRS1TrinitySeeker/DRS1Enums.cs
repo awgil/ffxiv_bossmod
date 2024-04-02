@@ -40,7 +40,7 @@ public enum AID : uint
     BalefulSwathe = 23248, // Boss->self, no cast, single-target, visual (side aoes)
     BalefulSwatheAOE = 23249, // Helper->self, no cast, range 50 ?-degree cone (doesn't really look like cone...)
     BalefulOnslaught = 23690, // Boss->self, 4.0s cast, single-target, visual (tankbuster, shareable or skipping closest target)
-    BalefulOnslaughtAOE1 = 23253, // Boss->self, no cast, range 10 ?-degree cone tankbuster (shareable/invulable)
+    BalefulOnslaughtAOE1 = 23253, // Boss->self, no cast, range 10 ?-degree cone tankbuster (shareable/invulnable)
     BalefulOnslaughtAOE2 = 23254, // Boss->self, no cast, range 10 ?-degree cone tankbuster (solo, skipping closest target)
     PhantomEdge = 23229, // Boss->self, 4.0s cast, single-target, visual (applies status changing some effects)
     ScorchingShackle = 23243, // Helper->self, no cast, ??? (happens if chains aren't broken in time)
@@ -79,6 +79,13 @@ public enum SID : uint
 
 public enum TetherID : uint
 {
-    //_Gen_Tether_128 = 128, // player->player
+    BurningChains = 128, // player->player
     DeadIron = 138, // player->SeekerAvatar
+};
+
+public enum IconID : uint
+{
+    BurningChains = 238, // player
+    DeadIron = 237, // player
+    MercifulArc = 243, // player
 };

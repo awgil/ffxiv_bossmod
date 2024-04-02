@@ -11,58 +11,9 @@ class UltimaRay : Components.SelfTargetedAOEs
     public UltimaRay() : base(ActionID.MakeSpell(AID.UltimaRay), new AOEShapeRect(20, 3)) { }
 }
 
-class MissingLink : Components.CastCounter
+class MissingLink : Components.Chains
 {
-    public bool TethersAssigned { get; private set; }
-    private int[] _partner = Utils.MakeArray(PartyState.MaxPartySize, -1);
-
-    public MissingLink() : base(ActionID.MakeSpell(AID.MissingLink)) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-    {
-        if (_partner[slot] >= 0)
-            hints.Add("Break the tether!");
-    }
-
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return _partner[pcSlot] == playerSlot ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
-    }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-    {
-        if (module.Raid[_partner[pcSlot]] is var partner && partner != null)
-            arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
-    }
-
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
-    {
-        if (tether.ID == (uint)TetherID.MissingLink)
-        {
-            TethersAssigned = true;
-            var slot1 = module.Raid.FindSlot(source.InstanceID);
-            var slot2 = module.Raid.FindSlot(tether.Target);
-            if (slot1 >= 0 && slot2 >= 0)
-            {
-                _partner[slot1] = slot2;
-                _partner[slot2] = slot1;
-            }
-        }
-    }
-
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
-    {
-        if (tether.ID == (uint)TetherID.MissingLink)
-        {
-            var slot1 = module.Raid.FindSlot(source.InstanceID);
-            var slot2 = module.Raid.FindSlot(tether.Target);
-            if (slot1 >= 0 && slot2 >= 0)
-            {
-                _partner[slot1] = -1;
-                _partner[slot2] = -1;
-            }
-        }
-    }
+    public MissingLink() : base((uint)TetherID.MissingLink, ActionID.MakeSpell(AID.MissingLink)) { }
 }
 
 class DemiParhelion : Components.SelfTargetedAOEs

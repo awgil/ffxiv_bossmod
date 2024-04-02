@@ -15,10 +15,24 @@ class MercifulBlooms : Components.SelfTargetedAOEs
     public MercifulBlooms() : base(ActionID.MakeSpell(AID.MercifulBlooms), new AOEShapeCircle(20)) { }
 }
 
-// TODO: it's a cleave, target can be determined by icon
-class MercifulArc : Components.CastCounter
+class MercifulArc : Components.BaitAwayIcon
 {
-    public MercifulArc() : base(ActionID.MakeSpell(AID.MercifulArc)) { }
+    public MercifulArc() : base(new AOEShapeCone(12, 45.Degrees()), (uint)IconID.MercifulArc, ActionID.MakeSpell(AID.MercifulArc)) { } // TODO: verify angle
+}
+
+// TODO: depending on phantom edge, it's either a shared tankbuster cleave or a weird cleave ignoring closest target (?)
+class BalefulOnslaught1 : Components.Cleave
+{
+    public BalefulOnslaught1() : base(ActionID.MakeSpell(AID.BalefulOnslaughtAOE1), new AOEShapeCone(10, 45.Degrees())) { } // TODO: verify angle
+}
+class BalefulOnslaught2 : Components.Cleave
+{
+    public BalefulOnslaught2() : base(ActionID.MakeSpell(AID.BalefulOnslaughtAOE2), new AOEShapeCone(10, 45.Degrees())) { } // TODO: verify angle
+}
+
+class BurningChains : Components.Chains
+{
+    public BurningChains() : base((uint)TetherID.BurningChains, ActionID.MakeSpell(AID.ScorchingShackle)) { }
 }
 
 // TODO: it's a line stack, but I don't think there's a way to determine cast target - so everyone should just stack?..
@@ -30,6 +44,11 @@ class IronImpact : Components.CastCounter
 class IronRose : Components.SelfTargetedAOEs
 {
     public IronRose() : base(ActionID.MakeSpell(AID.IronRose), new AOEShapeRect(50, 4)) { }
+}
+
+class DeadIron : Components.BaitAwayTethers
+{
+    public DeadIron() : base(new AOEShapeCone(50, 15.Degrees()), (uint)TetherID.DeadIron, ActionID.MakeSpell(AID.DeadIronAOE)) { DrawTethers = false; }
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9834)]
