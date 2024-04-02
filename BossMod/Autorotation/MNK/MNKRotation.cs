@@ -339,7 +339,7 @@ namespace BossMod.MNK
                 {
                     // form shift on countdown. TODO: ignore Never here? don't think there's ever any reason not to use it on countdown
                     if (
-                        strategy.FormShiftUse != Strategy.FormShiftStrategy.Automatic
+                        strategy.FormShiftUse == Strategy.FormShiftStrategy.Automatic
                         && state.FormShiftLeft < 15
                         && state.Unlocked(AID.FormShift)
                     )
