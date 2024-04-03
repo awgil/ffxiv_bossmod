@@ -146,7 +146,7 @@ class Eruption2 : Components.GenericAOEs
             if (NumCasts < 6 ? _casters.Count > 2 : _casters.Count > 3)
                 for (int i = 0; NumCasts < 6 ? i < 3 : i < 4; ++i)
                     yield return new(circle, _casters[i].position, activation: _casters[i].activation, color: ArenaColor.Danger);
-            if (NumCasts < 3 ? _casters.Count > 5 : _casters.Count > 6)                   
+            if (NumCasts < 3 ? _casters.Count > 5 : _casters.Count > 6)
                 for (int i = 3; NumCasts < 3 ? i < 6 : i < 7; ++i)
                     yield return new(circle, _casters[i].position, activation: _casters[i].activation);
         }
@@ -155,7 +155,7 @@ class Eruption2 : Components.GenericAOEs
             if (_casters.Count > 3)
                 for (int i = 0; _casters.Count > 6 ? i < 4 : i < 6; ++i)
                     yield return new(circle, _casters[i].position, activation: _casters[i].activation, color: ArenaColor.Danger);
-            if (_casters.Count > 7)                
+            if (_casters.Count > 7)
                 for (int i = 4; _casters.Count > 10 ? i < 8 : i < 10; ++i)
                     yield return new(circle, _casters[i].position, activation: _casters[i].activation);
         }
@@ -178,7 +178,7 @@ class Eruption2 : Components.GenericAOEs
             ++NumCasts;
             if (_casters.Count == 0)
                 _castersunsorted.Clear();
-        }        
+        }
     }
 }
 
