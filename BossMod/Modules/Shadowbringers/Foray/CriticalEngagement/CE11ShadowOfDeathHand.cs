@@ -122,7 +122,7 @@ class CE11ShadowOfDeathHandStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 5)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 5)] // bnpcname=9400
 public class CE11ShadowOfDeathHand : BossModule
 {
     public CE11ShadowOfDeathHand(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(825, 640), 20)) { }

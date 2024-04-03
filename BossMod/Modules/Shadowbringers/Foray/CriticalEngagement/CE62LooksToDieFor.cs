@@ -45,7 +45,7 @@ class Thundercall : Components.RaidwideCast
 
 class LightningBoltDistantClap : Components.GenericAOEs
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shapeBolt = new(4);
     private static readonly AOEShapeDonut _shapeClap = new(4, 10);
@@ -116,7 +116,7 @@ class Flame : Components.RaidwideCast
 class Burn : Components.GenericAOEs
 {
     private IReadOnlyList<Actor> _flames = ActorEnumeration.EmptyList;
-    private List<(Actor actor, AOEInstance? aoe)> _casters = new();
+    private List<(Actor actor, AOEInstance? aoe)> _casters = [];
 
     private static readonly AOEShapeCircle _shape = new(8);
 
@@ -204,7 +204,7 @@ class CE62LooksToDieForStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 30)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 30)] // bnpcname=9925
 public class CE62LooksToDieFor : BossModule
 {
     public CE62LooksToDieFor(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-200, -580), 20)) { }

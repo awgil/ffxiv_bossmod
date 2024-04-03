@@ -80,7 +80,7 @@ class Subduction : Components.SelfTargetedAOEs
 // next aoe starts casting slightly before previous, so use a custom component
 class Earthbreaker : Components.GenericAOEs
 {
-    private List<(Actor caster, AOEShape shape)> _active = new();
+    private readonly List<(Actor caster, AOEShape shape)> _active = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
@@ -119,7 +119,7 @@ class Shardstrike : Components.SpreadFromCastTargets
 // TODO: this should probably be generalized
 class Hailfire : Components.GenericAOEs
 {
-    private Actor?[] _targets = new Actor?[4];
+    private readonly Actor?[] _targets = new Actor?[4];
     private DateTime _activation;
 
     private static readonly AOEShapeRect _shape = new(40, 2);
@@ -187,7 +187,7 @@ class CE41WithDiremiteAndMainStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 21)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 21)] // bnpcname=9969
 public class CE41WithDiremiteAndMain : BossModule
 {
     private IReadOnlyList<Actor> _dimCrystals;

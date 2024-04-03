@@ -76,7 +76,7 @@ class BracingWind : Components.KnockbackFromCastTarget
 
 class LunarCry : Components.CastLineOfSightAOE
 {
-    private List<Actor> _safePillars = new();
+    private readonly List<Actor> _safePillars = [];
     private BracingWind? _knockback;
 
     public LunarCry() : base(ActionID.MakeSpell(AID.LunarCry), 80, false) { }
@@ -109,7 +109,7 @@ class LunarCry : Components.CastLineOfSightAOE
 // this AOE only got 2s cast time, but the actors already spawn 4.5s earlier, so we can use that to our advantage
 class ThermalGust : Components.GenericAOEs
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
     private DateTime _activation;
 
     private static readonly AOEShapeRect _shape = new(60, 2);
@@ -135,7 +135,7 @@ class ThermalGust : Components.GenericAOEs
 class AgeOfEndlessFrost : Components.GenericAOEs
 {
     private Angle _increment;
-    private List<Angle> _angles = new();
+    private readonly List<Angle> _angles = [];
     private DateTime _nextActivation;
 
     private static readonly AOEShapeCone _shape = new(40, 10.Degrees());
@@ -227,7 +227,7 @@ class CE54NeverCryWolfStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 25)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 25)] // bnpcname=9941
 public class CE54NeverCryWolf : BossModule
 {
     private IReadOnlyList<Actor> _adds;

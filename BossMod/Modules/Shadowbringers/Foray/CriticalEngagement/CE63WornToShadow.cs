@@ -43,7 +43,7 @@ public enum TetherID : uint
 
 class Stormcall : Components.GenericAOEs
 {
-    private List<(Actor source, WPos dest, DateTime activation)> _sources = new();
+    private readonly List<(Actor source, WPos dest, DateTime activation)> _sources = [];
     private static readonly AOEShapeCircle _shape = new(35);
 
     public Stormcall() : base(ActionID.MakeSpell(AID.Explosion)) { }
@@ -94,7 +94,7 @@ class Fantod : Components.LocationTargetedAOEs
 class Foreshadowing : Components.GenericAOEs
 {
     private AOEShape? _bossAOE;
-    private List<(Actor caster, AOEShape? shape)> _addAOEs = new(); // shape is null if add starts cast slightly before boss
+    private List<(Actor caster, AOEShape? shape)> _addAOEs = []; // shape is null if add starts cast slightly before boss
     private DateTime _addActivation;
 
     private static readonly AOEShapeDonut _shapePulse = new(8, 25);
@@ -173,7 +173,7 @@ class CE63WornToShadowStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)] // bnpcname=9973
 public class CE63WornToShadow : BossModule
 {
     public CE63WornToShadow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-480, -690), 30)) { }

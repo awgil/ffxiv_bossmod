@@ -103,19 +103,19 @@ class ForkedFissures : Components.GenericAOEs
                 _patternStart.AddRange(patternIndex01Start);
                 _patternEnd.AddRange(patternIndex01End);
             }
-            for (int i = 0; i < _patternEnd.Count; ++i)
+            for (int i = _patternStart.Count - 1; i >= 0; i--)
+            {
                 _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), module.WorldState.CurrentTime.AddSeconds(6)));
+                _patternStart.RemoveAt(i);
+                _patternEnd.RemoveAt(i);
+            }
         }
     }
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.ForkedFissures && _aoes.Count > 0 && _patternStart.Count > 0 && _patternEnd.Count > 0)
-        {
+        if (_aoes.Count > 0 && (AID)spell.Action.ID == AID.ForkedFissures)
             _aoes.RemoveAt(0);
-            _patternStart.RemoveAt(0);
-            _patternEnd.RemoveAt(0);
-        }
     }
 }
 

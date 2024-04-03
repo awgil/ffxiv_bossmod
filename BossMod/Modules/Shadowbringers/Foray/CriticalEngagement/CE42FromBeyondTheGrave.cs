@@ -94,7 +94,7 @@ class ShockSphere : Components.PersistentVoidzone
 class SoulPurge : Components.GenericAOEs
 {
     private bool _dualcast;
-    private List<AOEInstance> _imminent = new();
+    private readonly List<AOEInstance> _imminent = [];
 
     private static readonly AOEShapeCircle _shapeCircle = new(10);
     private static readonly AOEShapeDonut _shapeDonut = new(10, 30);
@@ -205,7 +205,7 @@ class CE42FromBeyondTheGraveStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 20)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 20)] // bnpcname=9931
 public class CE42FromBeyondTheGrave : BossModule
 {
     public CE42FromBeyondTheGrave(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-60, 800), 30)) { }
