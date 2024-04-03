@@ -16,12 +16,7 @@ network rework:
 - utility to inject custom ipcs to the stream for debugging?
 
 general:
-- live replay
--- checkbox - record ops to temp struct
--- start record == rundown + start listening to main worldstate events
--- on bossmodule activation == mark as 'interesting'
--- on bossmodule deactivation or zone change == if current is interesting, move it to last (discard prev last); clear and restart current
--- button to 'keep' last (add as temp to replay manager) or to 'save' last (save into replay file)
+- autoreplay improvements - react to module manager transitions?
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
 - constrain bossmodules to zone id (e.g. for T04)
 - revise module categories - consider merging fates/hunts/quests/gold saucer?/pvp? into outdoor?/casual?

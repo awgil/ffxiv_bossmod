@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace BossMod;
 
@@ -246,7 +247,9 @@ public static class Utils
 
     // sort elements of a list by key
     public static void SortBy<TValue, TKey>(this List<TValue> list, Func<TValue, TKey> proj) where TKey : notnull, IComparable => list.Sort((l, r) => proj(l).CompareTo(proj(r)));
+    public static void SortBy<TValue, TKey>(this TValue[] arr, Func<TValue, TKey> proj) where TKey : notnull, IComparable => Array.Sort(arr, (l, r) => proj(l).CompareTo(proj(r)));
     public static void SortByReverse<TValue, TKey>(this List<TValue> list, Func<TValue, TKey> proj) where TKey : notnull, IComparable => list.Sort((l, r) => proj(r).CompareTo(proj(l)));
+    public static void SortByReverse<TValue, TKey>(this TValue[] arr, Func<TValue, TKey> proj) where TKey : notnull, IComparable => Array.Sort(arr, (l, r) => proj(r).CompareTo(proj(l)));
 
     // get enumerable of zero or one elements, depending on whether argument is null
     public static IEnumerable<T> ZeroOrOne<T>(T? value) where T : struct
@@ -336,7 +339,7 @@ public static class Utils
         v = v.Replace("'", null);
         v = v.Replace('-', ' ');
         v = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(v);
-        v = v.Replace(" ", null);
+        v = Regex.Replace(v, "[^a-zA-Z0-9]", "");
         return v;
     }
 }

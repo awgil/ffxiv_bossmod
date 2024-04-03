@@ -70,7 +70,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmod = new(_bossmod);
         _wndBossmodPlan = new(_bossmod);
         _wndBossmodHints = new(_bossmod);
-        _wndReplay = new(_ws, dalamud.ConfigDirectory);
+        _wndReplay = new(_ws, new(dalamud.ConfigDirectory.FullName +  "/replays"));
         _wndDebug = new(_ws, _autorotation);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;

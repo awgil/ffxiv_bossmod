@@ -43,7 +43,7 @@ public class PropertyComboAttribute : Attribute
     }
 }
 
-// attribute that specifies slider should be used for displaying float property
+// attribute that specifies slider should be used for displaying float/int property
 [AttributeUsage(AttributeTargets.Field)]
 public class PropertySliderAttribute : Attribute
 {
