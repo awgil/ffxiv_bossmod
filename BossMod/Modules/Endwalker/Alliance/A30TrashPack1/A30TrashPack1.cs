@@ -1,8 +1,8 @@
 namespace BossMod.Endwalker.Alliance.A30TrashPack1;
 
-class WaterIII : Components.SelfTargetedAOEs
+class WaterIII : Components.LocationTargetedAOEs
 {
-    public WaterIII() : base(ActionID.MakeSpell(AID.WaterIII), new AOEShapeCircle(8)) { }
+    public WaterIII() : base(ActionID.MakeSpell(AID.WaterIII), 8) { }
 }
 
 class PelagicCleaver1 : Components.SelfTargetedAOEs
@@ -19,7 +19,6 @@ class WaterFlood : Components.SelfTargetedAOEs
 {
     public WaterFlood() : base(ActionID.MakeSpell(AID.WaterFlood), new AOEShapeCircle(6)) { }
 }
-
 
 class DivineFlood : Components.SelfTargetedAOEs
 {
@@ -43,7 +42,7 @@ public class A30TrashPack1States : StateMachineBuilder
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12478)]
 public class A30TrashPack1 : BossModule
 {
-    public A30TrashPack1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-800, -800), 25)) { }
+    public A30TrashPack1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-800, -800), 20)) { }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

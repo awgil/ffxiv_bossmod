@@ -61,11 +61,6 @@ class RightBank2 : Components.SelfTargetedAOEs
   public RightBank2() : base(ActionID.MakeSpell(AID.RightBank2), new AOEShapeCone(60, 90.Degrees())) { }
 }
 
-class RheognosisKnockback : Components.KnockbackFromCastTarget
-{
-  public RheognosisKnockback() : base(ActionID.MakeSpell(AID.RheognosisKnockback), 25, kind: Kind.DirForward) { }
-}
-
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11298)]
 public class A31Thaliak : BossModule
 {
