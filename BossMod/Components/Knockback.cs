@@ -5,6 +5,7 @@ public abstract class Knockback : CastCounter
 {
     public enum Kind
     {
+        None,
         AwayFromOrigin, // standard knockback - specific distance along ray from origin to target
         TowardsOrigin, // standard pull - "knockback" to source - forward along source's direction + 180 degrees
         DirForward, // directional knockback - forward along source's direction
@@ -148,7 +149,7 @@ public abstract class Knockback : CastCounter
                 Kind.DirForward => s.Direction.ToDirection(),
                 Kind.DirLeft => s.Direction.ToDirection().OrthoL(),
                 Kind.DirRight => s.Direction.ToDirection().OrthoR(),
-                _ => new()
+                _ => default
             };
             if (dir == default)
                 continue; // couldn't determine direction for some reason
