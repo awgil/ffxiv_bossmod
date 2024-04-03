@@ -232,10 +232,14 @@ class EntrapmentInescapable : Entrapment
 {
     // TODO: don't think these patterns are actually correct...
     private readonly static Pattern[] _allowedPatterns = [
-        new() { Normal = BuildMask(3, 8, 20, 25, 38, 43, 46, 49, 52), Toad = BuildMask(10, 50, 53), Ice = BuildMask(40), Mini = BuildMask(29) },
-        new() { Normal = BuildMask(2, 8, 11, 16, 25, 29, 38, 46), Toad = BuildMask(0, 4, 44), Ice = BuildMask(49), Mini = BuildMask(34) },
+        new() { Normal = BuildMask(3, 4,  5,  8, 20, 25, 38, 43, 46, 49, 52), Toad = BuildMask(10, 50, 54), Ice = BuildMask(40), Mini = BuildMask(29) },
+        //new() { Normal = BuildMask(3,       8, 20, 25, 38, 43, 46, 49, 52), Toad = BuildMask(10, 50, 53), Ice = BuildMask(40), Mini = BuildMask(29) },
+        new() { Normal = BuildMask(2, 5,  8, 11, 14, 16, 25, 29, 46, 49, 51), Toad = BuildMask(0, 4, 44), Ice = BuildMask(50), Mini = BuildMask(34) },
+        //new() { Normal = BuildMask(2,   8, 11,     16, 25, 29, 38, 46),     Toad = BuildMask(0, 4, 44), Ice = BuildMask(49), Mini = BuildMask(34) },
         new() { Normal = BuildMask(5, 8, 11, 16, 18, 22, 24, 29, 43, 49, 53), Toad = BuildMask(6, 33, 38), Ice = BuildMask(4), Mini = BuildMask(48) },
-        new() { Normal = BuildMask(5, 8, 11, 25, 30, 32, 38, 43, 50), Toad = BuildMask(16, 21, 48), Ice = BuildMask(36), Mini = BuildMask(1) },
+        //new() { Normal = BuildMask(5, 8, 11, 16, 18, 22, 24, 29, 43, 49, 53), Toad = BuildMask(6, 33, 38), Ice = BuildMask(4), Mini = BuildMask(48) },
+        new() { Normal = BuildMask(5, 6,  8, 11, 25, 30, 32, 38, 43, 46, 50), Toad = BuildMask(16, 21, 48), Ice = BuildMask(36), Mini = BuildMask(1) },
+        //new() { Normal = BuildMask(5,   8, 11, 25, 30, 32, 38, 43, 50),     Toad = BuildMask(16, 21, 48), Ice = BuildMask(36), Mini = BuildMask(1) },
     ];
 
     public EntrapmentInescapable() : base(_allowedPatterns) { }
