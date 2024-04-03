@@ -1,6 +1,4 @@
 // CONTRIB: made by malediktus, not checked
-using System.Security.Cryptography.X509Certificates;
-
 namespace BossMod.Global.Quest.FF16Collab.InfernalShadow;
 
 class VulcanBurst : Components.RaidwideCast
