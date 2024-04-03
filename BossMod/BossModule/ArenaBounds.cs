@@ -207,66 +207,64 @@ public class ArenaBoundsRect : ArenaBounds
     }
 }
 public class ArenaBoundsTri : ArenaBounds
+{
+    private static readonly float sqrt3 = MathF.Sqrt(3);
+
+    public ArenaBoundsTri(WPos center, float sideLength) : base(center, sideLength * sqrt3 / 3) { } // HalfSize is the radius of the circumscribed circle
+
+    public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
     {
-        private const float sqrt3 = 1.73205080757f; // Square root of 3
-
-        public ArenaBoundsTri(WPos center, float sideLength) 
-            : base(center, sideLength * sqrt3 / 3) { } // HalfSize is the radius of the circumscribed circle
-
-        public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
-        {
-            // Calculate the vertices of the equilateral triangle
-            var height = HalfSize * sqrt3; // Height of the equilateral triangle
-            var halfSide = HalfSize;
-            yield return Center + new WDir(-halfSide, height / 3);
-            yield return Center + new WDir(halfSide, height / 3);
-            yield return Center + new WDir(0, -2 * height / 3);
-        }
-
-        public override Pathfinding.Map BuildMap(float resolution = 0.5f)
-        {
-            // BuildMap implementation for equilateral triangle
-            // This is a simplified example and would need to be adapted based on specific pathfinding requirements
-            throw new NotImplementedException();
-        }
-
-        public override bool Contains(WPos p)
-        {
-            var a = Center + new WDir(-HalfSize, HalfSize * sqrt3 / 3);
-            var b = Center + new WDir(HalfSize, HalfSize * sqrt3 / 3);
-            var c = Center + new WDir(0, -2 * HalfSize * sqrt3 / 3);
-        
-            bool b1 = Sign(p, a, b) < 0.0f;
-            bool b2 = Sign(p, b, c) < 0.0f;
-            bool b3 = Sign(p, c, a) < 0.0f;
-        
-            return ((b1 == b2) && (b2 == b3));
-        }
-
-        private float Sign(WPos p1, WPos p2, WPos p3)
-        {
-            return (p1.X - p3.X) * (p2.Z - p3.Z) - (p2.X - p3.X) * (p1.Z - p3.Z);
-        }
-        
-        
-                public override float IntersectRay(WPos origin, WDir dir)
-        {
-            // Define triangle vertices
-            var a = Center + new WDir(-HalfSize, HalfSize * sqrt3 / 3);
-            var b = Center + new WDir(HalfSize, HalfSize * sqrt3 / 3);
-            var c = Center + new WDir(0, -2 * HalfSize * sqrt3 / 3);
-        
-            // Ray-triangle intersection algorithm goes here
-            // This is a complex topic and requires a bit of math
-            // Placeholder for the actual intersection calculation
-            return float.NaN; // Return NaN to indicate that this method needs proper implementation
-        }
-
-
-        public override WDir ClampToBounds(WDir offset, float scale = 1)
-        {
-            // Clamping within a triangle is highly context-dependent
-            // This method needs a detailed implementation based on specific requirements
-            return new WDir(0, 0); // Placeholder to indicate that clamping logic is needed
-        }
+        // Calculate the vertices of the equilateral triangle
+        var height = HalfSize * sqrt3; // Height of the equilateral triangle
+        var halfSide = HalfSize;
+        yield return Center + new WDir(-halfSide, height / 3);
+        yield return Center + new WDir(halfSide, height / 3);
+        yield return Center + new WDir(0, -2 * height / 3);
     }
+
+    public override Pathfinding.Map BuildMap(float resolution = 0.5f)
+    {
+        // BuildMap implementation for equilateral triangle
+        // This is a simplified example and would need to be adapted based on specific pathfinding requirements
+        throw new NotImplementedException();
+    }
+
+    public override bool Contains(WPos p)
+    {
+        var a = Center + new WDir(-HalfSize, HalfSize * sqrt3 / 3);
+        var b = Center + new WDir(HalfSize, HalfSize * sqrt3 / 3);
+        var c = Center + new WDir(0, -2 * HalfSize * sqrt3 / 3);
+
+        bool b1 = Sign(p, a, b) < 0;
+        bool b2 = Sign(p, b, c) < 0;
+        bool b3 = Sign(p, c, a) < 0;
+
+        return (b1 == b2) && (b2 == b3);
+    }
+
+    private float Sign(WPos p1, WPos p2, WPos p3)
+    {
+        return (p1.X - p3.X) * (p2.Z - p3.Z) - (p2.X - p3.X) * (p1.Z - p3.Z);
+    }
+
+
+    public override float IntersectRay(WPos origin, WDir dir)
+    {
+        // Define triangle vertices
+        var a = Center + new WDir(-HalfSize, HalfSize * sqrt3 / 3);
+        var b = Center + new WDir(HalfSize, HalfSize * sqrt3 / 3);
+        var c = Center + new WDir(0, -2 * HalfSize * sqrt3 / 3);
+
+        // Ray-triangle intersection algorithm goes here
+        // This is a complex topic and requires a bit of math
+        // Placeholder for the actual intersection calculation
+        return float.NaN; // Return NaN to indicate that this method needs proper implementation
+    }
+
+    public override WDir ClampToBounds(WDir offset, float scale = 1)
+    {
+        // Clamping within a triangle is highly context-dependent
+        // This method needs a detailed implementation based on specific requirements
+        return new WDir(0, 0); // Placeholder to indicate that clamping logic is needed
+    }
+}

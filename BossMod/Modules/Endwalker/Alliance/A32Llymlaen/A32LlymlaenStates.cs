@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using BossMod.Components;
-
-namespace BossMod.Endwalker.Alliance.A32Llymlaen
-
+﻿namespace BossMod.Endwalker.Alliance.A32Llymlaen
 {
     class A32LlymlaenStates : StateMachineBuilder
     {           
         public A32LlymlaenStates(BossModule module) : base(module)
         {
-            SimplePhase(0, id => { SimpleState(id, 10000, "Enrage"); }, "Single phase")
+            TrivialPhase()
                 .ActivateOnEnter<WindRoseAOE>()
                 .ActivateOnEnter<SurgingWaveAOE>()
                 .ActivateOnEnter<LandingAOE>()
@@ -34,8 +28,7 @@ namespace BossMod.Endwalker.Alliance.A32Llymlaen
                 .ActivateOnEnter<DeepDiveStack>()
                 .ActivateOnEnter<HardWaterStack>()
                 .ActivateOnEnter<SphereShatter>()
-                .ActivateOnEnter<SurgingWaveKnockback>()
-                .Raw.Update = () => Module.PrimaryActor.IsDestroyed;
+                .ActivateOnEnter<SurgingWaveKnockback>();
         }
     }
 }

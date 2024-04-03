@@ -3,7 +3,7 @@ namespace BossMod.Endwalker.Alliance.A35Eulogia
 
     public enum OID : uint
     {
-        Eulogia = 0x4086, // R11.000, x1
+        Boss = 0x4086, // R11.000, x1
         Helper = 0x233C, // R0.500, x14, 523 type
         Avatar = 0x4087, // R11.000, spawn during fight
         Trident = 0x408E, // R3.000, spawn during fight
@@ -65,7 +65,7 @@ namespace BossMod.Endwalker.Alliance.A35Eulogia
         SunbeamSelf = 35328, // Eulogia->self, 5.0s cast, single-target visual (tankbuster)
         SunbeamTankBuster = 35329, // Helper->players, 5.0s cast, range 6 circle, tankbusters
         
-        TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle // raidwide, adds an instant kill AOE around arena
+        TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle, raidwide, adds a bleed AOE around arena
         
         LovesLight = 35376, // Eulogia->self, 4.0s cast, single-target
         FullBright = 35377, // Eulogia->self, 3.0s cast, single-target
@@ -78,15 +78,15 @@ namespace BossMod.Endwalker.Alliance.A35Eulogia
         SolarFansAOE = 35388, // WardensFlame->location, 4.0s cast, width 10 rect charge
         RadiantRhythm = 35389, // Eulogia->self, no cast, range 100 circle
         TeleportFlame = 35390, // WardensFlame->location, no cast, single-target
-        RadiantFlight = 35391, // Helper->self, 0.5s cast, range 30 ?-degree cone
+        RadiantFlight = 35391, // Helper->self, 0.5s cast, range 30 90-degree cone
         RadiantFlourish = 35393, // WardensFlame->self, 3.0s cast, range 25 circle
         RadiantFinish = 35392, // Eulogia->self, 3.0s cast, single-target
         
         TimeAndTide = 35378, // Eulogia->self, 6.0s cast, single-target, single-target, visual (speed up time)
         Hydrostasis = 35383, // Eulogia->self, 4.0s cast, single-target, 4.0s cast, single-target, visual (knockbacks)
-        HydrostasisAOE1 = 35384, // Helper->self, 7.0s cast, range 72 circle
-        HydrostasisAOE2 = 35385, // Helper->self, 10.0s cast, range 72 circle
-        HydrostasisAOE3 = 35386, // Helper->self, 13.0s cast, range 72 circle
+        HydrostasisAOE1 = 35384, // Helper->self, 7.0s cast, range 72 circle, knockback 28 dir 6
+        HydrostasisAOE2 = 35385, // Helper->self, 10.0s cast, range 72 circle, knockback 28 dir 6
+        HydrostasisAOE3 = 35386, // Helper->self, 13.0s cast, range 72 circle, knockback 28 dir 6
         
         DestructiveBolt = 36076, // Eulogia->self, 6.0s cast, single-target, tankbuster visual
         DestructiveBoltStack = 36093, // Helper->players, 7.0s cast, range 6 circle, stack marker
@@ -106,7 +106,7 @@ namespace BossMod.Endwalker.Alliance.A35Eulogia
         Landing = 35407, // Trident->self, no cast, range 80 circle
         LightningBolt = 35408, // Trident->self, 5.0s cast, range 18 circle
         ByregotStrikeJump = 35410, // Eulogia->location, 6.0s cast, range 8 circle
-        ByregotStrikeKnockback = 35411, // Helper->self, 6.7s cast, range 45 circle knockback 18
+        ByregotStrikeKnockback = 35411, // Helper->self, 6.7s cast, range 45 circle, knockback 20, dir 6
         ByregotStrikeCone = 35412, // Helper->self, 6.7s cast, range 90 30-degree cone
         
         ThousandfoldThrustFirst1 = 35415, // Eulogia->self, 5.0s cast, single-target
@@ -116,12 +116,14 @@ namespace BossMod.Endwalker.Alliance.A35Eulogia
         
         AsAboveSoBelow = 35419, // Eulogia->self, 5.0s cast, range 40 circle
         AsAboveSoBelowAlt = 35420, // Eulogia->self, 5.0s cast, range 40 circle
-        
+
         ClimbingShot1 = 36106, // Eulogia->self, 8.0s cast, range 40 circle
         ClimbingShot2 = 35431, // Eulogia->self, no cast, range 40 circle
         ClimbingShot3 = 35429, // Eulogia->self, no cast, range 40 circle
         ClimbingShot4 = 36107, // Eulogia->self, 8.0s cast, range 40 circle
         ClimbingShot5 = 35430, // Eulogia->self, no cast, range 40 circle
+        ClimbingShot6 = 35432, // Eulogia->self, no cast, range 40 circle, knockback 20, dir 6
+
         OnceBurnedFake = 36094, // Helper->self, 9.0s cast, range 6 circle
         EverFireFake = 36095, // Helper->self, 9.0s cast, range 6 circle
         OnceBurnedFirst = 36096, // Helper->self, 9.0s cast, range 6 circle

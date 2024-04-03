@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using BossMod.Components;
+﻿namespace BossMod.Endwalker.Alliance.A34OschonBig;
 
-namespace BossMod.Endwalker.Alliance.A34OschonBig
-
+public enum OID : uint
 {
-    public enum OID : uint
-{
-    OschonBig  = 0x406F, // R24.990, x1
+    Boss = 0x406F, // R24.990, x1
     OschonSmall = 0x406D, // R8.000, x1
     OschonsAvatar = 0x406E, // R8.000, x4
     OschonHelper = 0x233C, // R0.500, x40, 523 type
@@ -18,27 +12,27 @@ namespace BossMod.Endwalker.Alliance.A34OschonBig
     Actor1e8f2f = 0x1E8F2F, // R0.500, x1, EventObj type
     Unknown = 0x400E, // R0.500, spawn during fight
 };
-    public enum AID : uint
+
+public enum AID : uint
 {
     _AutoAttack_ = 35907, // OschonBig->player, no cast, single-target
     PitonPull1Visual = 35241, // OschonBig->self, 8.0s cast, single-target // NW and ES Visual
     PitonPull3Visual2 = 35242, // OschonBig->self, 8.0s cast, single-target // NE and SW Visual
     PitonPullAOE = 35243, // OschonHelper->location, 8.5s cast, range 22 circle // Massive AOEs
-    
-    WeaponskillAOE = 35248, // OschonHelper->location, 2.0s cast, range 6 circle
-    
-    AltitudeVisual = 35247, // OschonBig->location, 6.0s cast, single-target // Visual
+
+    AltitudeVisual1 = 35247, // OschonBig->location, 6.0s cast, single-target // Visual
+    AltitudeVisual2 = 35248, // OschonHelper->location, 2.0s cast, range 6 circle
     AltitudeAOE = 35249, // OschonHelper->location, 7.0s cast, range 6 circle // Multiple AOEs
 
     //For the life of me couldnt figure out why this would not appear
     FlintedFoehnVisual = 35236, // OschonBig->self, 4.5s cast, single-target // Visual
     FlintedFoehnStack = 35238, // OschonHelper->players, no cast, range 8 circle // Multihit party stack
-    
+
     WanderingShotVisual = 36087, // OschonBig->self, 7.0s cast, range 40 width 40 rect
     WanderingShot2 = 36086, // OschonBig->self, 7.0s cast, range 40 width 40 rect
-    
+
     GreatWhirlwindAOE = 35246, // OschonHelper->location, 3.6s cast, range 23 circle // Massive AOE
-    
+
     TheArrowVisual = 35228, // OschonBig->self, 6.0s cast, single-target
     TheArrowTankbuster = 35230, // OschonHelper->player, 7.0s cast, range 10 circle // Tankbuster
 
@@ -54,23 +48,18 @@ namespace BossMod.Endwalker.Alliance.A34OschonBig
 
     WanderingVolley = 35245, // OschonBig->self, 10.0s cast, range 40 width 40 rect
     WanderingVolley2 = 35244, // OschonBig->self, 10.0s cast, range 40 width 40 rect
-
-
 };
 
-  public enum SID : uint
+public enum SID : uint
 {
     VulnerabilityUp = 1789, // OschonHelper->player, extra=0x1/0x2/0x3
     Weakness = 43, // none->player, extra=0x0
     Transcendent = 418, // none->player, extra=0x0
     SustainedDamage = 2935, // OschonHelper->player, extra=0x0
-
 };
-  
-  public enum IconID : uint
+
+public enum IconID : uint
 {
     FlintedFoehnMarker = 316, // player
     Arrowbuster = 500, // player
 };
-
-}

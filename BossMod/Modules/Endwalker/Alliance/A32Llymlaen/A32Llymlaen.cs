@@ -1,28 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using BossMod.Components;
+﻿namespace BossMod.Endwalker.Alliance.A32Llymlaen;
 
-namespace BossMod.Endwalker.Alliance.A32Llymlaen
-{   
-    //
-    [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, PrimaryActorOID = 0x4024)]
-    public class A32Llymlaen : BossModule
-    {
-        public A32Llymlaen(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-0.015f, -900.023f),20, 30))
-        {
-        }
-        protected override void DrawArenaForeground(int pcSlot, Actor pc)
-        {
-            Arena.PathLineTo(new(-20.015f, -870.023f)); // Top Left
-            Arena.PathLineTo(new(19.985f, -870.023f)); // Top-Right
-            Arena.PathLineTo(new(19.985f, -930.023f)); // Bottom-Right
-            Arena.PathLineTo(new(-20.015f, -930.023f)); // Bottom-Left
-            Arena.PathLineTo(new(-20.015f, -905.000f)); 
-            Arena.PathLineTo(new(-78.000f, -905.000f));
-            Arena.PathLineTo(new(-78.000f, -895.000f)); 
-            Arena.PathLineTo(new(-20.015f, -895.000f)); 
-            Arena.PathStroke(true, ArenaColor.Border);
-        }
-    }
+class StormwhorlLocAOE : Components.LocationTargetedAOEs
+{
+    public StormwhorlLocAOE() : base(ActionID.MakeSpell(AID.StormwhorlLocAOE), 6) { }
+}
+class MaelstromLocAOE : Components.LocationTargetedAOEs
+{
+    public MaelstromLocAOE() : base(ActionID.MakeSpell(AID.MaelstromLocAOE), 6) { }
+}
+
+class WindRoseAOE : Components.SelfTargetedAOEs
+{
+    public WindRoseAOE() : base(ActionID.MakeSpell(AID.WindRoseAOE), new AOEShapeCircle(12)) { }
+}
+
+class SurgingWaveAOE : Components.SelfTargetedAOEs
+{
+    public SurgingWaveAOE() : base(ActionID.MakeSpell(AID.SurgingWaveAOE), new AOEShapeCircle(6)) { }
+}
+
+class LandingAOE : Components.SelfTargetedAOEs
+{
+    public LandingAOE() : base(ActionID.MakeSpell(AID.LandingAOE), new AOEShapeCircle(18), 4) { }
+}
+
+class SeafoamSpiralDonut : Components.SelfTargetedAOEs
+{
+    public SeafoamSpiralDonut() : base(ActionID.MakeSpell(AID.SeafoamSpiralDonut), new AOEShapeDonut(6, 70)) { }
+}
+
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11299)]
+public class A32Llymlaen : BossModule
+{
+    public A32Llymlaen(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, -900), 19, 29)) { }
 }

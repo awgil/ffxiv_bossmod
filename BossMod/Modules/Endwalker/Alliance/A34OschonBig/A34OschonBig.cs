@@ -1,22 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using BossMod.Components;
+﻿namespace BossMod.Endwalker.Alliance.A34OschonBig;
 
-namespace BossMod.Endwalker.Alliance.A34OschonBig
+class TheArrowTankbuster : Components.BaitAwayCast
+{
+    public TheArrowTankbuster() : base(ActionID.MakeSpell(AID.TheArrowTankbuster), new AOEShapeCircle(10), true) { }
+}
 
-{   
-
-    [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, PrimaryActorOID = 0x406F)]
-    public class A34Oschon : BossModule
-    {
-        public A34Oschon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-0.015f, 749.996f), 20, 20)) { }
-        
-        protected override void DrawEnemies(int pcSlot, Actor pc)
-        {
-            Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
-            foreach (var s in Enemies(OID.OschonHelper))
-                Arena.Actor(s, ArenaColor.Object, false);
-        }
-    }
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300)]
+public class A34Oschon : BossModule
+{
+    public A34Oschon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 750), 20, 20)) { }
 }

@@ -292,9 +292,9 @@ class FierceBeating : Components.Exaflare
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
-        foreach (var (c, t) in FutureAOEs(module.WorldState.CurrentTime))
+        foreach (var (c, t, r) in FutureAOEs(module.WorldState.CurrentTime))
             yield return new(Shape, c, activation: t, color: FutureColor);
-        foreach (var (c, t) in ImminentAOEs())
+        foreach (var (c, t, r) in ImminentAOEs())
             yield return new(Shape, c, activation: t, color: ImminentColor);
         if (Lines.Count > 0 && linesstartedcount1 < 8)
             yield return new(circle, CalculateCirclePosition(linesstartedcount1, module.Bounds.Center, _casters[0]), activation: _activation.AddSeconds(linesstartedcount1 * 3.7f));
