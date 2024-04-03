@@ -2,32 +2,39 @@
 
 class FatefulWords : Components.Knockback
 {
-    private Dictionary<ulong, float> _playerDistances = new();
+    private Kind[] _mechanics = new Kind[PartyState.MaxPartySize];
 
-    public FatefulWords() : base(ActionID.MakeSpell(AID.FatefulWordsAOE), true) { } // TODO: verify it ignores immunities
+    public FatefulWords() : base(ActionID.MakeSpell(AID.FatefulWordsAOE), true) { }
 
     public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
     {
-        var dist = _playerDistances.GetValueOrDefault(actor.InstanceID);
-        if (dist != 0)
-            yield return new(module.Bounds.Center, dist, module.PrimaryActor.CastInfo?.NPCFinishAt ?? new());
+        var kind = _mechanics[slot];
+        if (kind != Kind.None)
+            yield return new(module.Bounds.Center, 6, module.PrimaryActor.CastInfo?.NPCFinishAt ?? default, Kind: kind);
     }
 
     public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
     {
-        var dist = (SID)status.ID switch
+        var kind = (SID)status.ID switch
         {
-            SID.WanderersFate => 6,
-            SID.SacrificesFate => -6,
-            _ => 0
+            SID.WanderersFate => Kind.AwayFromOrigin,
+            SID.SacrificesFate => Kind.TowardsOrigin,
+            _ => Kind.None
         };
-        if (dist != 0)
-            _playerDistances[actor.InstanceID] = dist;
+        if (kind != Kind.None)
+            AssignMechanic(module, actor, kind);
     }
 
     public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.WanderersFate or SID.SacrificesFate)
-            _playerDistances.Remove(actor.InstanceID);
+            AssignMechanic(module, actor, Kind.None);
+    }
+
+    private void AssignMechanic(BossModule module, Actor actor, Kind mechanic)
+    {
+        var slot = module.Raid.FindSlot(actor.InstanceID);
+        if (slot >= 0 && slot < _mechanics.Length)
+            _mechanics[slot] = mechanic;
     }
 }
