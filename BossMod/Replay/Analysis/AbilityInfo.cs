@@ -1,5 +1,7 @@
-﻿using ImGuiNET;
+﻿using BossMod.Components;
+using ImGuiNET;
 using System.Text;
+using static BossMod.ActorCastEvent;
 
 namespace BossMod.ReplayAnalysis;
 
@@ -186,6 +188,112 @@ class AbilityInfo : CommonEnumInfo
         }
     }
 
+    class KnockbackAnalysis
+    {
+        private record struct Point(Replay Replay, Replay.Action Action, Replay.ActionTarget Target);
+
+        private Dictionary<int, List<Point>> _byDistance = new();
+        private Dictionary<Knockback.Kind, List<Point>> _byKind = new();
+        private List<Point> _immuneIgnores = new();
+        private List<Point> _immuneMisses = new();
+        private List<Point> _transcendentIgnores = new();
+        private List<Point> _transcendentMisses = new();
+        private List<Point> _otherMisses = new();
+
+        public KnockbackAnalysis(List<(Replay, Replay.Action)> infos)
+        {
+            foreach (var (r, a) in infos)
+            {
+                foreach (var target in a.Targets)
+                {
+                    bool hasKnockbacks = false;
+                    foreach (var eff in target.Effects)
+                    {
+                        switch (eff.Type)
+                        {
+                            case ActionEffectType.Knockback:
+                                var kbData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Knockback>(eff.Value);
+                                var kind = kbData != null ? (KnockbackDirection)kbData.Direction switch
+                                {
+                                    KnockbackDirection.AwayFromSource => Knockback.Kind.AwayFromOrigin,
+                                    KnockbackDirection.SourceForward => Knockback.Kind.DirForward,
+                                    KnockbackDirection.SourceRight => Knockback.Kind.DirRight,
+                                    KnockbackDirection.SourceLeft => Knockback.Kind.DirLeft,
+                                    _ => Knockback.Kind.None
+                                } : Knockback.Kind.None;
+                                AddPoint(r, a, target, (kbData?.Distance ?? 0) + eff.Param0, kind);
+                                hasKnockbacks = true;
+                                break;
+                            case ActionEffectType.Attract1:
+                            case ActionEffectType.Attract2:
+                                var attrData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Attract>(eff.Value);
+                                AddPoint(r, a, target, attrData?.MaxDistance ?? 0, Knockback.Kind.TowardsOrigin);
+                                hasKnockbacks = true;
+                                break;
+                            case ActionEffectType.AttractCustom1:
+                            case ActionEffectType.AttractCustom2:
+                            case ActionEffectType.AttractCustom3:
+                                AddPoint(r, a, target, eff.Value, Knockback.Kind.TowardsOrigin);
+                                hasKnockbacks = true;
+                                break;
+                        }
+                    }
+
+                    if (!hasKnockbacks)
+                    {
+                        if (IsImmune(r, target.Target, a.Timestamp))
+                            _immuneMisses.Add(new(r, a, target));
+                        else if (IsTranscendent(r, target.Target, a.Timestamp))
+                            _transcendentMisses.Add(new(r, a, target));
+                        else
+                            _otherMisses.Add(new(r, a, target));
+                    }
+                }
+            }
+        }
+
+        public void Draw(UITree tree)
+        {
+            foreach (var (dist, points) in _byDistance)
+                DrawPoints(tree, $"Distance {dist}", points);
+            foreach (var (kind, points) in _byKind)
+                DrawPoints(tree, $"Type {kind}", points);
+            DrawPoints(tree, "Ignore immunity", _immuneIgnores);
+            DrawPoints(tree, "Ignore transcendent", _transcendentIgnores);
+            DrawPoints(tree, "Misses while immune", _immuneMisses);
+            DrawPoints(tree, "Misses while transcendent", _transcendentMisses);
+            DrawPoints(tree, "Misses in other states", _otherMisses);
+        }
+
+        private void AddPoint(Replay replay, Replay.Action action, Replay.ActionTarget target, int distance, Knockback.Kind kind)
+        {
+            _byDistance.GetOrAdd(distance).Add(new(replay, action, target));
+            _byKind.GetOrAdd(kind).Add(new(replay, action, target));
+            if (IsImmune(replay, target.Target, action.Timestamp))
+                _immuneIgnores.Add(new(replay, action, target));
+            if (IsTranscendent(replay, target.Target, action.Timestamp))
+                _transcendentIgnores.Add(new(replay, action, target));
+        }
+
+        private void DrawPoints(UITree tree, string tag, List<Point> points)
+        {
+            foreach (var n in tree.Node($"{tag} ({points.Count} instances)", points.Count == 0))
+            {
+                foreach (var an in tree.Nodes(points, p => new($"{p.Replay.Path} @ {p.Action.Timestamp:O}: {ReplayUtils.ParticipantPosRotString(p.Action.Source, p.Action.Timestamp)} -> {ReplayUtils.ParticipantString(p.Target.Target, p.Action.Timestamp)}")))
+                {
+                    tree.LeafNodes(an.Target.Effects, ReplayUtils.ActionEffectString);
+                }
+            }
+        }
+
+        private static bool IsImmune(uint sid) => sid is 3054 or (uint)WHM.SID.Surecast or (uint)WAR.SID.ArmsLength or 1722 or (uint)WAR.SID.InnerStrength or 2345; // see Knockback component
+        private static bool IsImmune(Replay replay, Replay.Participant participant, DateTime timestamp) => replay.Statuses.Any(status => status.Target == participant && status.Time.Contains(timestamp) && IsImmune(status.ID));
+
+        // transcendent (after rez) is kind of immune too
+        private static bool IsTranscendent(uint sid) => sid is 418;
+        private static bool IsTranscendent(Replay replay, Replay.Participant participant, DateTime timestamp) => replay.Statuses.Any(status => status.Target == participant && status.Time.Contains(timestamp) && IsTranscendent(status.ID));
+    }
+
     class CasterLinkAnalysis
     {
         private List<(Replay Replay, Replay.Action Action, float MinDistance)> _points = new();
@@ -235,6 +343,7 @@ class AbilityInfo : CommonEnumInfo
         public DamageFalloffAnalysis? DamageFalloffAnalysisDistFromSource;
         public DamageFalloffAnalysis? DamageFalloffAnalysisMinCoord;
         public GazeAnalysis? GazeAnalysis;
+        public KnockbackAnalysis? KnockbackAnalysis;
         public CasterLinkAnalysis? CasterLinkAnalysis;
     }
 
@@ -368,6 +477,12 @@ class AbilityInfo : CommonEnumInfo
                 if (data.GazeAnalysis == null)
                     data.GazeAnalysis = new(data.Instances);
                 data.GazeAnalysis.Draw();
+            }
+            foreach (var an in tree.Node("Knockback analysis"))
+            {
+                if (data.KnockbackAnalysis == null)
+                    data.KnockbackAnalysis = new(data.Instances);
+                data.KnockbackAnalysis.Draw(tree);
             }
             foreach (var an in tree.Node("Caster link analysis"))
             {
