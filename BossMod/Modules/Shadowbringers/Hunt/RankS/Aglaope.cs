@@ -26,7 +26,7 @@ public enum SID : uint
 
 class SongOfTorment : Components.CastInterruptHint
 {
-    public SongOfTorment() : base(ActionID.MakeSpell(AID.SongOfTorment), hint: "(Raidwide + Bleed)") { }
+    public SongOfTorment() : base(ActionID.MakeSpell(AID.SongOfTorment), hintExtra: "Raidwide + Bleed") { }
 }
 
 //TODO: ideally this AOE should just wait for Effect Results, since they can be delayed by over 2.1s, which would cause unknowning players and AI to run back into the death zone, 

@@ -85,7 +85,7 @@ class TheDragonsVoice : Components.SelfTargetedAOEs
 
 class TheDragonsVoiceHint : Components.CastInterruptHint
 {
-    public TheDragonsVoiceHint() : base(ActionID.MakeSpell(AID.TheDragonsVoice), hint: "(Donut Raidwide)") { }
+    public TheDragonsVoiceHint() : base(ActionID.MakeSpell(AID.TheDragonsVoice), hintExtra: "Donut Raidwide") { }
 }
 
 class TygerStates : StateMachineBuilder
