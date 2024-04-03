@@ -1,4 +1,6 @@
 // CONTRIB: made by malediktus, not checked
+using System.Security.Cryptography.X509Certificates;
+
 namespace BossMod.Global.Quest.FF16Collab.InfernalShadow;
 
 class VulcanBurst : Components.RaidwideCast
@@ -135,7 +137,8 @@ class Eruption : Components.LocationTargetedAOEs
 
 class Eruption2 : Components.GenericAOEs
 {
-    private readonly List<(WPos position, DateTime activation)> _casters = [];
+    private readonly List<(WPos position, DateTime activation, uint AID)> _castersunsorted = [];
+    private List<(WPos position, DateTime activation)> _casters = [];
     private static readonly AOEShapeCircle circle = new(8);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
@@ -145,8 +148,8 @@ class Eruption2 : Components.GenericAOEs
             if (NumCasts < 6 ? _casters.Count > 2 : _casters.Count > 3)
                 for (int i = 0; NumCasts < 6 ? i < 3 : i < 4; ++i)
                     yield return new(circle, _casters[i].position, activation: _casters[i].activation, color: ArenaColor.Danger);
-            if (NumCasts <= 6 ? _casters.Count > 5 : _casters.Count > 6)                   
-                for (int i = 3; NumCasts < 6 ? i < 6 : i < 7; ++i)
+            if (NumCasts < 3 ? _casters.Count > 5 : _casters.Count > 6)                   
+                for (int i = 3; NumCasts < 3 ? i < 6 : i < 7; ++i)
                     yield return new(circle, _casters[i].position, activation: _casters[i].activation);
         }
         if (NumCasts >= 10)
@@ -155,7 +158,7 @@ class Eruption2 : Components.GenericAOEs
                 for (int i = 0; _casters.Count > 6 ? i < 4 : i < 6; ++i)
                     yield return new(circle, _casters[i].position, activation: _casters[i].activation, color: ArenaColor.Danger);
             if (_casters.Count > 7)                
-                for (int i = 5; _casters.Count > 6 ? i < 8 : i < 9; ++i)
+                for (int i = 4; _casters.Count > 10 ? i < 8 : i < 10; ++i)
                     yield return new(circle, _casters[i].position, activation: _casters[i].activation);
         }
     }
@@ -163,7 +166,10 @@ class Eruption2 : Components.GenericAOEs
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.EruptionReal2 or AID.EruptionReal3 or AID.EruptionReal4)
-            _casters.Add((spell.LocXZ, spell.NPCFinishAt));
+        {
+            _castersunsorted.Add((spell.LocXZ, spell.NPCFinishAt, spell.Action.ID));
+            _casters = _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.activation)).ToList();
+        }
     }
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -172,40 +178,70 @@ class Eruption2 : Components.GenericAOEs
         {
             _casters.RemoveAt(0);
             ++NumCasts;
+            if (_casters.Count == 0)
+                _castersunsorted.Clear();
         }        
     }
 }
-class Hints : BossComponent
-{
-    // public override void AddGlobalHints(BossModule module, GlobalHints hints)
-    // {
-    //     var converter = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
-    //     if (converter != null)
-    //         hints.Add($"Activate the {converter.Name} or wipe!");
-    //     if (module.Enemies(OID.DangerousSahagins).Any(x => x.IsTargetable && !x.IsDead))
-    //         hints.Add("Kill Sahagins or lose control!");
-    //     if (module.Enemies(OID.Spume).Any(x => x.IsTargetable && !x.IsDead))
-    //         hints.Add("Destroy the spumes!");
-    // }
 
-    // public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-    // {
-    //     var tail = module.Enemies(OID.Tail).Where(x => x.IsTargetable && x.FindStatus(SID.Invincibility) == null && x.FindStatus(SID.MantleOfTheWhorl) != null).FirstOrDefault();
-    //     var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
-    //     if (tail != null)
-    //     {
-    //         if ((actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || (actor.Class is Class.BLU && TankMimikry == null)) && actor.TargetID == module.Enemies(OID.Tail).FirstOrDefault()?.InstanceID)
-    //             hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
-    //         if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && actor.TargetID == module.PrimaryActor.InstanceID)
-    //             hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
-    //     }
-    // }
+class BurningStrike : BossComponent
+{
+    private bool casting;
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.BurningStrikeVisual)
+            casting = true;
+    }
+
+    public override void Update(BossModule module)
+    {
+        var defendtargetable = module.Enemies(OID.DefendClive).Where(x => x.IsTargetable).FirstOrDefault();
+        if (defendtargetable != null && casting)
+            casting = false;
+    }
+
+    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    {
+        var defendtargetable = module.Enemies(OID.DefendClive).Where(x => x.IsTargetable).FirstOrDefault();
+        if (casting && defendtargetable == null)
+            hints.Add("Prepare to defend Clive!");
+        if (defendtargetable != null)
+            hints.Add($"Interact with {module.Enemies(OID.DefendClive).FirstOrDefault()!.Name} and solve a QTE!");
+    }
 
     public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
     {
         var defendtargetable = module.Enemies(OID.DefendClive).Where(x => x.IsTargetable).FirstOrDefault();
         if (defendtargetable != null)
             arena.AddCircle(defendtargetable.Position, 1.4f, ArenaColor.Safe);
+    }
+}
+
+class SearingStomp : BossComponent
+{
+    private int NumCasts;
+    private bool casting;
+
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.InfernalShroud)
+        {
+            ++NumCasts;
+            if (NumCasts == 2)
+                casting = true;
+        }
+    }
+
+    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.InfernalHowlReal)
+            casting = false;
+    }
+
+    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    {
+        if (casting)
+            hints.Add("Prepare to solve a QTE!");
     }
 }
 

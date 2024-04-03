@@ -19,7 +19,8 @@ class InfernalShadowStates : StateMachineBuilder
             .ActivateOnEnter<FieryRampageRaidwide>()
             .ActivateOnEnter<Eruption>()
             .ActivateOnEnter<Eruption2>()
-            .ActivateOnEnter<Hints>()
+            .ActivateOnEnter<BurningStrike>()
+            .ActivateOnEnter<SearingStomp>()
             .Raw.Update = () => module.PrimaryActor.HP.Cur == 1;
     }
 }
