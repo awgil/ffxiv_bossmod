@@ -27,6 +27,7 @@ class IPCProvider : IDisposable
         p.RegisterFunc(func);
         _disposeActions.Add(p.UnregisterFunc);
     }
+
     private void Register<TRet, T1>(string name, Func<TRet, T1> func)
     {
         var p = Service.PluginInterface.GetIpcProvider<TRet, T1>("BossMod." + name);
