@@ -1,4 +1,4 @@
-// CONTRIB: made by legendoficeman, improvements by Malediktus
+// CONTRIB: made by legendoficeman, improvements by Malediktus, not checked
 namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D70Taquaru;
 
 public enum OID : uint
@@ -9,7 +9,7 @@ public enum OID : uint
 };
 
 public enum AID : uint
- {
+{
     AutoAttack = 6497, // Boss->player, no cast, single-target
     Douse = 7091, // Boss->self, 3.0s cast, range 8 circle
     Drench = 7093, // Boss->self, no cast, range 10+R 90-degree cone, 5.1s after pull, 7.1s after every 2nd Electrogenesis, 7.3s after every FangsEnd
@@ -25,12 +25,12 @@ class Douse : Components.PersistentVoidzoneAtCastTarget
 class DouseHaste : BossComponent
 {
     private bool BossInVoidzone;
-        public override void Update(BossModule module)
+    public override void Update(BossModule module)
     {
         if (module.FindComponent<Douse>()?.ActiveAOEs(module, 0, module.PrimaryActor).Any(z => z.Shape.Check(module.PrimaryActor.Position, z.Origin, z.Rotation)) ?? false)
             BossInVoidzone = true;
         else
-        BossInVoidzone = false;
+            BossInVoidzone = false;
     }
 
     public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)

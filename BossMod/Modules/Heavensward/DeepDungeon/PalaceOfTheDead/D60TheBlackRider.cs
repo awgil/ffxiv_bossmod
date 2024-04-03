@@ -1,4 +1,4 @@
-// CONTRIB: made by legendoficeman, improvements by Malediktus
+// CONTRIB: made by legendoficeman, improvements by Malediktus, not checked
 namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D60TheBlackRider;
 
 public enum OID : uint
