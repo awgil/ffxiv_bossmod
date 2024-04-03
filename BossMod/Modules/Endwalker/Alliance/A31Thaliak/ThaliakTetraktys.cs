@@ -60,10 +60,10 @@ class TetraTriangles : Components.GenericAOEs
                 _casters.Add((new WPos(-953, 934.644f), tri, _rot1, _activation));
             }
             if (index == 0x0E)
-                _casters.Add((new WPos(-945, 921f), triBig, _rot1, _activation));
-            if (index == 0x10)
-                _casters.Add((new WPos(-953, 934.644f), triBig, _rot1, _activation));
+                _casters.Add((new WPos(-945, 921), triBig, _rot1, _activation));
             if (index == 0x0F)
+                _casters.Add((new WPos(-953, 934.644f), triBig, _rot1, _activation));
+            if (index == 0x10)
                 _casters.Add((new WPos(-937, 934.644f), triBig, _rot1, _activation));
             if (index == 0x13 && TutorialDone) //pair 13+15 always happen together after tutorial
             {
