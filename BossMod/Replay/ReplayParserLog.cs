@@ -400,7 +400,7 @@ public class ReplayParserLog : ReplayParser
 
     private void ParseZoneChange()
     {
-        AddOp(new WorldState.OpZoneChange() { Zone = _input.ReadUShort(false) });
+        AddOp(new WorldState.OpZoneChange() { Zone = _input.ReadUShort(false), CFCID = _version >= 13 ? _input.ReadUShort(false) : (ushort)0 });
     }
 
     private void ParseDirectorUpdate()
@@ -475,6 +475,7 @@ public class ReplayParserLog : ReplayParser
                 OID = _input.ReadUInt(true),
                 SpawnIndex = _input.ReadInt(),
                 Name = _input.ReadString(),
+                NameID = _version >= 13 ? _input.ReadUInt(false) : 0,
                 Type = (ActorType)_input.ReadUShort(true),
                 Class = _input.ReadClass(),
                 Level = _version < 12 ? 0 : _input.ReadInt(),
@@ -505,7 +506,7 @@ public class ReplayParserLog : ReplayParser
         }
         else
         {
-            op = new() { InstanceID = _input.ReadULong(true), Name = _input.ReadString() };
+            op = new() { InstanceID = _input.ReadULong(true), Name = _input.ReadString(), NameID = _version >= 13 ? _input.ReadUInt(false) : 0 };
         }
         AddOp(op);
     }

@@ -38,7 +38,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
 
         _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
-        _actions.Name = player.NameHistory.FirstOrDefault().Value;
+        _actions.Name = player.NameHistory.FirstOrDefault().Value.name;
 
         _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, player));
 

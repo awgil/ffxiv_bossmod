@@ -147,7 +147,7 @@ class IaiGiriBait : Components.GenericBaitAway
         public Instance(Actor source)
         {
             Source = source;
-            FakeSource = new(0, 0, -1, "", ActorType.None, Class.None, 0, new());
+            FakeSource = new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new());
         }
     }
 

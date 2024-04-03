@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Memory;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace BossMod;
@@ -69,7 +70,7 @@ class WorldStateGame : WorldState, IDisposable
         _processPacketRSVDataHook.Dispose();
     }
 
-    public void Update(TimeSpan prevFramePerf)
+    public unsafe void Update(TimeSpan prevFramePerf)
     {
         var frame = new FrameState() {
             Timestamp = _startTime.AddSeconds((double)(Utils.FrameQPC() - _startQPC) / QPF),
@@ -80,9 +81,9 @@ class WorldStateGame : WorldState, IDisposable
             TickSpeedMultiplier = Utils.TickSpeedMultiplier()
         };
         Execute(new OpFrameStart() { Frame = frame, PrevUpdateTime = prevFramePerf, GaugePayload = GaugeData() });
-        if (CurrentZone != Service.ClientState.TerritoryType)
+        if (CurrentZone != Service.ClientState.TerritoryType || CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
         {
-            Execute(new OpZoneChange() { Zone = Service.ClientState.TerritoryType });
+            Execute(new OpZoneChange() { Zone = Service.ClientState.TerritoryType, CFCID = GameMain.Instance()->CurrentContentFinderConditionId });
         }
 
         foreach (var c in _confirms)
@@ -165,6 +166,7 @@ class WorldStateGame : WorldState, IDisposable
     {
         var character = obj as Character;
         var name = obj.Name.TextValue;
+        var nameID = character?.NameId ?? 0;
         var classID = (Class)(character?.ClassJob.Id ?? 0);
         var level = character?.Level ?? 0;
         var posRot = new Vector4(obj.Position, obj.Rotation);
@@ -194,6 +196,7 @@ class WorldStateGame : WorldState, IDisposable
                 OID = obj.DataId,
                 SpawnIndex = index,
                 Name = name,
+                NameID = nameID,
                 Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
                 Class = classID,
                 Level = level,
@@ -214,8 +217,8 @@ class WorldStateGame : WorldState, IDisposable
         }
         else
         {
-            if (act.Name != name)
-                Execute(new ActorState.OpRename() { InstanceID = act.InstanceID, Name = name });
+            if (act.NameID != nameID || act.Name != name)
+                Execute(new ActorState.OpRename() { InstanceID = act.InstanceID, Name = name, NameID = nameID });
             if (act.Class != classID || act.Level != level)
                 Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID, Level = level });
             if (act.PosRot != posRot)

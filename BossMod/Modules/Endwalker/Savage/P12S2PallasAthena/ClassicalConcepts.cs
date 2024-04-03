@@ -197,7 +197,7 @@ class Implode : Components.SelfTargetedAOEs
 
 class PalladianRayBait : Components.GenericBaitAway
 {
-    private Actor[] _dummies = { new(0, 0, -1, "L dummy", ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", ActorType.None, Class.None, 0, new(108, 0, 92, 0)) };
+    private Actor[] _dummies = { new(0, 0, -1, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0)) };
 
     private static readonly AOEShapeCone _shape = new(100, 15.Degrees());
 

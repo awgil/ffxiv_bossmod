@@ -10,6 +10,7 @@ public class WorldState
     public string GameVersion;
     public FrameState Frame;
     public ushort CurrentZone { get; private set; }
+    public ushort CurrentCFCID { get; private set; }
     public Dictionary<string, string> RSVEntries { get; init; } = new();
     public WaymarkState Waymarks { get; init; } = new();
     public ActorState Actors { get; init; } = new();
@@ -55,8 +56,8 @@ public class WorldState
     {
         if (CurrentTime != default)
             yield return new OpFrameStart() { Frame = Frame };
-        if (CurrentZone != 0)
-            yield return new OpZoneChange() { Zone = CurrentZone };
+        if (CurrentZone != 0 || CurrentCFCID != 0)
+            yield return new OpZoneChange() { Zone = CurrentZone, CFCID = CurrentCFCID };
         foreach (var (k, v) in RSVEntries)
             yield return new OpRSVData() { Key = k, Value = v };
         foreach (var o in Waymarks.CompareToInitial())
@@ -128,14 +129,16 @@ public class WorldState
     public class OpZoneChange : Operation
     {
         public ushort Zone;
+        public ushort CFCID;
 
         protected override void Exec(WorldState ws)
         {
             ws.CurrentZone = Zone;
+            ws.CurrentCFCID = CFCID;
             ws.CurrentZoneChanged?.Invoke(ws, this);
         }
 
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ZONE").Emit(Zone);
+        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ZONE").Emit(Zone).Emit(CFCID);
     }
 
     // global events

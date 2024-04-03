@@ -25,6 +25,7 @@ class AnalysisManager : IDisposable
     private class Global
     {
         private Lazy<UnknownActionEffects> _unkEffects;
+        private Lazy<ParticipantInfo> _participantInfo;
         private Lazy<AbilityInfo> _abilityInfo;
         private Lazy<ClientActions> _clientActions;
         private Lazy<EffectResultMispredict> _effectResultMissing;
@@ -34,6 +35,7 @@ class AnalysisManager : IDisposable
         public Global(List<Replay> replays)
         {
             _unkEffects = new(() => new(replays));
+            _participantInfo = new(() => new(replays));
             _abilityInfo = new(() => new(replays));
             _clientActions = new(() => new(replays));
             _effectResultMissing = new(() => new(replays, true));
@@ -45,6 +47,9 @@ class AnalysisManager : IDisposable
         {
             foreach (var n in tree.Node("Unknown action effects"))
                 _unkEffects.Get().Draw(tree);
+
+            foreach (var n in tree.Node("Participant info", false, 0xffffffff, () => _participantInfo.Get().DrawContextMenu()))
+                _participantInfo.Get().Draw(tree);
 
             foreach (var n in tree.Node("Ability info", false, 0xffffffff, () => _abilityInfo.Get().DrawContextMenu()))
                 _abilityInfo.Get().Draw(tree);

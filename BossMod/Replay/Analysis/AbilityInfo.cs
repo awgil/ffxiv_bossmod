@@ -1,7 +1,6 @@
 ﻿using BossMod.Components;
 using ImGuiNET;
 using System.Text;
-using static BossMod.ActorCastEvent;
 
 namespace BossMod.ReplayAnalysis;
 

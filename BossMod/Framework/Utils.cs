@@ -271,12 +271,32 @@ public static class Utils
         }
     }
 
-    // swap to values
+    // swap two values
     public static void Swap<T>(ref T l, ref T r)
     {
         var t = l;
         l = r;
         r = t;
+    }
+
+    // sort a list and remove duplicates
+    public static void SortAndRemoveDuplicates<T>(this List<T> list) where T : notnull, IComparable
+    {
+        list.Sort();
+        var span = list.AsSpan();
+        int last = 0;
+        for (int i = 1; i < list.Count; ++i)
+        {
+            if (!span[i].Equals(span[last]))
+            {
+                ++last;
+                if (i != last)
+                    span[last] = span[i];
+            }
+        }
+        ++last;
+        if (last < list.Count)
+            list.RemoveRange(last, list.Count - last);
     }
 
     // linear interpolation
