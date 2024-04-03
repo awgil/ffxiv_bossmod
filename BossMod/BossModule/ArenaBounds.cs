@@ -211,8 +211,7 @@ public class ArenaBoundsTri : ArenaBounds
 {
     private static readonly float sqrt3 = MathF.Sqrt(3);
 
-    public ArenaBoundsTri(WPos center, float sideLength)
-        : base(center, sideLength * sqrt3 / 3) { } // HalfSize is the radius of the circumscribed circle
+    public ArenaBoundsTri(WPos center, float sideLength) : base(center, sideLength * sqrt3 / 3) { } // HalfSize is the radius of the circumscribed circle
 
     public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
     {
