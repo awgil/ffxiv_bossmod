@@ -26,7 +26,7 @@ public class RheognosisCrash : Components.Exaflare
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.RheognosisCrashExaflare)
+        if ((AID)spell.Action.ID == AID.RheognosisCrashExaflare)
         {
             ++NumCasts;
             int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));

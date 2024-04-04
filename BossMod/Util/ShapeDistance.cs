@@ -47,6 +47,29 @@ public static class ShapeDistance
         };
     }
 
+    public static Func<WPos, float> InvertedCone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
+    {
+        if (halfAngle.Rad <= 0 || radius <= 0)
+            return _ => float.MaxValue;
+        if (halfAngle.Rad >= MathF.PI)
+            return Circle(origin, radius);
+        // for <= 180-degree cone: result = intersection of circle and two half-planes with normals pointing outside cone sides
+        // for > 180-degree cone: result = intersection of circle and negated intersection of two half-planes with inverted normals
+        // both normals point outside
+        float coneFactor = halfAngle.Rad > MathF.PI / 2 ? -1 : 1;
+        var nl = coneFactor * (centerDir + halfAngle).ToDirection().OrthoL();
+        var nr = coneFactor * (centerDir - halfAngle).ToDirection().OrthoR();
+        return p =>
+        {
+            var off = p - origin;
+            var distOrigin = off.Length();
+            var distOuter = distOrigin - radius;
+            var distLeft = off.Dot(nl);
+            var distRight = off.Dot(nr);
+            return -Math.Max(distOuter, coneFactor * Math.Max(distLeft, distRight));
+        };
+    }
+
     public static Func<WPos, float> DonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)

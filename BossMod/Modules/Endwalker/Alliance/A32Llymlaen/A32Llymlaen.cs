@@ -1,32 +1,68 @@
 ﻿namespace BossMod.Endwalker.Alliance.A32Llymlaen;
 
-class StormwhorlLocAOE : Components.LocationTargetedAOEs
+class Godsbane : Components.RaidwideCast
 {
-    public StormwhorlLocAOE() : base(ActionID.MakeSpell(AID.StormwhorlLocAOE), 6) { }
-}
-class MaelstromLocAOE : Components.LocationTargetedAOEs
-{
-    public MaelstromLocAOE() : base(ActionID.MakeSpell(AID.MaelstromLocAOE), 6) { }
+    public Godsbane() : base(ActionID.MakeSpell(AID.Godsbane), "Raidwide + DoT") { }
 }
 
-class WindRoseAOE : Components.SelfTargetedAOEs
+class Tempest : Components.RaidwideCast
 {
-    public WindRoseAOE() : base(ActionID.MakeSpell(AID.WindRoseAOE), new AOEShapeCircle(12)) { }
+    public Tempest() : base(ActionID.MakeSpell(AID.Tempest)) { }
 }
 
-class SurgingWaveAOE : Components.SelfTargetedAOEs
+class RightStrait : Components.SelfTargetedAOEs
 {
-    public SurgingWaveAOE() : base(ActionID.MakeSpell(AID.SurgingWaveAOE), new AOEShapeCircle(6)) { }
+    public RightStrait() : base(ActionID.MakeSpell(AID.RightStraitCone), new AOEShapeCone(60, 90.Degrees())) { }
 }
 
-class LandingAOE : Components.SelfTargetedAOEs
+class LeftStrait : Components.SelfTargetedAOEs
 {
-    public LandingAOE() : base(ActionID.MakeSpell(AID.LandingAOE), new AOEShapeCircle(18), 4) { }
+    public LeftStrait() : base(ActionID.MakeSpell(AID.LeftStraitCone), new AOEShapeCone(60, 90.Degrees())) { }
 }
 
-class SeafoamSpiralDonut : Components.SelfTargetedAOEs
+class Stormwhorl : Components.LocationTargetedAOEs
 {
-    public SeafoamSpiralDonut() : base(ActionID.MakeSpell(AID.SeafoamSpiralDonut), new AOEShapeDonut(6, 70)) { }
+    public Stormwhorl() : base(ActionID.MakeSpell(AID.Stormwhorl), 6) { }
+}
+
+class Maelstrom : Components.LocationTargetedAOEs
+{
+    public Maelstrom() : base(ActionID.MakeSpell(AID.Maelstrom), 6) { }
+}
+
+class WindRose : Components.SelfTargetedAOEs
+{
+    public WindRose() : base(ActionID.MakeSpell(AID.WindRose), new AOEShapeCircle(12)) { }
+}
+
+class SeafoamSpiral : Components.SelfTargetedAOEs
+{
+    public SeafoamSpiral() : base(ActionID.MakeSpell(AID.SeafoamSpiral), new AOEShapeDonut(6, 70)) { }
+}
+
+class DeepDive1: Components.StackWithCastTargets
+{
+    public DeepDive1() : base(ActionID.MakeSpell(AID.DeepDiveStack1), 6) { }
+}
+
+class DeepDive2: Components.StackWithCastTargets
+{
+    public DeepDive2() : base(ActionID.MakeSpell(AID.DeepDiveStack2), 6) { }
+}
+
+class HardWater1: Components.StackWithCastTargets
+{
+    public HardWater1() : base(ActionID.MakeSpell(AID.HardWaterStack1), 6) { }
+}
+
+class HardWater2: Components.StackWithCastTargets
+{
+    public HardWater2() : base(ActionID.MakeSpell(AID.HardWaterStack2), 6) { }
+}
+
+class Stormwinds : Components.SpreadFromCastTargets
+{
+    public Stormwinds() : base(ActionID.MakeSpell(AID.StormwindsSpread), 6) { }
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11299)]

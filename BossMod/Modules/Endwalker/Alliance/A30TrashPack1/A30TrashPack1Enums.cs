@@ -5,10 +5,7 @@ public enum OID : uint
     Boss = 0x4010, // R3.450, x6
     Triton = 0x4011, // R1.950, x2
     DivineSprite = 0x4012, // R1.600, x3
-    WaterSprite = 0x4085, // R0.800, x5
-    UnknownEnemy = 0x400E, // R0.500, x1
-    UnknownActor1 = 0x1E8FB8, // R2.000, x2, EventObj type
-    UnknownActor2 = 0x1E8F2F, // R0.500, x1, EventObj type        
+    WaterSprite = 0x4085, // R0.800, x5   
 };
 
 public enum AID : uint
