@@ -54,7 +54,7 @@ public enum AID : uint
     TailStrikeStartActionCombo = 35047, // Boss->self, 3,5s cast, single-target
     TailStrikeStartActionCombo2 = 35049, // Helper->self, 0,6s cast, range 40 150-degree cone
     TailStrikeStartActionCombo3 = 35929, // Helper->self, 4,1s cast, range 40 150-degree cone
-    TailStrike = 35048, // Helper->self, 4,5s cast, range 40 150-degree cone
+    TailStrikeReal = 35048, // Helper->self, 4,5s cast, range 40 150-degree cone
 
     PyrosaultVisual = 35053, // Boss->location, 4,0s cast, single-target
     PyrosaultReal = 35054, // Helper->location, 5,0s cast, range 40 circle, damage fall off AOE, seems to be fine after about range 10
