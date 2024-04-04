@@ -32,7 +32,6 @@ public enum AID : uint
     DireStraitsRectAOE1 = 34831, // LlymlaenHelper->self, 7.5s cast, range 40 width 80 rect
     DireStraitsRectAOE2 = 34832, // LlymlaenHelper->self, 9.3s cast, range 40 width 80 rect
 
-
     NavigatorsTridentVisual1 = 34859, // Llymlaen->self, no cast, single-target      
     NavigatorsTridentVisual2 = 34830, // Llymlaen->self, 6.5s cast, single-target
     NavigatorsTridentVisual3 = 36048, // Llymlaen->self, no cast, single-target
