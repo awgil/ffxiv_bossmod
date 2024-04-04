@@ -4,6 +4,7 @@ class SurgingWavesArenaChange : BossComponent
 {
     public enum Arena { Normal, ExtendWest, ExtendEast }
     public Arena Shape { get; private set; }
+    private bool Shockwave;
 
     public override void OnEventEnvControl(BossModule module, byte index, uint state)
     {
@@ -13,15 +14,25 @@ class SurgingWavesArenaChange : BossComponent
             Shape = Arena.Normal;
         }
         if (state == 0x00800040 && index == 0x49)
-        {
-            module.Arena.Bounds = new ArenaBoundsRect(new(-30.5f, -900), 49.5f, 10);
             Shape = Arena.ExtendWest;
-        }
         if (state == 0x08000400 && index == 0x49)
-        {
-            module.Arena.Bounds = new ArenaBoundsRect(new(30.5f, -900), 49.5f, 10);
             Shape = Arena.ExtendEast;
-        }
+    }
+    public override void Update(BossModule module)
+    {
+
+        if (Shockwave && Shape == Arena.Normal)
+            Shockwave = false;
+        if (Shockwave && Shape == Arena.ExtendWest)
+            module.Arena.Bounds = new ArenaBoundsRect(new(-40, -900), 40, 10);
+        if (Shockwave && Shape == Arena.ExtendEast)
+            module.Arena.Bounds = new ArenaBoundsRect(new(40, -900), 40, 10);
+    }
+
+    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.Shockwave)
+            Shockwave = true;
     }
 
     public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
