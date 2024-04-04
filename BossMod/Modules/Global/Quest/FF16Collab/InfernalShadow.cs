@@ -52,7 +52,7 @@ class SmolderingClaw : Components.SelfTargetedAOEs
 
 class TailStrike : Components.SelfTargetedAOEs
 {
-    public TailStrike() : base(ActionID.MakeSpell(AID.SmolderingClawReal), new AOEShapeCone(40, 75.Degrees())) { }
+    public TailStrike() : base(ActionID.MakeSpell(AID.TailStrikeReal), new AOEShapeCone(40, 75.Degrees())) { }
 }
 
 class FireRampageCleave : Components.GenericAOEs
