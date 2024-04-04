@@ -16,7 +16,7 @@ public enum AID : uint
     PelagicCleaver2 = 35852, // Triton->self, 5.0s cast, range 40 60-degree cone
     Water = 35469, // Water Sprite/Divine Sprite->player, no cast, single-target
     WaterFlood = 35442, // Water Sprite->self, 3.0s cast, range 6 circle
-    WaterBurst = 35443, // Water Sprite->self, no cast, range 40 circle
+    WaterBurst = 35443, // Water Sprite->self, no cast, range 40 circle, raidwide when Water Sprite dies
     DivineFlood = 35440, // Divine Sprite->self, 3.0s cast, range 6 circle
-    DivineBurst = 35441, // Divine Sprite->self, no cast, range 40 circle
+    DivineBurst = 35441, // Divine Sprite->self, no cast, range 40 circle, raidwide when Divine Sprite dies
 };
