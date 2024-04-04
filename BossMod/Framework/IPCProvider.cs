@@ -1,5 +1,4 @@
-﻿using BossMod.Components;
-using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Types;
 
 namespace BossMod;
 
@@ -7,11 +6,14 @@ class IPCProvider : IDisposable
 {
     private List<Action> _disposeActions = new();
 
-    public IPCProvider(Autorotation autorotation, BossModuleManager bossmod)
+    public IPCProvider(Autorotation autorotation)
     {
-        Register("ActiveModuleComponentBaseList", () => bossmod.ActiveModule?.Components.Select(c => c.GetType().BaseType?.Name).ToList() ?? default);
-        Register("ActiveModuleComponentList", () => bossmod.ActiveModule?.Components.Select(c => c.GetType().Name).ToList() ?? default);
-        Register("ActiveModuleHasComponent", (string name) => bossmod.ActiveModule?.Components.Any(c => c.GetType().Name == name || c.GetType().BaseType?.Name == name) ?? false);
+        // TODO: this really needs to be reconsidered, this exposes implementation detail
+        // for usecase description, see PR 330 - really AI itself should handle heal range
+        Register("ActiveModuleComponentBaseList", () => autorotation.Bossmods.ActiveModule?.Components.Select(c => c.GetType().BaseType?.Name).ToList() ?? default);
+        Register("ActiveModuleComponentList", () => autorotation.Bossmods.ActiveModule?.Components.Select(c => c.GetType().Name).ToList() ?? default);
+        Register("ActiveModuleHasComponent", (string name) => autorotation.Bossmods.ActiveModule?.Components.Any(c => c.GetType().Name == name || c.GetType().BaseType?.Name == name) ?? false);
+
         Register("HasModule", (GameObject obj) => ModuleRegistry.FindByOID(obj.DataId) != null);
         Register("IsMoving", () => ActionManagerEx.Instance!.InputOverride.IsMoving());
         Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);
