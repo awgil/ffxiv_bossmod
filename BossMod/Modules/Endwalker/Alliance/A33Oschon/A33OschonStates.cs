@@ -2,21 +2,32 @@
 
 class A33OschonStates : StateMachineBuilder
 {
-    public A33OschonStates(BossModule module) : base(module)
+    private readonly A33Oschon _module;
+    public A33OschonStates(A33Oschon module) : base(module)
     {
-        TrivialPhase()
-            .ActivateOnEnter<Downhill2>()
+        _module = module;
+        DeathPhase(0, id => { SimpleState(id, 10000, "Enrage"); })
+            .ActivateOnEnter<Downhill>()
             .ActivateOnEnter<ClimbingShot>()
             .ActivateOnEnter<ClimbingShot2>()
+            .ActivateOnEnter<ClimbingShot3>()
+            .ActivateOnEnter<ClimbingShot4>()
             .ActivateOnEnter<SoaringMinuet1>()
             .ActivateOnEnter<SoaringMinuet2>()
-            .ActivateOnEnter<FlintedFoehn>()
-            .ActivateOnEnter<TheArrow2>()
-            .ActivateOnEnter<TrekDraws>()
-            //.ActivateOnEnter<Ability1>() // this is here to test what these do
-            //.ActivateOnEnter<Ability2>()
-            //.ActivateOnEnter<Ability3>()
-            //.ActivateOnEnter<Ability4>()
-            .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
+            .ActivateOnEnter<FlintedFoehnP1>()
+            .ActivateOnEnter<TheArrow>()
+            .ActivateOnEnter<TrekDraws>();
+        SimplePhase(1, id => { SimpleState(id, 10000, "Enrage"); }, "P2")
+            .ActivateOnEnter<PitonPullAOE>()
+            .ActivateOnEnter<AltitudeAOE>()
+            .ActivateOnEnter<GreatWhirlwindAOE>()
+            .ActivateOnEnter<DownhillSmallAOE>()
+            .ActivateOnEnter<DownhillBigAOE>()
+            //.ActivateOnEnter<ArrowTrail>()
+            .ActivateOnEnter<WanderingVolley>()
+            .ActivateOnEnter<WanderingVolleyAOE>()
+            .ActivateOnEnter<FlintedFoehnP2>()
+            .ActivateOnEnter<TheArrowP2>()
+            .Raw.Update = () => _module.OschonP2() is var OschonP2 && _module.OschonP1() is var OschonP1 && OschonP2 != null && OschonP1 != null && !OschonP1.IsTargetable;
     }
 }

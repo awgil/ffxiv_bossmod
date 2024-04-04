@@ -2,9 +2,9 @@
 
 class TrekDraws : Components.GenericAOEs
 {
-    private List<AOEInstance> _aoes = [];
+    private readonly List<AOEInstance> _aoes = [];
 
-    private static AOEShapeCone _shape = new(65, 60.Degrees());
+    private static readonly AOEShapeCone _shape = new(65, 60.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A34OschonBig;
+﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
 class PitonPullAOE : Components.LocationTargetedAOEs
 {
