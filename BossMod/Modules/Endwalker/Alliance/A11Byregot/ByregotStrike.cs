@@ -17,9 +17,9 @@ class ByregotStrikeKnockback : Components.KnockbackFromCastTarget
 
 class ByregotStrikeCone : Components.GenericAOEs
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
-    private static readonly AOEShapeCone _shape = new(90, 15.Degrees());
+    private static readonly AOEShapeCone _shape = new(90, 22.5f.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

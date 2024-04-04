@@ -110,7 +110,7 @@ class VoidTornado : Components.CastHint
 
 class VoidQuake : Components.GenericAOEs //this concentric AOE can happen forwards or backwards in order with the same AID as the starter
 {
-    private List<(Actor caster, AOEShape shape)> _active = new();
+    private readonly List<(Actor caster, AOEShape shape)> _active = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
@@ -154,7 +154,7 @@ class CE12BayingOfHoundsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 2)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 2)] // bnpcname=9394
 public class CE12BayingOfHounds : BossModule
 {
     public CE12BayingOfHounds(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(154, 785), 25)) { }

@@ -102,17 +102,13 @@ class Chains : BossComponent
     public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (chained && actor != chaintarget)
-        {
             foreach (var e in hints.PotentialTargets)
-            {
                 e.Priority = (OID)e.Actor.OID switch
                 {
                     OID.IronChain => 1,
                     OID.Boss => -1,
                     _ => 0
                 };
-            }
-        }
     }
 
     public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
@@ -133,15 +129,25 @@ class Chains : BossComponent
 
 class Aethersup : Components.GenericAOEs
 {
-    private AOEInstance? _aoe;
+    private DateTime _activation;
+    private Angle _rotation;
+    private static readonly AOEShapeCone cone = new(24, 60.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    {
+        if (_activation != default)
+            yield return new(cone, module.PrimaryActor.Position, _rotation, _activation, risky: module.Enemies(OID.IronChain).All(x => x.IsDead));
+    }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Aethersup)
-            _aoe = new(new AOEShapeCone(24, 60.Degrees()), module.PrimaryActor.Position, spell.Rotation, spell.NPCFinishAt);
+        {
+            _rotation = spell.Rotation;
+            _activation = spell.NPCFinishAt;
+        }
     }
+
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
@@ -151,7 +157,7 @@ class Aethersup : Components.GenericAOEs
             case AID.Aethersup2:
                 if (++NumCasts == 4)
                 {
-                    _aoe = null;
+                    _activation = default;
                     NumCasts = 0;
                 }
                 break;

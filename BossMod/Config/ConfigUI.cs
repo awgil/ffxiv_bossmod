@@ -87,6 +87,7 @@ public class ConfigUI : IDisposable
                 bool v => DrawProperty(props, node, field, v),
                 Enum v => DrawProperty(props, node, field, v),
                 float v => DrawProperty(props, node, field, v),
+                int v => DrawProperty(props, node, field, v),
                 GroupAssignment v => DrawProperty(props, node, field, v, root, tree, ws),
                 _ => false
             };
@@ -163,6 +164,31 @@ public class ConfigUI : IDisposable
         else
         {
             if (ImGui.InputFloat(props.Label, ref v))
+            {
+                member.SetValue(node, v);
+                node.NotifyModified();
+            }
+        }
+        return true;
+    }
+
+    private static bool DrawProperty(PropertyDisplayAttribute props, ConfigNode node, FieldInfo member, int v)
+    {
+        var slider = member.GetCustomAttribute<PropertySliderAttribute>();
+        if (slider != null)
+        {
+            var flags = ImGuiSliderFlags.None;
+            if (slider.Logarithmic)
+                flags |= ImGuiSliderFlags.Logarithmic;
+            if (ImGui.DragInt(props.Label, ref v, slider.Speed, (int)slider.Min, (int)slider.Max, "%d", flags))
+            {
+                member.SetValue(node, v);
+                node.NotifyModified();
+            }
+        }
+        else
+        {
+            if (ImGui.InputInt(props.Label, ref v))
             {
                 member.SetValue(node, v);
                 node.NotifyModified();

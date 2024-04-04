@@ -20,7 +20,7 @@ class LeftArmWave : Components.LocationTargetedAOEs
     public LeftArmWave() : base(ActionID.MakeSpell(AID.LeftArmWaveAOE), 24) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 778, NameID = 19)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 778, NameID = 19)] // bnpcname=9958
 public class Duel4Dabog : BossModule
 {
     public Duel4Dabog(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(250, 710), 20)) { }

@@ -224,7 +224,7 @@ public class ReplayParser : IDisposable
             return p;
         }
         // new participant
-        p = _participants[instanceID] = new(instanceID) { EffectiveExistence = new(_ws.CurrentTime, _ws.CurrentTime) };
+        p = _participants[instanceID] = new(instanceID) { ZoneID = _ws.CurrentZone, CFCID = _ws.CurrentCFCID, EffectiveExistence = new(_ws.CurrentTime, _ws.CurrentTime) };
         _res.Participants.Add(p);
         return p;
     }
@@ -261,8 +261,8 @@ public class ReplayParser : IDisposable
 
         p.EffectiveExistence.End = DateTime.MaxValue; // until it is destroyed
         p.WorldExistence.Add(new(_ws.CurrentTime));
-        if (p.NameHistory.Count == 0 || p.NameHistory.Values.Last() != actor.Name)
-            p.NameHistory.Add(_ws.CurrentTime, actor.Name);
+        if (p.NameHistory.Count == 0 ? (actor.Name.Length > 0 || actor.NameID != 0) : p.NameHistory.Values.Last() != (actor.Name, actor.NameID))
+            p.NameHistory.Add(_ws.CurrentTime, (actor.Name, actor.NameID));
         if (actor.IsTargetable)
             p.TargetableHistory.Add(_ws.CurrentTime, true);
         p.PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
@@ -286,7 +286,7 @@ public class ReplayParser : IDisposable
 
     private void ActorRenamed(object? sender, Actor actor)
     {
-        _participants[actor.InstanceID].NameHistory.Add(_ws.CurrentTime, actor.Name);
+        _participants[actor.InstanceID].NameHistory.Add(_ws.CurrentTime, (actor.Name, actor.NameID));
     }
 
     private void ActorTargetable(object? sender, Actor actor)

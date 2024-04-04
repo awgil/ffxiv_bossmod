@@ -184,7 +184,7 @@ public class BossModuleManager : IDisposable
 
     private BossModule CreateDemoModule()
     {
-        return new DemoModule(WorldState, new(0, 0, -1, "", ActorType.None, Class.None, 0, new()));
+        return new DemoModule(WorldState, new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new()));
     }
 
     private void ActorAdded(object? sender, Actor actor)

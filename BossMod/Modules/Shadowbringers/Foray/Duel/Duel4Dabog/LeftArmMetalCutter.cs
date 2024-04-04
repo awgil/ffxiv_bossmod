@@ -5,7 +5,7 @@ class LeftArmMetalCutterAOE : Components.GenericAOEs
     public enum State { FirstAOEs, SecondAOEs, Done }
 
     public State CurState { get; private set; }
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeCone _shape = new(40, 45.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;

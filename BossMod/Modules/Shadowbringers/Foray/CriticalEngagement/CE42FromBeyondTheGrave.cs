@@ -94,7 +94,7 @@ class ShockSphere : Components.PersistentVoidzone
 class SoulPurge : Components.GenericAOEs
 {
     private bool _dualcast;
-    private List<AOEInstance> _imminent = new();
+    private readonly List<AOEInstance> _imminent = [];
 
     private static readonly AOEShapeCircle _shapeCircle = new(10);
     private static readonly AOEShapeDonut _shapeDonut = new(10, 30);
@@ -151,7 +151,7 @@ class Aethertide : Components.SpreadFromCastTargets
 
 class MarchingBreath : Components.CastInterruptHint //heals all allies by 20% of max health (raidwide)
 {
-    public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath), hint: "(20% HP AOE heal)") { }
+    public MarchingBreath() : base(ActionID.MakeSpell(AID.MarchingBreath), showNameInHint: true) { }
 }
 
 class TacticalAero : Components.SelfTargetedAOEs
@@ -171,7 +171,7 @@ class DarkFlare : Components.LocationTargetedAOEs
 
 class SoulSacrifice : Components.CastInterruptHint //WarWraith sacrifices itself to give boss a damage buff
 {
-    public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice), hint: "(Dmg buff on boss)") { }
+    public SoulSacrifice() : base(ActionID.MakeSpell(AID.SoulSacrifice), showNameInHint: true) { }
 }
 
 class PurifyingLight : Components.LocationTargetedAOEs
@@ -205,7 +205,7 @@ class CE42FromBeyondTheGraveStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 20)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 20)] // bnpcname=9931
 public class CE42FromBeyondTheGrave : BossModule
 {
     public CE42FromBeyondTheGrave(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-60, 800), 30)) { }

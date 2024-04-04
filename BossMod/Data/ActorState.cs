@@ -24,7 +24,25 @@ public class ActorState : IEnumerable<Actor>
     {
         foreach (var act in this)
         {
-            yield return new OpCreate() { InstanceID = act.InstanceID, OID = act.OID, SpawnIndex = act.SpawnIndex, Name = act.Name, Type = act.Type, Class = act.Class, Level = act.Level, PosRot = act.PosRot, HitboxRadius = act.HitboxRadius, HP = act.HP, CurMP = act.CurMP, IsTargetable = act.IsTargetable, IsAlly = act.IsAlly, OwnerID = act.OwnerID };
+            yield return new OpCreate()
+            {
+                InstanceID = act.InstanceID,
+                OID = act.OID,
+                SpawnIndex = act.SpawnIndex,
+                Name = act.Name,
+                NameID = act.NameID,
+                Type = act.Type,
+                Class = act.Class,
+                Level = act.Level,
+                PosRot = act.PosRot,
+                HitboxRadius = act.HitboxRadius,
+                HP = act.HP,
+                CurMP = act.CurMP,
+                IsTargetable = act.IsTargetable,
+                IsAlly = act.IsAlly,
+                OwnerID = act.OwnerID
+            };
+
             if (act.IsDead)
                 yield return new OpDead() { InstanceID = act.InstanceID, Value = true };
             if (act.InCombat)
@@ -50,6 +68,7 @@ public class ActorState : IEnumerable<Actor>
         public uint OID;
         public int SpawnIndex;
         public string Name = "";
+        public uint NameID;
         public ActorType Type;
         public Class Class;
         public int Level;
@@ -64,7 +83,7 @@ public class ActorState : IEnumerable<Actor>
         protected override void ExecActor(WorldState ws, Actor actor) { }
         protected override void Exec(WorldState ws)
         {
-            var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, Name, Type, Class, Level, PosRot, HitboxRadius, HP, CurMP, IsTargetable, IsAlly, OwnerID);
+            var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, Name, NameID, Type, Class, Level, PosRot, HitboxRadius, HP, CurMP, IsTargetable, IsAlly, OwnerID);
             ws.Actors.Added?.Invoke(ws, actor);
         }
 
@@ -73,6 +92,7 @@ public class ActorState : IEnumerable<Actor>
             .Emit(OID, "X")
             .Emit(SpawnIndex)
             .Emit(Name)
+            .Emit(NameID)
             .Emit((ushort)Type, "X4")
             .Emit(Class)
             .Emit(Level)
@@ -128,14 +148,16 @@ public class ActorState : IEnumerable<Actor>
     public class OpRename : Operation
     {
         public string Name = "";
+        public uint NameID;
 
         protected override void ExecActor(WorldState ws, Actor actor)
         {
             actor.Name = Name;
+            actor.NameID = NameID;
             ws.Actors.Renamed?.Invoke(ws, actor);
         }
 
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "NAME").Emit(InstanceID, "X8").Emit(Name);
+        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "NAME").Emit(InstanceID, "X8").Emit(Name).Emit(NameID);
     }
 
     public event EventHandler<Actor>? ClassChanged;

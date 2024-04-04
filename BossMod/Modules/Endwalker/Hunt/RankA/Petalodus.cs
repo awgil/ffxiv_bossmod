@@ -18,7 +18,7 @@ public enum AID : uint
 
 class MarineMayhem : Components.CastInterruptHint
 {
-    public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), hint: "(Raidwide x3)") { }
+    public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), hintExtra: "Raidwide x3") { }
 }
 
 class Waterga : Components.SpreadFromCastTargets

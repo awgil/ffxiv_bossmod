@@ -235,7 +235,7 @@ class EventList
         for (int i = 0; i < enc.PartyMembers.Count; i++)
         {
             var (p, c, l) = enc.PartyMembers[i];
-            if (ImGui.Button($"{c}{l} {p.NameHistory.FirstOrDefault().Value}"))
+            if (ImGui.Button($"{c}{l} {p.NameHistory.FirstOrDefault().Value.name}"))
                 OpenTimeline(enc, new(1u << i));
             ImGui.SameLine();
         }

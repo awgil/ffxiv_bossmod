@@ -39,9 +39,11 @@ public class Replay
         public uint OID;
         public ActorType Type;
         public ulong OwnerID;
+        public uint ZoneID;
+        public uint CFCID;
         public TimeRange EffectiveExistence;
         public List<TimeRange> WorldExistence = new(); // sorted by time, non-overlapping ranges
-        public SortedList<DateTime, string> NameHistory = new();
+        public SortedList<DateTime, (string name, uint id)> NameHistory = new();
         public SortedList<DateTime, bool> TargetableHistory = new();
         public SortedList<DateTime, bool> DeadHistory = new();
         public SortedList<DateTime, Vector4> PosRotHistory = new();
@@ -54,7 +56,7 @@ public class Replay
         public bool IsTargetOfAnyActions;
 
         public bool ExistsInWorldAt(DateTime t) => WorldExistence.Any(r => r.Contains(t));
-        public string NameAt(DateTime t) => HistoryEntryAt(NameHistory, t) ?? "";
+        public (string? name, uint id) NameAt(DateTime t) => HistoryEntryAt(NameHistory, t);
         public bool TargetableAt(DateTime t) => HistoryEntryAt(TargetableHistory, t);
         public bool DeadAt(DateTime t) => HistoryEntryAt(DeadHistory, t);
         public Vector4 PosRotAt(DateTime t) => HistoryEntryAt(PosRotHistory, t);

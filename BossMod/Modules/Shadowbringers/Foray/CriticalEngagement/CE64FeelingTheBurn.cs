@@ -50,7 +50,7 @@ class DiveFormation : Components.SelfTargetedAOEs
 
 class AntiPersonnelMissile : Components.GenericAOEs
 {
-    private List<WPos> _positions = new();
+    private readonly List<WPos> _positions = [];
     private static readonly AOEShapeRect _shape = new(12, 12, 12);
 
     public AntiPersonnelMissile() : base(ActionID.MakeSpell(AID.BallisticImpact)) { }
@@ -76,7 +76,7 @@ class AntiPersonnelMissile : Components.GenericAOEs
 
 class ChainCannonEscort : Components.GenericAOEs
 {
-    private List<(Actor caster, int numCasts, DateTime activation)> _casters = new();
+    private readonly List<(Actor caster, int numCasts, DateTime activation)> _casters = [];
     private static readonly AOEShapeRect _shape = new(60, 2.5f);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
@@ -181,7 +181,7 @@ class CE64FeelingTheBurnStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 18)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 18)] // bnpcname=9945
 public class CE64FeelingTheBurn : BossModule
 {
     public IReadOnlyList<Actor> Escorts;

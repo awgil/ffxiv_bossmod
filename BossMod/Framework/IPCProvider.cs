@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Dalamud.Game.ClientState.Objects.Types;
+
+namespace BossMod;
 
 class IPCProvider : IDisposable
 {
@@ -6,6 +8,7 @@ class IPCProvider : IDisposable
 
     public IPCProvider(Autorotation autorotation)
     {
+        Register("HasModule", (GameObject obj) => ModuleRegistry.FindByOID(obj.DataId) != null);
         Register("IsMoving", () => ActionManagerEx.Instance!.InputOverride.IsMoving());
         Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);
         Register("InitiateCombat", () => autorotation.ClassActions?.UpdateAutoAction(CommonActions.AutoActionAIFight, float.MaxValue, true));
@@ -21,6 +24,13 @@ class IPCProvider : IDisposable
     private void Register<TRet>(string name, Func<TRet> func)
     {
         var p = Service.PluginInterface.GetIpcProvider<TRet>("BossMod." + name);
+        p.RegisterFunc(func);
+        _disposeActions.Add(p.UnregisterFunc);
+    }
+
+    private void Register<TRet, T1>(string name, Func<TRet, T1> func)
+    {
+        var p = Service.PluginInterface.GetIpcProvider<TRet, T1>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions.Add(p.UnregisterFunc);
     }

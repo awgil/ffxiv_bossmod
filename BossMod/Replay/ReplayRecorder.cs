@@ -172,7 +172,7 @@ public class ReplayRecorder : IDisposable
     private WorldState _ws;
     private Output _logger;
 
-    public const int Version = 12;
+    public const int Version = 13;
 
     public ReplayRecorder(WorldState ws, ReplayLogFormat format, bool logInitialState, DirectoryInfo targetDirectory, string logPrefix)
     {

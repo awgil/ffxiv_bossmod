@@ -101,6 +101,7 @@ public class Actor
     public uint OID;
     public int SpawnIndex; // [0-200) = character (even for normal, odd for dependents like mounts), [200-246) = client-side, [246, 286) = event object, [286, 426) = ???, [426-526) = ???, [526,596) = ???
     public string Name;
+    public uint NameID;
     public ActorType Type;
     public Class Class;
     public int Level;
@@ -126,12 +127,13 @@ public class Actor
     public Angle Rotation => PosRot.W.Radians();
     public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
 
-    public Actor(ulong instanceID, uint oid, int spawnIndex, string name, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
+    public Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
     {
         InstanceID = instanceID;
         OID = oid;
         SpawnIndex = spawnIndex;
         Name = name;
+        NameID = nameID;
         Type = type;
         Class = classID;
         Level = level;
