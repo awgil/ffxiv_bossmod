@@ -1,4 +1,6 @@
-﻿namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D101ChudoYudo;
+﻿using BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D111AllSeeingEye;
+
+namespace BossMod.RealmReborn.Dungeon.D10StoneVigil.D101ChudoYudo;
 
 public enum OID : uint
 {
@@ -24,13 +26,18 @@ class Swinge : Components.SelfTargetedLegacyRotationAOEs
 }
 
 // due to relatively short casts and the fact that boss likes moving across arena to cast swinge, we always want non-tanks to be positioned slightly behind
-class Positioning : BossComponent
+// I think cleave is better for this so we can still move around.
+/*class Positioning : BossComponent
 {
     public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (actor.Role != Role.Tank)
             hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 10, module.PrimaryActor.Rotation, 90.Degrees()));
     }
+}*/
+class AutoAttack : Components.Cleave
+{
+    public AutoAttack() : base(ActionID.MakeSpell(AID.AutoAttack), new AOEShapeCone(40, 30.Degrees())) { }
 }
 
 class D101ChudoYudoStates : StateMachineBuilder
@@ -40,7 +47,8 @@ class D101ChudoYudoStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<LionsBreath>()
             .ActivateOnEnter<Swinge>()
-            .ActivateOnEnter<Positioning>();
+            .ActivateOnEnter<AutoAttack>();
+        //.ActivateOnEnter<Positioning>();
     }
 }
 

@@ -65,7 +65,7 @@ public sealed class Plugin : IDalamudPlugin
         _autorotation = new(_bossmod);
         _ai = new(_autorotation);
         _broadcast = new();
-        _ipc = new(_autorotation);
+        _ipc = new(_autorotation, _bossmod);
 
         _wndBossmod = new(_bossmod);
         _wndBossmodPlan = new(_bossmod);
