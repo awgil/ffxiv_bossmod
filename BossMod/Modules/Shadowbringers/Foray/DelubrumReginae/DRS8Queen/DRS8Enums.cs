@@ -96,6 +96,8 @@ public enum AID : uint
     AboveBoard = 23051, // QueensWarrior->self, 6.0s cast, range 60 circle, visual (throw up)
     AboveBoardExtra = 23438, // Helper->self, 6.0s cast, range 60 circle, visual (???)
     LotsCastBigShort = 23433, // AetherialBurst->location, no cast, range 10 circle
+    LotsCastSmallShort = 23053, // AetherialBolt->location, no cast, range 10 circle
+    LotsCastBigLong = 23052, // AetherialBurst->location, no cast, range 10 circle visual
     LotsCastSmallLong = 23432, // AetherialBolt->location, no cast, range 10 circle visual
     LotsCastLong = 23478, // Helper->location, 1.2s cast, range 10 circle
 

@@ -61,13 +61,12 @@ class DRS6States : StateMachineBuilder
 
     private void ForkStaffBowSword(uint id)
     {
-        // TODO: no idea about timings here
-        Staff1(id, 8);
-        Bow1(id + 0x100000, 8);
-        Sword1(id + 0x200000, 8);
-        Staff2(id + 0x300000, 8);
-        Bow2(id + 0x400000, 8);
-        Sword2(id + 0x500000, 8);
+        Staff1(id, 5.3f);
+        Bow1(id + 0x100000, 8.7f);
+        Sword1(id + 0x200000, 10.4f);
+        Staff2(id + 0x300000, 7.4f);
+        Bow2(id + 0x400000, 9.1f);
+        Sword2(id + 0x500000, 7.9f);
         Enrage(id + 0x600000, 16); // TODO: timing
     }
 
