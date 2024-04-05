@@ -49,7 +49,8 @@ class DRS4States : StateMachineBuilder
         P2BloodAndBone(id + 0x30000, 4.2f);
         P2GunTurret(id + 0x40000, 10.2f);
         P2DoubleGambit(id + 0x50000, 10.3f);
-        // TODO: raidwides -> tankbusters -> 4th battery -> raidwides -> tankbusters -> enrage
+        P2BloodAndBone(id + 0x60000, 5.7f);
+        // TODO: tankbusters -> 4th battery -> raidwides -> tankbusters -> enrage
         SimpleState(id + 0xFF0000, 100, "???");
     }
 

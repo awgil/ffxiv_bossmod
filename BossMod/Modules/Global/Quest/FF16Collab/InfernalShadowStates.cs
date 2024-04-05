@@ -10,6 +10,7 @@ class InfernalShadowStates : StateMachineBuilder
             .ActivateOnEnter<Incinerate>()
             .ActivateOnEnter<SpreadingFire>()
             .ActivateOnEnter<SmolderingClaw>()
+            .ActivateOnEnter<TailStrike>()
             .ActivateOnEnter<CrimsonRush>()
             .ActivateOnEnter<Fireball>()
             .ActivateOnEnter<CrimsonStreak>()

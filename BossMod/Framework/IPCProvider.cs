@@ -8,6 +8,12 @@ class IPCProvider : IDisposable
 
     public IPCProvider(Autorotation autorotation)
     {
+        // TODO: this really needs to be reconsidered, this exposes implementation detail
+        // for usecase description, see PR 330 - really AI itself should handle heal range
+        Register("ActiveModuleComponentBaseList", () => autorotation.Bossmods.ActiveModule?.Components.Select(c => c.GetType().BaseType?.Name).ToList() ?? default);
+        Register("ActiveModuleComponentList", () => autorotation.Bossmods.ActiveModule?.Components.Select(c => c.GetType().Name).ToList() ?? default);
+        Register("ActiveModuleHasComponent", (string name) => autorotation.Bossmods.ActiveModule?.Components.Any(c => c.GetType().Name == name || c.GetType().BaseType?.Name == name) ?? false);
+
         Register("HasModule", (GameObject obj) => ModuleRegistry.FindByOID(obj.DataId) != null);
         Register("IsMoving", () => ActionManagerEx.Instance!.InputOverride.IsMoving());
         Register("ForbiddenZonesCount", () => autorotation.Hints.ForbiddenZones.Count);

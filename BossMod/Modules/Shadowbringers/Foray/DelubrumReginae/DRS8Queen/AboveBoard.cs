@@ -51,7 +51,7 @@ class AboveBoard : Components.GenericAOEs
         switch ((AID)spell.Action.ID)
         {
             case AID.LotsCastBigShort:
-            //case AID.LotsCastSmallShort:
+            case AID.LotsCastSmallShort:
                 AdvanceState(State.ShortExplosionsDone);
                 break;
             case AID.LotsCastLong:
