@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Endwalker.FATE.Daivadipa;
+﻿namespace BossMod.Endwalker.FATE.Daivadipa;
 
 public enum OID : uint
 {
@@ -307,7 +306,7 @@ class DaivadipaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1763, NameID = 10269)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1763, NameID = 10269)]
 public class Daivadipa : BossModule
 {
     public Daivadipa(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-608, 811), 24.5f)) { }

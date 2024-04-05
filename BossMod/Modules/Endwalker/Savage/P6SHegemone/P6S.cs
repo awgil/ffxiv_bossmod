@@ -26,7 +26,7 @@ public class P6SConfig : CooldownPlanningConfigNode
     public P6SConfig() : base(90) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 881, NameID = 11381)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 881, NameID = 11381)]
 public class P6S : BossModule
 {
     public P6S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

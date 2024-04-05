@@ -67,4 +67,7 @@ public class BossModuleConfig : ConfigNode
 
     [PropertyDisplay("Show outlines and shadows on various radar markings")]
     public bool ShowOutlinesAndShadows = false;
+
+    [PropertyDisplay("Minimal maturity for the module to be loaded")]
+    public BossModuleInfo.Maturity MinMaturity = BossModuleInfo.Maturity.Contributed;
 }

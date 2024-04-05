@@ -1,4 +1,3 @@
-// CONTRIB: made by legendoficeman, improvements by Malediktus, not checked
 namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D70Taquaru;
 
 public enum OID : uint
@@ -99,7 +98,7 @@ class D70TaquaruStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 205, NameID = 5321)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 205, NameID = 5321)]
 public class D70Taquaru : BossModule
 {
     public D70Taquaru(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -220), 25)) { }

@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D032Batsquatch;
 
 public enum OID : uint
@@ -70,7 +69,7 @@ class D032BatsquatchStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8232)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8232)]
 public class D032Batsquatch : BossModule
 {
     public D032Batsquatch(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(62, -35), 15)) { }

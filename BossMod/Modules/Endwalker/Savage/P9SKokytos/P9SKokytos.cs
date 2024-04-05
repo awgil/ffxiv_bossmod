@@ -21,7 +21,7 @@ public class P9SKokytosConfig : CooldownPlanningConfigNode
     public P9SKokytosConfig() : base(90) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 937, NameID = 12369)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 937, NameID = 12369)]
 public class P9SKokytos : BossModule
 {
     public P9SKokytos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

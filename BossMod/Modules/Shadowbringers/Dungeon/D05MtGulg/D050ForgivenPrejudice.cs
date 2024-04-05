@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 //Note: This module exists because of the mini raidwide, to not confuse the AI
 namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D050ForgivenPrejudice;
 
@@ -48,7 +47,7 @@ class D050ForgivenPrejudiceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8269)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8269)]
 public class D050ForgivenPrejudice : SimpleBossModule
 {
     public D050ForgivenPrejudice(WorldState ws, Actor primary) : base(ws, primary) { }

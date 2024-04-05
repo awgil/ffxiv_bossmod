@@ -2,6 +2,18 @@
 
 public static class BossModuleInfo
 {
+    public enum Maturity
+    {
+        [PropertyDisplay("Work in progress; might be incomplete or have severe bugs")]
+        WIP,
+
+        [PropertyDisplay("Third-party contributed module that wasn't verified by the plugin author; might be working fine, might have any sorts of inconsistencies with other modules - YMMV")]
+        Contributed,
+
+        [PropertyDisplay("First-party module created by the plugin author, or a third-party contributed module that was thoroughly verified and effectively taken over by the plugin author")]
+        Verified
+    }
+
     public enum Expansion
     {
         RealmReborn,
@@ -79,10 +91,14 @@ public class ModuleInfoAttribute : Attribute
     public Type? TetherIDType; // default: ns.TetherID
     public Type? IconIDType; // default: ns.IconID
     public uint PrimaryActorOID; // default: OID.Boss
+    public BossModuleInfo.Maturity Maturity = BossModuleInfo.Maturity.WIP;
+    public string Contributors = "";
     public BossModuleInfo.Expansion Expansion = BossModuleInfo.Expansion.Count; // default: second namespace level
     public BossModuleInfo.Category Category = BossModuleInfo.Category.Count; // default: third namespace level
     public BossModuleInfo.GroupType GroupType = BossModuleInfo.GroupType.None;
     public uint GroupID;
     public uint NameID; // usually BNpcName row, unless GroupType uses it differently
     public int SortOrder; // default: first number in type name
+
+    public ModuleInfoAttribute(BossModuleInfo.Maturity maturity) => Maturity = maturity;
 }

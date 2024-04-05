@@ -33,7 +33,7 @@ public class P5SConfig : CooldownPlanningConfigNode
     public P5SConfig() : base(90) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 873, NameID = 11440)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 873, NameID = 11440)]
 public class P5S : BossModule
 {
     public P5S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 15)) { }

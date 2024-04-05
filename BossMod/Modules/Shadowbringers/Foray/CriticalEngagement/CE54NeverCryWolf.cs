@@ -227,7 +227,7 @@ class CE54NeverCryWolfStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 25)] // bnpcname=9941
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 25)] // bnpcname=9941
 public class CE54NeverCryWolf : BossModule
 {
     private IReadOnlyList<Actor> _adds;

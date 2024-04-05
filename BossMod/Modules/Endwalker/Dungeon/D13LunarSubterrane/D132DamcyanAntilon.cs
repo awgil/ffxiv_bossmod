@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by Malediktus, not checked
-namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D132DamcyanAntilon;
+﻿namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D132DamcyanAntilon;
 
 public enum OID : uint
 {
@@ -184,7 +183,7 @@ class D132DamcyanAntilonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
 public class D132DamcyanAntilon : BossModule
 {
     public D132DamcyanAntilon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 60), 19.5f, 25)) { }

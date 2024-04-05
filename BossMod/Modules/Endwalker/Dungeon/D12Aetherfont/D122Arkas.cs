@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
-namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas;
+﻿namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D122Arkas;
 
 public enum OID : uint
 {
@@ -197,7 +196,7 @@ class D122ArkasStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12337)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12337)]
 public class D122Arkas : BossModule
 {
     public D122Arkas(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(425, -440), 14.5f)) { }

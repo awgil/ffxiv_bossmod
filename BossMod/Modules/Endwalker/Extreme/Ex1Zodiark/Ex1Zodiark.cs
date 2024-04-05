@@ -17,7 +17,7 @@ public class Ex1ZodiarkConfig : CooldownPlanningConfigNode
     public Ex1ZodiarkConfig() : base(90) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 803, NameID = 10456)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 803, NameID = 10456)]
 public class Ex1Zodiark : BossModule
 {
     public Ex1Zodiark(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

@@ -46,7 +46,7 @@ class TippedScales : Components.CastCounter
 }
 
 // TODO: balancing counter
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11286, SortOrder = 6)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11286, SortOrder = 6)]
 public class A14Naldthal : BossModule
 {
     public A14Naldthal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(750, -750), 30)) { }

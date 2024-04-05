@@ -85,7 +85,7 @@ class RuminatorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10620)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10620)]
 public class Ruminator : SimpleBossModule
 {
     public Ruminator(WorldState ws, Actor primary) : base(ws, primary) { }

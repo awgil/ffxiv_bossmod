@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Shadowbringers.Hunt.RankS.Ixtab;
+﻿namespace BossMod.Shadowbringers.Hunt.RankS.Ixtab;
 
 public enum OID : uint
 {
@@ -189,7 +188,7 @@ class IxtabStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8890)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8890)]
 public class Ixtab : SimpleBossModule
 {
     public Ixtab(WorldState ws, Actor primary) : base(ws, primary) { }

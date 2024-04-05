@@ -58,8 +58,8 @@ public abstract class C011Silkie : BossModule
     public C011Silkie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-335, -155), 20)) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11369, SortOrder = 5)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11369, SortOrder = 5)]
 public class C011NSilkie : C011Silkie { public C011NSilkie(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11369, SortOrder = 5)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11369, SortOrder = 5)]
 public class C011SSilkie : C011Silkie { public C011SSilkie(WorldState ws, Actor primary) : base(ws, primary) { } }

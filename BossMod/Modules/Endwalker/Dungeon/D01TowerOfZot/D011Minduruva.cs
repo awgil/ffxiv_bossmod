@@ -1,4 +1,3 @@
-// CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
 namespace BossMod.Endwalker.Dungeon.D01TowerOfZot.D011Minduruva;
 
 public enum OID : uint
@@ -152,7 +151,7 @@ class D011MinduruvaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10256)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10256)]
 public class D011Minduruva : BossModule
 {
     public D011Minduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(68, -124), 19.5f)) { }

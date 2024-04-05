@@ -6,6 +6,7 @@ using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
 using System.Data;
 using System.Globalization;
+using System.Text;
 
 namespace BossMod;
 
@@ -212,6 +213,14 @@ public class ModuleViewer : IDisposable
                                 if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}"))
                                     new BossModuleConfigWindow(mod.Info, new(TimeSpan.TicksPerSecond, "fake"));
                             ImGui.SameLine();
+                            UIMisc.HelpMarker(() => ModuleHelpText(mod));
+                            ImGui.SameLine();
+                            using var color = ImRaii.PushColor(ImGuiCol.Text, mod.Info.Maturity switch
+                            {
+                                BossModuleInfo.Maturity.WIP => 0xff0000ff,
+                                BossModuleInfo.Maturity.Verified => 0xff00ff00,
+                                _ => 0xffffffff
+                            });
                             ImGui.TextUnformatted($"{mod.Name} [{mod.Info.ModuleType.Name}]");
                         }
                     }
@@ -280,5 +289,14 @@ public class ModuleViewer : IDisposable
             default:
                 return (new("Ungrouped", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
         }
+    }
+
+    private string ModuleHelpText(ModuleInfo info)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Cooldown planning: {(info.Info.CooldownPlanningSupported ? "supported!" : "not supported")}");
+        if (info.Info.Contributors.Length > 0)
+            sb.AppendLine($"Contributors: {info.Info.Contributors}");
+        return sb.ToString();
     }
 }

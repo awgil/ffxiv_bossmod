@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Stormblood.Hunt.RankS.BoneCrawler;
 
 public enum OID : uint
@@ -70,7 +69,7 @@ class BoneCrawlerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5988)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5988)]
 public class BoneCrawler : SimpleBossModule
 {
     public BoneCrawler(WorldState ws, Actor primary) : base(ws, primary) { }

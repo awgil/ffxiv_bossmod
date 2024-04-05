@@ -7,7 +7,7 @@ class TyrantsFlare : Components.LocationTargetedAOEs
 
 // TODO: autoattack component
 // TODO: HC components
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 884, NameID = 11399, SortOrder = 2)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 884, NameID = 11399, SortOrder = 2)]
 public class P8S2 : BossModule
 {
     public P8S2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }

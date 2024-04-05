@@ -1,4 +1,3 @@
-// CONTRIB: made by legendoficeman, improvements by Malediktus, not checked
 namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D80Gudanna;
 
 public enum OID : uint
@@ -66,7 +65,7 @@ class D80GudannaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 206, NameID = 5333)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 206, NameID = 5333)]
 public class D80Gudanna : BossModule
 {
     public D80Gudanna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -220), 25))

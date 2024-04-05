@@ -16,7 +16,7 @@ public class Ex3TitanConfig : CooldownPlanningConfigNode
     public Ex3TitanConfig() : base(50) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 64, NameID = 1801)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 64, NameID = 1801)]
 public class Ex3Titan : BossModule
 {
     private IReadOnlyList<Actor> _heart;

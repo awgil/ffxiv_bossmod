@@ -25,7 +25,7 @@ class P5MornAfah : Components.StackWithCastTargets
     public P5MornAfah() : base(ActionID.MakeSpell(AID.MornAfah), 4, 8) { } // TODO: verify radius
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.Twintania, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 280)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Twintania, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 280)]
 public class UCOB : BossModule
 {
     private Actor? _nael;

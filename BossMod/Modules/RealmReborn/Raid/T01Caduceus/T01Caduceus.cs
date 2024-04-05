@@ -119,7 +119,7 @@ public class T01CaduceusConfig : CooldownPlanningConfigNode
     public T01CaduceusConfig() : base(50) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1466, SortOrder = 2)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1466, SortOrder = 2)]
 public class T01Caduceus : BossModule
 {
     public T01Caduceus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-26, -407), 35, 43))

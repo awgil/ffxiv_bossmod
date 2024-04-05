@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by dhoggpt, improvements by veyn & Malediktus, not checked
-namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth;
+﻿namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D123Octomammoth;
 
 public enum OID : uint
 {
@@ -141,7 +140,7 @@ class D123OctomammothStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
 class D123Octomammoth : BossModule
 {
     public D123Octomammoth(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-370, -368), 33.3f))

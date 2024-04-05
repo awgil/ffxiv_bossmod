@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Stormblood.Hunt.RankA.Angada;
+﻿namespace BossMod.Stormblood.Hunt.RankA.Angada;
 
 public enum OID : uint
 {
@@ -66,7 +65,7 @@ class AngadaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5999)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5999)]
 public class Angada : SimpleBossModule
 {
     public Angada(WorldState ws, Actor primary) : base(ws, primary) { }

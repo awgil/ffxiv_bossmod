@@ -59,7 +59,7 @@ class D113BatraalStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1396)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1396)]
 public class D113Batraal : BossModule
 {
     public D113Batraal(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(85, -180), 25)) { }

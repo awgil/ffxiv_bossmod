@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Endwalker.FATE.Chi;
+﻿namespace BossMod.Endwalker.FATE.Chi;
 
 public enum OID : uint
 {
@@ -340,7 +339,7 @@ class ChiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
 public class Chi : BossModule
 {
     public Chi(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(650, 0), 30)) { }

@@ -119,7 +119,7 @@ class P5AethericBoom : Components.KnockbackFromCastTarget
 }
 
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539)]
 public class UWU : BossModule
 {
     private IReadOnlyList<Actor> _ifrits;

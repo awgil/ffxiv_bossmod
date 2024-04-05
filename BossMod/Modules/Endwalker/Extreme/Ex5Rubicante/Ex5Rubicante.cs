@@ -21,7 +21,7 @@ public class Ex5RubicanteConfig : CooldownPlanningConfigNode
     public Ex5RubicanteConfig() : base(90) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 924, NameID = 12057)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 924, NameID = 12057)]
 public class Ex5Rubicante : BossModule
 {
     public Ex5Rubicante(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Global.Quest.FF16Collab.InfernalShadow;
 
 class InfernalShadowStates : StateMachineBuilder

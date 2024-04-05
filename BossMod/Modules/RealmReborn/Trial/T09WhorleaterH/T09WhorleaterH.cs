@@ -1,4 +1,3 @@
-// CONTRIB: made by taurenkey, changed by malediktus, not checked
 namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
 class GrandFall : Components.LocationTargetedAOEs
@@ -32,7 +31,7 @@ class T09WhorleaterHStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 72, NameID = 2505)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "taurenkey, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 72, NameID = 2505)]
 public class T09WhorleaterH(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-0, 0), 14.5f, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

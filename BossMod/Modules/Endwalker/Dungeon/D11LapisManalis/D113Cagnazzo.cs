@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D113Cagnazzo;
 
 public enum OID : uint
@@ -234,7 +233,7 @@ class D113CagnazzoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11995)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11995)]
 public class D113Cagnazzo : BossModule
 {
     public D113Cagnazzo(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-250, 130), 20)) { }

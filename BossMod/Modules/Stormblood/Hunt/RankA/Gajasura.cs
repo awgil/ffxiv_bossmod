@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Stormblood.Hunt.RankA.Gajasura;
+﻿namespace BossMod.Stormblood.Hunt.RankA.Gajasura;
 
 public enum OID : uint
 {
@@ -40,7 +39,7 @@ class GajasuraStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5998)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5998)]
 public class Gajasura : SimpleBossModule
 {
     public Gajasura(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -1,4 +1,3 @@
-// CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
 namespace BossMod.Endwalker.Dungeon.D01TheTowerOfZot.D013MagusSisters;
 
 public enum OID : uint
@@ -269,7 +268,7 @@ class D013MagusSistersStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10265)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10265)]
 class D013MagusSisters : BossModule
 {
     public D013MagusSisters(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-27.5f, -49.5f), 20)) { }

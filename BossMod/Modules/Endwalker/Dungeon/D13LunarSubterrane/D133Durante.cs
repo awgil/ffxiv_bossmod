@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by Malediktus, not checked
-namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D133Durante;
+﻿namespace BossMod.Endwalker.Dungeon.D13LunarSubterrane.D133Durante;
 
 public enum OID : uint
 {
@@ -194,7 +193,7 @@ class D133DuranteStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
 class D133Durante : BossModule
 {
     public D133Durante(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -422), 23)) { }

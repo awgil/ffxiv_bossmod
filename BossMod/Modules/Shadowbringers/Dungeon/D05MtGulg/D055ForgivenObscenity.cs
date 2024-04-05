@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D055ForgivenObscenity;
 
 public enum OID : uint
@@ -270,7 +269,7 @@ class D055ForgivenObscenityStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
 public class D055ForgivenObscenity : BossModule
 {
     public D055ForgivenObscenity(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-240, 237), 15, 20)) { }

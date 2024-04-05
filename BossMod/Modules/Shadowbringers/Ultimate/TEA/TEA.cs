@@ -81,7 +81,7 @@ class P3DivineJudgmentRaidwide : Components.CastCounter
     public P3DivineJudgmentRaidwide() : base(ActionID.MakeSpell(AID.DivineJudgmentRaidwide)) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 694)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 694)]
 public class TEA : BossModule
 {
     private IReadOnlyList<Actor> _liquidHand;
