@@ -15,6 +15,16 @@ class PelagicCleaver2 : Components.SelfTargetedAOEs
     public PelagicCleaver2() : base(ActionID.MakeSpell(AID.PelagicCleaver2), new AOEShapeCone(40, 30.Degrees())) { }
 }
 
+class PelagicCleaver1Hint : Components.CastInterruptHint
+{
+    public PelagicCleaver1Hint() : base(ActionID.MakeSpell(AID.PelagicCleaver1)) { }
+}
+
+class PelagicCleaver2Hint : Components.CastInterruptHint
+{
+    public PelagicCleaver2Hint() : base(ActionID.MakeSpell(AID.PelagicCleaver2)) { }
+}
+
 class WaterFlood : Components.SelfTargetedAOEs
 {
     public WaterFlood() : base(ActionID.MakeSpell(AID.WaterFlood), new AOEShapeCircle(6)) { }
@@ -33,6 +43,8 @@ public class A30TrashPack1States : StateMachineBuilder
             .ActivateOnEnter<WaterIII>()
             .ActivateOnEnter<PelagicCleaver1>()
             .ActivateOnEnter<PelagicCleaver2>()
+            .ActivateOnEnter<PelagicCleaver1Hint>()
+            .ActivateOnEnter<PelagicCleaver2Hint>()
             .ActivateOnEnter<WaterFlood>()
             .ActivateOnEnter<DivineFlood>()
             .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDestroyed) && module.Enemies(OID.Triton).All(e => e.IsDead) && module.Enemies(OID.WaterSprite).All(e => e.IsDead) &&  module.Enemies(OID.WaterSprite).All(e => e.IsDead);

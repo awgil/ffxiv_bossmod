@@ -17,6 +17,7 @@ class A31ThaliakStates : StateMachineBuilder
             .ActivateOnEnter<RightBank2>()
             .ActivateOnEnter<RheognosisKnockback>()
             .ActivateOnEnter<RheognosisCrash>()
+            .ActivateOnEnter<Rheognosis>()
             .ActivateOnEnter<TetraTriangles>();
     }
 }

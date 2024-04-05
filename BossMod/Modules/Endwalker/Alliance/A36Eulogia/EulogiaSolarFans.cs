@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A35Eulogia;
+﻿namespace BossMod.Endwalker.Alliance.A36Eulogia;
 
 class SolarFans : BossComponent
 {
