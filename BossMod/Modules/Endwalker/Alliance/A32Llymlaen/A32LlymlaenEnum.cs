@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x4024, // R7.000, x1
-    LlymlaenHelper = 0x233C, // R0.500, x25, 523 type
+    Helper = 0x233C, // R0.500, x25, 523 type
     Thalaos = 0x4027, // R6.300, x1
     Perykos = 0x4026, // R6.300, x1
     SeaFoam = 0x4029, // R1.500, spawn during fight

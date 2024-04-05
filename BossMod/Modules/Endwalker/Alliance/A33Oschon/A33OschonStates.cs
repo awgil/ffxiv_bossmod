@@ -1,13 +1,25 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
+class Phase2ArenaUpdate : BossComponent
+{
+    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    {
+        if (state == 0x00200010 && index == 0x42)
+            module.Arena.Bounds = new ArenaBoundsSquare(new(0, 750), 20);
+    }
+}
+
 class A33OschonStates : StateMachineBuilder
 {
     private readonly A33Oschon _module;
     public A33OschonStates(A33Oschon module) : base(module)
     {
         _module = module;
-        DeathPhase(0, id => { SimpleState(id, 10000, "Enrage"); })
-            .ActivateOnEnter<Downhill>()
+        SimplePhase(0, id => { SimpleState(id, 10000, "Enrage"); }, "P1")
+            .ActivateOnEnter<TrekShot>()
+            .ActivateOnEnter<TrekShot2>()
+            .ActivateOnEnter<SuddenDownpour>()
+            .ActivateOnEnter<DownhillP1>()
             .ActivateOnEnter<ClimbingShot>()
             .ActivateOnEnter<ClimbingShot2>()
             .ActivateOnEnter<ClimbingShot3>()
@@ -16,18 +28,23 @@ class A33OschonStates : StateMachineBuilder
             .ActivateOnEnter<SoaringMinuet2>()
             .ActivateOnEnter<FlintedFoehnP1>()
             .ActivateOnEnter<TheArrow>()
-            .ActivateOnEnter<TrekDraws>();
-        SimplePhase(1, id => { SimpleState(id, 10000, "Enrage"); }, "P2")
-            .ActivateOnEnter<PitonPullAOE>()
-            .ActivateOnEnter<AltitudeAOE>()
-            .ActivateOnEnter<GreatWhirlwindAOE>()
-            .ActivateOnEnter<DownhillSmallAOE>()
-            .ActivateOnEnter<DownhillBigAOE>()
-            //.ActivateOnEnter<ArrowTrail>()
+            .ActivateOnEnter<SwingingDraw>()
+            .ActivateOnEnter<LoftyPeaks>()
+            .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
+        SimplePhase(1, id => { SimpleState(id, 20000, "Enrage"); }, "P2")
+            .ActivateOnEnter<Phase2ArenaUpdate>()
+            .ActivateOnEnter<PitonPull>()
+            .ActivateOnEnter<Altitude>()
+            .ActivateOnEnter<GreatWhirlwind>()
+            .ActivateOnEnter<DownhillSmall>()
+            .ActivateOnEnter<DownhillBig>()
+            .ActivateOnEnter<ArrowTrail>()
             .ActivateOnEnter<WanderingVolley>()
             .ActivateOnEnter<WanderingVolleyAOE>()
-            .ActivateOnEnter<FlintedFoehnP2>()
+            .ActivateOnEnter<WanderingVolleyRaidwide1>()
+            .ActivateOnEnter<WanderingVolleyRaidwide2>()
             .ActivateOnEnter<TheArrowP2>()
-            .Raw.Update = () => _module.OschonP2() is var OschonP2 && _module.OschonP1() is var OschonP1 && OschonP2 != null && OschonP1 != null && !OschonP1.IsTargetable;
+            .ActivateOnEnter<FlintedFoehnP2>()
+            .Raw.Update = () => _module.OschonP2 != null && _module.OschonP2()?.HP.Cur == 1;
     }
 }

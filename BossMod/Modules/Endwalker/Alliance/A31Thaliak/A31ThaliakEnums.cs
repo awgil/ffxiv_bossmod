@@ -3,10 +3,7 @@ public enum OID : uint
 {
     Boss = 0x404C, // R9.496, x1
     ThaliakClone = 0x404D, // R9.496, x1
-    ThaliakHelper = 0x233C, // R0.500, x44, 523 type
-    WindWreathedPortal = 0x1EB91D, // R0.500, x1, EventObj type
-    HieroglyphikaIndicator = 0x40AA, // R0.500, x1 // Rotation Indicator
-    UnknownActor = 0x400E, // R0.500, x1
+    Helper = 0x233C, // R0.500, x44, 523 type
 };
 
 public enum AID : uint

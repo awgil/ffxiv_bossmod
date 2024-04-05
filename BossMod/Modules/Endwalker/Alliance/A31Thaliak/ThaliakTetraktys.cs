@@ -13,7 +13,7 @@ class Tetraktys : BossComponent
 
 class TetraTriangles : Components.GenericAOEs
 {
-    private readonly List<(WPos source, AOEShape shape, Angle direction, DateTime activation)> _casters = [];
+    private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeTriangle tri = new(16);
     private static readonly AOEShapeTriangle triBig = new(32);
     private static readonly AOEShapeRect rect = new(30, 8);
@@ -30,9 +30,9 @@ class TetraTriangles : Components.GenericAOEs
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
-        foreach (var c in _casters)
-            if (_casters.Count > 0)
-                yield return new(c.shape, c.source, c.direction, c.activation);
+        foreach (var c in _aoes)
+            if (_aoes.Count > 0)
+                yield return new(c.Shape, c.Origin, c.Rotation, c.Activation);
     }
 
     public override void OnEventEnvControl(BossModule module, byte index, uint state)
@@ -43,77 +43,77 @@ class TetraTriangles : Components.GenericAOEs
         {
             if (index == 0x07) //07, 0A, 0D always activate together
             {
-                _casters.Add((new WPos(-929, 948.5f), tri, _rot1, _activation));
-                _casters.Add((new WPos(-953, 962.356f), tri, _rot2, _activation));
-                _casters.Add((new WPos(-945, 948.5f), tri, _rot2, _activation));
+                _aoes.Add(new(tri, new WPos(-929, 948.5f), _rot1, _activation));
+                _aoes.Add(new(tri, new WPos(-953, 962.356f), _rot2, _activation));
+                _aoes.Add(new(tri, new WPos(-945, 948.5f), _rot2, _activation));
             }
             if (index == 0x05) //05, 08, 0B always activate together
             {
-                _casters.Add((new WPos(-945, 948.5f), tri, _rot1, _activation));
-                _casters.Add((new WPos(-937, 934.644f), tri, _rot1, _activation));
-                _casters.Add((new WPos(-945, 921), tri, _rot1, _activation));
+                _aoes.Add(new(tri, new WPos(-945, 948.5f), _rot1, _activation));
+                _aoes.Add(new(tri, new WPos(-937, 934.644f), _rot1, _activation));
+                _aoes.Add(new(tri, new WPos(-945, 921), _rot1, _activation));
             }
             if (index == 0x06) //06, 09, 0C always activate together
             {
-                _casters.Add((new WPos(-937, 962.356f), tri, _rot3, _activation));
-                _casters.Add((new WPos(-961, 948.5f), tri, _rot1, _activation));
-                _casters.Add((new WPos(-953, 934.644f), tri, _rot1, _activation));
+                _aoes.Add(new(tri, new WPos(-937, 962.356f), _rot3, _activation));
+                _aoes.Add(new(tri, new WPos(-961, 948.5f), _rot1, _activation));
+                _aoes.Add(new(tri, new WPos(-953, 934.644f), _rot1, _activation));
             }
             if (index == 0x0E)
-                _casters.Add((new WPos(-945, 921), triBig, _rot1, _activation));
+                _aoes.Add(new(triBig, new WPos(-945, 921), _rot1, _activation));
             if (index == 0x0F)
-                _casters.Add((new WPos(-953, 934.644f), triBig, _rot1, _activation));
+                _aoes.Add(new(triBig, new WPos(-953, 934.644f), _rot1, _activation));
             if (index == 0x10)
-                _casters.Add((new WPos(-937, 934.644f), triBig, _rot1, _activation));
+                _aoes.Add(new(triBig, new WPos(-937, 934.644f), _rot1, _activation));
             if (index == 0x13 && TutorialDone) //pair 13+15 always happen together after tutorial
             {
-                _casters.Add((new WPos(-961, 948.7f), tri, _rot1, _activation2));
-                _casters.Add((new WPos(-937, 962.356f), tri, _rot6, _activation2));
-                _casters.Add((new WPos(-933, 955.428f), rect, _rot4, _activation2));
-                _casters.Add((new WPos(-941, 955.428f), rect, _rot5, _activation2));
-                _casters.Add((new WPos(-937, 948.5f), rect, _rot2, _activation2));
-                _casters.Add((new WPos(-957, 955.428f), rect, _rot7, _activation2));
+                _aoes.Add(new(tri, new WPos(-961, 948.7f), _rot1, _activation2));
+                _aoes.Add(new(tri, new WPos(-937, 962.356f), _rot6, _activation2));
+                _aoes.Add(new(rect, new WPos(-933, 955.428f), _rot4, _activation2));
+                _aoes.Add(new(rect, new WPos(-941, 955.428f), _rot5, _activation2));
+                _aoes.Add(new(rect, new WPos(-937, 948.5f), _rot2, _activation2));
+                _aoes.Add(new(rect, new WPos(-957, 955.428f), _rot7, _activation2));
             }
             if (index == 0x12 && TutorialDone) //pair 12+16 always happen together after tutorial
             {
-                _casters.Add((new WPos(-945, 948.5f), tri, _rot2, _activation2));
-                _casters.Add((new WPos(-929, 948.7f), tri, _rot1, _activation2));
-                _casters.Add((new WPos(-933, 955.428f), rect, _rot8, _activation2));
-                _casters.Add((new WPos(-941.173f, 941.828f), rect, _rot9, _activation2));
-                _casters.Add((new WPos(-948.827f, 941.828f), rect, _rot5, _activation2));
-                _casters.Add((new WPos(-945, 935), rect, _rot2, _activation2));
+                _aoes.Add(new(tri, new WPos(-945, 948.5f), _rot2, _activation2));
+                _aoes.Add(new(tri, new WPos(-929, 948.7f), _rot1, _activation2));
+                _aoes.Add(new(rect, new WPos(-933, 955.428f), _rot8, _activation2));
+                _aoes.Add(new(rect, new WPos(-941.173f, 941.828f), _rot9, _activation2));
+                _aoes.Add(new(rect, new WPos(-948.827f, 941.828f), _rot5, _activation2));
+                _aoes.Add(new(rect, new WPos(-945, 935), _rot2, _activation2));
             }
             if (index == 0x11 && TutorialDone) //pair 11+14 always happen together after tutorial
             {
-                _casters.Add((new WPos(-945, 921), tri, _rot1, _activation2));
-                _casters.Add((new WPos(-953, 962.356f), tri, _rot2, _activation2));
-                _casters.Add((new WPos(-945, 934.8f), rect, _rot1, _activation2));
-                _casters.Add((new WPos(-953, 948.5f), rect, _rot2, _activation2));
-                _casters.Add((new WPos(-957, 955.428f), rect, _rot5, _activation2));
-                _casters.Add((new WPos(-949, 955.428f), rect, _rot4, _activation2));
+                _aoes.Add(new(tri, new WPos(-945, 921), _rot1, _activation2));
+                _aoes.Add(new(tri, new WPos(-953, 962.356f), _rot2, _activation2));
+                _aoes.Add(new(rect, new WPos(-945, 934.8f), _rot1, _activation2));
+                _aoes.Add(new(rect, new WPos(-953, 948.5f), _rot2, _activation2));
+                _aoes.Add(new(rect, new WPos(-957, 955.428f), _rot5, _activation2));
+                _aoes.Add(new(rect, new WPos(-949, 955.428f), _rot4, _activation2));
             }
             if (index == 0x14 && !TutorialDone)
             {
-                _casters.Add((new WPos(-953, 962.356f), tri, _rot2, _activation));
-                _casters.Add((new WPos(-949, 955.428f), rect, _rot4, _activation));
-                _casters.Add((new WPos(-957, 955.428f), rect, _rot5, _activation));
-                _casters.Add((new WPos(-953, 948.5f), rect, _rot2, _activation));
+                _aoes.Add(new(tri, new WPos(-953, 962.356f), _rot2, _activation));
+                _aoes.Add(new(rect, new WPos(-949, 955.428f), _rot4, _activation));
+                _aoes.Add(new(rect, new WPos(-957, 955.428f), _rot5, _activation));
+                _aoes.Add(new(rect, new WPos(-953, 948.5f), _rot2, _activation));
                 TutorialDone = true;
             }
             if (index == 0x15 && !TutorialDone)
             {
-                _casters.Add((new WPos(-937, 962.356f), tri, _rot6, _activation));
-                _casters.Add((new WPos(-937, 948.5f), rect, _rot2, _activation));
-                _casters.Add((new WPos(-933, 955.428f), rect, _rot4, _activation));
-                _casters.Add((new WPos(-941, 955.428f), rect, _rot5, _activation));
+                _aoes.Add(new(tri, new WPos(-937, 962.356f), _rot6, _activation));
+                _aoes.Add(new(rect, new WPos(-937, 948.5f), _rot2, _activation));
+                _aoes.Add(new(rect, new WPos(-933, 955.428f), _rot4, _activation));
+                _aoes.Add(new(rect, new WPos(-941, 955.428f), _rot5, _activation));
                 TutorialDone = true;
             }
             if (index == 0x12 && !TutorialDone)
             {
-                _casters.Add((new WPos(-945, 948.5f), tri, _rot2, _activation));
-                _casters.Add((new WPos(-945, 935), rect, _rot2, _activation));
-                _casters.Add((new WPos(-948.827f, 941.828f), rect, _rot5, _activation));
-                _casters.Add((new WPos(-941.173f, 941.828f), rect, _rot9, _activation));
+                _aoes.Add(new(tri, new WPos(-945, 948.5f), _rot2, _activation));
+                _aoes.Add(new(rect, new WPos(-945, 935), _rot2, _activation));
+                _aoes.Add(new(rect, new WPos(-948.827f, 941.828f), _rot5, _activation));
+                _aoes.Add(new(rect, new WPos(-941.173f, 941.828f), _rot9, _activation));
                 TutorialDone = true;
             }
         }
@@ -121,7 +121,7 @@ class TetraTriangles : Components.GenericAOEs
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        if (_casters.Count > 0 && (AID)spell.Action.ID is AID.TetraBlueTriangles or AID.TetraGreenTriangles or AID.TetraktuosKosmosTri or AID.TetraktuosKosmosRect)
-            _casters.RemoveAt(0);
+        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.TetraBlueTriangles or AID.TetraGreenTriangles or AID.TetraktuosKosmosTri or AID.TetraktuosKosmosRect)
+            _aoes.RemoveAt(0);
     }
 }
