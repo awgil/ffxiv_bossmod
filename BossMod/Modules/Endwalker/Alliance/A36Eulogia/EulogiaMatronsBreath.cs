@@ -7,7 +7,7 @@ class MatronsBreath : BossComponent
     private IReadOnlyList<Actor> _goldSafe = ActorEnumeration.EmptyList;
     private readonly List<Actor> _towers = [];
 
-    private static readonly AOEShapeDonut _shape = new(8, 50); // TODO: verify safe zone radius
+    private static readonly AOEShapeDonut _shape = new(8, 50);
 
     public override void Init(BossModule module)
     {

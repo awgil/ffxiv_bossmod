@@ -10,61 +10,61 @@ public enum OID : uint
     FistOfJudgment = 0x408D, // R3.600, spawn during fight
     WardensFlame = 0x408B, // R2.400, spawn during fight
     HydrostasisQuick = 0x408A, // R1.000, spawn during fight
-    FistPortalHelper = 0x408F, // R1.000, spawn during fight
-    _Gen_Actor4028 = 0x4028, // R1.000, spawn during fight
+    Hieroglyphika = 0x408F, // R1.000, spawn during fight
+    EudaimonEorzeaVisualHelper = 0x4028, // R1.000, spawn during fight
     MatronsBreathHelper = 0x4090, // R1.000, spawn during fight, related somehow to MatronsBreath
     GoldSafeZone = 0x1EB846, // R0.500, EventObj type, spawn during fight
     BlueSafeZone = 0x1EB845, // R0.500, EventObj type, spawn during fight
     GoldTower = 0x1EB844, // R0.500, EventObj type, spawn during fight
     BlueTower = 0x1EB843, // R0.500, EventObj type, spawn during fight
-    Exit = 0x1E850B, // R0.500, x1, EventObj type
-    Graha = 0xFEA51, // R0.500-8.000, EventNpc type, spawn during fight lol
 };
 
 public enum AID : uint
 {
-    _Weaponskill_Attack1 = 35326, // Eulogia->self, no cast, single-target
-    _Weaponskill_Attack2 = 35327, // Helper->player, no cast, single-target
-    DawnOfTime = 35331, // Eulogia->self, 5.0s cast, range 70 circle
-    Teleport = 35330, // Eulogia->location, no cast, single-target // 99% sure this is the teleport
-    _Ability_2 = 35336, // Eulogia->self, no cast, single-target
-    _Ability_3 = 35337, // Eulogia->self, no cast, single-target
-    _Ability_4 = 36066, // Eulogia->self, no cast, single-target
-    _Weaponskill_1 = 35360, // Avatar->self, 0.5s cast, single-target
-    _Weaponskill_2 = 35361, // Avatar->self, 0.5s cast, single-target
-    _Weaponskill_3 = 35358, // Avatar->self, 0.5s cast, single-target
-    _Weaponskill_4 = 35359, // Avatar->self, 0.5s cast, single-target
-    _Weaponskill_5 = 35357, // Avatar->self, 0.5s cast, single-target
-    _Weaponskill_6 = 35397, // FistOfWrath->self, no cast, single-target
-    _Weaponskill_7 = 35398, // FistOfJudgment->self, no cast, single-target
+    AutoAttackStarter = 35326, // Eulogia->self, no cast, single-target, hits all 3 main tanks
+    AutoAttack = 35327, // Helper->player, no cast, single-target
 
-    FirstFormRight = 35338, // Eulogia->self, 7.0s cast, single-target // visual for QuintessenceFirstRight
-    FirstFormLeft = 35341, // Eulogia->self, 7.0s cast, single-target // visual for QuintessenceFirstLeft
-    FirstFormAOE = 35344, // Eulogia->self, 7.0s cast, single-target // visual for QuintessenceFirstAOE
-    SecondFormRight = 35339, // Eulogia->self, 7.0s cast, single-target // visual for QuintessenceSecondRight
-    SecondFormLeft = 35342, // Eulogia->self, 7.0s cast, single-target // visual for QuintessenceSecondLeft
-    SecondFormAOE = 35345, // Eulogia->self, 7.0s cast, single-target (inferred, no log) // visual for QuintessenceSecondAOE
-    ThirdFormRight = 35340, // Eulogia->self, 7.0s cast, single-target // visual for QuintessenceThirdRight
-    ThirdFormLeft = 35343, // Eulogia->self, 7.0s cast, single-target // visual for QuintessenceThirdLeft
-    ThirdFormAOE = 35346, // Eulogia->self, 7.0s cast, single-target // visual for QuintessenceThirdAOE
-    QuintessenceSetup = 35350, // Eulogia->self, 4.0s cast, single-target // teleport
-    Quintessence1stSpot = 35351, // Eulogia->location, no cast, single-target, // casting location
-    Quintessence2ndSpot = 35352, // Eulogia->location, no cast, single-target, // casting location
-    Quintessence3rdSpot = 35353, // Eulogia->location, no cast, single-target, // casting location
+    Teleport = 35330, // Eulogia->location, no cast, single-target
+    Visual = 35336, // Eulogia->self, no cast, single-target
+    EudaimonEorzeaVisual1 = 35337, // Eulogia->self, no cast, single-target
+    EudaimonEorzeaVisual2 = 36066, // Eulogia->self, no cast, single-target
+    QuintessenceVisual1 = 35360, // Avatar->self, 0.5s cast, single-target
+    QuintessenceVisual2 = 35361, // Avatar->self, 0.5s cast, single-target
+    QuintessenceVisual3 = 35358, // Avatar->self, 0.5s cast, single-target
+    QuintessenceVisual4 = 35359, // Avatar->self, 0.5s cast, single-target
+    QuintessenceVisual5 = 35357, // Avatar->self, 0.5s cast, single-target
+    FistOfWrathVisual = 35397, // FistOfWrath->self, no cast, single-target
+    FistOfJudgmentVisual = 35398, // FistOfJudgment->self, no cast, single-target
+
+    DawnOfTime = 35331, // Eulogia->self, 5.0s cast, range 70 circle
+
+    FirstFormRight = 35338, // Eulogia->self, 7.0s cast, single-target
+    FirstFormLeft = 35341, // Eulogia->self, 7.0s cast, single-target
+    FirstFormAOE = 35344, // Eulogia->self, 7.0s cast, single-target
+    SecondFormRight = 35339, // Eulogia->self, 7.0s cast, single-target
+    SecondFormLeft = 35342, // Eulogia->self, 7.0s cast, single-target
+    SecondFormAOE = 35345, // Eulogia->self, 7.0s cast, single-target
+    ThirdFormRight = 35340, // Eulogia->self, 7.0s cast, single-target
+    ThirdFormLeft = 35343, // Eulogia->self, 7.0s cast, single-target
+    ThirdFormAOE = 35346, // Eulogia->self, 7.0s cast, single-target
+    QuintessenceSetup = 35350, // Eulogia->self, 4.0s cast, single-target
+    Quintessence1stSpot = 35351, // Eulogia->location, no cast, single-target, teleport to 1st spot
+    Quintessence2ndSpot = 35352, // Eulogia->location, no cast, single-target, teleport to 2st spot
+    Quintessence3rdSpot = 35353, // Eulogia->location, no cast, single-target, teleport to 3rd spot
     QuintessenceFirstRight = 35354, // Helper->self, 4.8s cast, range 50 180-degree cone
     QuintessenceFirstLeft = 35355, // Helper->self, 4.8s cast, range 50 180-degree cone
     QuintessenceFirstAOE = 35356, // Helper->self, 4.8s cast, range 8 50 donut
     QuintessenceSecondRight = 36069, // Helper->self, 8.3s cast, range 50 180-degree cone
     QuintessenceSecondLeft = 36070, // Helper->self, 8.3s cast, range 50 180-degree cone
-    QuintessenceSecondAOE = 36071, // Helper->self, 8.3s cast, range 8 50 donut (inferred, no log)
+    QuintessenceSecondAOE = 36071, // Helper->self, 8.3s cast, range 8 50 donut
     QuintessenceThirdRight = 36072, // Helper->self, 11.9s cast, range 50 180-degree cone
     QuintessenceThirdLeft = 36073, // Helper->self, 11.9s cast, range 50 180-degree cone
     QuintessenceThirdAOE = 36074, // Helper->self, 11.9s cast, range 8 50 donut
 
-    SunbeamSelf = 35328, // Eulogia->self, 5.0s cast, single-target visual (tankbuster)
+    SunbeamSelf = 35328, // Eulogia->self, 5.0s cast, single-target, visual
     SunbeamTankBuster = 35329, // Helper->players, 5.0s cast, range 6 circle, tankbusters
 
-    TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle, raidwide, adds a bleed AOE around arena
+    TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle, raidwide
 
     LovesLight = 35376, // Eulogia->self, 4.0s cast, single-target
     FullBright = 35377, // Eulogia->self, 3.0s cast, single-target
@@ -83,15 +83,16 @@ public enum AID : uint
 
     TimeAndTide = 35378, // Eulogia->self, 6.0s cast, single-target, single-target, visual (speed up time)
     Hydrostasis = 35383, // Eulogia->self, 4.0s cast, single-target, 4.0s cast, single-target, visual (knockbacks)
-    HydrostasisAOE1 = 35384, // Helper->self, 7.0s cast, range 72 circle, knockback 28 dir 6
-    HydrostasisAOE2 = 35385, // Helper->self, 10.0s cast, range 72 circle, knockback 28 dir 6
-    HydrostasisAOE3 = 35386, // Helper->self, 13.0s cast, range 72 circle, knockback 28 dir 6
+    HydrostasisAOE1 = 35384, // Helper->self, 7.0s cast, range 72 circle, knockback 28, away from source
+    HydrostasisAOE2 = 35385, // Helper->self, 10.0s cast, range 72 circle, knockback 28, away from source
+    HydrostasisAOE3 = 35386, // Helper->self, 13.0s cast, range 72 circle, knockback 28, away from source
 
     DestructiveBolt = 36076, // Eulogia->self, 6.0s cast, single-target, tankbuster visual
     DestructiveBoltStack = 36093, // Helper->players, 7.0s cast, range 6 circle, stack marker
 
     HieroglyphikaVisual = 35395, // Eulogia->self, 5.0s cast, single-target
-    HieroglyphikaAOE = 35396, // Helper->self, 3.0s cast, range 12 width 12 rect
+    HieroglyphikaRect = 35396, // Helper->self, 3.0s cast, range 12 width 12 rect
+
     HandOfTheDestroyerWrath = 35399, // Eulogia->self, 7.5s cast, single-target
     HandOfTheDestroyerJudgment = 35400, // Eulogia->self, 7.5s cast, single-target
     HandOfTheDestroyerWrathAOE = 35401, // FistOfWrath->self, 8.0s cast, range 90 width 40 rect
@@ -105,23 +106,23 @@ public enum AID : uint
     Landing = 35407, // Trident->self, no cast, range 80 circle
     LightningBolt = 35408, // Trident->self, 5.0s cast, range 18 circle
     ByregotStrikeJump = 35410, // Eulogia->location, 6.0s cast, range 8 circle
-    ByregotStrikeKnockback = 35411, // Helper->self, 6.7s cast, range 45 circle, knockback 20, dir 6
+    ByregotStrikeKnockback = 35411, // Helper->self, 6.7s cast, range 45 circle, knockback 20, away from source
     ByregotStrikeCone = 35412, // Helper->self, 6.7s cast, range 90 30-degree cone
 
-    ThousandfoldThrustFirst1 = 35415, // Eulogia->self, 5.0s cast, single-target
-    ThousandfoldThrustFirst2 = 35416, // Eulogia->self, 5.0s cast, single-target
+    ThousandfoldThrustVisual1 = 35415, // Eulogia->self, 5.0s cast, single-target
+    ThousandfoldThrustVisual2 = 35416, // Eulogia->self, 5.0s cast, single-target
     ThousandfoldThrustAOEFirst = 35417, // Helper->self, 6.3s cast, range 60 180-degree cone
     ThousandfoldThrustAOERest = 35418, // Helper->self, no cast, range 60 180-degree cone
 
     AsAboveSoBelow = 35419, // Eulogia->self, 5.0s cast, range 40 circle
     AsAboveSoBelowAlt = 35420, // Eulogia->self, 5.0s cast, range 40 circle
 
-    ClimbingShot1 = 36106, // Eulogia->self, 8.0s cast, range 40 circle
-    ClimbingShot2 = 35431, // Eulogia->self, no cast, range 40 circle
-    ClimbingShot3 = 35429, // Eulogia->self, no cast, range 40 circle
-    ClimbingShot4 = 36107, // Eulogia->self, 8.0s cast, range 40 circle
-    ClimbingShot5 = 35430, // Eulogia->self, no cast, range 40 circle
-    ClimbingShot6 = 35432, // Eulogia->self, no cast, range 40 circle, knockback 20, dir 6
+    ClimbingShotVisual = 36106, // Eulogia->self, 8.0s cast, range 40 circle, visual
+    ClimbingShotVisual2 = 36107, // Eulogia->self, 8.0s cast, range 40 circle
+    ClimbingShot1 = 35431, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
+    ClimbingShot2 = 35429, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
+    ClimbingShot3 = 35430, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
+    ClimbingShot4 = 35432, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
 
     OnceBurnedFake = 36094, // Helper->self, 9.0s cast, range 6 circle
     EverFireFake = 36095, // Helper->self, 9.0s cast, range 6 circle
@@ -130,10 +131,7 @@ public enum AID : uint
     OnceBurnedRest = 36098, // Helper->self, no cast, range 6 circle
     EverfireRest = 36099, // Helper->self, no cast, range 6 circle
 
-
-    //SoaringMinuet = 35220, // Inferred from splatoon, no log
-    SoaringMinuet = 35433, // Eulogia->self, 7.0s cast, range 40 ?-degree cone
-                           //SoaringMinuet = 36110, // Inferred from splatoon, no log
+    SoaringMinuet = 35433, // Eulogia->self, 7.0s cast, range 40 270-degree cone
 
     TheBuildersArt = 35362, // Helper->self, no cast, range 80 circle, raidwide
     TheDestroyersMight = 35363, // Helper->self, no cast, range 80 circle, raidwide
@@ -174,9 +172,9 @@ public enum TetherID : uint
 public enum IconID : uint
 {
     Stackmarker = 317, // player
-    Sunbeam = 344, // player // Used in GolbezEX for VoidMeteor and Endsinger for Hubris
-    FistOfWrath = 487, // FistPortalHelper // Might be FistOfJudgment
-    FistOfJudgment = 490, // FistPortalHelper // Might be FistOfWrath
+    Sunbeam = 344, // player
+    ClockwiseHieroglyphika = 487, // HieroglyphikaIndicator
+    CounterClockwiseHieroglyphika = 490, // HieroglyphikaIndicator
     ThousandfoldThrust1 = 388, // Eulogia
     ThousandfoldThrust2 = 389, // Eulogia
     Order1 = 398, // MatronsBreathHelper

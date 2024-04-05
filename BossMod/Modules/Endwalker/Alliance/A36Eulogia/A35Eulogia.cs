@@ -4,10 +4,17 @@ class SoaringMinuet : Components.SelfTargetedAOEs
 {
     public SoaringMinuet() : base(ActionID.MakeSpell(AID.SoaringMinuet), new AOEShapeCone(40, 135.Degrees())) { }
 }
-class LightningBolt : Components.SelfTargetedAOEs
+
+class HandOfTheDestroyerJudgment : Components.SelfTargetedAOEs
 {
-    public LightningBolt() : base(ActionID.MakeSpell(AID.LightningBolt), new AOEShapeCircle(18)) { }
+    public HandOfTheDestroyerJudgment() : base(ActionID.MakeSpell(AID.SoaringMinuet), new AOEShapeRect(90, 20)) { }
 }
+
+class HandOfTheDestroyerWrath : Components.SelfTargetedAOEs
+{
+    public HandOfTheDestroyerWrath() : base(ActionID.MakeSpell(AID.SoaringMinuet), new AOEShapeRect(90, 20)) { }
+}
+
 
 class FirstBlush1 : Components.SelfTargetedAOEs
 {
@@ -26,9 +33,14 @@ class FirstBlush4 : Components.SelfTargetedAOEs
     public FirstBlush4() : base(ActionID.MakeSpell(AID.FirstBlush4), new AOEShapeRect(120, 12.5f)) { }
 }
 
-class ClimbingShotKnockback : Components.KnockbackFromCastTarget
+class ClimbingShot1 : Components.KnockbackFromCastTarget
 {
-    public ClimbingShotKnockback() : base(ActionID.MakeSpell(AID.ClimbingShot1), 20) { }
+    public ClimbingShot1() : base(ActionID.MakeSpell(AID.ClimbingShot1), 20) { }
+}
+
+class ClimbingShot2 : Components.KnockbackFromCastTarget
+{
+    public ClimbingShot2() : base(ActionID.MakeSpell(AID.ClimbingShot2), 20) { }
 }
 
 class SunbeamSelf : Components.BaitAwayCast

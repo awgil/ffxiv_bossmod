@@ -53,7 +53,7 @@ class Hieroglyphika : Components.GenericAOEs
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.HieroglyphiRect)
+        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.HieroglyphikaRect)
             _aoes.Clear();
     }
 }

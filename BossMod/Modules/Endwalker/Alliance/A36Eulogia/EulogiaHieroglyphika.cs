@@ -2,24 +2,36 @@ namespace BossMod.Endwalker.Alliance.A36Eulogia;
 
 class Hieroglyphika : Components.GenericAOEs
 {
-    private static readonly AOEShapeRect _shape = new(6, 6, 6);
+    private static readonly AOEShapeRect rect = new(0, 6, 12);
+    private static readonly AOEShapeRect rect2 = new(12, 6);
     private readonly List<AOEInstance> _aoes = [];
+    private const float RadianConversion = MathF.PI / 180;
+    private static readonly WPos[] StartingCoords = [new(951, -933), new(939, -933), new(951, -957), new (939, -957), new(927, -933), new(963, -957), new(963, -933), new(951, -945), new(939, -945), new(927, -921), new(939, -921), new(927, -945), new(963, -945), new(963, -921)];
 
-    public Hieroglyphika() : base(ActionID.MakeSpell(AID.HieroglyphikaAOE)) { }
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(15);
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(14);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    private static WPos RotateAroundOrigin(float rotatebydegrees, WPos origin, WPos caster) //TODO: consider moving to utils for future use
     {
-        if ((AID)spell.Action.ID is AID.HieroglyphikaAOE)
-            _aoes.Add(new(_shape, caster.Position, caster.Rotation, spell.NPCFinishAt));
+        float x = MathF.Cos(rotatebydegrees * RadianConversion) * (caster.X - origin.X) - MathF.Sin(rotatebydegrees * RadianConversion) * (caster.Z - origin.Z);
+        float z = MathF.Sin(rotatebydegrees * RadianConversion) * (caster.X - origin.X) + MathF.Cos(rotatebydegrees * RadianConversion) * (caster.Z - origin.Z);
+        return new WPos(origin.X + x, origin.Z + z);
     }
+
+    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    {
+        var _activation = module.WorldState.CurrentTime.AddSeconds(17);
+        var origin = module.Bounds.Center;
+        if (iconID == (uint)IconID.ClockwiseHieroglyphika)
+            foreach (var r in StartingCoords)
+                _aoes.Add(new(rect, RotateAroundOrigin(0, origin, r), default, _activation));
+        if (iconID == (uint)IconID.CounterClockwiseHieroglyphika)
+            foreach (var r in StartingCoords)
+                _aoes.Add(new(rect2, RotateAroundOrigin(180, origin, r), default, _activation));
+    }
+
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.HieroglyphikaAOE)
-        {
-            ++NumCasts;
-            if (_aoes.Count > 0)
-                _aoes.RemoveAt(0);
-        }
+        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.HieroglyphikaRect)
+            _aoes.Clear();
     }
 }

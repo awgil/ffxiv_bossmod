@@ -15,7 +15,7 @@ public enum AID : uint
     KatarraktesAOE = 35034, // ThaliakHelper->self, 5.7s cast, range 70 circle 
 
     Hieroglyphika = 35023, // Thaliak->self, 5.0s cast, single-target
-    HieroglyphiRect = 35024, // ThaliakHelper->self, 3.0s cast, range 12 width 12 rect
+    HieroglyphikaRect = 35024, // ThaliakHelper->self, 3.0s cast, range 12 width 12 rect
 
     Thlipsis = 35032, // Thaliak->self, 4.0s cast, single-target, stack marker
     ThlipsisStack = 35033, // ThaliakHelper->players, 6.0s cast, range 6 circle
