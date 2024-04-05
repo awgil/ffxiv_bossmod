@@ -20,7 +20,7 @@ class Tridents : Components.GenericAOEs
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.Landing)
+        if ((AID)spell.Action.ID == AID.Landing)
             _aoes.Add(new(_shape, caster.Position, activation: module.WorldState.CurrentTime.AddSeconds(13.1f)));
     }
 

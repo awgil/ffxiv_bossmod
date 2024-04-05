@@ -2,8 +2,7 @@ namespace BossMod.Endwalker.Alliance.A36Eulogia;
 
 class Hieroglyphika : Components.GenericAOEs
 {
-    private static readonly AOEShapeRect rect = new(0, 6, 12);
-    private static readonly AOEShapeRect rect2 = new(12, 6);
+    private static readonly AOEShapeRect rect = new(12, 6);
     private readonly List<AOEInstance> _aoes = [];
     private const float RadianConversion = MathF.PI / 180;
     private static readonly WPos[] StartingCoords = [new(951, -933), new(939, -933), new(951, -957), new (939, -957), new(927, -933), new(963, -957), new(963, -933), new(951, -945), new(939, -945), new(927, -921), new(939, -921), new(927, -945), new(963, -945), new(963, -921)];
@@ -19,14 +18,14 @@ class Hieroglyphika : Components.GenericAOEs
 
     public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
     {
-        var _activation = module.WorldState.CurrentTime.AddSeconds(17);
+        var _activation = module.WorldState.CurrentTime.AddSeconds(16);
         var origin = module.Bounds.Center;
         if (iconID == (uint)IconID.ClockwiseHieroglyphika)
             foreach (var r in StartingCoords)
-                _aoes.Add(new(rect, RotateAroundOrigin(0, origin, r), default, _activation));
+                _aoes.Add(new(rect, RotateAroundOrigin(0, origin, r), 180.Degrees(), _activation));
         if (iconID == (uint)IconID.CounterClockwiseHieroglyphika)
             foreach (var r in StartingCoords)
-                _aoes.Add(new(rect2, RotateAroundOrigin(180, origin, r), default, _activation));
+                _aoes.Add(new(rect, RotateAroundOrigin(180, origin, r), activation: _activation));
     }
 
     public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
