@@ -11,6 +11,8 @@ public class Exaflare : GenericAOEs
         public float TimeToMove;
         public int ExplosionsLeft;
         public int MaxShownExplosions;
+        // non-circular Shapes may be rotated based on the orientation of the caster.
+        public Angle Rotation;
     }
 
     public AOEShape Shape { get; private init; }
@@ -28,15 +30,15 @@ public class Exaflare : GenericAOEs
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
-        foreach (var (c, t) in FutureAOEs(module.WorldState.CurrentTime))
-            yield return new(Shape, c, activation: t, color: FutureColor);
-        foreach (var (c, t) in ImminentAOEs())
-            yield return new(Shape, c, activation: t, color: ImminentColor);
+        foreach (var (c, t, a) in FutureAOEs(module.WorldState.CurrentTime))
+            yield return new(Shape, c, rotation: a, activation: t, color: FutureColor);
+        foreach (var (c, t, a) in ImminentAOEs())
+            yield return new(Shape, c, rotation: a, activation: t, color: ImminentColor);
     }
 
-    protected IEnumerable<(WPos, DateTime)> ImminentAOEs() => Lines.Where(l => l.ExplosionsLeft > 0).Select(l => (l.Next, l.NextExplosion));
+    protected IEnumerable<(WPos, DateTime, Angle)> ImminentAOEs() => Lines.Where(l => l.ExplosionsLeft > 0).Select(l => (l.Next, l.NextExplosion, l.Rotation));
 
-    protected IEnumerable<(WPos, DateTime)> FutureAOEs(DateTime currentTime)
+    protected IEnumerable<(WPos, DateTime, Angle)> FutureAOEs(DateTime currentTime)
     {
         foreach (var l in Lines)
         {
@@ -47,7 +49,7 @@ public class Exaflare : GenericAOEs
             {
                 pos += l.Advance;
                 time = time.AddSeconds(l.TimeToMove);
-                yield return (pos, time);
+                yield return (pos, time, l.Rotation);
             }
         }
     }
