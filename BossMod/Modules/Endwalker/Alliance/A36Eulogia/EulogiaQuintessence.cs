@@ -8,6 +8,10 @@ class Quintessence : Components.GenericAOEs
     private static readonly Angle _rot2 = 180.Degrees();
     private static readonly Angle _rot3 = 90.Degrees();
     private static readonly Angle _rot4 = -45.Degrees();
+    private static readonly Angle _rot5 = 135.Degrees();
+    private static readonly Angle _rot6 = 0.Degrees();
+    private static readonly Angle _rot7 = -90.Degrees();
+    private static readonly Angle _rot8 = 45.Degrees();
 
     private byte _index;
     private WPos position;
@@ -56,13 +60,13 @@ class Quintessence : Components.GenericAOEs
         if ((AID)spell.Action.ID == AID.FirstFormRight)
         {
             if (_index == 0x4F)
-                _aoes.Add(new(cone, position, -_rot4, _activation1));
+                _aoes.Add(new(cone, position, _rot8, _activation1));
             if (_index == 0x4D)
                 _aoes.Add(new(cone, position, _rot1, _activation1));
             if (_index == 0x4C)
                 _aoes.Add(new(cone, position, _rot4, _activation1));
             if (_index == 0x4E)
-                _aoes.Add(new(cone, position, -_rot1, _activation1));
+                _aoes.Add(new(cone, position, _rot5, _activation1));
         }
         if ((AID)spell.Action.ID == AID.FirstFormLeft)
         {
@@ -71,9 +75,9 @@ class Quintessence : Components.GenericAOEs
             if (_index == 0x4F)
                 _aoes.Add(new(cone, position, _rot1, _activation1));
             if (_index == 0x4C)
-                _aoes.Add(new(cone, position, -_rot1, _activation1));
+                _aoes.Add(new(cone, position, _rot5, _activation1));
             if (_index == 0x4D)
-                _aoes.Add(new(cone, position, -_rot4, _activation1));
+                _aoes.Add(new(cone, position, _rot8, _activation1));
         }
         if ((AID)spell.Action.ID == AID.FirstFormAOE)
         {
@@ -85,16 +89,16 @@ class Quintessence : Components.GenericAOEs
             if (_index is 0x57 or 0x50)
                 _aoes.Add(new(cone, position, _rot2, _activation2));
             if (_index is 0x54 or 0x53)
-                _aoes.Add(new(cone, position, -_rot2, _activation2));
+                _aoes.Add(new(cone, position, _rot6, _activation2));
             if (_index is 0x56 or 0x55)
-                _aoes.Add(new(cone, position, -_rot3, _activation2));
+                _aoes.Add(new(cone, position, _rot7, _activation2));
         }
         if ((AID)spell.Action.ID == AID.SecondFormLeft)
         {
             if (_index is 0x55 or 0x56)
                 _aoes.Add(new(cone, position, _rot3, _activation2));
             if (_index is 0x52 or 0x51)
-                _aoes.Add(new(cone, position, -_rot3, _activation2));
+                _aoes.Add(new(cone, position, _rot7, _activation2));
         }
         if ((AID)spell.Action.ID == AID.SecondFormAOE)
         {
@@ -106,16 +110,16 @@ class Quintessence : Components.GenericAOEs
             if (_index is 0x50 or 0x57)
                 _aoes.Add(new(cone, position, _rot2, _activation3));
             if (_index is 0x53 or 0x54)
-                _aoes.Add(new(cone, position, -_rot2, _activation3));
+                _aoes.Add(new(cone, position, _rot6, _activation3));
         }
         if ((AID)spell.Action.ID == AID.ThirdFormLeft)
         {
             if (_index is 0x50 or 0x57)
-                _aoes.Add(new(cone, position, -_rot2, _activation3));
+                _aoes.Add(new(cone, position, _rot6, _activation3));
             if (_index is 0x55 or 0x56)
                 _aoes.Add(new(cone, position, _rot3, _activation3));
             if (_index is 0x52 or 0x51)
-                _aoes.Add(new(cone, position, -_rot3, _activation3));
+                _aoes.Add(new(cone, position, _rot7, _activation3));
             if (_index == 0x53)
                 _aoes.Add(new(cone, position, _rot2, _activation3));
         }
