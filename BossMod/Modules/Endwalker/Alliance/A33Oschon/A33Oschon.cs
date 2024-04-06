@@ -1,5 +1,20 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
+class DownhillP1 : Components.LocationTargetedAOEs
+{
+    public DownhillP1() : base(ActionID.MakeSpell(AID.Downhill), 6) { }
+}
+
+class SoaringMinuet1 : Components.SelfTargetedAOEs
+{
+    public SoaringMinuet1() : base(ActionID.MakeSpell(AID.SoaringMinuet1), new AOEShapeCone(65, 135.Degrees())) { }
+}
+
+class SoaringMinuet2 : Components.SelfTargetedAOEs
+{
+    public SoaringMinuet2() : base(ActionID.MakeSpell(AID.SoaringMinuet2), new AOEShapeCone(65, 135.Degrees())) { }
+}
+
 class SuddenDownpour : Components.RaidwideCast
 {
     public SuddenDownpour() : base(ActionID.MakeSpell(AID.SuddenDownpour2)) { }

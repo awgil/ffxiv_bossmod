@@ -8,9 +8,7 @@ class ArenaChanges : BossComponent
         {
             if (state == 0x00080004)
                 module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 35);
-            if (state == 0x00020001)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 30);
-            if (state == 0x00100001)
+            if (state is 0x00020001 or 0x00100001)
                 module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 30);
             if (state == 0x00400020)
                 module.Arena.Bounds = new ArenaBoundsSquare(new(945, -945), 24);
@@ -18,9 +16,9 @@ class ArenaChanges : BossComponent
     }
 }
 
-class A35EulogiaStates : StateMachineBuilder
+class A36EulogiaStates : StateMachineBuilder
 {
-    public A35EulogiaStates(BossModule module) : base(module)
+    public A36EulogiaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<ArenaChanges>()
@@ -40,9 +38,9 @@ class A35EulogiaStates : StateMachineBuilder
             .ActivateOnEnter<Tridents>()
             .ActivateOnEnter<FirstBlush>()
             .ActivateOnEnter<ThousandfoldThrust>()
-            .ActivateOnEnter<SolarFans>()
-            .ActivateOnEnter<ClimbingShot1>()
-            .ActivateOnEnter<ClimbingShot2>()
+            .ActivateOnEnter<RadiantRhythm>()
+            .ActivateOnEnter<RadiantFlourish>()
+            .ActivateOnEnter<ClimbingShot>()
             .ActivateOnEnter<Quintessence>();
     }
 }

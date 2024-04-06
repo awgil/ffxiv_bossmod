@@ -35,7 +35,7 @@ public enum AID : uint
     ClimbingShot = 35217, // Oschon->self, 5.0s cast, range 80 circle, knockback 20, dir away from source
     ClimbingShot2 = 35216, // Oschon->self, 5.0s cast, range 80 circle, knockback 20, dir away from source
     ClimbingShot3 = 35219, // Oschon->self, 5,0s cast, range 80 circle, knockback 20, dir away from source
-    ClimbingShot4 = 35218, // Boss->self, 5,0s cast, range 80 circle, knockback 20, dir away from source
+    ClimbingShot4 = 35218, // Oschon->self, 5,0s cast, range 80 circle, knockback 20, dir away from source
 
     SoaringMinuet1 = 36110, // Oschon->self, 5.0s cast, range 65 270-degree cone
     SoaringMinuet2 = 35220, // Oschon->self, 5.0s cast, range 65 270-degree cone

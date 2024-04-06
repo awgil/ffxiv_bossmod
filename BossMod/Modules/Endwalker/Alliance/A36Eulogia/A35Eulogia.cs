@@ -15,16 +15,6 @@ class HandOfTheDestroyerWrath : Components.SelfTargetedAOEs
     public HandOfTheDestroyerWrath() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerWrathAOE), new AOEShapeRect(90, 20)) { }
 }
 
-class ClimbingShot1 : Components.KnockbackFromCastTarget
-{
-    public ClimbingShot1() : base(ActionID.MakeSpell(AID.ClimbingShot1), 20) { }
-}
-
-class ClimbingShot2 : Components.KnockbackFromCastTarget
-{
-    public ClimbingShot2() : base(ActionID.MakeSpell(AID.ClimbingShot2), 20) { }
-}
-
 class SunbeamSelf : Components.BaitAwayCast
 {
     public SunbeamSelf() : base(ActionID.MakeSpell(AID.SunbeamTankBuster), new AOEShapeCircle(6), true) { }
@@ -47,7 +37,7 @@ class DestructiveBoltStack : Components.UniformStackSpread
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301)]
-public class A35Eulogia : BossModule
+public class A36Eulogia : BossModule
 {
-    public A35Eulogia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(945, -945), 35)) { }
+    public A36Eulogia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(945, -945), 35)) { }
 }

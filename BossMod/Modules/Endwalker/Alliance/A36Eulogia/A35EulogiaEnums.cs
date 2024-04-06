@@ -77,7 +77,7 @@ public enum AID : uint
     SolarFansAOE = 35388, // WardensFlame->location, 4.0s cast, width 10 rect charge
     RadiantRhythm = 35389, // Eulogia->self, no cast, range 100 circle
     TeleportFlame = 35390, // WardensFlame->location, no cast, single-target
-    RadiantFlight = 35391, // Helper->self, 0.5s cast, range 30 90-degree cone
+    RadiantFlight = 35391, // Helper->self, 0.5s cast, range 20-30 donut 90-degree cone
     RadiantFlourish = 35393, // WardensFlame->self, 3.0s cast, range 25 circle
     RadiantFinish = 35392, // Eulogia->self, 3.0s cast, single-target
 
@@ -118,7 +118,7 @@ public enum AID : uint
     AsAboveSoBelowAlt = 35420, // Eulogia->self, 5.0s cast, range 40 circle
 
     ClimbingShotVisual = 36106, // Eulogia->self, 8.0s cast, range 40 circle, visual
-    ClimbingShotVisual2 = 36107, // Eulogia->self, 8.0s cast, range 40 circle
+    ClimbingShotVisual2 = 36107, // Eulogia->self, 8.0s cast, range 40 circle, visual
     ClimbingShot1 = 35431, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
     ClimbingShot2 = 35429, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
     ClimbingShot3 = 35430, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
@@ -151,17 +151,13 @@ public enum AID : uint
 
 public enum SID : uint
 {
-    VulnerabilityUp = 1789, // Helper/FistOfJudgment/Trident->player, extra=0x1/0x2
-    Weakness = 43, // none->player, extra=0x0
-    Transcendent = 418, // none->player, extra=0x0
-    Glow = 2056, // WardensFlame->WardensFlame/UnknownEnemy2, extra=0x195/0x29E/0x29F/0x2A0/0x2A1/0x2A2/0x2A3/0x2A4/0x2A5/0x2A6/0x2A7/0x2A8/0x2A9
+    Glow = 2056, // WardensFlame->WardensFlame/EudaimonEorzeaVisualHelper, extra=0x195/0x29E/0x29F/0x2A0/0x2A1/0x2A2/0x2A3/0x2A4/0x2A5/0x2A6/0x2A7/0x2A8/0x2A9
     Inscribed = 3732, // none->player, extra=0x0
     Bleeding = 3077, // none->player, extra=0x0
     Bleeding2 = 3078, // none->player, extra=0x0
     Bind = 2518, // none->player, extra=0x0
     BloomingGold = 3460, // none->player, extra=0x0
     BloomingBlue = 3459, // none->player, extra=0x0
-    BrinkOfDeath = 44, // none->player, extra=0x0
 };
 
 public enum TetherID : uint

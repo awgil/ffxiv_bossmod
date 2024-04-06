@@ -37,7 +37,7 @@ public class A35TrashPack2States : StateMachineBuilder
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481)]
 public class A35TrashPack2 : BossModule
 {
-    public A35TrashPack2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(800, 910), 19)) { }
+    public A35TrashPack2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(800, 910), 20)) { }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
