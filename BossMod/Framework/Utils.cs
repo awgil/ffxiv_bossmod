@@ -342,4 +342,11 @@ public static class Utils
         v = Regex.Replace(v, "[^a-zA-Z0-9]", "");
         return v;
     }
+
+    // remove illegal characters from a filename
+    public static string CleanFilename(string filename)
+    {
+        var illegalChars = "[<>:\"/\\|?*]";
+        return Regex.Replace(filename, illegalChars, string.Empty);
+    }
 }

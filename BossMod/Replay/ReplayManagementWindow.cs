@@ -171,6 +171,6 @@ public class ReplayManagementWindow : UIWindow
         if (cf->IsSilenceEcho)
             prefix += "_NE";
 
-        return prefix;
+        return Utils.CleanFilename(prefix);
     }
 }
