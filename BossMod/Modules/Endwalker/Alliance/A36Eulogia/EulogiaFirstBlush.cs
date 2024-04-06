@@ -19,7 +19,7 @@ class FirstBlush : Components.GenericAOEs
         if ((AID)spell.Action.ID is AID.FirstBlush1 or AID.FirstBlush2 or AID.FirstBlush3 or AID.FirstBlush4)
         {
             _castersunsorted.Add((caster.Position, spell.Rotation, spell.NPCFinishAt, spell.Action.ID)); //casters appear in random order in raw ops
-            _casters = _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.rotation,x.activation)).ToList();
+            _casters = _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.rotation, x.activation)).ToList();
         }
     }
 
