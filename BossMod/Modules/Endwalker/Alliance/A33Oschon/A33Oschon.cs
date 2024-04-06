@@ -77,7 +77,7 @@ class DownhillBig : Components.LocationTargetedAOEs
     public DownhillBig() : base(ActionID.MakeSpell(AID.DownhillBig), 8) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.OschonP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", PrimaryActorOID = (uint)OID.OschonP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300)]
 public class A33Oschon : BossModule
 {
     private Actor? _oschonP1;

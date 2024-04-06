@@ -46,7 +46,7 @@ class DestructiveBoltStack : Components.StackWithCastTargets
     public DestructiveBoltStack() : base(ActionID.MakeSpell(AID.DestructiveBoltStack), 6) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301)]
 public class A36Eulogia : BossModule
 {
     public A36Eulogia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(945, -945), 35)) { }

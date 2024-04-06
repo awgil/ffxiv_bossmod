@@ -34,7 +34,7 @@ public class A35TrashPack2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481)]
 public class A35TrashPack2 : BossModule
 {
     public A35TrashPack2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(800, 910), 20)) { }
