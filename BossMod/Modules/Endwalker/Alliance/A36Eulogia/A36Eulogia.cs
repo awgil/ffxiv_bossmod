@@ -41,20 +41,9 @@ class Sunbeam : Components.BaitAwayCast
     }
 }
 
-class DestructiveBoltStack : Components.UniformStackSpread
+class DestructiveBoltStack : Components.StackWithCastTargets
 {
-    public DestructiveBoltStack() : base(6, 0) { }
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
-    {
-        if (iconID == (uint)IconID.Stackmarker)
-            AddStack(actor, module.WorldState.CurrentTime.AddSeconds(6.9f));
-    }
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.DestructiveBoltStack)
-            Stacks.Clear();
-    }
+    public DestructiveBoltStack() : base(ActionID.MakeSpell(AID.DestructiveBoltStack), 6) { }
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301)]
