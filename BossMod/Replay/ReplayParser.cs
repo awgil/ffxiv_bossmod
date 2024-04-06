@@ -405,7 +405,7 @@ public class ReplayParser : IDisposable
 
     private void EventConfirm(object? sender, (Actor Source, uint Seq, int TargetIndex) args)
     {
-        var a = _res.Actions.Find(a => a.GlobalSequence == args.Seq);
+        var a = _res.Actions.FindLast(a => a.GlobalSequence == args.Seq);
         if (a == null)
         {
             Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for missing action");

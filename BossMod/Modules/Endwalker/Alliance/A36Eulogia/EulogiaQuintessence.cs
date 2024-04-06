@@ -128,7 +128,7 @@ class Quintessence : Components.GenericAOEs
             if (_index is 0x53 or 0x54 or 0x57 or 0x56 or 0x51 or 0x50)
                 _aoes.Add(new(donut, position, activation: _activation3));
         }
-    }   
+    }
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
     {
