@@ -22,6 +22,9 @@ class A36EulogiaStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<ArenaChanges>()
+            .ActivateOnEnter<DawnOfTime>()
+            .ActivateOnEnter<EudaimonEorzea>()
+            .ActivateOnEnter<TheWhorl>()
             .ActivateOnEnter<SunbeamSelf>()
             .ActivateOnEnter<ByregotStrikeJump>()
             .ActivateOnEnter<ByregotStrikeKnockback>()

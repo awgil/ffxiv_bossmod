@@ -15,8 +15,8 @@ public enum OID : uint
     MatronsBreathHelper = 0x4090, // R1.000, spawn during fight, related somehow to MatronsBreath
     GoldSafeZone = 0x1EB846, // R0.500, EventObj type, spawn during fight
     BlueSafeZone = 0x1EB845, // R0.500, EventObj type, spawn during fight
-    GoldTower = 0x1EB844, // R0.500, EventObj type, spawn during fight
-    BlueTower = 0x1EB843, // R0.500, EventObj type, spawn during fight
+    GoldFlowers = 0x1EB844, // R0.500, EventObj type, spawn during fight
+    BlueFlowers = 0x1EB843, // R0.500, EventObj type, spawn during fight
 };
 
 public enum AID : uint
@@ -33,11 +33,6 @@ public enum AID : uint
     QuintessenceVisual3 = 35358, // Avatar->self, 0.5s cast, single-target
     QuintessenceVisual4 = 35359, // Avatar->self, 0.5s cast, single-target
     QuintessenceVisual5 = 35357, // Avatar->self, 0.5s cast, single-target
-    FistOfWrathVisual = 35397, // FistOfWrath->self, no cast, single-target
-    FistOfJudgmentVisual = 35398, // FistOfJudgment->self, no cast, single-target
-
-    DawnOfTime = 35331, // Eulogia->self, 5.0s cast, range 70 circle
-
     FirstFormRight = 35338, // Eulogia->self, 7.0s cast, single-target
     FirstFormLeft = 35341, // Eulogia->self, 7.0s cast, single-target
     FirstFormAOE = 35344, // Eulogia->self, 7.0s cast, single-target
@@ -64,6 +59,7 @@ public enum AID : uint
     SunbeamSelf = 35328, // Eulogia->self, 5.0s cast, single-target, visual
     SunbeamTankBuster = 35329, // Helper->players, 5.0s cast, range 6 circle, tankbusters
 
+    DawnOfTime = 35331, // Eulogia->self, 5.0s cast, range 70 circle
     TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle, raidwide
 
     LovesLight = 35376, // Eulogia->self, 4.0s cast, single-target
@@ -93,6 +89,8 @@ public enum AID : uint
     HieroglyphikaVisual = 35395, // Eulogia->self, 5.0s cast, single-target
     HieroglyphikaRect = 35396, // Helper->self, 3.0s cast, range 12 width 12 rect
 
+    FistOfWrathVisual = 35397, // FistOfWrath->self, no cast, single-target
+    FistOfJudgmentVisual = 35398, // FistOfJudgment->self, no cast, single-target
     HandOfTheDestroyerWrath = 35399, // Eulogia->self, 7.5s cast, single-target
     HandOfTheDestroyerJudgment = 35400, // Eulogia->self, 7.5s cast, single-target
     HandOfTheDestroyerWrathAOE = 35401, // FistOfWrath->self, 8.0s cast, range 90 width 40 rect

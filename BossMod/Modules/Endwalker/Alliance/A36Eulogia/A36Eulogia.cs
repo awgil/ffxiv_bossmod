@@ -1,5 +1,20 @@
 namespace BossMod.Endwalker.Alliance.A36Eulogia;
 
+class EudaimonEorzea : Components.RaidwideCast
+{
+    public EudaimonEorzea() : base(ActionID.MakeSpell(AID.EudaimonEorzea2), "Raidwide x12") { }
+}
+
+class TheWhorl : Components.RaidwideCast
+{
+    public TheWhorl() : base(ActionID.MakeSpell(AID.TheWhorl)) { }
+}
+
+class DawnOfTime : Components.RaidwideCast
+{
+    public DawnOfTime() : base(ActionID.MakeSpell(AID.DawnOfTime)) { }
+}
+
 class SoaringMinuet : Components.SelfTargetedAOEs
 {
     public SoaringMinuet() : base(ActionID.MakeSpell(AID.SoaringMinuet), new AOEShapeCone(40, 135.Degrees())) { }
