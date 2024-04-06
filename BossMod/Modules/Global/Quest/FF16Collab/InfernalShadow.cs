@@ -57,20 +57,32 @@ class TailStrike : Components.SelfTargetedAOEs
 class FireRampageCleave : Components.GenericAOEs
 {
     private static readonly AOEShapeCone cone = new(40, 90.Degrees());
-    private readonly List<AOEInstance> _aoes = [];
+   private readonly List<(WPos position, Angle rotation, DateTime activation, uint AID)> _castersunsorted = [];
+    private List<(WPos position, Angle rotation, DateTime activation)> _casters = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    {
+        if (_casters.Count > 0)
+            yield return new(cone, _casters[0].position, _casters[0].rotation, _casters[0].activation);
+    }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FieryRampageCleaveReal or AID.FieryRampageCleaveReal2)
-            _aoes.Add(new(cone, caster.Position, spell.Rotation, spell.NPCFinishAt));
+        {
+            _castersunsorted.Add((caster.Position, spell.Rotation, spell.NPCFinishAt, spell.Action.ID)); //casters appear in random order in raw ops
+            _casters = _castersunsorted.OrderBy(x => x.AID).Select(x => (x.position, x.rotation,x.activation)).ToList();
+        }
     }
+
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.FieryRampageCleaveReal or AID.FieryRampageCleaveReal2)
-            _aoes.RemoveAt(0);
+        if (_casters.Count > 0 && (AID)spell.Action.ID is AID.FieryRampageCleaveReal or AID.FieryRampageCleaveReal2)
+        {
+            _casters.RemoveAt(0);
+            _castersunsorted.Clear();
+        }
     }
 }
 
