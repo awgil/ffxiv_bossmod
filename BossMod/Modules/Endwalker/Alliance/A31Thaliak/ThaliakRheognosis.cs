@@ -1,6 +1,5 @@
 namespace BossMod.Endwalker.Alliance.A31Thaliak;
 
-
 class Rheognosis : Components.RaidwideCast
 {
     public Rheognosis() : base(ActionID.MakeSpell(AID.RheognosisKnockback), "Raidwide + Knockback") { }
@@ -11,6 +10,7 @@ class RheognosisKnockback : Components.Knockback
     private Source? _knockback;
 
     public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
+
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Rheognosis or AID.RheognosisPetrine)
@@ -28,7 +28,8 @@ public class RheognosisCrash : Components.Exaflare
 {
     private static readonly Angle _rot1 = 90.Degrees();
     private static readonly Angle _rot2 = -90.Degrees();
-    public RheognosisCrash() : base(new AOEShapeRect(24.01f, 12))  { } //actually the rect is only 24, but there seem to be a few thousandth of variation in the location
+
+    public RheognosisCrash() : base(new AOEShapeRect(24.01f, 12)) { } //actually the rect is only 24, but there seem to be a few thousandth of variation in the location
 
     public override void OnEventEnvControl(BossModule module, byte index, uint state)
     {

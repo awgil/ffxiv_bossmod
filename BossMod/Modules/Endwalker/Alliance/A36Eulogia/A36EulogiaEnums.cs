@@ -28,7 +28,7 @@ public enum AID : uint
     Visual = 35336, // Eulogia->self, no cast, single-target
     Visual2 = 35337, // Eulogia->self, no cast, single-target
     Visual3 = 36066, // Eulogia->self, no cast, single-target
-    
+
     QuintessenceVisual1 = 35360, // Avatar->self, 0.5s cast, single-target
     QuintessenceVisual2 = 35361, // Avatar->self, 0.5s cast, single-target
     QuintessenceVisual3 = 35358, // Avatar->self, 0.5s cast, single-target

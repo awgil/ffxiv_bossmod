@@ -56,9 +56,9 @@ public abstract class ArenaBounds
         var points = (donut, fullCircle) switch
         {
             (false, false) => CurveApprox.CircleSector(center, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
-            (false,  true) => CurveApprox.Circle(center, outerRadius, MaxApproxError),
-            ( true, false) => CurveApprox.DonutSector(center, innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
-            ( true,  true) => CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError),
+            (false, true) => CurveApprox.Circle(center, outerRadius, MaxApproxError),
+            (true, false) => CurveApprox.DonutSector(center, innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
+            (true, true) => CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError),
         };
         return ClipAndTriangulate(points);
     }
@@ -207,6 +207,7 @@ public class ArenaBoundsRect : ArenaBounds
     }
 }
 
+// TODO: revise and reconsider, not convinced it needs to be here, and it's not well implemented
 public class ArenaBoundsTri : ArenaBounds
 {
     private static readonly float sqrt3 = MathF.Sqrt(3);
@@ -247,7 +248,6 @@ public class ArenaBoundsTri : ArenaBounds
     {
         return (p1.X - p3.X) * (p2.Z - p3.Z) - (p2.X - p3.X) * (p1.Z - p3.Z);
     }
-
 
     public override float IntersectRay(WPos origin, WDir dir)
     {

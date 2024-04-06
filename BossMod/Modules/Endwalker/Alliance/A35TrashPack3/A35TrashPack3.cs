@@ -20,7 +20,6 @@ class SkylightCrossHint : Components.CastInterruptHint
     public SkylightCrossHint() : base(ActionID.MakeSpell(AID.SkylightCross)) { }
 }
 
-
 public class A35TrashPack2States : StateMachineBuilder
 {
     public A35TrashPack2States(BossModule module) : base(module)

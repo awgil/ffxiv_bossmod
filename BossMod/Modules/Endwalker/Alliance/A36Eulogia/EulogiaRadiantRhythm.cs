@@ -4,6 +4,7 @@ class RadiantFlourish : Components.GenericAOEs
 {
     private static readonly AOEShapeCircle circle = new(27);
     private readonly List<AOEInstance> _aoes = [];
+
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
@@ -19,6 +20,7 @@ class RadiantRhythm : Components.GenericAOEs
 {
     private static readonly AOEShapeDonutSector _shape = new(20, 30, 45.Degrees());
     private readonly List<AOEInstance> _aoes = [];
+
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
         if (_aoes.Count > 1)

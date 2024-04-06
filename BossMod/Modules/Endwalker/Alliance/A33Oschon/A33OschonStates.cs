@@ -12,6 +12,7 @@ class Phase2ArenaUpdate : BossComponent
 class A33OschonStates : StateMachineBuilder
 {
     private readonly A33Oschon _module;
+
     public A33OschonStates(A33Oschon module) : base(module)
     {
         _module = module;

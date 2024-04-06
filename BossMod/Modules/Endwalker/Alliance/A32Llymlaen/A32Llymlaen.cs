@@ -40,22 +40,22 @@ class SeafoamSpiral : Components.SelfTargetedAOEs
     public SeafoamSpiral() : base(ActionID.MakeSpell(AID.SeafoamSpiral), new AOEShapeDonut(6, 70)) { }
 }
 
-class DeepDive1: Components.StackWithCastTargets
+class DeepDive1 : Components.StackWithCastTargets
 {
     public DeepDive1() : base(ActionID.MakeSpell(AID.DeepDiveStack1), 6) { }
 }
 
-class DeepDive2: Components.StackWithCastTargets
+class DeepDive2 : Components.StackWithCastTargets
 {
     public DeepDive2() : base(ActionID.MakeSpell(AID.DeepDiveStack2), 6) { }
 }
 
-class HardWater1: Components.StackWithCastTargets
+class HardWater1 : Components.StackWithCastTargets
 {
     public HardWater1() : base(ActionID.MakeSpell(AID.HardWaterStack1), 6) { }
 }
 
-class HardWater2: Components.StackWithCastTargets
+class HardWater2 : Components.StackWithCastTargets
 {
     public HardWater2() : base(ActionID.MakeSpell(AID.HardWaterStack2), 6) { }
 }

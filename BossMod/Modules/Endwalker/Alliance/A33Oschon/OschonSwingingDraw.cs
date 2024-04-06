@@ -18,7 +18,7 @@ class SwingingDraw : Components.GenericAOEs
             if (caster.Position.AlmostEqual(new(10, 740), 1) && caster.Rotation.AlmostEqual(135.Degrees(), maxError))
                 _aoes.Add(new(_shape, new(25, 750), -90.Degrees(), _activation));
             if (caster.Position.AlmostEqual(new(10, 760), 1) && caster.Rotation.AlmostEqual(45.Degrees(), maxError))
-               _aoes.Add(new(_shape, new(0, 775), 180.Degrees(), _activation));
+                _aoes.Add(new(_shape, new(0, 775), 180.Degrees(), _activation));
             if (caster.Position.AlmostEqual(new(-10, 760), 1) && caster.Rotation.AlmostEqual(-45.Degrees(), maxError))
                 _aoes.Add(new(_shape, new(-25, 750), 90.Degrees(), _activation));
         }

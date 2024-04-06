@@ -56,7 +56,7 @@ class SurgingWavesArenaChange : BossComponent
     {
         var c = Shape == Arena.ExtendWest ? -1 : 1;
         base.AddAIHints(module, slot, actor, assignment, hints);
-    	if (module.FindComponent<Shockwave>()!.Sources(module, slot, actor).Any())
+        if (module.FindComponent<Shockwave>()!.Sources(module, slot, actor).Any())
             hints.AddForbiddenZone(ShapeDistance.InvertedCone(new(4 * c, -900), 6, c * 90.Degrees(), 22.5f.Degrees())); //for some reason I need to use different coords and angle for this than when drawing the ZoneCone, otherwise it wont appear in the correct spot?
     }
 
