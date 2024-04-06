@@ -187,7 +187,7 @@ class CE41WithDiremiteAndMainStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 21)] // bnpcname=9969
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 21)] // bnpcname=9969
 public class CE41WithDiremiteAndMain : BossModule
 {
     private IReadOnlyList<Actor> _dimCrystals;

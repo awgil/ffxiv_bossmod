@@ -40,7 +40,7 @@ class D083AdjudicatorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1570)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1570)]
 public class D083Adjudicator : BossModule
 {
     public D083Adjudicator(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(238, 0), 20)) { }

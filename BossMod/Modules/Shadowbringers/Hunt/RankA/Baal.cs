@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.Hunt.RankA.Baal;
 
 public enum OID : uint
@@ -83,5 +82,5 @@ class BaalStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8897)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8897)]
 public class Baal(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

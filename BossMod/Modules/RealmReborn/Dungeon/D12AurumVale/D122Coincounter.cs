@@ -54,7 +54,7 @@ class D122CoincounterStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 5, NameID = 1533)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 5, NameID = 1533)]
 public class D122Coincounter : BossModule
 {
     public D122Coincounter(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-150, -150), 20)) { }

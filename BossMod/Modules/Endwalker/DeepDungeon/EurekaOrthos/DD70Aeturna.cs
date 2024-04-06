@@ -1,4 +1,3 @@
-// CONTRIB: made by legendoficeman, changes by Malediktus, not checked
 namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD70Aeturna;
 
 public enum OID : uint
@@ -206,7 +205,7 @@ class DD70AeturnaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 903, NameID = 12246)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 903, NameID = 12246)]
 public class DD70Aeturna : BossModule
 {
     public DD70Aeturna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -300), 20)) { }

@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouSatyros;
 
 public enum OID : uint
@@ -75,7 +74,7 @@ class SatyrosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12003)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12003)]
 public class Satyros : BossModule
 {
     public Satyros(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }

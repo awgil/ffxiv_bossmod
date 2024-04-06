@@ -58,13 +58,13 @@ class C030IslekeeperStates : StateMachineBuilder
 class C030NIslekeeperStates : C030IslekeeperStates { public C030NIslekeeperStates(BossModule module) : base(module, false) { } }
 class C030SIslekeeperStates : C030IslekeeperStates { public C030SIslekeeperStates(BossModule module) : base(module, true) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12561, SortOrder = 7)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12561, SortOrder = 7)]
 public class C030NIslekeeper : C030Trash2
 {
     public C030NIslekeeper(WorldState ws, Actor primary) : base(ws, primary) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12561, SortOrder = 7)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12561, SortOrder = 7)]
 public class C030SIslekeeper : C030Trash2
 {
     public C030SIslekeeper(WorldState ws, Actor primary) : base(ws, primary) { }

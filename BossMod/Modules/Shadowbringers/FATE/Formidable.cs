@@ -1,5 +1,4 @@
-﻿// CONTRIB: changes by malediktus, not checked
-namespace BossMod.Shadowbringers.FATE.Formidable;
+﻿namespace BossMod.Shadowbringers.FATE.Formidable;
 
 public enum OID : uint
 {
@@ -271,5 +270,5 @@ class FormidableStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1464, NameID = 8822)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1464, NameID = 8822)]
 public class Formidable(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

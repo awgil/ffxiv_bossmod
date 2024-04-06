@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.Hunt.RankS.Tyger;
 
 public enum OID : uint
@@ -105,7 +104,7 @@ class TygerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8905)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8905)]
 public class Tyger : SimpleBossModule
 {
     public Tyger(WorldState ws, Actor primary) : base(ws, primary) { }

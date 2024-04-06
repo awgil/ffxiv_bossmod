@@ -204,7 +204,7 @@ class CE62LooksToDieForStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 30)] // bnpcname=9925
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 30)] // bnpcname=9925
 public class CE62LooksToDieFor : BossModule
 {
     public CE62LooksToDieFor(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-200, -580), 20)) { }

@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.Hunt.RankA.LilMurderer;
 
 public enum OID : uint
@@ -74,5 +73,5 @@ class LilMurdererStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8911)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8911)]
 public class LilMurderer(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

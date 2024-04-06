@@ -189,7 +189,7 @@ public class BossModuleManager : IDisposable
 
     private void ActorAdded(object? sender, Actor actor)
     {
-        var m = ModuleRegistry.CreateModuleForActor(WorldState, actor);
+        var m = ModuleRegistry.CreateModuleForActor(WorldState, actor, WindowConfig.MinMaturity);
         if (m != null)
         {
             LoadModule(m);

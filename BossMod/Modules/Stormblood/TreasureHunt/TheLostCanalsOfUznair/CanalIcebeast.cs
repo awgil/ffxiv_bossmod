@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Stormblood.TreasureHunt.LostCanalsOfUznair.CanalIcebeast;
 
 public enum OID : uint
@@ -79,7 +78,7 @@ class IcebeastStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 268, NameID = 6650)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 268, NameID = 6650)]
 public class Icebeast : BossModule
 {
     public Icebeast(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -420), 20)) { }

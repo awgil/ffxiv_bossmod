@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Shadowbringers.Hunt.RankS.ForgivenGossip;
+﻿namespace BossMod.Shadowbringers.Hunt.RankS.ForgivenGossip;
 
 public enum OID : uint
 {
@@ -33,7 +32,7 @@ class ForgivenGossipStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8916)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8916)]
 public class ForgivenGossip : SimpleBossModule
 {
     public ForgivenGossip(WorldState ws, Actor primary) : base(ws, primary) { }

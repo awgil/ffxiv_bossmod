@@ -59,7 +59,7 @@ class C030RayStates : StateMachineBuilder
 class C030NRayStates : C030RayStates { public C030NRayStates(BossModule module) : base(module, false) { } }
 class C030SRayStates : C030RayStates { public C030SRayStates(BossModule module) : base(module, true) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NRay, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12541, SortOrder = 3)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NRay, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12541, SortOrder = 3)]
 public class C030NRay : C030Trash1
 {
     public C030NRay(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -71,7 +71,7 @@ public class C030NRay : C030Trash1
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SRay, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12541, SortOrder = 3)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SRay, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12541, SortOrder = 3)]
 public class C030SRay : C030Trash1
 {
     public C030SRay(WorldState ws, Actor primary) : base(ws, primary) { }

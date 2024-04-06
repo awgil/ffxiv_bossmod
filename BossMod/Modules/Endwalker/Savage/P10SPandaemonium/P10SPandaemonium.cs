@@ -48,7 +48,7 @@ public class P10SPandaemoniumConfig : CooldownPlanningConfigNode
     public P10SPandaemoniumConfig() : base(90) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354)]
 public class P10SPandaemonium : BossModule
 {
     public P10SPandaemonium(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(100, 92.5f), 30, 22.5f)) { }

@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by legendoficeman & malediktus, not checked
-namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D011ForgivenDissonance;
+﻿namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D011ForgivenDissonance;
 
 public enum OID : uint
 {
@@ -73,7 +72,7 @@ class D011ForgivenDissonanceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8299)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8299)]
 public class D011ForgivenDissonance : BossModule
 {
     public D011ForgivenDissonance(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-15, 240), 19.5f)) { }

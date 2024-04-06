@@ -83,7 +83,7 @@ class OphioneusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10621)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10621)]
 public class Ophioneus : SimpleBossModule
 {
     public Ophioneus(WorldState ws, Actor primary) : base(ws, primary) { }

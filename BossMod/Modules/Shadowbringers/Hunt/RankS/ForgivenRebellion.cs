@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Shadowbringers.Hunt.RankS.ForgivenRebellion;
+﻿namespace BossMod.Shadowbringers.Hunt.RankS.ForgivenRebellion;
 
 public enum OID : uint
 {
@@ -229,7 +228,7 @@ class ForgivenRebellionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8915)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8915)]
 public class ForgivenRebellion : SimpleBossModule
 {
     public ForgivenRebellion(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -81,7 +81,7 @@ class D151KeeperOfHalidomStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1548)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1548)]
 public class D151KeeperOfHalidom : BossModule
 {
     public D151KeeperOfHalidom(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(125, 108), 20)) { }

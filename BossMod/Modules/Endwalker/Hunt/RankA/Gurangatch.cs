@@ -73,7 +73,7 @@ class GurangatchStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10631)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10631)]
 public class Gurangatch : SimpleBossModule
 {
     public Gurangatch(WorldState ws, Actor primary) : base(ws, primary) { }

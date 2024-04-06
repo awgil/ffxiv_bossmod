@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Global.MaskedCarnivale.Stage05;
 
 public enum OID : uint
@@ -19,11 +18,11 @@ class Stage05States : StateMachineBuilder
     public Stage05States(BossModule module) : base(module)
     {
         TrivialPhase()
-        .DeactivateOnEnter<Hints>();
+            .DeactivateOnEnter<Hints>();
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 615, NameID = 8089)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 615, NameID = 8089)]
 public class Stage05 : BossModule
 {
     public Stage05(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))

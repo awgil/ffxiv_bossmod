@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.TreasureHunt.DungeonsOfLyheGhiah.Goliath;
 
 public enum OID : uint
@@ -132,7 +131,7 @@ class GoliathStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 688, NameID = 8953)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 688, NameID = 8953)]
 public class Goliath : BossModule
 {
     public Goliath(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -390), 20)) { }

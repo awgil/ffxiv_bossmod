@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
-namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D121Lyngbakr;
+﻿namespace BossMod.Endwalker.Dungeon.D12Aetherfont.D121Lyngbakr;
 
 public enum OID : uint
 {
@@ -111,7 +110,7 @@ class D121LyngbakrStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12336)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12336)]
 public class D121Lyngbakr : BossModule
 {
     public D121Lyngbakr(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-322, 120), 20)) { }

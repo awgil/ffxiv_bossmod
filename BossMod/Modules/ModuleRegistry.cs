@@ -16,6 +16,8 @@ public static class ModuleRegistry
         public Type? IconIDType;
         public uint PrimaryActorOID;
 
+        public BossModuleInfo.Maturity Maturity;
+        public string Contributors = "";
         public BossModuleInfo.Expansion Expansion;
         public BossModuleInfo.Category Category;
         public BossModuleInfo.GroupType GroupType;
@@ -143,6 +145,8 @@ public static class ModuleRegistry
                 IconIDType = iidType,
                 PrimaryActorOID = primaryOID,
 
+                Maturity = infoAttr?.Maturity ?? BossModuleInfo.Maturity.WIP,
+                Contributors = infoAttr?.Contributors ?? "",
                 Expansion = expansion,
                 Category = category,
                 GroupType = groupType,
@@ -184,9 +188,10 @@ public static class ModuleRegistry
         return type != null ? (BossModule?)Activator.CreateInstance(type, ws, primary) : null;
     }
 
-    public static BossModule? CreateModuleForActor(WorldState ws, Actor primary)
+    public static BossModule? CreateModuleForActor(WorldState ws, Actor primary, BossModuleInfo.Maturity minMaturity)
     {
-        return primary.Type is ActorType.Enemy or ActorType.EventObj ? CreateModule(FindByOID(primary.OID)?.ModuleType, ws, primary) : null;
+        var info = primary.Type is ActorType.Enemy or ActorType.EventObj ? FindByOID(primary.OID) : null;
+        return info?.Maturity >= minMaturity ? CreateModule(info.ModuleType, ws, primary) : null;
     }
 
     // TODO: this is a hack...

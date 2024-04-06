@@ -28,8 +28,8 @@ public abstract class C031Ketuduke : BossModule
     public C031Ketuduke(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 0), 20)) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12605, SortOrder = 5)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12605, SortOrder = 5)]
 public class C031NKetuduke : C031Ketuduke { public C031NKetuduke(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12605, SortOrder = 5)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12605, SortOrder = 5)]
 public class C031SKetuduke : C031Ketuduke { public C031SKetuduke(WorldState ws, Actor primary) : base(ws, primary) { } }

@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.DeepDungeon.EurekaOrthos.DD30TiamatsClone;
 
 public enum OID : uint
@@ -88,7 +87,7 @@ class DD30TiamatsCloneStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 899, NameID = 12242)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 899, NameID = 12242)]
 public class DD30TiamatsClone : BossModule
 {
     public DD30TiamatsClone(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-300, -300), 20)) { }

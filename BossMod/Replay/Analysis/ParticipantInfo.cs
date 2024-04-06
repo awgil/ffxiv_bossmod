@@ -208,7 +208,7 @@ class ParticipantInfo : CommonEnumInfo
         }
         sb.AppendLine("}");
         sb.AppendLine();
-        sb.AppendLine($"[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = {data.Zones.FirstOrDefault().cfcId}, NameID = {data.Names.FirstOrDefault().id})]");
+        sb.AppendLine($"[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = {data.Zones.FirstOrDefault().cfcId}, NameID = {data.Names.FirstOrDefault().id})]");
         sb.AppendLine($"public class {name} : BossModule");
         sb.AppendLine("{");
         sb.AppendLine($"    public {name}(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) {{ }}");

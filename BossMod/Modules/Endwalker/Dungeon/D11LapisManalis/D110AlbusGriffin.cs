@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Endwalker.Dungeon.D11LapisManalis.D110AlbusGriffin;
 
 public enum OID : uint
@@ -41,7 +40,7 @@ class D110AlbusGriffinStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 12245)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 12245)]
 public class D110AlbusGriffin : BossModule
 {
     public D110AlbusGriffin(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }

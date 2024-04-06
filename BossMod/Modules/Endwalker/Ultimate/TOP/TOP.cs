@@ -20,7 +20,7 @@ class P5BlindFaith : Components.CastHint
     public P5BlindFaith() : base(ActionID.MakeSpell(AID.BlindFaithSuccess), "Intermission") { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 908)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 908)]
 public class TOP : BossModule
 {
     private Actor? _opticalUnit;

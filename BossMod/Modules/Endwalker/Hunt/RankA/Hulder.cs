@@ -53,7 +53,7 @@ class HulderStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10624)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10624)]
 public class Hulder : SimpleBossModule
 {
     public Hulder(WorldState ws, Actor primary) : base(ws, primary) { }

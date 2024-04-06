@@ -58,7 +58,7 @@ class OptimalPlayCone : Components.SelfTargetedAOEs
     public OptimalPlayCone() : base(ActionID.MakeSpell(AID.OptimalPlayCone), new AOEShapeCone(60, 135.Degrees())) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9863)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9863)]
 public class DRS8 : BossModule
 {
     public DRS8(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-272, -415), 25)) { } // note: initially arena is square, but it quickly changes to circle

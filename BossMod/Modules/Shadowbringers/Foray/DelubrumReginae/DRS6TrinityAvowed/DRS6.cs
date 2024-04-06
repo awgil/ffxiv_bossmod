@@ -31,7 +31,7 @@ class GleamingArrow : Components.SelfTargetedAOEs
     public GleamingArrow() : base(ActionID.MakeSpell(AID.GleamingArrow), new AOEShapeRect(60, 5)) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9853)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9853)]
 public class DRS6 : BossModule
 {
     public DRS6(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-272, -82), 25)) { }

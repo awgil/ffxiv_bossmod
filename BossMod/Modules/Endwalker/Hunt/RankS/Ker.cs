@@ -1,5 +1,4 @@
-﻿// CONTRIB: changes by malediktus, not checked
-namespace BossMod.Endwalker.Hunt.RankS.Ker;
+﻿namespace BossMod.Endwalker.Hunt.RankS.Ker;
 
 public enum OID : uint
 {
@@ -280,7 +279,7 @@ class KerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10615)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10615)]
 public class Ker : SimpleBossModule
 {
     public Ker(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -36,7 +36,7 @@ class Electrocution : Components.LocationTargetedAOEs
 }
 
 // TODO: ManaFlame component - show reflect hints
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9759)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9759)]
 public class DRS7 : BossModule
 {
     private IReadOnlyList<Actor> _monks;

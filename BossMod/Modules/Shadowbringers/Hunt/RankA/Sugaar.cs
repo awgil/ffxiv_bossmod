@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, verified
 namespace BossMod.Shadowbringers.Hunt.RankA.Sugaar;
 
 public enum OID : uint
@@ -103,5 +102,5 @@ class SugaarStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8902)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8902)]
 public class Sugaar(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }

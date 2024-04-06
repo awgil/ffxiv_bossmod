@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Global.MaskedCarnivale.Stage04.Act1;
 
 public enum OID : uint
@@ -42,7 +41,7 @@ class Stage04Act1States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 614, NameID = 8086, SortOrder = 1)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 614, NameID = 8086, SortOrder = 1)]
 public class Stage04Act1 : BossModule
 {
     public Stage04Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))

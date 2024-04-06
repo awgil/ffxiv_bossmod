@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.Dungeon.D03QitanaRavel.D033Eros;
 
 public enum OID : uint
@@ -240,7 +239,7 @@ class D033ErosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8233)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8233)]
 public class D033Eros : BossModule
 {
     public D033Eros(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(17, -538), 15, 20)) { }

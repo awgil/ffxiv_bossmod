@@ -114,7 +114,7 @@ class MinervaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10627)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10627)]
 public class Minerva : SimpleBossModule
 {
     public Minerva(WorldState ws, Actor primary) : base(ws, primary) { }

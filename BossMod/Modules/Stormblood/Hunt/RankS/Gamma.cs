@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Stormblood.Hunt.RankS.Gamma;
 
 public enum OID : uint
@@ -92,7 +91,7 @@ class GammaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5985)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5985)]
 public class Gamma : SimpleBossModule
 {
     public Gamma(WorldState ws, Actor primary) : base(ws, primary) { }

@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Global.Quest.FF16Collab.InfernalShadow;
 
 class VulcanBurst : Components.RaidwideCast
@@ -243,7 +242,7 @@ class SearingStomp : BossComponent
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70334, NameID = 12564)] // also: CFC 959
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70334, NameID = 12564)] // also: CFC 959
 public class InfernalShadow : BossModule
 {
     public InfernalShadow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20)) { }

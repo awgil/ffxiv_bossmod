@@ -1,4 +1,3 @@
-// CONTRIB: made by dhoggpt, improvements by Malediktus, not checked
 namespace BossMod.Endwalker.Dungeon.D01TheTowerOifZot.D012Sanduruva;
 
 public enum OID : uint
@@ -105,7 +104,7 @@ class D012SanduruvaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10257)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10257)]
 public class D012Sanduruva : BossModule
 {
     public D012Sanduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-258, -26), 20)) { }

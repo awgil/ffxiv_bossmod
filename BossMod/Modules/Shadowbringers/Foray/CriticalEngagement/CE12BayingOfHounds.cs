@@ -154,7 +154,7 @@ class CE12BayingOfHoundsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 2)] // bnpcname=9394
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 2)] // bnpcname=9394
 public class CE12BayingOfHounds : BossModule
 {
     public CE12BayingOfHounds(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(154, 785), 25)) { }

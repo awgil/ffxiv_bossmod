@@ -84,7 +84,7 @@ class D093ChimeraStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 12, NameID = 1590)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 12, NameID = 1590)]
 public class D093Chimera : BossModule
 {
     public D093Chimera(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-170, -200), 30)) { }

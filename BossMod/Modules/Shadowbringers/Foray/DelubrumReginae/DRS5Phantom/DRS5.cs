@@ -15,7 +15,7 @@ class MistyWraith : Components.Adds
     public MistyWraith() : base((uint)OID.MistyWraith) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9755)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9755)]
 public class DRS5 : BossModule
 {
     public DRS5(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(202, -370), 24)) { }

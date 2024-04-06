@@ -230,7 +230,7 @@ class D133LiviaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 15, NameID = 2118)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 15, NameID = 2118)]
 public class D133Livia : BossModule
 {
     public D133Livia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-98, -33), 20)) { }

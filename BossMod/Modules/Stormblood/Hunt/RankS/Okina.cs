@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Stormblood.Hunt.RankS.Okina;
+﻿namespace BossMod.Stormblood.Hunt.RankS.Okina;
 
 public enum OID : uint
 {
@@ -80,7 +79,7 @@ class OkinaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5984)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5984)]
 public class Okina : SimpleBossModule
 {
     public Okina(WorldState ws, Actor primary) : base(ws, primary) { }

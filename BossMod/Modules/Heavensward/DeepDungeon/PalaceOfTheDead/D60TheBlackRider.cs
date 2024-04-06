@@ -1,4 +1,3 @@
-// CONTRIB: made by legendoficeman, improvements by Malediktus, not checked
 namespace BossMod.Heavensward.DeepDungeon.PalaceoftheDead.D60TheBlackRider;
 
 public enum OID : uint
@@ -114,7 +113,7 @@ class D60TheBlackRiderStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 204, NameID = 5309)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 204, NameID = 5309)]
 public class D60TheBlackRider : BossModule
 {
     public D60TheBlackRider(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -220), 25)) { }

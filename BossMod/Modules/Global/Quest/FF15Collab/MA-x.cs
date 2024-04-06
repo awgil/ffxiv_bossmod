@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Global.Quest.FF15Collab.MAx;
 
 public enum OID : uint
@@ -47,7 +46,7 @@ class MAxStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68694, NameID = 7898)] // also: fate 1409
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68694, NameID = 7898)] // also: fate 1409
 public class MAx : BossModule
 {
     public MAx(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(295, -22), 25)) { }

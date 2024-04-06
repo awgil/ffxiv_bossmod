@@ -89,7 +89,7 @@ class C020RaikoStates : StateMachineBuilder
 class C020NRaikoStates : C020RaikoStates { public C020NRaikoStates(BossModule module) : base(module, false) { } }
 class C020SRaikoStates : C020RaikoStates { public C020SRaikoStates(BossModule module) : base(module, true) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12422, SortOrder = 1)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12422, SortOrder = 1)]
 public class C020NRaiko : C020Trash1
 {
     public C020NRaiko(WorldState ws, Actor primary) : base(ws, primary) { }
@@ -102,7 +102,7 @@ public class C020NRaiko : C020Trash1
     }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12422, SortOrder = 1)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12422, SortOrder = 1)]
 public class C020SRaiko : C020Trash1
 {
     public C020SRaiko(WorldState ws, Actor primary) : base(ws, primary) { }

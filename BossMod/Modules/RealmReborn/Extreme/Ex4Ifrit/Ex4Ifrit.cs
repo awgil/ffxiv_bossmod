@@ -18,7 +18,7 @@ class CrimsonCyclone : Components.SelfTargetedAOEs
     public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone), new AOEShapeRect(49, 9)) { }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 63, NameID = 1185)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 63, NameID = 1185)]
 public class Ex4Ifrit : BossModule
 {
     public IReadOnlyList<Actor> SmallNails;

@@ -58,7 +58,7 @@ class D053GraffiasStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1, NameID = 444)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1, NameID = 444)]
 public class D053Graffias : BossModule
 {
     public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20)) { }

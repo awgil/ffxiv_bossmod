@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by malediktus, not checked
-namespace BossMod.Shadowbringers.Hunt.RankS.ForgivenPedantry;
+﻿namespace BossMod.Shadowbringers.Hunt.RankS.ForgivenPedantry;
 
 public enum OID : uint
 {
@@ -159,7 +158,7 @@ class ForgivenPedantryStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8910)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8910)]
 public class ForgivenPedantry : SimpleBossModule
 {
     public ForgivenPedantry(WorldState ws, Actor primary) : base(ws, primary) { }

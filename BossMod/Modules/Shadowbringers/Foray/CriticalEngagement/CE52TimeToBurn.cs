@@ -163,7 +163,7 @@ class CE52TimeToBurnStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 26)] // bnpcname=9930
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 26)] // bnpcname=9930
 public class CE52TimeToBurn : BossModule
 {
     public CE52TimeToBurn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-550, 0), 30)) { }

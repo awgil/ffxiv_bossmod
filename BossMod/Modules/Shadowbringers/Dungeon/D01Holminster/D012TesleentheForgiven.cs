@@ -1,5 +1,4 @@
-﻿// CONTRIB: made by legendoficeman & malediktus, not checked
-namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D012TesleentheForgiven;
+﻿namespace BossMod.Shadowbringers.Dungeon.D01Holminser.D012TesleentheForgiven;
 
 public enum OID : uint
 {
@@ -89,7 +88,7 @@ class D012TesleentheForgivenStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8300)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8300)]
 public class D012TesleentheForgiven : BossModule
 {
     public D012TesleentheForgiven(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(78, -82), 19.5f)) { }

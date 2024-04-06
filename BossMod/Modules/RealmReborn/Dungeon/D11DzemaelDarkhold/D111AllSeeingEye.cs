@@ -72,7 +72,7 @@ class D111AllSeeingEyeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)]
 public class D111AllSeeingEye : BossModule
 {
     public D111AllSeeingEye(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(40, 70), 30)) { }

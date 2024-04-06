@@ -1,4 +1,3 @@
-// CONTRIB: made by malediktus, not checked
 namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D053ForgivenWhimsy;
 
 public enum OID : uint
@@ -151,7 +150,7 @@ class D053ForgivenWhimsyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8261)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8261)]
 public class D053ForgivenWhimsy : BossModule
 {
     public D053ForgivenWhimsy(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15)) { }

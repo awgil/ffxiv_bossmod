@@ -2,6 +2,7 @@
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BossMod;
 
@@ -66,4 +67,30 @@ public static class UIMisc
         using var scope = ImRaii.PushFont(UiBuilder.IconFont);
         return ImGui.Button(icon.ToIconString() + text);
     }
+
+    public static unsafe void IconText(FontAwesomeIcon icon, string fallback)
+    {
+        if (Service.PluginInterface == null)
+        {
+            ImGui.TextUnformatted(fallback);
+        }
+        else
+        {
+            using var scope = ImRaii.PushFont(UiBuilder.IconFont);
+            ImGui.TextUnformatted(icon.ToIconString());
+        }
+    }
+
+    public static void HelpMarker(Func<string> helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle)
+    {
+        IconText(icon, "(?)");
+        if (ImGui.IsItemHovered())
+        {
+            using var tooltip = ImRaii.Tooltip();
+            ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35f);
+            ImGui.TextUnformatted(helpText());
+            ImGui.PopTextWrapPos();
+        }
+    }
+    public static void HelpMarker(string helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle) => HelpMarker(() => helpText, icon);
 }

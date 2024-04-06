@@ -173,7 +173,7 @@ class CE63WornToShadowStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)] // bnpcname=9973
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)] // bnpcname=9973
 public class CE63WornToShadow : BossModule
 {
     public CE63WornToShadow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-480, -690), 30)) { }

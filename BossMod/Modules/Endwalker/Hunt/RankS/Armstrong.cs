@@ -95,7 +95,7 @@ class ArmstrongStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10619)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10619)]
 public class Armstrong : SimpleBossModule
 {
     public Armstrong(WorldState ws, Actor primary) : base(ws, primary) { }

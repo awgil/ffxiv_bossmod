@@ -19,8 +19,8 @@ public abstract class C012Gladiator : BossModule
     public C012Gladiator(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-35, -271), 20)) { }
 }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11387, SortOrder = 8)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11387, SortOrder = 8)]
 public class C012NGladiator : C012Gladiator { public C012NGladiator(WorldState ws, Actor primary) : base(ws, primary) { } }
 
-[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11387, SortOrder = 8)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11387, SortOrder = 8)]
 public class C012SGladiator : C012Gladiator { public C012SGladiator(WorldState ws, Actor primary) : base(ws, primary) { } }

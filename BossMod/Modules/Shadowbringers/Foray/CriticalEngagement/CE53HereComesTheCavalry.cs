@@ -199,7 +199,7 @@ class CE53HereComesTheCavalryStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 22)] // bnpcname=9929
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 22)] // bnpcname=9929
 public class CE53HereComesTheCavalry : BossModule
 {
     public CE53HereComesTheCavalry(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-750, 790), 25)) { }
