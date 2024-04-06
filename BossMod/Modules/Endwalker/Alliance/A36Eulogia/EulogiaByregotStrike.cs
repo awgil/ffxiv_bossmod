@@ -14,7 +14,7 @@ class ByregotStrikeCone : Components.GenericAOEs
 {
     private readonly List<AOEInstance> _aoes = [];
 
-    private static AOEShapeCone _shape = new(90, 22.5f.Degrees());
+    private static readonly AOEShapeCone _shape = new(90, 22.5f.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
 

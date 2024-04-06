@@ -3,7 +3,7 @@
 class WanderingVolley : Components.Knockback
 {
     private readonly List<Source> _sources = [];
-    private static AOEShapeCone _shape = new(30, 90.Degrees());
+    private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
     public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => _sources;
 

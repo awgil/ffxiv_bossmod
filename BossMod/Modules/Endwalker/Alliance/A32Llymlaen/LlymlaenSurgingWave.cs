@@ -18,6 +18,7 @@ class SurgingWavesArenaChange : BossComponent
         if (state == 0x08000400 && index == 0x49)
             Shape = Arena.ExtendEast;
     }
+
     public override void Update(BossModule module)
     {
 
