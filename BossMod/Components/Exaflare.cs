@@ -7,11 +7,11 @@ public class Exaflare : GenericAOEs
     {
         public WPos Next;
         public WDir Advance;
+        public Angle Rotation;
         public DateTime NextExplosion;
         public float TimeToMove;
         public int ExplosionsLeft;
         public int MaxShownExplosions;
-        public Angle Rotation;
     }
 
     public AOEShape Shape { get; private init; }
@@ -41,7 +41,6 @@ public class Exaflare : GenericAOEs
     {
         foreach (var l in Lines)
         {
-            Angle angle = l.Rotation;
             int num = Math.Min(l.ExplosionsLeft, l.MaxShownExplosions);
             var pos = l.Next;
             var time = l.NextExplosion > currentTime ? l.NextExplosion : currentTime;
@@ -49,7 +48,7 @@ public class Exaflare : GenericAOEs
             {
                 pos += l.Advance;
                 time = time.AddSeconds(l.TimeToMove);
-                yield return (pos, time, angle);
+                yield return (pos, time, l.Rotation);
             }
         }
     }

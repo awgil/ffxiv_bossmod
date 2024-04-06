@@ -47,7 +47,7 @@ public class A30TrashPack1States : StateMachineBuilder
             .ActivateOnEnter<PelagicCleaver2Hint>()
             .ActivateOnEnter<WaterFlood>()
             .ActivateOnEnter<DivineFlood>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDestroyed) && module.Enemies(OID.Triton).All(e => e.IsDead) && module.Enemies(OID.WaterSprite).All(e => e.IsDead) &&  module.Enemies(OID.WaterSprite).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDestroyed) && module.Enemies(OID.Triton).All(e => e.IsDead) && module.Enemies(OID.WaterSprite).All(e => e.IsDead) && module.Enemies(OID.WaterSprite).All(e => e.IsDead);
     }
 }
 

@@ -1,4 +1,5 @@
 namespace BossMod.Endwalker.Alliance.A31Thaliak;
+
 public enum OID : uint
 {
     Boss = 0x404C, // R9.496, x1

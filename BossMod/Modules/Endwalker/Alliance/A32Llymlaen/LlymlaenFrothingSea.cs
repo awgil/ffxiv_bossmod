@@ -4,7 +4,8 @@ public class FrothingSea : Components.Exaflare
 {
     private static readonly Angle _rot1 = 90.Degrees();
     private static readonly Angle _rot2 = -90.Degrees();
-    public FrothingSea() : base(new AOEShapeRect(6, 20, 80))  { }
+
+    public FrothingSea() : base(new AOEShapeRect(6, 20, 80)) { }
 
     public override void OnEventEnvControl(BossModule module, byte index, uint state)
     {

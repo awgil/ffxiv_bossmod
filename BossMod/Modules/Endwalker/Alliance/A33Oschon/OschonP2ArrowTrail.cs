@@ -2,7 +2,7 @@ namespace BossMod.Endwalker.Alliance.A33Oschon;
 
 public class ArrowTrail : Components.Exaflare
 {
-    public ArrowTrail() : base(new AOEShapeRect(5, 5, 5))  { }
+    public ArrowTrail() : base(new AOEShapeRect(5, 5, 5)) { }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
