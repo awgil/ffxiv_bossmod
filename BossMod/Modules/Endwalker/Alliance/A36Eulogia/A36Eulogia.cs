@@ -30,9 +30,15 @@ class HandOfTheDestroyerWrath : Components.SelfTargetedAOEs
     public HandOfTheDestroyerWrath() : base(ActionID.MakeSpell(AID.HandOfTheDestroyerWrathAOE), new AOEShapeRect(90, 20)) { }
 }
 
-class SunbeamSelf : Components.BaitAwayCast
+class Sunbeam : Components.BaitAwayCast
 {
-    public SunbeamSelf() : base(ActionID.MakeSpell(AID.SunbeamTankBuster), new AOEShapeCircle(6), true) { }
+    public Sunbeam() : base(ActionID.MakeSpell(AID.SunbeamTankBuster), new AOEShapeCircle(6), true) { }
+
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
 }
 
 class DestructiveBoltStack : Components.UniformStackSpread

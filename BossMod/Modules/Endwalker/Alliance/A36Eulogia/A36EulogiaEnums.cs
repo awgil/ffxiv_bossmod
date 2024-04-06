@@ -26,8 +26,9 @@ public enum AID : uint
 
     Teleport = 35330, // Eulogia->location, no cast, single-target
     Visual = 35336, // Eulogia->self, no cast, single-target
-    EudaimonEorzeaVisual1 = 35337, // Eulogia->self, no cast, single-target
-    EudaimonEorzeaVisual2 = 36066, // Eulogia->self, no cast, single-target
+    Visual2 = 35337, // Eulogia->self, no cast, single-target
+    Visual3 = 36066, // Eulogia->self, no cast, single-target
+    
     QuintessenceVisual1 = 35360, // Avatar->self, 0.5s cast, single-target
     QuintessenceVisual2 = 35361, // Avatar->self, 0.5s cast, single-target
     QuintessenceVisual3 = 35358, // Avatar->self, 0.5s cast, single-target
@@ -48,13 +49,13 @@ public enum AID : uint
     Quintessence3rdSpot = 35353, // Eulogia->location, no cast, single-target, teleport to 3rd spot
     QuintessenceFirstRight = 35354, // Helper->self, 4.8s cast, range 50 180-degree cone
     QuintessenceFirstLeft = 35355, // Helper->self, 4.8s cast, range 50 180-degree cone
-    QuintessenceFirstAOE = 35356, // Helper->self, 4.8s cast, range 8 50 donut
+    QuintessenceFirstAOE = 35356, // Helper->self, 4.8s cast, range 8-50 donut
     QuintessenceSecondRight = 36069, // Helper->self, 8.3s cast, range 50 180-degree cone
     QuintessenceSecondLeft = 36070, // Helper->self, 8.3s cast, range 50 180-degree cone
-    QuintessenceSecondAOE = 36071, // Helper->self, 8.3s cast, range 8 50 donut
+    QuintessenceSecondAOE = 36071, // Helper->self, 8.3s cast, range 8-50 donut
     QuintessenceThirdRight = 36072, // Helper->self, 11.9s cast, range 50 180-degree cone
     QuintessenceThirdLeft = 36073, // Helper->self, 11.9s cast, range 50 180-degree cone
-    QuintessenceThirdAOE = 36074, // Helper->self, 11.9s cast, range 8 50 donut
+    QuintessenceThirdAOE = 36074, // Helper->self, 11.9s cast, range 8-50 donut
 
     SunbeamSelf = 35328, // Eulogia->self, 5.0s cast, single-target, visual
     SunbeamTankBuster = 35329, // Helper->players, 5.0s cast, range 6 circle, tankbusters

@@ -2,66 +2,136 @@ namespace BossMod.Endwalker.Alliance.A36Eulogia;
 
 class Quintessence : Components.GenericAOEs
 {
-    private readonly List<AOEInstance> _aoes = [];
-    private readonly Dictionary<AID, DateTime> _formToEffectTiming = [];
+    private static readonly AOEShapeCone cone = new(50, 90.Degrees());
+    private static readonly AOEShapeDonut donut = new(8, 60);
+    private static readonly Angle _rot1 = -135.Degrees();
+    private static readonly Angle _rot2 = 180.Degrees();
+    private static readonly Angle _rot3 = 90.Degrees();
+    private static readonly Angle _rot4 = -45.Degrees();
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
+    private byte _index;
+    private WPos position;
+    private readonly List<AOEInstance> _aoes = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    {
+        if (_aoes.Count > 0)
+            yield return new(_aoes[0].Shape, _aoes[0].Origin, _aoes[0].Rotation, _aoes[0].Activation, ArenaColor.Danger);
+        if (_aoes.Count > 1)
+            yield return new(_aoes[1].Shape, _aoes[1].Origin, _aoes[1].Rotation, _aoes[1].Activation);
+    }
+
+    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    {
+        if (state == 0x00020001)
+        {
+            if (index is 0x4F or 0x54 or 0x51)
+            {
+                _index = index;
+                position = new WPos(954, -954);
+            }
+            if (index is 0x52 or 0x57 or 0x4E)
+            {
+                _index = index;
+                position = new WPos(936, -954);
+            }
+            if (index is 0x55 or 0x4D or 0x50)
+            {
+                _index = index;
+                position = new WPos(936, -936);
+            }
+            if (index is 0x56 or 0x53 or 0x4C)
+            {
+                _index = index;
+                position = new WPos(954, -936);
+            }
+        }
+    }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        // Map initial forms to their visual effects and store the timing
-        switch ((AID)spell.Action.ID)
+        var _activation1 = spell.NPCFinishAt.AddSeconds(19.4f);
+        var _activation2 = spell.NPCFinishAt.AddSeconds(15.7f);
+        var _activation3 = spell.NPCFinishAt.AddSeconds(12.1f);
+        if ((AID)spell.Action.ID == AID.FirstFormRight)
         {
-            case AID.FirstFormAOE:
-            case AID.SecondFormAOE:
-            case AID.ThirdFormAOE:
-            case AID.FirstFormRight:
-            case AID.FirstFormLeft:
-            case AID.SecondFormRight:
-            case AID.SecondFormLeft:
-            case AID.ThirdFormRight:
-            case AID.ThirdFormLeft:
-                _formToEffectTiming[(AID)spell.Action.ID] = spell.NPCFinishAt;
-                break;
+            if (_index == 0x4F)
+                _aoes.Add(new(cone, position, -_rot4, _activation1));
+            if (_index == 0x4D)
+                _aoes.Add(new(cone, position, _rot1, _activation1));
+            if (_index == 0x4C)
+                _aoes.Add(new(cone, position, _rot4, _activation1));
+            if (_index == 0x4E)
+                _aoes.Add(new(cone, position, -_rot1, _activation1));
         }
-
-        AOEShape? shape = DetermineShape((AID)spell.Action.ID);
-        DateTime effectTiming = _formToEffectTiming.GetValueOrDefault((AID)spell.Action.ID, spell.NPCFinishAt); // Use specific timing if available, else fallback to current spell's timing
-
-        if (shape != null)
+        if ((AID)spell.Action.ID == AID.FirstFormLeft)
         {
-            _aoes.Add(new AOEInstance(shape, caster.Position, spell.Rotation, effectTiming.AddSeconds(26.25f)));
-            _aoes.SortBy(aoe => aoe.Activation);
+            if (_index == 0x4E)
+                _aoes.Add(new(cone, position, _rot4, _activation1));
+            if (_index == 0x4F)
+                _aoes.Add(new(cone, position, _rot1, _activation1));
+            if (_index == 0x4C)
+                _aoes.Add(new(cone, position, -_rot1, _activation1));
+            if (_index == 0x4D)
+                _aoes.Add(new(cone, position, -_rot4, _activation1));
         }
-    }
-
-    private AOEShape? DetermineShape(AID actionID)
-    {
-        return actionID switch
+        if ((AID)spell.Action.ID == AID.FirstFormAOE)
         {
-            AID.QuintessenceFirstAOE or AID.QuintessenceSecondAOE or AID.QuintessenceThirdAOE => new AOEShapeDonut(8, 60),
-            AID.QuintessenceFirstRight or AID.QuintessenceFirstLeft or
-            AID.QuintessenceSecondRight or AID.QuintessenceSecondLeft or
-            AID.QuintessenceThirdRight or AID.QuintessenceThirdLeft => new AOEShapeCone(50, 90.Degrees()),
-            _ => null
-        };
-    }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID.QuintessenceFirstRight or AID.QuintessenceFirstLeft or AID.QuintessenceFirstAOE or AID.QuintessenceSecondRight or AID.QuintessenceSecondLeft or AID.QuintessenceSecondAOE or AID.QuintessenceThirdRight or AID.QuintessenceThirdLeft or AID.QuintessenceThirdAOE)
-        {
-            ++NumCasts;
-            if (_aoes.Count > 0)
-                _aoes.RemoveAt(0);
+            if (_index is 0x4F or 0x4C or 0x4E)
+                _aoes.Add(new(donut, position, activation: _activation1));
         }
-    }
+        if ((AID)spell.Action.ID == AID.SecondFormRight)
+        {
+            if (_index is 0x57 or 0x50)
+                _aoes.Add(new(cone, position, _rot2, _activation2));
+            if (_index is 0x54 or 0x53)
+                _aoes.Add(new(cone, position, -_rot2, _activation2));
+            if (_index is 0x56 or 0x55)
+                _aoes.Add(new(cone, position, -_rot3, _activation2));
+        }
+        if ((AID)spell.Action.ID == AID.SecondFormLeft)
+        {
+            if (_index is 0x55 or 0x56)
+                _aoes.Add(new(cone, position, _rot3, _activation2));
+            if (_index is 0x52 or 0x51)
+                _aoes.Add(new(cone, position, -_rot3, _activation2));
+        }
+        if ((AID)spell.Action.ID == AID.SecondFormAOE)
+        {
+            if (_index is 0x56 or 0x51)
+                _aoes.Add(new(donut, position, activation: _activation2));
+        }
+        if ((AID)spell.Action.ID == AID.ThirdFormRight)
+        {
+            if (_index is 0x50 or 0x57)
+                _aoes.Add(new(cone, position, _rot2, _activation3));
+            if (_index is 0x53 or 0x54)
+                _aoes.Add(new(cone, position, -_rot2, _activation3));
+        }
+        if ((AID)spell.Action.ID == AID.ThirdFormLeft)
+        {
+            if (_index is 0x50 or 0x57)
+                _aoes.Add(new(cone, position, -_rot2, _activation3));
+            if (_index is 0x55 or 0x56)
+                _aoes.Add(new(cone, position, _rot3, _activation3));
+            if (_index is 0x52 or 0x51)
+                _aoes.Add(new(cone, position, -_rot3, _activation3));
+            if (_index == 0x53)
+                _aoes.Add(new(cone, position, _rot2, _activation3));
+        }
+        if ((AID)spell.Action.ID == AID.ThirdFormAOE)
+        {
+            if (_index is 0x53 or 0x54 or 0x57 or 0x56 or 0x51 or 0x50)
+                _aoes.Add(new(donut, position, activation: _activation3));
+        }
+    }   
+
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.QuintessenceThirdRight or AID.QuintessenceThirdLeft or AID.QuintessenceThirdAOE)
+        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.QuintessenceFirstRight or AID.QuintessenceFirstLeft or AID.QuintessenceFirstAOE or AID.QuintessenceSecondRight or AID.QuintessenceSecondLeft or AID.QuintessenceSecondAOE or AID.QuintessenceThirdRight or AID.QuintessenceThirdLeft or AID.QuintessenceThirdAOE)
         {
             ++NumCasts;
-            _aoes.Clear();
+            _aoes.RemoveAt(0);
         }
     }
 }

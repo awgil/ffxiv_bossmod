@@ -25,7 +25,7 @@ class A36EulogiaStates : StateMachineBuilder
             .ActivateOnEnter<DawnOfTime>()
             .ActivateOnEnter<EudaimonEorzea>()
             .ActivateOnEnter<TheWhorl>()
-            .ActivateOnEnter<SunbeamSelf>()
+            .ActivateOnEnter<Sunbeam>()
             .ActivateOnEnter<ByregotStrikeJump>()
             .ActivateOnEnter<ByregotStrikeKnockback>()
             .ActivateOnEnter<ByregotStrikeCone>()

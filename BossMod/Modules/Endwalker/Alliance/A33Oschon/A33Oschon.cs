@@ -38,11 +38,23 @@ class TrekShot2 : Components.SelfTargetedAOEs
 class TheArrow : Components.BaitAwayCast
 {
     public TheArrow() : base(ActionID.MakeSpell(AID.TheArrow), new AOEShapeCircle(6), true) { }
+
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
 }
 
 class TheArrowP2 : Components.BaitAwayCast
 {
     public TheArrowP2() : base(ActionID.MakeSpell(AID.TheArrowP2), new AOEShapeCircle(10), true) { }
+
+    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    {
+        if (CurrentBaits.Count > 0)
+            hints.Add("Tankbuster cleave");
+    }
 }
 
 class PitonPull : Components.LocationTargetedAOEs
