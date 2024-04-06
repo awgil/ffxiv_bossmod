@@ -22,7 +22,7 @@ class Actions : CommonActions
         _prevMP = player.CurMP;
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -115,7 +115,7 @@ class Actions : CommonActions
         _state.TargetThunderLeft = Math.Max(StatusDetails(Autorot.PrimaryTarget, _state.ExpectedThunder3, Player.InstanceID).Left, StatusDetails(Autorot.PrimaryTarget, SID.Thunder2, Player.InstanceID).Left);
     }
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         SupportedSpell(AID.Blizzard1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;

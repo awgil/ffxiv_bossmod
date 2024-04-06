@@ -20,7 +20,7 @@ class Actions : CommonActions
         _strategy = new();
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -108,7 +108,7 @@ class Actions : CommonActions
         }
     }
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         SupportedSpell(AID.Ruin1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;

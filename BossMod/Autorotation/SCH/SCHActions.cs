@@ -23,7 +23,7 @@ class Actions : HealerActions
         SupportedSpell(AID.ArtOfWar1).TransformAction = SupportedSpell(AID.ArtOfWar2).TransformAction = () => ActionID.MakeSpell(_state.BestArtOfWar);
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -176,7 +176,7 @@ class Actions : HealerActions
 
     private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, _state.ExpectedBio, Player.InstanceID).Left);
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         //SupportedSpell(AID.Ruin1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;

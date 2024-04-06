@@ -16,7 +16,7 @@ public abstract class BossModule : IDisposable
     public CooldownPlanningConfigNode? PlanConfig { get; init; }
     public CooldownPlanExecution? PlanExecution = null;
 
-    public event EventHandler<(BossComponent?, string)>? Error;
+    public event Action<BossModule, BossComponent?, string>? Error;
 
     public PartyState Raid => WorldState.Party;
     public ArenaBounds Bounds => Arena.Bounds;
@@ -115,7 +115,7 @@ public abstract class BossModule : IDisposable
         WorldState.Actors.ModelStateChanged += OnActorModelStateChange;
         WorldState.EnvControl += OnEnvControl;
         foreach (var v in WorldState.Actors)
-            OnActorCreated(null, v);
+            OnActorCreated(v);
     }
 
     public void Dispose()
@@ -260,8 +260,8 @@ public abstract class BossModule : IDisposable
 
     public void ReportError(BossComponent? comp, string message)
     {
-        Service.Log($"[ModuleError] [{this.GetType().Name}] [{comp?.GetType().Name}] {message}");
-        Error?.Invoke(this, (comp, message));
+        Service.Log($"[ModuleError] [{GetType().Name}] [{comp?.GetType().Name}] {message}");
+        Error?.Invoke(this, comp, message);
     }
 
     // called during update if module is not yet active, should return true if it is to be activated
@@ -363,13 +363,13 @@ public abstract class BossModule : IDisposable
         return (highestPrio, color);
     }
 
-    private void OnPlanModified(object? sender, EventArgs args)
+    private void OnPlanModified()
     {
         Service.Log($"[BM] Detected plan modification for '{GetType()}', resetting execution");
         PlanExecution = null;
     }
 
-    private void OnActorCreated(object? sender, Actor actor)
+    private void OnActorCreated(Actor actor)
     {
         _relevantEnemies.GetValueOrDefault(actor.OID)?.Add(actor);
         if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
@@ -377,7 +377,7 @@ public abstract class BossModule : IDisposable
                 comp.OnActorCreated(this, actor);
     }
 
-    private void OnActorDestroyed(object? sender, Actor actor)
+    private void OnActorDestroyed(Actor actor)
     {
         _relevantEnemies.GetValueOrDefault(actor.OID)?.Remove(actor);
         if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
@@ -385,89 +385,89 @@ public abstract class BossModule : IDisposable
                 comp.OnActorDestroyed(this, actor);
     }
 
-    private void OnActorCastStarted(object? sender, Actor actor)
+    private void OnActorCastStarted(Actor actor)
     {
         if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
             foreach (var comp in _components)
                 comp.OnCastStarted(this, actor, actor.CastInfo);
     }
 
-    private void OnActorCastFinished(object? sender, Actor actor)
+    private void OnActorCastFinished(Actor actor)
     {
         if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
             foreach (var comp in _components)
                 comp.OnCastFinished(this, actor, actor.CastInfo);
     }
 
-    private void OnActorTethered(object? sender, Actor actor)
+    private void OnActorTethered(Actor actor)
     {
         foreach (var comp in _components)
             comp.OnTethered(this, actor, actor.Tether);
     }
 
-    private void OnActorUntethered(object? sender, Actor actor)
+    private void OnActorUntethered(Actor actor)
     {
         foreach (var comp in _components)
             comp.OnUntethered(this, actor, actor.Tether);
     }
 
-    private void OnActorStatusGain(object? sender, (Actor actor, int index) arg)
+    private void OnActorStatusGain(Actor actor, int index)
     {
         foreach (var comp in _components)
-            comp.OnStatusGain(this, arg.actor, arg.actor.Statuses[arg.index]);
+            comp.OnStatusGain(this, actor, actor.Statuses[index]);
     }
 
-    private void OnActorStatusLose(object? sender, (Actor actor, int index) arg)
+    private void OnActorStatusLose(Actor actor, int index)
     {
         foreach (var comp in _components)
-            comp.OnStatusLose(this, arg.actor, arg.actor.Statuses[arg.index]);
+            comp.OnStatusLose(this, actor, actor.Statuses[index]);
     }
 
-    private void OnActorIcon(object? sender, (Actor actor, uint iconID) arg)
+    private void OnActorIcon(Actor actor, uint iconID)
     {
         foreach (var comp in _components)
-            comp.OnEventIcon(this, arg.actor, arg.iconID);
+            comp.OnEventIcon(this, actor, iconID);
     }
 
-    private void OnActorCastEvent(object? sender, (Actor actor, ActorCastEvent cast) arg)
+    private void OnActorCastEvent(Actor actor, ActorCastEvent cast)
     {
-        if ((arg.actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && arg.cast.IsSpell())
+        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && cast.IsSpell())
             foreach (var comp in _components)
-                comp.OnEventCast(this, arg.actor, arg.cast);
+                comp.OnEventCast(this, actor, cast);
     }
 
-    private void OnActorEState(object? sender, (Actor actor, ushort state) arg)
+    private void OnActorEState(Actor actor, ushort state)
     {
         foreach (var comp in _components)
-            comp.OnActorEState(this, arg.actor, arg.state);
+            comp.OnActorEState(this, actor, state);
     }
 
-    private void OnActorEAnim(object? sender, (Actor actor, ushort p1, ushort p2) arg)
+    private void OnActorEAnim(Actor actor, ushort p1, ushort p2)
     {
-        uint state = ((uint)arg.p1 << 16) | arg.p2;
+        uint state = ((uint)p1 << 16) | p2;
         foreach (var comp in _components)
-            comp.OnActorEAnim(this, arg.actor, state);
+            comp.OnActorEAnim(this, actor, state);
     }
 
-    private void OnActorPlayActionTimelineEvent(object? sender, (Actor actor, ushort id) arg)
-    {
-        foreach (var comp in _components)
-            comp.OnActorPlayActionTimelineEvent(this, arg.actor, arg.id);
-    }
-
-    private void OnActorNpcYell(object? sender, (Actor actor, ushort id) arg)
+    private void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         foreach (var comp in _components)
-            comp.OnActorNpcYell(this, arg.actor, arg.id);
+            comp.OnActorPlayActionTimelineEvent(this, actor, id);
     }
 
-    private void OnActorModelStateChange(object? sender, Actor actor)
+    private void OnActorNpcYell(Actor actor, ushort id)
+    {
+        foreach (var comp in _components)
+            comp.OnActorNpcYell(this, actor, id);
+    }
+
+    private void OnActorModelStateChange(Actor actor)
     {
         foreach (var comp in _components)
             comp.OnActorModelStateChange(this, actor, actor.ModelState.ModelState, actor.ModelState.AnimState1, actor.ModelState.AnimState2);
     }
 
-    private void OnEnvControl(object? sender, WorldState.OpEnvControl op)
+    private void OnEnvControl(WorldState.OpEnvControl op)
     {
         foreach (var comp in _components)
             comp.OnEventEnvControl(this, op.Index, op.State);

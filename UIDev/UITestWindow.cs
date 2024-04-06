@@ -27,7 +27,7 @@ class UITestWindow : UIWindow
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(new(configPath));
-        Service.Config.Modified += (_, _) => _configModified = true;
+        Service.Config.Modified += () => _configModified = true;
     }
 
     protected override void Dispose(bool disposing)

@@ -25,7 +25,7 @@ class Actions : CommonActions
         SupportedSpell(AID.MeikyoShisui).Condition = _ => _state.MeikyoLeft == 0;
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override CommonRotation.PlayerState GetState() => _state;
@@ -55,7 +55,7 @@ class Actions : CommonActions
         );
     }
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         SupportedSpell(AID.Hakaze).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
         SupportedSpell(AID.Fuga).PlaceholderForAuto = SupportedSpell(AID.Fuko).PlaceholderForAuto =
