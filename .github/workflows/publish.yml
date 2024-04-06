@@ -19,15 +19,6 @@ jobs:
           $tag = "${{ github.ref }}" -replace 'refs/tags/', ''
 
           "tag=$tag" | Out-File -Append -FilePath $Env:GITHUB_ENV
-
-          if ($tag -match "-test$") {
-              $branch = "testing"
-              $tag = $tag -replace '-test$', ''
-          } else {
-              $branch = "latest"
-          }
-
-          "branch=$branch" | Out-File -Append -FilePath $Env:GITHUB_ENV
           
       - name: Set up .NET
         uses: actions/setup-dotnet@v1
@@ -53,6 +44,3 @@ jobs:
         with:
           files: ./build/BossMod.zip
           token: ${{ secrets.GITHUB_TOKEN }}
-          draft: false
-          make_latest: ${{ env.branch == 'latest' }}
-          prerelease: ${{ env.branch == 'testing' }}
