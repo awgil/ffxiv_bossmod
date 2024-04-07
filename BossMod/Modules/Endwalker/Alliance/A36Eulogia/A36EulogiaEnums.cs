@@ -61,7 +61,9 @@ public enum AID : uint
     SunbeamTankBuster = 35329, // Helper->players, 5.0s cast, range 6 circle, tankbusters
 
     DawnOfTime = 35331, // Eulogia->self, 5.0s cast, range 70 circle
-    TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle, raidwide
+    TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle
+    AsAboveSoBelow = 35419, // Eulogia->self, 5.0s cast, range 40 circle
+    AsAboveSoBelow2 = 35420, // Eulogia->self, 5.0s cast, range 40 circle
 
     LovesLight = 35376, // Eulogia->self, 4.0s cast, single-target
     FullBright = 35377, // Eulogia->self, 3.0s cast, single-target
@@ -112,9 +114,6 @@ public enum AID : uint
     ThousandfoldThrustVisual2 = 35416, // Eulogia->self, 5.0s cast, single-target
     ThousandfoldThrustAOEFirst = 35417, // Helper->self, 6.3s cast, range 60 180-degree cone
     ThousandfoldThrustAOERest = 35418, // Helper->self, no cast, range 60 180-degree cone
-
-    AsAboveSoBelow = 35419, // Eulogia->self, 5.0s cast, range 40 circle
-    AsAboveSoBelowAlt = 35420, // Eulogia->self, 5.0s cast, range 40 circle
 
     ClimbingShotVisual = 36106, // Eulogia->self, 8.0s cast, range 40 circle, visual
     ClimbingShotVisual2 = 36107, // Eulogia->self, 8.0s cast, range 40 circle, visual

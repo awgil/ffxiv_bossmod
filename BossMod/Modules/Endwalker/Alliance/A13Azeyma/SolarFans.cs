@@ -23,7 +23,18 @@ class RadiantRhythm : Components.GenericAOEs
     private IEnumerable<Angle> NextCenterDirections(WPos center) => _flames.Where(f => (f.Position - center).LengthSq() > 25).Select(f => Angle.FromDirection(f.Position - center) + 45.Degrees());
 }
 
-class RadiantFinish : Components.SelfTargetedAOEs
+class RadiantFlourish : Components.GenericAOEs
 {
-    public RadiantFinish() : base(ActionID.MakeSpell(AID.RadiantFlourish), new AOEShapeCircle(25)) { }
+    private static readonly AOEShapeCircle circle = new(25);
+    private readonly List<AOEInstance> _aoes = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+
+    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.SolarFansAOE)
+            _aoes.Add(new(circle, spell.LocXZ, activation: module.WorldState.CurrentTime.AddSeconds(13.7f)));
+        if ((AID)spell.Action.ID == AID.RadiantFlourish)
+            _aoes.Clear();
+    }
 }

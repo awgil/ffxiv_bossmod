@@ -76,6 +76,7 @@ public class A13AzeymaStates : StateMachineBuilder
     private void SolarFans(uint id, float delay)
     {
         Cast(id, AID.SolarFans, delay, 4, "Fans start")
+            .ActivateOnEnter<RadiantFlourish>()
             .ActivateOnEnter<SolarFans>()
             .DeactivateOnExit<SolarFans>();
         // +0.5s: charge cast end
@@ -86,8 +87,7 @@ public class A13AzeymaStates : StateMachineBuilder
         CastStart(id + 0x20, AID.RadiantFinish, 5.4f) // or 6.8, depending on number of rhythm casts
             .DeactivateOnExit<RadiantRhythm>();
         CastEnd(id + 0x21, 3, "Fans resolve")
-            .ActivateOnEnter<RadiantFinish>()
-            .DeactivateOnExit<RadiantFinish>();
+            .DeactivateOnExit<RadiantFlourish>();
     }
 
     private void FleetingSpark(uint id, float delay)

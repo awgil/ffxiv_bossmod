@@ -29,26 +29,15 @@ class Quintessence : Components.GenericAOEs
     {
         if (state == 0x00020001)
         {
+            _index = index;
             if (index is 0x4F or 0x54 or 0x51)
-            {
-                _index = index;
                 position = new WPos(954, -954);
-            }
             if (index is 0x52 or 0x57 or 0x4E)
-            {
-                _index = index;
                 position = new WPos(936, -954);
-            }
             if (index is 0x55 or 0x4D or 0x50)
-            {
-                _index = index;
                 position = new WPos(936, -936);
-            }
             if (index is 0x56 or 0x53 or 0x4C)
-            {
-                _index = index;
                 position = new WPos(954, -936);
-            }
         }
     }
 
@@ -79,11 +68,8 @@ class Quintessence : Components.GenericAOEs
             if (_index == 0x4D)
                 _aoes.Add(new(cone, position, _rot8, _activation1));
         }
-        if ((AID)spell.Action.ID == AID.FirstFormAOE)
-        {
-            if (_index is 0x4F or 0x4C or 0x4E)
-                _aoes.Add(new(donut, position, activation: _activation1));
-        }
+        if ((AID)spell.Action.ID == AID.FirstFormAOE) //known indices: 0x4F, 0x4C, 0x4E, but since we don't need a direction for donuts, we dont need to check it
+            _aoes.Add(new(donut, position, activation: _activation1));
         if ((AID)spell.Action.ID == AID.SecondFormRight)
         {
             if (_index is 0x57 or 0x50)
@@ -100,11 +86,8 @@ class Quintessence : Components.GenericAOEs
             if (_index is 0x52 or 0x51)
                 _aoes.Add(new(cone, position, _rot7, _activation2));
         }
-        if ((AID)spell.Action.ID == AID.SecondFormAOE)
-        {
-            if (_index is 0x56 or 0x51)
-                _aoes.Add(new(donut, position, activation: _activation2));
-        }
+        if ((AID)spell.Action.ID == AID.SecondFormAOE) //known indices: 0x56, 0x51, but since we don't need a direction for donuts, we dont need to check it
+            _aoes.Add(new(donut, position, activation: _activation2));
         if ((AID)spell.Action.ID == AID.ThirdFormRight)
         {
             if (_index is 0x50 or 0x57)
@@ -123,11 +106,8 @@ class Quintessence : Components.GenericAOEs
             if (_index == 0x53)
                 _aoes.Add(new(cone, position, _rot2, _activation3));
         }
-        if ((AID)spell.Action.ID == AID.ThirdFormAOE)
-        {
-            if (_index is 0x53 or 0x54 or 0x57 or 0x56 or 0x51 or 0x50)
+        if ((AID)spell.Action.ID == AID.ThirdFormAOE) //known indices: 0x53, 0x54, 0x57, 0x56, 0x51, 0x50 but since we don't need a direction for donuts, we dont need to check it
                 _aoes.Add(new(donut, position, activation: _activation3));
-        }
     }
 
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)

@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Endwalker.Alliance.A36Eulogia;
 
-class AsAboveSoBelow : Components.Exaflare
+class EverFireOnceBurned : Components.Exaflare
 {
-    public AsAboveSoBelow() : base(6) { }
+    public EverFireOnceBurned() : base(6) { }
 
     public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
     {
@@ -38,12 +38,6 @@ class AsAboveSoBelow : Components.Exaflare
     private void Advance(BossModule module, WPos position, WDir dir)
     {
         int index = Lines.FindIndex(item => item.Next.AlmostEqual(position, 1) && item.Advance.Dot(dir) > 5);
-        if (index == -1)
-        {
-            module.ReportError(this, $"Failed to find entry for {position} / {dir}");
-            return;
-        }
-
         AdvanceLine(module, Lines[index], position);
         if (Lines[index].ExplosionsLeft == 0)
             Lines.RemoveAt(index);

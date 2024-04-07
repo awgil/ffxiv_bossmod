@@ -20,12 +20,7 @@ class Hieroglyphika : Components.GenericAOEs
     public override void OnEventEnvControl(BossModule module, byte index, uint state)
     {
         if (state == 0x00020001)
-        {
-            if (index == 0x17)
-                currentIndex = 0x17;
-            if (index == 0x4A)
-                currentIndex = 0x4A;
-        }
+            currentIndex = index;
     }
 
     public override void OnEventIcon(BossModule module, Actor actor, uint iconID)

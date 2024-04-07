@@ -35,6 +35,8 @@ class A36EulogiaStates : StateMachineBuilder
             .ActivateOnEnter<HandOfTheDestroyerWrath>()
             .ActivateOnEnter<HandOfTheDestroyerJudgment>()
             .ActivateOnEnter<AsAboveSoBelow>()
+            .ActivateOnEnter<AsAboveSoBelow2>()
+            .ActivateOnEnter<EverFireOnceBurned>()
             .ActivateOnEnter<MatronsBreath>()
             .ActivateOnEnter<SoaringMinuet>()
             .ActivateOnEnter<TorrentialTridents>()
