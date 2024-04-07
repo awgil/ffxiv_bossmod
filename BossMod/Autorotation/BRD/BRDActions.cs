@@ -31,7 +31,7 @@ class Actions : CommonActions
         SupportedSpell(AID.HeadGraze).Condition = target => target?.CastInfo?.Interruptible ?? false;
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -129,7 +129,7 @@ class Actions : CommonActions
         _state.TargetStormbiteLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedStormbite, Player.InstanceID, 45).Left;
     }
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         SupportedSpell(AID.HeavyShot).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;

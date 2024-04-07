@@ -42,10 +42,9 @@ public class ReplayParser : IDisposable
             module.Error -= OnError;
         }
 
-        private void OnError(object? sender, (BossComponent? comp, string message) args)
+        private void OnError(BossModule module, BossComponent? comp, string message)
         {
-            var module = (BossModule)sender!;
-            _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new(_self._ws.CurrentTime, args.comp?.GetType(), args.message));
+            _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new(_self._ws.CurrentTime, comp?.GetType(), message));
         }
     }
 
@@ -230,7 +229,7 @@ public class ReplayParser : IDisposable
     }
     private Replay.Participant? GetOrCreateOptionalParticipant(ulong instanceID) => instanceID is 0 or 0xE0000000 ? null : GetOrCreateParticipant(instanceID);
 
-    private void ActorAdded(object? sender, Actor actor)
+    private void ActorAdded(Actor actor)
     {
         var p = GetOrCreateParticipant(actor.InstanceID, false);
         if (p.EffectiveExistence.End > _ws.CurrentTime)
@@ -278,45 +277,45 @@ public class ReplayParser : IDisposable
         }
     }
 
-    private void ActorRemoved(object? sender, Actor actor)
+    private void ActorRemoved(Actor actor)
     {
         FinalizeParticipant(_participants[actor.InstanceID]);
         // keep participant entry in case it is recreated later
     }
 
-    private void ActorRenamed(object? sender, Actor actor)
+    private void ActorRenamed(Actor actor)
     {
         _participants[actor.InstanceID].NameHistory.Add(_ws.CurrentTime, (actor.Name, actor.NameID));
     }
 
-    private void ActorTargetable(object? sender, Actor actor)
+    private void ActorTargetable(Actor actor)
     {
         _participants[actor.InstanceID].TargetableHistory.Add(_ws.CurrentTime, actor.IsTargetable);
     }
 
-    private void ActorDead(object? sender, Actor actor)
+    private void ActorDead(Actor actor)
     {
         _participants[actor.InstanceID].DeadHistory.Add(_ws.CurrentTime, actor.IsDead);
     }
 
-    private void ActorMoved(object? sender, Actor actor)
+    private void ActorMoved(Actor actor)
     {
         _participants[actor.InstanceID].PosRotHistory.Add(_ws.CurrentTime, actor.PosRot);
     }
 
-    private void ActorSize(object? sender, Actor actor)
+    private void ActorSize(Actor actor)
     {
         var p = _participants[actor.InstanceID];
         p.MinRadius = Math.Min(p.MinRadius, actor.HitboxRadius);
         p.MaxRadius = Math.Max(p.MaxRadius, actor.HitboxRadius);
     }
 
-    private void ActorHPMP(object? sender, Actor actor)
+    private void ActorHPMP(Actor actor)
     {
         _participants[actor.InstanceID].HPMPHistory.Add(_ws.CurrentTime, (actor.HP, actor.CurMP));
     }
 
-    private void CastStart(object? sender, Actor actor)
+    private void CastStart(Actor actor)
     {
         var c = actor.CastInfo!;
         var target = GetOrCreateOptionalParticipant(c.TargetID);
@@ -331,7 +330,7 @@ public class ReplayParser : IDisposable
         }
     }
 
-    private void CastFinish(object? sender, Actor actor)
+    private void CastFinish(Actor actor)
     {
         var cast = _participants[actor.InstanceID].Casts.Last();
         cast.Time.End = _ws.CurrentTime;
@@ -339,54 +338,54 @@ public class ReplayParser : IDisposable
             _pendingClientActions.RemoveAt(index);
     }
 
-    private void TetherAdd(object? sender, Actor actor)
+    private void TetherAdd(Actor actor)
     {
         var t = _tethers[actor.InstanceID] = new(actor.Tether.ID, _participants[actor.InstanceID], GetOrCreateParticipant(actor.Tether.Target));
         t.Time.Start = _ws.CurrentTime;
         _res.Tethers.Add(t);
     }
 
-    private void TetherRemove(object? sender, Actor actor)
+    private void TetherRemove(Actor actor)
     {
         _tethers[actor.InstanceID].Time.End = _ws.CurrentTime;
         _tethers.Remove(actor.InstanceID);
     }
 
-    private void StatusGain(object? sender, (Actor actor, int index) args)
+    private void StatusGain(Actor actor, int index)
     {
-        var r = _statuses.GetValueOrDefault((args.actor.InstanceID, args.index));
+        var r = _statuses.GetValueOrDefault((actor.InstanceID, index));
         if (r != null)
             r.Time.End = _ws.CurrentTime;
 
-        var s = args.actor.Statuses[args.index];
-        var tgt = _participants[args.actor.InstanceID];
+        var s = actor.Statuses[index];
+        var tgt = _participants[actor.InstanceID];
         var src = GetOrCreateOptionalParticipant(s.SourceID);
-        r = _statuses[(args.actor.InstanceID, args.index)] = new(s.ID, args.index, tgt, src, (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, s.Extra);
+        r = _statuses[(actor.InstanceID, index)] = new(s.ID, index, tgt, src, (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds, s.Extra);
         r.Time.Start = _ws.CurrentTime;
         tgt.HasAnyStatuses = true;
         _res.Statuses.Add(r);
     }
 
-    private void StatusLose(object? sender, (Actor actor, int index) args)
+    private void StatusLose(Actor actor, int index)
     {
-        var r = _statuses.GetValueOrDefault((args.actor.InstanceID, args.index));
+        var r = _statuses.GetValueOrDefault((actor.InstanceID, index));
         if (r == null)
             return;
         r.Time.End = _ws.CurrentTime;
-        _statuses.Remove((args.actor.InstanceID, args.index));
+        _statuses.Remove((actor.InstanceID, index));
     }
 
-    private void EventIcon(object? sender, (Actor actor, uint iconID) args)
+    private void EventIcon(Actor actor, uint iconID)
     {
-        _res.Icons.Add(new(args.iconID, GetOrCreateParticipant(args.actor.InstanceID), _ws.CurrentTime));
+        _res.Icons.Add(new(iconID, GetOrCreateParticipant(actor.InstanceID), _ws.CurrentTime));
     }
 
-    private void EventCast(object? sender, (Actor actor, ActorCastEvent cast) args)
+    private void EventCast(Actor actor, ActorCastEvent cast)
     {
-        var p = GetOrCreateParticipant(args.actor.InstanceID);
-        var mt = GetOrCreateOptionalParticipant(args.cast.MainTargetID);
-        var a = new Replay.Action(args.cast.Action, _ws.CurrentTime, p, mt, mt?.PosRotAt(_ws.CurrentTime).XYZ() ?? args.cast.TargetPos, args.cast.AnimationLockTime, args.cast.GlobalSequence);
-        foreach (var t in args.cast.Targets)
+        var p = GetOrCreateParticipant(actor.InstanceID);
+        var mt = GetOrCreateOptionalParticipant(cast.MainTargetID);
+        var a = new Replay.Action(cast.Action, _ws.CurrentTime, p, mt, mt?.PosRotAt(_ws.CurrentTime).XYZ() ?? cast.TargetPos, cast.AnimationLockTime, cast.GlobalSequence);
+        foreach (var t in cast.Targets)
         {
             var target = GetOrCreateParticipant(t.ID);
             target.IsTargetOfAnyActions = true;
@@ -395,7 +394,7 @@ public class ReplayParser : IDisposable
         p.HasAnyActions = true;
         _res.Actions.Add(a);
 
-        if (args.actor == _ws.Party.Player() && _pendingClientActions.FindIndex(a => a.SourceSequence == args.cast.SourceSequence) is var index && index >= 0)
+        if (actor == _ws.Party.Player() && _pendingClientActions.FindIndex(a => a.SourceSequence == cast.SourceSequence) is var index && index >= 0)
         {
             a.ClientAction = _pendingClientActions[index];
             _pendingClientActions[index].Action = a;
@@ -403,50 +402,50 @@ public class ReplayParser : IDisposable
         }
     }
 
-    private void EventConfirm(object? sender, (Actor Source, uint Seq, int TargetIndex) args)
+    private void EventConfirm(Actor source, uint seq, int targetIndex)
     {
-        var a = _res.Actions.FindLast(a => a.GlobalSequence == args.Seq);
+        var a = _res.Actions.FindLast(a => a.GlobalSequence == seq);
         if (a == null)
         {
-            Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for missing action");
+            Service.Log($"Skipping confirmation #{seq}/{targetIndex} for {source.InstanceID:X} for missing action");
             return;
         }
 
-        if (args.TargetIndex >= a.Targets.Count)
+        if (targetIndex >= a.Targets.Count)
         {
-            Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for out-of-range target index (action has {a.Targets.Count} targets)");
+            Service.Log($"Skipping confirmation #{seq}/{targetIndex} for {source.InstanceID:X} for out-of-range target index (action has {a.Targets.Count} targets)");
             return;
         }
 
-        var t = a.Targets[args.TargetIndex];
-        var forSource = a.Source.InstanceID == args.Source.InstanceID;
-        var forTarget = t.Target.InstanceID == args.Source.InstanceID;
+        var t = a.Targets[targetIndex];
+        var forSource = a.Source.InstanceID == source.InstanceID;
+        var forTarget = t.Target.InstanceID == source.InstanceID;
         if (forSource)
         {
             if (t.ConfirmationSource == default)
                 t.ConfirmationSource = _ws.CurrentTime;
             else
-                Service.Log($"Double confirmation ${args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} (source)");
+                Service.Log($"Double confirmation ${seq}/{targetIndex} for {source.InstanceID:X} (source)");
         }
         if (forTarget)
         {
             if (t.ConfirmationTarget == default)
                 t.ConfirmationTarget = _ws.CurrentTime;
             else
-                Service.Log($"Double confirmation ${args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} (target)");
+                Service.Log($"Double confirmation ${seq}/{targetIndex} for {source.InstanceID:X} (target)");
         }
         if (!forSource && !forTarget)
         {
-            Service.Log($"Skipping confirmation #{args.Seq}/{args.TargetIndex} for {args.Source.InstanceID:X} for unexpected target (src={a.Source.InstanceID:X}, tgt={t.Target.InstanceID:X})");
+            Service.Log($"Skipping confirmation #{seq}/{targetIndex} for {source.InstanceID:X} for unexpected target (src={a.Source.InstanceID:X}, tgt={t.Target.InstanceID:X})");
         }
     }
 
-    private void EventUserMarker(object? sender, WorldState.OpUserMarker op)
+    private void EventUserMarker(WorldState.OpUserMarker op)
     {
         _res.UserMarkers.Add(_ws.CurrentTime, op.Text);
     }
 
-    private void EventZoneChange(object? sender, WorldState.OpZoneChange op)
+    private void EventZoneChange(WorldState.OpZoneChange op)
     {
         // heuristic: assume any new actors after zone change are actually new, if they reuse same instance id
         foreach (var (k, v) in _participants)
@@ -454,17 +453,17 @@ public class ReplayParser : IDisposable
                 _participants.Remove(k);
     }
 
-    private void EventDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)
+    private void EventDirectorUpdate(WorldState.OpDirectorUpdate op)
     {
         _res.DirectorUpdates.Add(new(op.DirectorID, op.UpdateID, op.Param1, op.Param2, op.Param3, op.Param4, _ws.CurrentTime));
     }
 
-    private void EventEnvControl(object? sender, WorldState.OpEnvControl op)
+    private void EventEnvControl(WorldState.OpEnvControl op)
     {
         _res.EnvControls.Add(new(op.Index, op.State, _ws.CurrentTime));
     }
 
-    private void ClientActionRequested(object? sender, ClientState.OpActionRequest op)
+    private void ClientActionRequested(ClientState.OpActionRequest op)
     {
         var past = op.Request.InitialCastTimeTotal > 0 ? op.Request.InitialCastTimeElapsed : op.Request.InitialAnimationLock is < 0.5f and >= 0.4f ? 0.5f - op.Request.InitialAnimationLock : 0; // TODO: consider logging explicitly
         var a = new Replay.ClientAction(op.Request.Action, op.Request.SourceSequence, GetOrCreateOptionalParticipant(op.Request.TargetID), op.Request.TargetPos, _ws.CurrentTime.AddSeconds(-past));
@@ -472,7 +471,7 @@ public class ReplayParser : IDisposable
         _pendingClientActions.Add(a);
     }
 
-    private void ClientActionRejected(object? sender, ClientState.OpActionReject op)
+    private void ClientActionRejected(ClientState.OpActionReject op)
     {
         int index = op.Value.SourceSequence != 0
             ? _pendingClientActions.FindIndex(a => a.SourceSequence == op.Value.SourceSequence)

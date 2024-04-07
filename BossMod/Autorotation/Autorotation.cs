@@ -185,10 +185,10 @@ class Autorotation : IDisposable
         _classActions?.NotifyActionExecuted(request);
     }
 
-    private void OnCastEvent(object? sender, (Actor actor, ActorCastEvent cast) args)
+    private void OnCastEvent(Actor actor, ActorCastEvent cast)
     {
-        if (args.cast.SourceSequence != 0 && args.actor == WorldState.Party.Player())
-            _classActions?.NotifyActionSucceeded(args.cast);
+        if (cast.SourceSequence != 0 && actor == WorldState.Party.Player())
+            _classActions?.NotifyActionSucceeded(cast);
     }
 
     private uint PositionalColor(CommonRotation.Strategy strategy)

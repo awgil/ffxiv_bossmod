@@ -80,14 +80,14 @@ public class ClientState
     }
 
     // implementation of operations
-    public event EventHandler<OpActionRequest>? ActionRequested;
+    public event Action<OpActionRequest>? ActionRequested;
     public class OpActionRequest : WorldState.Operation
     {
         public ClientActionRequest Request;
 
         protected override void Exec(WorldState ws)
         {
-            ws.Client.ActionRequested?.Invoke(ws, this);
+            ws.Client.ActionRequested?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLAR")
@@ -100,14 +100,14 @@ public class ClientState
             .EmitFloatPair(Request.InitialRecastElapsed, Request.InitialRecastTotal);
     }
 
-    public event EventHandler<OpActionReject>? ActionRejected;
+    public event Action<OpActionReject>? ActionRejected;
     public class OpActionReject : WorldState.Operation
     {
         public ClientActionReject Value;
 
         protected override void Exec(WorldState ws)
         {
-            ws.Client.ActionRejected?.Invoke(ws, this);
+            ws.Client.ActionRejected?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLRJ")
@@ -117,7 +117,7 @@ public class ClientState
             .Emit(Value.LogMessageID);
     }
 
-    public event EventHandler<OpCountdownChange>? CountdownChanged;
+    public event Action<OpCountdownChange>? CountdownChanged;
     public class OpCountdownChange : WorldState.Operation
     {
         public float? Value;
@@ -125,7 +125,7 @@ public class ClientState
         protected override void Exec(WorldState ws)
         {
             ws.Client.CountdownRemaining = Value;
-            ws.Client.CountdownChanged?.Invoke(ws, this);
+            ws.Client.CountdownChanged?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output)
@@ -137,7 +137,7 @@ public class ClientState
         }
     }
 
-    public event EventHandler<OpCooldown>? CooldownsChanged;
+    public event Action<OpCooldown>? CooldownsChanged;
     public class OpCooldown : WorldState.Operation
     {
         public bool Reset;
@@ -149,7 +149,7 @@ public class ClientState
                 Array.Fill(ws.Client.Cooldowns, default);
             foreach (var cd in Cooldowns)
                 ws.Client.Cooldowns[cd.group] = cd.value;
-            ws.Client.CooldownsChanged?.Invoke(ws, this);
+            ws.Client.CooldownsChanged?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output)
@@ -162,7 +162,7 @@ public class ClientState
         }
     }
 
-    public event EventHandler<OpDutyActionsChange>? DutyActionsChanged;
+    public event Action<OpDutyActionsChange>? DutyActionsChanged;
     public class OpDutyActionsChange : WorldState.Operation
     {
         public ActionID Slot0;
@@ -172,13 +172,13 @@ public class ClientState
         {
             ws.Client.DutyActions[0] = Slot0;
             ws.Client.DutyActions[1] = Slot1;
-            ws.Client.DutyActionsChanged?.Invoke(ws, this);
+            ws.Client.DutyActionsChanged?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLDA").Emit(Slot0).Emit(Slot1);
     }
 
-    public event EventHandler<OpBozjaHolsterChange>? BozjaHolsterChanged;
+    public event Action<OpBozjaHolsterChange>? BozjaHolsterChanged;
     public class OpBozjaHolsterChange : WorldState.Operation
     {
         public List<(BozjaHolsterID entry, byte count)> Contents = new();
@@ -188,7 +188,7 @@ public class ClientState
             Array.Fill(ws.Client.BozjaHolster, (byte)0);
             foreach (var e in Contents)
                 ws.Client.BozjaHolster[(int)e.entry] = e.count;
-            ws.Client.BozjaHolsterChanged?.Invoke(ws, this);
+            ws.Client.BozjaHolsterChanged?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output)

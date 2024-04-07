@@ -35,7 +35,7 @@ class Actions : TankActions
         // TODO: Shirk - check that hate is close to MT?..
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -132,7 +132,7 @@ class Actions : TankActions
         }
     }
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         SupportedSpell(AID.HeavySwing).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;

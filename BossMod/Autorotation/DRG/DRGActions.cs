@@ -27,7 +27,7 @@ class Actions : CommonActions
         SupportedSpell(AID.Geirskogul).TransformAction = SupportedSpell(AID.Nastrond).TransformAction = () => ActionID.MakeSpell(_state.BestGeirskogul);
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -131,7 +131,7 @@ class Actions : CommonActions
         _state.TargetChaosThrustLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedChaoticSpring, Player.InstanceID).Left;
     }
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         SupportedSpell(AID.TrueThrust).PlaceholderForAuto = SupportedSpell(AID.RaidenThrust).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;

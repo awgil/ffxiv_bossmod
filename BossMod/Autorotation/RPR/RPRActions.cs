@@ -29,7 +29,7 @@ class Actions : CommonActions
         SupportedSpell(AID.LegSweep).Condition = target => target?.CastInfo?.Interruptible ?? false;
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -140,7 +140,7 @@ class Actions : CommonActions
         _state.lastActionisSoD = ev.Action.Type == ActionType.Spell && (AID)ev.Action.ID is AID.ShadowofDeath or AID.WhorlofDeath;
     }
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         SupportedSpell(AID.Slice).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;

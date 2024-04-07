@@ -28,7 +28,7 @@ public class WorldState
     }
 
     // state modification
-    public event EventHandler<Operation>? Modified;
+    public event Action<Operation>? Modified;
     public abstract class Operation
     {
         public DateTime Timestamp; // TODO: this should be removed...
@@ -48,7 +48,7 @@ public class WorldState
     public void Execute(Operation op)
     {
         op.Execute(this);
-        Modified?.Invoke(this, op);
+        Modified?.Invoke(op);
     }
 
     // generate a set of operations that would turn default-constructed state into current state
@@ -71,7 +71,7 @@ public class WorldState
     }
 
     // implementation of operations
-    public event EventHandler<OpFrameStart>? FrameStarted;
+    public event Action<OpFrameStart>? FrameStarted;
     public class OpFrameStart : Operation
     {
         public FrameState Frame;
@@ -82,7 +82,7 @@ public class WorldState
         {
             ws.Frame = Frame;
             ws.Client.Tick(Frame.Duration);
-            ws.FrameStarted?.Invoke(ws, this);
+            ws.FrameStarted?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "FRAM")
@@ -96,20 +96,20 @@ public class WorldState
             .Emit(Frame.TickSpeedMultiplier);
     }
 
-    public event EventHandler<OpUserMarker>? UserMarkerAdded;
+    public event Action<OpUserMarker>? UserMarkerAdded;
     public class OpUserMarker : Operation
     {
         public string Text = "";
 
         protected override void Exec(WorldState ws)
         {
-            ws.UserMarkerAdded?.Invoke(ws, this);
+            ws.UserMarkerAdded?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "UMRK").Emit(Text);
     }
 
-    public event EventHandler<OpRSVData>? RSVDataReceived;
+    public event Action<OpRSVData>? RSVDataReceived;
     public class OpRSVData : Operation
     {
         public string Key = "";
@@ -119,13 +119,13 @@ public class WorldState
         {
             Service.LuminaGameData?.Excel.RsvProvider.Add(Key, Value);
             ws.RSVEntries[Key] = Value;
-            ws.RSVDataReceived?.Invoke(ws, this);
+            ws.RSVDataReceived?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "RSV ").Emit(Key).Emit(Value);
     }
 
-    public event EventHandler<OpZoneChange>? CurrentZoneChanged;
+    public event Action<OpZoneChange>? CurrentZoneChanged;
     public class OpZoneChange : Operation
     {
         public ushort Zone;
@@ -135,14 +135,14 @@ public class WorldState
         {
             ws.CurrentZone = Zone;
             ws.CurrentCFCID = CFCID;
-            ws.CurrentZoneChanged?.Invoke(ws, this);
+            ws.CurrentZoneChanged?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ZONE").Emit(Zone).Emit(CFCID);
     }
 
     // global events
-    public event EventHandler<OpDirectorUpdate>? DirectorUpdate;
+    public event Action<OpDirectorUpdate>? DirectorUpdate;
     public class OpDirectorUpdate : Operation
     {
         public uint DirectorID;
@@ -154,13 +154,13 @@ public class WorldState
 
         protected override void Exec(WorldState ws)
         {
-            ws.DirectorUpdate?.Invoke(ws, this);
+            ws.DirectorUpdate?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
     }
 
-    public event EventHandler<OpEnvControl>? EnvControl;
+    public event Action<OpEnvControl>? EnvControl;
     public class OpEnvControl : Operation
     {
         public byte Index;
@@ -168,7 +168,7 @@ public class WorldState
 
         protected override void Exec(WorldState ws)
         {
-            ws.EnvControl?.Invoke(ws, this);
+            ws.EnvControl?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ENVC").Emit(Index, "X2").Emit(State, "X8");

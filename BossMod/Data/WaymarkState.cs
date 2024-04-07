@@ -24,7 +24,7 @@ public class WaymarkState
     }
 
     // implementation of operations
-    public event EventHandler<OpWaymarkChange>? Changed;
+    public event Action<OpWaymarkChange>? Changed;
     public class OpWaymarkChange : WorldState.Operation
     {
         public Waymark ID;
@@ -33,7 +33,7 @@ public class WaymarkState
         protected override void Exec(WorldState ws)
         {
             ws.Waymarks[ID] = Pos;
-            ws.Waymarks.Changed?.Invoke(ws, this);
+            ws.Waymarks.Changed?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output)

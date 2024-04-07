@@ -25,7 +25,7 @@ class Actions : CommonActions
         SupportedSpell(AID.Improvisation).TransformAction = () => ActionID.MakeSpell(_state.BestImprov);
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -37,7 +37,7 @@ class Actions : CommonActions
 
     public override CommonRotation.Strategy GetStrategy() => _strategy;
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         SupportedSpell(AID.Cascade).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
         SupportedSpell(AID.Windmill).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;

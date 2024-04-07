@@ -62,15 +62,12 @@ public class PropertySliderAttribute : Attribute
 // base class for configuration nodes
 public abstract class ConfigNode
 {
-    public event EventHandler? Modified;
+    public event Action? Modified;
 
     // notify that configuration node was modified; should be called by derived classes whenever they make any modifications
     // implementation dispatches modification event and forwards request to parent
     // root should subscribe to modification event to save updated configuration
-    public void NotifyModified()
-    {
-        Modified?.Invoke(this, EventArgs.Empty);
-    }
+    public void NotifyModified() => Modified?.Invoke();
 
     // draw custom contents; override this for complex config nodes
     public virtual void DrawCustom(UITree tree, WorldState ws) { }

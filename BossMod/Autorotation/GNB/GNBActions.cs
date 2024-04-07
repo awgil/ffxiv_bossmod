@@ -39,7 +39,7 @@ class Actions : TankActions
         // TODO: Shirk - check that hate is close to MT?..
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -124,7 +124,7 @@ class Actions : TankActions
         _state.NumTargetsHitByAOE = NumTargetsHitByAOE();
     }
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         SupportedSpell(AID.KeenEdge).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;

@@ -31,7 +31,7 @@ class Actions : HealerActions
         SupportedSpell(AID.DivineBenison).Condition = target => target != null && target.FindStatus(SID.DivineBenison, Player.InstanceID) == null; // check whether potential divine benison target doesn't already have it applied
 
         _config.Modified += OnConfigModified;
-        OnConfigModified(null, EventArgs.Empty);
+        OnConfigModified();
     }
 
     public override void Dispose()
@@ -206,7 +206,7 @@ class Actions : HealerActions
 
     private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, _state.ExpectedDia, Player.InstanceID).Left);
 
-    private void OnConfigModified(object? sender, EventArgs args)
+    private void OnConfigModified()
     {
         // placeholders
         //SupportedSpell(AID.Stone1).PlaceholderForAuto = SupportedSpell(AID.Stone2).PlaceholderForAuto = SupportedSpell(AID.Stone3).PlaceholderForAuto = SupportedSpell(AID.Stone4).PlaceholderForAuto

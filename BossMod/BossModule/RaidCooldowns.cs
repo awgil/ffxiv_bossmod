@@ -38,32 +38,32 @@ public class RaidCooldowns : IDisposable
 
     public float InterruptAvailableIn(int slot, DateTime now) => MathF.Max(0, (float)(_interruptCooldowns[slot] - now).TotalSeconds);
 
-    private void HandlePartyUpdate(object? sender, PartyState.OpModify op)
+    private void HandlePartyUpdate(PartyState.OpModify op)
     {
         _damageCooldowns.RemoveAll(e => e.Slot == op.Slot);
     }
 
-    private void HandleCast(object? sender, (Actor actor, ActorCastEvent cast) args)
+    private void HandleCast(Actor actor, ActorCastEvent cast)
     {
-        if (!args.cast.IsSpell())
+        if (!cast.IsSpell())
             return;
         // see https://i.redd.it/xrtgpras94881.png
         // TODO: AST card buffs?, all non-damage buffs
-        _ = args.cast.Action.ID switch
+        _ = cast.Action.ID switch
         {
-            (uint)BRD.AID.BattleVoice => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120),
-            //2258 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 60), // NIN trick attack - note that this results in debuff on enemy, which isn't handled properly for now
-            (uint)DRG.AID.BattleLitany => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120),
-            (uint)MNK.AID.Brotherhood => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120),
-            //(uint)DRG.AID.DragonSight => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // note that it is single-target rather than raid
-            //(uint)SCH.AID.ChainStratagem => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // note that this results in debuff on enemy, which isn't handled properly for now
-            7520 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // RDM embolden
-            16196 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // DNC technical finish
-            16552 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // AST divination
-            24405 => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 20, 120), // RPR arcane circle
-            (uint)BRD.AID.RadiantFinale => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 15, 120), // note that even though CD is 110, it's used together with other 2min cds
-            (uint)SMN.AID.SearingLight => UpdateDamageCooldown(args.actor.InstanceID, args.cast.Action, 30, 120),
-            (uint)WAR.AID.Interject or (uint)BRD.AID.HeadGraze => UpdateInterruptCooldown(args.actor.InstanceID, args.cast.Action, 30),
+            (uint)BRD.AID.BattleVoice => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120),
+            //2258 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 60), // NIN trick attack - note that this results in debuff on enemy, which isn't handled properly for now
+            (uint)DRG.AID.BattleLitany => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120),
+            (uint)MNK.AID.Brotherhood => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120),
+            //(uint)DRG.AID.DragonSight => UpdateDamageCooldown(actor.InstanceID, cast.Action, 20, 120), // note that it is single-target rather than raid
+            //(uint)SCH.AID.ChainStratagem => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120), // note that this results in debuff on enemy, which isn't handled properly for now
+            7520 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 20, 120), // RDM embolden
+            16196 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 20, 120), // DNC technical finish
+            16552 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120), // AST divination
+            24405 => UpdateDamageCooldown(actor.InstanceID, cast.Action, 20, 120), // RPR arcane circle
+            (uint)BRD.AID.RadiantFinale => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 120), // note that even though CD is 110, it's used together with other 2min cds
+            (uint)SMN.AID.SearingLight => UpdateDamageCooldown(actor.InstanceID, cast.Action, 30, 120),
+            (uint)WAR.AID.Interject or (uint)BRD.AID.HeadGraze => UpdateInterruptCooldown(actor.InstanceID, cast.Action, 30),
             _ => false
         };
     }
@@ -98,7 +98,7 @@ public class RaidCooldowns : IDisposable
         return true;
     }
 
-    private void HandleDirectorUpdate(object? sender, WorldState.OpDirectorUpdate op)
+    private void HandleDirectorUpdate(WorldState.OpDirectorUpdate op)
     {
         if (op.UpdateID is 0x40000001 or 0x40000005) // init or fade-out (wipe)
         {
