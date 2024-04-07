@@ -101,5 +101,5 @@ class HammersLevinforge : Components.SelfTargetedAOEs
 
 class HammersSpire : Components.SelfTargetedAOEs
 {
-    public HammersSpire() : base(ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15)) { }
+    public HammersSpire() : base(ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15, 2)) { }
 }
