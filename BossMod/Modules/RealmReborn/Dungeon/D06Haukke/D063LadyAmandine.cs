@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x38A8, // x1
     Sentry = 0x38A9, // x1
     Handmaiden = 0x38AA, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -22,7 +22,7 @@ public enum AID : uint
     AutoAttackAdd = 870, // Handmaiden->player, no cast
     ColdCaress = 28642, // Handmaiden->player, no cast
     Stoneskin = 28641, // Handmaiden->Boss, 5.0s cast, buff target
-};
+}
 
 class DarkMist : Components.SelfTargetedAOEs
 {

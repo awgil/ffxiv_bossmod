@@ -21,7 +21,7 @@ class EntrapmentAttract : Components.Knockback
 // the 'board' is 7x7; cell index is zzzxxx (64 bit), with (0,0) corresponding to NW cell
 class Entrapment : Components.CastCounter
 {
-    public enum TrapType { Normal, Toad, Ice, Mini };
+    public enum TrapType { Normal, Toad, Ice, Mini }
 
     public struct Pattern
     {

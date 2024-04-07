@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x6DB, // x1
     GolemSoulstone = 0x7FA, // x1, Part type, and more spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -14,7 +14,7 @@ public enum AID : uint
     Rockslide = 1419, // Boss->self, 2.5s cast, range 16.2 width 8 rect aoe
     StoneSkull = 1416, // Boss->player, no cast, random single-target
     Obliterate = 680, // Boss->self, 2.0s cast, range 6? ??? aoe
-};
+}
 
 class BoulderClap : Components.SelfTargetedLegacyRotationAOEs
 {

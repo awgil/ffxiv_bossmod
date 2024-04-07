@@ -6,7 +6,7 @@ public enum OID : uint
     MoucheVolante = 0x606, // spawn during fight
     Amanuensis = 0x607, // spawn during fight
     Crystal = 0x1E8594, // x6, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -18,12 +18,12 @@ public enum AID : uint
     AutoAttackAdd = 878, // MoucheVolante->player, no cast, single-target
     Thunderstrike = 1097, // MoucheVolante->self, 2.0s cast, range 10+1.2 width 3 rect
     Condemnation = 1100, // Amanuensis->self, 2.5s cast, range 6+1.3 90-degree cone
-};
+}
 
 public enum SID : uint
 {
     Invincibility = 325, // none->Boss, extra=0x0
-};
+}
 
 class CursedGaze : Components.SelfTargetedAOEs
 {

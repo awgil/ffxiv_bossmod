@@ -9,7 +9,7 @@ public enum OID : uint
     Pillar = 0x3F21, // R0.200, x6
     Helper = 0x233C, // R0.500, x23
     ArcaneSphere = 0x3F22, // R0.700, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -69,7 +69,7 @@ public enum AID : uint
     HarrowingHellKnockback = 33428, // Helper->self, 3.9s cast, range 60 width 60 rect
     PartedPlumes = 33429, // Boss->self, 3.0s cast, single-target, visual
     PartedPlumesAOE = 33430, // Helper->self, 4.0s cast, range 50 20-degree cone
-};
+}
 
 public enum SID : uint
 {
@@ -77,7 +77,7 @@ public enum SID : uint
     DuodaemoniacBonds = 3551, // none->player, extra=0x0
     TetradaemoniacBonds = 3696, // none->player, extra=0x0
     DarkResistanceDown = 3323, // PandaemoniacPillarTurret->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
@@ -90,11 +90,11 @@ public enum IconID : uint
     Order2 = 337, // PandaemoniacPillarTurret
     Order3 = 338, // PandaemoniacPillarTurret
     Order4 = 339, // PandaemoniacPillarTurret
-};
+}
 
 public enum TetherID : uint
 {
     DividingWings = 242, // Helper->player
     Web = 226, // player/Pillar->player/Pillar
     WebFail = 227, // player->player
-};
+}

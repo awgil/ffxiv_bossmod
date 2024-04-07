@@ -30,7 +30,7 @@ public enum AID : uint
     ReactiveMunition = 23894,
     SenseWeakness = 23893,
     MagitekImpetus = 23899,
-};
+}
 
 public enum SID : uint
 {
@@ -39,4 +39,4 @@ public enum SID : uint
     LeftFace = 0x50F,
     RightFace = 0x510,
     AccelerationBomb = 0x430,
-};
+}

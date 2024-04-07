@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2DBD, // R8.000, x1
     Helper = 0x233C, // R0.500, x11
     MagitekBit = 0x2F58, // R0.660, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -22,7 +22,7 @@ public enum AID : uint
     Explosion = 21266, // Helper->self, 7.0s cast, range 6 circle tower
     MassiveExplosion = 21267, // Helper->self, no cast, range 60 circle, failed tower
     MagitekRay = 21268, // MagitekBit->self, 2.5s cast, range 50 width 4 rect
-};
+}
 
 class LightLeap : Components.LocationTargetedAOEs
 {

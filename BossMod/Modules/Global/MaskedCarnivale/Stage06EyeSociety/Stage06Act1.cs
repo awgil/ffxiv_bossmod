@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x25CD, //R=2.53
     Mandragora = 0x2700, //R=0.3
-};
+}
 
 public enum AID : uint
 {
@@ -12,12 +12,12 @@ public enum AID : uint
     DemonEye = 14691, // 25CD->self, 5,0s cast, range 50+R circle
     Attack = 6499, // 2700/25CD->player, no cast, single-target
     ColdStare = 14692, // 25CD->self, 2,5s cast, range 40+R 90-degree cone
-};
+}
 
 public enum SID : uint
 {
     Blind = 571, // Mandragora->player, extra=0x0
-};
+}
 
 class DemonEye : Components.CastGaze
 {

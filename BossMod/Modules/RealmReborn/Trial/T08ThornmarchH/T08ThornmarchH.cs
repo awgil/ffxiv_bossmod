@@ -12,7 +12,7 @@ public enum OID : uint
     GoodKingMoggleMogXII = 0x3923, // R3.000, spawn during fight (main boss)
     Helper = 0x233C, // R0.500, x12
     PomBog = 0x1E8F67, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -58,7 +58,7 @@ public enum AID : uint
     PomStoneMid = 29202, // Helper->self, 5.0s cast, range 10-20 donut
     PomStoneOut = 29619, // Helper->self, 5.0s cast, range 20-30 donut
     MogCreation = 29208, // GoodKingMoggleMogXII->self, 3.0s cast, range 50 width 10 rect aoe
-};
+}
 
 class SpinningMogshield : Components.SelfTargetedAOEs
 {

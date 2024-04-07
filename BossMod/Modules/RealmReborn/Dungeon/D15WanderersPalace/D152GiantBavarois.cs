@@ -7,7 +7,7 @@ public enum OID : uint
     GreenBavarois = 0x41F, // spawn during fight
     PurpleBavarois = 0x421, // spawn during fight
     BlueBavarois = 0x422, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -18,12 +18,12 @@ public enum AID : uint
     Aero = 1397, // GreenBavarois->player, 1.0s cast, single-target
     Thunder = 1396, // PurpleBavarois->player, 1.0s cast, single-target
     Water = 971, // BlueBavarois->player, 1.0s cast, single-target
-};
+}
 
 public enum IconID : uint
 {
     AmorphicFlail = 1, // player
-};
+}
 
 class Fire : Components.SingleTargetCast
 {

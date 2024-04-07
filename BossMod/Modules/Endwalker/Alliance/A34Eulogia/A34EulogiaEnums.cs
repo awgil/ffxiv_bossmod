@@ -17,7 +17,7 @@ public enum OID : uint
     BlueSafeZone = 0x1EB845, // R0.500, EventObj type, spawn during fight
     GoldFlowers = 0x1EB844, // R0.500, EventObj type, spawn during fight
     BlueFlowers = 0x1EB843, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -146,7 +146,7 @@ public enum AID : uint
     TheWanderersWhimsy = 35374, // Helper->self, no cast, range 80 circle, raidwide
     EudaimonEorzea1 = 35372, // Eulogia->self, 22.2s cast, single-target
     EudaimonEorzea2 = 36091, // Helper->self, 24.9s cast, range 40 circle    
-};
+}
 
 public enum SID : uint
 {
@@ -157,12 +157,12 @@ public enum SID : uint
     Bind = 2518, // none->player, extra=0x0
     BloomingGold = 3460, // none->player, extra=0x0
     BloomingBlue = 3459, // none->player, extra=0x0
-};
+}
 
 public enum TetherID : uint
 {
     HydrostasisQuick = 219, // HydrostasisQuick->Eulogia
-};
+}
 
 public enum IconID : uint
 {
@@ -176,4 +176,4 @@ public enum IconID : uint
     Order2 = 399, // MatronsBreathHelper
     Order3 = 400, // MatronsBreathHelper
     Order4 = 401, // MatronsBreathHelper
-};
+}

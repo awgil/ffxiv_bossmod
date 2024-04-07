@@ -14,7 +14,7 @@ public enum AID : uint
     Divide = 28463, // Boss->self, 3.0s cast, visual
     DivideAppear = 28464, // IchorousDrip->location, no cast, teleport/appear
     Burst = 28465, // IchorousDrip->self, 6.0s cast, range 8 aoe
-};
+}
 
 class Syrup : Components.LocationTargetedAOEs
 {

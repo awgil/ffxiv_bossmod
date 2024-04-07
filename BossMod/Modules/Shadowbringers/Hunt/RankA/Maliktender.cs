@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.Maliktender;
 public enum OID : uint
 {
     Boss = 0x2874, // R=3.06
-};
+}
 
 public enum AID : uint
 {
@@ -18,7 +18,7 @@ public enum SID : uint
 {
     Haste = 1962,
     Stun = 149,
-};
+}
 
 class Sabotendance : Components.SelfTargetedAOEs
 {

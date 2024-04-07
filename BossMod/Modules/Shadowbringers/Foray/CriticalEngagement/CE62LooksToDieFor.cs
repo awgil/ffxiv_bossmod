@@ -8,7 +8,7 @@ public enum OID : uint
     BallOfFire = 0x31CB, // R1.000, spawn during fight
     //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
     //_Gen_Actor1eb180 = 0x1EB180, // R0.500, x0, EventObj type, and more spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -36,7 +36,7 @@ public enum AID : uint
     LevinboltAOE = 23984, // Helper->players, 5.0s cast, range 6 circle spread
     SerpentsEdge = 23985, // Boss->player, 5.0s cast, single-target, tankbuster
     Deathwall = 24711, // Helper->self, no cast, range 20-30 donut
-};
+}
 
 class Thundercall : Components.RaidwideCast
 {

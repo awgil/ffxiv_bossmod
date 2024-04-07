@@ -11,7 +11,7 @@ public enum OID : uint
     //_Gen_Exit = 0x1E850B, // x1, EventObj type
     //_Gen_MagitekArmor = 0x1EB702, // x4, EventObj type
     //_Gen_Actor1e8536 = 0x1E8536, // x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -107,14 +107,14 @@ public enum AID : uint
     Entanglement = 30125, // Boss->self, 4.0s cast, single-target, visual
 
     Maelstrom = 30142, // Boss->self, 9.0s cast, enrage
-};
+}
 
 public enum TetherID : uint
 {
     BrutalRush = 17, // player->Boss
     Tangle = 199, // player->Tangle
     Entanglement = 210, // player->player
-};
+}
 
 public enum IconID : uint
 {
@@ -131,4 +131,4 @@ public enum IconID : uint
     //_Gen_Icon_259 = 259, // player
     //_Gen_Icon_365 = 365, // player
     //_Gen_Icon_371 = 371, // player
-};
+}

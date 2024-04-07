@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x536, // x1
     BottomlessDesertHelper = 0x64A, // x1
     SandPillarHelper = 0x64B, // x7
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     Earthbreak = 531, // Boss->self, no cast, range 14.5 aoe
     BottomlessDesert = 1112, // BottomlessDesertHelper->self, no cast, raidwide drawin
     SandPillar = 1113, // SandPillarHelper->self, no cast, range 4.5 aoe
-};
+}
 
 class Sandstorm : Components.Cleave
 {

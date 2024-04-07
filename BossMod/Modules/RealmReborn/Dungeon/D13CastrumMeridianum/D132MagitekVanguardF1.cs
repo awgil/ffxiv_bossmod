@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x38CD, // x1
     Helper = 0x233C, // x7
-};
+}
 
 public enum AID : uint
 {
@@ -18,7 +18,7 @@ public enum AID : uint
     TargetedSupportAOE = 28784, // Helper->self, 3.0s cast, range 5 circle aoe
     CermetDrill = 28785, // Boss->player, 5.0s cast, single-target tankbuster
     Overcharge = 29146, // Boss->self, 3.0s cast, range 11 120-degree cone aoe
-};
+}
 
 class ThermobaricCharge : Components.SelfTargetedAOEs
 {

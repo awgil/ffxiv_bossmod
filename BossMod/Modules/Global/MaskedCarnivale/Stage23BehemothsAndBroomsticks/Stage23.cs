@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2732, //R=5.8
     Maelstrom = 0x2733, //R=1.0
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -16,7 +16,7 @@ public enum AID : uint
     Comet = 15260, // Boss->self, 5,0s cast, single-target
     Comet2 = 15261, // Helper->location, 4,0s cast, range 10 circle
     EclipticMeteor = 15257, // Boss->location, 10,0s cast, range 50 circle
-};
+}
 
 
 class Charybdis : Components.LocationTargetedAOEs

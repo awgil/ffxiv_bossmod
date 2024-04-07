@@ -6,7 +6,7 @@ public enum OID : uint
     MammothTentacle = 0x3EAB, // R=6.0
     Crystals = 0x3EAC, // R=0.5
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -24,7 +24,7 @@ public enum AID : uint
     WaterDrop = 34436, // Helper->player, 5.0s cast, range 6 circle
     WallopVisual = 33350, // Boss->self, no cast, single-target, visual, starts tentacle wallops
     Wallop = 33346, // MammothTentacle->self, 3.0s cast, range 22 width 8 rect
-};
+}
 
 class Border : BossComponent
 {

@@ -16,7 +16,7 @@ public enum OID : uint
 
     Helper = 0x233C, // R0.500, x32
     Portal = 0x1EB761, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -75,7 +75,7 @@ public enum AID : uint
 
     Enrage = 29887, // NBoss->self, 10.0s cast, range 80 circle enrage
     EnrageRepeat = 29641, // NBoss->self, no cast, range 80 circle enrage
-};
+}
 
 public enum SID : uint
 {
@@ -90,4 +90,4 @@ public enum SID : uint
     Counter = 2397, // none->NLaser/NBeacon, extra=0x1C2/0x1C3/0x1C4/0x1C5/0x1C6/0x1C7/0x1C8/0x1C9/0x1C1/0x1CC/0x1F3 (1C2-1C5 = #1-#4 NS, 1C6-1C9 = #1-#4 EW, 1C1 = unbreakable)
     PlayerPortal = 2970, // NBoss->player, extra=0x1CD/0x1CE/0x1D2/0x1D3 (1CD = CCW E->N, 1CE = CW W->N, 1D2 = CW E->S, 1D3 = CCW W->S)
     CallOfThePortal = 3276, // NBoss->player, extra=0x0
-};
+}

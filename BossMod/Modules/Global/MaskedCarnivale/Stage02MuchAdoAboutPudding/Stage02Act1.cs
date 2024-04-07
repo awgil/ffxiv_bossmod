@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x25C0, //R=1.8
     Marshmallow = 0x25C2, //R1.8
     Bavarois = 0x25C4, //R1.8
-};
+}
 
 public enum AID : uint
 {
@@ -13,7 +13,7 @@ public enum AID : uint
     Aero = 14269, // 25C2->player, 1,0s cast, single-target
     Thunder = 14268, // 25C4->player, 1,0s cast, single-target
     GoldenTongue = 14265, // 25C0/25C2/25C4->self, 5,0s cast, single-target
-};
+}
 
 class GoldenTongue : Components.CastHint
 {

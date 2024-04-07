@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x25D5, //R=2.5
     Beetle = 0x25D6, //R=0.6
-};
+}
 
 public enum AID : uint
 {
@@ -14,7 +14,7 @@ public enum AID : uint
     MagitekField = 14369, // 25D5->self, 5,0s cast, single-target
     Spoil = 14362, // 25D6->self, no cast, range 6+R circle
     MagitekRay = 14368, // 25D5->location, 3,0s cast, range 6 circle
-};
+}
 
 class GrandStrike : Components.SelfTargetedAOEs
 {

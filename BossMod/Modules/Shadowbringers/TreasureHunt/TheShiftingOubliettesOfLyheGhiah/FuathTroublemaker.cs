@@ -6,7 +6,7 @@ public enum OID : uint
     BossAdd = 0x3019, //R=1.8
     BossHelper = 0x233C,
     BonusAdd_FuathTrickster = 0x3033, // R0.750
-};
+}
 
 public enum AID : uint
 {
@@ -19,7 +19,7 @@ public enum AID : uint
     ToyHammer = 21734, // Boss->player, 4,0s cast, single-target
     Hydrocannon = 21737, // Boss->players, 5,0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-};
+}
 
 class CroakingChorus : Components.CastHint
 {

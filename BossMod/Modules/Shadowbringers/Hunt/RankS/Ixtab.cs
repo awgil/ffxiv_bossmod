@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x2838, // R=3.24
-};
+}
 
 public enum AID : uint
 {
@@ -20,7 +20,7 @@ public enum AID : uint
     Cryptcall = 17847, // Boss->self/players, 3,0s cast, range 35+R 120-degree cone, sets hp to 1, applies heal to full doom with 25s duration
     TartareanQuake = 17849, // Boss->self, 4,0s cast, range 40 circle
     TartareanTwister = 18072, // Boss->self, 5,0s cast, range 55 circle, raidwide + windburn DoT, interruptible
-};
+}
 
 public enum SID : uint
 {
@@ -28,7 +28,7 @@ public enum SID : uint
     Dualcast = 1798, // Boss->Boss, extra=0x0
     Paralysis = 17, // Boss->player, extra=0x0
     Doom = 1769, // Boss->player, extra=0x0
-};
+}
 
 class DualCastTartareanFlameThunder : Components.GenericAOEs
 {

@@ -9,7 +9,7 @@ public enum OID : uint
     SKotengu = 0x3F9E, // R1.500
     SOnmitsugashira = 0x3F9F, // R1.360, x1
     SYamabiko = 0x3FA3, // R0.800, x6
-};
+}
 
 public enum AID : uint
 {
@@ -39,7 +39,7 @@ public enum AID : uint
     // yamabiko
     NMountainBreeze = 34439, // NYamabiko->self, 6.0s cast, range 40 width 8 rect
     SMountainBreeze = 34442, // SYamabiko->self, 6.0s cast, range 40 width 8 rect
-};
+}
 
 class MountainBreeze : Components.SelfTargetedAOEs
 {

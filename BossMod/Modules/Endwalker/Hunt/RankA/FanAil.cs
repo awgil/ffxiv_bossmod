@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35C1, // R5.040, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     DeathSentence = 27379, // Boss->player, 5.0s cast, single-target
     CycloneWing = 27380, // Boss->self, 5.0s cast, range 35 circle
     AutoAttack = 27381, // Boss->player, no cast, single-target
-};
+}
 
 // TODO: ok, this needs investigation...
 class Divebomb : Components.SelfTargetedLegacyRotationAOEs

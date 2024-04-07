@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.Sugaar;
 public enum OID : uint
 {
     Boss = 0x2875, // R5.500, x1
-};
+}
 
 public enum AID : uint
 {

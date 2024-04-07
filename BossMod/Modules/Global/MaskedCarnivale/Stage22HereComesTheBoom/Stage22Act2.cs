@@ -6,7 +6,7 @@ public enum OID : uint
     ArenaGrenade = 0x26FC, //R=1.2
     ArenaGasBomb = 0x26FD, //R=1.2
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -19,7 +19,7 @@ public enum AID : uint
     Fulmination = 14901, // ArenaGrenade->self, no cast, range 50+R circle, wipe if failed to kill grenade in one hit or boss finishes casting Ignition when grenade is still alive
     Flashthoom = 14902, // ArenaGasBomb->self, 6,0s cast, range 6+R circle
     Burst = 14904, // Boss->self, 20,0s cast, range 50 circle
-};
+}
 
 class Sap : Components.LocationTargetedAOEs
 {

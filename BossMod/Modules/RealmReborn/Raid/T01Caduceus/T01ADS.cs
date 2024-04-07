@@ -8,7 +8,7 @@ public enum OID : uint
     AttackNode = 0x889, // spawn during fight
     DefenseNode = 0x88A, // spawn during fight
     GravityField = 0x1E8728, // EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -22,7 +22,7 @@ public enum AID : uint
     ChainLightningAOE = 1449, // Helper->player, no cast, single-target, ???
     NodeRetrieval = 1228, // Boss->PatrolNode/AttackNode/DefenseNode, no cast, single-target, happens if add is not killed in ~27s and gives boss damage up
     Object199 = 1229, // Boss->self, no cast, enrage
-};
+}
 
 class HighVoltage : Components.CastHint
 {

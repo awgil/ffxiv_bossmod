@@ -9,7 +9,7 @@ public enum OID : uint
     LivelyBait = 0x39ED, // spawn during fight
     TopazStoneAny = 0x1EB78C, // EventObj type, spawn during fight ('bent circle' spawns near wall and looks towards wall)
     TopazStonePoison = 0x1EB78D, // EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -82,4 +82,4 @@ public enum AID : uint
     SonicShatter = 30497, // Boss->self, 5.0s cast, raidwide
     SonicShatterRest = 30498, // Boss->self, no cast, raidwide
     AcidicSlaver = 30499, // Boss->self, 5.0s cast, enrage
-};
+}

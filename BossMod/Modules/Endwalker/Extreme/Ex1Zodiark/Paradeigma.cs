@@ -3,7 +3,7 @@
 // state related to paradeigma and astral flow mechanics
 class Paradeigma : BossComponent
 {
-    public enum FlowDirection { None, CW, CCW };
+    public enum FlowDirection { None, CW, CCW }
 
     private FlowDirection _flow;
     private List<WDir> _birds = new();

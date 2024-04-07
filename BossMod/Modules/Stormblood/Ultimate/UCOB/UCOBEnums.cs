@@ -29,7 +29,7 @@ public enum OID : uint
 
     //_Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
     //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -113,7 +113,7 @@ public enum AID : uint
     ExaflareRest = 9969, // Helper->self, no cast, range 6 circle
     Enrage = 9965, // BahamutPrime->player, 10.0s cast, range 4 circle, enrage spread
     EnrageAOE = 9966, // BahamutPrime->player, no cast, range 4 circle, enrage spread second+ casts
-};
+}
 
 public enum SID : uint
 {
@@ -122,13 +122,13 @@ public enum SID : uint
     Icebitten = 465, // Iceclaw->player, extra=0x0
     Thunderstruck = 466, // none->player, extra=0x0
     DownForTheCount = 783, // none->player, extra=0xEC7
-};
+}
 
 public enum TetherID : uint
 {
     Fireball = 5, // Firehorn->player
     TempestWing = 4, // player->BahamutPrime
-};
+}
 
 public enum IconID : uint
 {
@@ -140,4 +140,4 @@ public enum IconID : uint
     MegaflareDive = 41, // player
     TwistingDive = 42, // player
     LunarDive = 119, // player
-};
+}

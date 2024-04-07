@@ -2,7 +2,7 @@
 
 class TwinsongAporrhoia : BossComponent
 {
-    private enum HeadID { Center, Danger1, Danger2, Safe1, Safe2, Count };
+    private enum HeadID { Center, Danger1, Danger2, Safe1, Safe2, Count }
 
     private int _castsDone;
     private bool _ringsAssigned;

@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35DF, // R5.320, x1
-};
+}
 
 public enum AID : uint
 {
@@ -16,7 +16,7 @@ public enum AID : uint
     AvertYourEyesInverted = 27369, // Boss->self, 7.0s cast, range 40 circle
     YouMayApproachInverted = 27370, // Boss->self, 7.0s cast, range 15 circle
     AwayWithYouInverted = 27371, // Boss->self, 7.0s cast, range 6-40 donut
-};
+}
 
 class AvertYourEyes : Components.CastGaze
 {

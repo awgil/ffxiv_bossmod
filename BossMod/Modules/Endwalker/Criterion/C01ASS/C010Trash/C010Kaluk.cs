@@ -4,7 +4,7 @@ public enum OID : uint
 {
     NBoss = 0x3AD6, // R2.800, x1
     SBoss = 0x3ADF, // R2.800, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     SRightSweep = 31099, // SBoss->self, 4.0s cast, range 30 210-degree cone aoe
     SLeftSweep = 31100, // SBoss->self, 4.0s cast, range 30 210-degree cone aoe
     SCreepingIvy = 31101, // SBoss->self, 3.0s cast, range 10 90-degree cone aoe
-};
+}
 
 class RightSweep : Components.SelfTargetedAOEs
 {

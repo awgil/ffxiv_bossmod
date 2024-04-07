@@ -6,7 +6,7 @@ public enum OID : uint
     BossAdd = 0x3010, //R=1.32
     BossHelper = 0x233C,
     BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
-};
+}
 
 public enum AID : uint
 {
@@ -23,7 +23,7 @@ public enum AID : uint
     Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
     Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
     Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
-};
+}
 
 class Gust : Components.LocationTargetedAOEs
 {

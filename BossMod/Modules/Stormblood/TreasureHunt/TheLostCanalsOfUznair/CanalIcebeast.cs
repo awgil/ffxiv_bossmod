@@ -7,7 +7,7 @@ public enum OID : uint
     BossAdd1 = 0x1F0E, // R1.560
     BossAdd2 = 0x1F0F, // R1.600
     BonusAdd_Abharamu = 0x1EBF, // R3.420
-};
+}
 
 public enum AID : uint
 {
@@ -25,7 +25,7 @@ public enum AID : uint
     RaucousScritch = 8598, // BonusAdd_Abharamu->self, 2,5s cast, range 5+R 120-degree cone
     Hurl = 5352, // BonusAdd_Abharamu->location, 3,0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-};
+}
 
 class Eyeshine : Components.CastGaze
 {

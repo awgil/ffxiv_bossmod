@@ -6,7 +6,7 @@ public enum OID : uint
     NOdqan = 0x3AD2, // R1.050, x2
     SBoss = 0x3ADA, // R3.000, x1
     SOdqan = 0x3ADB, // R1.050, x2
-};
+}
 
 public enum AID : uint
 {
@@ -19,7 +19,7 @@ public enum AID : uint
     SAcornBomb = 31088, // SBoss->location, 3.0s cast, range 6 circle
     SGelidGale = 31089, // SOdqan->location, 3.0s cast, range 6 circle
     SUproot = 31090, // SOdqan->self, 3.0s cast, range 6 circle
-};
+}
 
 class ArborealStorm : Components.SelfTargetedAOEs
 {

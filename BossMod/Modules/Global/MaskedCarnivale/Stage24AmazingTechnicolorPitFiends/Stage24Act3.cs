@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2739, //R=3.0
     ArenaMagus = 0x273A, //R=1.0
     VacuumWave = 0x273B, //R=1.0
-};
+}
 
 public enum AID : uint
 {
@@ -18,7 +18,7 @@ public enum AID : uint
     BoneShaker = 15326, // 2739->self, 3,0s cast, range 50+R circle, raidwide + adds
     Fire = 14266, // 273A->player, 1,0s cast, single-target
     SelfDetonate = 15329, // 273A->player, 3,0s cast, single-target
-};
+}
 
 class MagicHammer : Components.LocationTargetedAOEs
 {

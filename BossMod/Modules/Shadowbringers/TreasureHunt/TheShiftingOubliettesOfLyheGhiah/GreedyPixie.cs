@@ -14,7 +14,7 @@ public enum OID : uint
     SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
     BonusAdd_FuathTrickster = 0x3033, // R0.750
-};
+}
 
 public enum AID : uint
 {
@@ -38,7 +38,7 @@ public enum AID : uint
     Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
     Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
     Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
-};
+}
 
 class Windrune : Components.SelfTargetedAOEs
 {

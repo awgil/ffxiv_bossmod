@@ -5,14 +5,14 @@ public enum OID : uint
     Boss = 0x2708, //R=0.6
     Bomb = 0x2709, //R=1.2
     Snoll = 0x270A, //R=0.9
-};
+}
 
 public enum AID : uint
 {
     SelfDestruct = 14687, // 2708->self, no cast, range 10 circle
     HypothermalCombustion = 14689, // 270A->self, no cast, range 6 circle
     SelfDestruct2 = 14688, // 2709->self, no cast, range 6 circle
-};
+}
 
 class Selfdetonations : BossComponent
 {

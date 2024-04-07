@@ -7,7 +7,7 @@ public enum OID : uint
     ImperialAssaultCraft = 0x2EE8, // R0.500, x22, also helper?
     Cavalry = 0x31C6, // R4.000, x9, and more spawn during fight
     FireShot = 0x1EB1D3, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -37,12 +37,12 @@ public enum AID : uint
     CallControlledBurn = 23950, // Boss->self, 5.0s cast, single-target, visual (spread)
     CallControlledBurnAOE = 23951, // ImperialAssaultCraft->players, 5.0s cast, range 6 circle spread
     MagitekBlaster = 23952, // Boss->players, 5.0s cast, range 8 circle stack
-};
+}
 
 public enum TetherID : uint
 {
     RawSteel = 57, // Boss->player
-};
+}
 
 class StormSlash : Components.SelfTargetedAOEs
 {

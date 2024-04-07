@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x5AF, // x1
     Helper = 0x233C, // x8
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     SheetOfIce2 = 1024, // Helper->location, 3.0s cast, range 5 aoe
     Cauterize = 1026, // Boss->self, 4.0s cast, range 48 width 20 rect aoe
     Touchdown = 1027, // Boss->self, no cast, range 5 aoe around center
-};
+}
 
 class RimeWreath : Components.RaidwideCast
 {

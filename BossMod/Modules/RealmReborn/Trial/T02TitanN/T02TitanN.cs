@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x1B2, // x4
     TitansHeart = 0x5E3, // Part type, spawn during fight
     GraniteGaol = 0x5A4, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -20,7 +20,7 @@ public enum AID : uint
     EarthenFury = 652, // Boss->self, no cast, wipe if heart not killed, otherwise just a raidwide
     WeightOfTheLand = 644, // Boss->self, 3.0s cast, visual
     WeightOfTheLandAOE = 973, // Helper->location, 3.5s cast, range 6 puddle
-};
+}
 
 class Hints : BossComponent
 {

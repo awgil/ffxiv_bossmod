@@ -11,7 +11,7 @@ public enum OID : uint
     MagitekBit = 0x915, // R0.600, more spawn during fight
     Helper = 0x1B2, // R0.500, x19
     AetheroplasmHelper = 0x8EE, // R0.500, x3
-};
+}
 
 public enum AID : uint
 {
@@ -47,7 +47,7 @@ public enum AID : uint
 
     AssaultCannon = 1526, // MagitekBit->self, 2.5s cast, range 45+R width 2 rect aoe
     Freefire = 1515, // Helper->self, no cast, range 40 circle aoe with 15 falloff
-};
+}
 
 public enum SID : uint
 {

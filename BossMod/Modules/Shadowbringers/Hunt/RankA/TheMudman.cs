@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.TheMudman;
 public enum OID : uint
 {
     Boss = 0x281F, // R=4.2
-};
+}
 
 public enum AID : uint
 {
@@ -12,12 +12,12 @@ public enum AID : uint
     RoyalFlush = 16826, // Boss->self, 3,0s cast, range 8 circle
     BogBequest = 16827, // Boss->self, 5,0s cast, range 5-20 donut
     GravityForce = 16829, // Boss->player, 5,0s cast, range 6 circle, interruptible, applies heavy
-};
+}
 
 public enum IconID : uint
 {
     Baitaway = 140, // player
-};
+}
 
 class BogBequest : Components.SelfTargetedAOEs
 {

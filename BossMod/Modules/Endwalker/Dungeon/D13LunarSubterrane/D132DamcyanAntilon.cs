@@ -7,7 +7,7 @@ public enum OID : uint
     StonePillar2 = 0x3FD1, // R=1.5
     QuicksandVoidzone = 0x1EB90E,
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -23,7 +23,7 @@ public enum AID : uint
     EarthenGeyser = 34821, // Boss->self, 4,0s cast, single-target
     EarthenGeyser2 = 34822, // Helper->players, 5,0s cast, range 10 circle
     PoundSand = 34443, // Boss->location, 6,0s cast, range 12 circle
-};
+}
 
 class Sandblast : Components.RaidwideCast
 {

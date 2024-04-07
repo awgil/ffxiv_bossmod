@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35DB, // R6.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -22,7 +22,7 @@ public enum AID : uint
     EmptyRefrainDonutFirst = 27332, // Boss->self, 13.5s cast, range 6-40 donut
     EmptyRefrainCircleSecond = 27335, // Boss->self, 1.0s cast, range 10 circle
     EmptyRefrainDonutSecond = 27337, // Boss->self, 1.0s cast, range 6-40 donut
-};
+}
 
 public enum SID : uint
 {
@@ -31,7 +31,7 @@ public enum SID : uint
     LeftFace = 1960, // Boss->player, extra=0x0
     RightFace = 1961, // Boss->player, extra=0x0
     ForcedMarch = 1257, // Boss->player, extra=1 (forward) / 2 (backward) / 4 (left) / 8 (right)
-};
+}
 
 class EmptyPromise : Components.GenericAOEs
 {

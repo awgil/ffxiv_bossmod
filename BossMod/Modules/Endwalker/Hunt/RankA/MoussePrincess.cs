@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x360B, // R6.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     PrincessCacophony = 27322, // Boss->location, 5.0s cast, range 12 circle
     Banish = 27323, // Boss->player, 5.0s cast, single-target
     RemoveWhimsy = 27634, // Boss->self, no cast, single-target, removes whimsy debuffs
-};
+}
 
 public enum SID : uint
 {

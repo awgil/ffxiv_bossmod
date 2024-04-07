@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankS.Gunitt;
 public enum OID : uint
 {
     Boss = 0x2852, // R=4.0
-};
+}
 
 public enum AID : uint
 {
@@ -16,18 +16,18 @@ public enum AID : uint
     CoinToss = 17360, // 2852->self, 4,0s cast, range 40 circle, gaze, applies Seduced (forced march to boss)
     TheDeepRends = 17351, // 2852->self, 5,5s cast, range 20 60-degree cone
     TheDeepRends2 = 17352, // 2852->self, no cast, range 20 60-degree cone, seems to target 5 random players after first The Deep Rends, no telegraph?
-};
+}
 
 public enum SID : uint
 {
     MagicVulnerabilityUp = 1138, // Boss->player, extra=0x0
     Seduced = 227, // Boss->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
     Stackmarker = 93, // player
-};
+}
 
 
 class TheDeepSeeks : Components.SingleTargetCast

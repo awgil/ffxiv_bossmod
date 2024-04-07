@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x5BF, // x1
-};
+}
 
 public enum AID : uint
 {
@@ -11,7 +11,7 @@ public enum AID : uint
     HundredLashings = 1031, // Boss->self, no cast, range 8+R ?-degree cone
     GoldRush = 1032, // Boss->self, no cast, raidwide
     GoldDust = 1033, // Boss->location, 3.5s cast, range 8 circle
-};
+}
 
 class HundredLashings : Components.Cleave
 {

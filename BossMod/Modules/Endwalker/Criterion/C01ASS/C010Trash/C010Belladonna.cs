@@ -4,7 +4,7 @@ public enum OID : uint
 {
     NBoss = 0x3AD5, // R4.000, x1
     SBoss = 0x3ADE, // R4.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     SAtropineSpore = 31096, // SBoss->self, 4.0s cast, range 10-40 donut aoe
     SFrondAffront = 31097, // SBoss->self, 3.0s cast, gaze
     SDeracinator = 31098, // SBoss->player, 4.0s cast, single-target tankbuster
-};
+}
 
 class AtropineSpore : Components.SelfTargetedAOEs
 {

@@ -3,14 +3,14 @@
 public enum OID : uint
 {
     Boss = 0x2A03, // R=0.75
-};
+}
 
 public enum AID : uint
 {
     AutoAttack = 18129, // Boss->player, no cast, single-target
     Icefall = 17043, // Boss->location, 3,0s cast, range 5 circle, deadly if petrified by gaze
     PetrifyingEye = 18041, // Boss->self, 3,0s cast, range 40 circle
-};
+}
 
 class Icefall : Components.LocationTargetedAOEs
 {

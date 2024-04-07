@@ -15,7 +15,7 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x33, 523 type
     ArrowBright = 0x1EB941, // R0.500, EventObj type, spawn during fight
     ArrowDim = 0x1EB942, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -98,7 +98,7 @@ public enum AID : uint
     SExplosiveTheorem = 35838, // SBoss->self, 5.0s cast, single-target, visual (spreads with lingering puddles)
     SExplosiveTheoremAOE = 35839, // Helper->player, 5.0s cast, range 8 circle spread
     STelluricTheorem = 35840, // Helper->location, 4.5s cast, range 8 circle puddle
-};
+}
 
 public enum SID : uint
 {
@@ -115,7 +115,7 @@ public enum SID : uint
     SubtractiveSuppressorBeta = 3725, // *Boss->player, extra=0x1/0x2/0x3/0x4
     ForwardMarch = 3715, // *Boss->player, extra=0x0
     ForcedMarch = 3719, // *Boss->player, extra=0x8/0x4
-};
+}
 
 public enum IconID : uint
 {
@@ -129,9 +129,9 @@ public enum IconID : uint
     SymmetricSurge = 62, // player
     ArcanePoint = 23, // player
     ExplosiveTheorem = 229, // player
-};
+}
 
 public enum TetherID : uint
 {
     TargetedLight = 17, // player->*Boss
-};
+}

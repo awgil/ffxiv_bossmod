@@ -6,7 +6,7 @@ public enum OID : uint
     SeekerAvatar = 0x3136, // R4.000, x7
     Helper = 0x233C, // R0.500, x16
     AetherialOrb = 0x3137, // R2.000, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -64,7 +64,7 @@ public enum AID : uint
     DeadIron = 23244, // SeekerAvatar->self, 4.0s cast, single-target, visual (earthshakers)
     DeadIronAOE = 23245, // Helper->self, no cast, range 50 30-degree cone earthshaker
     DeadIronSecond = 23364, // SeekerAvatar->self, no cast, single-target, visual (second earthshakers, without cast)
-};
+}
 
 public enum SID : uint
 {
@@ -75,17 +75,17 @@ public enum SID : uint
     //PhantomEdge = 2488, // Boss->Boss, extra=0x0
     //BurningChains = 769, // none->player, extra=0x0
     //AreaOfInfluenceUp = 1749, // none->Helper, extra=0x10
-};
+}
 
 public enum TetherID : uint
 {
     BurningChains = 128, // player->player
     DeadIron = 138, // player->SeekerAvatar
-};
+}
 
 public enum IconID : uint
 {
     BurningChains = 238, // player
     DeadIron = 237, // player
     MercifulArc = 243, // player
-};
+}

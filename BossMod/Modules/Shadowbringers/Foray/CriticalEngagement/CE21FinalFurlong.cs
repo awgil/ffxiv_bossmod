@@ -7,7 +7,7 @@ public enum OID : uint
     Monoceros = 0x2DB9, // R1.800, x1
     LlofiiTheForthright = 0x2DBA, // R0.500, x1
     GraspingRancor = 0x2DBC, // R1.600, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -30,14 +30,14 @@ public enum AID : uint
     Teleport = 20135, // Monoceros->location, no cast, single-target, teleport
     Ruin = 20142, // LlofiiTheForthright->Boss, 2.5s cast, single-target, autoattack
     Scupper = 21334, // LlofiiTheForthright->Boss, 2.0s cast, single-target, damage down on boss
-};
+}
 
 public enum TetherID : uint
 {
     Movable = 1, // GraspingRancor->player
     Frozen = 2, // GraspingRancor->player
     Unfreezable = 17, // GraspingRancor->player (appears if hand wasn't hit by aoe)
-};
+}
 
 class GraspingRancor : Components.LocationTargetedAOEs
 {

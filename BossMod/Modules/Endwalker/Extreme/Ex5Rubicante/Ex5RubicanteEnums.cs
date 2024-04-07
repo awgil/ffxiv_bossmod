@@ -17,7 +17,7 @@ public enum OID : uint
     FlamesentNC = 0x3D94, // R2.600, spawn during fight (northern center add)
     //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
     //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -98,7 +98,7 @@ public enum AID : uint
     Flamespire = 32042, // Helper->self, no cast, range 60 circle raidwide (wipe if flamespire reaches 5 stacks)
 
     Enrage = 32043, // Boss->self, 10.0s cast, range 60 circle
-};
+}
 
 public enum SID : uint
 {
@@ -117,14 +117,14 @@ public enum SID : uint
     //_Gen_Flamespire = 3487, // none->player, extra=0x1/0x2/0x3/0x4/0x5
     //_Gen_Flamespire = 3486, // none->player, extra=0x1/0x2/0x3
     //_Gen_SlashingResistanceDown = 1693, // Helper->player, extra=0x0
-};
+}
 
 public enum TetherID : uint
 {
     ShatteringHeatAdd = 84, // FlamesentNS->player
     GhastlyWind = 192, // FlamesentSS->player
     FlamespireClaw = 89, // player->Boss
-};
+}
 
 public enum IconID : uint
 {
@@ -142,4 +142,4 @@ public enum IconID : uint
     //_Gen_Icon_23 = 23, // player
     //_Gen_Icon_211 = 211, // player
     //_Gen_Icon_93 = 93, // player
-};
+}

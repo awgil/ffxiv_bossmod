@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x298A, // R=5.5
-};
+}
 
 public enum AID : uint
 {
@@ -20,7 +20,7 @@ public enum AID : uint
     SanctifiedShock = 17900, // 298A->player, no cast, single-target, stuns target before WitchHunt
     WitchHunt = 17444, // 298A->players, 3,0s cast, width 10 rect charge
     WitchHunt2 = 17445, // 298A->players, no cast, width 10 rect charge, targets main tank
-};
+}
 
 class LeftRightCheek : Components.GenericAOEs
 {

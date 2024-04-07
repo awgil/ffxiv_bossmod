@@ -7,7 +7,7 @@ public enum OID : uint
     IceSprite = 0x319D, // R0.800, spawn during fight
     Icicle = 0x319E, // R3.000, spawn during fight
     Imaginifer = 0x319F, // R0.500, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -43,7 +43,7 @@ public enum AID : uint
     TeleportBoss = 23621, // Boss->location, no cast, teleport
     TeleportImaginifer = 23622, // Imaginifer->location, no cast, ???, teleport
     ActivateImaginifer = 23623, // Imaginifer->self, no cast, single-target, visual
-};
+}
 
 class IcePillar : Components.SelfTargetedAOEs
 {

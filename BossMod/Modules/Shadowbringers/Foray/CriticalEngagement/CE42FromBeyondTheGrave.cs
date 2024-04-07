@@ -13,7 +13,7 @@ public enum OID : uint
     Monoceros = 0x3237, // R1.800, x1
     PurifyingLight = 0x1EB173, // R0.500, EventObj type, spawn during fight
     LivingCorpseSpawn = 0x1EB07A, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -52,7 +52,7 @@ public enum AID : uint
     Ruin = 24119, // LlofiiTheForthright->Boss, 2.5s cast, single-target, autoattack
     Cleanse = 24969, // LlofiiTheForthright->location, 5.0s cast, range 6 circle, damages boss
     SoothingGlimmer = 24970, // LlofiiTheForthright->self, 2.5s cast, single-target, heal
-};
+}
 
 public enum SID : uint
 {
@@ -61,7 +61,7 @@ public enum SID : uint
     LeftFace = 2163, // Boss->player, extra=0x0
     RightFace = 2164, // Boss->player, extra=0x0
     ForcedMarch = 1257, // Boss->player, extra=0x2/0x1/0x8/0x4
-};
+}
 
 class DevourSoul : Components.SingleTargetCast
 {

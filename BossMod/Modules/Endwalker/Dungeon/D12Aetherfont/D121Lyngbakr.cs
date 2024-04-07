@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x233C,
     SmallCrystal = 0x1EB882, // R=0.5
     BigCrystal = 0x1EB883, // R=0.5
-};
+}
 
 public enum AID : uint
 {
@@ -20,7 +20,7 @@ public enum AID : uint
     Upsweep = 33338, // Boss->self, 5.0s cast, range 40 circle
     Floodstide = 33341, // Boss->self, 3.0s cast, single-target        
     Waterspout = 33342, // Helper->player, 5.0s cast, range 5 circle, spread
-};
+}
 
 class Frequencies : Components.GenericAOEs
 {

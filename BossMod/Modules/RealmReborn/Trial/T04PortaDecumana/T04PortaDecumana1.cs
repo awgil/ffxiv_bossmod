@@ -8,7 +8,7 @@ public enum OID : uint
     UltimaIfrit = 0x38FF, // x1
     GraniteGaol = 0x38FE, // spawn during fight
     Helper = 0x233C, // x15
-};
+}
 
 public enum AID : uint
 {
@@ -42,13 +42,13 @@ public enum AID : uint
     TransitionFinish1 = 28994, // Boss->self, no cast, single-target, visual (lose buff)
     TransitionFinish2 = 28993, // Boss->self, no cast, single-target, visual (lose buff)
     TransitionFinish3 = 28995, // Boss->self, no cast, single-target, visual (lose buff)
-};
+}
 
 public enum SID : uint
 {
     Invincibility = 325, // none->Boss, extra=0x0
     VortexBarrier = 3012, // Boss->Boss, extra=0x0
-};
+}
 
 class EarthenFury : Components.RaidwideCast
 {

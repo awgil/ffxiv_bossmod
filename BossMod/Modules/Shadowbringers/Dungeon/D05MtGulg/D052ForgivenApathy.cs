@@ -21,7 +21,7 @@ public enum AID : uint
     EarthShaker2 = 16245, // 233C->self, 5,0s cast, range 60 60-degree cone
     Sanctification = 16814, // 28F2->self, 5,0s cast, range 12 90-degree cone
     PunitiveLight = 16815, // 28F2->self, 5,0s cast, range 20 circle
-};
+}
 
 class PunitiveLight : Components.CastInterruptHint
 { //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails

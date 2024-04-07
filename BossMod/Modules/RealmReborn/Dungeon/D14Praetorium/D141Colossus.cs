@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x3872, // x1
     Helper = 0x233C, // x8
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     PrototypeLaserBeta = 28471, // Boss->self, 5.0s cast, single-target, visual
     IronKissBeta = 28472, // Helper->player, 5.0s cast, range 5 circle spread
     GrandSword = 28473, // Boss->self, 5.0s cast, range 25 90-degree cone aoe
-};
+}
 
 class CeruleumVent : Components.RaidwideCast
 {

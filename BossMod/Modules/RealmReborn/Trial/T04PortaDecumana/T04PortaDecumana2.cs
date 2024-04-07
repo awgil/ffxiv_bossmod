@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x233C, // x10
     Aetheroplasm = 0x3902, // spawn during fight
     MagitekBit = 0x3901, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -39,7 +39,7 @@ public enum AID : uint
 
     LimitBreakRefill = 28542, // Helper->self, no cast, range 40 circle - probably limit break refill
     Ultima = 29024, // Boss->self, 71.0s cast, enrage
-};
+}
 
 class TankPurge : Components.RaidwideCast
 {

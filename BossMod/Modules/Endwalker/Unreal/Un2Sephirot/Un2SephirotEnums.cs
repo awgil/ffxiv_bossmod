@@ -9,7 +9,7 @@ public enum OID : uint
     Cochma = 0x39DC, // spawn during fight
     StormOfWords = 0x39DE, // spawn during fight
     CoronalWind = 0x39DF, // spawn during fight when storm of words is killed
-};
+}
 
 public enum AID : uint
 {
@@ -58,13 +58,13 @@ public enum AID : uint
     ImpactOfHod = 30394, // Helper->self, no cast, raidwide knockback 5
     Ascension = 30385, // CoronalWind->self, 4.0s cast, range 6 circle
     PillarOfSeverityAOE = 30387, // Helper->self, no cast, raidwide enrage (unless hit by ascension)
-};
+}
 
 public enum SID : uint
 {
     ForceAgainstMight = 1005, // BossP3->player, extra=0x0
     ForceAgainstMagic = 1006, // BossP3->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
@@ -73,4 +73,4 @@ public enum IconID : uint
     FiendishRage = 72, // player
     Earthshaker = 40, // player
     Ascension = 62, // CoronalWind
-};
+}

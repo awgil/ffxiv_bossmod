@@ -12,7 +12,7 @@ public enum OID : uint
     DarkblazeTwister = 0x3547, // spawned mid fight, tornadoes
     SparkfledgedUnknown = 0x3800, // spawned mid fight, have weird kind... - look like "eyes" during death toll?..
     Helper = 0x233C, // x45
-};
+}
 
 public enum AID : uint
 {
@@ -79,7 +79,7 @@ public enum AID : uint
     ScorchedExaltation = 26374, // Boss->Boss
     FinalExaltation = 27691, // Boss->Boss
     DevouringBrandAOE = 28035, // Helper->Helper (one in the center), 20sec cast
-};
+}
 
 public enum SID : uint
 {

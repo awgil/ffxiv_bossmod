@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35DC, // R5.875, x1
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     LeapingPyricCircleAOE = 27346, // Boss->self, 1.0s cast, range 5-40 donut
     LeapingPyricBurstAOE = 27347, // Boss->self, 1.0s cast, range 40 circle with ? falloff
     Scratch = 27348, // Boss->player, 5.0s cast, single-target
-};
+}
 
 class RightMaw : Components.SelfTargetedAOEs
 {

@@ -10,7 +10,7 @@ public enum OID : uint
     AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-};
+}
 
 public enum AID : uint
 {
@@ -27,7 +27,7 @@ public enum AID : uint
     Pollen = 6452, // AltarQueen->self, 3,5s cast, range 6+R circle
     HeirloomScream = 6451, // AltarTomato->self, 3,5s cast, range 6+R circle
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
-};
+}
 
 class OpticalIntrusion : Components.SingleTargetDelayableCast
 {

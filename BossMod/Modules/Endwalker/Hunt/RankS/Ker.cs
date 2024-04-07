@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35CF, // R8.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -35,7 +35,7 @@ public enum AID : uint
     Mirrored_RearInterment = 27662, // Boss->self, 6,0s cast, range 40 180-degree cone
     unknown = 25698, // Boss->player, no cast, single-target, no idea what this is for, gets very rarely used, my 6min replay from pull to death doesn't have it for instance
 
-};
+}
 public enum SID : uint
 {
     TemporaryMisdirection = 1422, // Boss->player, extra=0x2D0
@@ -44,7 +44,7 @@ public enum SID : uint
     Pyretic = 960, // Boss->player, extra=0x0
     Doom = 1970, // Boss->player
     WhispersManifest = 2847, // Boss->Boss, extra=0x0
-};
+}
 
 class MinaxGlare : Components.CastHint
 {

@@ -10,7 +10,7 @@ public enum OID : uint
     SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-};
+}
 
 public enum AID : uint
 {
@@ -35,7 +35,7 @@ public enum AID : uint
     PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
     PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-};
+}
 
 class Earthquake : Components.RaidwideCast
 {

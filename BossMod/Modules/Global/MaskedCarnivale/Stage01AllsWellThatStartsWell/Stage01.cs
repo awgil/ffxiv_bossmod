@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x25BE, //R=1.5
     Slime = 0x25BD, //R=1.5
-};
+}
 
 public enum AID : uint
 {
@@ -12,7 +12,7 @@ public enum AID : uint
     FluidSpread = 14198, // 25BD->player, no cast, single-target
     AutoAttack2 = 6497, // 25BE->player, no cast, single-target
     IronJustice = 14199, // 25BE->self, 2,5s cast, range 8+R 120-degree cone
-};
+}
 
 class IronJustice : Components.SelfTargetedAOEs
 {

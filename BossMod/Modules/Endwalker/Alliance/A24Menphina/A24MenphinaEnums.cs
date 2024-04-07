@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x39
     CeremonialPillar = 0x3E79, // R2.000, x4
     IceSprite = 0x3E74, // R0.720, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -91,16 +91,16 @@ public enum AID : uint
     CrateringChill = 31726, // Boss->self, 3.0s cast, single-target, visual (two proximity aoes)
     CrateringChillAOE = 31727, // Helper->self, 6.0s cast, range 60 circle with 20 falloff
     WinterSolstice = 31725, // Boss->self, 3.0s cast, single-target, visual (slippery floor)
-};
+}
 
 public enum IconID : uint
 {
     LunarKiss = 412, // player
     KeenMoonbeam = 139, // player
     MoonsetRays = 62, // player
-};
+}
 
 public enum TetherID : uint
 {
     CeremonialPillar = 14, // CeremonialPillar->Boss
-};
+}

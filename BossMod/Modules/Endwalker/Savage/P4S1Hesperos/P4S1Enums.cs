@@ -6,7 +6,7 @@ public enum OID : uint
     Pinax = 0x35FE, // '', 4x exist at start at [90/110, 90/110]
     Orb = 0x35FF, // orbs spawned by Belone Bursts
     Helper = 0x233C, // 38 exist at start
-};
+}
 
 public enum AID : uint
 {
@@ -61,7 +61,7 @@ public enum AID : uint
     Decollation = 27145, // Boss->Boss
     VengefulBelone = 28194, // Boss->Boss
     InversiveChlamysAOE2 = 28437, // Helper->target, no cast, damage to tethered targets (during belone coils)
-};
+}
 
 public enum SID : uint
 {

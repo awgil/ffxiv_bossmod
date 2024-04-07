@@ -6,7 +6,7 @@ public enum OID : uint
     Orbs = 0x2896, // R1.100, spawn during fight
     Helper = 0x233C, // x3
     Helper2 = 0x2A4B, // R3.450, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -19,7 +19,7 @@ public enum AID : uint
     LightShot = 15819, // Orbs->self, 3.0s cast, range 40 width 4 rect
     WoodenHorse = 15815, // Boss->self, 5.0s cast, range 40 90-degree cone
     Pillory = 15812, // Boss->player, 5.0s cast, single-target
-};
+}
 
 class Thumbscrew : Components.ChargeAOEs
 {

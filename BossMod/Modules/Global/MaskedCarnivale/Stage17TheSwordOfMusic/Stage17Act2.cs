@@ -6,7 +6,7 @@ public enum OID : uint
     LeftClaw = 0x2722, //R=2.0
     RightClaw = 0x2723, //R=2.0
     MagitekRayVoidzone = 0x1E8D9B, //R=0.5
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     TheHand = 14760, // 2722/2723->self, 3,0s cast, range 6+R 120-degree cone
     Shred = 14759, // 2723/2722->self, 2,5s cast, range 4+R width 4 rect
     MagitekRay = 15048, // 2721->location, 3,0s cast, range 6 circle, voidzone, interruptible
-};
+}
 
 class GrandStrike : Components.SelfTargetedAOEs
 {

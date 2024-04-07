@@ -9,7 +9,7 @@ public enum OID : uint
     Tower = 0x1EB17E, // R0.500, EventObj type, spawn during fight
     FallingTower = 0x1EB17D, // R0.500, EventObj type, spawn during fight, rotation at spawn determines fall direction?..
     Hammer = 0x1EB17F, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -39,7 +39,7 @@ public enum AID : uint
 
     HammerRound = 23824, // Boss->self, 5.0s cast, single-target, visual
     Hammerfall = 23825, // Helper->self, 8.0s cast, range 37 circle aoe
-};
+}
 
 class TectonicEruption : Components.LocationTargetedAOEs
 {

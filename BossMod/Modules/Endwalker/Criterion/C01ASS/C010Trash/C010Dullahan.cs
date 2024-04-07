@@ -4,7 +4,7 @@ public enum OID : uint
 {
     NBoss = 0x3AD7, // R2.500, x1
     SBoss = 0x3AE0, // R2.500, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     SBlightedGloom = 31102, // Boss->self, 4.0s cast, range 10 circle aoe
     SKingsWill = 31104, // Boss->self, 2.5s cast, single-target damage up
     SInfernalPain = 31105, // Boss->self, 5.0s cast, raidwide
-};
+}
 
 class BlightedGloom : Components.SelfTargetedAOEs
 {

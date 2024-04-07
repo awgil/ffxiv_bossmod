@@ -11,7 +11,7 @@ public enum OID : uint
     ExoSquare = 0x3590, // x5
     ExoTri = 0x3591, // x5
     RoilingDarkness = 0x3595, // x4, spawn during first intermission
-};
+}
 
 public enum AID : uint
 {
@@ -55,7 +55,7 @@ public enum AID : uint
     AutoAttack = 27763, // Boss->target, no cast
     ApomnemoneumataLethal = 28026, // Helper->self
     ApomnemoneumataNormal = 28027, // Helper->self
-};
+}
 
 public enum SID : uint
 {
@@ -66,7 +66,7 @@ public enum TetherID : uint
 {
     ExoTri = 164, // Boss->ExoTri
     ExoSquare = 171, // Boss->ExoSquare
-};
+}
 
 public enum IconID : uint
 {

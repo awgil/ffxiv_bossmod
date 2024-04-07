@@ -3,7 +3,7 @@ namespace BossMod.Stormblood.Hunt.RankS.Orghana;
 public enum OID : uint
 {
     Boss = 0x1AB3, // R=5.04
-};
+}
 
 public enum AID : uint
 {
@@ -13,7 +13,7 @@ public enum AID : uint
     TremblingEpigraph2 = 8001, // Boss->self, no cast, range 40 circle
     FlaringEpigraph = 8002, // Boss->self, 5,0s cast, range 40 circle
     Epigraph = 7997, // Boss->self, 3,5s cast, range 50+R width 8 rect
-};
+}
 
 class TremblingEpigraph : Components.RaidwideCast
 {

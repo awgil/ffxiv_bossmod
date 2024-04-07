@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x2678, //R=1.2
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -16,13 +16,13 @@ public enum AID : uint
     TremblingEarth = 14774, // 233C->self, 3,5s cast, range 10-20 donut
     TremblingEarth2 = 14775, // 233C->self, 3,5s cast, range 20-30 donut
     ApocalypticRoar = 14767, // 2678->self, 5,0s cast, range 35+R 120-degree cone
-};
+}
 
 public enum SID : uint
 {
     IceSpikes = 1307, // Boss->Boss, extra=0x64
     Doom = 910, // Boss->player, extra=0x0
-};
+}
 
 class ApocalypticBolt : Components.SelfTargetedAOEs
 {

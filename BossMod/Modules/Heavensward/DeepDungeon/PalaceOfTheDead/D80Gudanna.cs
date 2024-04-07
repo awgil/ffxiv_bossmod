@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x1816, // R11.600, x1
     Tornado = 0x18F0, // R1.000, spawn during fight
     Helper = 0x233C, // R0.500, x12, 523 type
-};
+}
 
 public enum AID : uint
 {
@@ -16,7 +16,7 @@ public enum AID : uint
     Maelstrom = 7167, // 18F0->self, 1.3s cast, range 10 circle
     Thunderbolt = 7095, // Boss->self, 2.5s cast, range 5+R 120-degree cone
     Trounce = 7098, // Boss->self, 2.5s cast, range 40+R 60-degree cone
-};
+}
 
 class Charybdis : Components.LocationTargetedAOEs
 {

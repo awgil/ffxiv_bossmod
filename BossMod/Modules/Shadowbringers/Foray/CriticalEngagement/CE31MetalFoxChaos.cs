@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2DB5, // R=8.0
     Helper = 0x233C, // R=0.500
     MagitekBit = 0x2DB6, // R=1.2
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     LaserShower2 = 20140, // Helper->location, 5,0s cast, range 10 circle
     Rush = 20139, // Boss->player, 3,0s cast, width 14 rect charge
     SatelliteLaser = 20137, // Boss->self, 10,0s cast, range 100 circle
-};
+}
 
 class MagitekBitLasers : Components.GenericAOEs
 {

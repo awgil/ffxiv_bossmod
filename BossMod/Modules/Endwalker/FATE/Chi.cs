@@ -9,7 +9,7 @@ public enum OID : uint
     Helper4 = 0x364C, //R=0.5
     Helper5 = 0x364D, //R=0.5
     Helper6 = 0x3505, //R=0.5
-};
+}
 
 public enum AID : uint
 {
@@ -44,7 +44,7 @@ public enum AID : uint
     BouncingBomb3 = 27486, // Helper5->self, 1,0s cast, range 20 width 20 rect
     ThermobaricExplosive = 25965, // Boss->self, 3,0s cast, single-target
     ThermobaricExplosive2 = 25966, // Helper1->location, 10,0s cast, range 55 circle, damage fall off AOE
-};
+}
 
 class Bunkerbuster : Components.GenericAOEs
 {

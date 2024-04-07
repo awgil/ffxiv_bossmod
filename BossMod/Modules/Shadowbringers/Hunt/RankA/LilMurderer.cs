@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.LilMurderer;
 public enum OID : uint
 {
     Boss = 0x28B4, // R=2.1
-};
+}
 
 public enum AID : uint
 {
@@ -13,7 +13,7 @@ public enum AID : uint
     GobthunderII = 17492, // Boss->location, 4,0s cast, range 8 circle, applies Lightning Resistance Down II
     Gobhaste = 17491, // Boss->self, 3,0s cast, single-target
     GoblinSlash = 17489, // Boss->self, no cast, range 8 circle, sometimes boss uses Gobthunder II on itself, next attack after is this
-};
+}
 
 class GoblinSlash : Components.GenericAOEs
 {

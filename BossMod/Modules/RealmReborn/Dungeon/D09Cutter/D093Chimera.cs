@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x64C, // x1
     Cacophony = 0x64D, // spawn during fight
     RamsKeeper = 0x1E8713, // EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -18,7 +18,7 @@ public enum AID : uint
     RamsKeeper = 1106, // Boss->location, 3.0s cast, range 6 voidzone
     Cacophony = 1107, // Boss->self, no cast, visual, summons orb
     ChaoticChorus = 1108, // Cacophony->self, no cast, range 6 aoe
-};
+}
 
 class LionsBreath : Components.Cleave
 {

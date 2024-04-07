@@ -7,7 +7,7 @@ public enum OID : uint
     Comesmite = 0x104, // spawn during fight
     GraffiasTail = 0x10A, // spawn during fight
     PollenZone = 0x1E8614, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -18,7 +18,7 @@ public enum AID : uint
     PodBurst = 730, // FleshyPod->self, 3.0s cast, range 7.050 aoe
     TailMolt = 704, // Boss->self, no cast, visual (spawns tail)
     DeadlyThrust = 702, // Boss->self, 2.0s cast, visual (spawns pollen zone)
-};
+}
 
 class Silkscreen : Components.SelfTargetedLegacyRotationAOEs
 {

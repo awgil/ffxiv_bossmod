@@ -11,7 +11,7 @@ public enum OID : uint
     DriveCylinder = 0x1B2, // R0.500, x1
     TerminalEnd = 0x1E86FA,
     TerminalStart = 0x1E86F9,
-};
+}
 
 public enum AID : uint
 {
@@ -25,7 +25,7 @@ public enum AID : uint
     GravityThrust = 1236, // SpinnerRook->player, 1.5s cast, single-target damage (avoidable by moving to the back)
     Pox = 1237, // SpinnerRook->player, 3.0s cast, single-target debuff (avoidable by moving to the back)
     EmergencyOverride = 1258, // DriveCylinder->self, no cast, soft enrage raidwide
-};
+}
 
 class Rotoswipe : Components.Cleave
 {

@@ -29,14 +29,14 @@ public enum AID : uint
     IcyThroes3 = 31363, // Helper->player, 5,0s cast, range 6 circle
     IcyThroes4 = 32697, // Helper->self, 5,0s cast, range 6 circle
     RoarOfAlbion = 31364, // Boss->self, 7,0s cast, range 60 circle
-};
+}
 
 public enum IconID : uint
 {
     Tankbuster = 218, // player
     Target = 210, // IceCrystal
     Spreadmarker = 139, // player
-};
+}
 
 class WildlifeCrossing : Components.GenericAOEs
 {

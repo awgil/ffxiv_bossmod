@@ -3,7 +3,7 @@ namespace BossMod.Stormblood.Hunt.RankS.Gamma;
 public enum OID : uint
 {
     Boss = 0x1AB2, // R=8.4
-};
+}
 
 public enum AID : uint
 {
@@ -13,13 +13,13 @@ public enum AID : uint
     MagitekFlamehook = 7913, // Boss->self, 1,5s cast, range 30+R circle, raidwide + pyretic
     LimitCut = 7916, // Boss->self, 2,0s cast, single-target, applies Haste to self
     Launcher = 7915, // Boss->self, 1,5s cast, range 30+R circle, raidwide, does %HP dmg (10%, 20%, 30%, or 50%)
-};
+}
 
 public enum SID : uint
 {
     Pyretic = 960, // Boss->player, extra=0x0
     Haste = 8, // Boss->Boss, extra=0x0
-};
+}
 
 class DiffractiveLaser : Components.LocationTargetedAOEs
 {

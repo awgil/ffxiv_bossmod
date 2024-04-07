@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x3670, // R8.750, x1
-};
+}
 
 public enum AID : uint
 {
@@ -28,7 +28,7 @@ public enum AID : uint
     HindWhipRightward = 27633, // Boss->self, 1.0s cast, range 40 180-degree cone aimed left (with rightward bearing)
     LongLickSecond = 27714, // Boss->self, 1.0s cast, range 40 180-degree cone (after hind whip)
     HindWhipSecond = 27715, // Boss->self, 1.0s cast, range 40 180-degree cone (after long lick)
-};
+}
 
 public enum SID : uint
 {
@@ -36,7 +36,7 @@ public enum SID : uint
     BackwardBearing = 2836, // Boss->Boss, extra=0x0
     LeftwardBearing = 2837, // Boss->Boss, extra=0x0
     RightwardBearing = 2838, // Boss->Boss, extra=0x0
-};
+}
 
 class Gnaw : Components.SingleTargetCast
 {

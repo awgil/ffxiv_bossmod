@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x270B, //R=3.75
     Bomb = 0x270C, //R=0.6
     Snoll = 0x270D, //R=0.9
-};
+}
 
 public enum AID : uint
 {
@@ -14,7 +14,7 @@ public enum AID : uint
     HypothermalCombustion = 14731, // 270D->self, no cast, range 6 circle
     Sap = 14708, // 270B->location, 5,0s cast, range 8 circle
     Burst = 14680, // 270B->self, 6,0s cast, range 50 circle
-};
+}
 
 class Sap : Components.LocationTargetedAOEs
 {

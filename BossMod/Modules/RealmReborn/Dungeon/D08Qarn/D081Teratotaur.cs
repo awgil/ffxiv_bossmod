@@ -7,7 +7,7 @@ public enum OID : uint
     Platform1 = 0x1E87E2, // x1, EventObj type; eventstate 0 if active, 7 if inactive
     Platform2 = 0x1E87E3, // x1, EventObj type; eventstate 0 if active, 7 if inactive
     Platform3 = 0x1E87E4, // x1, EventObj type; eventstate 0 if active, 7 if inactive
-};
+}
 
 public enum AID : uint
 {
@@ -19,12 +19,12 @@ public enum AID : uint
 
     AutoAttackWespe = 871, // DungWespe->player, no cast
     FinalSting = 919, // DungWespe->player, 3.0s cast
-};
+}
 
 public enum SID : uint
 {
     Doom = 210, // Boss->player, extra=0x0
-};
+}
 
 class Triclip : Components.Cleave
 {

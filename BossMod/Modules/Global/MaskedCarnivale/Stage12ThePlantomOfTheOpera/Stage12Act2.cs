@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x271B, //R=6.96
     Roselet = 0x271C, //R=0.8
-};
+}
 
 public enum AID : uint
 {
@@ -13,7 +13,7 @@ public enum AID : uint
     Seedvolley = 14750, // 271C->player, no cast, single-target
     Trounce = 14754, // 271B->self, 4,5s cast, range 40+R 60-degree cone
     InflammableFumes = 14753, // 271B->self, 15,0s cast, range 50 circle
-};
+}
 
 class WildHorn : Components.SelfTargetedAOEs
 {

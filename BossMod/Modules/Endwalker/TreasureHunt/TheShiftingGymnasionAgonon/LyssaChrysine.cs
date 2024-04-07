@@ -7,7 +7,7 @@ public enum OID : uint
     BossHelper = 0x233C,
     IcePillars = 0x3D44,
     BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
-};
+}
 
 public enum AID : uint
 {
@@ -26,7 +26,7 @@ public enum AID : uint
     FrigidStone = 32308, // Boss->self, 2,5s cast, single-target, activates helpers
     FrigidStone2 = 32309, // BossHelper->location, 3,0s cast, range 5 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
-};
+}
 
 class HeavySmash2 : Components.LocationTargetedAOEs
 {

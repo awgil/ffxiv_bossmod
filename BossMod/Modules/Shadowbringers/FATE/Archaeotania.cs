@@ -11,7 +11,7 @@ public enum OID : uint
     IceBoulder = 0x2A8D, // R2.200, spawn during fight
     AncientAevis = 0x2A8E, // R4.200, spawn during fight
     Aether = 0x2A8F, // R2.000, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -41,12 +41,12 @@ public enum AID : uint
     AutoAttackAdd = 870, // AncientAevis->player, no cast, single-target
     HeadlongRush = 17042, // AncientAevis->self, 3.0s cast, range 9+R width 10 rect
     Gigaflare = 16451, // Boss->self, 120.0s cast, range 80 circle
-};
+}
 
 public enum IconID : uint
 {
     Megaflare = 62, // player
-};
+}
 
 class BlizzardBreath : Components.SelfTargetedAOEs
 {

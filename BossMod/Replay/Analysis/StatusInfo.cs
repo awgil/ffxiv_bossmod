@@ -58,7 +58,7 @@ class StatusInfo : CommonEnumInfo
             var sb = new StringBuilder("public enum SID : uint\n{\n");
             foreach (var (sid, data) in _data)
                 sb.Append($"    {EnumMemberString(sid, data)}\n");
-            sb.Append("\n};\n");
+            sb.Append("\n}\n");
             ImGui.SetClipboardText(sb.ToString());
         }
 

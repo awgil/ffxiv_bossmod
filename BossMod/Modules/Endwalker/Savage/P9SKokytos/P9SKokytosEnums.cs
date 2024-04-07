@@ -8,7 +8,7 @@ public enum OID : uint
     KokytossEcho = 0x3ED8, // R9.500, spawn during fight
     Comet = 0x3EDA, // R2.400, spawn during fight
     Charybdis = 0x1EB881, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -108,7 +108,7 @@ public enum AID : uint
 
     Disintegration = 33162, // Boss->self, 10.0s cast, single-target, visual (enrage)
     DisintegrationAOE = 33163, // Helper->self, no cast, range 60 circle, enrage
-};
+}
 
 public enum IconID : uint
 {
@@ -124,4 +124,4 @@ public enum IconID : uint
     Icon8 = 86, // player
     Icemeld = 330, // player
     EclipticMeteor = 435, // Comet
-};
+}

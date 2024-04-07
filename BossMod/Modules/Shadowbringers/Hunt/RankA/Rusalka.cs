@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.Rusalka;
 public enum OID : uint
 {
     Boss = 0x2853, // R=3.6
-};
+}
 
 public enum AID : uint
 {
@@ -12,7 +12,7 @@ public enum AID : uint
     AetherialSpark = 17368, // Boss->self, 2,5s cast, range 12 width 4 rect
     AetherialPull = 17366, // Boss->self, 4,0s cast, range 30 circle, pull 30 between centers
     Flood = 17369, // Boss->self, no cast, range 8 circle
-};
+}
 
 class Hydrocannon : Components.LocationTargetedAOEs
 {

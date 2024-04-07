@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35BE, // R7.800, x1
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     CalculatedCombustion = 27476, // Boss->self, 5.0s cast, range 35 circle
     Pummel = 27477, // Boss->player, 5.0s cast, single-target
     SoporificGas = 27478, // Boss->self, 6.0s cast, range 12 circle
-};
+}
 
 class MagitekCompressor : Components.GenericRotatingAOE
 {

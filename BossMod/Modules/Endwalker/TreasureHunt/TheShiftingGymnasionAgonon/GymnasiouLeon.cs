@@ -6,7 +6,7 @@ public enum OID : uint
     BossAdd = 0x3D28, //R=3.5
     BossHelper = 0x233C,
     BonusAdds_Lyssa = 0x3D4E, //R=3.75
-};
+}
 
 public enum AID : uint
 {
@@ -20,7 +20,7 @@ public enum AID : uint
     HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
     FlareStar2 = 32816, // 233C->self, 7,0s cast, range 40 circle, AOE with dmg fall off, damage seems to stop falling after about range 10-12
     MarkOfTheBeast = 32205, // 3D28->self, 3,0s cast, range 8 120-degree cone
-};
+}
 
 class InfernoBlast : Components.SelfTargetedAOEs
 {

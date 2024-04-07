@@ -29,7 +29,7 @@ public enum AID : uint
     ConfessionOfFaithStack = 15525, // Helper->players, 5,8s cast, range 6 circle, stack
     ConfessionOfFaithCenter = 15522, // Helper->self, 5,5s cast, range 60 40-degree cone
     ConfessionOfFaithSpread = 15523, // Helper->player, 5,8s cast, range 5 circle, spread
-};
+}
 
 public enum IconID : uint
 {
@@ -37,13 +37,13 @@ public enum IconID : uint
     stack = 62, // player
     poisonbait = 171, // player
     spread = 96, // player
-};
+}
 
 public enum TetherID : uint
 {
     HoundOutOfHeavenTetherGood = 1, // Boss->player
     HoundOutOfHeavenTetherStretch = 57, // Boss->player
-};
+}
 
 class HoundOutOfHeavenGood : Components.BaitAwayTethers  //TODO: consider generalizing stretched tethers?
 {

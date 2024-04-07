@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0xD1, // x4
     InfernalNail = 0xD2, // spawn during fight
     Helper = 0x1B2, // x20
-};
+}
 
 public enum AID : uint
 {
@@ -19,7 +19,7 @@ public enum AID : uint
     RadiantPlume = 1356, // Boss->self, 2.2s cast, single-target, visual
     RadiantPlumeAOE = 1359, // Helper->location, 3.0s cast, range 8 circle aoe
     Hellfire = 1357, // Boss->self, 2.0s cast, infernal nail 'enrage' (raidwide if killed)
-};
+}
 
 class Hints : BossComponent
 {

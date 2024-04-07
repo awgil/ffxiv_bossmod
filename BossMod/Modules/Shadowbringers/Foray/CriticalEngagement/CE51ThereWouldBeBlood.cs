@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x319A, // R6.000, x1
     Helper = 0x233C, // R0.500, x17
     EmbitteredSoul = 0x319B, // R3.600, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -29,7 +29,7 @@ public enum AID : uint
     SummonDarkness = 23571, // Boss->self, 3.0s cast, single-target, visual
     TempestOfAnguish = 23572, // EmbitteredSoul->self, 6.5s cast, range 55 width 10 rect aoe
     TragicalGaze = 23573, // EmbitteredSoul->self, 7.5s cast, range 55 circle
-};
+}
 
 class CloudOfLocusts : Components.SelfTargetedAOEs
 {

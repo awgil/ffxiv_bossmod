@@ -8,7 +8,7 @@ public enum OID : uint
     VorticalOrb1 = 0x3239, // R0.500, spawn during fight
     VorticalOrb2 = 0x323A, // R0.500, spawn during fight
     VorticalOrb3 = 0x31D2, // R0.500, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -28,18 +28,18 @@ public enum AID : uint
     ForeshadowingPulse = 24133, // AlkonostsShadow->self, 5.0s cast, range 8-25 donut
     ForeshadowingStorm = 24134, // AlkonostsShadow->self, 5.0s cast, range 36 130-degree cone aoe
     ForeshadowingGust = 24135, // AlkonostsShadow->self, 5.0s cast, range 20 circle aoe
-};
+}
 
 public enum SID : uint
 {
     OrbMovement = 2234, // none->VorticalOrb1/VorticalOrb2/VorticalOrb3, extra=0x1E (fast)/0x49 (slow)
     Transfiguration = 705, // AlkonostsShadow->AlkonostsShadow, extra=0x1A4
-};
+}
 
 public enum TetherID : uint
 {
     Foreshadowing = 45, // AlkonostsShadow->Boss
-};
+}
 
 class Stormcall : Components.GenericAOEs
 {

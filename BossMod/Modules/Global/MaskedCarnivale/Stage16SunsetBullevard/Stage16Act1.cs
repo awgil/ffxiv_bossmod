@@ -3,12 +3,12 @@ namespace BossMod.Global.MaskedCarnivale.Stage16.Act1;
 public enum OID : uint
 {
     Boss = 0x26F2, //R=3.2
-};
+}
 
 public enum AID : uint
 {
     Attack = 6497, // 26F2->player, no cast, single-target
-};
+}
 
 class Hints : BossComponent
 {

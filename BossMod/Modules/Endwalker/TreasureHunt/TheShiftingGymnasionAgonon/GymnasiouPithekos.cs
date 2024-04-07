@@ -7,7 +7,7 @@ public enum OID : uint
     BossAdd = 0x3D2C, //R=4.2
     BossHelper = 0x233C,
     BonusAdd_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
-};
+}
 
 public enum AID : uint
 {
@@ -21,12 +21,12 @@ public enum AID : uint
     RockThrow = 32217, // BossAdds->location, 3,0s cast, range 6 circle
     SweepingGouge = 32211, // Boss->player, 5,0s cast, single-target
     HeavySmash = 32317, // BossAdd_Lyssa -> location 3,0s cast, range 6 circle
-};
+}
 
 public enum IconID : uint
 {
     Thundercall = 111, // Thundercall marker
-};
+}
 
 class Spark : Components.SelfTargetedAOEs
 {

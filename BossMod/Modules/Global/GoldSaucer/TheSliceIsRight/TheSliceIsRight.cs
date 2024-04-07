@@ -14,7 +14,7 @@ public enum OID : uint
     HelperDoubleRect = 0x1EAE9A,
     HelperCircle = 0x1EAE9B,
     Pileofgold = 0x1EAE9C,
-};
+}
 
 public enum AID : uint
 {
@@ -34,7 +34,7 @@ public enum AID : uint
     FirstGilJump = 18335, // 25AC->location, 2.5s cast, width 7 rect charge
     NextGilJump = 18336, // 25AC->location, 1.5s cast, width 7 rect charge
     BadCup = 18337, // 25AC->self, 1.0s cast, range 15+R 120-degree cone
-};
+}
 
 class BambooSplits : Components.GenericAOEs
 {

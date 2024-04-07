@@ -13,7 +13,7 @@ public enum OID : uint
     SFuko = 0x3F9C, // R4.500, x1
     SPenghou = 0x3F9D, // R1.680, x2
     SYuki = 0x3FA2, // R2.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -43,7 +43,7 @@ public enum AID : uint
     NLeftSwipe = 34438, // NYuki->self, 4.0s cast, range 60 180-degree cone
     SRightSwipe = 34440, // SYuki->self, 4.0s cast, range 60 180-degree cone
     SLeftSwipe = 34441, // SYuki->self, 4.0s cast, range 60 180-degree cone
-};
+}
 
 public abstract class C020Trash1 : BossModule
 {

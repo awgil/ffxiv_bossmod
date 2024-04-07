@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x33EF, // R=2.5
     BerserkerSphere = 0x33F0, // R=1.5-2.5
-};
+}
 
 public enum AID : uint
 {
@@ -18,7 +18,7 @@ public enum AID : uint
     PrakamyaSiddhi = 25251, // Boss->self, 4.0s cast, range 5 circle
     PraptiSiddhi = 25256, //Boss->self, 2.0s cast, range 40 width 4 rect
     SphereShatter = 25252, // BerserkerSphere->self, 2.0s cast, range 15 circle
-};
+}
 
 public enum SID : uint
 {
@@ -28,7 +28,7 @@ public enum SID : uint
     ManusyaConfuse = 2652, // Boss->player, extra=0x1C6
     WhoIsShe = 2655, // none->Boss, extra=0x0
     WhoIsShe2 = 2654, // none->BerserkerSphere, extra=0x1A8
-};
+}
 
 class IsitvaSiddhi : Components.SingleTargetCast
 {

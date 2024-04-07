@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2E66, // R7.020, x1
     Helper = 0x233C, // R0.500, x14
     Hellsfire = 0x2E67, // R1.000-2.500, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -30,7 +30,7 @@ public enum AID : uint
     VoidQuakeAOE1 = 20549, // Helper->self, 3.0s cast, range 10 circle aoe
     VoidQuakeAOE2 = 20550, // Helper->self, 3.0s cast, range 10-20 donut aoe
     VoidQuakeAOE3 = 20551, // Helper->self, 3.0s cast, range 20-30 donut aoe
-};
+}
 
 class Hellclaw : Components.SingleTargetCast
 {

@@ -37,25 +37,25 @@ public enum AID : uint
     Lifescleaver = 31112, // Boss->self, 4,0s cast, single-target
     Lifescleaver2 = 31113, // Helper->self, 5,0s cast, range 50 30-degree cone
     VoidTorrent = 31118, // Boss->self/player, 5,0s cast, range 60 width 8 rect
-};
+}
 
 public enum IconID : uint
 {
     Stackmarker = 161, // player
     Spreadmarker = 139, // player
     Tankbuster = 230, // player
-};
+}
 
 public enum TetherID : uint
 {
     LimitBreakCharger = 3, // FearsomeFlotsam->Boss
     BaitAway = 1, // 3E97->player
-};
+}
 
 public enum NPCYell : uint
 {
     LimitBreakStart = 15175,
-};
+}
 
 class VoidTorrent : Components.BaitAwayCast
 {

@@ -18,7 +18,7 @@ public enum OID : uint
     ADSHelper = 0x8E2, // R0.500, x10
     ADSVacuumWaveHelper = 0x8E3, // R0.500, x1
     GravityField = 0x1E8728, // EventObj type, spawns during fight
-};
+}
 
 public enum AID : uint
 {
@@ -44,14 +44,14 @@ public enum AID : uint
 
     NodeRetrieval = 1228, // ADS->QuarantineNode/AttackNode/SanitaryNode/DefenseNode/DisposalNode, no cast, single-target, visual
     Object199 = 1229, // ADS->self, no cast, enrage
-};
+}
 
 public enum SID : uint
 {
     VulnerabilityUp = 202, // ADS/QuarantineNode/AttackNode/SanitaryNode/MonitoringNode/DefenseNode/DisposalNode->player, extra=0x1/0x2/0x3/0x4/0x5/0x6/0x7/0x8
     AllaganRot = 333, // QuarantineNode/ADS->player, extra=0x0
     AllaganImmunity = 334, // none->player, extra=0x0
-};
+}
 
 class CleaveCommon : Components.Cleave
 {

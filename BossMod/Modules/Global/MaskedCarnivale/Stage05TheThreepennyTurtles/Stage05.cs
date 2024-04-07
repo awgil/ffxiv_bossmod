@@ -3,7 +3,7 @@ namespace BossMod.Global.MaskedCarnivale.Stage05;
 public enum OID : uint
 {
     Boss = 0x25CC, //R=5.0
-};
+}
 
 class Hints : BossComponent
 {

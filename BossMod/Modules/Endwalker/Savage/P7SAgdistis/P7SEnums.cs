@@ -13,7 +13,7 @@ public enum OID : uint
     BridgeDestroyer = 0x3A34, // x3
     BullTetherSource = 0x3AD9, // x9
     Tower = 0x1EB793, // EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -75,7 +75,7 @@ public enum AID : uint
     BullishSlash = 30743, // ImmatureMinotaur->self, no cast, range 60 45-degree cone (tethered minotaur)
     BullishSwipe = 30744, // ImmatureMinotaur->self, 2.5s cast, single-target, visual (untethered minotaur)
     BullishSwipeAOE = 30745, // Helper->self, 3.0s cast, range 60 90-degree cone aoe (baited from untethered minotaur)
-};
+}
 
 public enum SID : uint
 {
@@ -91,7 +91,7 @@ public enum SID : uint
     HolyPurgation2 = 3394, // none->player, extra=0x0
     HolyPurgation3 = 3395, // none->player, extra=0x0
     HolyPurgation4 = 3396, // none->player, extra=0x0
-};
+}
 
 public enum TetherID : uint
 {
@@ -99,4 +99,4 @@ public enum TetherID : uint
     MinotaurClose = 57, // ImmatureMinotaur->player
     MinotaurFar = 1, // ImmatureMinotaur->player
     Bird = 17, // ImmatureStymphalide->player
-};
+}

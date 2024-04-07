@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35BF, // R5.400, x1
-};
+}
 
 public enum AID : uint
 {
@@ -13,7 +13,7 @@ public enum AID : uint
     Devour = 27232, // Boss->self, 1.0s cast, range 10 ?-degree cone, kills seduced and deals very small damage otherwise
     BogBomb = 27233, // Boss->location, 4.0s cast, range 6 circle
     BrackishRain = 27234, // Boss->self, 4.0s cast, range 10 90-degree cone
-};
+}
 
 public enum SID : uint
 {

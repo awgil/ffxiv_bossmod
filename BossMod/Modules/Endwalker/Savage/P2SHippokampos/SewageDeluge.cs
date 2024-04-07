@@ -3,7 +3,7 @@
 // state related to sewage deluge mechanic
 class SewageDeluge : BossComponent
 {
-    public enum Corner { None, NW, NE, SW, SE };
+    public enum Corner { None, NW, NE, SW, SE }
 
     private Corner _blockedCorner = Corner.None;
 

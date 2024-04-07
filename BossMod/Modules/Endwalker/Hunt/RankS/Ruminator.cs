@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35BD, // R7.800, x1
-};
+}
 
 public enum AID : uint
 {
@@ -21,7 +21,7 @@ public enum AID : uint
     ChitinousReversalCircleRest = 26167, // Boss->self, no cast, range 8 circle
     ChitinousReversalDonutRest = 26168, // Boss->self, no cast, range 8-40 donut
     StygianVapor = 26882, // Boss->self, 5.0s cast, range 40 circle
-};
+}
 
 class ChitinousTrace : Components.GenericAOEs
 {

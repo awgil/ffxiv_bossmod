@@ -3,7 +3,7 @@ namespace BossMod.Stormblood.Hunt.RankS.BoneCrawler;
 public enum OID : uint
 {
     Boss = 0x1AB5, // R=6.2
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     HotCharge = 7922, // Boss->location, 2,5s cast, width 12 rect charge
     Haste = 7926, // Boss->self, no cast, single-target, boss applies Haste to self
     BoneShaker = 7925, // Boss->self, no cast, range 30+R circle, raidwide player stun
-};
+}
 
 class HeatBreath : Components.SelfTargetedAOEs
 {

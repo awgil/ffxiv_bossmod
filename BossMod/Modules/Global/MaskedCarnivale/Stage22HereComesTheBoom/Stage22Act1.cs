@@ -4,12 +4,12 @@ public enum OID : uint
 {
     Boss = 0x26FC, //R=1.2
     BossAct2 = 0x26FE, //R=3.75, needed for pullcheck, otherwise it activates additional modules in act2
-};
+}
 
 public enum AID : uint
 {
     Fulmination = 14901, // 26FC->self, no cast, range 50+R circle, wipe if failed to kill grenade in one hit
-};
+}
 
 class Hints : BossComponent
 {

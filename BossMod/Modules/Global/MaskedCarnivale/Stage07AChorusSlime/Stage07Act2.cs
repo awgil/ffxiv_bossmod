@@ -4,13 +4,13 @@ public enum OID : uint
 {
     Boss = 0x2705, //R=1.6
     Sprite = 0x2704, //R=0.8
-};
+}
 
 public enum AID : uint
 {
     Detonation = 14696, // 2705->self, no cast, range 6+R circle
     Blizzard = 14709, // 2704->player, 1,0s cast, single-target
-};
+}
 
 class SlimeExplosion : Components.GenericStackSpread
 {

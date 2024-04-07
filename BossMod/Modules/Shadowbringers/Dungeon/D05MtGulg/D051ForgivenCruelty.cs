@@ -21,7 +21,7 @@ public enum AID : uint
     CycloneWing = 15612, // 27CA->self, 3,0s cast, single-target
     CycloneWing2 = 15613, // 233C->self, 4,0s cast, range 40 circle
     HurricaneWing = 15619, // 233C->self, 5,0s cast, range 10 circle
-};
+}
 
 class Rake : Components.SingleTargetDelayableCast
 {

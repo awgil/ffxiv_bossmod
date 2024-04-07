@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2535, //R=4.48
     BossAdd = 0x255E, //R=0.9
     BossHelper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     Tornado = 13309, // Boss->location, 3,0s cast, range 6 circle
     VoidCall = 13312, // Boss->self, 3,5s cast, single-target
     Chirp = 13310, // Boss->self, 3,5s cast, range 8+R circle
-};
+}
 
 class Chirp : Components.SelfTargetedAOEs
 {

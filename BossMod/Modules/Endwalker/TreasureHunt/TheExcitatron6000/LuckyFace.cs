@@ -9,7 +9,7 @@ public enum OID : uint
     ExcitingGarlic = 0x380A, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
     ExcitingEgg = 0x3809, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     ExcitingOnion = 0x3808, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-};
+}
 
 public enum AID : uint
 {
@@ -48,13 +48,13 @@ public enum AID : uint
     HeirloomScream = 6451, // 380B->self, 3,5s cast, range 6+R circle
     PungentPirouette = 6450, // 380A->self, 3,5s cast, range 6+R circle
     Pollen = 6452, // 380C->self, 3,5s cast, range 6+R circle
-};
+}
 
 public enum IconID : uint
 {
     tankbuster = 218,
     spreadmarker = 194,
-};
+}
 
 class LeftInTheDark1 : Components.SelfTargetedAOEs
 {

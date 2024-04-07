@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x361B, // R6.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -20,7 +20,7 @@ public enum AID : uint
     OctupleSlammerRestR = 27500, // Boss->self, 1.0s cast, range 30 180-degree cone
     WildCharge = 27511, // Boss->players, no cast, width 8 rect charge
     BoneShaker = 27512, // Boss->self, 4.0s cast, range 30 circle
-};
+}
 
 class Slammer : Components.GenericRotatingAOE
 {

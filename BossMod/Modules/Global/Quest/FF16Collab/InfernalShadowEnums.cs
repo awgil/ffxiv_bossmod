@@ -136,4 +136,4 @@ public enum AID : uint
     CliveAbility = 35097, // Clive->self, no cast, single-target
     CliveScarletCyclone = 35104, // Clive->self, no cast, range 6 circle
     ClivePrecisionStrike = 35100, // Clive->Boss/InfernalSword, no cast, single-target
-};
+}

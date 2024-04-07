@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x60A, // x1
     CorruptedCrystal = 0x60C, // spawn during fight
     VoidPitch = 0x6B4, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -16,7 +16,7 @@ public enum AID : uint
     Hellssend = 1132, // Boss->self, no cast, damage up buff
     AetherialSurge = 1167, // CorruptedCrystal->self, 3.0s cast, range 5+1 circle aoe
     SeaOfPitch = 962, // VoidPitch->location, no cast, range 4 circle
-};
+}
 
 class GrimFate : Components.Cleave
 {

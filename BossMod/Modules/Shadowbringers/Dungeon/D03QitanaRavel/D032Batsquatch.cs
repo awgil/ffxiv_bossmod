@@ -17,7 +17,7 @@ public enum AID : uint
     FallingRock2 = 15509, // 233C->self, 2,0s cast, range 2 circle
     FallingBoulder = 15511, // 233C->self, 2,0s cast, range 4 circle
     Towerfall = 15512, // 233C->self, 3,0s cast, range 15 30-degree cone
-};
+}
 
 class Towerfall : Components.SelfTargetedAOEs
 {

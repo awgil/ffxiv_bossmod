@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x5B5, // x1
-};
+}
 
 public enum AID : uint
 {
@@ -11,7 +11,7 @@ public enum AID : uint
     Rake = 901, // Boss->player, no cast, extra attack on tank
     LionsBreath = 902, // Boss->self, 1.0s cast, range 10.25 ?-degree cone aoe
     Swinge = 903, // Boss->self, 4.0s cast, range 40 ?-degree cone aoe
-};
+}
 
 class LionsBreath : Components.SelfTargetedLegacyRotationAOEs
 {

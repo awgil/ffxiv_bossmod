@@ -16,7 +16,7 @@ public enum AID : uint
     LightShot = 16251, // Brightsphere->self, 4,0s cast, range 40 width 4 rect
     RightPalm = 16247, // Boss->self, no cast, single-target
     RightPalm2 = 16248, // 233C->self, 4,5s cast, range 30 width 15 rect
-};
+}
 
 class PalmAttacks : Components.GenericAOEs //Palm Attacks have a wrong origin, so i made a custom solution
 {

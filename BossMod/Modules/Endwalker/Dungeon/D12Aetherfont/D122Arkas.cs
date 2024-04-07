@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x3EEA, //R=5.1
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -29,13 +29,13 @@ public enum AID : uint
     SpinningClaw = 33362, // Boss->self, 3.5s cast, range 10 circle
     ForkedFissures = 33361, // Helper->location, 1.0s cast, width 4 rect charge
     SpunLightning = 33363, // Helper->self, 3.5s cast, range 30 width 8 rect
-};
+}
 
 public enum IconID : uint
 {
     Tankbuster = 218, // player
     Stackmarker = 161, // 39D7/3DC2
-};
+}
 
 class Voidzone : BossComponent
 {

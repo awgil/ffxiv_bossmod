@@ -7,7 +7,7 @@ public enum OID : uint
     PhantomGaiusSide = 0x3876, // x5, untargetable
     PhantomGaiusAdd = 0x3877, // x4, adds that become targetable on low hp
     TerminusEst = 0x3878, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -34,7 +34,7 @@ public enum AID : uint
     Heirsbane = 28498, // PhantomGaiusAdd->player, 5.0s cast, single-target damage
     VeniVidiVici = 28499, // Boss->self, no cast, raidwide on last add death
     VeniVidiViciEnrage = 28500, // Boss->self, no cast, enrage (if adds aren't killed in 90s)
-};
+}
 
 class TerminusEstTriple : Components.SelfTargetedAOEs
 {

@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x2725, //R=3.0
     Keg = 0x2726, //R=0.65
-};
+}
 
 public enum AID : uint
 {
@@ -14,7 +14,7 @@ public enum AID : uint
     RipperClaw = 15050, // 2725->self, 4,0s cast, range 5+R 90-degree cone
     TailSmash = 15052, // 2725->self, 4,0s cast, range 12+R 90-degree cone
     BoneShaker = 15053, // 2725->self, no cast, range 50 circle, harmless raidwide
-};
+}
 
 class Explosion : Components.SelfTargetedAOEs
 {

@@ -7,7 +7,7 @@ public enum OID : uint
     StoneMarionette = 0x5D2, // x1
     MarbleMarionette = 0x5D3, // x1
     MegalithMarionette = 0x5D4, // x1
-};
+}
 
 public enum AID : uint
 {
@@ -25,7 +25,7 @@ public enum AID : uint
     Rockslide = 1086, // StoneMarionette->self, 2.5s cast, range 11+R width 8 rect
     Obliterate = 1088, // MarbleMarionette->self, 3.0s cast, raidwide
     Plaincracker = 1087, // MegalithMarionette->self, 7.0s cast, range 25+R circle
-};
+}
 
 class VoidFireCleave : Components.Cleave
 {

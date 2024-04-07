@@ -15,7 +15,7 @@ public enum AID : uint
     LumberingLeapJumpRest = 28549, // Boss->location, no cast, teleport
     ColossalSlam = 28546, // Boss->self, 4.0s cast, range 30 60-degree cone aoe
     Catapult = 28547, // Boss->player, 5.0s cast, single target damage at random target
-};
+}
 
 class GrandSlam : Components.SingleTargetCast
 {

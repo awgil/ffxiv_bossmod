@@ -18,7 +18,7 @@ public enum OID : uint
 
     Helper = 0x233C, // R0.500, 523 type, spawn during fight
     Twister = 0x40CE, // R1.500, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -56,7 +56,7 @@ public enum AID : uint
     NCrossAttack = 35771, // NMonk->player, 5.0s cast, single-target tankbuster
     SHydroshot = 35793, // SMonk->player, 5.0s cast, single-target
     SCrossAttack = 35919, // SMonk->player, 5.0s cast, single-target tankbuster
-};
+}
 
 class Twister : Components.Adds
 {

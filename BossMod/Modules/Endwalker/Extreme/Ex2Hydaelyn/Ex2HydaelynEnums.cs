@@ -13,7 +13,7 @@ public enum OID : uint
     LightwaveWaveTarget = 0x1EB24B, // eventobj
     RefulgenceHexagon = 0x1EB24C, // eventobj
     RefulgenceTriangle = 0x1EB24D, // eventobj
-};
+}
 
 public enum AID : uint
 {
@@ -80,7 +80,7 @@ public enum AID : uint
     Aureole2AOE = 28434, // Helper->self
     LateralAureole2 = 28435, // Boss->self
     LateralAureole2AOE = 28436, // Helper->self
-};
+}
 
 public enum SID : uint
 {

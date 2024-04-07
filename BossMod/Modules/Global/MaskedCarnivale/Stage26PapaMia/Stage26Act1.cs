@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x2C84, //R=2.55
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -13,14 +13,14 @@ public enum AID : uint
     RuffledFeathers = 18685, // 2C84->player, no cast, single-target
     Gust = 18687, // 2C84->location, 2,5s cast, range 3 circle
     CaberToss = 18688, // 2C84->player, 5,0s cast, single-target, interrupt or wipe
-};
+}
 
 public enum SID : uint
 {
     VulnerabilityDown = 63, // Boss->Boss, extra=0x0
     Windburn = 269, // Boss->player, extra=0x0
 
-};
+}
 
 
 class Gust : Components.LocationTargetedAOEs

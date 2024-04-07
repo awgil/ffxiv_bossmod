@@ -27,7 +27,7 @@ public enum AID : uint
     FoundWanting = 15632, // 233C->self, no cast, range 40 circle, tower fail
     RiteOfTheSacrament = 15629, // 27CC->self, no cast, single-target
     PerfectContrition = 15630, // 27CD->self, 6,0s cast, range 5-15 donut
-};
+}
 
 class Catechism : Components.SingleTargetCastDelay
 {

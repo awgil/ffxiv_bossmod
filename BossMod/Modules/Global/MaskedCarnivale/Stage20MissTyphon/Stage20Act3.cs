@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x272C, //R=4.5
     Ultros = 0x272D, //R=5.1
     Tentacle = 0x272E, //R=7.2
-};
+}
 
 public enum AID : uint
 {
@@ -19,7 +19,7 @@ public enum AID : uint
     AquaBreath = 14745, // 272D->self, 2,5s cast, range 8+R 90-degree cone
     Megavolt = 14746, // 272D->self, 3,0s cast, range 6+R circle
     ImpSong = 14744, // 272D->self, 6,0s cast, range 50+R circle
-};
+}
 
 class AquaBreath : Components.SelfTargetedAOEs
 {

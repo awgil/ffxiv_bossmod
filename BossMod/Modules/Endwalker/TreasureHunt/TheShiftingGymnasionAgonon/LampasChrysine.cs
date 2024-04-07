@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x3D40, //R=6
     BossHelper = 0x233C,
     BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
-};
+}
 
 public enum AID : uint
 {
@@ -19,7 +19,7 @@ public enum AID : uint
     Shine2 = 32292, // BossHelper->location, 3,0s cast, range 5 circle
     Summon = 32288, // Boss->self, 1,3s cast, single-target, spawns bonus loot adds
     Telega = 9630, // BonusAdds_Lampas->self, no cast, single-target, bonus loot add despawn
-};
+}
 
 class Shine : Components.LocationTargetedAOEs
 {

@@ -26,13 +26,13 @@ public enum AID : uint
     Electrocution2 = 14981, // 25B3->location, 10,0s cast, range 3 circle, tower
     FatalCurrent = 14610, // Helper/Helper2->self, 2,0s cast, range 80 circle, tower fail
     TailWhip = 14607, // Boss->self, 3,0s cast, range 12 270-degree cone
-};
+}
 
 public enum IconID : uint
 {
     stack = 93, // 2650
     spread = 129, // player/2650
-};
+}
 
 class Thunderbolt : Components.UniformStackSpread
 {

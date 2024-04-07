@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x2727, //R=5.775
     voidzone = 0x1EA9F9, //R=0.5
-};
+}
 
 public enum AID : uint
 {
@@ -13,7 +13,7 @@ public enum AID : uint
     BadBreath = 15074, // 2727->self, 3,5s cast, range 12+R 120-degree cone
     VineProbe = 15075, // 2727->self, 2,5s cast, range 6+R width 8 rect
     OffalBreath = 15076, // 2727->location, 3,5s cast, range 6 circle, interruptible, voidzone
-};
+}
 
 public enum SID : uint
 {
@@ -28,7 +28,7 @@ public enum SID : uint
     Leaden = 67, // none->player, extra=0x3C
     Pollen = 19, // none->player, extra=0x0
     Stun = 149, // 2729->player, extra=0x0
-};
+}
 
 class BadBreath : Components.SelfTargetedAOEs
 {

@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x3671, // R7.500, x1
-};
+}
 
 public enum AID : uint
 {
@@ -13,7 +13,7 @@ public enum AID : uint
     Snowball = 27710, // Boss->location, 3.0s cast, range 8 circle
     Canopy = 27711, // Boss->players, no cast, range 12 120-degree cone cleave
     BackhandBlow = 27712, // Boss->self, 3.0s cast, range 12 120-degree cone
-};
+}
 
 class LeafstormRimestorm : Components.GenericAOEs
 {

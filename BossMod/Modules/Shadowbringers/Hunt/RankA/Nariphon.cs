@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.Nariphon;
 public enum OID : uint
 {
     Boss = 0x2890, // R=6.0
-};
+}
 
 public enum AID : uint
 {
@@ -12,18 +12,18 @@ public enum AID : uint
     AllergenInjection = 16972, // 2890->player, 5,0s cast, range 6 circle
     RootsOfAtopy = 16971, // 2890->player, 5,0s cast, range 6 circle
     OdiousMiasma = 16970, // 2890->self, 3,0s cast, range 12 120-degree cone
-};
+}
 
 public enum SID : uint
 {
     PiercingResistanceDownII = 1435, // Boss->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
     Baitaway = 140, // player
     Stackmarker = 62, // player
-};
+}
 
 class OdiousMiasma : Components.SelfTargetedAOEs
 {

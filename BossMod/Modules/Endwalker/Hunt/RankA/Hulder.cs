@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35DD, // R5.400, x1
-};
+}
 
 public enum AID : uint
 {

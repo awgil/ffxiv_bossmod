@@ -9,7 +9,7 @@ public enum OID : uint
     Pillar2 = 0x1E86A8, // x1, EventObj type
     Pillar3 = 0x1E86A9, // x1, EventObj type
     Pillar4 = 0x1E86AA, // x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -22,12 +22,12 @@ public enum AID : uint
     TriumphantRoar = 741, // DarkHelot->self, no cast, single-target damage up (enrage if not killed fast enough)
     PlagueDance = 1075, // Boss->self, no cast, single-target, visual (spawns dark nova)
     BubonicCloud = 1076, // DarkNova->self, no cast, range 10+R circle, voidzone
-};
+}
 
 public enum TetherID : uint
 {
     PlagueDance = 1, // Boss->player
-};
+}
 
 class TheLook : Components.Cleave
 {

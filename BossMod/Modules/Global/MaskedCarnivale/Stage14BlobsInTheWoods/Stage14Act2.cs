@@ -3,13 +3,13 @@ namespace BossMod.Global.MaskedCarnivale.Stage14.Act2;
 public enum OID : uint
 {
     Boss = 0x271E, //R=2.0
-};
+}
 
 public enum AID : uint
 {
     Syrup = 14757, // 271E->player, no cast, range 4 circle, applies heavy to player
     TheLastSong = 14756, // 271E->self, 6,0s cast, range 60 circle, heavy dmg, applies silence to player
-};
+}
 
 class LastSong : Components.GenericLineOfSightAOE
 {

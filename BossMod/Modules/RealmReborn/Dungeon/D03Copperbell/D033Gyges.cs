@@ -14,7 +14,7 @@ public enum AID : uint
     GiganticBlast = 28761, // Helper->self, 6.0s cast, range 8 aoe
     GrandSlam = 28764, // Boss->player, 5.0s cast, tankbuster
     ColossalSlam = 28763, // Boss->self, 4.0s cast, range 40 60-degree cone aoe
-};
+}
 
 class GiganticSwing : Components.SelfTargetedAOEs
 {

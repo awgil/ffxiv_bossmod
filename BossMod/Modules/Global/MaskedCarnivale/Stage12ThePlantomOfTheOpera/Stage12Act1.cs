@@ -3,12 +3,12 @@ namespace BossMod.Global.MaskedCarnivale.Stage12.Act1;
 public enum OID : uint
 {
     Boss = 0x271A, //R=0.8
-};
+}
 
 public enum AID : uint
 {
     Seedvolley = 14750, // 271A->player, no cast, single-target
-};
+}
 
 class Hints : BossComponent
 {

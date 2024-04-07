@@ -18,7 +18,7 @@ public enum OID : uint
     ImmolatingFlame = 0x30CE, // R1.000-3.000, spawn during fight (soldier/gunner big fireball)
     AutomaticTurret = 0x30D0, // R4.000, spawn during fight (soldier/gunner untargetable turret)
     GunTurret = 0x30D1, // R4.000, spawn during fight (soldier/gunner targetable turret)
-};
+}
 
 public enum AID : uint
 {
@@ -109,7 +109,7 @@ public enum AID : uint
     EnrageP3Warrior = 22794, // Warrior->self, 70.0s cast
     EnrageP3Soldier = 22795, // Soldier->self, 70.0s cast
     EnrageP3Gunner = 22796, // Gunner->self, 70.0s cast
-};
+}
 
 public enum SID : uint
 {
@@ -133,13 +133,13 @@ public enum SID : uint
     Pyretic = 960, // Soldier->player, extra=0x0
     DirectionalParry = 680, // AetherialWard->AetherialWard, extra=0x3 (front+back)/0xC (left+right)
     //_Gen_ = 2195, // AetherialWard->AetherialWard, extra=0x101/0x100
-};
+}
 
 public enum IconID : uint
 {
     Reversal = 255, // player
     SpriteCheck = 23, // player
-};
+}
 
 public enum TetherID : uint
 {
@@ -151,4 +151,4 @@ public enum TetherID : uint
     //_Gen_Tether_101 = 101, // AetherialSphere->Knight
     //_Gen_Tether_54 = 54, // GunTurret->Gunner
     SecretsRevealed = 30, // SoldierAvatar->Soldier
-};
+}

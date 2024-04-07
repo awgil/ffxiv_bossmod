@@ -10,7 +10,7 @@ public enum OID : uint
     FlareTower = 0x1EB94E, // R0.500, EventObj type, spawn during fight
     FlareRay = 0x1EB94F, // R0.500, EventObj type, spawn during fight
     BlackHole = 0x1EB94C, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -114,7 +114,7 @@ public enum AID : uint
     ChasmicNailsVisual3 = 35625, // Helper->self, 4.0s cast, range 60 40-degree cone, visual (telegraph)
     ChasmicNailsVisual4 = 35626, // Helper->self, 5.0s cast, range 60 40-degree cone, visual (telegraph)
     ChasmicNailsVisual5 = 35627, // Helper->self, 6.0s cast, range 60 40-degree cone, visual (telegraph)
-};
+}
 
 public enum SID : uint
 {
@@ -133,7 +133,7 @@ public enum SID : uint
     //FireResistanceDownII = 2098, // Helper->player, extra=0x0
     // = 2056, // Boss->Boss, extra=0x286
     //FleshWound = 264, // Helper->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
@@ -146,7 +146,7 @@ public enum IconID : uint
     Nox = 197, // player
     AkhRhai = 23, // player
     UmbralPrism = 211, // player
-};
+}
 
 public enum TetherID : uint
 {
@@ -156,4 +156,4 @@ public enum TetherID : uint
     VoidMeteorStretchedGood = 255, // Comet->player
     BondsOfDarkness = 163, // player->player
     FlowOfTheAbyss = 265, // FlowOfTheAbyss->Boss
-};
+}

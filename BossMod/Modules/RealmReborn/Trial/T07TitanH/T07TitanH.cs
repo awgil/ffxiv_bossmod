@@ -7,7 +7,7 @@ public enum OID : uint
     GraniteGaol = 0x5E1, // spawn during fight
     BombBoulder = 0x5A3, // spawn during fight
     TitansHeart = 0x5E4, // Part type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -26,7 +26,7 @@ public enum AID : uint
 
     EarthenFury = 1366, // Boss->self, no cast, wipe if heart not killed, otherwise just a raidwide
     MountainBuster = 643, // Boss->self, no cast, range 16+R ?-degree cone cleave
-};
+}
 
 class Hints : BossComponent
 {

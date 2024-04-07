@@ -21,12 +21,12 @@ public enum AID : uint
     AutoAttack = 872, // 28DD/28DC->player, no cast, single-target
     AutoAttack2 = 17949, // 28E3->player, no cast, single-target
     BurningBeam = 15923, // 28E3->self, 3,0s cast, range 15 width 4 rect
-};
+}
 
 public enum TetherID : uint
 {
     StatueActivate = 37, // 28E8->Boss
-};
+}
 
 class RonkanFire : Components.SingleTargetCast
 {

@@ -6,7 +6,7 @@ public enum OID : uint
     Escort1 = 0x31A1, // R2.800, x24
     Escort2 = 0x32FD, // R2.800, spawn during fight
     Helper = 0x233C, // R0.500, x26
-};
+}
 
 public enum AID : uint
 {
@@ -28,20 +28,20 @@ public enum AID : uint
     SuppressiveMagitekRaysAOE = 23617, // Helper->self, 5.5s cast, ???, raidwide
     Analysis = 23607, // Boss->self, 3.0s cast, single-target, visual
     PreciseStrike = 23619, // Escort1->self, 5.0s cast, range 60 width 6 rect aoe (should orient correctly to avoid vuln)
-};
+}
 
 public enum SID : uint
 {
     Tracking = 2056, // none->Escort2, extra=0x87
     FrontUnseen = 2644, // Boss->player, extra=0x120
     BackUnseen = 1709, // Boss->player, extra=0xE8
-};
+}
 
 public enum IconID : uint
 {
     BallisticImpact = 261, // Helper
     ChainCannon = 164, // player
-};
+}
 
 class DiveFormation : Components.SelfTargetedAOEs
 {

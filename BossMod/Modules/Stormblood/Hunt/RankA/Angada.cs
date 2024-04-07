@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x1AC0, // R=5.4
-};
+}
 
 public enum AID : uint
 {
@@ -12,7 +12,7 @@ public enum AID : uint
     RockThrow = 8193, // 1AC0->location, 3,0s cast, range 6 circle
     Butcher = 8191, // 1AC0->self, 3,0s cast, range 6+R 120-degree cone
     Rip = 8192, // 1AC0->self, no cast, range 6+R 120-degree cone, always happens directly after Butcher
-};
+}
 
 class ScytheTail : Components.SelfTargetedAOEs
 {

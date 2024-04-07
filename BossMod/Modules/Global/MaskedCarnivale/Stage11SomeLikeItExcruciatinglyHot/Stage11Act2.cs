@@ -3,12 +3,12 @@ namespace BossMod.Global.MaskedCarnivale.Stage11.Act2;
 public enum OID : uint
 {
     Boss = 0x2719, //R=1.2
-};
+}
 
 public enum AID : uint
 {
     Fulmination = 14583, // 2719->self, 23,0s cast, range 60 circle
-};
+}
 
 class Hints : BossComponent
 {

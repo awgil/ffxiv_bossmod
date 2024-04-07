@@ -15,7 +15,7 @@ public enum OID : uint
     OrangeTower2 = 0x1EB906, // R0.500, EventObj type, spawn during fight
     BlueTower1 = 0x1EB896, // R0.500, EventObj type, spawn during fight
     BlueTower2 = 0x1EB897, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -107,7 +107,7 @@ public enum AID : uint
     SFireSpreadCross = 34113, // Helper->self, 3.5s cast, range 46 width 5 rect
 
     LivingHell = 34102, // *Boss->self, 10.0s cast, single-target, enrage
-};
+}
 
 public enum SID : uint
 {
@@ -123,7 +123,7 @@ public enum SID : uint
     OdderIncarnation4 = 3604, // none->player, extra=0x0 (blue 4)
     SquirrellyPrayer = 3605, // none->player, extra=0x0 (orange)
     OdderPrayer = 3606, // none->player, extra=0x0 (blue)
-};
+}
 
 public enum IconID : uint
 {
@@ -133,10 +133,10 @@ public enum IconID : uint
     Order2 = 337, // player
     Order3 = 338, // player
     Order4 = 339, // player
-};
+}
 
 public enum TetherID : uint
 {
     RousingReincarnation = 248, // player->NBoss
     PointedPurgation = 89, // player->NBoss
-};
+}

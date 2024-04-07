@@ -7,7 +7,7 @@ public enum OID : uint
     BossHelper = 0x233C,
     IceVoidzone = 0x1E8D9C,
     BonusAdd_AltarMatanga = 0x2545, // R3.420
-};
+}
 
 public enum AID : uint
 {
@@ -26,12 +26,12 @@ public enum AID : uint
     RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
     Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
-};
+}
 
 public enum IconID : uint
 {
     Baitaway = 23, // player
-};
+}
 
 class TheScorpionsSting : Components.SelfTargetedAOEs
 {

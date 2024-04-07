@@ -6,7 +6,7 @@ public enum OID : uint
     Flan = 0x25C5, //R1.8
     Licorice = 0x25C3, //R=1.8
 
-};
+}
 
 public enum AID : uint
 {
@@ -14,7 +14,7 @@ public enum AID : uint
     Stone = 14270, // 25C3->player, 1,0s cast, single-target
     Blizzard = 14267, // 25C1->player, 1,0s cast, single-target
     GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5,0s cast, single-target
-};
+}
 
 class GoldenTongue : Components.CastHint
 {

@@ -6,7 +6,7 @@ public enum OID : uint
     Maelstrom = 0x2681, //R=0.6
     Helper = 0x233C,
     LavaVoidzone = 0x1EA8BB,
-};
+}
 
 public enum AID : uint
 {
@@ -24,14 +24,14 @@ public enum AID : uint
     Plaincracker = 14765, // 2680->self, 3,5s cast, range 6+R circle
     TremblingEarth = 14774, // 233C->self, 3,5s cast, range 10-20 donut
     TremblingEarth2 = 14775, // 233C->self, 3,5s cast, range 20-30 donut
-};
+}
 
 public enum SID : uint
 {
     RepellingSpray = 556, // Boss->Boss, extra=0x64
     IceSpikes = 1307, // Boss->Boss, extra=0x64
     Doom = 910, // Boss->player, extra=0x0
-};
+}
 
 class Charybdis : Components.SelfTargetedAOEs
 {

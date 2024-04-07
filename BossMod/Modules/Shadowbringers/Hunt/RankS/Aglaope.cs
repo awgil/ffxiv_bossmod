@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankS.Aglaope;
 public enum OID : uint
 {
     Boss = 0x281E, // R=2.4
-};
+}
 
 public enum AID : uint
 {
@@ -15,13 +15,13 @@ public enum AID : uint
     AncientAero = 16823, // Boss->self, 3,0s cast, range 40+R width 6 rect
     SongOfTorment = 16825, // Boss->self, 5,0s cast, range 50 circle, interruptible raidwide with bleed
     AncientAeroIII = 18056, // Boss->self, 3,0s cast, range 30 circle, knockback 10, away from source
-};
+}
 
 public enum SID : uint
 {
     Seduced = 991, // Boss->player, extra=0x11
     Bleeding = 642, // Boss->player, extra=0x0
-};
+}
 
 class SongOfTorment : Components.CastInterruptHint
 {

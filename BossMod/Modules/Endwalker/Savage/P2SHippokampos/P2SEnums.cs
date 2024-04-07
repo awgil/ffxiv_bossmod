@@ -6,7 +6,7 @@ public enum OID : uint
     CataractHead = 0x359C,
     DissociatedHead = 0x386A,
     Helper = 0x233C, // x24
-};
+}
 
 public enum AID : uint
 {
@@ -44,7 +44,7 @@ public enum AID : uint
     TaintedFloodAOE = 26680, // Helper->targets
     AutoAttack = 27978, // Boss->MT, no cast
     ChannelingOverflow = 28098, // Boss->Boss (both 2nd and 3rd arrows)
-};
+}
 
 public enum SID : uint
 {

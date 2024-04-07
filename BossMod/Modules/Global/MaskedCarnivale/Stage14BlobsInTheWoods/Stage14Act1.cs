@@ -3,12 +3,12 @@ namespace BossMod.Global.MaskedCarnivale.Stage14.Act1;
 public enum OID : uint
 {
     Boss = 0x271D, //R=2.0
-};
+}
 
 public enum AID : uint
 {
     TheLastSong = 14756, // 271D->self, 6,0s cast, range 60 circle
-};
+}
 
 class LastSong : Components.GenericLineOfSightAOE
 {

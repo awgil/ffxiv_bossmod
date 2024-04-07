@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x38CE, // x1
     Helper = 0x233C, // x50
-};
+}
 
 public enum AID : uint
 {
@@ -34,7 +34,7 @@ public enum AID : uint
     ArtificialBoost = 29354, // Boss->self, 4.0s cast, single-target, visual (buff)
     ArtificialPlasmaBoostFirst = 29352, // Boss->self, 5.0s cast, raidwide
     ArtificialPlasmaBoostRest = 29353, // Boss->self, no cast, raidwide
-};
+}
 
 class AglaeaClimb : Components.SingleTargetCast
 {

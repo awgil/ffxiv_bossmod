@@ -8,7 +8,7 @@ public enum OID : uint
     Helper2 = 0x2A4B,
     Helper3 = 0x2A4C, // R1.320, x5
     Helper4 = 0x2A4D, // R2.000, x2
-};
+}
 
 public enum AID : uint
 {
@@ -21,7 +21,7 @@ public enum AID : uint
     ExorciseB = 15827, // 278B->location, no cast, range 6 circle
     HolyWaterVoidzones = 15825, // 278B->self, no cast, single-target
     HolyWater = 15828, // Helper->location, 7.0s cast, range 6 circle
-};
+}
 
 public enum IconID : uint
 {
@@ -31,7 +31,7 @@ public enum IconID : uint
     Icon3 = 81, // player
     Icon4 = 82, // player
     Stackmarker = 62, // player
-};
+}
 
 class TheTickler : Components.SingleTargetDelayableCast
 {

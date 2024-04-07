@@ -6,7 +6,7 @@ public enum OID : uint
     Voidzone = 0x1E858E, // R0.500, EventObj type, spawn during fight
     VoidsentDiscarnate = 0x18E6, // R1.000, spawn during fight
     Helper = 0x233C, // R0.500, x12, 523 type
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     HallOfSorrow = 7088, // Boss->location, no cast, range 9 circle
     Infaturation = 7157, // VoidsentDiscarnate->self, 6.5s cast, range 6+R circle
     Valfodr = 7089, // Boss->player, 4.0s cast, width 6 rect charge, knockback 25, dir forward
-};
+}
 
 class CleaveAuto : Components.Cleave
 {

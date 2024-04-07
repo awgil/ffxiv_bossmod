@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x33EE, // R=2.04
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -28,7 +28,7 @@ public enum AID : uint
     ManusyaThunder = 25247, // Boss->player, no cast, single-target
     TransmuteBlizzardIII = 25371, // Boss->self, 2,7s cast, single-target
     TransmuteThunderIII = 25372, // Boss->self, 2,7s cast, single-target
-};
+}
 
 public enum SID : uint
 {
@@ -40,7 +40,7 @@ public enum SID : uint
     IceAlchemy = 2752, // Boss->Boss, extra=0x0
     ToxicAlchemy = 2754, // Boss->Boss, extra=0x0
     FireAlchemy = 2751, // Boss->Boss, extra=0x0
-};
+}
 
 class ManusyaBio : Components.SingleTargetCast
 {

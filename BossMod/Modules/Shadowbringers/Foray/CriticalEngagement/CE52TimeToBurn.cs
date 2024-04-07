@@ -7,7 +7,7 @@ public enum OID : uint
     Clock = 0x1EB17A, // R0.500, x9, EventObj type
     TimeBomb1 = 0x1EB17B, // R0.500, EventObj type, spawn during fight
     TimeBomb2 = 0x1EB1D4, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -24,7 +24,7 @@ public enum AID : uint
     FireTankbuster = 23961, // Boss->player, 5.0s cast, single-target
     FireRaidwide = 23962, // Boss->self, 5.0s cast, single-target, visual
     FireRaidwideAOE = 23963, // Helper->self, no cast, ???
-};
+}
 
 // these three main mechanics can overlap in a complex way, so we have a single component to handle them. Potential options:
 // - eruption only (fast/slow clocks): visual cast -> 9 eobjanims -> pause cast -> start cast -> resolve

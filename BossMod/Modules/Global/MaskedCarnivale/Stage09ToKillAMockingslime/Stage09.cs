@@ -10,7 +10,7 @@ public enum OID : uint
     Bavarois = 0x2715, //R=1.8
     Flan = 0x2716, //R=1.8
     DarkVoidzone = 0x1E9C9D, //R=0.5
-};
+}
 
 public enum AID : uint
 {
@@ -23,7 +23,7 @@ public enum AID : uint
     Stone = 14270, // 2714->player, 1,0s cast, single-target
     Thunder = 14268, // 2715->player, 1,0s cast, single-target
     Water = 14271, // 2716->player, 1,0s cast, single-target
-};
+}
 
 class GoldenTongue : Components.CastHint
 {

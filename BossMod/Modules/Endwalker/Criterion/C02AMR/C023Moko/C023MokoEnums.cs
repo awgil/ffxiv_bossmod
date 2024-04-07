@@ -16,7 +16,7 @@ public enum OID : uint
 
     Helper = 0x233C, // R0.500, x20
     SoldierOfDeath = 0x1EB8C9, // R0.500, EventObj type, spawn during fight - soldiers of death mechanic
-};
+}
 
 public enum AID : uint
 {
@@ -140,7 +140,7 @@ public enum AID : uint
     //_Weaponskill_KenkiRelease = 34254, // NMokoShadow->self, 3.0s cast, range 60 circle
 
     Enrage = 34273, // *Boss->self, 10.0s cast, range 60 circle
-};
+}
 
 public enum SID : uint
 {
@@ -151,10 +151,10 @@ public enum SID : uint
     //_Gen_ = 2193, // none->*Boss/*MokoShadow, extra=0x268/0x267/0x266/0xE1
     //_Gen_ = 2056, // none->*OniClaw/*Boss/*AshigaruKyuhei, extra=0x257/0x26C/0x26D/0x1E8/0x5E
     //_Gen_Bind = 2518, // *AncientKatana->player, extra=0x0
-};
+}
 
 public enum TetherID : uint
 {
     RatAndMouse = 17, // *Boss/*MokoShadow->player
     //_Gen_Tether_1 = 1, // *MokoShadow->*MokoShadow
-};
+}

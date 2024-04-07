@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x1AB1, // R=8.0
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     Expulsion = 7995, // 1AB1->self, 3,0s cast, range 6+R circle, knockback 30, away from source
     Immersion = 7994, // 1AB1->self, 3,0s cast, range 60+R circle
     RubyTide = 7992, // Boss->self, 2,0s cast, single-target, boss gives itself Dmg up buff
-};
+}
 
 class Hydrocannon : Components.SelfTargetedAOEs
 {

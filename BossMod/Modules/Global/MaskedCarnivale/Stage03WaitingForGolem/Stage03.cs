@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x25D4, //R=2.2
     voidzone = 0x1E8FEA,
-};
+}
 
 public enum AID : uint
 {
@@ -12,7 +12,7 @@ public enum AID : uint
     BoulderClap = 14363, // 25D4->self, 3,0s cast, range 14 120-degree cone
     EarthenHeart = 14364, // 25D4->location, 3,0s cast, range 6 circle
     Obliterate = 14365, // 25D4->self, 6,0s cast, range 60 circle
-};
+}
 
 class BoulderClap : Components.SelfTargetedAOEs
 {

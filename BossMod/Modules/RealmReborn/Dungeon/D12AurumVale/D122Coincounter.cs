@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x5BE, // x1
-};
+}
 
 public enum AID : uint
 {
@@ -14,7 +14,7 @@ public enum AID : uint
     Glower = 629, // Boss->self, 3.0s cast, range 17+R width 7 rect aoe
     AnimalInstinct = 630, // Boss->self, no cast, single-target
     EyeOfTheBeholder = 631, // Boss->self, 2.5s cast, range 8-15+R donut 270-degree cone aoe
-};
+}
 
 class TenTonzeSwipe : Components.Cleave
 {

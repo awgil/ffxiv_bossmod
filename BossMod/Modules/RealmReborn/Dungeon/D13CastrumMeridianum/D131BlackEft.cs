@@ -7,7 +7,7 @@ public enum OID : uint
     AddSignifer = 0x38CC, // x2, and more spawn during fight
     AddLaquearius = 0x38CB, // x2, and more spawn during fight
     AddMagitekColossus = 0x394C, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     HighPoweredMagitekRay = 28773, // Boss->self, 5.0s cast, range 60 width 4 rect aoe
     RequestAssistance = 28774, // Boss->self, 4.0s cast, single-target, summon adds
     MagitekCannon = 28775, // Boss->location, 3.0s cast, range 6 circle aoe
-};
+}
 
 class IncendiarySupport : Components.CastHint
 {

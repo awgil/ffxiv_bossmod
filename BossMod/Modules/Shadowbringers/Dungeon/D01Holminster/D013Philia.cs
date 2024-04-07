@@ -6,7 +6,7 @@ public enum OID : uint
     IronChain = 0x2895, // R1.000, spawn during fight
     SludgeVoidzone = 0x1EABFA,
     Helper = 0x233C, // x3
-};
+}
 
 public enum AID : uint
 {
@@ -35,7 +35,7 @@ public enum AID : uint
     FierceBeating6 = 15838, // Helper->self, no cast, range 4 circle
     CatONineTails = 15840, // 278C->self, no cast, single-target
     CatONineTails2 = 15841, // Helper->self, 2,0s cast, range 25 120-degree cone
-};
+}
 
 public enum IconID : uint
 {
@@ -44,14 +44,14 @@ public enum IconID : uint
     ChainTarget = 92, // player
     Spread = 139, // player
     RotateCW = 167, // Boss
-};
+}
 
 public enum SID : uint
 {
     Fetters = 1849, // none->player, extra=0xEC4
     DownForTheCount = 783, // none->player, extra=0xEC7
     Sludge = 287, // none->player, extra=0x0
-};
+}
 
 class SludgeVoidzone : Components.PersistentVoidzone
 {

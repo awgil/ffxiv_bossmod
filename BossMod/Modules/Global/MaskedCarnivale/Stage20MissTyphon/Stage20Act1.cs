@@ -3,7 +3,7 @@ namespace BossMod.Global.MaskedCarnivale.Stage20.Act1;
 public enum OID : uint
 {
     Boss = 0x272A, //R=4.5
-};
+}
 
 public enum AID : uint
 {
@@ -11,7 +11,7 @@ public enum AID : uint
     Fireball = 14706, // 272A->location, 3,5s cast, range 8 circle
     Snort = 14704, // 272A->self, 7,0s cast, range 50+R circle, stun, knockback 30 away from source
     Fireball2 = 14707, // 272A->player, no cast, range 8 circle, 3 casts after snort
-};
+}
 
 class Fireball : Components.LocationTargetedAOEs
 {

@@ -7,7 +7,7 @@ public enum OID : uint
     DimCrystal = 0x31CD, // R1.600, spawn during fight
     CorruptedCrystal = 0x31CE, // R1.600, spawn during fight
     SandSphere = 0x31CF, // R4.000, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -34,7 +34,7 @@ public enum AID : uint
     Hailfire = 24088, // Boss->self, 8.0s cast, single-target, visual
     HailfireAOE = 24089, // Boss->self, no cast, range 40 width 4 rect aoe
     Teleport = 24090, // Boss->location, no cast, single-target
-};
+}
 
 public enum IconID : uint
 {
@@ -43,7 +43,7 @@ public enum IconID : uint
     Hailfire2 = 80, // player
     Hailfire3 = 81, // player
     Hailfire4 = 82, // player
-};
+}
 
 class CrystallineFracture : Components.SelfTargetedAOEs
 {

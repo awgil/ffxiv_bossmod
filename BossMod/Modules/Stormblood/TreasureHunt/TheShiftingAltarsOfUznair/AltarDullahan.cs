@@ -11,7 +11,7 @@ public enum OID : uint
     AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     BonusAdd_AltarMatanga = 0x2545, // R3.420
-};
+}
 
 public enum AID : uint
 {
@@ -35,7 +35,7 @@ public enum AID : uint
     Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
 
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
-};
+}
 
 class IronJustice : Components.SelfTargetedAOEs
 {

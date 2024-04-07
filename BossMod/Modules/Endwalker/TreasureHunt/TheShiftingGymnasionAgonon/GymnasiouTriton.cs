@@ -6,7 +6,7 @@ public enum OID : uint
     BossAdd = 0x3D31, //R=2.2
     BossHelper = 0x233C,
     Bubble = 0x3D32, //R=1.0
-};
+}
 
 public enum AID : uint
 {
@@ -18,7 +18,7 @@ public enum AID : uint
     WateryGrave = 32234, // Bubble->self, no cast, range 2 circle, voidzone, imprisons player until status runs out
     NavalRam = 32232, // BossAdd->player, no cast, single-target
     ProtolithicPuncture = 32228, // Boss->player, 5,0s cast, single-target
-};
+}
 
 class PelagicCleaver : Components.SelfTargetedAOEs
 {

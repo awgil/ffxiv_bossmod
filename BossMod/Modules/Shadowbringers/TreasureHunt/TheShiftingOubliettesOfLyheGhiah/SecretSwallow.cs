@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x302B, //R=4.0
     BossAdd = 0x302C, //R=2.0 
     BossHelper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     SeventhWave = 21719, // 302B->self, 4,5s cast, range 11 circle
     BodySlam = 21718, // 302B->location, 4,0s cast, range 10 circle, knockback 20, away from source
     PrevailingCurrent = 21717, // 302C->self, 3,0s cast, range 22+R width 6 rect
-};
+}
 
 class ElectricWhorl : Components.SelfTargetedAOEs
 {

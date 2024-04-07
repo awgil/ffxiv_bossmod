@@ -4,7 +4,7 @@ namespace BossMod.StrikingDummy
     public enum OID : uint
     {
         Boss = 0x385,
-    };
+    }
 
     class StrikingDummyStates : StateMachineBuilder
     {

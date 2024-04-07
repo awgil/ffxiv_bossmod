@@ -18,7 +18,7 @@ public enum AID : uint
     SanctifiedAero = 16813, // 28F1->self, 5,0s cast, range 40 width 8 rect
     PunitiveLight = 16815, // Boss->self, 5,0s cast, range 20 circle
     Sanctification = 16814, // Boss->self, 5,0s cast, range 12 90-degree cone
-};
+}
 
 class SanctifiedAero : Components.SelfTargetedAOEs
 {

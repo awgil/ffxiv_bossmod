@@ -34,7 +34,7 @@ public enum AID : uint
     SacramentSforzando = 15634, // Boss->self, 4,0s cast, single-target
     SacramentSforzando2 = 15635, // 233C->player, no cast, single-target
     SanctifiedStaccato = 15654, // 233C->self, no cast, range 3 circle, sort of a voidzone around the light orbs, only triggers if you get too close
-};
+}
 
 class Orbs : Components.GenericAOEs
 {

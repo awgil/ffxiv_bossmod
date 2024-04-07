@@ -9,7 +9,7 @@ public enum OID : uint
     Deathwall = 0x2EE8, // R0.500, x1
     Helper = 0x233C, // R0.500, x10
     DeathwallEvent = 0x1EB02E, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -46,7 +46,7 @@ public enum AID : uint
 
     HardBeakCrow = 20190, // TamedCarrionCrow->player, 4.0s cast, single-target, micro tankbuster
     PiercingBarrageCrow = 20191, // TamedCarrionCrow->self, 3.0s cast, range 40 width 8 rect
-};
+}
 
 class BestialLoyalty : Components.CastHint
 {

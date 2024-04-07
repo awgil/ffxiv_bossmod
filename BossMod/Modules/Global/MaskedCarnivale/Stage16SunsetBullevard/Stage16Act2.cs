@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x26F4, // R=4.0
     Cyclops = 0x26F3, //R=3.2
     Helper = 0x233C, //R=0.5
-};
+}
 
 public enum AID : uint
 {
@@ -20,7 +20,7 @@ public enum AID : uint
     ZoomIn = 14873, // 26F4->player, 4,0s cast, width 8 rect unavoidable charge, knockback dist 20
     TenTonzeWave = 14876, // 26F4->self, 4,0s cast, range 40+R 60-degree cone
     TenTonzeWave2 = 15268, // 233C->self, 4,6s cast, range 10-20 donut
-};
+}
 
 class OneOneOneOneTonzeSwing : Components.RaidwideCast
 {

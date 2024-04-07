@@ -6,7 +6,7 @@ public enum OID : uint
     Shabti = 0x26FA, //R=1.1
     Serpent = 0x26FB, //R=1.2
     Helper = 0x233C, //R=0.5
-};
+}
 
 public enum AID : uint
 {
@@ -24,7 +24,7 @@ public enum AID : uint
     Superstorm = 14971, // 26F9->self, 3,5s cast, single-target
     Superstorm2 = 14970, // 233C->self, 3,5s cast, range 8-20 donut
     Disseminate = 14899, // 26FB->self, 2,0s cast, range 6+R circle, casts on death of serpents
-};
+}
 
 class HighVoltage : Components.CastHint
 {

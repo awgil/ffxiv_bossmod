@@ -11,7 +11,7 @@ public enum AID : uint
     WindsOfWinter = 32785, // Boss->self, 5,0s cast, range 40 circle
     Freefall = 32786, // Boss->location, 3,5s cast, range 8 circle
     GoldenTalons = 32787, // Boss->self, 4,5s cast, range 8 90-degree cone
-};
+}
 
 class WindsOfWinter : Components.RaidwideCast
 {

@@ -18,7 +18,7 @@ public enum AID : uint
     Shock = 14600, // Boss->self, 3,0s cast, range 10 circle
     unknown = 14531, // Boss->self, no cast, single-target
     unknown2 = 14533, // Boss->self, no cast, single-target
-};
+}
 
 class Chainsaw : Components.SelfTargetedAOEs
 {

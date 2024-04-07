@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x3D1B, // R5.950, x1
     AllaganCrystal = 0x3D1C, // R1.500, x4
     Helper = 0x233C, // R0.500, x12, 523 type
-};
+}
 
 public enum AID : uint
 {
@@ -22,18 +22,18 @@ public enum AID : uint
     ShatterCone = 31440, // 3D1C->self, 2.5s cast, range 18+R 150-degree cone
     SteelClaw = 31445, // 3D1B->player, 5.0s cast, single-target
     Teleport = 31446, // 3D1B->location, no cast, single-target, boss teleports mid
-};
+}
 
 public enum IconID : uint
 {
     tankbuster = 198, // player
-};
+}
 
 public enum TetherID : uint
 {
     FerocityTetherGood = 1, // Boss->player
     FerocityTetherStretch = 57, // Boss->player
-};
+}
 
 class SteelClaw : Components.SingleTargetDelayableCast
 {

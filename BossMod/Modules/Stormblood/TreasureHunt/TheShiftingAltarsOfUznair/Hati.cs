@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2538, //R=5.4
     BossAdd = 0x2569, //R=3.0
     BossHelper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     Netherwind = 13741, // BossAdd->self, 3,0s cast, range 15+R width 4 rect
     BrainFreeze = 13361, // Boss->self, 4,0s cast, range 10+R circle, turns player into Imp
     PolarRoar = 13360, // Boss->self, 3,0s cast, range 9-40 donut
-};
+}
 
 class PolarRoar : Components.SelfTargetedAOEs
 {

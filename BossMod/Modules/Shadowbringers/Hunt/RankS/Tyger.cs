@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankS.Tyger;
 public enum OID : uint
 {
     Boss = 0x288E, // R=5.92
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     TheRamsEmbrace = 16960, // Boss->location, 3,0s cast, range 9 circle
     TheDragonsVoice = 16963, // Boss->self, 4,0s cast, range 8-30 donut, interruptible raidwide donut
     TheRamsVoice = 16962, // Boss->self, 4,0s cast, range 9 circle
-};
+}
 
 class TheLionsBreath : Components.SelfTargetedAOEs
 {

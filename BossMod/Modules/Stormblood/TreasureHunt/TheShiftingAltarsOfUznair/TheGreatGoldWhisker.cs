@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2541, //R=2.4
     BossHelper = 0x233C,
     BonusAdd_GoldWhisker = 0x2544, // R0.540
-};
+}
 
 public enum AID : uint
 {
@@ -14,7 +14,7 @@ public enum AID : uint
     Tingle = 13365, // Boss->self, 4,0s cast, range 10+R circle
     FishOutOfWater = 13366, // Boss->self, 3,0s cast, single-target
     Telega = 9630, // BonusAdd_GoldWhisker->self, no cast, single-target
-};
+}
 
 class TripleTrident : Components.SingleTargetDelayableCast
 {

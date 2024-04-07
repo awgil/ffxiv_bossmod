@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.OPoorestPauldia;
 public enum OID : uint
 {
     Boss = 0x2820, // R=4.025
-};
+}
 
 public enum AID : uint
 {
@@ -12,7 +12,7 @@ public enum AID : uint
     TailDrive = 16831, // 2820->self, 5,0s cast, range 30+R 90-degree cone
     WordsOfWoe = 16832, // 2820->self, 3,0s cast, range 45+R width 6 rect
     TheSpin = 16833, // 2820->self, 3,0s cast, range 40 circle
-};
+}
 
 class RustingClaw : Components.SelfTargetedAOEs
 {

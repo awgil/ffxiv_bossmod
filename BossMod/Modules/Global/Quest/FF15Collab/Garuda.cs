@@ -30,7 +30,7 @@ public enum AID : uint
     MistralGaol = 14621, // Boss->self, 5,0s cast, range 6 circle, quick time event starts
     Microburst2 = 14624, // Boss->self, no cast, range 25 circle, quick time event failed (enrage)
     warpstrike = 14597, //duty action for player
-};
+}
 
 class GustFront : Components.UniformStackSpread
 {

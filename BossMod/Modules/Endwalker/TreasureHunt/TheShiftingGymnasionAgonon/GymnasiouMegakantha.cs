@@ -8,7 +8,7 @@ public enum OID : uint
     BossAdd1 = 0x3D35, //R=1.76 
     BossAdd2 = 0x3D36, //R=1.56
     BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
-};
+}
 
 public enum AID : uint
 {
@@ -28,7 +28,7 @@ public enum AID : uint
 
     HeavySmash = 32317, // BossAdd->location, 3,0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
-};
+}
 
 class HeavySmash : Components.LocationTargetedAOEs
 {

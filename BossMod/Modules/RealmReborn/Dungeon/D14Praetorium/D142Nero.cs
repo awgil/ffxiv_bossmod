@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x3873, // x1
     MagitekDeathClaw = 0x3874, // spawn during fight
     Helper = 0x233C, // x8
-};
+}
 
 public enum AID : uint
 {
@@ -19,7 +19,7 @@ public enum AID : uint
     Activate = 28479, // Boss->self, 3.0s cast, single-target, visual (spawn claw)
     TheHand = 28480, // MagitekDeathClaw->player, no cast, single-target (autoattack with knockback 20)
     WheelOfSuffering = 28481, // Boss->self, 3.5s cast, range 7 circle aoe (knockback 12)
-};
+}
 
 class IronUprising : Components.SelfTargetedAOEs
 {

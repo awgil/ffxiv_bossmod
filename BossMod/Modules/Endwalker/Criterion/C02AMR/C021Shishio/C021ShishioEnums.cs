@@ -15,7 +15,7 @@ public enum OID : uint
     SHauntingThrall = 0x3F51, // R2.000, spawn during fight - tethered ghosts
 
     Helper = 0x233C, // R0.500, x20
-};
+}
 
 public enum AID : uint
 {
@@ -108,11 +108,11 @@ public enum AID : uint
     SEnrage = 33861, // SBoss->self, 10.0s cast, range 60 circle enrage
     NEnrageRepeat = 33981, // NBoss->self, no cast, range 60 circle
     SEnrageRepeat = 33982, // SBoss->self, no cast, range 60 circle
-};
+}
 
 public enum SID : uint
 {
     ScatteredWailing = 3563, // *Boss->player, extra=0x0
     IntensifiedWailing = 3564, // *Boss->player, extra=0x0
     //_Gen_ = 2056, // none->*DevilishThrall, extra=0xE1
-};
+}

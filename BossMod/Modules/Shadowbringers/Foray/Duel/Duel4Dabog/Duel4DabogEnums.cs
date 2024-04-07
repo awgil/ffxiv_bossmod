@@ -8,7 +8,7 @@ public enum OID : uint
     DabogFragment = 0x3262, // R4.500, spawn during fight
     AtomicSphere = 0x3263, // R1.000, spawn during fight
     AtomicSphereVoidzone = 0x1EB1A4, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -41,7 +41,7 @@ public enum AID : uint
     RightArmRayAOEFirst = 24273, // Helper->self, 10.0s cast, range 16 width 6 cross aoe
     RightArmRayAOERest = 24274, // Helper->self, no cast, range 16 width 6 cross aoe
     RightArmRayVoidzone = 24275, // Helper->player, no cast, range 5 circle aoe that leaves voidzone
-};
+}
 
 public enum IconID : uint
 {
@@ -50,4 +50,4 @@ public enum IconID : uint
     LeftArmWaveBait = 23, // player
     AtomicSphereCW = 156, // AtomicSphere
     AtomicSphereCCW = 157, // AtomicSphere
-};
+}

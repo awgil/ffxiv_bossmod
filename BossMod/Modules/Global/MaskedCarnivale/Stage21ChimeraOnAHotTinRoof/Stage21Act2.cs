@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2730, //R=3.7
     ArenaImp = 0x2731, //R=0.45
     Voidzone = 0x1E972A,
-};
+}
 
 public enum AID : uint
 {
@@ -17,7 +17,7 @@ public enum AID : uint
     TheDragonsVoice = 15080, // Boss->self, 4,0s cast, range 8-30 donut
     TheRamsKeeper = 15081, // Boss->location, 6,0s cast, range 9 circle
 
-};
+}
 
 class TheRamsKeeper : Components.PersistentVoidzoneAtCastTarget
 {

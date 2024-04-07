@@ -8,7 +8,7 @@ public enum OID : uint
     Platform1 = 0x1E870F, // x1, EventObj type
     Platform2 = 0x1E8710, // x1, EventObj type
     Platform3 = 0x1E8711, // x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -18,7 +18,7 @@ public enum AID : uint
     CreepingDarkness = 927, // Boss->self, 2.5s cast, raidwide
     VergeLine = 929, // MythrilVerge->self, 4.0s cast, range 60 width 4 rect aoe
     VergePulse = 930, // MythrilVerge->self, 10.0s cast, range 60 ???
-};
+}
 
 class Darkness : Components.SelfTargetedLegacyRotationAOEs
 {

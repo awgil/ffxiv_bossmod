@@ -4,14 +4,14 @@ public enum OID : uint
 {
     Boss = 0x2720, //R=2.0
     RightClaw = 0x271F, //R=2.0
-};
+}
 
 public enum AID : uint
 {
     AutoAttack = 6499, // 2720/271F->player, no cast, single-target
     TheHand = 14760, // 271F/2720->self, 3,0s cast, range 6+R 120-degree cone, knockback away from source, dist 10
     Shred = 14759, // 2720/271F->self, 2,5s cast, range 4+R width 4 rect, stuns player
-};
+}
 
 class TheHand : Components.SelfTargetedAOEs
 {
