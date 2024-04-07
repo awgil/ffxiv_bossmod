@@ -144,8 +144,8 @@ public class ReplayManagementWindow : UIWindow
         return false;
     }
 
-    private void OnConfigChanged(object? sender, EventArgs args) => IsOpen = _config.ShowUI;
-    private void OnZoneChanged(object? sender, WorldState.OpZoneChange op) => UpdateAutoRecord(op.CFCID);
+    private void OnConfigChanged() => IsOpen = _config.ShowUI;
+    private void OnZoneChanged(WorldState.OpZoneChange op) => UpdateAutoRecord(op.CFCID);
 
     private unsafe string GetPrefix()
     {

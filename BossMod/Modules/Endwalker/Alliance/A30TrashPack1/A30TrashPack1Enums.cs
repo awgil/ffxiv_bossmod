@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x4010, // R3.450, x6
     Triton = 0x4011, // R1.950, x2
     DivineSprite = 0x4012, // R1.600, x3
-    WaterSprite = 0x4085, // R0.800, x5   
+    WaterSprite = 0x4085, // R0.800, x5
 }
 
 public enum AID : uint

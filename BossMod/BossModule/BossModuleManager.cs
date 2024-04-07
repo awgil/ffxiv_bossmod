@@ -132,7 +132,7 @@ public class BossModuleManager : IDisposable
 
         WorldState.Actors.Added += ActorAdded;
         foreach (var a in WorldState.Actors)
-            ActorAdded(null, a);
+            ActorAdded(a);
     }
 
     private void Shutdown()
@@ -187,7 +187,7 @@ public class BossModuleManager : IDisposable
         return new DemoModule(WorldState, new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new()));
     }
 
-    private void ActorAdded(object? sender, Actor actor)
+    private void ActorAdded(Actor actor)
     {
         var m = ModuleRegistry.CreateModuleForActor(WorldState, actor, WindowConfig.MinMaturity);
         if (m != null)
@@ -196,7 +196,7 @@ public class BossModuleManager : IDisposable
         }
     }
 
-    private void ConfigChanged(object? sender, EventArgs args)
+    private void ConfigChanged()
     {
         if (WindowConfig.Enable)
             Startup();

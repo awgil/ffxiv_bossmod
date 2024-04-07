@@ -8,7 +8,7 @@ public class ConfigRoot
 {
     private const int _version = 7;
 
-    public event EventHandler? Modified;
+    public event Action? Modified;
     private Dictionary<Type, ConfigNode> _nodes = new();
 
     public IEnumerable<ConfigNode> Nodes => _nodes.Values;
@@ -23,7 +23,7 @@ public class ConfigRoot
                 Service.Log($"[Config] Failed to create an instance of {t}");
                 continue;
             }
-            inst.Modified += (sender, args) => Modified?.Invoke(sender, args);
+            inst.Modified += () => Modified?.Invoke();
             _nodes[t] = inst;
         }
     }

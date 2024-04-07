@@ -432,20 +432,20 @@ class DebugClassDefinitions : IDisposable
 
     private unsafe int MaxChargesAtCap(uint aid) => FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(aid, 90);
 
-    private void OnCast(object? sender, (Actor actor, ActorCastEvent ev) args)
+    private void OnCast(Actor actor, ActorCastEvent ev)
     {
-        if (args.actor != _ws.Party.Player())
+        if (actor != _ws.Party.Player())
             return;
-        _seenActionLocks[args.ev.Action] = args.ev.AnimationLockTime;
-        foreach (var t in args.ev.Targets)
+        _seenActionLocks[ev.Action] = ev.AnimationLockTime;
+        foreach (var t in ev.Targets)
         {
             foreach (var eff in t.Effects.Where(eff => eff.Type is ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource))
             {
                 var data = _seenStatuses.GetOrAdd(eff.Value);
-                data.Classes.Add(args.actor.Class);
-                data.Actions.Add(args.ev.Action);
+                data.Classes.Add(actor.Class);
+                data.Actions.Add(ev.Action);
 
-                bool onTarget = eff.Type == ActionEffectType.ApplyStatusEffectTarget && t.ID != args.actor.InstanceID && !eff.AtSource;
+                bool onTarget = eff.Type == ActionEffectType.ApplyStatusEffectTarget && t.ID != actor.InstanceID && !eff.AtSource;
                 if (onTarget)
                     data.OnTarget = true;
                 else

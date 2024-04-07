@@ -30,13 +30,13 @@ public class PartyState
 
     public PartyState(ActorState actorState)
     {
-        actorState.Added += (_, actor) =>
+        actorState.Added += actor =>
         {
             var slot = FindSlot(actor.InstanceID);
             if (slot >= 0)
                 _actors[slot] = actor;
         };
-        actorState.Removed += (_, actor) =>
+        actorState.Removed += actor =>
         {
             var slot = FindSlot(actor.InstanceID);
             if (slot >= 0)
@@ -84,7 +84,7 @@ public class PartyState
     }
 
     // implementation of operations
-    public event EventHandler<OpModify>? Modified;
+    public event Action<OpModify>? Modified;
     public class OpModify : WorldState.Operation
     {
         public int Slot;
@@ -108,13 +108,13 @@ public class PartyState
                 ws.Party._contentIDs[Slot] = ContentID;
             ws.Party._actorIDs[Slot] = InstanceID;
             ws.Party._actors[Slot] = ws.Actors.Find(InstanceID);
-            ws.Party.Modified?.Invoke(ws, this);
+            ws.Party.Modified?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "PAR ").Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
     }
 
-    public event EventHandler<OpLimitBreakChange>? LimitBreakChanged;
+    public event Action<OpLimitBreakChange>? LimitBreakChanged;
     public class OpLimitBreakChange : WorldState.Operation
     {
         public int Cur;
@@ -124,7 +124,7 @@ public class PartyState
         {
             ws.Party.LimitBreakCur = Cur;
             ws.Party.LimitBreakMax = Max;
-            ws.Party.LimitBreakChanged?.Invoke(ws, this);
+            ws.Party.LimitBreakChanged?.Invoke(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "LB  ").Emit(Cur).Emit(Max);

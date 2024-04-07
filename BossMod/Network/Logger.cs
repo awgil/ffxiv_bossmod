@@ -45,7 +45,7 @@ public class Logger : IDisposable
         _interceptor.Dispose();
     }
 
-    private void ApplyConfig(object? sender, EventArgs args)
+    private void ApplyConfig()
     {
         if (_config.DumpServerPackets && !_interceptor.Active)
         {

@@ -210,7 +210,7 @@ public class ReplayRecorder : IDisposable
             foreach (var op in _ws.CompareToInitial())
             {
                 op.Timestamp = _ws.CurrentTime;
-                Log(null, op);
+                Log(op);
             }
         }
 
@@ -230,7 +230,7 @@ public class ReplayRecorder : IDisposable
             stream.WriteByte((byte)c);
     }
 
-    private void Log(object? sender, WorldState.Operation op)
+    private void Log(WorldState.Operation op)
     {
         op.Write(_logger);
         _logger.EndEntry();
