@@ -37,9 +37,12 @@ class EverFireOnceBurned : Components.Exaflare
 
     private void Advance(BossModule module, WPos position, WDir dir)
     {
-        int index = Lines.FindIndex(item => item.Next.AlmostEqual(position, 1) && item.Advance.Dot(dir) > 5);
-        AdvanceLine(module, Lines[index], position);
-        if (Lines[index].ExplosionsLeft == 0)
-            Lines.RemoveAt(index);
+        if (Lines.Count > 0)
+        {
+            int index = Lines.FindIndex(item => item.Next.AlmostEqual(position, 1) && item.Advance.Dot(dir) > 5);
+            AdvanceLine(module, Lines[index], position);
+            if (Lines[index].ExplosionsLeft == 0)
+                Lines.RemoveAt(index);
+        }
     }
 }
