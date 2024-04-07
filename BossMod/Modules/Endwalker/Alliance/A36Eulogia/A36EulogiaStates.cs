@@ -43,6 +43,7 @@ class A36EulogiaStates : StateMachineBuilder
             .ActivateOnEnter<Tridents>()
             .ActivateOnEnter<FirstBlush>()
             .ActivateOnEnter<ThousandfoldThrust>()
+            .ActivateOnEnter<SolarFans>()
             .ActivateOnEnter<RadiantRhythm>()
             .ActivateOnEnter<RadiantFlourish>()
             .ActivateOnEnter<ClimbingShot>()

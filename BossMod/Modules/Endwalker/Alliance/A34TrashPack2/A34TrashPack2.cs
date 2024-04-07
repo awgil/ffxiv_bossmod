@@ -12,7 +12,7 @@ class SkylightCross : Components.SelfTargetedAOEs
 
 class Skylight : Components.SelfTargetedAOEs
 {
-    public Skylight() : base(ActionID.MakeSpell(AID.SkylightCross), new AOEShapeCircle(6)) { }
+    public Skylight() : base(ActionID.MakeSpell(AID.Skylight), new AOEShapeCircle(6)) { }
 }
 
 class RingOfSkylightHint : Components.CastInterruptHint
@@ -42,7 +42,7 @@ public class A34TrashPack2States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481)]
 public class A34TrashPack2 : BossModule
 {
-    public A34TrashPack2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(800, 770), 15, 25)) { }
+    public A34TrashPack2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(800, 770), 15, 20)) { }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

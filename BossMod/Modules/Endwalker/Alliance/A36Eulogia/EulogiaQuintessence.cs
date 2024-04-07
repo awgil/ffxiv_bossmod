@@ -81,6 +81,8 @@ class Quintessence : Components.GenericAOEs
         }
         if ((AID)spell.Action.ID == AID.SecondFormLeft)
         {
+            if (_index == 0x57)
+                _aoes.Add(new(cone, position, _rot6, _activation2));
             if (_index is 0x55 or 0x56)
                 _aoes.Add(new(cone, position, _rot3, _activation2));
             if (_index is 0x52 or 0x51)
@@ -106,7 +108,7 @@ class Quintessence : Components.GenericAOEs
             if (_index == 0x53)
                 _aoes.Add(new(cone, position, _rot2, _activation3));
         }
-        if ((AID)spell.Action.ID == AID.ThirdFormAOE) //known indices: 0x53, 0x54, 0x57, 0x56, 0x51, 0x50 but since we don't need a direction for donuts, we dont need to check it
+        if ((AID)spell.Action.ID == AID.ThirdFormAOE) //known indices: 0x53, 0x54, 0x55, 0x57, 0x56, 0x51, 0x50 but since we don't need a direction for donuts, we dont need to check it
                 _aoes.Add(new(donut, position, activation: _activation3));
     }
 

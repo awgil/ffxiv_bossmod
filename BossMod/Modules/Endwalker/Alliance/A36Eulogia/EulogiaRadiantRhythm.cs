@@ -68,3 +68,8 @@ class RadiantRhythm : Components.GenericAOEs
         }
     }
 }
+
+class SolarFans : Components.ChargeAOEs
+{
+    public SolarFans() : base(ActionID.MakeSpell(AID.SolarFansAOE), 5) { }
+}

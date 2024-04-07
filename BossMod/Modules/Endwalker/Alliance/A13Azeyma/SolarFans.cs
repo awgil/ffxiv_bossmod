@@ -2,7 +2,7 @@
 
 class SolarFans : Components.ChargeAOEs
 {
-    public SolarFans() : base(ActionID.MakeSpell(AID.SolarFansAOE), 5) { } // TODO: or SolarFansCharge? not sure which one deals damage...
+    public SolarFans() : base(ActionID.MakeSpell(AID.SolarFansAOE), 5) { }
 }
 
 class RadiantRhythm : Components.GenericAOEs
