@@ -16,30 +16,11 @@ public enum AID : uint
     Skylight = 35446, // AngelosMikros->self, 3.0s cast, range 6 circle
 }
 
-class RingOfSkylight : Components.SelfTargetedAOEs
-{
-    public RingOfSkylight() : base(ActionID.MakeSpell(AID.RingOfSkylight), new AOEShapeDonut(8, 30)) { }
-}
-
-class RingOfSkylightInterruptHint : Components.CastInterruptHint
-{
-    public RingOfSkylightInterruptHint() : base(ActionID.MakeSpell(AID.RingOfSkylight)) { }
-}
-
-class SkylightCross : Components.SelfTargetedAOEs
-{
-    public SkylightCross() : base(ActionID.MakeSpell(AID.SkylightCross), new AOEShapeCross(60, 4)) { }
-}
-
-class SkylightCrossInterruptHint : Components.CastInterruptHint
-{
-    public SkylightCrossInterruptHint() : base(ActionID.MakeSpell(AID.SkylightCross)) { }
-}
-
-class Skylight : Components.SelfTargetedAOEs
-{
-    public Skylight() : base(ActionID.MakeSpell(AID.Skylight), new AOEShapeCircle(6)) { }
-}
+class RingOfSkylight() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.RingOfSkylight), new AOEShapeDonut(8, 30));
+class RingOfSkylightInterruptHint() : Components.CastInterruptHint(ActionID.MakeSpell(AID.RingOfSkylight));
+class SkylightCross() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SkylightCross), new AOEShapeCross(60, 4));
+class SkylightCrossInterruptHint() : Components.CastInterruptHint(ActionID.MakeSpell(AID.SkylightCross));
+class Skylight() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.Skylight), new AOEShapeCircle(6));
 
 public class A30Trash2Pack1States : StateMachineBuilder
 {

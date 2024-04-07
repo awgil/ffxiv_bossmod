@@ -29,10 +29,7 @@ public abstract class BossModule : IDisposable
         var entry = _relevantEnemies.GetValueOrDefault(oid);
         if (entry == null)
         {
-            entry = new();
-            foreach (var actor in WorldState.Actors.Where(actor => actor.OID == oid))
-                entry.Add(actor);
-            _relevantEnemies[oid] = entry;
+            _relevantEnemies[oid] = entry = WorldState.Actors.Where(actor => actor.OID == oid).ToList();
         }
         return entry;
     }

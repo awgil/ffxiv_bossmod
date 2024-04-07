@@ -21,40 +21,13 @@ public enum AID : uint
     DivineBurst = 35441, // DivineSprite->self, no cast, range 40 circle, raidwide when Divine Sprite dies
 }
 
-class WaterIII : Components.LocationTargetedAOEs
-{
-    public WaterIII() : base(ActionID.MakeSpell(AID.WaterIII), 8) { }
-}
-
-class PelagicCleaver1 : Components.SelfTargetedAOEs
-{
-    public PelagicCleaver1() : base(ActionID.MakeSpell(AID.PelagicCleaver1), new AOEShapeCone(40, 30.Degrees())) { }
-}
-
-class PelagicCleaver2 : Components.SelfTargetedAOEs
-{
-    public PelagicCleaver2() : base(ActionID.MakeSpell(AID.PelagicCleaver2), new AOEShapeCone(40, 30.Degrees())) { }
-}
-
-class PelagicCleaver1InterruptHint : Components.CastInterruptHint
-{
-    public PelagicCleaver1InterruptHint() : base(ActionID.MakeSpell(AID.PelagicCleaver1)) { }
-}
-
-class PelagicCleaver2InterruptHint : Components.CastInterruptHint
-{
-    public PelagicCleaver2InterruptHint() : base(ActionID.MakeSpell(AID.PelagicCleaver2)) { }
-}
-
-class WaterFlood : Components.SelfTargetedAOEs
-{
-    public WaterFlood() : base(ActionID.MakeSpell(AID.WaterFlood), new AOEShapeCircle(6)) { }
-}
-
-class DivineFlood : Components.SelfTargetedAOEs
-{
-    public DivineFlood() : base(ActionID.MakeSpell(AID.DivineFlood), new AOEShapeCircle(6)) { }
-}
+class WaterIII() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.WaterIII), 8);
+class PelagicCleaver1() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.PelagicCleaver1), new AOEShapeCone(40, 30.Degrees()));
+class PelagicCleaver2() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.PelagicCleaver2), new AOEShapeCone(40, 30.Degrees()));
+class PelagicCleaver1InterruptHint() : Components.CastInterruptHint(ActionID.MakeSpell(AID.PelagicCleaver1));
+class PelagicCleaver2InterruptHint() : Components.CastInterruptHint(ActionID.MakeSpell(AID.PelagicCleaver2));
+class WaterFlood() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.WaterFlood), new AOEShapeCircle(6));
+class DivineFlood() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.DivineFlood), new AOEShapeCircle(6));
 
 public class A30Trash1States : StateMachineBuilder
 {
