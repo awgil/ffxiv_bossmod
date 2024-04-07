@@ -126,6 +126,7 @@ public class Actor
     public WPos Position => new(PosRot.X, PosRot.Z);
     public Angle Rotation => PosRot.W.Radians();
     public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
+    public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
 
     public Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
     {

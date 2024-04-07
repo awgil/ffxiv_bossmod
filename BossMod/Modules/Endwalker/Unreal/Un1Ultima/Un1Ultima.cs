@@ -25,7 +25,7 @@ public class Un1UltimaStates : StateMachineBuilder
     public Un1UltimaStates(BossModule module) : base(module)
     {
         // TODO: reconsider
-        TrivialPhase(600)
+        TrivialPhase(0, 600)
             .ActivateOnEnter<Phases>()
             .ActivateOnEnter<Mechanics>()
             .ActivateOnEnter<Garuda>()

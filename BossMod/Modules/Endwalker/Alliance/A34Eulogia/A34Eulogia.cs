@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.Alliance.A36Eulogia;
+namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
 class EudaimonEorzea : Components.RaidwideCast
 {
@@ -46,8 +46,8 @@ class DestructiveBoltStack : Components.StackWithCastTargets
     public DestructiveBoltStack() : base(ActionID.MakeSpell(AID.DestructiveBoltStack), 6) { }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301)]
-public class A36Eulogia : BossModule
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301, SortOrder = 7)]
+public class A34Eulogia : BossModule
 {
-    public A36Eulogia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(945, -945), 35)) { }
+    public A34Eulogia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(945, -945), 35)) { }
 }

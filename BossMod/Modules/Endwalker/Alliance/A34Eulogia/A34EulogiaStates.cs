@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A36Eulogia;
+﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
 class ArenaChanges : BossComponent
 {
@@ -16,9 +16,9 @@ class ArenaChanges : BossComponent
     }
 }
 
-class A36EulogiaStates : StateMachineBuilder
+class A34EulogiaStates : StateMachineBuilder
 {
-    public A36EulogiaStates(BossModule module) : base(module)
+    public A34EulogiaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<ArenaChanges>()

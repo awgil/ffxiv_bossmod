@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.Alliance.A36Eulogia;
+namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
 class Hieroglyphika : Components.GenericAOEs
 {

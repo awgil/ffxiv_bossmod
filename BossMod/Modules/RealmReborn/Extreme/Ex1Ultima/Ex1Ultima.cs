@@ -46,7 +46,7 @@ public class Ex1UltimaStates : StateMachineBuilder
         // garuda end is PATE 0655 on UltimaGaruda
         // titan end is PATE 0656 on UltimaTitan
         // ifrit end is PATE 0657 on UltimaIfrit
-        TrivialPhase(600)
+        TrivialPhase(0, 600)
             .ActivateOnEnter<ViscousAetheroplasm>()
             .ActivateOnEnter<MistralSongVulcanBurst>()
             .ActivateOnEnter<EyeOfTheStormGeocrush>()

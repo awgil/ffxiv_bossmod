@@ -65,7 +65,7 @@ class Stormwinds : Components.SpreadFromCastTargets
     public Stormwinds() : base(ActionID.MakeSpell(AID.StormwindsSpread), 6) { }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11299)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11299, SortOrder = 3)]
 public class A32Llymlaen : BossModule
 {
     public A32Llymlaen(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, -900), 19, 29)) { }

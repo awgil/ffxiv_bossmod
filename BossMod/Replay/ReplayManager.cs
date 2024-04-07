@@ -256,29 +256,49 @@ public class ReplayManager : IDisposable
             if (ImGui.Button("Analyze all"))
             {
                 var analysis = new AnalysisEntry(_path);
-                try
-                {
-                    var di = new DirectoryInfo(_path);
-                    var pattern = "*.log";
-                    if (!di.Exists && (di.Parent?.Exists ?? false))
-                    {
-                        pattern = di.Name;
-                        di = di.Parent;
-                    }
-                    foreach (var fi in di.EnumerateFiles(pattern, new EnumerationOptions { RecurseSubdirectories = true }))
-                    {
-                        var r = new ReplayEntry(fi.FullName, false);
-                        _replayEntries.Add(r);
-                        analysis.Replays.Add(r);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Service.Log($"Failed to read {_path}: {e}");
-                }
+                analysis.Replays.AddRange(LoadAll(_path));
                 if (analysis.Replays.Count > 0)
                     _analysisEntries.Add(analysis);
             }
+        }
+        ImGui.SameLine();
+        using (ImRaii.Disabled(_path.Length == 0))
+        {
+            if (ImGui.Button("Load all"))
+            {
+                LoadAll(_path);
+            }
+        }
+    }
+
+    private List<ReplayEntry> LoadAll(string path)
+    {
+        try
+        {
+            var res = new List<ReplayEntry>();
+            var di = new DirectoryInfo(path);
+            var pattern = "*.log";
+            if (!di.Exists && (di.Parent?.Exists ?? false))
+            {
+                pattern = di.Name;
+                di = di.Parent;
+            }
+            foreach (var fi in di.EnumerateFiles(pattern, new EnumerationOptions { RecurseSubdirectories = true }))
+            {
+                var r = _replayEntries.Find(e => e.Path == fi.FullName);
+                if (r == null)
+                {
+                    r = new ReplayEntry(fi.FullName, false);
+                    _replayEntries.Add(r);
+                }
+                res.Add(r);
+            }
+            return res;
+        }
+        catch (Exception e)
+        {
+            Service.Log($"Failed to read {path}: {e}");
+            return new();
         }
     }
 

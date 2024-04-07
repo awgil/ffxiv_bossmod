@@ -275,7 +275,7 @@ class ReplayDetailsWindow : UIWindow
         if (_mgr.ActiveModule == null)
             return;
 
-        DrawEnemyTable(_mgr.ActiveModule.PrimaryActor.OID, new Actor[] { _mgr.ActiveModule.PrimaryActor });
+        DrawEnemyTable(_mgr.ActiveModule.PrimaryActor.OID, _mgr.ActiveModule.RelevantEnemies.GetValueOrDefault(_mgr.ActiveModule.PrimaryActor.OID) ?? [_mgr.ActiveModule.PrimaryActor]);
         foreach ((var oid, var list) in _mgr.ActiveModule.RelevantEnemies)
         {
             if (oid != _mgr.ActiveModule.PrimaryActor.OID)

@@ -57,7 +57,7 @@ class T01ADSStates : StateMachineBuilder
     {
         // adds spawn: at ~40.3, ~80.3, ~120.3, ~160.3, ~200.3 (2x)
         // enrage: first cast at ~245.2, then repeat every 5s
-        TrivialPhase(245)
+        TrivialPhase(0, 245)
             .ActivateOnEnter<HighVoltage>()
             .ActivateOnEnter<RepellingCannons>()
             .ActivateOnEnter<PiercingLaser>()
