@@ -1,15 +1,13 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P4OrdainedCapitalPunishment : Components.GenericSharedTankbuster
+class P4OrdainedCapitalPunishment(BossModule module) : Components.GenericSharedTankbuster(module, ActionID.MakeSpell(AID.OrdainedCapitalPunishmentAOE), 4)
 {
-    public P4OrdainedCapitalPunishment() : base(ActionID.MakeSpell(AID.OrdainedCapitalPunishmentAOE), 4) { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
-        Target = Source != null ? module.WorldState.Actors.Find(Source.TargetID) : null;
+        Target = Source != null ? WorldState.Actors.Find(Source.TargetID) : null;
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OrdainedCapitalPunishment)
         {
@@ -20,7 +18,4 @@ class P4OrdainedCapitalPunishment : Components.GenericSharedTankbuster
 }
 
 // TODO: dedicated tankbuster component with tankswap hint
-class P4OrdainedPunishment : Components.SpreadFromCastTargets
-{
-    public P4OrdainedPunishment() : base(ActionID.MakeSpell(AID.OrdainedPunishment), 5) { }
-}
+class P4OrdainedPunishment(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.OrdainedPunishment), 5);

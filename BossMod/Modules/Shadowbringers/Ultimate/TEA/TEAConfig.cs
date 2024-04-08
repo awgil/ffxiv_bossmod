@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 [ConfigDisplay(Order = 0x200, Parent = typeof(ShadowbringersConfig))]
-public class TEAConfig : CooldownPlanningConfigNode
+public class TEAConfig() : CooldownPlanningConfigNode(80)
 {
     public enum P2Intermission
     {
@@ -19,10 +19,8 @@ public class TEAConfig : CooldownPlanningConfigNode
     public P2Intermission P2IntermissionHints = P2Intermission.FirstForOddPairs;
 
     [PropertyDisplay("P2: nisi pair assignments")]
-    [GroupDetails(new string[] { "Pair 1", "Pair 2", "Pair 3", "Pair 4" })]
-    [GroupPreset("Melee together", new[] { 0, 1, 2, 3, 0, 1, 2, 3 })]
-    [GroupPreset("DD CCW", new[] { 0, 2, 1, 3, 1, 0, 2, 3 })]
+    [GroupDetails(["Pair 1", "Pair 2", "Pair 3", "Pair 4"])]
+    [GroupPreset("Melee together", [0, 1, 2, 3, 0, 1, 2, 3])]
+    [GroupPreset("DD CCW", [0, 2, 1, 3, 1, 0, 2, 3])]
     public GroupAssignmentDDSupportPairs P2NisiPairs = GroupAssignmentDDSupportPairs.DefaultMeleeTogether();
-
-    public TEAConfig() : base(80) { }
 }

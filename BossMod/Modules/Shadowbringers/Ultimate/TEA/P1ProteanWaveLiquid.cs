@@ -1,14 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P1ProteanWaveLiquidVisBoss : Components.SelfTargetedAOEs
-{
-    public P1ProteanWaveLiquidVisBoss() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisBoss), new AOEShapeCone(40, 15.Degrees())) { }
-}
-
-class P1ProteanWaveLiquidVisHelper : Components.SelfTargetedAOEs
-{
-    public P1ProteanWaveLiquidVisHelper() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidVisHelper), new AOEShapeCone(40, 15.Degrees())) { }
-}
+class P1ProteanWaveLiquidVisBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ProteanWaveLiquidVisBoss), new AOEShapeCone(40, 15.Degrees()));
+class P1ProteanWaveLiquidVisHelper(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ProteanWaveLiquidVisHelper), new AOEShapeCone(40, 15.Degrees()));
 
 // single protean ("shadow") that fires in the direction the boss is facing
 class P1ProteanWaveLiquidInvisFixed : Components.GenericAOEs
@@ -17,17 +10,15 @@ class P1ProteanWaveLiquidInvisFixed : Components.GenericAOEs
 
     private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
 
-    public P1ProteanWaveLiquidInvisFixed() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidInvisBoss)) { }
+    public P1ProteanWaveLiquidInvisFixed(BossModule module) : base(module, ActionID.MakeSpell(AID.ProteanWaveLiquidInvisBoss))
+    {
+        _source = module.Enemies(OID.BossP1).FirstOrDefault();
+    }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_source != null)
             yield return new(_shape, _source.Position, _source.Rotation);
-    }
-
-    public override void Init(BossModule module)
-    {
-        _source = module.Enemies(OID.BossP1).FirstOrDefault();
     }
 }
 
@@ -38,18 +29,16 @@ class P1ProteanWaveLiquidInvisBaited : Components.GenericBaitAway
 
     private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
 
-    public P1ProteanWaveLiquidInvisBaited() : base(ActionID.MakeSpell(AID.ProteanWaveLiquidInvisHelper)) { }
-
-    public override void Init(BossModule module)
+    public P1ProteanWaveLiquidInvisBaited(BossModule module) : base(module, ActionID.MakeSpell(AID.ProteanWaveLiquidInvisHelper))
     {
         _source = module.Enemies(OID.BossP1).FirstOrDefault();
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
         if (_source != null)
-            foreach (var target in module.Raid.WithoutSlot().SortedByRange(_source.Position).Take(4))
+            foreach (var target in Raid.WithoutSlot().SortedByRange(_source.Position).Take(4))
                 CurrentBaits.Add(new(_source, target, _shape));
     }
 }
