@@ -2,7 +2,7 @@
 
 class Hydrostasis : Components.Knockback
 {
-    private List<Source> _sources = new();
+    private readonly List<Source> _sources = [];
 
     public bool Active => _sources.Count == 3 || NumCasts > 0;
 

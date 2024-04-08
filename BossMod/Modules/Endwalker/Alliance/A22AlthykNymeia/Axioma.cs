@@ -4,7 +4,7 @@
 class Axioma : BossComponent
 {
     public bool ShouldBeInZone { get; private set; }
-    private BitMask _inZone;
+    private readonly BitMask _inZone;
 
     public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
     {

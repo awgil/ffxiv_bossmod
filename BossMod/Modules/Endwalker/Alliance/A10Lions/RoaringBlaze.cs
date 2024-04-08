@@ -2,7 +2,7 @@
 
 class RoaringBlaze : Components.GenericAOEs
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shape = new(50, 90.Degrees());
 

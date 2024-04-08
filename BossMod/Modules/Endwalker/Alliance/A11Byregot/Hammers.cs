@@ -4,8 +4,8 @@ class HammersCells : Components.GenericAOEs
 {
     public bool Active { get; private set; }
     public bool MovementPending { get; private set; }
-    private int[] _lineOffset = new int[5];
-    private int[] _lineMovement = new int[5];
+    private readonly int[] _lineOffset = new int[5];
+    private readonly int[] _lineMovement = new int[5];
 
     private static readonly AOEShapeRect _shape = new(5, 5, 5);
 
@@ -94,12 +94,5 @@ class HammersCells : Components.GenericAOEs
     }
 }
 
-class HammersLevinforge : Components.SelfTargetedAOEs
-{
-    public HammersLevinforge() : base(ActionID.MakeSpell(AID.Levinforge), new AOEShapeRect(50, 5)) { }
-}
-
-class HammersSpire : Components.SelfTargetedAOEs
-{
-    public HammersSpire() : base(ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15, 2)) { }
-}
+class HammersLevinforge() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.Levinforge), new AOEShapeRect(50, 5));
+class HammersSpire() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15, 2));

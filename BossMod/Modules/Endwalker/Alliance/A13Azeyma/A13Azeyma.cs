@@ -7,7 +7,7 @@ class Voidzone : BossComponent
         if (index == 0x1C)
         {
             if (state == 0x00020001)
-                module.Arena.Bounds = new ArenaBoundsTri(module.Bounds.Center, 18);
+                module.Arena.Bounds = new ArenaBoundsTri(module.Bounds.Center, 19);
             if (state == 0x00080004)
                 module.Arena.Bounds =  new ArenaBoundsCircle(module.Bounds.Center, 30);
         }

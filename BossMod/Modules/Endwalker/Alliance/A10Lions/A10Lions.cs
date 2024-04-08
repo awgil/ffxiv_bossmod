@@ -1,13 +1,10 @@
 ﻿namespace BossMod.Endwalker.Alliance.A10Lions;
 
-class DoubleImmolation : Components.RaidwideCast
-{
-    public DoubleImmolation() : base(ActionID.MakeSpell(AID.DoubleImmolation)) { }
-}
+class DoubleImmolation() : Components.RaidwideCast(ActionID.MakeSpell(AID.DoubleImmolation));
 
 class A10LionsStates : StateMachineBuilder
 {
-    private bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
+    private static bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
 
     public A10LionsStates(A10Lions module) : base(module)
     {
@@ -20,14 +17,12 @@ class A10LionsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Lion, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11294, SortOrder = 4)]
-public class A10Lions : BossModule
+public class A10Lions(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-677.25f, -606.25f), 20))
 {
     private Actor? _lioness;
 
     public Actor? Lion() => PrimaryActor;
     public Actor? Lioness() => _lioness;
-
-    public A10Lions(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-677.25f, -606.25f), 20)) { }
 
     protected override void UpdateModule()
     {

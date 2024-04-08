@@ -1,18 +1,11 @@
 ﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
-class SolarWingsL : Components.SelfTargetedAOEs
-{
-    public SolarWingsL() : base(ActionID.MakeSpell(AID.SolarWingsL), new AOEShapeCone(30, 75.Degrees())) { }
-}
-
-class SolarWingsR : Components.SelfTargetedAOEs
-{
-    public SolarWingsR() : base(ActionID.MakeSpell(AID.SolarWingsR), new AOEShapeCone(30, 75.Degrees())) { }
-}
+class SolarWingsL() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SolarWingsL), new AOEShapeCone(30, 75.Degrees()));
+class SolarWingsR() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SolarWingsR), new AOEShapeCone(30, 75.Degrees()));
 
 class SolarFlair : Components.GenericAOEs
 {
-    private List<WPos> _sunstorms = new();
+    private readonly List<WPos> _sunstorms = [];
     private BitMask _adjusted;
 
     private static readonly float _kickDistance = 18;

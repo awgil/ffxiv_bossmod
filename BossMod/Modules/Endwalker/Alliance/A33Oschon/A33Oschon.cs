@@ -1,39 +1,16 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class DownhillP1 : Components.LocationTargetedAOEs
-{
-    public DownhillP1() : base(ActionID.MakeSpell(AID.Downhill), 6) { }
-}
-
-class SoaringMinuet1 : Components.SelfTargetedAOEs
-{
-    public SoaringMinuet1() : base(ActionID.MakeSpell(AID.SoaringMinuet1), new AOEShapeCone(65, 135.Degrees())) { }
-}
-
-class SoaringMinuet2 : Components.SelfTargetedAOEs
-{
-    public SoaringMinuet2() : base(ActionID.MakeSpell(AID.SoaringMinuet2), new AOEShapeCone(65, 135.Degrees())) { }
-}
-
-class SuddenDownpour : Components.RaidwideCast
-{
-    public SuddenDownpour() : base(ActionID.MakeSpell(AID.SuddenDownpour2)) { }
-}
-
-class LoftyPeaks : Components.RaidwideCast
-{
-    public LoftyPeaks() : base(ActionID.MakeSpell(AID.LoftyPeaks), "Raidwide x5 coming") { }
-}
-
-class TrekShot : Components.SelfTargetedAOEs
-{
-    public TrekShot() : base(ActionID.MakeSpell(AID.TrekShot), new AOEShapeCone(65, 60.Degrees())) { }
-}
-
-class TrekShot2 : Components.SelfTargetedAOEs
-{
-    public TrekShot2() : base(ActionID.MakeSpell(AID.TrekShot2), new AOEShapeCone(65, 60.Degrees())) { }
-}
+class DownhillP1() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.Downhill), 6);
+class SoaringMinuet1() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SoaringMinuet1), new AOEShapeCone(65, 135.Degrees()));
+class SoaringMinuet2() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SoaringMinuet2), new AOEShapeCone(65, 135.Degrees()));
+class SuddenDownpour() : Components.RaidwideCast(ActionID.MakeSpell(AID.SuddenDownpour2));
+class LoftyPeaks() : Components.RaidwideCast(ActionID.MakeSpell(AID.LoftyPeaks), "Raidwide x5 coming");
+class TrekShot() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TrekShot), new AOEShapeCone(65, 60.Degrees()));
+class TrekShot2() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TrekShot2), new AOEShapeCone(65, 60.Degrees()));
+class PitonPull() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.PitonPull), 22);
+class Altitude() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.Altitude), 6);
+class DownhillSmall() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.DownhillSmall), 6);
+class DownhillBig() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.DownhillBig), 8);
 
 class TheArrow : Components.BaitAwayCast
 {
@@ -55,26 +32,6 @@ class TheArrowP2 : Components.BaitAwayCast
         if (CurrentBaits.Count > 0)
             hints.Add("Tankbuster cleave");
     }
-}
-
-class PitonPull : Components.LocationTargetedAOEs
-{
-    public PitonPull() : base(ActionID.MakeSpell(AID.PitonPull), 22) { }
-}
-
-class Altitude : Components.LocationTargetedAOEs
-{
-    public Altitude() : base(ActionID.MakeSpell(AID.Altitude), 6) { }
-}
-
-class DownhillSmall : Components.LocationTargetedAOEs
-{
-    public DownhillSmall() : base(ActionID.MakeSpell(AID.DownhillSmall), 6) { }
-}
-
-class DownhillBig : Components.LocationTargetedAOEs
-{
-    public DownhillBig() : base(ActionID.MakeSpell(AID.DownhillBig), 8) { }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", PrimaryActorOID = (uint)OID.OschonP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300)]

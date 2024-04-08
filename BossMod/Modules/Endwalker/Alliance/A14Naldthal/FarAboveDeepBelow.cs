@@ -48,8 +48,8 @@ class FarFlungFire : Components.GenericWildCharge
 class DeepestPit : Components.GenericAOEs
 {
     private bool _real;
-    private List<Actor> _targets = new();
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _targets = [];
+    private readonly List<Actor> _casters = [];
 
     public bool Active => _casters.Count > 0;
 

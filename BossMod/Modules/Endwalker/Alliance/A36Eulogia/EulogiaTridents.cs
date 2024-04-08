@@ -1,9 +1,6 @@
 namespace BossMod.Endwalker.Alliance.A36Eulogia;
 
-class TorrentialTridents : Components.RaidwideCastDelay
-{
-    public TorrentialTridents() : base(ActionID.MakeSpell(AID.TorrentialTridents), ActionID.MakeSpell(AID.Landing), 0.9f, "Raidwide x6") { }
-}
+class TorrentialTridents() : Components.RaidwideCastDelay(ActionID.MakeSpell(AID.TorrentialTridents), ActionID.MakeSpell(AID.Landing), 0.9f, "Raidwide x6");
 
 class Tridents : Components.GenericAOEs
 {

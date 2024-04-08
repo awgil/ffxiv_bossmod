@@ -19,17 +19,12 @@ class SpinnersWheelSelect : BossComponent
     }
 }
 
-class SpinnersWheelGaze : Components.GenericGaze
+class SpinnersWheelGaze(bool inverted, AID aid, SID sid) : Components.GenericGaze(ActionID.MakeSpell(aid), inverted)
 {
-    private SID _sid;
+    private SID _sid = sid;
     private Actor? _source;
     private DateTime _activation;
     private BitMask _affected;
-
-    public SpinnersWheelGaze(bool inverted, AID aid, SID sid) : base(ActionID.MakeSpell(aid), inverted)
-    {
-        _sid = sid;
-    }
 
     public override void Init(BossModule module)
     {
@@ -52,15 +47,8 @@ class SpinnersWheelGaze : Components.GenericGaze
     }
 }
 
-class SpinnersWheelArcaneAttraction : SpinnersWheelGaze
-{
-    public SpinnersWheelArcaneAttraction() : base(false, AID.SpinnersWheelArcaneAttraction, SID.ArcaneAttraction) { }
-}
-
-class SpinnersWheelAttractionReversed : SpinnersWheelGaze
-{
-    public SpinnersWheelAttractionReversed() : base(true, AID.SpinnersWheelAttractionReversed, SID.AttractionReversed) { }
-}
+class SpinnersWheelArcaneAttraction() : SpinnersWheelGaze(false, AID.SpinnersWheelArcaneAttraction, SID.ArcaneAttraction);
+class SpinnersWheelAttractionReversed() : SpinnersWheelGaze(true, AID.SpinnersWheelAttractionReversed, SID.AttractionReversed);
 
 class SpinnersWheelStayMove : Components.StayMove
 {

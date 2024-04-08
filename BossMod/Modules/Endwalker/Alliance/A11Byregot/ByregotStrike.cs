@@ -1,19 +1,8 @@
 ﻿namespace BossMod.Endwalker.Alliance.A11Byregot;
 
-class ByregotStrikeJump : Components.LocationTargetedAOEs
-{
-    public ByregotStrikeJump() : base(ActionID.MakeSpell(AID.ByregotStrikeJump), 8) { }
-}
-
-class ByregotStrikeJumpCone : Components.LocationTargetedAOEs
-{
-    public ByregotStrikeJumpCone() : base(ActionID.MakeSpell(AID.ByregotStrikeJumpCone), 8) { }
-}
-
-class ByregotStrikeKnockback : Components.KnockbackFromCastTarget
-{
-    public ByregotStrikeKnockback() : base(ActionID.MakeSpell(AID.ByregotStrikeKnockback), 18) { }
-}
+class ByregotStrikeJump() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.ByregotStrikeJump), 8);
+class ByregotStrikeJumpCone() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.ByregotStrikeJumpCone), 8);
+class ByregotStrikeKnockback() : Components.KnockbackFromCastTarget(ActionID.MakeSpell(AID.ByregotStrikeKnockback), 18);
 
 class ByregotStrikeCone : Components.GenericAOEs
 {

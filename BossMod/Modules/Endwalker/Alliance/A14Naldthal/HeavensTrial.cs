@@ -21,7 +21,4 @@ class HeavensTrialCone : Components.GenericBaitAway
     }
 }
 
-class HeavensTrialStack : Components.StackWithCastTargets
-{
-    public HeavensTrialStack() : base(ActionID.MakeSpell(AID.HeavensTrialAOE), 6, 8) { }
-}
+class HeavensTrialStack() : Components.StackWithCastTargets(ActionID.MakeSpell(AID.HeavensTrialAOE), 6, 8);
