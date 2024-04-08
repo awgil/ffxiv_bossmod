@@ -9,7 +9,7 @@ class Voidzone : BossComponent
             if (state == 0x02000200)
                 module.Arena.Bounds = new ArenaBoundsCircle(module.Bounds.Center, 28);
             if (state == 0x00400004)
-                module.Arena.Bounds =  new ArenaBoundsCircle(module.Bounds.Center, 35);
+                module.Arena.Bounds =  new ArenaBoundsCircle(module.Bounds.Center, 34);
         }
     }
 }
@@ -22,4 +22,4 @@ class Furrow() : Components.StackWithCastTargets(ActionID.MakeSpell(AID.Furrow),
 class HeavensEarth() : Components.BaitAwayCast(ActionID.MakeSpell(AID.HeavensEarthAOE), new AOEShapeCircle(5), true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12065)]
-public class A21Nophica(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, -238), 35));
+public class A21Nophica(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, -238), 34));
