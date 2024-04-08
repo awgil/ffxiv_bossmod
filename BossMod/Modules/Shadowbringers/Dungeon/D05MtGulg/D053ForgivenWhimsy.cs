@@ -30,9 +30,7 @@ public enum AID : uint
 }
 
 class Catechism() : Components.SingleTargetCastDelay(ActionID.MakeSpell(AID.Catechism), ActionID.MakeSpell(AID.Catechism2), 0.5f);
-
 class SacramentOfPenance() : Components.RaidwideCastDelay(ActionID.MakeSpell(AID.SacramentOfPenance), ActionID.MakeSpell(AID.SacramentOfPenance2), 0.5f);
-
 class PerfectContrition() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.PerfectContrition), new AOEShapeDonut(5, 15));
 
 public class JudgmentDay : Components.GenericTowers
@@ -115,7 +113,4 @@ class D053ForgivenWhimsyStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8261)]
-public class D053ForgivenWhimsy : BossModule
-{
-    public D053ForgivenWhimsy(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15)) { }
-}
+public class D053ForgivenWhimsy(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15));

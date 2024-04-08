@@ -18,11 +18,8 @@ public enum AID : uint
 }
 
 class TransonicBlast() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TransonicBlast), new AOEShapeCone(9, 45.Degrees()));
-
 class WindsOfWinter() : Components.RaidwideCast(ActionID.MakeSpell(AID.WindsOfWinter), "Stun Albus Griffin, Raidwide");
-
 class GoldenTalons() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.GoldenTalons), new AOEShapeCone(8, 45.Degrees()));
-
 class Freefall() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.Freefall), 8);
 
 class D110AlbusGriffinStates : StateMachineBuilder
@@ -31,26 +28,23 @@ class D110AlbusGriffinStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<TransonicBlast>()
-            .Raw.Update = () => module.Caladrius.All(e => e.IsDeadOrDestroyed) && module.CaladriusMaturus.All(e => e.IsDeadOrDestroyed);
+            .Raw.Update = () => module.Caladrius.All(e => e.IsDeadOrDestroyed) && module.PrimaryActor.IsDeadOrDestroyed;
         TrivialPhase(1)
             .ActivateOnEnter<Freefall>()
             .ActivateOnEnter<WindsOfWinter>()
             .ActivateOnEnter<GoldenTalons>()
-            .Raw.Update = () => module.Caladrius.All(e => e.IsDestroyed) && module.CaladriusMaturus.All(e => e.IsDestroyed) && module.AlbusGriffin.All(e => e.IsDead);
+            .Raw.Update = () => module.Caladrius.All(e => e.IsDestroyed) && module.PrimaryActor.IsDestroyed && module.AlbusGriffin.All(e => e.IsDead);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 12245)]
 public class D110AlbusGriffin : BossModule
 {
-    public readonly IReadOnlyList<Actor> CaladriusMaturus; // available from start
     public readonly IReadOnlyList<Actor> Caladrius; // available from start
     public readonly IReadOnlyList<Actor> AlbusGriffin; // spawned after all Caladrius are dead
 
     public D110AlbusGriffin(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) 
     {
-
-        CaladriusMaturus = Enemies(OID.Boss);
         Caladrius = Enemies(OID.Caladrius);
         AlbusGriffin = Enemies(OID.AlbusGriffin);
     }
@@ -59,6 +53,6 @@ public class D110AlbusGriffin : BossModule
     {
         Arena.Actors(AlbusGriffin, ArenaColor.Enemy);
         Arena.Actors(Caladrius, ArenaColor.Enemy);
-        Arena.Actors(CaladriusMaturus, ArenaColor.Enemy);
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
     }
 }

@@ -23,20 +23,9 @@ public enum AID : uint
     PunitiveLight = 16815, // 28F2->self, 5,0s cast, range 20 circle
 }
 
-class PunitiveLight : Components.CastInterruptHint
-{ //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
-    public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true) { }
-}
-
-class Sanctification : Components.SelfTargetedAOEs
-{
-    public Sanctification() : base(ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees())) { }
-}
-
-class EarthShaker : Components.SelfTargetedAOEs
-{
-    public EarthShaker() : base(ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 30.Degrees())) { }
-}
+class PunitiveLight() : Components.CastInterruptHint(ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true);
+class Sanctification() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees()));
+class EarthShaker() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 30.Degrees()));
 
 class D052ForgivenApathyStates : StateMachineBuilder
 {
@@ -52,7 +41,18 @@ class D052ForgivenApathyStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8267)]
 public class D052ForgivenApathy : BossModule
 {
-    public D052ForgivenApathy(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 0)) { }
+    public readonly IReadOnlyList<Actor> ForgivenPrejudice;
+    public readonly IReadOnlyList<Actor> ForgivenExtortion;
+    public readonly IReadOnlyList<Actor> ForgivenConformity;
+
+
+    public D052ForgivenApathy(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 0))
+    {
+        ForgivenPrejudice = Enemies(OID.ForgivenPrejudice);
+        ForgivenExtortion = Enemies(OID.ForgivenExtortion);
+        ForgivenConformity = Enemies(OID.ForgivenConformity); 
+    }
+
     protected override void UpdateModule()
     {
         if (PrimaryActor.Position.AlmostEqual(new(-11, -193), 1))
@@ -60,14 +60,12 @@ public class D052ForgivenApathy : BossModule
         if (PrimaryActor.Position.AlmostEqual(new(-204, -106), 1))
             Arena.Bounds = new ArenaBoundsRect(new(-187.5f, -118), 12, 21, 120.Degrees());
     }
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenExtortion))
-            Arena.Actor(s, ArenaColor.Object);
-        foreach (var e in Enemies(OID.ForgivenConformity))
-            Arena.Actor(e, ArenaColor.Object);
-        foreach (var e in Enemies(OID.ForgivenPrejudice))
-            Arena.Actor(e, ArenaColor.Object);
+        Arena.Actors(ForgivenPrejudice, ArenaColor.Enemy);
+        Arena.Actors(ForgivenConformity, ArenaColor.Enemy);
+        Arena.Actors(ForgivenExtortion, ArenaColor.Enemy);
     }
 }

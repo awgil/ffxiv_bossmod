@@ -1,4 +1,3 @@
-//Note: This module exists because of the mini raidwide, to not confuse the AI
 namespace BossMod.Shadowbringers.Dungeon.D05MtGulg.D050ForgivenPrejudice;
 
 public enum OID : uint
@@ -20,48 +19,49 @@ public enum AID : uint
     Sanctification = 16814, // Boss->self, 5,0s cast, range 12 90-degree cone
 }
 
-class SanctifiedAero : Components.SelfTargetedAOEs
-{
-    public SanctifiedAero() : base(ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4)) { }
-}
+class SanctifiedAero() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4));
 
-class PunitiveLight : Components.CastInterruptHint
-{ //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
-    public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true) { }
-}
+class PunitiveLight() : Components.CastInterruptHint(ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true);
 
-class Sanctification : Components.SelfTargetedAOEs
-{
-    public Sanctification() : base(ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees())) { }
-}
+class Sanctification() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees()));
 
 class D050ForgivenPrejudiceStates : StateMachineBuilder
 {
-    public D050ForgivenPrejudiceStates(BossModule module) : base(module)
+    public D050ForgivenPrejudiceStates(D050ForgivenPrejudice module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Sanctification>()
             .ActivateOnEnter<PunitiveLight>()
             .ActivateOnEnter<SanctifiedAero>()
-            .Raw.Update = () => (module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.ForgivenVenery).All(e => e.IsDead) && module.Enemies(OID.ForgivenExtortion).All(e => e.IsDead) && module.Enemies(OID.ForgivenConformity).All(e => e.IsDead)) || module.Enemies(OID.ForgivenApathy).Any(e => e.InCombat) || module.Enemies(OID.ForgivenApathy).Any(e => e.IsTargetable);
+            .Raw.Update = () => (module.ForgivenPrejudice.All(e => e.IsDead) && module.ForgivenExtortion.All(e => e.IsDead) && module.ForgivenConformity.All(e => e.IsDead) && module.ForgivenVenery.All(e => e.IsDead)) || module.ForgivenApathy.Any(e => e.InCombat) || module.ForgivenApathy.Any(e => e.IsTargetable);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8269)]
 public class D050ForgivenPrejudice : SimpleBossModule
 {
-    public D050ForgivenPrejudice(WorldState ws, Actor primary) : base(ws, primary) { }
+    public readonly IReadOnlyList<Actor> ForgivenPrejudice;
+    public readonly IReadOnlyList<Actor> ForgivenExtortion;
+    public readonly IReadOnlyList<Actor> ForgivenConformity;
+    public readonly IReadOnlyList<Actor> ForgivenVenery;
+    public readonly IReadOnlyList<Actor> ForgivenApathy;
+
+    public D050ForgivenPrejudice(WorldState ws, Actor primary) : base(ws, primary) 
+    {
+        ForgivenPrejudice = Enemies(OID.Boss);
+        ForgivenExtortion = Enemies(OID.ForgivenExtortion);
+        ForgivenConformity = Enemies(OID.ForgivenConformity);
+        ForgivenVenery = Enemies(OID.ForgivenVenery);
+        ForgivenApathy = Enemies(OID.ForgivenApathy);
+    }
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        foreach (var s in Enemies(OID.Boss))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenExtortion))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenConformity))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenVenery))
-            Arena.Actor(s, ArenaColor.Enemy);
-
+        Arena.Actors(ForgivenPrejudice, ArenaColor.Enemy);
+        Arena.Actors(ForgivenConformity, ArenaColor.Enemy);
+        Arena.Actors(ForgivenExtortion, ArenaColor.Enemy);
+        Arena.Actors(ForgivenVenery, ArenaColor.Enemy);        
     }
-    protected override bool CheckPull() { return (!Enemies(OID.ForgivenApathy).Any(e => e.InCombat) || !Enemies(OID.ForgivenApathy).Any(e => e.IsTargetable)) && PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.ForgivenExtortion).Any(e => e.InCombat) || Enemies(OID.ForgivenConformity).Any(e => e.InCombat) || Enemies(OID.ForgivenVenery).Any(e => e.InCombat); }
+
+    protected override bool CheckPull() { return (!ForgivenApathy.Any(e => e.InCombat) || !ForgivenApathy.Any(e => e.IsTargetable)) && PrimaryActor.IsTargetable && PrimaryActor.InCombat || ForgivenExtortion.Any(e => e.InCombat) || ForgivenPrejudice.Any(e => e.InCombat) || ForgivenVenery.Any(e => e.InCombat); }
 }

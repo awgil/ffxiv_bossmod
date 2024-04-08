@@ -223,31 +223,11 @@ class Icebreaker : Components.GenericAOEs
     }
 }
 
-class IcyThroes2 : Components.SelfTargetedAOEs
-{
-    public IcyThroes2() : base(ActionID.MakeSpell(AID.IcyThroes4), new AOEShapeCircle(6)) { }
-}
-
-
-class KnockOnIce : Components.SelfTargetedAOEs
-{
-    public KnockOnIce() : base(ActionID.MakeSpell(AID.KnockOnIce2), new AOEShapeCircle(5)) { }
-}
-
-class RightSlam : Components.SelfTargetedAOEs
-{
-    public RightSlam() : base(ActionID.MakeSpell(AID.RightSlam), new AOEShapeRect(20, 80, directionOffset: -90.Degrees())) { } //full width = half width in this case + angle is detected incorrectly, length and width are also switched
-}
-
-class LeftSlam : Components.SelfTargetedAOEs
-{
-    public LeftSlam() : base(ActionID.MakeSpell(AID.LeftSlam), new AOEShapeRect(20, 80, directionOffset: 90.Degrees())) { } //full width = half width in this case + angle is detected incorrectly, length and width are also switched
-}
-
-class AlbionsEmbrace : Components.SingleTargetCast
-{
-    public AlbionsEmbrace() : base(ActionID.MakeSpell(AID.AlbionsEmbrace)) { }
-}
+class IcyThroes2() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.IcyThroes4), new AOEShapeCircle(6));
+class KnockOnIce() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.KnockOnIce2), new AOEShapeCircle(5));
+class RightSlam() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.RightSlam), new AOEShapeRect(20, 80, directionOffset: -90.Degrees()));
+class LeftSlam() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.LeftSlam), new AOEShapeRect(20, 80, directionOffset: 90.Degrees()));
+class AlbionsEmbrace() : Components.SingleTargetCast(ActionID.MakeSpell(AID.AlbionsEmbrace));
 
 class RoarOfAlbion : Components.CastLineOfSightAOE
 {
@@ -273,7 +253,4 @@ class D111AlbionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11992)]
-public class D111Albion : BossModule
-{
-    public D111Albion(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(24, -744), 19.5f)) { }
-}
+public class D111Albion(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(24, -744), 19.5f));

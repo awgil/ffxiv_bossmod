@@ -173,55 +173,16 @@ class GoldChaser : Components.GenericAOEs
     }
 }
 
-class SacramentSforzando : Components.SingleTargetCastDelay
-{
-    public SacramentSforzando() : base(ActionID.MakeSpell(AID.SacramentSforzando), ActionID.MakeSpell(AID.SacramentSforzando2), 0.8f) { }
-}
-
-class OrisonFortissimo : Components.RaidwideCastDelay
-{
-    public OrisonFortissimo() : base(ActionID.MakeSpell(AID.OrisonFortissimo), ActionID.MakeSpell(AID.OrisonFortissimo2), 0.8f) { }
-}
-
-class DivineDiminuendo : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo() : base(ActionID.MakeSpell(AID.DivineDiminuendo), new AOEShapeCircle(8)) { }
-}
-
-class DivineDiminuendo1 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo1() : base(ActionID.MakeSpell(AID.DivineDiminuendo1), new AOEShapeCircle(8)) { }
-}
-
-class DivineDiminuendo2 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo2() : base(ActionID.MakeSpell(AID.DivineDiminuendo2), new AOEShapeDonut(10, 16)) { }
-}
-
-class DivineDiminuendo3 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo3() : base(ActionID.MakeSpell(AID.DivineDiminuendo3), new AOEShapeDonut(18, 32)) { }
-}
-
-class DivineDiminuendo4 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo4() : base(ActionID.MakeSpell(AID.DivineDiminuendo4), new AOEShapeCircle(8)) { }
-}
-
-class ConvictionMarcato : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato() : base(ActionID.MakeSpell(AID.ConvictionMarcato), new AOEShapeRect(40, 2.5f)) { }
-}
-
-class ConvictionMarcato2 : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato2() : base(ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f)) { }
-}
-
-class ConvictionMarcato3 : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato3() : base(ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f)) { }
-}
+class SacramentSforzando() : Components.SingleTargetCastDelay(ActionID.MakeSpell(AID.SacramentSforzando), ActionID.MakeSpell(AID.SacramentSforzando2), 0.8f);
+class OrisonFortissimo() : Components.RaidwideCastDelay(ActionID.MakeSpell(AID.OrisonFortissimo), ActionID.MakeSpell(AID.OrisonFortissimo2), 0.8f);
+class DivineDiminuendo() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.DivineDiminuendo), new AOEShapeCircle(8));
+class DivineDiminuendo1() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.DivineDiminuendo1), new AOEShapeCircle(8));
+class DivineDiminuendo2() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.DivineDiminuendo2), new AOEShapeDonut(10, 16));
+class DivineDiminuendo3() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.DivineDiminuendo3), new AOEShapeDonut(18, 32));
+class DivineDiminuendo4() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.DivineDiminuendo4), new AOEShapeCircle(8));
+class ConvictionMarcato() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.ConvictionMarcato), new AOEShapeRect(40, 2.5f));
+class ConvictionMarcato2() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f));
+class ConvictionMarcato3() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f));
 
 class Voidzone : BossComponent
 {
@@ -270,9 +231,8 @@ class D055ForgivenObscenityStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
-public class D055ForgivenObscenity : BossModule
+public class D055ForgivenObscenity(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-240, 237), 15, 20))
 {
-    public D055ForgivenObscenity(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-240, 237), 15, 20)) { }
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);

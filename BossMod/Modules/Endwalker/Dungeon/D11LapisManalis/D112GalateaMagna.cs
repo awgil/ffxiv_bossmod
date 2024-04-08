@@ -251,10 +251,7 @@ class Doom : BossComponent
     }
 }
 
-class SoulScythe : Components.LocationTargetedAOEs
-{
-    public SoulScythe() : base(ActionID.MakeSpell(AID.SoulScythe), 18) { }
-}
+class SoulScythe() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.SoulScythe), 18);
 
 class D112GalateaMagnaStates : StateMachineBuilder
 {
@@ -272,7 +269,4 @@ class D112GalateaMagnaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 10308)]
-public class D112GalateaMagna : BossModule
-{
-    public D112GalateaMagna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(350, -394), 19.5f)) { }
-}
+public class D112GalateaMagna(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(350, -394), 19.5f));

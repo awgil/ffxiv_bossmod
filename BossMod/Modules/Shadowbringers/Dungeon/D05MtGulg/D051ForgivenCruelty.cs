@@ -23,35 +23,12 @@ public enum AID : uint
     HurricaneWing = 15619, // 233C->self, 5,0s cast, range 10 circle
 }
 
-class Rake : Components.SingleTargetDelayableCast
-{
-    public Rake() : base(ActionID.MakeSpell(AID.Rake)) { }
-}
-
-class CycloneWing : Components.RaidwideCast
-{
-    public CycloneWing() : base(ActionID.MakeSpell(AID.CycloneWing2)) { }
-}
-
-class LumenInfinitum : Components.SelfTargetedAOEs
-{
-    public LumenInfinitum() : base(ActionID.MakeSpell(AID.LumenInfinitum), new AOEShapeRect(40, 2.5f)) { }
-}
-
-class HurricaneWing : Components.SelfTargetedAOEs
-{
-    public HurricaneWing() : base(ActionID.MakeSpell(AID.HurricaneWing), new AOEShapeCircle(10)) { }
-}
-
-class TyphoonWing : Components.SelfTargetedAOEs
-{
-    public TyphoonWing() : base(ActionID.MakeSpell(AID.TyphoonWing), new AOEShapeCone(25, 30.Degrees())) { }
-}
-
-class TyphoonWing2 : Components.SelfTargetedAOEs
-{
-    public TyphoonWing2() : base(ActionID.MakeSpell(AID.TyphoonWing2), new AOEShapeCone(25, 30.Degrees())) { }
-}
+class Rake() : Components.SingleTargetDelayableCast(ActionID.MakeSpell(AID.Rake));
+class CycloneWing() : Components.RaidwideCast(ActionID.MakeSpell(AID.CycloneWing2));
+class LumenInfinitum() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.LumenInfinitum), new AOEShapeRect(40, 2.5f));
+class HurricaneWing() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.HurricaneWing), new AOEShapeCircle(10));
+class TyphoonWing() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TyphoonWing), new AOEShapeCone(25, 30.Degrees()));
+class TyphoonWing2() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TyphoonWing2), new AOEShapeCone(25, 30.Degrees()));
 
 class D051ForgivenCrueltyStates : StateMachineBuilder
 {
@@ -68,7 +45,4 @@ class D051ForgivenCrueltyStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8260)]
-public class D051ForgivenCruelty : BossModule
-{
-    public D051ForgivenCruelty(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(188, -170), 19.5f)) { }
-}
+public class D051ForgivenCruelty(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(188, -170), 19.5f));

@@ -46,10 +46,7 @@ class PalmAttacks : Components.GenericAOEs //Palm Attacks have a wrong origin, s
     }
 }
 
-class LightShot : Components.SelfTargetedAOEs
-{
-    public LightShot() : base(ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2)) { }
-}
+class LightShot() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2));
 
 class D054ForgivenRevelryStates : StateMachineBuilder
 {
@@ -62,7 +59,4 @@ class D054ForgivenRevelryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8270)]
-public class D054ForgivenRevelry : BossModule
-{
-    public D054ForgivenRevelry(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, 176), 15)) { }
-}
+public class D054ForgivenRevelry(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-240, 176), 15));
