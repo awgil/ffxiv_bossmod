@@ -9,7 +9,7 @@ class Voidzone : BossComponent
             if (state == 0x02000200)
                 module.Arena.Bounds = new ArenaBoundsCircle(module.Bounds.Center, 28);
             if (state == 0x00400004)
-                module.Arena.Bounds =  new ArenaBoundsCircle(module.Bounds.Center, 30);
+                module.Arena.Bounds =  new ArenaBoundsCircle(module.Bounds.Center, 35);
         }
     }
 }
@@ -47,5 +47,5 @@ class HeavensEarth : Components.BaitAwayCast
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12065)]
 public class A21Nophica : BossModule
 {
-    public A21Nophica(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -238), 30)) { }
+    public A21Nophica(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -238), 35)) { }
 }
