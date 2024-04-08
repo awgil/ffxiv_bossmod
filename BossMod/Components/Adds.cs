@@ -3,24 +3,16 @@
 // generic component used for drawing adds
 public class Adds : BossComponent
 {
-    private uint _actorOID;
-    private IReadOnlyList<Actor> _actors = ActorEnumeration.EmptyList;
-
-    public IReadOnlyList<Actor> Actors => _actors;
+    public readonly IReadOnlyList<Actor> Actors;
     public IEnumerable<Actor> ActiveActors => Actors.Where(a => a.IsTargetable && !a.IsDead);
 
-    public Adds(uint actorOID)
+    public Adds(BossModule module, uint oid) : base(module)
     {
-        _actorOID = actorOID;
+        Actors = module.Enemies(oid);
     }
 
-    public override void Init(BossModule module)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        _actors = module.Enemies(_actorOID);
-    }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-    {
-        arena.Actors(_actors, ArenaColor.Enemy);
+        Arena.Actors(Actors, ArenaColor.Enemy);
     }
 }
