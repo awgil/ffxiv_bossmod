@@ -5,7 +5,7 @@ class Phase2ArenaUpdate : BossComponent
     public override void OnEventEnvControl(BossModule module, byte index, uint state)
     {
         if (state == 0x00200010 && index == 0x42)
-            module.Arena.Bounds = new ArenaBoundsSquare(new(0, 750), 20);
+            module.Arena.Bounds = new ArenaBoundsSquare(module.Bounds.Center, 20);
     }
 }
 

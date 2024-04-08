@@ -7,11 +7,11 @@ class ArenaChanges : BossComponent
         if (index == 0x1B)
         {
             if (state == 0x00080004)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 35);
+                module.Arena.Bounds = new ArenaBoundsCircle(module.Bounds.Center, 35);
             if (state is 0x00020001 or 0x00100001)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 30);
+                module.Arena.Bounds = new ArenaBoundsCircle(module.Bounds.Center, 30);
             if (state == 0x00400020)
-                module.Arena.Bounds = new ArenaBoundsSquare(new(945, -945), 24);
+                module.Arena.Bounds = new ArenaBoundsSquare(module.Bounds.Center, 24);
         }
     }
 }

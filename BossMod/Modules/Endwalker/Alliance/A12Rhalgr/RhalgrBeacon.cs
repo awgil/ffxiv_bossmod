@@ -7,7 +7,7 @@ class RhalgrBeaconAOE : Components.SelfTargetedAOEs
 
 class RhalgrBeaconShock : Components.GenericAOEs
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shape = new(8);
 
@@ -24,7 +24,13 @@ class RhalgrBeaconShock : Components.GenericAOEs
 
 // TODO: this is a knockback 50, ignores immunities - but need to clamp to correct fingers
 // there are two possible source locations ([-10.12, 268.50] and [-24.12, 266.50]), two potential fingers for each - one of them is sometimes covered by lightning aoes
-class RhalgrBeaconKnockback : Components.CastCounter
+class RhalgrBeaconKnockback : Components.KnockbackFromCastTarget
 {
-    public RhalgrBeaconKnockback() : base(ActionID.MakeSpell(AID.RhalgrsBeaconKnockback)) { }
+    public RhalgrBeaconKnockback() : base(ActionID.MakeSpell(AID.RhalgrsBeaconKnockback), 50, true) { }
+
+    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    {
+        if (Sources(module, slot, actor).Any())
+            hints.Add("Get knocked to a correct finger!");
+    }
 }

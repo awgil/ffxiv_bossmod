@@ -4,7 +4,8 @@ public class A13AzeymaStates : StateMachineBuilder
 {
     public A13AzeymaStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase);
+        DeathPhase(0, SinglePhase)
+            .ActivateOnEnter<Voidzone>();
     }
 
     private void SinglePhase(uint id)

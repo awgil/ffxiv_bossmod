@@ -1,5 +1,19 @@
 ﻿namespace BossMod.Endwalker.Alliance.A21Nophica;
 
+class Voidzone : BossComponent
+{
+    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    {
+        if (index == 0x39)
+        {
+            if (state == 0x02000200)
+                module.Arena.Bounds = new ArenaBoundsCircle(module.Bounds.Center, 28);
+            if (state == 0x00400004)
+                module.Arena.Bounds =  new ArenaBoundsCircle(module.Bounds.Center, 30);
+        }
+    }
+}
+
 class SummerShade : Components.SelfTargetedAOEs
 {
     public SummerShade() : base(ActionID.MakeSpell(AID.SummerShade), new AOEShapeDonut(12, 40)) { }
