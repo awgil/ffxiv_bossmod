@@ -33,7 +33,7 @@ class TheLook(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(
 class RottenBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RottenBreath), new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
 class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(35.5f, 45.Degrees()));
 
-class ImminentCatastrophe(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.ImminentCatastrophe), 100, true
+class ImminentCatastrophe(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.ImminentCatastrophe), 100, true)
 {
     public override IEnumerable<Actor> BlockerActors() => ((D163Anantaboga)Module).ActivePillars();
 }

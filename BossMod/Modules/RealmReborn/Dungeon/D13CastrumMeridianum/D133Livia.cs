@@ -75,7 +75,7 @@ class Roundhouse(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
 
 // note: casts are staggered in a slightly complicated way, so we don't remove actors immediately when cast finishes
 // a 'set' is always considered finished when 6th discharge finishes
-class InfiniteReach(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.InfiniteReachDischarge)
+class InfiniteReach(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.InfiniteReachDischarge))
 {
     private List<Actor?> _castersRect = new();
     private List<Actor?> _castersDischarge = new();
