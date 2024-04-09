@@ -14,9 +14,7 @@ public enum AID : uint
 }
 
 class SweetSteel(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.SweetSteel), new AOEShapeCone(7.4f, 45.Degrees())); // TODO: verify angle
-
 class VoidFire2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFire2), 5);
-
 class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(9.4f));
 
 class D061ManorClavigerStates : StateMachineBuilder

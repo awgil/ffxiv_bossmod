@@ -26,21 +26,18 @@ public enum SID : uint
 }
 
 class CursedGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CursedGaze), new AOEShapeCone(8.7f, 45.Degrees()));
-
 class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(8.7f, 45.Degrees()));
-
 class Thunderstrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Thunderstrike), new AOEShapeRect(11.2f, 1.5f));
-
 class Condemnation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Condemnation), new AOEShapeCone(7.3f, 45.Degrees()));
 
 // try to always stay in active crystal closest to boss
-class Positioning : BossComponent
+class Positioning(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Module.PrimaryActor.CastInfo == null) // do not restrict zone while boss is casting, to allow avoiding aoe, even if it means temporarily leaving crystal veil
         {
-            var closestCrystal = module.Enemies(OID.Crystal).Closest(Module.PrimaryActor.Position);
+            var closestCrystal = Module.Enemies(OID.Crystal).Closest(Module.PrimaryActor.Position);
             if (closestCrystal != null)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestCrystal.Position, 8)); // TODO: verify range
         }
@@ -61,10 +58,8 @@ class D111AllSeeingEyeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)]
-public class D111AllSeeingEye : BossModule
+public class D111AllSeeingEye(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(40, 70), 30))
 {
-    public D111AllSeeingEye(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(40, 70), 30)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

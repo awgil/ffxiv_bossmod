@@ -37,20 +37,14 @@ public enum AID : uint
 }
 
 class TerminusEstTriple(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TerminusEstTriple), new AOEShapeRect(40, 2));
-
 class TerminusEstQuintuple(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TerminusEstQuintuple), new AOEShapeRect(40, 2));
-
 class HandOfTheEmpire(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HandOfTheEmpireAOE), 5, false);
-
 class FestinaLente(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.FestinaLente), 6, 4);
-
 class Innocence(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Innocence));
-
 class HorridaBella(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HorridaBella));
-
 class Ductus(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DuctusAOE), 8);
 
-class AddEnrage : BossComponent
+class AddEnrage(BossModule module) : BossComponent(module)
 {
     private DateTime _enrage;
 
@@ -87,10 +81,8 @@ class D143GaiusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2136)]
-public class D143Gaius : BossModule
+public class D143Gaius(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-562, 220), 15, 20))
 {
-    public D143Gaius(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-562, 220), 15, 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

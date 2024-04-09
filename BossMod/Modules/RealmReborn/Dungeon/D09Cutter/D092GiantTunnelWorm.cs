@@ -20,11 +20,9 @@ public enum AID : uint
 class Sandstorm(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Sandstorm), new AOEShapeCone(10.5f, 45.Degrees()));
 
 // TODO: pillars teleport right before cast, so we don't show them for now...
-class Submerge : Components.GenericAOEs
+class Submerge(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Earthbreak))
 {
     private AOEShapeCircle _shape = new(14.5f);
-
-    public Submerge() : base(ActionID.MakeSpell(AID.Earthbreak)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

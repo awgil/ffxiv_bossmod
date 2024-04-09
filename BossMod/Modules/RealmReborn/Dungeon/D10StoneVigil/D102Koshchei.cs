@@ -17,16 +17,13 @@ public enum AID : uint
 }
 
 class SpikedTail(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpikedTail));
-
 class SonicStorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SonicStorm), 6);
 
 class Typhoon : Components.Exaflare
 {
     private IReadOnlyList<Actor> _maelstroms = ActorEnumeration.EmptyList;
 
-    public Typhoon() : base(3) { }
-
-    public override void Init(BossModule module)
+    public Typhoon(BossModule module) : base(module, 3)
     {
         _maelstroms = module.Enemies(OID.MaelstromVisual);
     }
@@ -60,7 +57,7 @@ class Typhoon : Components.Exaflare
                 line.MaxShownExplosions = 10;
                 line.ExplosionsLeft = 15;
             }
-            AdvanceLine(module, line, caster.Position);
+            AdvanceLine(line, caster.Position);
         }
     }
 

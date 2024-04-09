@@ -37,18 +37,15 @@ public enum AID : uint
 }
 
 class AglaeaClimb(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.AglaeaClimb));
-
 class ArtificialPlasma(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ArtificialPlasma));
 
-class Roundhouse : Components.GenericAOEs
+class Roundhouse(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Roundhouse))
 {
     private List<Actor> _castersRoundhouse = new();
     private List<Actor> _castersDischarge = new();
 
     private static readonly AOEShape _shapeRoundhouse = new AOEShapeCircle(10);
     private static readonly AOEShape _shapeDischarge = new AOEShapeCircle(8);
-
-    public Roundhouse() : base(ActionID.MakeSpell(AID.Roundhouse)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -78,7 +75,7 @@ class Roundhouse : Components.GenericAOEs
 
 // note: casts are staggered in a slightly complicated way, so we don't remove actors immediately when cast finishes
 // a 'set' is always considered finished when 6th discharge finishes
-class InfiniteReach : Components.GenericAOEs
+class InfiniteReach(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.InfiniteReachDischarge)
 {
     private List<Actor?> _castersRect = new();
     private List<Actor?> _castersDischarge = new();
@@ -87,8 +84,6 @@ class InfiniteReach : Components.GenericAOEs
     private static readonly AOEShapeRect _shapeRect = new(40, 2);
     private static readonly AOEShapeCircle _shapeDischarge = new(8);
     private static readonly AOEShapeCross _shapeSalamander = new(20, 2);
-
-    public InfiniteReach() : base(ActionID.MakeSpell(AID.InfiniteReachDischarge)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -115,12 +110,12 @@ class InfiniteReach : Components.GenericAOEs
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        CastersForSpell(module, spell.Action, false)?.Add(caster);
+        CastersForSpell(spell.Action, false)?.Add(caster);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        var list = CastersForSpell(module, spell.Action, true);
+        var list = CastersForSpell(spell.Action, true);
         if (list != null)
         {
             var index = list.IndexOf(caster);
@@ -129,7 +124,7 @@ class InfiniteReach : Components.GenericAOEs
         }
     }
 
-    private List<Actor?>? CastersForSpell(BossModule module, ActionID spell, bool forRemove) => (AID)spell.ID switch
+    private List<Actor?>? CastersForSpell(ActionID spell, bool forRemove) => (AID)spell.ID switch
     {
         AID.InfiniteReachAOE => _castersRect,
         AID.InfiniteReachDischarge => _castersDischarge,
@@ -138,15 +133,13 @@ class InfiniteReach : Components.GenericAOEs
     };
 }
 
-class StunningSweep : Components.GenericAOEs
+class StunningSweep(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.StunningSweep))
 {
     private List<Actor> _castersSweepDischarge = new();
     private List<Actor> _castersThermobaric = new();
 
     private static readonly AOEShape _shapeSweepDischarge = new AOEShapeCircle(8);
     private static readonly AOEShape _shapeThermobaric = new AOEShapeCircle(13); // TODO: verify falloff
-
-    public StunningSweep() : base(ActionID.MakeSpell(AID.StunningSweep)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -158,15 +151,15 @@ class StunningSweep : Components.GenericAOEs
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        CastersForSpell(module, spell.Action, false)?.Add(caster);
+        CastersForSpell(spell.Action, false)?.Add(caster);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        CastersForSpell(module, spell.Action, true)?.Remove(caster);
+        CastersForSpell(spell.Action, true)?.Remove(caster);
     }
 
-    private List<Actor>? CastersForSpell(BossModule module, ActionID spell, bool forRemove) => (AID)spell.ID switch
+    private List<Actor>? CastersForSpell(ActionID spell, bool forRemove) => (AID)spell.ID switch
     {
         AID.StunningSweepAOE or AID.StunningSweepDischarge => _castersSweepDischarge,
         AID.ThermobaricCharge => forRemove || Module.PrimaryActor.CastInfo != null ? _castersThermobaric : null, // note: this component cares about cast while boss is casting
@@ -174,15 +167,13 @@ class StunningSweep : Components.GenericAOEs
     };
 }
 
-class AngrySalamander : Components.GenericAOEs
+class AngrySalamander(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.AngrySalamander))
 {
     private List<Actor> _castersSalamander = new();
     private List<Actor> _castersThermobaric = new();
 
     private static readonly AOEShape _shapeSalamander = new AOEShapeCross(20, 2);
     private static readonly AOEShape _shapeThermobaric = new AOEShapeCircle(13); // TODO: verify falloff
-
-    public AngrySalamander() : base(ActionID.MakeSpell(AID.AngrySalamander)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -194,15 +185,15 @@ class AngrySalamander : Components.GenericAOEs
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        CastersForSpell(module, spell.Action, false)?.Add(caster);
+        CastersForSpell(spell.Action, false)?.Add(caster);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        CastersForSpell(module, spell.Action, true)?.Remove(caster);
+        CastersForSpell(spell.Action, true)?.Remove(caster);
     }
 
-    private List<Actor>? CastersForSpell(BossModule module, ActionID spell, bool forRemove) => (AID)spell.ID switch
+    private List<Actor>? CastersForSpell(ActionID spell, bool forRemove) => (AID)spell.ID switch
     {
         AID.AngrySalamanderAOE => forRemove || Module.PrimaryActor.IsTargetable ? _castersSalamander : null, // note: this component cares only about cast when boss is targetable
         AID.ThermobaricCharge => forRemove || Module.PrimaryActor.CastInfo == null ? _castersThermobaric : null, // note: this component cares about thermobarics while boss is not casting

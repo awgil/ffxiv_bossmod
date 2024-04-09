@@ -25,11 +25,8 @@ public enum AID : uint
 }
 
 class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(9));
-
 class BeguilingMist(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BeguilingMist), "Forced movement towards boss");
-
 class VoidThunder(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.VoidThunder3), "Interruptible tankbuster");
-
 class PetrifyingEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.PetrifyingEye));
 
 class D063LadyAmandineStates : StateMachineBuilder
@@ -45,10 +42,8 @@ class D063LadyAmandineStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 6, NameID = 422)]
-public class D063LadyAmandine : BossModule
+public class D063LadyAmandine(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(0, 4), 20))
 {
-    public D063LadyAmandine(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 4), 20)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

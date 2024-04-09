@@ -17,13 +17,13 @@ public enum AID : uint
 }
 
 class VineProbe(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(10, 4));
-
 class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(16, 60.Degrees()));
 
 // arena has multiple weirdly-shaped puddles, so just prefer standing in large safe zone
-class AIPosition : BossComponent
+class AIPosition(BossModule module) : BossComponent(module)
 {
     private WPos[] _centers = { new(-395, -130), new(-402, -114) };
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_centers.MinBy(p => (p - Module.PrimaryActor.Position).LengthSq()), 5));
@@ -42,10 +42,8 @@ class D123MisersMistressStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 5, NameID = 1532)]
-public class D123MisersMistress : BossModule
+public class D123MisersMistress(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-400, -130), 25))
 {
-    public D123MisersMistress(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-400, -130), 25)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

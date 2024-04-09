@@ -22,13 +22,10 @@ public enum AID : uint
 }
 
 class IronUprising(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IronUprising), new AOEShapeCone(7, 60.Degrees()));
-
 class SpineShatter(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpineShatter));
 
-class AugmentedSuffering : Components.KnockbackFromCastTarget
+class AugmentedSuffering(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AugmentedSuffering), 12)
 {
-    public AugmentedSuffering() : base(ActionID.MakeSpell(AID.AugmentedSuffering), 12) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.Count > 0)
@@ -37,9 +34,7 @@ class AugmentedSuffering : Components.KnockbackFromCastTarget
 }
 
 class AugmentedShatter(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.AugmentedShatter), 6, 4);
-
 class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AugmentedUprising), new AOEShapeCone(45, 45.Degrees()));
-
 class WheelOfSuffering(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WheelOfSuffering), new AOEShapeCircle(7));
 
 class D142NeroStates : StateMachineBuilder
@@ -57,10 +52,8 @@ class D142NeroStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2135)]
-public class D142Nero : BossModule
+public class D142Nero(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-164, 0), 20))
 {
-    public D142Nero(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-164, 0), 20)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

@@ -17,7 +17,7 @@ public enum AID : uint
 
 class MoldySneeze(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.MoldySneeze), new AOEShapeCone(8.85f, 45.Degrees()));
 
-class InhaleGoobbuesGrief : Components.GenericAOEs
+class InhaleGoobbuesGrief(BossModule module) : Components.GenericAOEs(module)
 {
     private bool _showInhale;
     private bool _showGrief;

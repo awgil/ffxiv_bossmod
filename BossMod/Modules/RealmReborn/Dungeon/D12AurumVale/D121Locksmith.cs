@@ -14,11 +14,10 @@ public enum AID : uint
 }
 
 class HundredLashings(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.HundredLashings), new AOEShapeCone(12, 45.Degrees())); // TODO: verify angle
-
 class GoldDust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GoldDust), 8);
 
 // arena has multiple weirdly-shaped puddles, so just prefer standing in large safe zone
-class AIPosition : BossComponent
+class AIPosition(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

@@ -21,13 +21,9 @@ public enum AID : uint
 }
 
 class Silkscreen(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Silkscreen), new AOEShapeRect(18, 2));
-
 class StickyWeb(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.StickyWeb), "Delayed AOE at target");
-
 class PodBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PodBurst), new AOEShapeCircle(7.050f));
-
 class DeadlyThrust(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.DeadlyThrust), "Persistent voidzone at target");
-
 class PollenZone(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.PollenZone));
 
 class D053GraffiasStates : StateMachineBuilder
@@ -44,10 +40,8 @@ class D053GraffiasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1, NameID = 444)]
-public class D053Graffias : BossModule
+public class D053Graffias(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(215, -145), 20))
 {
-    public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

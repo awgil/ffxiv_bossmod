@@ -20,9 +20,7 @@ public enum AID : uint
 }
 
 class IncendiarySupport(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.IncendiarySupport), "Raidwide x3");
-
 class HighPoweredMagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HighPoweredMagitekRay), new AOEShapeRect(50, 2));
-
 class MagitekCannon(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekCannon), 6);
 
 class D131BlackEftStates : StateMachineBuilder

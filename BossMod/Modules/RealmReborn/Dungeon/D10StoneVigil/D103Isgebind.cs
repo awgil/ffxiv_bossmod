@@ -18,25 +18,19 @@ public enum AID : uint
 }
 
 class RimeWreath(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RimeWreath));
-
 class FrostBreath(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.FrostBreath), new AOEShapeCone(27, 60.Degrees())); // TODO: verify angle
-
 class SheetOfIce(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SheetOfIce), 5);
-
 class SheetOfIce2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SheetOfIce2), 5);
-
 class Cauterize(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(48, 10));
 
-class Touchdown : Components.GenericAOEs
+class Touchdown(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Touchdown))
 {
     private AOEShapeCircle _shape = new(5);
-
-    public Touchdown() : base(ActionID.MakeSpell(AID.Touchdown)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // TODO: proper timings...
-        if (!Module.PrimaryActor.IsTargetable && !module.FindComponent<Cauterize>()!.ActiveCasters.Any())
+        if (!Module.PrimaryActor.IsTargetable && !Module.FindComponent<Cauterize>()!.ActiveCasters.Any())
             yield return new(_shape, Module.Bounds.Center);
     }
 }

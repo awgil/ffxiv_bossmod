@@ -7,7 +7,7 @@ public enum OID : uint
     Green = 0x1E8A8D,
 }
 
-class SwitchHint : BossComponent
+class SwitchHint(BossModule module) : BossComponent(module)
 {
     private string _hint = "";
 

@@ -16,13 +16,10 @@ public enum AID : uint
 }
 
 class LiquefyCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LiquefyCenter), new AOEShapeRect(50, 4));
-
 class LiquefySides(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LiquefySides), new AOEShapeRect(50, 3.5f));
 
-class Repel : Components.KnockbackFromCastTarget
+class Repel(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Repel), 20, true)
 {
-    public Repel() : base(ActionID.MakeSpell(AID.Repel), 20, true) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // custom hint: stay in narrow zone in center
@@ -34,7 +31,7 @@ class Repel : Components.KnockbackFromCastTarget
     }
 }
 
-class ForbiddenZones : Components.GenericAOEs
+class ForbiddenZones(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect _shape = new(50, 10);
 
@@ -42,7 +39,7 @@ class ForbiddenZones : Components.GenericAOEs
     {
         yield return new(_shape, Module.PrimaryActor.Position, 180.Degrees()); // area behind boss
 
-        var pollen = module.Enemies(OID.Pollen).FirstOrDefault();
+        var pollen = Module.Enemies(OID.Pollen).FirstOrDefault();
         if (pollen != null && pollen.EventState == 0)
             yield return new(_shape, new(200, -122));
     }

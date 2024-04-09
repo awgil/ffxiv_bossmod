@@ -30,20 +30,17 @@ public enum TetherID : uint
 }
 
 class TheLook(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.TheLook), new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
-
 class RottenBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RottenBreath), new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
-
 class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(35.5f, 45.Degrees()));
 
-class ImminentCatastrophe : Components.CastLineOfSightAOE
+class ImminentCatastrophe(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.ImminentCatastrophe), 100, true
 {
-    public ImminentCatastrophe() : base(ActionID.MakeSpell(AID.ImminentCatastrophe), 100, true) { }
-    public override IEnumerable<Actor> BlockerActors(BossModule module) => ((D163Anantaboga)module).ActivePillars();
+    public override IEnumerable<Actor> BlockerActors() => ((D163Anantaboga)Module).ActivePillars();
 }
 
 class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TerrorEye), 6);
 
-class PlagueDance : BossComponent
+class PlagueDance(BossModule module) : BossComponent(module)
 {
     private Actor? _target;
     private DateTime _activation;
@@ -54,7 +51,7 @@ class PlagueDance : BossComponent
     {
         if (actor == _target)
         {
-            foreach (var p in ((D163Anantaboga)module).ActivePillars())
+            foreach (var p in ((D163Anantaboga)Module).ActivePillars())
                 hints.AddForbiddenZone(_shape, p.Position, new(), _activation);
         }
         else if (_target != null)
@@ -70,7 +67,7 @@ class PlagueDance : BossComponent
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        _shape.Outline(arena, _target);
+        _shape.Outline(Arena, _target);
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -107,10 +104,8 @@ class D163AnantabogaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1696)]
-public class D163Anantaboga : BossModule
+public class D163Anantaboga(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(10, 0), 25))
 {
-    public D163Anantaboga(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(10, 0), 25)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);
