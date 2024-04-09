@@ -115,7 +115,7 @@ public enum AID : uint
     ThousandfoldThrustAOEFirst = 35417, // Helper->self, 6.3s cast, range 60 180-degree cone
     ThousandfoldThrustAOERest = 35418, // Helper->self, no cast, range 60 180-degree cone
 
-    ClimbingShotVisual = 36106, // Eulogia->self, 8.0s cast, range 40 circle, visual
+    ClimbingShotVisual = 36106, // Eulogia->self, 8.0s cast, range 40 circle, visual, it seems like any combination of visual + actual knockback/raidwide can happen, ~0.2s delay
     ClimbingShotVisual2 = 36107, // Eulogia->self, 8.0s cast, range 40 circle, visual
     ClimbingShot1 = 35431, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
     ClimbingShot2 = 35429, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source

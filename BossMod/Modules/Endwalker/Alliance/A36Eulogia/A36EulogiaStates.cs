@@ -47,6 +47,10 @@ class A36EulogiaStates : StateMachineBuilder
             .ActivateOnEnter<RadiantRhythm>()
             .ActivateOnEnter<RadiantFlourish>()
             .ActivateOnEnter<ClimbingShot>()
+            .ActivateOnEnter<ClimbingShotRaidwide>()
+            .ActivateOnEnter<ClimbingShotRaidwide2>()
+            .ActivateOnEnter<ClimbingShotRaidwide3>()
+            .ActivateOnEnter<ClimbingShotRaidwide4>()
             .ActivateOnEnter<Quintessence>();
     }
 }
