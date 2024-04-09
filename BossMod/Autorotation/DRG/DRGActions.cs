@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 
 namespace BossMod.DRG;
 
@@ -141,6 +142,15 @@ class Actions : CommonActions
 
         // smart targets
         SupportedSpell(AID.DragonSight).TransformTarget = _config.SmartDragonSightTarget ? SmartTargetDragonSight : null;
+
+        // elusive jump aiming
+        SupportedSpell(AID.ElusiveJump).TransformAngle = _config.ElusiveJump switch
+        {
+            DRGConfig.ElusiveJumpBehavior.CharacterForward => () => Player.PosRot.W + MathF.PI,
+            DRGConfig.ElusiveJumpBehavior.CameraBackward => () => Camera.Instance!.CameraAzimuth + MathF.PI,
+            DRGConfig.ElusiveJumpBehavior.CameraForward => () => Camera.Instance!.CameraAzimuth,
+            _ => null
+        };
     }
 
     private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, SID.ChaosThrust, Player.InstanceID).Left);

@@ -16,15 +16,17 @@ class ManualActionOverride
         public ActionID Action;
         public Actor? Target;
         public Vector3 TargetPos;
+        public float? FacingAngle;
         public ActionDefinition Definition;
         public Func<Actor?, bool>? Condition;
         public DateTime ExpireAt;
 
-        public Entry(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
+        public Entry(ActionID action, Actor? target, Vector3 targetPos, float? facingAngle, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
         {
             Action = action;
             Target = target;
             TargetPos = targetPos;
+            FacingAngle = facingAngle;
             Definition = definition;
             Condition = condition;
             ExpireAt = expireAt;
@@ -65,7 +67,7 @@ class ManualActionOverride
         _queue.RemoveAll(CheckExpired);
     }
 
-    public void Push(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition def, Func<Actor?, bool>? condition, bool simulated = false)
+    public void Push(ActionID action, Actor? target, Vector3 targetPos, float? facingAngle, ActionDefinition def, Func<Actor?, bool>? condition, bool simulated = false)
     {
         bool isGCD = def.CooldownGroup == CommonDefinitions.GCDGroup;
         float expire = isGCD ? 1.0f : 3.0f;
@@ -79,7 +81,7 @@ class ManualActionOverride
         if (index < 0)
         {
             Service.Log($"[MAO] Queueing {action} @ {target}");
-            _queue.Add(new(action, target, targetPos, def, condition, expireAt));
+            _queue.Add(new(action, target, targetPos, facingAngle, def, condition, expireAt));
             return;
         }
 
@@ -88,7 +90,7 @@ class ManualActionOverride
         {
             Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {target}");
             _queue.RemoveAt(index);
-            _queue.Add(new(action, target, targetPos, def, condition, expireAt));
+            _queue.Add(new(action, target, targetPos, facingAngle, def, condition, expireAt));
         }
         else if (isGCD)
         {
@@ -100,7 +102,7 @@ class ManualActionOverride
             Service.Log($"[MAO] Entering emergency mode for {e.Action}");
             // spamming oGCD - enter emergency mode
             _queue.Clear();
-            _queue.Add(new(action, target, targetPos, def, condition, expireAt));
+            _queue.Add(new(action, target, targetPos, facingAngle, def, condition, expireAt));
             _emergencyMode = true;
         }
     }
