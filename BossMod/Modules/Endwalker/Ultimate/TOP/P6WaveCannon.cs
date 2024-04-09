@@ -2,10 +2,8 @@
 
 class P6WaveCannonPuddle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.P6WaveCannonPuddle), new AOEShapeCircle(6));
 
-class P6WaveCannonExaflare : Components.Exaflare
+class P6WaveCannonExaflare(BossModule module) : Components.Exaflare(module, 8)
 {
-    public P6WaveCannonExaflare() : base(8) { }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.P6WaveCannonExaflareFirst)
@@ -26,14 +24,14 @@ class P6WaveCannonExaflare : Components.Exaflare
                 return;
             }
 
-            AdvanceLine(module, Lines[index], caster.Position);
+            AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }
     }
 }
 
-class P6WaveCannonProteans : Components.GenericBaitAway
+class P6WaveCannonProteans(BossModule module) : Components.GenericBaitAway(module)
 {
     private static readonly AOEShapeRect _shape = new(100, 4);
 
@@ -55,13 +53,8 @@ class P6WaveCannonProteans : Components.GenericBaitAway
     }
 }
 
-class P6WaveCannonWildCharge : Components.GenericWildCharge
+class P6WaveCannonWildCharge(BossModule module) : Components.GenericWildCharge(module, 4, ActionID.MakeSpell(AID.P6WaveCannonWildCharge), 100)
 {
-    public P6WaveCannonWildCharge() : base(4, ActionID.MakeSpell(AID.P6WaveCannonWildCharge))
-    {
-        FixedLength = 100;
-    }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.P6WaveCannonProtean)

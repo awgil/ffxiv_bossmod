@@ -1,13 +1,11 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
-class P3GevurahChesed : Components.CastCounter
+class P3GevurahChesed(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LifeForce)) // doesn't matter which spell to track
 {
     private BitMask _physResistMask;
     private int _physSide; // 0 if not active, -1 if left, +1 if right
 
     private static readonly AOEShape _shape = new AOEShapeRect(40, 10);
-
-    public P3GevurahChesed() : base(ActionID.MakeSpell(AID.LifeForce)) { } // doesn't matter which spell to track
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -20,7 +18,7 @@ class P3GevurahChesed : Components.CastCounter
     {
         var side = ForbiddenSide(pcSlot);
         if (side != 0)
-            _shape.Draw(arena, Origin(side), 0.Degrees());
+            _shape.Draw(Arena, Origin(side), 0.Degrees());
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

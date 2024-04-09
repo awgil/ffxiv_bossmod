@@ -1,9 +1,7 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
-class HiemalStormSpread : Components.UniformStackSpread
+class HiemalStormSpread(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)
 {
-    public HiemalStormSpread() : base(0, 6, alwaysShowSpreads: true) { }
-
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.HiemalStorm)
@@ -18,15 +16,11 @@ class HiemalStormSpread : Components.UniformStackSpread
 }
 
 class HiemalStormVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.HiemalStorm).Where(x => x.EventState != 7));
-
 class SpiralPierce(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(50, 6), (uint)TetherID.SpiralPierce, ActionID.MakeSpell(AID.SpiralPierce));
-
 class DimensionalCollapse(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DimensionalCollapseAOE), 9);
 
-class FaithUnmoving : Components.Knockback
+class FaithUnmoving(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.FaithUnmoving), true)
 {
-    public FaithUnmoving() : base(ActionID.MakeSpell(AID.FaithUnmoving), true) { }
-
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         yield return new(Module.Bounds.Center, 16);
@@ -34,14 +28,11 @@ class FaithUnmoving : Components.Knockback
 }
 
 class CometCircle(BossModule module) : Components.Adds(module, (uint)OID.CometCircle);
-
 class MeteorCircle(BossModule module) : Components.Adds(module, (uint)OID.MeteorCircle);
 
-class HeavyImpact : Components.ConcentricAOEs
+class HeavyImpact(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
     private static readonly AOEShape[] _shapes = { new AOEShapeCone(6.5f, 135.Degrees()), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees()), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees()), new AOEShapeDonutSector(18.5f, 27.5f, 135.Degrees()) };
-
-    public HeavyImpact() : base(_shapes) { }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

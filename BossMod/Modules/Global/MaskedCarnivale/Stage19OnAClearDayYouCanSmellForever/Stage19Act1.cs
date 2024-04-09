@@ -31,12 +31,10 @@ public enum SID : uint
 }
 
 class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees()));
-
 class VineProbe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4));
-
 class OffalBreath(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0);
 
-class Reflect : BossComponent
+class Reflect(BossModule module) : BossComponent(module)
 {
     private bool reflect;
     private bool casting;
@@ -65,7 +63,7 @@ class Reflect : BossComponent
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

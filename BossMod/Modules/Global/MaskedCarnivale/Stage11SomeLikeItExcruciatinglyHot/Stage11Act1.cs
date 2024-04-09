@@ -10,7 +10,7 @@ public enum AID : uint
     Fulmination = 14583, // 2718->self, 23,0s cast, range 60 circle
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -35,6 +35,7 @@ public class Stage11Act1 : BossModule
     {
         ActivateComponent<Hints>();
     }
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         foreach (var s in Enemies(OID.Boss))

@@ -115,7 +115,7 @@ class RawSteel : Components.BaitAwayChargeCast
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         foreach (var b in ActiveBaits)
         {
             if (b.Target == actor)

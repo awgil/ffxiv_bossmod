@@ -14,28 +14,29 @@ public enum AID : uint
     SelfDestruct2 = 14688, // 2709->self, no cast, range 6 circle
 }
 
-class Selfdetonations : BossComponent
+class Selfdetonations(BossModule module) : BossComponent(module)
 {
     private static readonly string hint = "In bomb explosion radius!";
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (!Module.PrimaryActor.IsDead)
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(Module.PrimaryActor.Position, 10, 0xFF000000, 2);
-            arena.AddCircle(Module.PrimaryActor.Position, 10, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(Module.PrimaryActor.Position, 10, 0xFF000000, 2);
+            Arena.AddCircle(Module.PrimaryActor.Position, 10, ArenaColor.Danger);
         }
-        foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Bomb).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 6, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 6, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 6, ArenaColor.Danger);
         }
-        foreach (var p in module.Enemies(OID.Snoll).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Snoll).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 6, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 6, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 6, ArenaColor.Danger);
         }
     }
 
@@ -43,16 +44,16 @@ class Selfdetonations : BossComponent
     {
         if (!Module.PrimaryActor.IsDead && actor.Position.InCircle(Module.PrimaryActor.Position, 10))
             hints.Add(hint);
-        foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Bomb).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 6))
                 hints.Add(hint);
-        foreach (var p in module.Enemies(OID.Snoll).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Snoll).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 6))
                 hints.Add(hint);
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -60,7 +61,7 @@ class Hints : BossComponent
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

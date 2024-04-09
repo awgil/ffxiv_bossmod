@@ -16,14 +16,11 @@ public enum AID : uint
 }
 
 class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(16.96f, 60.Degrees()));
-
 class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(46.96f, 30.Degrees()));
-
 class SporeSac(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SporeSac), "Calls Roselets. Prepare Ice Spikes if available.");
-
 class InflammableFumes(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.InflammableFumes), "Stun Boss with Bomb Toss. High damage but suriveable.");
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

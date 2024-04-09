@@ -22,7 +22,7 @@ class MagitekRay(BossModule module) : Components.LocationTargetedAOEs(module, Ac
 
 class MagitekField(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses");
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -30,7 +30,7 @@ class Hints : BossComponent
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

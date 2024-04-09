@@ -71,7 +71,7 @@ class P3HeavensfallTowers : Components.CastTowers
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastStarted(module, caster, spell);
+        base.OnCastStarted(caster, spell);
 
         if (spell.Action == WatchedAction && Towers.Count == 8)
         {

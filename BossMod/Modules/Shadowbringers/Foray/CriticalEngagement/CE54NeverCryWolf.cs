@@ -80,7 +80,7 @@ class LunarCry : Components.CastLineOfSightAOE
     {
         if (_knockback?.Casters.Count > 0)
             return; // resolve knockbacks first
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -91,7 +91,7 @@ class LunarCry : Components.CastLineOfSightAOE
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastStarted(module, caster, spell);
+        base.OnCastStarted(caster, spell);
         if ((AID)spell.Action.ID == AID.PillarPierce)
             _safePillars.Remove(caster);
     }

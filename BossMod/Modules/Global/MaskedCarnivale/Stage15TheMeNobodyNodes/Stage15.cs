@@ -28,7 +28,7 @@ public enum AID : uint
 
 class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interrupt!");
 
-class Ballast : Components.GenericAOEs
+class Ballast(BossModule module) : Components.GenericAOEs(module)
 {
     private bool casting2;
     private bool casting3;
@@ -85,16 +85,12 @@ class Ballast : Components.GenericAOEs
 }
 
 class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 4));
-
 class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(12.3f));
-
 class Superstorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Superstorm2), new AOEShapeDonut(8, 20));
-
 class Spellsword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spellsword), new AOEShapeCone(7.1f, 60.Degrees()));
-
 class Disseminate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Disseminate), new AOEShapeCircle(7.2f));
 
-class BallastKB : Components.Knockback //actual knockbacks are 0.274s after snapshot
+class BallastKB(BossModule module) : Components.Knockback(module) //actual knockbacks are 0.274s after snapshot
 {
     private bool casting2;
     private bool casting3;
@@ -143,7 +139,7 @@ class BallastKB : Components.Knockback //actual knockbacks are 0.274s after snap
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

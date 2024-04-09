@@ -4,15 +4,13 @@ class P2OptimizedSagittariusArrow(BossModule module) : Components.SelfTargetedAO
 
 class P2OptimizedBladedance : Components.BaitAwayTethers
 {
-    public P2OptimizedBladedance() : base(new AOEShapeCone(100, 45.Degrees()), (uint)TetherID.OptimizedBladedance, ActionID.MakeSpell(AID.OptimizedBladedanceAOE)) { }
-
-    public override void Init(BossModule module)
+    public P2OptimizedBladedance(BossModule module) : base(module, new AOEShapeCone(100, 45.Degrees()), (uint)TetherID.OptimizedBladedance, ActionID.MakeSpell(AID.OptimizedBladedanceAOE))
     {
         ForbiddenPlayers = Raid.WithSlot(true).WhereActor(p => p.Role != Role.Tank).Mask();
     }
 }
 
-class P2BeyondDefense : Components.UniformStackSpread
+class P2BeyondDefense(BossModule module) : Components.UniformStackSpread(module, 6, 5, 3, alwaysShowSpreads: true)
 {
     public enum Mechanic { None, Spread, Stack }
 
@@ -20,8 +18,6 @@ class P2BeyondDefense : Components.UniformStackSpread
     private Actor? _source;
     private DateTime _activation;
     private BitMask _forbiddenStack;
-
-    public P2BeyondDefense() : base(6, 5, 3, alwaysShowSpreads: true) { }
 
     public override void Update()
     {
@@ -44,8 +40,8 @@ class P2BeyondDefense : Components.UniformStackSpread
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actor(_source, ArenaColor.Object, true);
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        Arena.Actor(_source, ArenaColor.Object, true);
+        base.DrawArenaForeground(pcSlot, pc);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -82,7 +78,7 @@ class P2BeyondDefense : Components.UniformStackSpread
 
 class P2CosmoMemory(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CosmoMemoryAOE));
 
-class P2OptimizedPassageOfArms : BossComponent
+class P2OptimizedPassageOfArms(BossModule module) : BossComponent(module)
 {
     public Actor? _invincible;
 

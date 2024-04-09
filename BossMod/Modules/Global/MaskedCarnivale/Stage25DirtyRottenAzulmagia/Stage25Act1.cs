@@ -25,20 +25,14 @@ public enum SID : uint
 }
 
 class ApocalypticBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticBolt), new AOEShapeRect(51.2f, 4));
-
 class ApocalypticRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticRoar), new AOEShapeCone(36.2f, 60.Degrees()));
-
 class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(8));
-
 class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(6, 30));
-
 class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(7.2f));
-
 class TremblingEarth(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TremblingEarth), new AOEShapeDonut(10, 20));
-
 class TremblingEarth2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TremblingEarth2), new AOEShapeDonut(20, 30));
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -51,11 +45,11 @@ class Hints : BossComponent
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var physicalreflect = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.IceSpikes) != null).FirstOrDefault();
+        var physicalreflect = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.IceSpikes) != null).FirstOrDefault();
         if (physicalreflect != null)
             hints.Add($"{Module.PrimaryActor.Name} will reflect all physical damage!");
     }

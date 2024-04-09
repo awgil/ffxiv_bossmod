@@ -15,7 +15,7 @@ class RightArmComet : Components.KnockbackFromCastTarget
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         foreach (var c in Casters)
             arena.AddCircle(c.Position, _radius, pc.Position.InCircle(c.Position, _radius) ? ArenaColor.Safe : ArenaColor.Danger, 2);
     }

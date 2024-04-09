@@ -10,7 +10,7 @@ public enum AID : uint
     Attack = 6497, // 26F2->player, no cast, single-target
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

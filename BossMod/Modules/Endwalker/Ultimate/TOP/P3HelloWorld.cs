@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P3HelloWorld : Components.GenericTowers
+class P3HelloWorld(BossModule module) : Components.GenericTowers(module)
 {
     public enum PlayerRole { None = -1, Defamation, RemoteTether, Stack, LocalTether }
     public enum TowerColor { None, Red, Blue }
@@ -69,7 +69,7 @@ class P3HelloWorld : Components.GenericTowers
             }
         }
 
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
     }
 
     public override void AddGlobalHints(GlobalHints hints)
@@ -102,7 +102,7 @@ class P3HelloWorld : Components.GenericTowers
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         if (Towers.Count == 4)
         {
@@ -117,19 +117,19 @@ class P3HelloWorld : Components.GenericTowers
                     _ => (0, PlayerRole.None)
                 };
                 if (radius != 0)
-                    arena.AddCircle(p.Position, radius, pcRole == share ? ArenaColor.Safe : ArenaColor.Danger);
+                    Arena.AddCircle(p.Position, radius, pcRole == share ? ArenaColor.Safe : ArenaColor.Danger);
             }
 
             // draw safespots for next towers
-            foreach (var p in PositionsForTowers(module, pcSlot))
-                arena.AddCircle(p, 1, ArenaColor.Safe);
+            foreach (var p in PositionsForTowers(pcSlot))
+                Arena.AddCircle(p, 1, ArenaColor.Safe);
         }
         else if (NumRotExplodes < NumCasts)
         {
             // draw rot 'spreads' (rots will explode on players who used to have defamation/stack role and thus now have one of the tether roles)
             foreach (var (i, p) in Raid.WithSlot(true))
                 if (PendingRot(i))
-                    arena.AddCircle(p.Position, 5, ArenaColor.Danger);
+                    Arena.AddCircle(p.Position, 5, ArenaColor.Danger);
         }
 
         if (NumTetherBreaks < 16)
@@ -138,10 +138,10 @@ class P3HelloWorld : Components.GenericTowers
             //bool useRoleForNextTowers = NumTetherBreaks >= NumCasts;
             //var pcRole = RoleForNextTowers(pcSlot, useRoleForNextTowers ? 0 : -1);
             //if (pcRole is PlayerRole.RemoteTether or PlayerRole.LocalTether &&  is var partner && partner != null)
-            //    arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+            //    Arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
             var partner = Raid[PartnerSlot(pcSlot)];
             if (partner != null && (pc.Tether.Target == partner.InstanceID || partner.Tether.Target == pc.InstanceID))
-                arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+                Arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
         }
     }
 
@@ -150,24 +150,24 @@ class P3HelloWorld : Components.GenericTowers
         switch ((SID)status.ID)
         {
             case SID.HWPrepStack:
-                AssignRole(module, actor, PlayerRole.Stack);
+                AssignRole(actor, PlayerRole.Stack);
                 break;
             case SID.HWPrepDefamation:
-                AssignRole(module, actor, PlayerRole.Defamation);
+                AssignRole(actor, PlayerRole.Defamation);
                 break;
             case SID.HWPrepRedRot:
-                AssignRot(module, actor, TowerColor.Red);
+                AssignRot(actor, TowerColor.Red);
                 break;
             case SID.HWPrepBlueRot:
-                AssignRot(module, actor, TowerColor.Blue);
+                AssignRot(actor, TowerColor.Blue);
                 break;
             case SID.HWPrepLocalTether:
                 if ((status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 30)
-                    AssignRole(module, actor, PlayerRole.LocalTether);
+                    AssignRole(actor, PlayerRole.LocalTether);
                 break;
             case SID.HWPrepRemoteTether:
                 if ((status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 30)
-                    AssignRole(module, actor, PlayerRole.RemoteTether);
+                    AssignRole(actor, PlayerRole.RemoteTether);
                 break;
         }
     }
@@ -223,7 +223,7 @@ class P3HelloWorld : Components.GenericTowers
         }
     }
 
-    private void AssignRole(BossModule module, Actor actor, PlayerRole role)
+    private void AssignRole(Actor actor, PlayerRole role)
     {
         var slot = Raid.FindSlot(actor.InstanceID);
         if (slot < 0)
@@ -235,7 +235,7 @@ class P3HelloWorld : Components.GenericTowers
         if (_initialRoles[slot] == PlayerRole.None)
         {
             _initialRoles[slot] = role;
-            InitDefamationTowers(module, slot);
+            InitDefamationTowers(slot);
         }
         else if (_initialRoles[slot] != role)
         {
@@ -243,7 +243,7 @@ class P3HelloWorld : Components.GenericTowers
         }
     }
 
-    private void AssignRot(BossModule module, Actor actor, TowerColor color)
+    private void AssignRot(Actor actor, TowerColor color)
     {
         var slot = Raid.FindSlot(actor.InstanceID);
         if (slot < 0)
@@ -255,7 +255,7 @@ class P3HelloWorld : Components.GenericTowers
         if (_initialRots[slot] == TowerColor.None)
         {
             _initialRots[slot] = color;
-            InitDefamationTowers(module, slot);
+            InitDefamationTowers(slot);
         }
         else if (_initialRots[slot] != color)
         {
@@ -263,7 +263,7 @@ class P3HelloWorld : Components.GenericTowers
         }
     }
 
-    private void InitDefamationTowers(BossModule module, int slot)
+    private void InitDefamationTowers(int slot)
     {
         var role = _initialRoles[slot];
         var color = _initialRots[slot];
@@ -308,7 +308,7 @@ class P3HelloWorld : Components.GenericTowers
         return -1;
     }
 
-    private IEnumerable<WPos> PositionsForTowers(BossModule module, int slot)
+    private IEnumerable<WPos> PositionsForTowers(int slot)
     {
         // find midpoint for defamation towers
         WDir defamationMid = default;

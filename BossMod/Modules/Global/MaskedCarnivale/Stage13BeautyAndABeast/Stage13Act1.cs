@@ -14,7 +14,7 @@ public enum AID : uint
 
 class Mow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mow), new AOEShapeCone(7.4f, 60.Degrees()));
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

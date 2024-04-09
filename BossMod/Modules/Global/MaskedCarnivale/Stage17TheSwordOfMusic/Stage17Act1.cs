@@ -14,27 +14,25 @@ public enum AID : uint
 }
 
 class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees()));
-
 class Shred(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2));
-
 class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0,9s after snapshot
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (!Module.PrimaryActor.IsDead)
             hints.Add($"{Module.PrimaryActor.Name} counters magical damage!");
-        if (!module.Enemies(OID.RightClaw).All(e => e.IsDead))
+        if (!Module.Enemies(OID.RightClaw).All(e => e.IsDead))
             hints.Add($"{module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"The {Module.PrimaryActor.Name} counters magical attacks, the {module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical\nattacks. If you have healing spells you can just tank the counter damage\nand kill them however you like anyway. All opponents in this stage are\nweak to lightning.\nThe Ram's Voice and Ultravibration combo can be used in Act 2.");
+        hints.Add($"The {Module.PrimaryActor.Name} counters magical attacks, the {Module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical\nattacks. If you have healing spells you can just tank the counter damage\nand kill them however you like anyway. All opponents in this stage are\nweak to lightning.\nThe Ram's Voice and Ultravibration combo can be used in Act 2.");
     }
 }
 

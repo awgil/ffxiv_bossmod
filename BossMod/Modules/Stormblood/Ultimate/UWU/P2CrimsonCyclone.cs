@@ -61,7 +61,7 @@ class CrimsonCyclone : Components.GenericAOEs
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.CrimsonCycloneCross)
         {
             _predicted.Clear();

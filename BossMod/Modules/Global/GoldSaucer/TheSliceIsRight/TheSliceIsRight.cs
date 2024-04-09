@@ -36,7 +36,7 @@ public enum AID : uint
     BadCup = 18337, // 25AC->self, 1.0s cast, range 15+R 120-degree cone
 }
 
-class BambooSplits : Components.GenericAOEs
+class BambooSplits(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _doublesidedsplit = [];
     private readonly List<Actor> _singlesplit = [];
@@ -84,7 +84,7 @@ class BambooSplits : Components.GenericAOEs
         }
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00010002) //bamboo gets activated, technically we could draw the AOEs before, but then we could see different sets overlap
         {
@@ -116,9 +116,7 @@ class BambooSplits : Components.GenericAOEs
 }
 
 class DaigoroFirstGilJump(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.FirstGilJump), 3.5f);
-
 class DaigoroNextGilJump(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.NextGilJump), 3.5f);
-
 class DaigoroBadCup(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadCup), new AOEShapeCone(17.5f, 60.Degrees()));
 
 class TheSliceIsRightStates : StateMachineBuilder
@@ -133,9 +131,7 @@ class TheSliceIsRightStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.GoldSaucer, GroupID = 181, NameID = 9066)]
-public class TheSliceIsRight : BossModule
+public class TheSliceIsRight(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(70.5f, -36), 15))
 {
-    public TheSliceIsRight(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(70.5f, -36), 15)) { }
-
     protected override bool CheckPull() { return PrimaryActor != null; }
 }

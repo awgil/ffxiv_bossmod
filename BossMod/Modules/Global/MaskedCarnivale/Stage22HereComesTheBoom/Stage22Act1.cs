@@ -11,7 +11,7 @@ public enum AID : uint
     Fulmination = 14901, // 26FC->self, no cast, range 50+R circle, wipe if failed to kill grenade in one hit
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -19,7 +19,7 @@ class Hints : BossComponent
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -51,5 +51,6 @@ public class Stage22Act1 : BossModule
         foreach (var s in Enemies(OID.Boss))
             Arena.Actor(s, ArenaColor.Enemy);
     }
+
     protected override bool CheckPull() { return (PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Boss).Any(e => e.IsDead)) && !Enemies(OID.BossAct2).Any(e => e.InCombat); }
 }

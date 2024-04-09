@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
-class P2SoarTwinSpirit : Components.GenericAOEs
+class P2SoarTwinSpirit(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(Actor caster, AOEInstance aoe)> _pending = new();
 
@@ -33,10 +33,8 @@ class P2SoarTwinSpirit : Components.GenericAOEs
     }
 }
 
-class P2SoarFlamingHalberd : Components.UniformStackSpread
+class P2SoarFlamingHalberd(BossModule module) : Components.UniformStackSpread(module, 0, 12, alwaysShowSpreads: true)
 {
-    public P2SoarFlamingHalberd() : base(0, 12, alwaysShowSpreads: true) { }
-
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.FlamingHalberd)
@@ -52,10 +50,8 @@ class P2SoarFlamingHalberd : Components.UniformStackSpread
 
 class P2SoarFlamingHalberdVoidzone(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.FlamingHalberdVoidzone).Where(z => z.EventState != 7));
 
-class P2SoarDemonicDiveCoolFlame : Components.UniformStackSpread
+class P2SoarDemonicDiveCoolFlame(BossModule module) : Components.UniformStackSpread(module, 7, 8, 7, alwaysShowSpreads: true)
 {
-    public P2SoarDemonicDiveCoolFlame() : base(7, 8, 7, alwaysShowSpreads: true) { }
-
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         switch ((IconID)iconID)

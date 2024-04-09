@@ -20,7 +20,7 @@ class Dreadstorm(BossModule module) : Components.PersistentVoidzoneAtCastTarget(
 
 class Obliterate(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Obliterate), "Interruptible raidwide");
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -28,7 +28,7 @@ class Hints : BossComponent
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

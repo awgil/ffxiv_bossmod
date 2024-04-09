@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P2PartySynergy : CommonAssignments
+class P2PartySynergy(BossModule module) : CommonAssignments(module)
 {
     public enum Glitch { Unknown, Mid, Remote }
 
@@ -21,8 +21,8 @@ class P2PartySynergy : CommonAssignments
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
-        if (EnableDistanceHints && FindPartner(module, slot) is var partner && partner != null)
+        base.AddHints(slot, actor, hints);
+        if (EnableDistanceHints && FindPartner(slot) is var partner && partner != null)
         {
             var distSq = (partner.Position - actor.Position).LengthSq();
             var range = DistanceRange;
@@ -35,12 +35,12 @@ class P2PartySynergy : CommonAssignments
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var partner = FindPartner(module, pcSlot);
+        var partner = FindPartner(pcSlot);
         if (partner != null)
         {
             var distSq = (partner.Position - pc.Position).LengthSq();
             var range = DistanceRange;
-            arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ArenaColor.Danger : ArenaColor.Safe);
+            Arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ArenaColor.Danger : ArenaColor.Safe);
         }
     }
 
@@ -68,10 +68,10 @@ class P2PartySynergy : CommonAssignments
             IconID.PartySynergyTriangle => 4,
             _ => 0
         };
-        Assign(module, actor, order);
+        Assign(actor, order);
     }
 
-    private Actor? FindPartner(BossModule module, int slot)
+    private Actor? FindPartner(int slot)
     {
         var ps = PlayerStates[slot];
         var partnerSlot = ps.Order > 0 ? Array.FindIndex(PlayerStates, s => s.Order == ps.Order && s.Group != ps.Group) : -1;
@@ -86,7 +86,7 @@ class P2PartySynergy : CommonAssignments
     };
 }
 
-class P2PartySynergyDoubleAOEs : Components.GenericAOEs
+class P2PartySynergyDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 {
     public List<AOEInstance> AOEs = new();
 
@@ -131,9 +131,10 @@ class P2PartySynergyDoubleAOEs : Components.GenericAOEs
 
 class P2PartySynergyOptimizedFire : Components.UniformStackSpread
 {
-    public P2PartySynergyOptimizedFire() : base(0, 7, alwaysShowSpreads: true) { }
-
-    public override void Init(BossModule module) => AddSpreads(Raid.WithoutSlot(true));
+    public P2PartySynergyOptimizedFire(BossModule module) : base(module, 0, 7, alwaysShowSpreads: true)
+    {
+        AddSpreads(Raid.WithoutSlot(true));
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -150,9 +151,13 @@ class P2PartySynergyOpticalLaser : Components.GenericAOEs
 
     private static readonly AOEShapeRect _shape = new(100, 8);
 
-    public P2PartySynergyOpticalLaser() : base(ActionID.MakeSpell(AID.OpticalLaser)) { }
+    public P2PartySynergyOpticalLaser(BossModule module) : base(module, ActionID.MakeSpell(AID.OpticalLaser))
+    {
+        _synergy = module.FindComponent<P2PartySynergy>();
+        _source = module.Enemies(OID.OpticalUnit).FirstOrDefault();
+    }
 
-    public void Show(BossModule module)
+    public void Show()
     {
         _activation = WorldState.FutureTime(6.8f);
     }
@@ -163,21 +168,15 @@ class P2PartySynergyOpticalLaser : Components.GenericAOEs
             yield return new(_shape, _source.Position, _source.Rotation, _activation);
     }
 
-    public override void Init(BossModule module)
-    {
-        _synergy = module.FindComponent<P2PartySynergy>();
-        _source = module.Enemies(OID.OpticalUnit).FirstOrDefault();
-    }
-
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actor(_source, ArenaColor.Object, true);
-        var pos = AssignedPosition(module, pcSlot);
+        Arena.Actor(_source, ArenaColor.Object, true);
+        var pos = AssignedPosition(pcSlot);
         if (pos != default)
-            arena.AddCircle(Module.Bounds.Center + pos, 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Bounds.Center + pos, 1, ArenaColor.Safe);
     }
 
-    private WDir AssignedPosition(BossModule module, int slot)
+    private WDir AssignedPosition(int slot)
     {
         if (_synergy == null || _source == null || _activation == default)
             return new();
@@ -200,10 +199,8 @@ class P2PartySynergyOpticalLaser : Components.GenericAOEs
     }
 }
 
-class P2PartySynergyDischarger : Components.Knockback
+class P2PartySynergyDischarger(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Discharger))
 {
-    public P2PartySynergyDischarger() : base(ActionID.MakeSpell(AID.Discharger)) { }
-
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         yield return new(Module.Bounds.Center, 13); // TODO: activation
@@ -221,20 +218,20 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
 
     private static readonly AOEShapeCircle _shape = new(10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_activation != default)
-            foreach (var s in _sources)
-                yield return new(_shape, s.Position, new(), _activation);
-    }
-
-    public override void Init(BossModule module)
+    public P2PartySynergyEfficientBladework(BossModule module) : base(module)
     {
         _synergy = module.FindComponent<P2PartySynergy>();
         _sources.AddRange(module.Enemies(OID.OmegaF));
         // by default, use same group as for synergy
         if (_synergy != null)
             _firstGroup = Raid.WithSlot(true).WhereSlot(s => _synergy.PlayerStates[s].Group == 1).Mask();
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_activation != default)
+            foreach (var s in _sources)
+                yield return new(_shape, s.Position, new(), _activation);
     }
 
     public override void AddGlobalHints(GlobalHints hints)
@@ -245,9 +242,9 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var pos = AssignedPosition(module, pcSlot);
+        var pos = AssignedPosition(pcSlot);
         if (pos != default)
-            arena.AddCircle(Module.Bounds.Center + pos, 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Bounds.Center + pos, 1, ArenaColor.Safe);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -305,7 +302,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
         }
     }
 
-    private WDir AssignedPosition(BossModule module, int slot)
+    private WDir AssignedPosition(int slot)
     {
         if (_activation == default || _synergy == null || _sources.Count == 0)
             return new();
@@ -316,11 +313,9 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
     }
 }
 
-class P2PartySynergySpotlight : Components.UniformStackSpread
+class P2PartySynergySpotlight(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, 4)
 {
     private List<Actor> _stackTargets = new(); // don't show anything until knockbacks are done, to reduce visual clutter
-
-    public P2PartySynergySpotlight() : base(6, 0, 4, 4) { }
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {

@@ -1,9 +1,7 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
-class ArmsOfWisdom : Components.Knockback
+class ArmsOfWisdom(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.ArmsOfWisdom))
 {
-    public ArmsOfWisdom() : base(ActionID.MakeSpell(AID.ArmsOfWisdom)) { }
-
     private Actor? _caster;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
@@ -14,7 +12,7 @@ class ArmsOfWisdom : Components.Knockback
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         if (_caster != null && _caster.CastInfo?.TargetID == _caster.TargetID)
         {

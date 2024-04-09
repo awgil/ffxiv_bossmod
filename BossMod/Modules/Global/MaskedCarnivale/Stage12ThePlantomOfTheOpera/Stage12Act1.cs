@@ -10,7 +10,7 @@ public enum AID : uint
     Seedvolley = 14750, // 271A->player, no cast, single-target
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -34,6 +34,7 @@ public class Stage12Act1 : BossModule
     {
         ActivateComponent<Hints>();
     }
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         foreach (var s in Enemies(OID.Boss))

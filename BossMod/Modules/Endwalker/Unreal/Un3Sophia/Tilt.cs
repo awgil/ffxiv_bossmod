@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
-class Tilt : Components.Knockback
+class Tilt(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.QuasarTilt))
 {
     public static readonly float DistanceShort = 28;
     public static readonly float DistanceLong = 37;
@@ -8,8 +8,6 @@ class Tilt : Components.Knockback
     public float Distance;
     public Angle Direction;
     public DateTime Activation;
-
-    public Tilt() : base(ActionID.MakeSpell(AID.QuasarTilt)) { }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -19,19 +17,19 @@ class Tilt : Components.Knockback
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
             Distance = 0;
     }
 }
 
-class ScalesOfWisdom : Tilt
+class ScalesOfWisdom(BossModule module) : Tilt(module)
 {
     public bool RaidwideDone;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         switch ((AID)spell.Action.ID)
         {
             case AID.ScalesOfWisdomStart:
@@ -56,7 +54,7 @@ class ScalesOfWisdom : Tilt
     }
 }
 
-class Quasar : Tilt
+class Quasar(BossModule module) : Tilt(module)
 {
     public int WeightLeft;
     public int WeightRight;

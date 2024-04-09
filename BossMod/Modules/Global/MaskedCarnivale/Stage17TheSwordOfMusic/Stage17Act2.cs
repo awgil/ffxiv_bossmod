@@ -20,29 +20,24 @@ public enum AID : uint
 }
 
 class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2));
-
 class MagitekField(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses");
-
 class MagitekRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.MagitekRay), m => m.Enemies(OID.MagitekRayVoidzone), 0);
-
 class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees()));
-
 class Shred(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2));
-
 class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0,9s after snapshot
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!module.Enemies(OID.LeftClaw).All(e => e.IsDead))
-            hints.Add($"{module.Enemies(OID.LeftClaw).FirstOrDefault()!.Name} counters magical damage!");
-        if (!module.Enemies(OID.RightClaw).All(e => e.IsDead))
-            hints.Add($"{module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
+        if (!Module.Enemies(OID.LeftClaw).All(e => e.IsDead))
+            hints.Add($"{Module.Enemies(OID.LeftClaw).FirstOrDefault()!.Name} counters magical damage!");
+        if (!Module.Enemies(OID.RightClaw).All(e => e.IsDead))
+            hints.Add($"{Module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

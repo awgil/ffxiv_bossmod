@@ -10,9 +10,10 @@ class P6CosmoMeteorSpread : Components.UniformStackSpread
 {
     public int NumCasts { get; private set; }
 
-    public P6CosmoMeteorSpread() : base(0, 5) { }
-
-    public override void Init(BossModule module) => AddSpreads(Raid.WithoutSlot(true));
+    public P6CosmoMeteorSpread(BossModule module) : base(module, 0, 5)
+    {
+        AddSpreads(Raid.WithoutSlot(true));
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -21,10 +22,8 @@ class P6CosmoMeteorSpread : Components.UniformStackSpread
     }
 }
 
-class P6CosmoMeteorFlares : Components.UniformStackSpread
+class P6CosmoMeteorFlares(BossModule module) : Components.UniformStackSpread(module, 6, 20, 5, alwaysShowSpreads: true) // TODO: verify flare falloff
 {
-    public P6CosmoMeteorFlares() : base(6, 20, 5, alwaysShowSpreads: true) { } // TODO: verify flare falloff
-
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if ((IconID)iconID == IconID.OptimizedMeteor)

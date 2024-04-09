@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P6CosmoArrow : Components.GenericAOEs
+class P6CosmoArrow(BossModule module) : Components.GenericAOEs(module)
 {
     public enum Pattern { Unknown, InOut, OutIn }
     public record struct Line(AOEShapeRect? Shape, WPos Next, Angle Direction, WDir Advance, DateTime NextExplosion, int ExplosionsLeft);

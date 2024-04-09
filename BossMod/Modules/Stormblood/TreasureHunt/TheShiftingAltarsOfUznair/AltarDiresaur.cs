@@ -78,7 +78,7 @@ class FireballBait : Components.GenericBaitAway
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
     }

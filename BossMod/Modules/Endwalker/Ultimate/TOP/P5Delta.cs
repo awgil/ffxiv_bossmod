@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 // note: this is all very tied to LPDU strat
-class P5Delta : BossComponent
+class P5Delta(BossModule module) : BossComponent(module)
 {
     public enum PairAssignment { None, Inner, Outer }
     public enum SideAssignment { None, North, South }
@@ -46,10 +46,10 @@ class P5Delta : BossComponent
         var p = Players[pcSlot];
         var partner = p.TetherBroken ? null : Raid[p.PartnerSlot];
         if (partner != null)
-            arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+            Arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
 
-        foreach (var safeSpot in SafeSpotOffsets(module, pcSlot))
-            arena.AddCircle(Module.Bounds.Center + safeSpot, 1, ArenaColor.Safe);
+        foreach (var safeSpot in SafeSpotOffsets(pcSlot))
+            Arena.AddCircle(Module.Bounds.Center + safeSpot, 1, ArenaColor.Safe);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -66,7 +66,7 @@ class P5Delta : BossComponent
 
             if (++NumPunchesSpawned == PartyState.MaxPartySize)
             {
-                InitAssignments(module);
+                InitAssignments();
             }
         }
     }
@@ -191,7 +191,7 @@ class P5Delta : BossComponent
         _ => _eyeDir.OrthoL().Dot(offset) > 0 ? 2 : 4,
     };
 
-    private void InitAssignments(BossModule module)
+    private void InitAssignments()
     {
         // 1. assign initial inner/outer
         float slotToOffsetX(int slot) => _eyeDir.OrthoR().Dot((Raid[slot]?.Position ?? Module.Bounds.Center) - Module.Bounds.Center);
@@ -231,7 +231,7 @@ class P5Delta : BossComponent
         }
     }
 
-    private IEnumerable<WDir> SafeSpotOffsets(BossModule module, int slot)
+    private IEnumerable<WDir> SafeSpotOffsets(int slot)
     {
         var p = Players[slot];
         if (p.PartnerSlot < 0 || _eyeDir == default)
@@ -350,14 +350,12 @@ class P5Delta : BossComponent
     private WDir BaitOffset(int index) => 19 * (Angle.FromDirection(_eyeDir) + index * 60.Degrees() - 0.15f * ArmRotations[index]).ToDirection(); // 5 degrees offset in correct direction
 }
 
-class P5DeltaOpticalLaser : Components.GenericAOEs
+class P5DeltaOpticalLaser(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.OpticalLaser))
 {
     public Actor? Source { get; private set; }
     private DateTime _activation;
 
     private static readonly AOEShapeRect _shape = new(100, 8);
-
-    public P5DeltaOpticalLaser() : base(ActionID.MakeSpell(AID.OpticalLaser)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -370,7 +368,7 @@ class P5DeltaOpticalLaser : Components.GenericAOEs
     {
         if ((OID)actor.OID is OID.BeetleHelper or OID.FinalHelper && id == 0x1E43)
         {
-            Source ??= module.Enemies(OID.OpticalUnit).FirstOrDefault();
+            Source ??= Module.Enemies(OID.OpticalUnit).FirstOrDefault();
             _activation = WorldState.FutureTime(20);
         }
     }
@@ -380,9 +378,10 @@ class P5DeltaExplosion : Components.LocationTargetedAOEs
 {
     private P5Delta? _delta;
 
-    public P5DeltaExplosion() : base(ActionID.MakeSpell(AID.DeltaExplosion), 3) { }
-
-    public override void Init(BossModule module) => _delta = module.FindComponent<P5Delta>();
+    public P5DeltaExplosion(BossModule module) : base(module, ActionID.MakeSpell(AID.DeltaExplosion), 3)
+    {
+        _delta = module.FindComponent<P5Delta>();
+    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -391,7 +390,7 @@ class P5DeltaExplosion : Components.LocationTargetedAOEs
         var ps = _delta.Players[pcSlot];
         var partner = Raid.WithSlot(true).WhereSlot(i => _delta.Players[i].IsLocal == ps.IsLocal && i != ps.PartnerSlot && _delta.Players[i].RocketPunch?.OID != ps.RocketPunch?.OID).FirstOrDefault().Item2;
         if (partner != null)
-            arena.AddCircle(partner.Position, Shape.Radius, ArenaColor.Safe);
+            Arena.AddCircle(partner.Position, Shape.Radius, ArenaColor.Safe);
     }
 }
 
@@ -402,6 +401,11 @@ class P5DeltaHyperPulse : Components.GenericAOEs
 
     private static readonly AOEShapeRect _shape = new(100, 4);
     private static readonly int _numRepeats = 6;
+
+    public P5DeltaHyperPulse(BossModule module) : base(module)
+    {
+        _delta = module.FindComponent<P5Delta>();
+    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -428,8 +432,6 @@ class P5DeltaHyperPulse : Components.GenericAOEs
             }
         }
     }
-
-    public override void Init(BossModule module) => _delta = module.FindComponent<P5Delta>();
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -467,13 +469,14 @@ class P5DeltaOversampledWaveCannon : Components.UniformStackSpread
 
     private static readonly AOEShapeRect _shape = new(50, 50);
 
-    public P5DeltaOversampledWaveCannon() : base(0, 7) { }
-
-    public override void Init(BossModule module) => _delta = module.FindComponent<P5Delta>();
+    public P5DeltaOversampledWaveCannon(BossModule module) : base(module, 0, 7)
+    {
+        _delta = module.FindComponent<P5Delta>();
+    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         if (_player == actor)
         {
@@ -498,9 +501,9 @@ class P5DeltaOversampledWaveCannon : Components.UniformStackSpread
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_boss != null)
-            _shape.Draw(arena, _boss.Position, _boss.Rotation + _bossAngle, _bossIntendedTargets[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+            _shape.Draw(Arena, _boss.Position, _boss.Rotation + _bossAngle, _bossIntendedTargets[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
         if (_player != null)
-            _shape.Draw(arena, _player.Position, _player.Rotation + _playerAngle, _playerIntendedTargets[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+            _shape.Draw(Arena, _player.Position, _player.Rotation + _playerAngle, _playerIntendedTargets[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -554,7 +557,7 @@ class P5DeltaOversampledWaveCannon : Components.UniformStackSpread
     }
 }
 
-class P5DeltaSwivelCannon : Components.GenericAOEs
+class P5DeltaSwivelCannon(BossModule module) : Components.GenericAOEs(module)
 {
     public AOEInstance? AOE;
 

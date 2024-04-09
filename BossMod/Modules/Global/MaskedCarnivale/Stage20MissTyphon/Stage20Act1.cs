@@ -14,18 +14,17 @@ public enum AID : uint
 }
 
 class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 8);
-
 class Snort(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Snort), "Use Diamondback!");
 
 class SnortKB : Components.KnockbackFromCastTarget
 {    //knockback actually delayed by 0.7s
-    public SnortKB() : base(ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin)
+    public SnortKB(BossModule module) : base(module, ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin)
     {
         StopAtWall = true;
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

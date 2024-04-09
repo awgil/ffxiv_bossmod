@@ -25,7 +25,7 @@ public enum IconID : uint
     RotateCW = 167, // Boss
 }
 
-class GobspinSwipe : Components.GenericAOEs
+class GobspinSwipe(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
@@ -34,9 +34,9 @@ class GobspinSwipe : Components.GenericAOEs
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, activation: spell.NPCFinishAt.AddSeconds(4));
+            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(4));
         if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            _aoe = new(new AOEShapeDonut(5, 30), Module.PrimaryActor.Position, activation: spell.NPCFinishAt.AddSeconds(4));
+            _aoe = new(new AOEShapeDonut(5, 30), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(4));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -46,7 +46,7 @@ class GobspinSwipe : Components.GenericAOEs
     }
 }
 
-class Knockbacks : Components.Knockback
+class Knockbacks(BossModule module) : Components.Knockback(module)
 {
     private Source? _knockback;
 
@@ -67,7 +67,7 @@ class Knockbacks : Components.Knockback
     }
 }
 
-class GobfireShootypops : Components.GenericRotatingAOE
+class GobfireShootypops(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private Angle _increment;
     private Angle _rotation;
@@ -86,7 +86,7 @@ class GobfireShootypops : Components.GenericRotatingAOE
         if (increment != default)
         {
             _increment = increment;
-            InitIfReady(module, actor);
+            InitIfReady(actor);
         }
     }
 
@@ -98,7 +98,7 @@ class GobfireShootypops : Components.GenericRotatingAOE
             _activation = spell.NPCFinishAt;
         }
         if (_rotation != default)
-            InitIfReady(module, caster);
+            InitIfReady(caster);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -107,7 +107,7 @@ class GobfireShootypops : Components.GenericRotatingAOE
             AdvanceSequence(0, WorldState.CurrentTime);
     }
 
-    private void InitIfReady(BossModule module, Actor source)
+    private void InitIfReady(Actor source)
     {
         if (_rotation != default && _increment != default)
         {
@@ -134,10 +134,8 @@ class GoblinMercenaryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 599, NameID = 7906)]
-public class GoblinMercenary : BossModule
+public class GoblinMercenary(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 0))
 {
-    public GoblinMercenary(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 0)) { }
-
     protected override void UpdateModule()
     {
         if (Enemies(OID.Boss).Any(e => e.Position.AlmostEqual(new(0, -125), 1)))

@@ -6,9 +6,7 @@ class P6FlashGale : Components.GenericBaitAway
 
     private static readonly AOEShapeCircle _shape = new(5);
 
-    public P6FlashGale() : base(centerAtTarget: true) { }
-
-    public override void Init(BossModule module)
+    public P6FlashGale(BossModule module) : base(module, centerAtTarget: true)
     {
         _source = module.Enemies(OID.BossP6).FirstOrDefault();
         ForbiddenPlayers = Raid.WithSlot(true).WhereActor(p => p.Role != Role.Tank).Mask();

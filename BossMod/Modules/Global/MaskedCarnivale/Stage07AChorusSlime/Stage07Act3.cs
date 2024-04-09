@@ -15,15 +15,15 @@ public enum AID : uint
 
 class LowVoltage(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.LowVoltage), 35, true); //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
 
-class SlimeExplosion : Components.GenericStackSpread
+class SlimeExplosion(BossModule module) : Components.GenericStackSpread(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var p in module.Enemies(OID.Slime).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Slime).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 7.6f, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 7.6f, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
         }
     }
 
@@ -35,7 +35,7 @@ class SlimeExplosion : Components.GenericStackSpread
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

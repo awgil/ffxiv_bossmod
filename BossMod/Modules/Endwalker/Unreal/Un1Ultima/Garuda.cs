@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un1Ultima;
 
-class Garuda : BossComponent
+class Garuda(BossModule module) : BossComponent(module)
 {
     private bool _vulcanBurstImminent;
     private Actor? _mistralSong;
@@ -28,19 +28,19 @@ class Garuda : BossComponent
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        _aoeMistralSong.Draw(arena, _mistralSong);
-        _aoeEOTS.Draw(arena, _eots);
+        _aoeMistralSong.Draw(Arena, _mistralSong);
+        _aoeEOTS.Draw(Arena, _eots);
         if (_eots == null)
-            _aoeGeocrush.Draw(arena, _geocrush);
+            _aoeGeocrush.Draw(Arena, _geocrush);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var adjPos = _vulcanBurstImminent ? arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, _mistralSong, 30)) : pc.Position;
+        var adjPos = _vulcanBurstImminent ? Arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, _mistralSong, 30)) : pc.Position;
         if (adjPos != pc.Position)
         {
-            arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-            arena.Actor(adjPos, 0.Degrees(), ArenaColor.Danger);
+            Arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+            Arena.Actor(adjPos, 0.Degrees(), ArenaColor.Danger);
         }
     }
 

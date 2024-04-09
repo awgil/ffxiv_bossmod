@@ -13,7 +13,7 @@ class Plummet : Components.Cleave
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if ((NextExpected - WorldState.CurrentTime).TotalSeconds < 3)
         {
             var boss = hints.PotentialTargets.Find(e => e.Actor == Module.PrimaryActor);
@@ -24,7 +24,7 @@ class Plummet : Components.Cleave
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
             NextExpected = WorldState.FutureTime(12.5f);
     }

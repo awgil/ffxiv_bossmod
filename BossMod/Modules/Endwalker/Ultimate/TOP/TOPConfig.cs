@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 [ConfigDisplay(Order = 0x210, Parent = typeof(EndwalkerConfig))]
-public class TOPConfig : CooldownPlanningConfigNode
+public class TOPConfig() : CooldownPlanningConfigNode(90)
 {
     [PropertyDisplay("P1 Program Loop: assignments (G1 CW from NW, G2 CCW by default, in case of conflict 'lower' number flexes)")]
     [GroupDetails(new string[] { "G1 prio1", "G1 prio2", "G1 prio3", "G1 prio4", "G2 prio1", "G2 prio2", "G2 prio3", "G2 prio4" })]
@@ -45,6 +45,4 @@ public class TOPConfig : CooldownPlanningConfigNode
     [GroupDetails(new string[] { "W1", "E1", "W2", "E2", "W3", "E3", "W4", "E4" })]
     [GroupPreset("LPDU (TRHM)", new[] { 0, 1, 4, 5, 6, 7, 2, 3 })]
     public GroupAssignmentUnique P4WaveCannonAssignments = new() { Assignments = new[] { 0, 1, 4, 5, 6, 7, 2, 3 } };
-
-    public TOPConfig() : base(90) { }
 }

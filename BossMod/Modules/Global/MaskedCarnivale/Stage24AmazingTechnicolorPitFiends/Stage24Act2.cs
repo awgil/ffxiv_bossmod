@@ -21,28 +21,24 @@ public enum AID : uint
 }
 
 class Starstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Starstorm), 5);
-
 class Mechanogravity(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Mechanogravity), 6);
-
 class RagingAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingAxe), new AOEShapeCone(5, 45.Degrees()));
-
 class CondensedLibra(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CondensedLibra), "Use Diamondback!");
 class TripleHit(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TripleHit), "Use Diamondback!");
-
 class Silence(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Silence), "Interrupt");
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!module.Enemies(OID.ArenaMagus).All(e => e.IsDead))
-            hints.Add($"{module.Enemies(OID.ArenaMagus).FirstOrDefault()!.Name} is immune to magical damage!");
-        if (!module.Enemies(OID.ArenaViking).All(e => e.IsDead))
-            hints.Add($"{module.Enemies(OID.ArenaViking).FirstOrDefault()!.Name} is immune to physical damage!");
+        if (!Module.Enemies(OID.ArenaMagus).All(e => e.IsDead))
+            hints.Add($"{Module.Enemies(OID.ArenaMagus).FirstOrDefault()!.Name} is immune to magical damage!");
+        if (!Module.Enemies(OID.ArenaViking).All(e => e.IsDead))
+            hints.Add($"{Module.Enemies(OID.ArenaViking).FirstOrDefault()!.Name} is immune to physical damage!");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

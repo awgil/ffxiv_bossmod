@@ -129,7 +129,7 @@ class Hailfire : Components.GenericAOEs
             _targets[NumCasts] = null;
             _activation = WorldState.FutureTime(2.3f);
         }
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID)

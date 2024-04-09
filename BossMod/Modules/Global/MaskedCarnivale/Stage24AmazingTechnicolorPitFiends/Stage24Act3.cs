@@ -21,19 +21,19 @@ public enum AID : uint
 }
 
 class MagicHammer(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagicHammer), 8);
-
 class PageTear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PageTear), new AOEShapeCone(8, 45.Degrees()));
 
-class VacuumBlade : Components.GenericAOEs
+class VacuumBlade(BossModule module) : Components.GenericAOEs(module)
 {
     private bool activeVacuumWave;
     private DateTime _activation;
     private static readonly AOEShapeCircle circle = new(3);
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (activeVacuumWave)
-            foreach (var p in module.Enemies(OID.VacuumWave))
-                yield return new(circle, p.Position, activation: _activation);
+            foreach (var p in Module.Enemies(OID.VacuumWave))
+                yield return new(circle, p.Position, default, _activation);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -54,12 +54,11 @@ class VacuumBlade : Components.GenericAOEs
 
 class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.HeadDown), 4);
 
-class HeadDownKB : Components.KnockbackFromCastTarget
+class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HeadDown), 10, kind: Kind.DirForward)
 {
-    public HeadDownKB() : base(ActionID.MakeSpell(AID.HeadDown), 10, kind: Kind.DirForward) { }
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos)
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (module.FindComponent<VacuumBlade>() != null && module.FindComponent<VacuumBlade>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+        if (Module.FindComponent<VacuumBlade>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
         if (!Module.Bounds.Contains(pos))
             return true;
@@ -70,16 +69,16 @@ class HeadDownKB : Components.KnockbackFromCastTarget
 
 class BoneShaker(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BoneShaker), "Adds + Raidwide");
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!module.Enemies(OID.ArenaMagus).All(e => e.IsDead))
-            hints.Add($"Kill {module.Enemies(OID.ArenaMagus).FirstOrDefault()!.Name} fast or wipe!\nUse ranged physical attacks.");
+        if (!Module.Enemies(OID.ArenaMagus).All(e => e.IsDead))
+            hints.Add($"Kill {Module.Enemies(OID.ArenaMagus).FirstOrDefault()!.Name} fast or wipe!\nUse ranged physical attacks.");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

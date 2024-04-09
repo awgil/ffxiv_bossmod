@@ -18,12 +18,13 @@ public enum AID : uint
 
 class Douse(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, ActionID.MakeSpell(AID.Douse), m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7), 0.8f);
 
-class DouseHaste : BossComponent
+class DouseHaste(BossModule module) : BossComponent(module)
 {
     private bool BossInVoidzone;
+
     public override void Update()
     {
-        if (module.FindComponent<Douse>()?.ActiveAOEs(module, 0, Module.PrimaryActor).Any(z => z.Shape.Check(Module.PrimaryActor.Position, z.Origin, z.Rotation)) ?? false)
+        if (Module.FindComponent<Douse>()?.ActiveAOEs(0, Module.PrimaryActor).Any(z => z.Shape.Check(Module.PrimaryActor.Position, z.Origin, z.Rotation)) ?? false)
             BossInVoidzone = true;
         else
             BossInVoidzone = false;
@@ -38,7 +39,7 @@ class DouseHaste : BossComponent
     }
 }
 
-class Drench : Components.GenericAOEs
+class Drench(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeCone cone = new(15.75f, 45.Degrees());

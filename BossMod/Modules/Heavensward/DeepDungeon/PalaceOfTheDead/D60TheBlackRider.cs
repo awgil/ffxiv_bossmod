@@ -19,7 +19,7 @@ public enum AID : uint
 
 class CleaveAuto(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.AutoAttack), new AOEShapeCone(11.92f, 45.Degrees()));
 
-class Geirrothr : Components.GenericAOEs
+class Geirrothr(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeCone cone = new(9.92f, 45.Degrees());
@@ -60,12 +60,10 @@ class Geirrothr : Components.GenericAOEs
 }
 
 class Infaturation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Infaturation), new AOEShapeCircle(7));
-
 class HallOfSorrow(BossModule module) : Components.PersistentVoidzone(module, 9, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7));
-
 class Valfodr(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Valfodr), 3);
 
-class ValfodrKB : Components.Knockback //note actual knockback is delayed by upto 1.2s in replay
+class ValfodrKB(BossModule module) : Components.Knockback(module) // note actual knockback is delayed by upto 1.2s in replay
 {
     private DateTime _activation;
 
@@ -84,7 +82,7 @@ class ValfodrKB : Components.Knockback //note actual knockback is delayed by upt
         }
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<HallOfSorrow>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<Infaturation>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (module.FindComponent<HallOfSorrow>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<Infaturation>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 }
 
 class D60TheBlackRiderStates : StateMachineBuilder

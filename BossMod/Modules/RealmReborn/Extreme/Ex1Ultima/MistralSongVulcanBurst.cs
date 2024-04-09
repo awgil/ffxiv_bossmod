@@ -45,7 +45,7 @@ class MistralSongVulcanBurst : Components.GenericAOEs
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         var adjPos = _burstImminent ? arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, Module.PrimaryActor, 30)) : pc.Position;
         Components.Knockback.DrawKnockback(pc, adjPos, arena);
@@ -69,7 +69,7 @@ class MistralSongVulcanBurst : Components.GenericAOEs
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.VulcanBurst)
             _burstImminent = false;
     }

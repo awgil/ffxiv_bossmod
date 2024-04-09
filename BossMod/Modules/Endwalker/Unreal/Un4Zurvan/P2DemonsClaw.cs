@@ -1,9 +1,7 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
-class P2DemonsClawKnockback : Components.Knockback
+class P2DemonsClawKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DemonsClaw), true)
 {
-    public P2DemonsClawKnockback() : base(ActionID.MakeSpell(AID.DemonsClaw), true) { }
-
     private Actor? _caster;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
@@ -25,11 +23,9 @@ class P2DemonsClawKnockback : Components.Knockback
     }
 }
 
-class P2DemonsClawWaveCannon : Components.GenericWildCharge
+class P2DemonsClawWaveCannon(BossModule module) : Components.GenericWildCharge(module, 5, ActionID.MakeSpell(AID.WaveCannonShared))
 {
     public Actor? Target { get; private set; }
-
-    public P2DemonsClawWaveCannon() : base(5, ActionID.MakeSpell(AID.WaveCannonShared)) { }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

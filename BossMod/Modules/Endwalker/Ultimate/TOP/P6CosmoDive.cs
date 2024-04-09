@@ -1,11 +1,9 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P6CosmoDive : Components.UniformStackSpread
+class P6CosmoDive(BossModule module) : Components.UniformStackSpread(module, 6, 8, 6, 6, true)
 {
     private Actor? _source;
     private DateTime _activation;
-
-    public P6CosmoDive() : base(6, 8, 6, 6, true) { }
 
     public override void Update()
     {
@@ -25,7 +23,7 @@ class P6CosmoDive : Components.UniformStackSpread
                 AddStack(farthest, _activation, forbidden);
             }
         }
-        base.Update(module);
+        base.Update();
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

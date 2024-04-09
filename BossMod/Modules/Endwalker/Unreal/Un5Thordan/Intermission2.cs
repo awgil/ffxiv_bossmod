@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
-class SwordShieldOfTheHeavens : BossComponent
+class SwordShieldOfTheHeavens(BossModule module) : BossComponent(module)
 {
     public enum Buff { None, Shield, Sword }
 
@@ -35,7 +35,7 @@ class SwordShieldOfTheHeavens : BossComponent
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var a in _adds)
-            arena.Actor(a.actor, ArenaColor.Enemy);
+            Arena.Actor(a.actor, ArenaColor.Enemy);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -72,11 +72,9 @@ class SwordShieldOfTheHeavens : BossComponent
 
 class HoliestOfHoly(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HoliestOfHoly));
 
-class SkywardLeap : Components.GenericBaitAway
+class SkywardLeap(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.SkywardLeap), centerAtTarget: true)
 {
     private static readonly AOEShapeCircle _shape = new(20); // not sure about the spread radius, 15 seems to be enough but damage goes up to 20
-
-    public SkywardLeap() : base(ActionID.MakeSpell(AID.SkywardLeap), centerAtTarget: true) { }
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {

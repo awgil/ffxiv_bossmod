@@ -229,7 +229,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
         var nextNail = NailKillOrder.FirstOrDefault();
         if (nextNail == null)
         {
-            base.AddAIHints(module, slot, actor, assignment, hints);
+            base.AddAIHints(slot, actor, assignment, hints);
         }
         else
         {
@@ -297,7 +297,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         var nextNail = NailKillOrder.FirstOrDefault();
         if (nextNail != null)
             arena.AddCircle(nextNail.Position, 2, ArenaColor.Safe);
@@ -318,7 +318,7 @@ class Ex4IfritAINails1 : Ex4IfritAINails
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
 
         if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {
@@ -334,7 +334,7 @@ class Ex4IfritAINails2 : Ex4IfritAINails
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
 
         if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {
@@ -350,7 +350,7 @@ class Ex4IfritAINails3 : Ex4IfritAINails
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
 
         if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {

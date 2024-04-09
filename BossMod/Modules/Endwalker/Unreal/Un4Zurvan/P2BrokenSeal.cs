@@ -17,7 +17,7 @@ class P2BrokenSeal : BossComponent
     private IReadOnlyList<Actor> _fireTowers = ActorEnumeration.EmptyList;
     private IReadOnlyList<Actor> _iceTowers = ActorEnumeration.EmptyList;
 
-    public override void Init(BossModule module)
+    public P2BrokenSeal(BossModule module) : base(module)
     {
         _fireTowers = module.Enemies(OID.FireTower);
         _iceTowers = module.Enemies(OID.IceTower);
@@ -42,9 +42,7 @@ class P2BrokenSeal : BossComponent
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return _playerStates[pcSlot].Color != Color.None && _playerStates[pcSlot].Partner == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
+        => _playerStates[pcSlot].Color != Color.None && _playerStates[pcSlot].Partner == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -55,13 +53,13 @@ class P2BrokenSeal : BossComponent
         var partner = state.Color != Color.None && state.Partner >= 0 ? Raid[state.Partner] : null;
         if (partner != null)
         {
-            arena.AddLine(pc.Position, partner.Position, state.Color == Color.Fire ? 0xff0080ff : 0xffff8000, state.TooFar ? 2 : 1);
+            Arena.AddLine(pc.Position, partner.Position, state.Color == Color.Fire ? 0xff0080ff : 0xffff8000, state.TooFar ? 2 : 1);
         }
 
         foreach (var t in _fireTowers)
-            arena.AddCircle(t.Position, 2, state.Color == Color.Fire ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(t.Position, 2, state.Color == Color.Fire ? ArenaColor.Safe : ArenaColor.Danger);
         foreach (var t in _iceTowers)
-            arena.AddCircle(t.Position, 2, state.Color == Color.Ice ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(t.Position, 2, state.Color == Color.Ice ? ArenaColor.Safe : ArenaColor.Danger);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -69,10 +67,10 @@ class P2BrokenSeal : BossComponent
         switch ((AID)spell.Action.ID)
         {
             case AID.InfiniteFire:
-                AssignColor(module, spell.MainTargetID, Color.Fire);
+                AssignColor(spell.MainTargetID, Color.Fire);
                 break;
             case AID.InfiniteIce:
-                AssignColor(module, spell.MainTargetID, Color.Ice);
+                AssignColor(spell.MainTargetID, Color.Ice);
                 break;
             case AID.SouthStar:
             case AID.NorthStar:
@@ -100,7 +98,7 @@ class P2BrokenSeal : BossComponent
         }
     }
 
-    private void AssignColor(BossModule module, ulong playerID, Color color)
+    private void AssignColor(ulong playerID, Color color)
     {
         ++NumAssigned;
         var slot = Raid.FindSlot(playerID);

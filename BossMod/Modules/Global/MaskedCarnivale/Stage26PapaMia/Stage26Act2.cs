@@ -31,7 +31,7 @@ public enum IconID : uint
 
 class Thunderhead(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Thunderhead));
 
-class DadJoke : Components.Knockback
+class DadJoke(BossModule module) : Components.Knockback(module)
 {
     private DateTime _activation;
 
@@ -53,9 +53,9 @@ class DadJoke : Components.Knockback
             _activation = default;
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos)
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (module.FindComponent<Thunderhead>() != null && module.FindComponent<Thunderhead>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+        if (module.FindComponent<Thunderhead>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
         if (!Module.Bounds.Contains(pos))
             return true;
@@ -65,14 +65,11 @@ class DadJoke : Components.Knockback
 }
 
 class VoidThunderII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidThunderII), 4);
-
 class RawInstinct(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.RawInstinct), "Prepare to dispel buff");
-
 class VoidThunderIII(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VoidThunderIII), "Raidwide + Electrocution");
-
 class BodyBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.BodyBlow), "Soft Tankbuster");
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -80,11 +77,11 @@ class Hints : BossComponent
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var critbuff = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.CriticalStrikes) != null).FirstOrDefault();
+        var critbuff = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.CriticalStrikes) != null).FirstOrDefault();
         if (critbuff != null)
             hints.Add($"Dispel {Module.PrimaryActor.Name} with Eerie Soundwave!");
     }

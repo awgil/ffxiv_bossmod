@@ -12,7 +12,7 @@ public enum AID : uint
 
 class LastSong(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.TheLastSong), 60, true); //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
 
-class LastSongHint : BossComponent
+class LastSongHint(BossModule module) : BossComponent(module)
 {
     public bool casting;
 
@@ -35,7 +35,7 @@ class LastSongHint : BossComponent
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

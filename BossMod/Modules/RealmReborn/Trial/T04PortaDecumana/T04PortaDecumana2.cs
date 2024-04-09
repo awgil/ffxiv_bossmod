@@ -124,7 +124,7 @@ class Explosion : Components.SelfTargetedAOEs
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (module.FindComponent<AssaultCannon>()!.Casters.Count == 0)
-            base.AddAIHints(module, slot, actor, assignment, hints);
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 

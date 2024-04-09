@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 // common assignments for multiple mechanics in the fight
-abstract class CommonAssignments : BossComponent
+abstract class CommonAssignments(BossModule module) : BossComponent(module)
 {
     public struct PlayerState
     {
@@ -27,7 +27,7 @@ abstract class CommonAssignments : BossComponent
 
     protected abstract (GroupAssignmentUnique assignment, bool global) Assignments();
 
-    protected void Assign(BossModule module, Actor player, int order)
+    protected void Assign(Actor player, int order)
     {
         if (order > 0)
         {
@@ -35,11 +35,11 @@ abstract class CommonAssignments : BossComponent
             if (slot >= 0)
                 PlayerStates[slot].Order = order;
             if (++_numOrdersAssigned == PartyState.MaxPartySize)
-                InitAssignments(module);
+                InitAssignments();
         }
     }
 
-    private void InitAssignments(BossModule module)
+    private void InitAssignments()
     {
         var (ca, global) = Assignments();
         List<(int slot, int group, int priority, int order)> assignments = new();
@@ -67,7 +67,7 @@ abstract class CommonAssignments : BossComponent
 }
 
 // common assignments for program loop & pantokrator
-abstract class P1CommonAssignments : CommonAssignments
+abstract class P1CommonAssignments(BossModule module) : CommonAssignments(module)
 {
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -79,6 +79,6 @@ abstract class P1CommonAssignments : CommonAssignments
             SID.InLine4 => 4,
             _ => 0
         };
-        Assign(module, actor, order);
+        Assign(actor, order);
     }
 }

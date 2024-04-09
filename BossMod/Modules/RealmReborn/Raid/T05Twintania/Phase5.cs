@@ -9,7 +9,7 @@ class P5LiquidHell : Components.PersistentVoidzoneAtCastTarget
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         switch ((AID)spell.Action.ID)
         {
             case AID.LiquidHellMarker:

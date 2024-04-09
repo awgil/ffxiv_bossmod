@@ -1,13 +1,9 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
-class HolyShieldBash : Components.GenericWildCharge
+class HolyShieldBash(BossModule module) : Components.GenericWildCharge(module, 3)
 {
-    public HolyShieldBash() : base(3) { }
-
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return PlayerRoles[playerSlot] == PlayerRole.Target ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
+        => PlayerRoles[playerSlot] == PlayerRole.Target ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

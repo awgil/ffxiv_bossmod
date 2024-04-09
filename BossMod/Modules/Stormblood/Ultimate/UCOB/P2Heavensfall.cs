@@ -18,7 +18,7 @@ class P2HeavensfallPillar : Components.GenericAOEs
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.EventHelper)
             return;

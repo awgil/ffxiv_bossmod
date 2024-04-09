@@ -12,15 +12,15 @@ public enum AID : uint
     Blizzard = 14709, // 2702->player, 1,0s cast, single-target
 }
 
-class SlimeExplosion : Components.GenericStackSpread
+class SlimeExplosion(BossModule module) : Components.GenericStackSpread(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (!Module.PrimaryActor.IsDead)
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(Module.PrimaryActor.Position, 7.6f, 0xFF000000, 2);
-            arena.AddCircle(Module.PrimaryActor.Position, 7.6f, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(Module.PrimaryActor.Position, 7.6f, 0xFF000000, 2);
+            Arena.AddCircle(Module.PrimaryActor.Position, 7.6f, ArenaColor.Danger);
         }
     }
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -31,7 +31,7 @@ class SlimeExplosion : Components.GenericStackSpread
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -39,7 +39,7 @@ class Hints : BossComponent
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

@@ -113,7 +113,7 @@ class AethericBoom : Components.CastHint
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.AetheroplasmBoom)
         {
             _activeOrbs.Remove(caster);

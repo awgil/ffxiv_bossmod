@@ -12,7 +12,7 @@ class MoogleGoRound : Components.GenericAOEs
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
 
         // if there is a third cast, add a smaller shape to ensure people stay closer to eventual safespot
         if (_casters.Count > 2)

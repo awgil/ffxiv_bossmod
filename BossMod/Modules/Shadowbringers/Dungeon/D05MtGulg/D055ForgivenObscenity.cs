@@ -52,7 +52,7 @@ class Orbs : Components.GenericAOEs
         if ((OID)actor.OID == OID.Orbs)
             _orbs.Add(actor);
     }
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008)
             _orbs.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 4));
@@ -196,7 +196,7 @@ class ConvictionMarcato3(BossModule module) : Components.SelfTargetedAOEs(module
 class Voidzone : BossComponent
 {
     private bool active;
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008)
         {
@@ -212,7 +212,7 @@ class Voidzone : BossComponent
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (active)
             hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
     }

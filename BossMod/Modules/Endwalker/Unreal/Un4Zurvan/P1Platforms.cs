@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
-class P1Platforms : Components.GenericAOEs
+class P1Platforms(BossModule module) : Components.GenericAOEs(module)
 {
     public List<AOEInstance> ForbiddenPlatforms = new();
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ForbiddenPlatforms;
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         var dir = (OID)actor.OID switch
         {

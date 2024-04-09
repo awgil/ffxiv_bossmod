@@ -6,7 +6,7 @@ class TankPurge : Components.RaidwideCast
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
 
         // execute raid saves; it happens every ~45s, so 2 people in reprisal/feint/addle rotation
         if (Active)

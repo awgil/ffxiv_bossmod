@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P5OmegaDoubleAOEs : Components.GenericAOEs
+class P5OmegaDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 {
     public List<AOEInstance> AOEs = new();
 
@@ -47,7 +47,7 @@ class P5OmegaDoubleAOEs : Components.GenericAOEs
     }
 }
 
-class P5OmegaDiffuseWaveCannon : Components.GenericAOEs
+class P5OmegaDiffuseWaveCannon(BossModule module) : Components.GenericAOEs(module)
 {
     private List<AOEInstance> _aoes = new();
 
@@ -79,7 +79,7 @@ class P5OmegaDiffuseWaveCannon : Components.GenericAOEs
     }
 }
 
-class P5OmegaNearDistantWorld : P5NearDistantWorld
+class P5OmegaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 {
     private BitMask _near;
     private BitMask _distant;
@@ -90,8 +90,8 @@ class P5OmegaNearDistantWorld : P5NearDistantWorld
 
     public bool HaveDebuffs => (_near | _distant | _first | _second).Any();
 
-    public void ShowFirst(BossModule module) => Reset(Raid[(_near & _first).LowestSetBit()], Raid[(_distant & _first).LowestSetBit()], _firstActivation);
-    public void ShowSecond(BossModule module) => Reset(Raid[(_near & _second).LowestSetBit()], Raid[(_distant & _second).LowestSetBit()], _secondActivation);
+    public void ShowFirst() => Reset(Raid[(_near & _first).LowestSetBit()], Raid[(_distant & _first).LowestSetBit()], _firstActivation);
+    public void ShowSecond() => Reset(Raid[(_near & _second).LowestSetBit()], Raid[(_distant & _second).LowestSetBit()], _secondActivation);
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -126,29 +126,30 @@ class P5OmegaOversampledWaveCannon : Components.UniformStackSpread
 
     public bool IsActive => _boss != null;
 
-    public P5OmegaOversampledWaveCannon() : base(0, 7) { }
-
-    public override void Init(BossModule module) => _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
+    public P5OmegaOversampledWaveCannon(BossModule module) : base(module, 0, 7)
+    {
+        _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
+    }
 
     public override void Update()
     {
         Spreads.Clear();
         if (_boss != null)
             AddSpreads(Raid.WithoutSlot().InShape(_shape, _boss.Position, _boss.Rotation + _bossAngle));
-        base.Update(module);
+        base.Update();
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_boss != null)
-            _shape.Draw(arena, _boss.Position, _boss.Rotation + _bossAngle, ArenaColor.AOE);
+            _shape.Draw(Arena, _boss.Position, _boss.Rotation + _bossAngle, ArenaColor.AOE);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var p in SafeSpots(module, pcSlot, pc))
-            arena.AddCircle(p, 1, ArenaColor.Safe);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var p in SafeSpots(pcSlot, pc))
+            Arena.AddCircle(p, 1, ArenaColor.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -174,7 +175,7 @@ class P5OmegaOversampledWaveCannon : Components.UniformStackSpread
         }
     }
 
-    private IEnumerable<WPos> SafeSpots(BossModule module, int slot, Actor actor)
+    private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
         if (_ndw == null || _boss == null)
             yield break;
@@ -205,9 +206,7 @@ class P5OmegaBlaster : Components.BaitAwayTethers
 {
     private P5OmegaNearDistantWorld? _ndw;
 
-    public P5OmegaBlaster() : base(new AOEShapeCircle(15), (uint)TetherID.Blaster, ActionID.MakeSpell(AID.OmegaBlasterAOE)) { }
-
-    public override void Init(BossModule module)
+    public P5OmegaBlaster(BossModule module) : base(module, new AOEShapeCircle(15), (uint)TetherID.Blaster, ActionID.MakeSpell(AID.OmegaBlasterAOE))
     {
         CenterAtTarget = true;
         ForbiddenPlayers = new(0xFF);
@@ -216,9 +215,9 @@ class P5OmegaBlaster : Components.BaitAwayTethers
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var p in SafeSpots(module, pcSlot, pc))
-            arena.AddCircle(p, 1, ArenaColor.Safe);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var p in SafeSpots(pcSlot, pc))
+            Arena.AddCircle(p, 1, ArenaColor.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -227,7 +226,7 @@ class P5OmegaBlaster : Components.BaitAwayTethers
             ForbiddenPlayers.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    private IEnumerable<WPos> SafeSpots(BossModule module, int slot, Actor actor)
+    private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
         if (_ndw == null || CurrentBaits.Count == 0)
             yield break;

@@ -1,6 +1,6 @@
 namespace BossMod.Global.MaskedCarnivale;
 
-public class Layout2Corners : BossComponent
+public class Layout2Corners(BossModule module) : BossComponent(module)
 {
     public static IEnumerable<WPos> Wall1A()
     {
@@ -34,15 +34,15 @@ public class Layout2Corners : BossComponent
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.AddPolygon(Wall1A(), ArenaColor.Border);
-        arena.AddPolygon(Wall1B(), ArenaColor.Border);
-        arena.AddPolygon(Wall2A(), ArenaColor.Border);
-        arena.AddPolygon(Wall2B(), ArenaColor.Border);
+        Arena.AddPolygon(Wall1A(), ArenaColor.Border);
+        Arena.AddPolygon(Wall1B(), ArenaColor.Border);
+        Arena.AddPolygon(Wall2A(), ArenaColor.Border);
+        Arena.AddPolygon(Wall2B(), ArenaColor.Border);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1A(), false));
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1B(), false));
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall2A(), false));
@@ -50,7 +50,7 @@ public class Layout2Corners : BossComponent
     }
 }
 
-public class Layout4Quads : BossComponent
+public class Layout4Quads(BossModule module) : BossComponent(module)
 {
     public static IEnumerable<WPos> Quad1()
     {
@@ -84,15 +84,15 @@ public class Layout4Quads : BossComponent
     }
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.AddPolygon(Quad1(), ArenaColor.Border);
-        arena.AddPolygon(Quad2(), ArenaColor.Border);
-        arena.AddPolygon(Quad3(), ArenaColor.Border);
-        arena.AddPolygon(Quad4(), ArenaColor.Border);
+        Arena.AddPolygon(Quad1(), ArenaColor.Border);
+        Arena.AddPolygon(Quad2(), ArenaColor.Border);
+        Arena.AddPolygon(Quad3(), ArenaColor.Border);
+        Arena.AddPolygon(Quad4(), ArenaColor.Border);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad1(), false));
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad2(), false));
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad3(), false));
@@ -100,7 +100,7 @@ public class Layout4Quads : BossComponent
     }
 }
 
-public class LayoutBigQuad : BossComponent
+public class LayoutBigQuad(BossModule module) : BossComponent(module)
 {
     public static IEnumerable<WPos> Quad()
     {
@@ -111,12 +111,12 @@ public class LayoutBigQuad : BossComponent
     }
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.AddPolygon(Quad(), ArenaColor.Border);
+        Arena.AddPolygon(Quad(), ArenaColor.Border);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad(), false));
     }
 }

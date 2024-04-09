@@ -31,7 +31,7 @@ class DarkVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarge
 
 class Dark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Dark), 5);
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

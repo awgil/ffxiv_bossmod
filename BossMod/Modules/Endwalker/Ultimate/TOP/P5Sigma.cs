@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 // note: this is all very tied to LPDU strat
-class P5Sigma : BossComponent
+class P5Sigma(BossModule module) : BossComponent(module)
 {
     public enum Glitch { Unknown, Mid, Remote }
 
@@ -39,11 +39,11 @@ class P5Sigma : BossComponent
         {
             var distSq = (partner.Position - pc.Position).LengthSq();
             var range = DistanceRange;
-            arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ArenaColor.Danger : ArenaColor.Safe);
+            Arena.AddLine(pc.Position, partner.Position, distSq < range.min * range.min || distSq > range.max * range.max ? ArenaColor.Danger : ArenaColor.Safe);
         }
 
-        foreach (var safeSpot in SafeSpotOffsets(module, pcSlot))
-            arena.AddCircle(Module.Bounds.Center + safeSpot, 1, ArenaColor.Safe);
+        foreach (var safeSpot in SafeSpotOffsets(pcSlot))
+            Arena.AddCircle(Module.Bounds.Center + safeSpot, 1, ArenaColor.Safe);
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -102,7 +102,7 @@ class P5Sigma : BossComponent
         {
             Players[slot].WaveCannonTarget = true;
             if (++_numWaveCannonTargets == 6)
-                InitSpreadPositions(module);
+                InitSpreadPositions();
         }
     }
 
@@ -128,7 +128,7 @@ class P5Sigma : BossComponent
         _ => (0, 50)
     };
 
-    private void InitSpreadPositions(BossModule module)
+    private void InitSpreadPositions()
     {
         var northAngle = Angle.FromDirection(_waveCannonNorthDir);
         var waveCannonsPerPair = new BitMask[4];
@@ -183,7 +183,7 @@ class P5Sigma : BossComponent
             p.SpreadAngle = p.SpreadAngle.Normalized();
     }
 
-    private IEnumerable<WDir> SafeSpotOffsets(BossModule module, int slot)
+    private IEnumerable<WDir> SafeSpotOffsets(int slot)
     {
         var p = Players[slot];
         if (_waveCannonNorthDir == default)
@@ -205,25 +205,21 @@ class P5Sigma : BossComponent
     }
 }
 
-class P5SigmaHyperPulse : Components.BaitAwayTethers
+class P5SigmaHyperPulse(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(100, 3), (uint)TetherID.SigmaHyperPulse, ActionID.MakeSpell(AID.SigmaHyperPulse))
 {
-    public P5SigmaHyperPulse() : base(new AOEShapeRect(100, 3), (uint)TetherID.SigmaHyperPulse, ActionID.MakeSpell(AID.SigmaHyperPulse)) { }
-
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var b in CurrentBaits)
-            arena.Actor(b.Source, ArenaColor.Object, true);
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+            Arena.Actor(b.Source, ArenaColor.Object, true);
+        base.DrawArenaForeground(pcSlot, pc);
     }
 }
 
-class P5SigmaWaveCannon : Components.GenericBaitAway
+class P5SigmaWaveCannon(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.SigmaWaveCannonAOE))
 {
     private BitMask _waveCannonTargets;
 
     private static readonly AOEShapeCone _shapeWaveCannon = new(100, 22.5f.Degrees()); // TODO: verify angle
-
-    public P5SigmaWaveCannon() : base(ActionID.MakeSpell(AID.SigmaWaveCannonAOE)) { }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -239,7 +235,7 @@ class P5SigmaWaveCannon : Components.GenericBaitAway
     }
 }
 
-class P5SigmaTowers : Components.GenericTowers
+class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
 {
     private int _soakerSum;
 
@@ -257,7 +253,7 @@ class P5SigmaTowers : Components.GenericTowers
         Towers.Add(new(actor.Position, 3, numSoakers, numSoakers));
         _soakerSum += numSoakers;
         if (_soakerSum == PartyState.MaxPartySize)
-            InitAssignments(module);
+            InitAssignments();
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -269,9 +265,9 @@ class P5SigmaTowers : Components.GenericTowers
         }
     }
 
-    private void InitAssignments(BossModule module)
+    private void InitAssignments()
     {
-        var sigma = module.FindComponent<P5Sigma>();
+        var sigma = Module.FindComponent<P5Sigma>();
         if (sigma == null)
             return;
 
@@ -316,7 +312,7 @@ class P5SigmaTowers : Components.GenericTowers
     }
 }
 
-class P5SigmaRearLasers : Components.GenericAOEs
+class P5SigmaRearLasers(BossModule module) : Components.GenericAOEs(module)
 {
     public Angle StartingDir { get; private set; }
     public Angle Rotation { get; private set; }
@@ -331,7 +327,7 @@ class P5SigmaRearLasers : Components.GenericAOEs
         if (!Active)
             yield break;
         for (int i = NumCasts + 1; i < 14; ++i)
-            yield return new(_shape, Module.Bounds.Center, StartingDir + i * Rotation, _activation.AddSeconds(0.6 * i), risky: false);
+            yield return new(_shape, Module.Bounds.Center, StartingDir + i * Rotation, _activation.AddSeconds(0.6 * i), Risky: false);
         if (NumCasts < 14)
             yield return new(_shape, Module.Bounds.Center, StartingDir + NumCasts * Rotation, _activation.AddSeconds(0.6 * NumCasts), ArenaColor.Danger);
     }
@@ -360,7 +356,7 @@ class P5SigmaRearLasers : Components.GenericAOEs
     }
 }
 
-class P5SigmaDoubleAOEs : Components.GenericAOEs
+class P5SigmaDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 {
     public bool Show;
     public List<AOEInstance> AOEs = new();
@@ -395,23 +391,26 @@ class P5SigmaNearDistantWorld : P5NearDistantWorld
     private P5SigmaRearLasers? _lasers;
     private BitMask _dynamisStacks;
 
-    public override void Init(BossModule module) => _lasers = module.FindComponent<P5SigmaRearLasers>();
+    public P5SigmaNearDistantWorld(BossModule module) : base(module)
+    {
+        _lasers = module.FindComponent<P5SigmaRearLasers>();
+    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var p in SafeSpots(module, pcSlot, pc))
-            arena.AddCircle(p, 1, ArenaColor.Safe);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var p in SafeSpots(pcSlot, pc))
+            Arena.AddCircle(p, 1, ArenaColor.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        base.OnStatusGain(module, actor, status);
+        base.OnStatusGain(actor, status);
         if ((SID)status.ID == SID.QuickeningDynamis)
             _dynamisStacks.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    private IEnumerable<WPos> SafeSpots(BossModule module, int slot, Actor actor)
+    private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
         if (_lasers == null) // note: we assume StartingDir is relative south, Rotation is +- 9 degrees
             yield break;

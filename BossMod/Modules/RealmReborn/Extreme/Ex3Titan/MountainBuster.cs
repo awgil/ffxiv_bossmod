@@ -12,7 +12,7 @@ class MountainBuster : Components.Cleave
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         var boss = hints.PotentialTargets.Find(e => (OID)e.Actor.OID == OID.Boss);
         if (boss != null)
             boss.AttackStrength += 0.25f;
@@ -31,7 +31,7 @@ class RockBuster : Components.Cleave
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         var boss = hints.PotentialTargets.Find(e => (OID)e.Actor.OID == OID.TitansHeart);
         if (boss != null)
             boss.AttackStrength += 0.25f;

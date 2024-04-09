@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
-class P3Daat : Components.CastCounter
+class P3Daat(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.DaatRandom))
 {
     private static readonly float radius = 5;
-
-    public P3Daat() : base(ActionID.MakeSpell(AID.DaatRandom)) { }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -14,6 +12,6 @@ class P3Daat : Components.CastCounter
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.AddCircle(pc.Position, radius, ArenaColor.Danger);
+        Arena.AddCircle(pc.Position, radius, ArenaColor.Danger);
     }
 }

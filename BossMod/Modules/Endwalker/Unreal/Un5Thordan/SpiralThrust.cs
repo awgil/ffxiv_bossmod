@@ -1,16 +1,11 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
-abstract class SpiralThrust : Components.GenericAOEs
+abstract class SpiralThrust(BossModule module, float predictionDelay) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SpiralThrust))
 {
-    private float _predictionDelay;
+    private float _predictionDelay = predictionDelay;
     private List<AOEInstance> _aoes = new();
 
     private static readonly AOEShapeRect _shape = new(54.2f, 6);
-
-    public SpiralThrust(float predictionDelay) : base(ActionID.MakeSpell(AID.SpiralThrust))
-    {
-        _predictionDelay = predictionDelay;
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 

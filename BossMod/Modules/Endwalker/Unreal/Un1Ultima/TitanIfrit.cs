@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un1Ultima;
 
 // both phases use radiant plumes
-class TitanIfrit : BossComponent
+class TitanIfrit(BossModule module) : BossComponent(module)
 {
     private List<(Actor, AOEShapeCircle)> _activeLocationTargetedAOEs = new();
     private List<Actor> _crimsonCyclone = new();
@@ -20,9 +20,9 @@ class TitanIfrit : BossComponent
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var (a, aoe) in _activeLocationTargetedAOEs)
-            aoe.Draw(arena, a.CastInfo!.LocXZ);
+            aoe.Draw(Arena, a.CastInfo!.LocXZ);
         foreach (var a in _crimsonCyclone)
-            _aoeCrimsonCyclone.Draw(arena, a);
+            _aoeCrimsonCyclone.Draw(Arena, a);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

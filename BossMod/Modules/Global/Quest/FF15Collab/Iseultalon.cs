@@ -34,14 +34,14 @@ public enum IconID : uint
     spread = 129, // player/2650
 }
 
-class Thunderbolt : Components.UniformStackSpread
+class Thunderbolt(BossModule module) : Components.UniformStackSpread(module, 0, 5, alwaysShowSpreads: true)
 {
-    public Thunderbolt() : base(0, 5, alwaysShowSpreads: true) { }
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.spread)
             AddSpread(actor);
     }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Thunderbolt2)
@@ -49,16 +49,16 @@ class Thunderbolt : Components.UniformStackSpread
     }
 }
 
-class Electrocution : Components.GenericTowers
+class Electrocution(BossModule module) : Components.GenericTowers(module)
 { //Noctis always goes to soak this tower, except on first cast as a tutorial
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Electrocution)
         {
             if (NumCasts > 0)
-                Towers.Add(new(DeterminePosition(module, caster, spell), 3, forbiddenSoakers: Raid.WithSlot(true).WhereActor(p => p.InstanceID == Raid.Player()!.InstanceID).Mask()));
+                Towers.Add(new(DeterminePosition(caster, spell), 3, forbiddenSoakers: Raid.WithSlot(true).WhereActor(p => p.InstanceID == Raid.Player()!.InstanceID).Mask()));
             if (NumCasts == 0)
-                Towers.Add(new(DeterminePosition(module, caster, spell), 3));
+                Towers.Add(new(DeterminePosition(caster, spell), 3));
         }
     }
 
@@ -66,12 +66,12 @@ class Electrocution : Components.GenericTowers
     {
         if ((AID)spell.Action.ID is AID.Electrocution or AID.FatalCurrent)
         {
-            Towers.RemoveAll(t => t.Position.AlmostEqual(DeterminePosition(module, caster, spell), 1));
+            Towers.RemoveAll(t => t.Position.AlmostEqual(DeterminePosition(caster, spell), 1));
             ++NumCasts;
         }
     }
 
-    private WPos DeterminePosition(BossModule module, Actor caster, ActorCastInfo spell) => spell.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
+    private WPos DeterminePosition(Actor caster, ActorCastInfo spell) => spell.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -80,9 +80,8 @@ class Electrocution : Components.GenericTowers
     }
 }
 
-class Electrocution2 : Components.CastTowers
+class Electrocution2(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Electrocution2), 3)
 {
-    public Electrocution2() : base(ActionID.MakeSpell(AID.Electrocution2), 3) { }
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0)
@@ -94,7 +93,7 @@ class Stomp(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSp
 
 class DeathRay : Components.SelfTargetedAOEs
 {
-    public DeathRay() : base(ActionID.MakeSpell(AID.DeathRay2), new AOEShapeRect(40, 1))
+    public DeathRay(BossModule module) : base(module, ActionID.MakeSpell(AID.DeathRay2), new AOEShapeRect(40, 1))
     {
         Color = ArenaColor.Danger;
     }
@@ -102,7 +101,7 @@ class DeathRay : Components.SelfTargetedAOEs
 
 class TailWhip(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailWhip), new AOEShapeCone(12, 135.Degrees()));
 
-class DeathRay2 : Components.GenericAOEs
+class DeathRay2(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect rect = new(40, 11);
     private DateTime _activation;
@@ -145,9 +144,8 @@ class IseultalonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68695, NameID = 7895)]
-public class Iseultalon : BossModule
+public class Iseultalon(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-289, -30), 25)) // note the arena is actually a 6 sided polygon
 {
-    public Iseultalon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-289, -30), 25)) { } //note the arena is actually a 6 sided polygon
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

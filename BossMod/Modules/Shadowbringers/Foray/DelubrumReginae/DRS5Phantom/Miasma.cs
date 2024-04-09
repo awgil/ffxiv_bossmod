@@ -108,7 +108,7 @@ class Miasma : Components.GenericAOEs
         }
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state != 0x00010002)
             return; // other states: 00080010 - start glowing, 00040020 - disappear

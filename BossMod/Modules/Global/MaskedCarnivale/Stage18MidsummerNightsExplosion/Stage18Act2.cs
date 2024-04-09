@@ -17,53 +17,48 @@ public enum AID : uint
 }
 
 class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(10));
-
 class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 6);
-
 class RipperClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RipperClaw), new AOEShapeCone(8, 45.Degrees()));
-
 class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(15, 45.Degrees()));
 
-class WildCharge : Components.BaitAwayChargeCast
+class WildCharge(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.WildCharge), 4)
 {
-    public WildCharge() : base(ActionID.MakeSpell(AID.WildCharge), 4) { }
-
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (CurrentBaits.Count > 0 && !module.Enemies(OID.Keg).All(e => e.IsDead))
+        if (CurrentBaits.Count > 0 && !Module.Enemies(OID.Keg).All(e => e.IsDead))
             hints.Add("Aim charge at a keg!");
     }
 }
 
 class WildChargeKB : Components.KnockbackFromCastTarget
 {   //knockback actually delayed by 0.5s to 1s, maybe it depends on the rectangle length of the charge
-    public WildChargeKB() : base(ActionID.MakeSpell(AID.WildCharge), 10, kind: Kind.DirForward)
+    public WildChargeKB(BossModule module) : base(module, ActionID.MakeSpell(AID.WildCharge), 10, kind: Kind.DirForward)
     {
         StopAtWall = true;
     }
 }
 
-class KegExplosion : Components.GenericStackSpread
+class KegExplosion(BossModule module) : Components.GenericStackSpread(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var p in module.Enemies(OID.Keg).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Keg).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 10, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 10, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 10, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 10, ArenaColor.Danger);
         }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        foreach (var p in module.Enemies(OID.Keg).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Keg).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 10))
                 hints.Add("In keg explosion radius!");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

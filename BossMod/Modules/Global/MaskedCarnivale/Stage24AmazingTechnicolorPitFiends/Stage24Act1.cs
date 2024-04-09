@@ -16,27 +16,25 @@ public enum AID : uint
 }
 
 class Starstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Starstorm), 5);
-
 class RagingAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingAxe), new AOEShapeCone(5, 45.Degrees()));
-
 class LightningSpark(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.LightningSpark), "Interrupt");
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (!Module.PrimaryActor.IsDead)
             hints.Add($"{Module.PrimaryActor.Name} is immune to magical damage!");
-        if (!module.Enemies(OID.ArenaViking).All(e => e.IsDead))
-            hints.Add($"{module.Enemies(OID.ArenaViking).FirstOrDefault()!.Name} is immune to physical damage!");
+        if (!Module.Enemies(OID.ArenaViking).All(e => e.IsDead))
+            hints.Add($"{Module.Enemies(OID.ArenaViking).FirstOrDefault()!.Name} is immune to physical damage!");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"The {Module.PrimaryActor.Name} is immune to magic, the {module.Enemies(OID.ArenaViking).FirstOrDefault()!.Name} is immune to\nphysical attacks. For the 2nd act Diamondback is highly recommended.\nFor the 3rd act a ranged physical spell such as Fire Angon\nis highly recommended.");
+        hints.Add($"The {Module.PrimaryActor.Name} is immune to magic, the {Module.Enemies(OID.ArenaViking).FirstOrDefault()!.Name} is immune to\nphysical attacks. For the 2nd act Diamondback is highly recommended.\nFor the 3rd act a ranged physical spell such as Fire Angon\nis highly recommended.");
     }
 }
 

@@ -44,7 +44,7 @@ class HoodSwing : Components.Cleave
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction && caster == Module.PrimaryActor)
             _lastBossCast = WorldState.CurrentTime;
     }

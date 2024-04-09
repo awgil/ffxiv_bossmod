@@ -1,3 +1,7 @@
+components refactor checklist
+- config should all use primary ctor
+- bitmasks in record structs!
+
 autorotation rework:
 - priority action suggestions
 - control panel w/ presets and bindings

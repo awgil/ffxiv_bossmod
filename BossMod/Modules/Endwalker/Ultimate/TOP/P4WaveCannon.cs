@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P4WaveCannonProtean : Components.GenericBaitAway
+class P4WaveCannonProtean(BossModule module) : Components.GenericBaitAway(module)
 {
     private Actor? _source;
 
     private static readonly AOEShapeRect _shape = new(100, 3);
 
-    public void Show(BossModule module)
+    public void Show()
     {
         NumCasts = 0;
         if (_source != null)
@@ -19,7 +19,7 @@ class P4WaveCannonProtean : Components.GenericBaitAway
         if ((AID)spell.Action.ID == AID.P4WaveCannonVisualStart)
         {
             _source = caster;
-            Show(module);
+            Show();
         }
     }
 
@@ -47,7 +47,7 @@ class P4WaveCannonStack : BossComponent
 
     public bool Active => _targets.Any();
 
-    public override void Init(BossModule module)
+    public P4WaveCannonStack(BossModule module) : base(module)
     {
         foreach (var (s, g) in Service.Config.Get<TOPConfig>().P4WaveCannonAssignments.Resolve(Raid))
             _playerGroups[s] = g;
@@ -57,8 +57,11 @@ class P4WaveCannonStack : BossComponent
     {
         if (Imminent && Raid.WithSlot(true).IncludedInMask(_targets).WhereActor(p => _shape.Check(actor.Position, Module.Bounds.Center, Angle.FromDirection(p.Position - Module.Bounds.Center))).Count() is var clips && clips != 1)
             hints.Add(clips == 0 ? "Share the stack!" : "GTFO from second stack!");
+    }
 
-        if (movementHints != null && SafeDir(slot) is var safeDir && safeDir != default)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (SafeDir(slot) is var safeDir && safeDir != default)
             movementHints.Add(actor.Position, Module.Bounds.Center + 12 * safeDir.ToDirection(), ArenaColor.Safe);
     }
 
@@ -66,11 +69,11 @@ class P4WaveCannonStack : BossComponent
     {
         if (Imminent)
             foreach (var (_, p) in Raid.WithSlot(true).IncludedInMask(_targets))
-                _shape.Outline(arena, Module.Bounds.Center, Angle.FromDirection(p.Position - Module.Bounds.Center), ArenaColor.Safe);
+                _shape.Outline(Arena, Module.Bounds.Center, Angle.FromDirection(p.Position - Module.Bounds.Center), ArenaColor.Safe);
 
         var safeDir = SafeDir(pcSlot);
         if (safeDir != default)
-            arena.AddCircle(Module.Bounds.Center + 12 * safeDir.ToDirection(), 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Bounds.Center + 12 * safeDir.ToDirection(), 1, ArenaColor.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

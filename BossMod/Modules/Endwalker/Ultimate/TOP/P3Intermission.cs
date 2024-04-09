@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P3SniperCannon : Components.UniformStackSpread
+class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 6, 6, alwaysShowSpreads: true)
 {
     enum PlayerRole { None, Stack, Spread }
 
@@ -14,13 +14,11 @@ class P3SniperCannon : Components.UniformStackSpread
     private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
     private bool _haveSafeSpots;
 
-    public P3SniperCannon() : base(6, 6, alwaysShowSpreads: true) { }
-
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var s in EnumerateSafeSpots(module, pcSlot))
-            arena.AddCircle(s, 1, ArenaColor.Safe);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var s in EnumerateSafeSpots(pcSlot))
+            Arena.AddCircle(s, 1, ArenaColor.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -29,11 +27,11 @@ class P3SniperCannon : Components.UniformStackSpread
         {
             case SID.SniperCannonFodder:
                 AddSpread(actor, status.ExpireAt);
-                Assign(module, Raid.FindSlot(actor.InstanceID), PlayerRole.Spread);
+                Assign(Raid.FindSlot(actor.InstanceID), PlayerRole.Spread);
                 break;
             case SID.HighPoweredSniperCannonFodder:
                 AddStack(actor, status.ExpireAt);
-                Assign(module, Raid.FindSlot(actor.InstanceID), PlayerRole.Stack);
+                Assign(Raid.FindSlot(actor.InstanceID), PlayerRole.Stack);
                 break;
         }
     }
@@ -52,7 +50,7 @@ class P3SniperCannon : Components.UniformStackSpread
         }
     }
 
-    private void Assign(BossModule module, int slot, PlayerRole role)
+    private void Assign(int slot, PlayerRole role)
     {
         if (slot < 0)
             return;
@@ -72,7 +70,7 @@ class P3SniperCannon : Components.UniformStackSpread
             _playerStates[s].Order = ++assignedRoles[(int)_playerStates[s].Role];
     }
 
-    private IEnumerable<WPos> EnumerateSafeSpots(BossModule module, int slot)
+    private IEnumerable<WPos> EnumerateSafeSpots(int slot)
     {
         if (!_haveSafeSpots)
             yield break;
@@ -81,31 +79,29 @@ class P3SniperCannon : Components.UniformStackSpread
         if (ps.Role == PlayerRole.Spread)
         {
             if (ps.Order is 0 or 1)
-                yield return SafeSpotAt(module, -90.Degrees());
+                yield return SafeSpotAt(-90.Degrees());
             if (ps.Order is 0 or 2)
-                yield return SafeSpotAt(module, -45.Degrees());
+                yield return SafeSpotAt(-45.Degrees());
             if (ps.Order is 0 or 3)
-                yield return SafeSpotAt(module, 45.Degrees());
+                yield return SafeSpotAt(45.Degrees());
             if (ps.Order is 0 or 4)
-                yield return SafeSpotAt(module, 90.Degrees());
+                yield return SafeSpotAt(90.Degrees());
         }
         else
         {
             if (ps.Order is 0 or 1)
-                yield return SafeSpotAt(module, -135.Degrees());
+                yield return SafeSpotAt(-135.Degrees());
             if (ps.Order is 0 or 2)
-                yield return SafeSpotAt(module, 135.Degrees());
+                yield return SafeSpotAt(135.Degrees());
         }
     }
 
-    private WPos SafeSpotAt(BossModule module, Angle dirIfStacksNorth) => Module.Bounds.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
+    private WPos SafeSpotAt(Angle dirIfStacksNorth) => Module.Bounds.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
 }
 
-class P3WaveRepeater : Components.ConcentricAOEs
+class P3WaveRepeater(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
     private static readonly AOEShape[] _shapes = { new AOEShapeCircle(6), new AOEShapeDonut(6, 12), new AOEShapeDonut(12, 18), new AOEShapeDonut(18, 24) };
-
-    public P3WaveRepeater() : base(_shapes) { }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -130,7 +126,7 @@ class P3WaveRepeater : Components.ConcentricAOEs
 
 class P3IntermissionVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.P3IntermissionVoidzone).Where(z => z.EventState != 7));
 
-class P3ColossalBlow : Components.GenericAOEs
+class P3ColossalBlow(BossModule module) : Components.GenericAOEs(module)
 {
     public List<AOEInstance> AOEs = new();
 

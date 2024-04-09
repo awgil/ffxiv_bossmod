@@ -18,7 +18,7 @@ class SearingWind : Components.UniformStackSpread
     {
         // we let AI provide soft positioning hints until resolve is imminent
         if (WorldState.CurrentTime > _showHintsAfter)
-            base.AddAIHints(module, slot, actor, assignment, hints);
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

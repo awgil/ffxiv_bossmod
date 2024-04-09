@@ -2,7 +2,7 @@
 
 // common mechanics that are used for entire fight
 // TODO: consider splitting into multiple components, at least for mechanics that start in later phases...
-class Mechanics : BossComponent
+class Mechanics(BossModule module) : BossComponent(module)
 {
     private int[] _tankStacks = new int[PartyState.MaxPartySize];
 
@@ -25,7 +25,7 @@ class Mechanics : BossComponent
     public override void Update()
     {
         // TODO: this is bad, we need to find a way to associate orb to kiter...
-        if (_orbKiters.Count > 0 && module.Enemies(OID.Aetheroplasm).Count == 0)
+        if (_orbKiters.Count > 0 && Module.Enemies(OID.Aetheroplasm).Count == 0)
             _orbKiters.Clear();
     }
 
@@ -73,7 +73,7 @@ class Mechanics : BossComponent
             hints.Add("Kite the orb!");
         }
 
-        if (module.Enemies(OID.MagitekBit).Any(bit => bit.CastInfo != null && _aoeAssaultCannon.Check(actor.Position, bit)))
+        if (Module.Enemies(OID.MagitekBit).Any(bit => bit.CastInfo != null && _aoeAssaultCannon.Check(actor.Position, bit)))
         {
             hints.Add("GTFO from bit aoe!");
         }
@@ -84,53 +84,53 @@ class Mechanics : BossComponent
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_magitekOffset != null)
-            _aoeMagitekRay.Draw(arena, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation + _magitekOffset.Value);
+            _aoeMagitekRay.Draw(Arena, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation + _magitekOffset.Value);
 
-        foreach (var bit in module.Enemies(OID.MagitekBit).Where(bit => bit.CastInfo != null))
-            _aoeAssaultCannon.Draw(arena, bit);
+        foreach (var bit in Module.Enemies(OID.MagitekBit).Where(bit => bit.CastInfo != null))
+            _aoeAssaultCannon.Draw(Arena, bit);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var mt = WorldState.Actors.Find(Module.PrimaryActor.TargetID);
         foreach (var player in Raid.WithoutSlot().Exclude(pc))
-            arena.Actor(player, _orbKiters.Contains(player.InstanceID) ? ArenaColor.Danger : player == mt ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+            Arena.Actor(player, _orbKiters.Contains(player.InstanceID) ? ArenaColor.Danger : player == mt ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
         if (mt != null)
-            arena.AddCircle(mt.Position, _aoeCleave.Radius, ArenaColor.Danger);
+            Arena.AddCircle(mt.Position, _aoeCleave.Radius, ArenaColor.Danger);
 
         //if (pc.Role is Role.Healer or Role.Ranged)
-        //    arena.AddCircle(Module.PrimaryActor.Position, _ceruleumVentRange, ArenaColor.Danger);
+        //    Arena.AddCircle(Module.PrimaryActor.Position, _ceruleumVentRange, ArenaColor.Danger);
 
-        foreach (var orb in module.Enemies(OID.Ultimaplasm).Where(orb => !_orbsSharedExploded.Contains(orb.InstanceID)))
+        foreach (var orb in Module.Enemies(OID.Ultimaplasm).Where(orb => !_orbsSharedExploded.Contains(orb.InstanceID)))
         {
             // TODO: line between paired orbs
-            arena.Actor(orb, ArenaColor.Danger, true);
-            arena.AddCircle(orb.Position, _orbSharedRange, ArenaColor.Safe);
+            Arena.Actor(orb, ArenaColor.Danger, true);
+            Arena.AddCircle(orb.Position, _orbSharedRange, ArenaColor.Safe);
         }
 
-        foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(orb => !_orbsKitedExploded.Contains(orb.InstanceID)))
+        foreach (var orb in Module.Enemies(OID.Aetheroplasm).Where(orb => !_orbsKitedExploded.Contains(orb.InstanceID)))
         {
             // TODO: line from corresponding target
-            arena.Actor(orb, ArenaColor.Danger, true);
-            arena.AddCircle(orb.Position, _orbFixateRange, ArenaColor.Danger);
+            Arena.Actor(orb, ArenaColor.Danger, true);
+            Arena.AddCircle(orb.Position, _orbFixateRange, ArenaColor.Danger);
         }
 
-        foreach (var bit in module.Enemies(OID.MagitekBit))
+        foreach (var bit in Module.Enemies(OID.MagitekBit))
         {
-            arena.Actor(bit, ArenaColor.Danger);
+            Arena.Actor(bit, ArenaColor.Danger);
         }
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ViscousAetheroplasm)
-            SetTankStacks(module, actor, status.Extra);
+            SetTankStacks(actor, status.Extra);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ViscousAetheroplasm)
-            SetTankStacks(module, actor, 0);
+            SetTankStacks(actor, 0);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -171,7 +171,7 @@ class Mechanics : BossComponent
         }
     }
 
-    private void SetTankStacks(BossModule module, Actor actor, int stacks)
+    private void SetTankStacks(Actor actor, int stacks)
     {
         int slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0)

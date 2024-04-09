@@ -17,7 +17,7 @@ class P1FlameThrower : Components.GenericAOEs
             yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, ArenaColor.Danger, true);
     }
 
-    public override void Init(BossModule module)
+    public P1FlameThrower(BossModule module) : base(module)
     {
         _pantokrator = module.FindComponent<P1Pantokrator>();
     }
@@ -41,7 +41,7 @@ class P1FlameThrower : Components.GenericAOEs
             };
             var offset = 12 * (Module.PrimaryActor.Rotation + dir).ToDirection();
             var pos = group == 1 ? Module.Bounds.Center + offset : Module.Bounds.Center - offset;
-            arena.AddCircle(pos, 1, ArenaColor.Safe);
+            Arena.AddCircle(pos, 1, ArenaColor.Safe);
         }
     }
 
@@ -64,7 +64,7 @@ class P1FlameThrower : Components.GenericAOEs
     }
 }
 
-class P1Pantokrator : P1CommonAssignments
+class P1Pantokrator(BossModule module) : P1CommonAssignments(module)
 {
     public int NumSpreadsDone { get; private set; }
     public int NumStacksDone { get; private set; }
@@ -80,7 +80,7 @@ class P1Pantokrator : P1CommonAssignments
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         var ps = PlayerStates[slot];
         if (ps.Order == 0)
@@ -110,11 +110,11 @@ class P1Pantokrator : P1CommonAssignments
             var order = PlayerStates[i].Order;
             if (order == spreadOrder)
             {
-                arena.AddCircle(p.Position, _spreadRadius, i == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
+                Arena.AddCircle(p.Position, _spreadRadius, i == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
             }
             else if (order == stackOrder)
             {
-                _stackShape.Outline(arena, Module.PrimaryActor.Position, Angle.FromDirection(p.Position - Module.PrimaryActor.Position), i == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
+                _stackShape.Outline(Arena, Module.PrimaryActor.Position, Angle.FromDirection(p.Position - Module.PrimaryActor.Position), i == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
             }
         }
     }
@@ -149,9 +149,7 @@ class P1DiffuseWaveCannonKyrios : Components.GenericBaitAway
 {
     private static readonly AOEShape _shape = new AOEShapeCone(60, 60.Degrees()); // TODO: verify angle
 
-    public P1DiffuseWaveCannonKyrios() : base(ActionID.MakeSpell(AID.DiffuseWaveCannonKyrios)) { }
-
-    public override void Init(BossModule module)
+    public P1DiffuseWaveCannonKyrios(BossModule module) : base(module, ActionID.MakeSpell(AID.DiffuseWaveCannonKyrios))
     {
         ForbiddenPlayers = Raid.WithSlot().WhereActor(a => a.Role != Role.Tank).Mask();
     }
@@ -163,7 +161,7 @@ class P1DiffuseWaveCannonKyrios : Components.GenericBaitAway
     }
 }
 
-class P1WaveCannonKyrios : Components.GenericBaitAway
+class P1WaveCannonKyrios(BossModule module) : Components.GenericBaitAway(module)
 {
     private static readonly AOEShapeRect _shape = new(50, 3);
 

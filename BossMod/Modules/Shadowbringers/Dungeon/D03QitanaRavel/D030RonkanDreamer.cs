@@ -137,7 +137,7 @@ public class Layout : BossComponent
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     { //Note: this isn't looking natural because the AI is trying to dodge the lasers and the wall at the same time, consider not activating the AI in partyfinder until the AI is improved, for multiboxing it should do ok
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (Module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
         {
             hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1(), true));

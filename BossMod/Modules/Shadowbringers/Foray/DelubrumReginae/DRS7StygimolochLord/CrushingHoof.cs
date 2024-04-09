@@ -16,7 +16,7 @@ class CrushingHoof : Components.GenericAOEs
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
             _aoe = null;
     }

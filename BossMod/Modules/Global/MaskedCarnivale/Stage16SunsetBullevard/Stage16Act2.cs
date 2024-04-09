@@ -23,22 +23,15 @@ public enum AID : uint
 }
 
 class OneOneOneOneTonzeSwing(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Use Diamondback!");
-
 class TenTonzeSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TenTonzeSlash), new AOEShapeCone(44, 30.Degrees()));
-
 class OneOneOneTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OneOneOneTonzeSwing), new AOEShapeCircle(12));
-
 class CryOfRage(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CryOfRage));
-
 class TenTonzeWave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TenTonzeWave), new AOEShapeCone(44, 30.Degrees()));
-
 class TenTonzeWave2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TenTonzeWave2), new AOEShapeDonut(10, 20));
-
 class OneOneOneTonzeSwingKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.OneOneOneTonzeSwing), 20, shape: new AOEShapeCircle(12)); // actual knockback happens ~1.45s after snapshot
-
 class ZoomIn(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.ZoomIn), 4);
 
-class ZoomInKB : Components.Knockback //actual knockback happens ~0.7s after snapshot
+class ZoomInKB(BossModule module) : Components.Knockback(module) // actual knockback happens ~0.7s after snapshot
 {
     private DateTime _activation;
 
@@ -61,7 +54,7 @@ class ZoomInKB : Components.Knockback //actual knockback happens ~0.7s after sna
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
 // TODO: there doesn't seem to be any event if mechanic is resolved correctly?..
-class Pairs : BossComponent
+class Pairs(BossModule module) : BossComponent(module)
 {
     private BitMask _players1;
     private BitMask _players2;
@@ -22,7 +22,7 @@ class Pairs : BossComponent
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        bool atRisk = _players1[slot] ? AtRisk(module, actor, _players1, _players2) : _players2[slot] ? AtRisk(module, actor, _players2, _players1) : false;
+        bool atRisk = _players1[slot] ? AtRisk(actor, _players1, _players2) : _players2[slot] ? AtRisk(actor, _players2, _players1) : false;
         if (atRisk)
             hints.Add("Stack with opposite color!");
     }
@@ -30,9 +30,9 @@ class Pairs : BossComponent
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var p in Raid.WithSlot().IncludedInMask(_players1).Exclude(pc))
-            arena.AddCircle(p.Item2.Position, _radius, _players1[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe);
+            Arena.AddCircle(p.Item2.Position, _radius, _players1[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe);
         foreach (var p in Raid.WithSlot().IncludedInMask(_players2).Exclude(pc))
-            arena.AddCircle(p.Item2.Position, _radius, _players2[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe);
+            Arena.AddCircle(p.Item2.Position, _radius, _players2[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID)
@@ -50,7 +50,7 @@ class Pairs : BossComponent
         }
     }
 
-    private bool AtRisk(BossModule module, Actor actor, BitMask same, BitMask opposite)
+    private bool AtRisk(Actor actor, BitMask same, BitMask opposite)
     {
         return Raid.WithSlot().IncludedInMask(opposite).InRadius(actor.Position, _radius).Any() || !Raid.WithSlot().IncludedInMask(same).InRadiusExcluding(actor, _radius).Any();
     }

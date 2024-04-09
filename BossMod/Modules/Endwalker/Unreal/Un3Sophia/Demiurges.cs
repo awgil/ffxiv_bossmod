@@ -8,20 +8,17 @@ class Demiurges : Components.DirectionalParry
 
     public bool AddsActive => ActiveActors.Any() || _second.Any(a => a.IsTargetable && !a.IsDead) || _third.Any(a => a.IsTargetable && !a.IsDead);
 
-    public Demiurges() : base((uint)OID.Demiurge1) { }
-
-    public override void Init(BossModule module)
+    public Demiurges(BossModule module) : base(module, (uint)OID.Demiurge1)
     {
-        base.Init(module);
         _second = module.Enemies(OID.Demiurge2);
         _third = module.Enemies(OID.Demiurge3);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        arena.Actors(_second, ArenaColor.Enemy);
-        arena.Actors(_third, ArenaColor.Enemy);
+        base.DrawArenaForeground(pcSlot, pc);
+        Arena.Actors(_second, ArenaColor.Enemy);
+        Arena.Actors(_third, ArenaColor.Enemy);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -38,17 +35,12 @@ class Demiurges : Components.DirectionalParry
 }
 
 class DivineSpark(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DivineSpark));
-
 class GnosticRant(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GnosticRant), new AOEShapeCone(40, 135.Degrees()));
-
 class GnosticSpear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GnosticSpear), new AOEShapeRect(20.75f, 2, 0.75f));
-
 class RingOfPain(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.RingOfPain), m => m.Enemies(OID.RingOfPain).Where(z => z.EventState != 7), 1.7f);
 
-class Infusion : Components.GenericWildCharge
+class Infusion(BossModule module) : Components.GenericWildCharge(module, 5, ActionID.MakeSpell(AID.Infusion))
 {
-    public Infusion() : base(5, ActionID.MakeSpell(AID.Infusion)) { }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)

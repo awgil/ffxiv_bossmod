@@ -32,7 +32,7 @@ class SpitFlame : Components.UniformStackSpread
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         arena.Actors(_adds, ArenaColor.Object, true);
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID)

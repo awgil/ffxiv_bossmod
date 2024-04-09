@@ -77,7 +77,7 @@ class HoundOutOfHeavenGood : Components.BaitAwayTethers  //TODO: consider genera
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
     }
@@ -115,7 +115,7 @@ class HoundOutOfHeavenBad : Components.BaitAwayTethers
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
     }
@@ -165,7 +165,7 @@ class ViperPoisonBait : Components.GenericBaitAway
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
             hints.AddForbiddenZone(ShapeDistance.Rect(new(17, -518), new(17, -558), 13));
     }

@@ -35,9 +35,10 @@ public enum SID : uint
 
 class Charybdis(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Charybdis2), new AOEShapeCircle(8));
 
-class Web : BossComponent
+class Web(BossModule module) : BossComponent(module)
 {
     private bool casting;
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Web)
@@ -58,26 +59,17 @@ class Web : BossComponent
 }
 
 class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(7.2f));
-
 class TremblingEarth(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TremblingEarth), new AOEShapeDonut(10, 20));
-
 class TremblingEarth2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TremblingEarth2), new AOEShapeDonut(20, 30));
-
 class ApocalypticBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticBolt), new AOEShapeRect(51.2f, 4));
-
 class ApocalypticRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticRoar), new AOEShapeCone(36.2f, 60.Degrees()));
-
 class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(8));
-
 class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(6, 30));
-
 class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Maelstrom));
-
 class Meteor(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Meteor), 15);
-
 class MeteorVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 10, ActionID.MakeSpell(AID.Meteor), m => m.Enemies(OID.LavaVoidzone).Where(z => z.EventState != 7), 0);
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -85,12 +77,12 @@ class Hints : BossComponent
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var magicreflect = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.RepellingSpray) != null).FirstOrDefault();
-        var physicalreflect = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.IceSpikes) != null).FirstOrDefault();
+        var magicreflect = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.RepellingSpray) != null).FirstOrDefault();
+        var physicalreflect = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.IceSpikes) != null).FirstOrDefault();
         if (magicreflect != null)
             hints.Add($"{Module.PrimaryActor.Name} will reflect all magic damage!");
         if (physicalreflect != null)

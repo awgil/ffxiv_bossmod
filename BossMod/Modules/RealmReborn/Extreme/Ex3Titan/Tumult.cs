@@ -18,7 +18,7 @@ class Tumult : Components.CastCounter
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
             _nextExpected = WorldState.FutureTime(1.2f);
     }

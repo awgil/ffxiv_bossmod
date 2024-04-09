@@ -53,7 +53,7 @@ class HeavyStrike2 : Components.SelfTargetedAOEs
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastFinished(module, caster, spell);
+        base.OnCastFinished(caster, spell);
         if ((AID)spell.Action.ID == AID.HeavyStrike1)
             Color = ArenaColor.Danger;
         else
@@ -67,7 +67,7 @@ class HeavyStrike3 : Components.SelfTargetedAOEs
     public HeavyStrike3() : base(ActionID.MakeSpell(AID.HeavyStrike3), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees())) { }
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastFinished(module, caster, spell);
+        base.OnCastFinished(caster, spell);
         if ((AID)spell.Action.ID == AID.HeavyStrike2)
             Color = ArenaColor.Danger;
         else

@@ -19,11 +19,9 @@ public enum SID : uint
     Blind = 571, // Mandragora->player, extra=0x0
 }
 
-class DemonEye : Components.CastGaze
+class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DemonEye))
 {
     private BitMask _blinded;
-
-    public DemonEye() : base(ActionID.MakeSpell(AID.DemonEye)) { }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -39,15 +37,13 @@ class DemonEye : Components.CastGaze
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
+        return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(slot, actor);
     }
 }
 
-class ColdStare : Components.SelfTargetedAOEs //TODO: cone based gaze
+class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f, 45.Degrees())) //TODO: cone based gaze
 {
     private BitMask _blinded;
-
-    public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f, 45.Degrees())) { }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -63,15 +59,13 @@ class ColdStare : Components.SelfTargetedAOEs //TODO: cone based gaze
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(module, slot, actor);
+        return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(slot, actor);
     }
 }
 
-class TearyTwirl : Components.StackWithCastTargets
+class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TearyTwirl), 6.3f)
 {
     private BitMask _blinded;
-
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) { }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -94,7 +88,7 @@ class TearyTwirl : Components.StackWithCastTargets
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

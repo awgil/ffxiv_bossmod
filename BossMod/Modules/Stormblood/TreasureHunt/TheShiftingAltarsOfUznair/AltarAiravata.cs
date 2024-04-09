@@ -64,7 +64,7 @@ class Buffet : Components.KnockbackFromCastTarget
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastFinished(module, caster, spell);
+        base.OnCastFinished(caster, spell);
         if ((AID)spell.Action.ID == AID.Buffet)
             targeted = false;
     }
@@ -80,7 +80,7 @@ class Buffet : Components.KnockbackFromCastTarget
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
             hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
     }

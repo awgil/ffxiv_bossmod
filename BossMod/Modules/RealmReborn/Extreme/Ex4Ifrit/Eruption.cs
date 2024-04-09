@@ -18,7 +18,7 @@ class Eruption : Components.LocationTargetedAOEs
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastStarted(module, caster, spell);
+        base.OnCastStarted(caster, spell);
         switch ((AID)spell.Action.ID)
         {
             case AID.Eruption:

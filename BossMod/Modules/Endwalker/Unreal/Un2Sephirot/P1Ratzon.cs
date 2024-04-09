@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
 // TODO: generalize
-class P1Ratzon : BossComponent
+class P1Ratzon(BossModule module) : BossComponent(module)
 {
     private BitMask _greenTargets;
     private BitMask _purpleTargets;
@@ -27,9 +27,9 @@ class P1Ratzon : BossComponent
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var (slot, actor) in Raid.WithSlot().IncludedInMask(_greenTargets))
-            arena.AddCircle(actor.Position, _greenRadius, 0xff00ff00, slot == pcSlot ? 2 : 1);
+            Arena.AddCircle(actor.Position, _greenRadius, 0xff00ff00, slot == pcSlot ? 2 : 1);
         foreach (var (slot, actor) in Raid.WithSlot().IncludedInMask(_purpleTargets))
-            arena.AddCircle(actor.Position, _purpleRadius, 0xffff00ff, slot == pcSlot ? 2 : 1);
+            Arena.AddCircle(actor.Position, _purpleRadius, 0xffff00ff, slot == pcSlot ? 2 : 1);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

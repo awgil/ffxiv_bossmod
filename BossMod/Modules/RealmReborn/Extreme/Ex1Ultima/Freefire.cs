@@ -34,7 +34,7 @@ class Freefire : Components.GenericAOEs
             }
         }
 
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -48,7 +48,7 @@ class Freefire : Components.GenericAOEs
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
             _casters.Remove(caster);
     }

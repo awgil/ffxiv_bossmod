@@ -1,12 +1,10 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
-class StarvingStampede : Components.GenericAOEs
+class StarvingStampede(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.StarvingStampede))
 {
     private List<WPos> _positions = new();
 
     private static readonly AOEShape _shape = new AOEShapeCircle(12);
-
-    public StarvingStampede() : base(ActionID.MakeSpell(AID.StarvingStampede)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -16,7 +14,7 @@ class StarvingStampede : Components.GenericAOEs
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         switch ((AID)spell.Action.ID)
         {
             case AID.JawsTeleport:

@@ -74,7 +74,7 @@ class TimeEruptionBombReproduce : Components.GenericAOEs
     {
         foreach (var p in _eruptionSafeSpots)
             _shapeEruption.Draw(arena, p, new(), ArenaColor.SafeFromAOE);
-        base.DrawArenaBackground(module, pcSlot, pc, arena);
+        base.DrawArenaBackground(pcSlot, pc);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -113,7 +113,7 @@ class TimeEruptionBombReproduce : Components.GenericAOEs
         }
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.Clock)
             return;

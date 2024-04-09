@@ -27,7 +27,7 @@ class P2Eruption : Components.LocationTargetedAOEs
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastStarted(module, caster, spell);
+        base.OnCastStarted(caster, spell);
         if ((AID)spell.Action.ID == AID.EruptionAOE)
         {
             if (NumCastsStarted < 2)

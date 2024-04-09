@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
-class DragonsGaze : Components.GenericGaze
+class DragonsGaze(BossModule module) : Components.GenericGaze(module)
 {
     private List<Actor> _casters = new();
     private WPos _posHint;
@@ -9,9 +9,9 @@ class DragonsGaze : Components.GenericGaze
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         if (_posHint != default)
-            arena.AddCircle(_posHint, 1, ArenaColor.Safe);
+            Arena.AddCircle(_posHint, 1, ArenaColor.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -29,7 +29,7 @@ class DragonsGaze : Components.GenericGaze
             _casters.Remove(caster);
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008 && (OID)actor.OID is >= OID.DragonEyeN and <= OID.DragonEyeNW)
         {
