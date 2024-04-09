@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
 
 namespace BossMod.DRG;
 
