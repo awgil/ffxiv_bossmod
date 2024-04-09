@@ -98,7 +98,7 @@ class Platforms : BossComponent
     public BitMask ActivePlatforms;
     public DateTime ExplosionAt { get; private set; }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         Func<WPos, float> blockedArea = p =>
         {
@@ -111,7 +111,7 @@ class Platforms : BossComponent
         hints.AddForbiddenZone(blockedArea);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (int i in (ActivePlatforms ^ AllPlatforms).SetBits())
             arena.AddPolygon(PlatformPoly(i), ArenaColor.Border);
@@ -129,7 +129,7 @@ class Platforms : BossComponent
             bool active = state == 2;
             ActivePlatforms[i] = active;
             if (active)
-                ExplosionAt = module.WorldState.CurrentTime.AddSeconds(6);
+                ExplosionAt = WorldState.FutureTime(6);
         }
     }
 }

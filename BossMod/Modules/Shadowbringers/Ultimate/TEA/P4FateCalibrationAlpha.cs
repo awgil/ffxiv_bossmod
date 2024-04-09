@@ -74,7 +74,7 @@ class P4FateCalibrationAlphaDebuffs : Components.UniformStackSpread
                     Debuffs[defamationSlot] = Debuff.Defamation;
                     var defamationTarget = Raid[defamationSlot];
                     if (defamationTarget != null)
-                        AddSpread(defamationTarget, WorldState.CurrentTime.AddSeconds(20.1f));
+                        AddSpread(defamationTarget, WorldState.FutureTime(20.1f));
                 }
                 break;
             case AID.FateCalibrationAlphaSharedSentence:
@@ -84,7 +84,7 @@ class P4FateCalibrationAlphaDebuffs : Components.UniformStackSpread
                     Debuffs[sharedSlot] = Debuff.SharedSentence;
                     var sharedTarget = Raid[sharedSlot];
                     if (sharedTarget != null)
-                        AddStack(sharedTarget, WorldState.CurrentTime.AddSeconds(20.1f), _avoidMask); // note: avoid mask is typically empty here, since aggravated assaults happen later
+                        AddStack(sharedTarget, WorldState.FutureTime(20.1f), _avoidMask); // note: avoid mask is typically empty here, since aggravated assaults happen later
                 }
                 break;
             case AID.FateCalibrationAlphaAggravatedAssault:

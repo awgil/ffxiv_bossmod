@@ -179,5 +179,5 @@ class C011SilkieStates : StateMachineBuilder
     }
 }
 
-class C011NSilkieStates : C011SilkieStates { public C011NSilkieStates(BossModule module) : base(module, false) { } }
-class C011SSilkieStates : C011SilkieStates { public C011SSilkieStates(BossModule module) : base(module, true) { } }
+class C011NSilkieStates(BossModule module) : C011SilkieStates(module, false);
+class C011SSilkieStates(BossModule module) : C011SilkieStates(module, true);

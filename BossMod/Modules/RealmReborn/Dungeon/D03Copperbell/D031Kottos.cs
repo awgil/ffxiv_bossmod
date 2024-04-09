@@ -17,25 +17,13 @@ public enum AID : uint
     Catapult = 28547, // Boss->player, 5.0s cast, single target damage at random target
 }
 
-class GrandSlam : Components.SingleTargetCast
-{
-    public GrandSlam() : base(ActionID.MakeSpell(AID.GrandSlam)) { }
-}
+class GrandSlam(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.GrandSlam));
 
-class LumberingLeap : Components.SelfTargetedAOEs
-{
-    public LumberingLeap() : base(ActionID.MakeSpell(AID.LumberingLeapAOE), new AOEShapeCircle(12)) { }
-}
+class LumberingLeap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LumberingLeapAOE), new AOEShapeCircle(12));
 
-class ColossalSlam : Components.SelfTargetedLegacyRotationAOEs
-{
-    public ColossalSlam() : base(ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(30, 30.Degrees())) { }
-}
+class ColossalSlam(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(30, 30.Degrees()));
 
-class Catapult : Components.SingleTargetCast
-{
-    public Catapult() : base(ActionID.MakeSpell(AID.Catapult), "Single-target damage") { }
-}
+class Catapult(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Catapult), "Single-target damage");
 
 class D031KottosStates : StateMachineBuilder
 {
@@ -50,7 +38,4 @@ class D031KottosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 3, NameID = 548)]
-public class D031Kottos : BossModule
-{
-    public D031Kottos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(43, -89.56f), 15)) { }
-}
+public class D031Kottos(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(43, -89.56f), 15));

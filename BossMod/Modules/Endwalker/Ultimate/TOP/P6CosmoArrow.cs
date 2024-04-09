@@ -13,24 +13,24 @@ class P6CosmoArrow : Components.GenericAOEs
     private static readonly AOEShapeRect _shapeFirst = new(40, 5);
     private static readonly AOEShapeRect _shapeRest = new(100, 2.5f);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var l in _lines)
             if (l.Shape != null && l.ExplosionsLeft > 0)
                 yield return new(l.Shape, l.Next, l.Direction, l.NextExplosion);
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (CurPattern != Pattern.Unknown)
             hints.Add($"Pattern: {(CurPattern == Pattern.InOut ? "in -> out" : "out -> in")}");
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.CosmoArrowFirst)
         {
-            var offset = caster.Position - module.Bounds.Center;
+            var offset = caster.Position - Module.Bounds.Center;
             var offsetAbs = offset.Abs();
             if (offsetAbs.X < 5)
             {
@@ -64,12 +64,12 @@ class P6CosmoArrow : Components.GenericAOEs
             }
             else
             {
-                module.ReportError(this, $"Unexpected exasquare origin: {caster.Position}");
+                ReportError($"Unexpected exasquare origin: {caster.Position}");
             }
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         var dist = (AID)spell.Action.ID switch
         {
@@ -85,19 +85,19 @@ class P6CosmoArrow : Components.GenericAOEs
         int numLines = 0;
         foreach (ref var l in _lines.AsSpan())
         {
-            if (!l.Next.AlmostEqual(caster.Position, 1) || !l.Direction.AlmostEqual(caster.Rotation, 0.1f) || (l.NextExplosion - module.WorldState.CurrentTime).TotalSeconds > 1)
+            if (!l.Next.AlmostEqual(caster.Position, 1) || !l.Direction.AlmostEqual(caster.Rotation, 0.1f) || (l.NextExplosion - WorldState.CurrentTime).TotalSeconds > 1)
                 continue;
 
             if (l.ExplosionsLeft <= 0)
-                module.ReportError(this, $"Too many explosions: {caster.Position}");
+                ReportError($"Too many explosions: {caster.Position}");
 
             l.Shape = _shapeRest;
             l.Next += l.Advance * dist;
-            l.NextExplosion = module.WorldState.CurrentTime.AddSeconds(2);
+            l.NextExplosion = WorldState.FutureTime(2);
             --l.ExplosionsLeft;
             ++numLines;
         }
         if (numLines == 0)
-            module.ReportError(this, $"Failed to match any lines for {caster}");
+            ReportError($"Failed to match any lines for {caster}");
     }
 }

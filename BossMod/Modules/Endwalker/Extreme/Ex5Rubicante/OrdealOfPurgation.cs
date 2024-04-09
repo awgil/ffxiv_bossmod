@@ -10,7 +10,7 @@
 // 4. at the same time, all players get 12s penance debuff, which is a deadline to resolve
 // 5. right after that, boss starts casting visual cast - at this point we start showing the mechanic
 // 5. penance expires and is replaced with 9s shackles debuff, this happens right before cast end
-class OrdealOfPurgation : Components.GenericAOEs
+class OrdealOfPurgation(BossModule module) : Components.GenericAOEs(module)
 {
     public enum Symbol { Unknown, Tri, Sq }
 
@@ -25,18 +25,18 @@ class OrdealOfPurgation : Components.GenericAOEs
     private static readonly AOEShapeCone _shapeTri = new(60, 30.Degrees());
     private static readonly AOEShapeRect _shapeSq = new(20, 40);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
         {
-            if (AOEFromDirection(module, _dirInner) is var aoe1 && aoe1 != null)
+            if (AOEFromDirection(_dirInner) is var aoe1 && aoe1 != null)
                 yield return aoe1.Value;
-            if (_dirInnerExtra != _dirInner && AOEFromDirection(module, _dirInnerExtra) is var aoe2 && aoe2 != null)
+            if (_dirInnerExtra != _dirInner && AOEFromDirection(_dirInnerExtra) is var aoe2 && aoe2 != null)
                 yield return aoe2.Value;
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Pattern)
         {
@@ -59,19 +59,19 @@ class OrdealOfPurgation : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OrdealOfPurgation)
             _activation = spell.NPCFinishAt; // note: actual activation is several seconds later, but we need to finish our movements before shackles, so effective activation is around cast end
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.FieryExpiationTri or AID.FieryExpiationSq)
             ++NumCasts;
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         var symbol = (OID)actor.OID switch
         {
@@ -83,12 +83,12 @@ class OrdealOfPurgation : Components.GenericAOEs
         {
             var dir = AngleToDirectionIndex(actor.Rotation);
             if (_symbols[dir] != Symbol.Unknown)
-                module.ReportError(this, $"Duplicate symbols at {dir}");
+                ReportError($"Duplicate symbols at {dir}");
             _symbols[dir] = symbol;
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         var dir = state switch
         {
@@ -137,11 +137,11 @@ class OrdealOfPurgation : Components.GenericAOEs
         _ => null
     };
 
-    private AOEInstance? AOEFromDirection(BossModule module, int index)
+    private AOEInstance? AOEFromDirection(int index)
     {
         index = TransformByMiddle(index);
         var shape = ShapeAtDirection(index);
         var dir = DirectionIndexToAngle(index);
-        return shape != null ? new(shape, module.Bounds.Center + module.Bounds.HalfSize * dir.ToDirection(), dir + 180.Degrees(), _activation) : null;
+        return shape != null ? new(shape, Module.Bounds.Center + Module.Bounds.HalfSize * dir.ToDirection(), dir + 180.Degrees(), _activation) : null;
     }
 }

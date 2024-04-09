@@ -6,13 +6,13 @@ class P3Daat : Components.CastCounter
 
     public P3Daat() : base(ActionID.MakeSpell(AID.DaatRandom)) { }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (module.Raid.WithoutSlot().InRadiusExcluding(actor, radius).Any())
+        if (Raid.WithoutSlot().InRadiusExcluding(actor, radius).Any())
             hints.Add("Spread!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         arena.AddCircle(pc.Position, radius, ArenaColor.Danger);
     }

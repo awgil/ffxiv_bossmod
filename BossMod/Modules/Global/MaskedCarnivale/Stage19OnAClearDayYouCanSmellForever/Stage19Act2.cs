@@ -40,37 +40,37 @@ class ExplosiveDehiscence : Components.CastGaze
 
     public ExplosiveDehiscence() : base(ActionID.MakeSpell(AID.ExplosiveDehiscence)) { }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (!_blinded[slot] && casting)
             hints.Add("Cast Ink Jet on boss to get blinded!");
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Schizocarps)
             casting = true;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ExplosiveDehiscence)
             casting = false;
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
         return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
     }
@@ -81,13 +81,13 @@ class Reflect : BossComponent
     private bool reflect;
     private bool casting;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Reflect)
             casting = true;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Reflect)
         {
@@ -96,7 +96,7 @@ class Reflect : BossComponent
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (casting)
             hints.Add("Boss will reflect all magic damage!");
@@ -105,24 +105,15 @@ class Reflect : BossComponent
     }
 }
 
-class BadBreath : Components.SelfTargetedAOEs
-{
-    public BadBreath() : base(ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees())) { }
-}
+class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees()));
 
-class VineProbe : Components.SelfTargetedAOEs
-{
-    public VineProbe() : base(ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4)) { }
-}
+class VineProbe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4));
 
-class OffalBreath : Components.PersistentVoidzoneAtCastTarget
-{
-    public OffalBreath() : base(6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0) { }
-}
+class OffalBreath(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0);
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Same as first act, but this time the boss will cast a gaze from all directions.\nThe easiest counter for this is to blind yourself by casting Ink Jet on the\nboss after it casted Schizocarps.\nThe Final Sting combo window opens at around 75% health.\n(Off-guard->Bristle->Moonflute->Final Sting)");
     }

@@ -2,7 +2,7 @@ namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         var converter = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
         if (converter != null)
@@ -13,7 +13,7 @@ class Hints : BossComponent
             hints.Add("Destroy the spumes!");
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var tail = module.Enemies(OID.Tail).Where(x => x.IsTargetable && x.FindStatus(SID.Invincibility) == null && x.FindStatus(SID.MantleOfTheWhorl) != null).FirstOrDefault();
         var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
@@ -21,12 +21,12 @@ class Hints : BossComponent
         {
             if ((actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || (actor.Class is Class.BLU && TankMimikry == null)) && actor.TargetID == module.Enemies(OID.Tail).FirstOrDefault()?.InstanceID)
                 hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
-            if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && actor.TargetID == module.PrimaryActor.InstanceID)
+            if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && actor.TargetID == Module.PrimaryActor.InstanceID)
                 hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var converter = module.Enemies(OID.Converter).FirstOrDefault();
         var convertertargetable = module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();

@@ -2,8 +2,14 @@
 
 public class GenericTowers(BossModule module, ActionID aid = default) : CastCounter(module, aid)
 {
-    public record struct Tower(WPos Position, float Radius, int MinSoakers = 1, int MaxSoakers = 1, BitMask ForbiddenSoakers = default)
+    public struct Tower(WPos position, float radius, int minSoakers = 1, int maxSoakers = 1, BitMask forbiddenSoakers = default)
     {
+        public WPos Position = position;
+        public float Radius = radius;
+        public int MinSoakers = minSoakers;
+        public int MaxSoakers = maxSoakers;
+        public BitMask ForbiddenSoakers = forbiddenSoakers;
+
         public bool IsInside(WPos pos) => pos.InCircle(Position, Radius);
         public bool IsInside(Actor actor) => IsInside(actor.Position);
         public int NumInside(BossModule module) => module.Raid.WithSlot().ExcludedFromMask(ForbiddenSoakers).InRadius(Position, Radius).Count();

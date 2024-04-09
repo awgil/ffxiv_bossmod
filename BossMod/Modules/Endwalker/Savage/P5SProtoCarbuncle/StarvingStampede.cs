@@ -8,13 +8,13 @@ class StarvingStampede : Components.GenericAOEs
 
     public StarvingStampede() : base(ActionID.MakeSpell(AID.StarvingStampede)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // TODO: timings...
         return _positions.Skip(NumCasts).Take(3).Select(p => new AOEInstance(_shape, p));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         switch ((AID)spell.Action.ID)

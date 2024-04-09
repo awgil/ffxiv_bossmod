@@ -12,19 +12,13 @@ public enum AID : uint
     Icefall = 15064, // Boss->location, 2,5s cast, range 5 circle
 }
 
-class Icefall : Components.LocationTargetedAOEs
-{
-    public Icefall() : base(ActionID.MakeSpell(AID.Icefall), 5) { }
-}
+class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Icefall), 5);
 
-class VoidBlizzard : Components.CastHint
-{
-    public VoidBlizzard() : base(ActionID.MakeSpell(AID.VoidBlizzard), "Interrupt") { }
-}
+class VoidBlizzard(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidBlizzard), "Interrupt");
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("The first act is fairly easy. Interrupt the Void Blizzards with Spitting\nSardine and most of the danger is gone. The Imps are weak against fire spells.\nIn the 2nd act you can start the Final Sting combination at about 50%\nhealth left. (Off-guard->Bristle->Moonflute->Final Sting)");
     }
@@ -32,7 +26,7 @@ class Hints : BossComponent
 
 class Hints2 : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("The imps are weak to fire spells and strong against ice.\nInterrupt Void Blizzard with Spitting Sardine.");
     }

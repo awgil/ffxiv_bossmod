@@ -50,64 +50,34 @@ public enum SID : uint
     VortexBarrier = 3012, // Boss->Boss, extra=0x0
 }
 
-class EarthenFury : Components.RaidwideCast
-{
-    public EarthenFury() : base(ActionID.MakeSpell(AID.EarthenFuryAOE)) { }
-}
+class EarthenFury(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EarthenFuryAOE));
 
-class Geocrush : Components.SelfTargetedAOEs
-{
-    public Geocrush() : base(ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(25)) { } // TODO: verify falloff...
-}
+class Geocrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(25)); // TODO: verify falloff...
 
-class Landslide1 : Components.SelfTargetedAOEs
-{
-    public Landslide1() : base(ActionID.MakeSpell(AID.Landslide1), new AOEShapeRect(40, 3)) { }
-}
+class Landslide1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Landslide1), new AOEShapeRect(40, 3));
 
-class Landslide2 : Components.SelfTargetedAOEs
-{
-    public Landslide2() : base(ActionID.MakeSpell(AID.Landslide2), new AOEShapeRect(40, 3)) { }
-}
+class Landslide2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Landslide2), new AOEShapeRect(40, 3));
 
-class WeightOfTheLand : Components.SelfTargetedAOEs
-{
-    public WeightOfTheLand() : base(ActionID.MakeSpell(AID.WeightOfTheLand), new AOEShapeCircle(6)) { }
-}
+class WeightOfTheLand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLand), new AOEShapeCircle(6));
 
-class AerialBlast : Components.RaidwideCast
-{
-    public AerialBlast() : base(ActionID.MakeSpell(AID.AerialBlastAOE)) { }
-}
+class AerialBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AerialBlastAOE));
 
-class EyeOfTheStorm : Components.SelfTargetedAOEs
-{
-    public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStormAOE), new AOEShapeDonut(12.5f, 25)) { }
-}
+class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStormAOE), new AOEShapeDonut(12.5f, 25));
 
-class MistralShriek : Components.SelfTargetedAOEs
-{
-    public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(23)) { }
-}
+class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(23));
 
-class Hellfire : Components.RaidwideCast
-{
-    public Hellfire() : base(ActionID.MakeSpell(AID.HellfireAOE)) { }
-}
+class Hellfire(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HellfireAOE));
 
-class RadiantPlume : Components.SelfTargetedAOEs
-{
-    public RadiantPlume() : base(ActionID.MakeSpell(AID.RadiantPlumeAOE), new AOEShapeCircle(8)) { }
-}
+class RadiantPlume(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlumeAOE), new AOEShapeCircle(8));
 
 class VulcanBurst : Components.KnockbackFromCastTarget
 {
     public VulcanBurst() : base(ActionID.MakeSpell(AID.VulcanBurst), 15) { }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, module.Bounds.HalfSize - Distance), Casters[0].CastInfo!.NPCFinishAt);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Bounds.Center, Module.Bounds.HalfSize - Distance), Casters[0].CastInfo!.NPCFinishAt);
     }
 }
 

@@ -6,15 +6,15 @@ class UnluckyLotAetherialSphere : Components.GenericAOEs
 
     public UnluckyLotAetherialSphere() : base(ActionID.MakeSpell(AID.UnluckyLotAetherialSphere)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OptimalOffensiveMoveSphere)
             _aoe = new(new AOEShapeCircle(20), caster.Position, activation: spell.NPCFinishAt.AddSeconds(2.6));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.UnluckyLotAetherialSphere)
             _aoe = null;

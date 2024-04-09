@@ -13,7 +13,7 @@ class P5NearDistantWorld : Components.GenericStackSpread
 
     public P5NearDistantWorld() : base(true) { }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         Spreads.Clear();
         _risky.Reset();
@@ -24,7 +24,7 @@ class P5NearDistantWorld : Components.GenericStackSpread
         base.Update(module);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(module, slot, actor, hints, movementHints);
 
@@ -32,7 +32,7 @@ class P5NearDistantWorld : Components.GenericStackSpread
             hints.Add("Avoid baiting jump!");
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -47,23 +47,23 @@ class P5NearDistantWorld : Components.GenericStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.HelloNearWorld:
             case AID.HelloNearWorldJump:
                 ++NumNearJumpsDone;
-                var nearSlot = module.Raid.FindSlot(spell.MainTargetID);
+                var nearSlot = Raid.FindSlot(spell.MainTargetID);
                 _completedJumps.Set(nearSlot);
-                NearWorld = module.Raid[nearSlot];
+                NearWorld = Raid[nearSlot];
                 break;
             case AID.HelloDistantWorld:
             case AID.HelloDistantWorldJump:
                 ++NumDistantJumpsDone;
-                var distantSlot = module.Raid.FindSlot(spell.MainTargetID);
+                var distantSlot = Raid.FindSlot(spell.MainTargetID);
                 _completedJumps.Set(distantSlot);
-                DistantWorld = module.Raid[distantSlot];
+                DistantWorld = Raid[distantSlot];
                 break;
         }
     }
@@ -86,13 +86,13 @@ class P5NearDistantWorld : Components.GenericStackSpread
         }
         if (numDone <= 1 && start != null)
         {
-            start = close ? module.Raid.WithoutSlot().Exclude(start).Closest(start.Position) : module.Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
+            start = close ? Raid.WithoutSlot().Exclude(start).Closest(start.Position) : Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
             if (start != null)
                 AddSpread(module, start, 4, 1);
         }
         if (numDone <= 2 && start != null)
         {
-            start = close ? module.Raid.WithoutSlot().Exclude(start).Closest(start.Position) : module.Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
+            start = close ? Raid.WithoutSlot().Exclude(start).Closest(start.Position) : Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
             if (start != null)
                 AddSpread(module, start, 4, 2);
         }
@@ -101,7 +101,7 @@ class P5NearDistantWorld : Components.GenericStackSpread
     private void AddSpread(BossModule module, Actor target, float radius, int order)
     {
         Spreads.Add(new(target, radius, _firstActivation.AddSeconds(order * 1.0)));
-        var slot = module.Raid.FindSlot(target.InstanceID);
+        var slot = Raid.FindSlot(target.InstanceID);
         if (_targets[slot])
             _risky.Set(slot);
         else

@@ -25,34 +25,22 @@ public enum SID : uint
     Invincibility = 325, // none->Boss, extra=0x0
 }
 
-class CursedGaze : Components.SelfTargetedAOEs
-{
-    public CursedGaze() : base(ActionID.MakeSpell(AID.CursedGaze), new AOEShapeCone(8.7f, 45.Degrees())) { }
-}
+class CursedGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CursedGaze), new AOEShapeCone(8.7f, 45.Degrees()));
 
-class DreadGaze : Components.SelfTargetedAOEs
-{
-    public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(8.7f, 45.Degrees())) { }
-}
+class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(8.7f, 45.Degrees()));
 
-class Thunderstrike : Components.SelfTargetedAOEs
-{
-    public Thunderstrike() : base(ActionID.MakeSpell(AID.Thunderstrike), new AOEShapeRect(11.2f, 1.5f)) { }
-}
+class Thunderstrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Thunderstrike), new AOEShapeRect(11.2f, 1.5f));
 
-class Condemnation : Components.SelfTargetedAOEs
-{
-    public Condemnation() : base(ActionID.MakeSpell(AID.Condemnation), new AOEShapeCone(7.3f, 45.Degrees())) { }
-}
+class Condemnation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Condemnation), new AOEShapeCone(7.3f, 45.Degrees()));
 
 // try to always stay in active crystal closest to boss
 class Positioning : BossComponent
 {
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (module.PrimaryActor.CastInfo == null) // do not restrict zone while boss is casting, to allow avoiding aoe, even if it means temporarily leaving crystal veil
+        if (Module.PrimaryActor.CastInfo == null) // do not restrict zone while boss is casting, to allow avoiding aoe, even if it means temporarily leaving crystal veil
         {
-            var closestCrystal = module.Enemies(OID.Crystal).Closest(module.PrimaryActor.Position);
+            var closestCrystal = module.Enemies(OID.Crystal).Closest(Module.PrimaryActor.Position);
             if (closestCrystal != null)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestCrystal.Position, 8)); // TODO: verify range
         }

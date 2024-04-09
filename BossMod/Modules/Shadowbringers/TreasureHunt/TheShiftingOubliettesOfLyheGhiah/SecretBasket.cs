@@ -37,10 +37,7 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
-class Earthquake : Components.RaidwideCast
-{
-    public Earthquake() : base(ActionID.MakeSpell(AID.Earthquake)) { }
-}
+class Earthquake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Earthquake));
 
 class HeavyStrike1 : Components.SelfTargetedAOEs
 {
@@ -54,7 +51,7 @@ class HeavyStrike2 : Components.SelfTargetedAOEs
 {
     public HeavyStrike2() : base(ActionID.MakeSpell(AID.HeavyStrike2), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees())) { }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         base.OnCastFinished(module, caster, spell);
         if ((AID)spell.Action.ID == AID.HeavyStrike1)
@@ -68,7 +65,7 @@ class HeavyStrike2 : Components.SelfTargetedAOEs
 class HeavyStrike3 : Components.SelfTargetedAOEs
 {
     public HeavyStrike3() : base(ActionID.MakeSpell(AID.HeavyStrike3), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees())) { }
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         base.OnCastFinished(module, caster, spell);
         if ((AID)spell.Action.ID == AID.HeavyStrike2)
@@ -78,50 +75,23 @@ class HeavyStrike3 : Components.SelfTargetedAOEs
     }
 }
 
-class PollenCorona : Components.SelfTargetedAOEs
-{
-    public PollenCorona() : base(ActionID.MakeSpell(AID.PollenCorona), new AOEShapeCircle(8)) { }
-}
+class PollenCorona(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PollenCorona), new AOEShapeCircle(8));
 
-class StraightPunch : Components.SingleTargetCast
-{
-    public StraightPunch() : base(ActionID.MakeSpell(AID.StraightPunch)) { }
-}
+class StraightPunch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.StraightPunch));
 
-class Leafcutter : Components.SelfTargetedAOEs
-{
-    public Leafcutter() : base(ActionID.MakeSpell(AID.Leafcutter), new AOEShapeRect(15, 2)) { }
-}
+class Leafcutter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Leafcutter), new AOEShapeRect(15, 2));
 
-class EarthCrusher : Components.SelfTargetedAOEs
-{
-    public EarthCrusher() : base(ActionID.MakeSpell(AID.EarthCrusher2), new AOEShapeDonut(10, 20)) { }
-}
+class EarthCrusher(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EarthCrusher2), new AOEShapeDonut(10, 20));
 
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
-}
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
 
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
-}
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
 
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
-}
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
 
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
-}
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
 
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
-}
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
 class BasketStates : StateMachineBuilder
 {

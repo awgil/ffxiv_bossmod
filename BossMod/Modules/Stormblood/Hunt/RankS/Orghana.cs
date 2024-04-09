@@ -15,20 +15,11 @@ public enum AID : uint
     Epigraph = 7997, // Boss->self, 3,5s cast, range 50+R width 8 rect
 }
 
-class TremblingEpigraph : Components.RaidwideCast
-{
-    public TremblingEpigraph() : base(ActionID.MakeSpell(AID.TremblingEpigraph), "Raidwide x4") { }
-}
+class TremblingEpigraph(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TremblingEpigraph), "Raidwide x4");
 
-class FlaringEpigraph : Components.RaidwideCast
-{
-    public FlaringEpigraph() : base(ActionID.MakeSpell(AID.FlaringEpigraph)) { }
-}
+class FlaringEpigraph(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FlaringEpigraph));
 
-class Epigraph : Components.SelfTargetedAOEs
-{
-    public Epigraph() : base(ActionID.MakeSpell(AID.Epigraph), new AOEShapeRect(55.04f, 4)) { }
-}
+class Epigraph(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Epigraph), new AOEShapeRect(55.04f, 4));
 
 class OrghanaStates : StateMachineBuilder
 {
@@ -42,7 +33,4 @@ class OrghanaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5986)]
-public class Orghana : SimpleBossModule
-{
-    public Orghana(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Orghana(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

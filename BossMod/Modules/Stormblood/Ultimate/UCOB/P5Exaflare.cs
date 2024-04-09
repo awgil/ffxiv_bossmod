@@ -6,7 +6,7 @@ class P5Exaflare : Components.Exaflare
 
     public void Reset() => NumCasts = 0;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ExaflareFirst)
         {
@@ -14,7 +14,7 @@ class P5Exaflare : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ExaflareFirst or AID.ExaflareRest)
         {
@@ -22,7 +22,7 @@ class P5Exaflare : Components.Exaflare
             int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             if (index == -1)
             {
-                module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X}");
+                ReportError($"Failed to find entry for {caster.InstanceID:X}");
                 return;
             }
 

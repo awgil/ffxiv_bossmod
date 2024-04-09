@@ -304,9 +304,9 @@ class P3SStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.PositioningStart);
         Cast(id + 0x1000, AID.SearingBreeze, 4.1f, 3, "SearingBreeze");
         AshplumeCast(id + 0x2000, 4.1f);
-        ComponentCondition<DarkblazeTwister>(id + 0x3000, 2.8f, comp => comp.DarkTwister(Module) == null, "Knockback")
+        ComponentCondition<DarkblazeTwister>(id + 0x3000, 2.8f, comp => comp.DarkTwister() == null, "Knockback")
             .SetHint(StateMachine.StateHint.Knockback);
-        ComponentCondition<DarkblazeTwister>(id + 0x4000, 2, comp => !comp.BurningTwisters(Module).Any(), "AOE")
+        ComponentCondition<DarkblazeTwister>(id + 0x4000, 2, comp => !comp.BurningTwisters().Any(), "AOE")
             .DeactivateOnExit<DarkblazeTwister>();
         AshplumeResolve(id + 0x5000, 2.3f)
             .SetHint(StateMachine.StateHint.PositioningEnd);

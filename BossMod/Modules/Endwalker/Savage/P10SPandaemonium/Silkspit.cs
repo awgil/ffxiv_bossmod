@@ -2,37 +2,35 @@
 
 class Silkspit : Components.UniformStackSpread
 {
-    private IReadOnlyList<Actor> _pillars = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _pillars;
 
-    public Silkspit() : base(0, 7) { }
-
-    public override void Init(BossModule module)
+    public Silkspit(BossModule module) : base(module, 0, 7)
     {
         _pillars = module.Enemies(OID.Pillar);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (IsSpreadTarget(actor) && _pillars.InRadius(actor.Position, SpreadRadius).Any())
             hints.Add("GTFO from pillars!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        base.DrawArenaBackground(module, pcSlot, pc, arena);
-        arena.Actors(_pillars, ArenaColor.Object, true);
+        base.DrawArenaBackground(pcSlot, pc);
+        Arena.Actors(_pillars, ArenaColor.Object, true);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SilkspitAOE)
             Spreads.Clear();
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Silkspit)
-            AddSpread(actor, module.WorldState.CurrentTime.AddSeconds(8));
+            AddSpread(actor, WorldState.FutureTime(8));
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara;
+﻿using BossMod;
+
+namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara;
 
 public enum OID : uint
 {
@@ -21,33 +23,21 @@ public enum AID : uint
     SBloodyCaress = 31095, // SSapria->self, 3.0s cast, range 12 120-degree cone
 }
 
-class HoneyedLeft : Components.SelfTargetedAOEs
-{
-    public HoneyedLeft(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(30, 90.Degrees())) { }
-}
-class NHoneyedLeft : HoneyedLeft { public NHoneyedLeft() : base(AID.NHoneyedLeft) { } }
-class SHoneyedLeft : HoneyedLeft { public SHoneyedLeft() : base(AID.SHoneyedLeft) { } }
+class HoneyedLeft(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(30, 90.Degrees()));
+class NHoneyedLeft(BossModule module) : HoneyedLeft(module, AID.NHoneyedLeft);
+class SHoneyedLeft(BossModule module) : HoneyedLeft(module, AID.SHoneyedLeft);
 
-class HoneyedRight : Components.SelfTargetedAOEs
-{
-    public HoneyedRight(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(30, 90.Degrees())) { }
-}
-class NHoneyedRight : HoneyedRight { public NHoneyedRight() : base(AID.NHoneyedRight) { } }
-class SHoneyedRight : HoneyedRight { public SHoneyedRight() : base(AID.SHoneyedRight) { } }
+class HoneyedRight(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(30, 90.Degrees()));
+class NHoneyedRight(BossModule module) : HoneyedRight(module, AID.NHoneyedRight);
+class SHoneyedRight(BossModule module) : HoneyedRight(module, AID.SHoneyedRight);
 
-class HoneyedFront : Components.SelfTargetedAOEs
-{
-    public HoneyedFront(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(30, 60.Degrees())) { }
-}
-class NHoneyedFront : HoneyedFront { public NHoneyedFront() : base(AID.NHoneyedFront) { } }
-class SHoneyedFront : HoneyedFront { public SHoneyedFront() : base(AID.SHoneyedFront) { } }
+class HoneyedFront(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(30, 60.Degrees()));
+class NHoneyedFront(BossModule module) : HoneyedFront(module, AID.NHoneyedFront);
+class SHoneyedFront(BossModule module) : HoneyedFront(module, AID.SHoneyedFront);
 
-class BloodyCaress : Components.SelfTargetedAOEs
-{
-    public BloodyCaress(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(12, 60.Degrees())) { }
-}
-class NBloodyCaress : BloodyCaress { public NBloodyCaress() : base(AID.NBloodyCaress) { } }
-class SBloodyCaress : BloodyCaress { public SBloodyCaress() : base(AID.SBloodyCaress) { } }
+class BloodyCaress(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(12, 60.Degrees()));
+class NBloodyCaress(BossModule module) : BloodyCaress(module, AID.NBloodyCaress);
+class SBloodyCaress(BossModule module) : BloodyCaress(module, AID.SBloodyCaress);
 
 class C010UdumbaraStates : StateMachineBuilder
 {
@@ -62,17 +52,15 @@ class C010UdumbaraStates : StateMachineBuilder
             .ActivateOnEnter<SHoneyedRight>(savage)
             .ActivateOnEnter<SHoneyedFront>(savage)
             .ActivateOnEnter<SBloodyCaress>(savage)
-            .Raw.Update = () => (module.PrimaryActor.IsDestroyed || module.PrimaryActor.IsDead) && !module.Enemies(savage ? OID.SSapria : OID.NSapria).Any(a => !a.IsDead);
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed && module.Enemies(savage ? OID.SSapria : OID.NSapria).All(a => a.IsDead);
     }
 }
-class C010NUdumbaraStates : C010UdumbaraStates { public C010NUdumbaraStates(BossModule module) : base(module, false) { } }
-class C010SUdumbaraStates : C010UdumbaraStates { public C010SUdumbaraStates(BossModule module) : base(module, true) { } }
+class C010NUdumbaraStates(BossModule module) : C010UdumbaraStates(module, false);
+class C010SUdumbaraStates(BossModule module) : C010UdumbaraStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11511, SortOrder = 3)]
-public class C010NUdumbara : SimpleBossModule
+public class C010NUdumbara(WorldState ws, Actor primary) : SimpleBossModule(ws, primary)
 {
-    public C010NUdumbara(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
@@ -81,10 +69,8 @@ public class C010NUdumbara : SimpleBossModule
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11511, SortOrder = 3)]
-public class C010SUdumbara : SimpleBossModule
+public class C010SUdumbara(WorldState ws, Actor primary) : SimpleBossModule(ws, primary)
 {
-    public C010SUdumbara(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

@@ -6,7 +6,7 @@ class VulcanBurst : Components.Knockback
 
     public VulcanBurst(AID aid) : base(ActionID.MakeSpell(aid)) { }
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (SourceActor != null)
             yield return new(SourceActor.Position, 15); // TODO: activation

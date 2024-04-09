@@ -10,7 +10,7 @@ class MountainBuster : Components.Cleave
         NextExpected = module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Tankbuster);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         var boss = hints.PotentialTargets.Find(e => (OID)e.Actor.OID == OID.Boss);
@@ -29,7 +29,7 @@ class RockBuster : Components.Cleave
         NextExpected = module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Tankbuster);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         var boss = hints.PotentialTargets.Find(e => (OID)e.Actor.OID == OID.TitansHeart);

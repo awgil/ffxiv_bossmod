@@ -1,29 +1,14 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3Dahu;
 
-class FallingRock : Components.LocationTargetedAOEs
-{
-    public FallingRock() : base(ActionID.MakeSpell(AID.FallingRock), 4) { }
-}
+class FallingRock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), 4);
 
-class HotCharge : Components.ChargeAOEs
-{
-    public HotCharge() : base(ActionID.MakeSpell(AID.HotCharge), 4) { }
-}
+class HotCharge(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.HotCharge), 4);
 
-class Firebreathe : Components.SelfTargetedAOEs
-{
-    public Firebreathe() : base(ActionID.MakeSpell(AID.Firebreathe), new AOEShapeCone(60, 45.Degrees())) { }
-}
+class Firebreathe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Firebreathe), new AOEShapeCone(60, 45.Degrees()));
 
-class HeadDown : Components.ChargeAOEs
-{
-    public HeadDown() : base(ActionID.MakeSpell(AID.HeadDown), 2) { }
-}
+class HeadDown(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.HeadDown), 2);
 
-class HuntersClaw : Components.SelfTargetedAOEs
-{
-    public HuntersClaw() : base(ActionID.MakeSpell(AID.HuntersClaw), new AOEShapeCircle(8)) { }
-}
+class HuntersClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HuntersClaw), new AOEShapeCircle(8));
 
 class Burn : Components.BaitAwayIcon
 {

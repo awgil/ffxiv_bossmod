@@ -16,7 +16,7 @@ public enum AID : uint
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Trivial act. Enemies here are weak to lightning and fire.\nIn Act 2 the Ram's Voice and Ultravibration combo can be useful.\nFlying Sardine for interrupts can be beneficial.");
     }
@@ -24,7 +24,7 @@ class Hints : BossComponent
 
 class Hints2 : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Bats are weak to lightning.\nThe wolf is weak to fire.");
     }

@@ -33,37 +33,28 @@ public enum SID : uint
 class HoodSwing : Components.Cleave
 {
     private DateTime _lastBossCast; // assume boss/add cleaves are synchronized?..
-    public float SecondsUntilNextCast(BossModule module) => Math.Max(0, 18 - (float)(module.WorldState.CurrentTime - _lastBossCast).TotalSeconds);
+    public float SecondsUntilNextCast(BossModule module) => Math.Max(0, 18 - (float)(WorldState.CurrentTime - _lastBossCast).TotalSeconds);
 
     public HoodSwing() : base(ActionID.MakeSpell(AID.HoodSwing), new AOEShapeCone(11, 60.Degrees()), (uint)OID.Boss) { } // TODO: verify angle
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add($"Next cleave in ~{SecondsUntilNextCast(module):f1}s");
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
-        if (spell.Action == WatchedAction && caster == module.PrimaryActor)
-            _lastBossCast = module.WorldState.CurrentTime;
+        if (spell.Action == WatchedAction && caster == Module.PrimaryActor)
+            _lastBossCast = WorldState.CurrentTime;
     }
 }
 
-class WhipBack : Components.SelfTargetedAOEs
-{
-    public WhipBack() : base(ActionID.MakeSpell(AID.WhipBack), new AOEShapeCone(9, 60.Degrees())) { }
-}
+class WhipBack(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhipBack), new AOEShapeCone(9, 60.Degrees()));
 
-class Regorge : Components.PersistentVoidzoneAtCastTarget
-{
-    public Regorge() : base(4, ActionID.MakeSpell(AID.Regorge), m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f) { }
-}
+class Regorge(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Regorge), m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f);
 
-class Syrup : Components.PersistentVoidzoneAtCastTarget
-{
-    public Syrup() : base(4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.3f) { }
-}
+class Syrup(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.3f);
 
 // TODO: merge happens if bosses are 'close enough' (threshold is >20.82 at least) or have high enough hp difference (>5% at least) and more than 20s passed since split
 class CloneMerge : BossComponent
@@ -72,27 +63,27 @@ class CloneMerge : BossComponent
     public DateTime CloneSpawnTime { get; private set; }
     public Actor? CloneIfValid => Clone != null && !Clone.IsDestroyed && !Clone.IsDead && Clone.IsTargetable ? Clone : null;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
-        if (Clone != null || module.PrimaryActor.HP.Cur > module.PrimaryActor.HP.Max / 2)
+        if (Clone != null || Module.PrimaryActor.HP.Cur > Module.PrimaryActor.HP.Max / 2)
             return;
-        Clone = module.Enemies(OID.Boss).FirstOrDefault(a => a != module.PrimaryActor);
+        Clone = module.Enemies(OID.Boss).FirstOrDefault(a => a != Module.PrimaryActor);
         if (Clone != null)
-            CloneSpawnTime = module.WorldState.CurrentTime;
+            CloneSpawnTime = WorldState.CurrentTime;
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         var clone = CloneIfValid;
-        if (clone != null && !module.PrimaryActor.IsDestroyed && !module.PrimaryActor.IsDead && module.PrimaryActor.IsTargetable)
+        if (clone != null && !Module.PrimaryActor.IsDestroyed && !Module.PrimaryActor.IsDead && Module.PrimaryActor.IsTargetable)
         {
-            var hpDiff = (int)(clone.HP.Cur - module.PrimaryActor.HP.Cur) * 100.0f / module.PrimaryActor.HP.Max;
-            var checkIn = Math.Max(0, 20 - (module.WorldState.CurrentTime - CloneSpawnTime).TotalSeconds);
-            hints.Add($"Clone HP: {(hpDiff > 0 ? "+" : "")}{hpDiff:f1}%, distance: {(clone.Position - module.PrimaryActor.Position).Length():f2}, check in {checkIn:f1}s");
+            var hpDiff = (int)(clone.HP.Cur - Module.PrimaryActor.HP.Cur) * 100.0f / Module.PrimaryActor.HP.Max;
+            var checkIn = Math.Max(0, 20 - (WorldState.CurrentTime - CloneSpawnTime).TotalSeconds);
+            hints.Add($"Clone HP: {(hpDiff > 0 ? "+" : "")}{hpDiff:f1}%, distance: {(clone.Position - Module.PrimaryActor.Position).Length():f2}, check in {checkIn:f1}s");
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         arena.Actor(Clone, ArenaColor.Enemy);
     }
@@ -109,15 +100,12 @@ class T01CaduceusStates : StateMachineBuilder
             .ActivateOnEnter<Syrup>()
             .ActivateOnEnter<CloneMerge>()
             .ActivateOnEnter<T01AI>()
-            .Raw.Update = () => (module.PrimaryActor.IsDead || module.PrimaryActor.IsDestroyed) && module.FindComponent<CloneMerge>()!.CloneIfValid == null;
+            .Raw.Update = () => (Module.PrimaryActor.IsDead || Module.PrimaryActor.IsDestroyed) && module.FindComponent<CloneMerge>()!.CloneIfValid == null;
     }
 }
 
 [ConfigDisplay(Order = 0x110, Parent = typeof(RealmRebornConfig))]
-public class T01CaduceusConfig : CooldownPlanningConfigNode
-{
-    public T01CaduceusConfig() : base(50) { }
-}
+public class T01CaduceusConfig() : CooldownPlanningConfigNode(50);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1466, SortOrder = 2)]
 public class T01Caduceus : BossModule

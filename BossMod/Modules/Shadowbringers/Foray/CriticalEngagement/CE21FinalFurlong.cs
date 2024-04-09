@@ -54,7 +54,7 @@ class GraspingRancor : Components.LocationTargetedAOEs
         _hands = module.Enemies(OID.GraspingRancor);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(module, slot, actor, hints, movementHints);
         if (Casters.Count > 0)
@@ -69,7 +69,7 @@ class GraspingRancor : Components.LocationTargetedAOEs
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var hand = _hands.FirstOrDefault(h => h.Tether.Target == pc.InstanceID);
         if (hand != null)
@@ -81,45 +81,21 @@ class GraspingRancor : Components.LocationTargetedAOEs
     }
 }
 
-class HatefulMiasma : Components.StackWithCastTargets
-{
-    public HatefulMiasma() : base(ActionID.MakeSpell(AID.HatefulMiasma), 6) { }
-}
+class HatefulMiasma(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.HatefulMiasma), 6);
 
-class PoisonedWords : Components.LocationTargetedAOEs
-{
-    public PoisonedWords() : base(ActionID.MakeSpell(AID.PoisonedWords), 6) { }
-}
+class PoisonedWords(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PoisonedWords), 6);
 
-class TalonedGaze : Components.CastHint
-{
-    public TalonedGaze() : base(ActionID.MakeSpell(AID.TalonedGaze), "AOE front/back --> sides") { }
-}
+class TalonedGaze(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TalonedGaze), "AOE front/back --> sides");
 
-class TalonedWings : Components.CastHint
-{
-    public TalonedWings() : base(ActionID.MakeSpell(AID.TalonedWings), "AOE sides --> front/back") { }
-}
+class TalonedWings(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TalonedWings), "AOE sides --> front/back");
 
-class CoffinNails : Components.SelfTargetedAOEs
-{
-    public CoffinNails() : base(ActionID.MakeSpell(AID.CoffinNails), new AOEShapeCone(60, 45.Degrees()), 2) { }
-}
+class CoffinNails(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CoffinNails), new AOEShapeCone(60, 45.Degrees()), 2);
 
-class Stab : Components.SingleTargetCast
-{
-    public Stab() : base(ActionID.MakeSpell(AID.Stab)) { }
-}
+class Stab(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Stab));
 
-class GripOfPoison : Components.RaidwideCast
-{
-    public GripOfPoison() : base(ActionID.MakeSpell(AID.GripOfPoison)) { }
-}
+class GripOfPoison(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.GripOfPoison));
 
-class StepsOfDestruction : Components.LocationTargetedAOEs
-{
-    public StepsOfDestruction() : base(ActionID.MakeSpell(AID.StepsOfDestructionAOE), 6) { }
-}
+class StepsOfDestruction(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StepsOfDestructionAOE), 6);
 
 class CE21FinalFurlongStates : StateMachineBuilder
 {
@@ -139,7 +115,4 @@ class CE21FinalFurlongStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 6)] // bnpcname=9405
-public class CE21FinalFurlong : BossModule
-{
-    public CE21FinalFurlong(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(644, 228), 27)) { }
-}
+public class CE21FinalFurlong(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(644, 228), 27));

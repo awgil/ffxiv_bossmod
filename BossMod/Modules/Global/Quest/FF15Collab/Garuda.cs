@@ -36,7 +36,7 @@ class GustFront : Components.UniformStackSpread
 {
     public GustFront() : base(1.2f, 0) { }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.GustFront)
             AddStack(module.Enemies(OID.Noctis).FirstOrDefault()!);
@@ -51,30 +51,30 @@ class Microburst : Components.SelfTargetedAOEs
 
     public Microburst() : base(ActionID.MakeSpell(AID.Microburst), new AOEShapeCircle(18)) { }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         base.OnCastStarted(module, caster, spell);
         if ((AID)spell.Action.ID == AID.Microburst)
             casting = true;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         base.OnCastFinished(module, caster, spell);
         if ((AID)spell.Action.ID == AID.Microburst)
             casting = false;
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (casting)
             hints.Add($"Keep using duty action on the {module.Enemies(OID.Monolith).FirstOrDefault()!.Name}s to stay out of the AOE!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
-        if (casting && actor.Position.AlmostEqual(module.PrimaryActor.Position, 15))
+        if (casting && actor.Position.AlmostEqual(Module.PrimaryActor.Position, 15))
             hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).FirstOrDefault()!, 1, false));
     }
 }
@@ -86,91 +86,85 @@ class MistralShriek : Components.SelfTargetedAOEs
 
     public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(30)) { }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         base.OnCastStarted(module, caster, spell);
         if ((AID)spell.Action.ID == AID.MistralShriek)
             casting = true;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         base.OnCastFinished(module, caster, spell);
         if ((AID)spell.Action.ID == AID.MistralShriek)
             casting = false;
-        done = module.WorldState.CurrentTime;
+        done = WorldState.CurrentTime;
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (casting)
             hints.Add($"Use duty action to teleport to the {module.Enemies(OID.Monolith).FirstOrDefault()!.Name} at the opposite side of Garuda!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         if (casting)
-            hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).Where(p => !p.Position.AlmostEqual(module.PrimaryActor.Position, 5)).FirstOrDefault()!, 1, false));
-        if (module.WorldState.CurrentTime > done && module.WorldState.CurrentTime < done.AddSeconds(2))
-            hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.PrimaryActor, 1, false));
+            hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), module.Enemies(OID.Monolith).Where(p => !p.Position.AlmostEqual(Module.PrimaryActor.Position, 5)).FirstOrDefault()!, 1, false));
+        if (WorldState.CurrentTime > done && WorldState.CurrentTime < done.AddSeconds(2))
+            hints.PlannedActions.Add((ActionID.MakeSpell(AID.warpstrike), Module.PrimaryActor, 1, false));
     }
 }
 
-class MistralSong : Components.SelfTargetedAOEs
-{
-    public MistralSong() : base(ActionID.MakeSpell(AID.MistralSong), new AOEShapeCone(20, 75.Degrees())) { }
-}
+class MistralSong(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralSong), new AOEShapeCone(20, 75.Degrees()));
 
-class WickedTornado : Components.SelfTargetedAOEs
-{
-    public WickedTornado() : base(ActionID.MakeSpell(AID.WickedTornado), new AOEShapeDonut(8, 20)) { }
-}
+class WickedTornado(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WickedTornado), new AOEShapeDonut(8, 20));
 
 // TODO: create and use generic 'line stack' component
 class MiniSupercell : Components.GenericBaitAway
 {
     private Actor? target;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.MiniSupercell)
         {
-            target = module.WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(module.PrimaryActor, target!, new AOEShapeRect(45, 3)));
+            target = WorldState.Actors.Find(spell.MainTargetID);
+            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(45, 3)));
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.MiniSupercell2)
             CurrentBaits.Clear();
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 45, 0, 3));
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 45, 0, 3));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (CurrentBaits.Count > 0)
         {
-            if (!actor.Position.InRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 45, 0, 3))
+            if (!actor.Position.InRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 45, 0, 3))
                 hints.Add("Stack!");
             else
                 hints.Add("Stack!", false);
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var bait in CurrentBaits)
             bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
+    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
 class MiniSupercellKB : Components.KnockbackFromCastTarget
@@ -181,15 +175,9 @@ class MiniSupercellKB : Components.KnockbackFromCastTarget
     }
 }
 
-class GravitationalForce : Components.PersistentVoidzoneAtCastTarget
-{
-    public GravitationalForce() : base(5, ActionID.MakeSpell(AID.GravitationalForce2), m => m.Enemies(OID.GravityVoidzone), 0) { }
-}
+class GravitationalForce(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.GravitationalForce2), m => m.Enemies(OID.GravityVoidzone), 0);
 
-class MistralGaol : Components.CastHint
-{
-    public MistralGaol() : base(ActionID.MakeSpell(AID.MistralGaol), "Prepare for Quick Time Event (spam buttons when it starts)") { }
-}
+class MistralGaol(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MistralGaol), "Prepare for Quick Time Event (spam buttons when it starts)");
 
 class GarudaStates : StateMachineBuilder
 {

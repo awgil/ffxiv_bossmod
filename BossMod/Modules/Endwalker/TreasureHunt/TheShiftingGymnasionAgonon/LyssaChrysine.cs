@@ -28,29 +28,20 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 
-class HeavySmash2 : Components.LocationTargetedAOEs
-{
-    public HeavySmash2() : base(ActionID.MakeSpell(AID.HeavySmash2), 6) { }
-}
+class HeavySmash2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash2), 6);
+class FrigidStone2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FrigidStone2), 5);
 
-class FrigidStone2 : Components.LocationTargetedAOEs
-{
-    public FrigidStone2() : base(ActionID.MakeSpell(AID.FrigidStone2), 5) { }
-}
-
-class OutInAOE : Components.ConcentricAOEs
+class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
     private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20) };
 
-    public OutInAOE() : base(_shapes) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FrigidNeedle)
-            AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
+            AddSequence(Module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Sequences.Count > 0)
         {
@@ -60,24 +51,22 @@ class OutInAOE : Components.ConcentricAOEs
                 AID.CircleOfIce2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+            AdvanceSequence(order, Module.Bounds.Center, WorldState.FutureTime(2));
         }
     }
 }
 
-class InOutAOE : Components.ConcentricAOEs
+class InOutAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
     private static readonly AOEShape[] _shapes = [new AOEShapeDonut(10, 20), new AOEShapeCircle(10)];
 
-    public InOutAOE() : base(_shapes) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.CircleOfIce)
-            AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
+            AddSequence(Module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Sequences.Count > 0)
         {
@@ -87,48 +76,34 @@ class InOutAOE : Components.ConcentricAOEs
                 AID.FrigidNeedle2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+            AdvanceSequence(order, Module.Bounds.Center, WorldState.FutureTime(2));
         }
     }
 }
 
-class PillarPierce : Components.SelfTargetedAOEs
-{
-    public PillarPierce() : base(ActionID.MakeSpell(AID.PillarPierce), new AOEShapeRect(80, 2)) { }
-}
+class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarPierce), new AOEShapeRect(80, 2));
+class SkullDasher(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SkullDasher));
+class HeavySmash(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.HeavySmash), 6);
 
-class SkullDasher : Components.SingleTargetCast
-{
-    public SkullDasher() : base(ActionID.MakeSpell(AID.SkullDasher)) { }
-}
-
-class HeavySmash : Components.StackWithCastTargets
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-}
-
-class IcePillarSpawn : Components.GenericAOEs
+class IcePillarSpawn(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = new();
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(4);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(4);
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.IcePillars)
-            _aoes.Add(new(new AOEShapeCircle(6), actor.Position, activation: module.WorldState.CurrentTime.AddSeconds(3.75f)));
+            _aoes.Add(new(new AOEShapeCircle(6), actor.Position, default, WorldState.FutureTime(3.75f)));
     }
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.IcePillar)
             _aoes.RemoveAt(0);
     }
 }
 
-class Howl : Components.CastHint
-{
-    public Howl() : base(ActionID.MakeSpell(AID.Howl), "Calls adds") { }
-}
+class Howl(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Howl), "Calls adds");
 
 class LyssaStates : StateMachineBuilder
 {
@@ -149,10 +124,8 @@ class LyssaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12024)]
-public class Lyssa : BossModule
+public class Lyssa(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Lyssa(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

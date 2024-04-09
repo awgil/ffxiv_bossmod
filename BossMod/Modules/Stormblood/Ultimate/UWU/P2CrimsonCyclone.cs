@@ -21,7 +21,7 @@ class CrimsonCyclone : Components.GenericAOEs
         _predictionDelay = predictionDelay;
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_predicted.Count <= 2) // don't draw 4 predicted charges, it is pointless
             foreach (var p in _predicted)
@@ -30,13 +30,13 @@ class CrimsonCyclone : Components.GenericAOEs
             yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (NumCasts == 0 && (OID)actor.OID == OID.Ifrit && id == 0x1E43)
-            _predicted.Add((_shapeMain, actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(_predictionDelay)));
+            _predicted.Add((_shapeMain, actor.Position, actor.Rotation, WorldState.FutureTime(_predictionDelay)));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
@@ -46,20 +46,20 @@ class CrimsonCyclone : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
             _casters.Remove(caster);
             if (caster == ((UWU)module).Ifrit() && caster.FindStatus(SID.Woken) != null)
             {
-                _predicted.Add((_shapeCross, module.Bounds.Center - 19.5f * (spell.Rotation + 45.Degrees()).ToDirection(), spell.Rotation + 45.Degrees(), module.WorldState.CurrentTime.AddSeconds(2.2f)));
-                _predicted.Add((_shapeCross, module.Bounds.Center - 19.5f * (spell.Rotation - 45.Degrees()).ToDirection(), spell.Rotation - 45.Degrees(), module.WorldState.CurrentTime.AddSeconds(2.2f)));
+                _predicted.Add((_shapeCross, Module.Bounds.Center - 19.5f * (spell.Rotation + 45.Degrees()).ToDirection(), spell.Rotation + 45.Degrees(), WorldState.FutureTime(2.2f)));
+                _predicted.Add((_shapeCross, Module.Bounds.Center - 19.5f * (spell.Rotation - 45.Degrees()).ToDirection(), spell.Rotation - 45.Degrees(), WorldState.FutureTime(2.2f)));
             }
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         if ((AID)spell.Action.ID == AID.CrimsonCycloneCross)
@@ -69,12 +69,6 @@ class CrimsonCyclone : Components.GenericAOEs
     }
 }
 
-class P2CrimsonCyclone : CrimsonCyclone
-{
-    public P2CrimsonCyclone() : base(5.2f) { }
-}
+class P2CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 5.2f);
 
-class P4CrimsonCyclone : CrimsonCyclone
-{
-    public P4CrimsonCyclone() : base(8.1f) { }
-}
+class P4CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 8.1f);

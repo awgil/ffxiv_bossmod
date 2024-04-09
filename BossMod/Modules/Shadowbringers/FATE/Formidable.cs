@@ -50,15 +50,9 @@ public enum SID : uint
     ExtremeCaution = 1269, // Boss->players
 }
 
-class Spincrush : Components.SelfTargetedAOEs
-{
-    public Spincrush() : base(ActionID.MakeSpell(AID.Spincrush), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Spincrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spincrush), new AOEShapeCone(15, 60.Degrees()));
 
-class FireShot : Components.LocationTargetedAOEs
-{
-    public FireShot() : base(ActionID.MakeSpell(AID.FireShot), 7) { }
-}
+class FireShot(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FireShot), 7);
 
 class FiresOfMtGulg : Components.GenericAOEs
 {
@@ -66,13 +60,13 @@ class FiresOfMtGulg : Components.GenericAOEs
     private DateTime _activation;
     private static readonly AOEShapeDonut _shape = new(10, 50);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_caster != null)
             yield return new(_shape, _caster.Position, default, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FiresOfMtGulg)
         {
@@ -82,11 +76,11 @@ class FiresOfMtGulg : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.FiresOfMtGulg or AID.FiresOfMtGulgRepeat)
         {
-            _activation = module.WorldState.CurrentTime.AddSeconds(3.1f);
+            _activation = WorldState.FutureTime(3.1f);
             if (++NumCasts >= 7)
                 _caster = null;
         }
@@ -94,10 +88,7 @@ class FiresOfMtGulg : Components.GenericAOEs
 }
 
 // note: raidwide cast is followed by 7 aoes every ~2.7s
-class BarrageFire : Components.RaidwideCast
-{
-    public BarrageFire() : base(ActionID.MakeSpell(AID.BarrageFire), "Raidwide + 7 repeats after") { }
-}
+class BarrageFire(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BarrageFire), "Raidwide + 7 repeats after");
 
 // note: it could have been a simple StackWithCastTargets, however sometimes there is no cast - i assume it happens because actor spawns right before starting a cast, and sometimes due to timings cast-start is missed by the game
 // because of that, we just use icons & cast events
@@ -106,15 +97,15 @@ class DrillShot : Components.StackWithCastTargets
 {
     public DrillShot() : base(ActionID.MakeSpell(AID.DrillShot), 6) { }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.DrillShot)
-            AddStack(actor, module.WorldState.CurrentTime.AddSeconds(5.0f));
+            AddStack(actor, WorldState.FutureTime(5.0f));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell) { }
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) { }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.DrillShot)
             Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
@@ -125,7 +116,7 @@ class ExplosionMissile : BossComponent
 {
     private List<Actor> _activeMissiles = new();
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var m in _activeMissiles)
         {
@@ -134,7 +125,7 @@ class ExplosionMissile : BossComponent
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.DwarvenDynamite)
             _activeMissiles.Add(actor);
@@ -146,17 +137,14 @@ class ExplosionMissile : BossComponent
             _activeMissiles.Remove(actor);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.ExplosionMissile)
             _activeMissiles.Remove(caster);
     }
 }
 
-class ExplosionGrenade : Components.SelfTargetedAOEs
-{
-    public ExplosionGrenade() : base(ActionID.MakeSpell(AID.ExplosionGrenade), new AOEShapeCircle(12)) { }
-}
+class ExplosionGrenade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionGrenade), new AOEShapeCircle(12));
 
 class DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay) : Components.GenericAOEs
 {
@@ -166,16 +154,16 @@ class DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay) : Componen
     private readonly float _delay = delay;
     private List<(Actor caster, DateTime activation)> _casters = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var (caster, activation) in _casters)
             yield return new(_shape, caster.Position, default, caster.CastInfo?.NPCFinishAt ?? activation);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == _oid)
-            _casters.Add((actor, module.WorldState.CurrentTime.AddSeconds(_delay)));
+            _casters.Add((actor, WorldState.FutureTime(_delay)));
     }
 
     public override void OnActorDestroyed(BossModule module, Actor actor)
@@ -184,32 +172,20 @@ class DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay) : Componen
             _casters.RemoveAll(c => c.caster == actor);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == _aid)
             _casters.RemoveAll(c => c.caster == caster);
     }
 }
 
-class DwarvenDischargeDonut : DwarvenDischarge
-{
-    public DwarvenDischargeDonut() : base(new AOEShapeDonut(9, 60), OID.DwarvenChargeDonut, AID.DwarvenDischargeDonut, 9.3f) { }
-}
+class DwarvenDischargeDonut(BossModule module) : DwarvenDischarge(module, new AOEShapeDonut(9, 60), OID.DwarvenChargeDonut, AID.DwarvenDischargeDonut, 9.3f);
 
-class DwarvenDischargeCircle : DwarvenDischarge
-{
-    public DwarvenDischargeCircle() : base(new AOEShapeCircle(8), OID.DwarvenChargeCircle, AID.DwarvenDischargeCircle, 8.1f) { }
-}
+class DwarvenDischargeCircle(BossModule module) : DwarvenDischarge(module, new AOEShapeCircle(8), OID.DwarvenChargeCircle, AID.DwarvenDischargeCircle, 8.1f);
 
-class AutomatonEscort : Components.Adds
-{
-    public AutomatonEscort() : base((uint)OID.AutomatonEscort) { }
-}
+class AutomatonEscort(BossModule module) : Components.Adds(module, (uint)OID.AutomatonEscort);
 
-class SteamDome : Components.KnockbackFromCastTarget
-{
-    public SteamDome() : base(ActionID.MakeSpell(AID.SteamDome), 15) { }
-}
+class SteamDome(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.SteamDome), 15);
 
 class DynamicSensoryJammer : Components.CastHint
 {
@@ -218,32 +194,32 @@ class DynamicSensoryJammer : Components.CastHint
     public bool Ec { get; private set; }
     private bool casting;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
             casting = true;
     }
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
             casting = false;
     }
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ExtremeCaution)
-            _ec.Set(module.Raid.FindSlot(actor.InstanceID));
+            _ec.Set(Raid.FindSlot(actor.InstanceID));
     }
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ExtremeCaution)
-            _ec.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _ec.Clear(Raid.FindSlot(actor.InstanceID));
     }
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_ec[slot] != Ec)
             hints.Add("Extreme Caution on you! STOP everything or get launched into the air!");
     }
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (casting)
             hints.Add("Stop everything including auto attacks or get launched into the air");

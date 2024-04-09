@@ -9,7 +9,7 @@ class GreatBallOfFire : Components.GenericAOEs
     private static readonly AOEShapeCircle _shapeSmall = new(10);
     private static readonly AOEShapeCircle _shapeBig = new(18);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var f in _smallFlames)
             yield return new(_shapeSmall, f.Position, new(), f.CastInfo?.NPCFinishAt ?? _activation);
@@ -21,10 +21,10 @@ class GreatBallOfFire : Components.GenericAOEs
     {
         _smallFlames = module.Enemies(OID.RagingFlame);
         _bigFlames = module.Enemies(OID.ImmolatingFlame);
-        _activation = module.WorldState.CurrentTime.AddSeconds(6.6f); // TODO: this depends on when do we want to start showing hints...
+        _activation = WorldState.FutureTime(6.6f); // TODO: this depends on when do we want to start showing hints...
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BurnSmall or AID.BurnBig)
             ++NumCasts;

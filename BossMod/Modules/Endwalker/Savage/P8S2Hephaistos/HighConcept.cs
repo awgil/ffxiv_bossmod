@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S2;
 
 // note: this is currently tailored to strat my static uses...
-class HighConceptCommon : BossComponent
+class HighConceptCommon(BossModule module) : BossComponent(module)
 {
     public enum Mechanic { Explosion1, Towers1, Explosion2, Towers2, Done }
     public enum PlayerRole { Unassigned, Stack1, Stack2, Stack3, ShortAlpha, ShortBeta, ShortGamma, LongAlpha, LongBeta, LongGamma, Count }
@@ -22,18 +22,15 @@ class HighConceptCommon : BossComponent
     protected static readonly float SpliceRadius = 6;
     protected static readonly float TowerRadius = 3;
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return NumAssignedRoles < 8 ? PlayerPriority.Irrelevant : PlayerPriority.Normal;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => NumAssignedRoles < 8 ? PlayerPriority.Irrelevant : PlayerPriority.Normal;
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var role = (SID)status.ID switch
         {
-            SID.ImperfectionAlpha => (status.ExpireAt - module.WorldState.CurrentTime).TotalSeconds > 15 ? PlayerRole.LongAlpha : PlayerRole.ShortAlpha,
-            SID.ImperfectionBeta => (status.ExpireAt - module.WorldState.CurrentTime).TotalSeconds > 15 ? PlayerRole.LongBeta : PlayerRole.ShortBeta,
-            SID.ImperfectionGamma => (status.ExpireAt - module.WorldState.CurrentTime).TotalSeconds > 15 ? PlayerRole.LongGamma : PlayerRole.ShortGamma,
+            SID.ImperfectionAlpha => (status.ExpireAt - WorldState.CurrentTime).TotalSeconds > 15 ? PlayerRole.LongAlpha : PlayerRole.ShortAlpha,
+            SID.ImperfectionBeta => (status.ExpireAt - WorldState.CurrentTime).TotalSeconds > 15 ? PlayerRole.LongBeta : PlayerRole.ShortBeta,
+            SID.ImperfectionGamma => (status.ExpireAt - WorldState.CurrentTime).TotalSeconds > 15 ? PlayerRole.LongGamma : PlayerRole.ShortGamma,
             SID.Solosplice => PlayerRole.Stack1,
             SID.Multisplice => PlayerRole.Stack2,
             SID.Supersplice => PlayerRole.Stack3,
@@ -42,7 +39,7 @@ class HighConceptCommon : BossComponent
 
         if (role != PlayerRole.Unassigned)
         {
-            var slot = module.Raid.FindSlot(actor.InstanceID);
+            var slot = Raid.FindSlot(actor.InstanceID);
             ++NumAssignedRoles;
             _roleSlots[(int)role] = slot;
             if (slot >= 0 && _playerRoles[slot] < role) // priority order: letters > stacks (important for HC2)
@@ -50,7 +47,7 @@ class HighConceptCommon : BossComponent
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -70,7 +67,7 @@ class HighConceptCommon : BossComponent
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state != 0x00020001)
             return;
@@ -112,33 +109,33 @@ class HighConceptCommon : BossComponent
             _ => (TowerColor.Unknown, new WDir())
         };
         if (secondColorHC2 != TowerColor.Unknown)
-            SecondTowersHC2.Add((module.Bounds.Center + secondOffsetHC2, secondColorHC2));
+            SecondTowersHC2.Add((Module.Bounds.Center + secondOffsetHC2, secondColorHC2));
     }
 
-    protected void DrawExplosion(BossModule module, int slot, float radius, bool safe)
+    protected void DrawExplosion(int slot, float radius, bool safe)
     {
-        var source = module.Raid[slot];
+        var source = Raid[slot];
         if (source != null)
-            module.Arena.AddCircle(source.Position, radius, safe ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(source.Position, radius, safe ? ArenaColor.Safe : ArenaColor.Danger);
     }
 
-    protected void DrawTower(BossModule module, WPos pos, bool assigned) => module.Arena.AddCircle(pos, TowerRadius, assigned ? ArenaColor.Safe : ArenaColor.Danger, 2);
-    protected void DrawTower(BossModule module, float offsetZ, bool assigned) => DrawTower(module, module.Bounds.Center + new WDir(0, offsetZ), assigned);
+    protected void DrawTower(WPos pos, bool assigned) => Arena.AddCircle(pos, TowerRadius, assigned ? ArenaColor.Safe : ArenaColor.Danger, 2);
+    protected void DrawTower(float offsetZ, bool assigned) => DrawTower(Module.Bounds.Center + new WDir(0, offsetZ), assigned);
 
-    protected void DrawTether(BossModule module, int slot1, int slot2, int pcSlot)
+    protected void DrawTether(int slot1, int slot2, int pcSlot)
     {
-        var a1 = module.Raid[slot1];
-        var a2 = module.Raid[slot2];
+        var a1 = Raid[slot1];
+        var a2 = Raid[slot2];
         if (a1 != null && a2 != null)
-            module.Arena.AddLine(a1.Position, a2.Position, pcSlot == slot1 || pcSlot == slot2 ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddLine(a1.Position, a2.Position, pcSlot == slot1 || pcSlot == slot2 ? ArenaColor.Safe : ArenaColor.Danger);
     }
 }
 
-class HighConcept1 : HighConceptCommon
+class HighConcept1(BossModule module) : HighConceptCommon(module)
 {
     public bool LongGoS => Service.Config.Get<P8S2Config>().HC1LongGoS;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (NumAssignedRoles < 8)
             return;
@@ -238,7 +235,7 @@ class HighConcept1 : HighConceptCommon
             hints.Add(hint, false);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var pcRole = RoleForSlot(pcSlot);
         switch (NextMechanic)
@@ -246,11 +243,11 @@ class HighConcept1 : HighConceptCommon
             case Mechanic.Explosion1:
                 if (NumAssignedRoles >= 8)
                 {
-                    DrawExplosion(module, SlotForRole(PlayerRole.ShortAlpha), ShiftRadius, pcRole == PlayerRole.ShortAlpha);
-                    DrawExplosion(module, SlotForRole(PlayerRole.ShortBeta), ShiftRadius, pcRole == PlayerRole.ShortBeta);
-                    DrawExplosion(module, SlotForRole(PlayerRole.ShortGamma), ShiftRadius, pcRole == PlayerRole.ShortGamma);
-                    DrawExplosion(module, SlotForRole(PlayerRole.Stack2), SpliceRadius, pcRole is PlayerRole.Stack2 or PlayerRole.LongAlpha);
-                    DrawExplosion(module, SlotForRole(PlayerRole.Stack3), SpliceRadius, pcRole is PlayerRole.Stack3 or PlayerRole.LongBeta or PlayerRole.LongGamma);
+                    DrawExplosion(SlotForRole(PlayerRole.ShortAlpha), ShiftRadius, pcRole == PlayerRole.ShortAlpha);
+                    DrawExplosion(SlotForRole(PlayerRole.ShortBeta), ShiftRadius, pcRole == PlayerRole.ShortBeta);
+                    DrawExplosion(SlotForRole(PlayerRole.ShortGamma), ShiftRadius, pcRole == PlayerRole.ShortGamma);
+                    DrawExplosion(SlotForRole(PlayerRole.Stack2), SpliceRadius, pcRole is PlayerRole.Stack2 or PlayerRole.LongAlpha);
+                    DrawExplosion(SlotForRole(PlayerRole.Stack3), SpliceRadius, pcRole is PlayerRole.Stack3 or PlayerRole.LongBeta or PlayerRole.LongGamma);
                 }
                 break;
             case Mechanic.Towers1:
@@ -263,26 +260,26 @@ class HighConcept1 : HighConceptCommon
                         TowerColor.Green => (PlayerRole.ShortAlpha, PlayerRole.ShortBeta),
                         _ => (PlayerRole.Unassigned, PlayerRole.Unassigned)
                     };
-                    DrawTower(module, -10, pcRole == roleN);
-                    DrawTower(module, +10, pcRole == roleS);
-                    DrawTether(module, SlotForRole(roleN), SlotForRole(roleS), pcSlot);
+                    DrawTower(-10, pcRole == roleN);
+                    DrawTower(+10, pcRole == roleS);
+                    DrawTether(SlotForRole(roleN), SlotForRole(roleS), pcSlot);
                 }
                 break;
             case Mechanic.Explosion2:
-                DrawExplosion(module, SlotForRole(PlayerRole.LongAlpha), ShiftRadius, pcRole switch
+                DrawExplosion(SlotForRole(PlayerRole.LongAlpha), ShiftRadius, pcRole switch
                 {
                     PlayerRole.LongAlpha => true,
                     PlayerRole.Stack2 => FirstTowers != TowerColor.Purple,
                     _ => false
                 });
-                DrawExplosion(module, SlotForRole(PlayerRole.LongBeta), ShiftRadius, pcRole switch
+                DrawExplosion(SlotForRole(PlayerRole.LongBeta), ShiftRadius, pcRole switch
                 {
                     PlayerRole.LongBeta => true,
                     PlayerRole.Stack2 => FirstTowers == TowerColor.Purple,
                     PlayerRole.Stack3 => FirstTowers == TowerColor.Green,
                     _ => false
                 });
-                DrawExplosion(module, SlotForRole(PlayerRole.LongGamma), ShiftRadius, pcRole switch
+                DrawExplosion(SlotForRole(PlayerRole.LongGamma), ShiftRadius, pcRole switch
                 {
                     PlayerRole.LongGamma => true,
                     PlayerRole.Stack3 => FirstTowers != TowerColor.Green,
@@ -308,21 +305,21 @@ class HighConcept1 : HighConceptCommon
                         _ => (PlayerRole.Unassigned, PlayerRole.Unassigned, PlayerRole.Unassigned, PlayerRole.Unassigned)
                     };
                     var (sOff, lOff) = LongGoS ? (-10, +10) : (+10, -10);
-                    DrawTower(module, lOff - 5, pcRole == roleLN);
-                    DrawTower(module, lOff + 5, pcRole == roleLS);
-                    DrawTower(module, sOff - 5, pcRole == roleSN);
-                    DrawTower(module, sOff + 5, pcRole == roleSS);
-                    DrawTether(module, SlotForRole(roleLN), SlotForRole(roleLS), pcSlot);
-                    DrawTether(module, SlotForRole(roleSN), SlotForRole(roleSS), pcSlot);
+                    DrawTower(lOff - 5, pcRole == roleLN);
+                    DrawTower(lOff + 5, pcRole == roleLS);
+                    DrawTower(sOff - 5, pcRole == roleSN);
+                    DrawTower(sOff + 5, pcRole == roleSS);
+                    DrawTether(SlotForRole(roleLN), SlotForRole(roleLS), pcSlot);
+                    DrawTether(SlotForRole(roleSN), SlotForRole(roleSS), pcSlot);
                 }
                 break;
         }
     }
 }
 
-class HighConcept2 : HighConceptCommon
+class HighConcept2(BossModule module) : HighConceptCommon(module)
 {
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (NumAssignedRoles < 8)
             return;
@@ -384,7 +381,7 @@ class HighConcept2 : HighConceptCommon
             hints.Add(hint, false);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var pcRole = RoleForSlot(pcSlot);
         switch (NextMechanic)
@@ -392,11 +389,11 @@ class HighConcept2 : HighConceptCommon
             case Mechanic.Explosion1:
                 if (NumAssignedRoles >= 8)
                 {
-                    DrawExplosion(module, SlotForRole(PlayerRole.ShortAlpha), ShiftRadius, pcRole is PlayerRole.ShortAlpha or PlayerRole.Unassigned);
-                    DrawExplosion(module, SlotForRole(PlayerRole.ShortBeta), ShiftRadius, pcRole == PlayerRole.ShortBeta);
-                    DrawExplosion(module, SlotForRole(PlayerRole.ShortGamma), ShiftRadius, pcRole == PlayerRole.ShortGamma);
-                    DrawExplosion(module, SlotForRole(PlayerRole.Stack1), SpliceRadius, pcRole is PlayerRole.LongAlpha or PlayerRole.LongBeta or PlayerRole.LongGamma && SlotForRole(PlayerRole.Stack1) == pcSlot);
-                    DrawExplosion(module, SlotForRole(PlayerRole.Stack2), SpliceRadius, pcRole is PlayerRole.LongAlpha or PlayerRole.LongBeta or PlayerRole.LongGamma && SlotForRole(PlayerRole.Stack1) != pcSlot);
+                    DrawExplosion(SlotForRole(PlayerRole.ShortAlpha), ShiftRadius, pcRole is PlayerRole.ShortAlpha or PlayerRole.Unassigned);
+                    DrawExplosion(SlotForRole(PlayerRole.ShortBeta), ShiftRadius, pcRole == PlayerRole.ShortBeta);
+                    DrawExplosion(SlotForRole(PlayerRole.ShortGamma), ShiftRadius, pcRole == PlayerRole.ShortGamma);
+                    DrawExplosion(SlotForRole(PlayerRole.Stack1), SpliceRadius, pcRole is PlayerRole.LongAlpha or PlayerRole.LongBeta or PlayerRole.LongGamma && SlotForRole(PlayerRole.Stack1) == pcSlot);
+                    DrawExplosion(SlotForRole(PlayerRole.Stack2), SpliceRadius, pcRole is PlayerRole.LongAlpha or PlayerRole.LongBeta or PlayerRole.LongGamma && SlotForRole(PlayerRole.Stack1) != pcSlot);
                 }
                 break;
             case Mechanic.Towers1:
@@ -409,15 +406,15 @@ class HighConcept2 : HighConceptCommon
                         TowerColor.Green => (PlayerRole.ShortAlpha, PlayerRole.ShortBeta),
                         _ => (PlayerRole.Unassigned, PlayerRole.Unassigned)
                     };
-                    DrawTower(module, -10, pcRole == roleN);
-                    DrawTower(module, +10, pcRole == roleS);
-                    DrawTether(module, SlotForRole(roleN), SlotForRole(roleS), pcSlot);
+                    DrawTower(-10, pcRole == roleN);
+                    DrawTower(+10, pcRole == roleS);
+                    DrawTether(SlotForRole(roleN), SlotForRole(roleS), pcSlot);
                 }
                 break;
             case Mechanic.Explosion2:
-                DrawExplosion(module, SlotForRole(PlayerRole.LongAlpha), ShiftRadius, pcRole == PlayerRole.LongAlpha);
-                DrawExplosion(module, SlotForRole(PlayerRole.LongBeta), ShiftRadius, pcRole == PlayerRole.LongBeta);
-                DrawExplosion(module, SlotForRole(PlayerRole.LongGamma), ShiftRadius, pcRole == PlayerRole.LongGamma);
+                DrawExplosion(SlotForRole(PlayerRole.LongAlpha), ShiftRadius, pcRole == PlayerRole.LongAlpha);
+                DrawExplosion(SlotForRole(PlayerRole.LongBeta), ShiftRadius, pcRole == PlayerRole.LongBeta);
+                DrawExplosion(SlotForRole(PlayerRole.LongGamma), ShiftRadius, pcRole == PlayerRole.LongGamma);
                 break;
             case Mechanic.Towers2:
                 var roleE1 = PlayerRole.LongAlpha;
@@ -427,10 +424,10 @@ class HighConcept2 : HighConceptCommon
                 foreach (var t in SecondTowersHC2)
                 {
                     var (role1, role2) = t.c == TowerColor.Green ? (roleE1, roleE2) : (roleW1, roleW2);
-                    DrawTower(module, t.p, pcRole == role1 || pcRole == role2);
+                    DrawTower(t.p, pcRole == role1 || pcRole == role2);
                 }
-                DrawTether(module, SlotForRole(roleE1), SlotForRole(roleE2), pcSlot);
-                DrawTether(module, SlotForRole(roleW1), SlotForRole(roleW2), pcSlot);
+                DrawTether(SlotForRole(roleE1), SlotForRole(roleE2), pcSlot);
+                DrawTether(SlotForRole(roleW1), SlotForRole(roleW2), pcSlot);
                 break;
         }
     }

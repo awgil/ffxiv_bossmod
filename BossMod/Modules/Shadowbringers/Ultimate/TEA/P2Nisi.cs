@@ -14,7 +14,7 @@ class P2Nisi : BossComponent
     public P2Nisi(BossModule module) : base(module)
     {
         int[] firstMembersOfGroup = { -1, -1, -1, -1 };
-        foreach (var p in Service.Config.Get<TEAConfig>().P2NisiPairs.Resolve(module.Raid))
+        foreach (var p in Service.Config.Get<TEAConfig>().P2NisiPairs.Resolve(Raid))
         {
             ref var partner = ref firstMembersOfGroup[p.group];
             if (partner < 0)

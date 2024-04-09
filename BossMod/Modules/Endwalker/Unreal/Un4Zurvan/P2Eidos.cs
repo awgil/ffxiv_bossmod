@@ -10,7 +10,7 @@ class P2Eidos : BossComponent
         KeepOnPhaseChange = true;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         var nextPhase = (AID)spell.Action.ID switch
         {

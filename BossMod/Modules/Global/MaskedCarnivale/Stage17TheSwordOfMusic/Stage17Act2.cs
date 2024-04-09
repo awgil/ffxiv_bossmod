@@ -19,39 +19,21 @@ public enum AID : uint
     MagitekRay = 15048, // 2721->location, 3,0s cast, range 6 circle, voidzone, interruptible
 }
 
-class GrandStrike : Components.SelfTargetedAOEs
-{
-    public GrandStrike() : base(ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2)) { }
-}
+class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2));
 
-class MagitekField : Components.CastHint
-{
-    public MagitekField() : base(ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses") { }
-}
+class MagitekField(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses");
 
-class MagitekRay : Components.PersistentVoidzoneAtCastTarget
-{
-    public MagitekRay() : base(6, ActionID.MakeSpell(AID.MagitekRay), m => m.Enemies(OID.MagitekRayVoidzone), 0) { }
-}
+class MagitekRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.MagitekRay), m => m.Enemies(OID.MagitekRayVoidzone), 0);
 
-class TheHand : Components.SelfTargetedAOEs
-{
-    public TheHand() : base(ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees())) { }
-}
+class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees()));
 
-class Shred : Components.SelfTargetedAOEs
-{
-    public Shred() : base(ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2)) { }
-}
+class Shred(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2));
 
-class TheHandKB : Components.KnockbackFromCastTarget //actual knockback happens a whole 0,9s after snapshot
-{
-    public TheHandKB() : base(ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())) { }
-}
+class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0,9s after snapshot
 
 class Hints2 : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (!module.Enemies(OID.LeftClaw).All(e => e.IsDead))
             hints.Add($"{module.Enemies(OID.LeftClaw).FirstOrDefault()!.Name} counters magical damage!");
@@ -62,9 +44,9 @@ class Hints2 : BossComponent
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"{module.PrimaryActor.Name} is weak to lightning spells.\nDuring the fight he will spawn one of each claws as known from act 1.\nIf available use the Ram's Voice + Ultravibration combo for instant kill.");
+        hints.Add($"{Module.PrimaryActor.Name} is weak to lightning spells.\nDuring the fight he will spawn one of each claws as known from act 1.\nIf available use the Ram's Voice + Ultravibration combo for instant kill.");
     }
 }
 

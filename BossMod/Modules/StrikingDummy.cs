@@ -14,9 +14,6 @@ namespace BossMod.StrikingDummy
         }
     }
 
-    public class StrikingDummy : SimpleBossModule
-    {
-        public StrikingDummy(WorldState ws, Actor primary) : base(ws, primary) { }
-    }
+    public class StrikingDummy(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
 }
 #endif

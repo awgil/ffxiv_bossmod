@@ -19,40 +19,19 @@ public enum AID : uint
     BoneShaker = 7925, // Boss->self, no cast, range 30+R circle, raidwide player stun
 }
 
-class HeatBreath : Components.SelfTargetedAOEs
-{
-    public HeatBreath() : base(ActionID.MakeSpell(AID.HeatBreath), new AOEShapeCone(14.2f, 45.Degrees())) { }
-}
+class HeatBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeatBreath), new AOEShapeCone(14.2f, 45.Degrees()));
 
-class RipperClaw : Components.SelfTargetedAOEs
-{
-    public RipperClaw() : base(ActionID.MakeSpell(AID.RipperClaw), new AOEShapeCone(11.2f, 45.Degrees())) { }
-}
+class RipperClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RipperClaw), new AOEShapeCone(11.2f, 45.Degrees()));
 
-class WildCharge : Components.ChargeAOEs
-{
-    public WildCharge() : base(ActionID.MakeSpell(AID.WildCharge), 4) { }
-}
+class WildCharge(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.WildCharge), 4);
 
-class HotCharge : Components.ChargeAOEs
-{
-    public HotCharge() : base(ActionID.MakeSpell(AID.HotCharge), 6) { }
-}
+class HotCharge(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.HotCharge), 6);
 
-class TailSwing : Components.SelfTargetedAOEs
-{
-    public TailSwing() : base(ActionID.MakeSpell(AID.TailSwing), new AOEShapeCircle(10)) { }
-}
+class TailSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSwing), new AOEShapeCircle(10));
 
-class TailSwingKB : Components.KnockbackFromCastTarget
-{
-    public TailSwingKB() : base(ActionID.MakeSpell(AID.TailSwing), 20, shape: new AOEShapeCircle(10)) { }
-}
+class TailSwingKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TailSwing), 20, shape: new AOEShapeCircle(10));
 
-class TailSmash : Components.SelfTargetedAOEs
-{
-    public TailSmash() : base(ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(18.2f, 45.Degrees())) { }
-}
+class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(18.2f, 45.Degrees()));
 
 class BoneCrawlerStates : StateMachineBuilder
 {
@@ -70,7 +49,4 @@ class BoneCrawlerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5988)]
-public class BoneCrawler : SimpleBossModule
-{
-    public BoneCrawler(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class BoneCrawler(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

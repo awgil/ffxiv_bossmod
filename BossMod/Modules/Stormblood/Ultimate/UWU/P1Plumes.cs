@@ -15,7 +15,7 @@ class P1Plumes : BossComponent
         _satin = module.Enemies(OID.SatinPlume);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         arena.Actors(_razor, ArenaColor.Enemy);
         arena.Actors(_spiny, ArenaColor.Enemy);

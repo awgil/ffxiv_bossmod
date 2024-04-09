@@ -28,55 +28,25 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
-class DarkSpike : Components.SingleTargetDelayableCast
-{
-    public DarkSpike() : base(ActionID.MakeSpell(AID.DarkSpike)) { }
-}
+class DarkSpike(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.DarkSpike));
 
-class FrondAffeared : Components.CastGaze
-{
-    public FrondAffeared() : base(ActionID.MakeSpell(AID.FrondAffeared)) { }
-}
+class FrondAffeared(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.FrondAffeared));
 
-class SilkenSpray : Components.SelfTargetedAOEs
-{
-    public SilkenSpray() : base(ActionID.MakeSpell(AID.SilkenSpray), new AOEShapeCone(24, 30.Degrees())) { }
-}
+class SilkenSpray(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SilkenSpray), new AOEShapeCone(24, 30.Degrees()));
 
-class Implosion : Components.RaidwideCast
-{
-    public Implosion() : base(ActionID.MakeSpell(AID.Implosion)) { }
-}
+class Implosion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Implosion));
 
-class Earthquake1 : Components.SelfTargetedAOEs
-{
-    public Earthquake1() : base(ActionID.MakeSpell(AID.Earthquake1), new AOEShapeCircle(10.5f)) { }
-}
+class Earthquake1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Earthquake1), new AOEShapeCircle(10.5f));
 
-class Earthquake2 : Components.SelfTargetedAOEs
-{
-    public Earthquake2() : base(ActionID.MakeSpell(AID.Earthquake2), new AOEShapeDonut(10, 20)) { }
-}
+class Earthquake2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Earthquake2), new AOEShapeDonut(10, 20));
 
-class Earthquake3 : Components.SelfTargetedAOEs
-{
-    public Earthquake3() : base(ActionID.MakeSpell(AID.Earthquake3), new AOEShapeDonut(20, 30)) { }
-}
+class Earthquake3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Earthquake3), new AOEShapeDonut(20, 30));
 
-class RaucousScritch : Components.SelfTargetedAOEs
-{
-    public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
-}
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
 
-class Hurl : Components.LocationTargetedAOEs
-{
-    public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
-}
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
 
-class Spin : Components.Cleave
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
-}
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class ArachneStates : StateMachineBuilder
 {

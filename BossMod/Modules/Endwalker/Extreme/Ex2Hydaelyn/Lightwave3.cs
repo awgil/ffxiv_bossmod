@@ -1,21 +1,21 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
 // component for third lightwave (safe zone)
-class Lightwave3 : LightwaveCommon
+class Lightwave3(BossModule module) : LightwaveCommon(module)
 {
-    public override void Update(BossModule module)
+    public override void Update()
     {
         // try to find two helpers with Z=70 before first cast
         if (Waves.Count == 0)
         {
-            foreach (var wave in module.Enemies(OID.Helper).Where(IsInitialLightwave))
+            foreach (var wave in Module.Enemies(OID.Helper).Where(IsInitialLightwave))
             {
                 Waves.Add(wave);
             }
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Waves.Count == 0)
             return;
@@ -24,13 +24,13 @@ class Lightwave3 : LightwaveCommon
             hints.Add("GTFO from wave!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Waves.Count == 0)
             return;
 
         foreach (var wave in Waves)
-            WaveAOE.Draw(arena, wave);
+            WaveAOE.Draw(Arena, wave);
     }
 
     private bool IsInitialLightwave(Actor a)

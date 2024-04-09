@@ -35,47 +35,26 @@ public enum IconID : uint
     Baitaway = 23, // player
 }
 
-class DeadlyHold : Components.SingleTargetDelayableCast
-{
-    public DeadlyHold() : base(ActionID.MakeSpell(AID.DeadlyHold)) { }
-}
+class DeadlyHold(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.DeadlyHold));
 
-class HeatBreath : Components.SelfTargetedAOEs
-{
-    public HeatBreath() : base(ActionID.MakeSpell(AID.HeatBreath), new AOEShapeCone(14.6f, 45.Degrees())) { }
-}
+class HeatBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeatBreath), new AOEShapeCone(14.6f, 45.Degrees()));
 
-class TailSmash : Components.SelfTargetedAOEs
-{
-    public TailSmash() : base(ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(26.6f, 45.Degrees())) { }
-}
+class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(26.6f, 45.Degrees()));
 
-class RagingInferno : Components.RaidwideCast
-{
-    public RagingInferno() : base(ActionID.MakeSpell(AID.RagingInferno)) { }
-}
+class RagingInferno(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RagingInferno));
 
-class Comet : Components.LocationTargetedAOEs
-{
-    public Comet() : base(ActionID.MakeSpell(AID.Comet), 4) { }
-}
+class Comet(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Comet), 4);
 
-class HardStomp : Components.SelfTargetedAOEs
-{
-    public HardStomp() : base(ActionID.MakeSpell(AID.HardStomp), new AOEShapeCircle(10)) { }
-}
+class HardStomp(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HardStomp), new AOEShapeCircle(10));
 
-class Fireball : Components.LocationTargetedAOEs
-{
-    public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 6) { }
-}
+class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 6);
 
 class FireballBait : Components.GenericBaitAway
 {
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Baitaway)
         {
@@ -85,7 +64,7 @@ class FireballBait : Components.GenericBaitAway
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Fireball)
             ++NumCasts;
@@ -97,39 +76,27 @@ class FireballBait : Components.GenericBaitAway
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (target == actor && targeted)
             hints.Add("Bait voidzone away! (3 times)");
     }
 }
 
-class FireballVoidzone : Components.PersistentVoidzone
-{
-    public FireballVoidzone() : base(6, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7)) { }
-}
+class FireballVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7));
 
-class RaucousScritch : Components.SelfTargetedAOEs
-{
-    public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
-}
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
 
-class Hurl : Components.LocationTargetedAOEs
-{
-    public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
-}
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
 
-class Spin : Components.Cleave
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
-}
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class DiresaurStates : StateMachineBuilder
 {

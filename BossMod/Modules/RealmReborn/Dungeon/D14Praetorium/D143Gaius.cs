@@ -36,62 +36,38 @@ public enum AID : uint
     VeniVidiViciEnrage = 28500, // Boss->self, no cast, enrage (if adds aren't killed in 90s)
 }
 
-class TerminusEstTriple : Components.SelfTargetedAOEs
-{
-    public TerminusEstTriple() : base(ActionID.MakeSpell(AID.TerminusEstTriple), new AOEShapeRect(40, 2)) { }
-}
+class TerminusEstTriple(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TerminusEstTriple), new AOEShapeRect(40, 2));
 
-class TerminusEstQuintuple : Components.SelfTargetedAOEs
-{
-    public TerminusEstQuintuple() : base(ActionID.MakeSpell(AID.TerminusEstQuintuple), new AOEShapeRect(40, 2)) { }
-}
+class TerminusEstQuintuple(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TerminusEstQuintuple), new AOEShapeRect(40, 2));
 
-class HandOfTheEmpire : Components.SpreadFromCastTargets
-{
-    public HandOfTheEmpire() : base(ActionID.MakeSpell(AID.HandOfTheEmpireAOE), 5, false) { }
-}
+class HandOfTheEmpire(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HandOfTheEmpireAOE), 5, false);
 
-class FestinaLente : Components.StackWithCastTargets
-{
-    public FestinaLente() : base(ActionID.MakeSpell(AID.FestinaLente), 6, 4) { }
-}
+class FestinaLente(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.FestinaLente), 6, 4);
 
-class Innocence : Components.SingleTargetCast
-{
-    public Innocence() : base(ActionID.MakeSpell(AID.Innocence)) { }
-}
+class Innocence(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Innocence));
 
-class HorridaBella : Components.RaidwideCast
-{
-    public HorridaBella() : base(ActionID.MakeSpell(AID.HorridaBella)) { }
-}
+class HorridaBella(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HorridaBella));
 
-class Ductus : Components.LocationTargetedAOEs
-{
-    public Ductus() : base(ActionID.MakeSpell(AID.DuctusAOE), 8) { }
-}
+class Ductus(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DuctusAOE), 8);
 
 class AddEnrage : BossComponent
 {
     private DateTime _enrage;
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_enrage != default)
-            hints.Add($"Enrage in {(_enrage - module.WorldState.CurrentTime).TotalSeconds:f1}s");
+            hints.Add($"Enrage in {(_enrage - WorldState.CurrentTime).TotalSeconds:f1}s");
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.AddPhaseStart)
-            _enrage = module.WorldState.CurrentTime.AddSeconds(91);
+            _enrage = WorldState.FutureTime(91);
     }
 }
 
-class Heirsbane : Components.SingleTargetCast
-{
-    public Heirsbane() : base(ActionID.MakeSpell(AID.Innocence), "") { }
-}
+class Heirsbane(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Innocence), "");
 
 class D143GaiusStates : StateMachineBuilder
 {

@@ -1,29 +1,14 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P1Plummet : Components.Cleave
-{
-    public P1Plummet() : base(ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(12, 60.Degrees()), (uint)OID.Twintania) { }
-}
+class P1Plummet(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(12, 60.Degrees()), (uint)OID.Twintania);
 
-class P1Fireball : Components.StackWithIcon
-{
-    public P1Fireball() : base((uint)IconID.Fireball, ActionID.MakeSpell(AID.Fireball), 4, 5.3f, 4) { }
-}
+class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, ActionID.MakeSpell(AID.Fireball), 4, 5.3f, 4);
 
-class P2BahamutsClaw : Components.CastCounter
-{
-    public P2BahamutsClaw() : base(ActionID.MakeSpell(AID.BahamutsClaw)) { }
-}
+class P2BahamutsClaw(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.BahamutsClaw));
 
-class P3FlareBreath : Components.Cleave
-{
-    public P3FlareBreath() : base(ActionID.MakeSpell(AID.FlareBreath), new AOEShapeCone(29.2f, 45.Degrees()), (uint)OID.BahamutPrime) { } // TODO: verify angle
-}
+class P3FlareBreath(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.FlareBreath), new AOEShapeCone(29.2f, 45.Degrees()), (uint)OID.BahamutPrime); // TODO: verify angle
 
-class P5MornAfah : Components.StackWithCastTargets
-{
-    public P5MornAfah() : base(ActionID.MakeSpell(AID.MornAfah), 4, 8) { } // TODO: verify radius
-}
+class P5MornAfah(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MornAfah), 4, 8); // TODO: verify radius
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Twintania, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 280)]
 public class UCOB : BossModule

@@ -4,7 +4,7 @@ class CoatOfArms : Components.DirectionalParry
 {
     public CoatOfArms() : base((uint)OID.AetherialWard) { }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var sides = (AID)spell.Action.ID switch
         {

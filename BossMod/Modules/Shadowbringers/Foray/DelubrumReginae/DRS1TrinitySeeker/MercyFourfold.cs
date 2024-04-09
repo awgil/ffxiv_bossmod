@@ -9,7 +9,7 @@ class MercyFourfold : Components.GenericAOEs
 
     public MercyFourfold() : base(ActionID.MakeSpell(AID.MercyFourfoldAOE)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (AOEs.Count > 0)
             yield return AOEs[0];
@@ -17,7 +17,7 @@ class MercyFourfold : Components.GenericAOEs
             yield return _safezones[0]!.Value;
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID != SID.Mercy)
             return;
@@ -45,10 +45,10 @@ class MercyFourfold : Components.GenericAOEs
         }
 
         var activationDelay = 15 - 1.3f * AOEs.Count;
-        AOEs.Add(new(_shapeAOE, actor.Position, dir, module.WorldState.CurrentTime.AddSeconds(activationDelay)));
+        AOEs.Add(new(_shapeAOE, actor.Position, dir, WorldState.FutureTime(activationDelay)));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         if (spell.Action == WatchedAction)

@@ -14,7 +14,7 @@ class MaelstromsBolt : Components.CastCounter
         _domes = module.Enemies(OID.ProtectiveDome);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var b in _ballLightnings.Where(b => !b.IsDead))
         {

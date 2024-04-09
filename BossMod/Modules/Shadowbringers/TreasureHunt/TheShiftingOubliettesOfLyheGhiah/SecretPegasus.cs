@@ -24,40 +24,19 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
 }
 
-class BurningBright : Components.SelfTargetedAOEs
-{
-    public BurningBright() : base(ActionID.MakeSpell(AID.BurningBright), new AOEShapeRect(47, 3)) { }
-}
+class BurningBright(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningBright), new AOEShapeRect(47, 3));
 
-class Nicker : Components.SelfTargetedAOEs
-{
-    public Nicker() : base(ActionID.MakeSpell(AID.Nicker), new AOEShapeCircle(12)) { }
-}
+class Nicker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Nicker), new AOEShapeCircle(12));
 
-class CloudCall : Components.CastHint
-{
-    public CloudCall() : base(ActionID.MakeSpell(AID.CloudCall), "Calls thunderclouds") { }
-}
+class CloudCall(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.CloudCall), "Calls thunderclouds");
 
-class LightningBolt : Components.SelfTargetedAOEs
-{
-    public LightningBolt() : base(ActionID.MakeSpell(AID.LightningBolt), new AOEShapeCircle(8)) { }
-}
+class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), new AOEShapeCircle(8));
 
-class Spin : Components.SelfTargetedAOEs
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
-}
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
 
-class Mash : Components.SelfTargetedAOEs
-{
-    public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2)) { }
-}
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
 
-class Scoop : Components.SelfTargetedAOEs
-{
-    public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class PegasusStates : StateMachineBuilder
 {

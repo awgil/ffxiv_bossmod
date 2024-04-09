@@ -139,7 +139,7 @@ class UWUStates : StateMachineBuilder
     {
         ActorCast(id, _module.Garuda, AID.WickedWheel, delay, 3, true, "Out")
             .ActivateOnEnter<P1WickedWheel>();
-        ComponentCondition<P1WickedWheel>(id + 2, 2.1f, comp => comp.NumCasts >= 2 || comp.Sources.Count == 0 && _module.WorldState.CurrentTime >= comp.AwakenedResolve, "In") // complicated condition handles fucked up awakening
+        ComponentCondition<P1WickedWheel>(id + 2, 2.1f, comp => comp.NumCasts >= 2 || comp.Sources.Count == 0 && _WorldState.CurrentTime >= comp.AwakenedResolve, "In") // complicated condition handles fucked up awakening
             .DeactivateOnExit<P1WickedWheel>();
         ComponentCondition<P1Downburst>(id + 0x10, 2.8f, comp => comp.NumCasts > 0, "Cleave")
             .ActivateOnEnter<P1Downburst>()

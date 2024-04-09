@@ -1,20 +1,11 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
-class WeightOfTheLand : Components.LocationTargetedAOEs
-{
-    public WeightOfTheLand() : base(ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6) { }
-}
+class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6);
 
-class GaolerVoidzone : Components.PersistentVoidzone
-{
-    public GaolerVoidzone() : base(5, m => m.Enemies(OID.GaolerVoidzone).Where(e => e.EventState != 7)) { }
-}
+class GaolerVoidzone(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.GaolerVoidzone).Where(e => e.EventState != 7));
 
 [ConfigDisplay(Order = 0x030, Parent = typeof(RealmRebornConfig))]
-public class Ex3TitanConfig : CooldownPlanningConfigNode
-{
-    public Ex3TitanConfig() : base(50) { }
-}
+public class Ex3TitanConfig() : CooldownPlanningConfigNode(50);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 64, NameID = 1801)]
 public class Ex3Titan : BossModule

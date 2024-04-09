@@ -1,122 +1,53 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P1Slipstream : Components.SelfTargetedAOEs
-{
-    public P1Slipstream() : base(ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees())) { }
-}
+class P1Slipstream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees()));
 
-class P1Downburst : Components.Cleave
-{
-    public P1Downburst() : base(ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 45.Degrees())) { }
-}
+class P1Downburst(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 45.Degrees()));
 
 // TODO: hints... (use wild charge component? need 'avoid or share-non-first' role?)
-class P1MistralSongBoss : Components.CastCounter
-{
-    public P1MistralSongBoss() : base(ActionID.MakeSpell(AID.MistralSongBoss)) { }
-}
+class P1MistralSongBoss(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MistralSongBoss));
 
 // TODO: same as boss variant + multi targets
-class P1MistralSongAdds : Components.CastCounter
-{
-    public P1MistralSongAdds() : base(ActionID.MakeSpell(AID.MistralSongAdds)) { }
-}
+class P1MistralSongAdds(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MistralSongAdds));
 
-class P1GreatWhirlwind : Components.LocationTargetedAOEs
-{
-    public P1GreatWhirlwind() : base(ActionID.MakeSpell(AID.GreatWhirlwind), 8) { }
-}
+class P1GreatWhirlwind(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GreatWhirlwind), 8);
 
-class P1EyeOfTheStorm : Components.SelfTargetedAOEs
-{
-    public P1EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStorm), new AOEShapeDonut(12, 25)) { }
-}
+class P1EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStorm), new AOEShapeDonut(12, 25));
 
-class P1Gigastorm : Components.SelfTargetedAOEs
-{
-    public P1Gigastorm() : base(ActionID.MakeSpell(AID.Gigastorm), new AOEShapeCircle(6.5f)) { }
-}
+class P1Gigastorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Gigastorm), new AOEShapeCircle(6.5f));
 
-class P2RadiantPlume : Components.LocationTargetedAOEs
-{
-    public P2RadiantPlume() : base(ActionID.MakeSpell(AID.RadiantPlumeAOE), 8) { }
-}
+class P2RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlumeAOE), 8);
 
-class P2Incinerate : Components.Cleave
-{
-    public P2Incinerate() : base(ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees()), (uint)OID.Ifrit) { }
-}
+class P2Incinerate(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees()), (uint)OID.Ifrit);
 
-class P3RockBuster : Components.Cleave
-{
-    public P3RockBuster() : base(ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(10.55f, 60.Degrees()), (uint)OID.Titan) { } // TODO: verify angle
-}
+class P3RockBuster(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(10.55f, 60.Degrees()), (uint)OID.Titan); // TODO: verify angle
 
-class P3MountainBuster : Components.Cleave
-{
-    public P3MountainBuster() : base(ActionID.MakeSpell(AID.MountainBuster), new AOEShapeCone(15.55f, 45.Degrees()), (uint)OID.Titan) { } // TODO: verify angle
-}
+class P3MountainBuster(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.MountainBuster), new AOEShapeCone(15.55f, 45.Degrees()), (uint)OID.Titan); // TODO: verify angle
 
-class P3WeightOfTheLand : Components.LocationTargetedAOEs
-{
-    public P3WeightOfTheLand() : base(ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6) { }
-}
+class P3WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6);
 
-class P3Upheaval : Components.KnockbackFromCastTarget
-{
-    public P3Upheaval() : base(ActionID.MakeSpell(AID.Upheaval), 24, true) { }
-}
+class P3Upheaval(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Upheaval), 24, true);
 
-class P3Tumult : Components.CastCounter
-{
-    public P3Tumult() : base(ActionID.MakeSpell(AID.Tumult)) { }
-}
+class P3Tumult(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Tumult));
 
-class P4Blight : Components.CastCounter
-{
-    public P4Blight() : base(ActionID.MakeSpell(AID.Blight)) { }
-}
+class P4Blight(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Blight));
 
-class P4HomingLasers : Components.SpreadFromCastTargets
-{
-    public P4HomingLasers() : base(ActionID.MakeSpell(AID.HomingLasers), 4) { }
-}
+class P4HomingLasers(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HomingLasers), 4);
 
-class P4DiffractiveLaser : Components.Cleave
-{
-    public P4DiffractiveLaser() : base(ActionID.MakeSpell(AID.DiffractiveLaser), new AOEShapeCone(18, 45.Degrees()), (uint)OID.UltimaWeapon) { } // TODO: verify angle
-}
+class P4DiffractiveLaser(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.DiffractiveLaser), new AOEShapeCone(18, 45.Degrees()), (uint)OID.UltimaWeapon); // TODO: verify angle
 
-class P5MistralSongCone : Components.SelfTargetedAOEs
-{
-    public P5MistralSongCone() : base(ActionID.MakeSpell(AID.MistralSongCone), new AOEShapeCone(21.7f, 45.Degrees())) { } // TODO: verify angle
-}
+class P5MistralSongCone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralSongCone), new AOEShapeCone(21.7f, 45.Degrees())); // TODO: verify angle
 
-class P5AetherochemicalLaserCenter : Components.SelfTargetedAOEs
-{
-    public P5AetherochemicalLaserCenter() : base(ActionID.MakeSpell(AID.AetherochemicalLaserCenter), new AOEShapeRect(46, 4, 6)) { }
-}
+class P5AetherochemicalLaserCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherochemicalLaserCenter), new AOEShapeRect(46, 4, 6));
 
-class P5AetherochemicalLaserRight : Components.SelfTargetedAOEs
-{
-    public P5AetherochemicalLaserRight() : base(ActionID.MakeSpell(AID.AetherochemicalLaserRight), new AOEShapeRect(46, 4, 6)) { }
-}
+class P5AetherochemicalLaserRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherochemicalLaserRight), new AOEShapeRect(46, 4, 6));
 
-class P5AetherochemicalLaserLeft : Components.SelfTargetedAOEs
-{
-    public P5AetherochemicalLaserLeft() : base(ActionID.MakeSpell(AID.AetherochemicalLaserLeft), new AOEShapeRect(46, 4, 6)) { }
-}
+class P5AetherochemicalLaserLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherochemicalLaserLeft), new AOEShapeRect(46, 4, 6));
 
 // TODO: consider showing circle around baiter
-class P5LightPillar : Components.LocationTargetedAOEs
-{
-    public P5LightPillar() : base(ActionID.MakeSpell(AID.LightPillarAOE), 3) { }
-}
+class P5LightPillar(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightPillarAOE), 3);
 
-class P5AethericBoom : Components.KnockbackFromCastTarget
-{
-    public P5AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), 10) { }
-}
+class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AethericBoom), 10);
 
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539)]

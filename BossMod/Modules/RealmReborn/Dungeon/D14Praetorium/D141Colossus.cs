@@ -19,30 +19,15 @@ public enum AID : uint
     GrandSword = 28473, // Boss->self, 5.0s cast, range 25 90-degree cone aoe
 }
 
-class CeruleumVent : Components.RaidwideCast
-{
-    public CeruleumVent() : base(ActionID.MakeSpell(AID.CeruleumVent)) { }
-}
+class CeruleumVent(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CeruleumVent));
 
-class PrototypeLaserAlpha1 : Components.LocationTargetedAOEs
-{
-    public PrototypeLaserAlpha1() : base(ActionID.MakeSpell(AID.IronKissAlpha1), 6) { }
-}
+class PrototypeLaserAlpha1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.IronKissAlpha1), 6);
 
-class PrototypeLaserAlpha2 : Components.LocationTargetedAOEs
-{
-    public PrototypeLaserAlpha2() : base(ActionID.MakeSpell(AID.IronKissAlpha2), 6) { }
-}
+class PrototypeLaserAlpha2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.IronKissAlpha2), 6);
 
-class PrototypeLaserBeta : Components.SpreadFromCastTargets
-{
-    public PrototypeLaserBeta() : base(ActionID.MakeSpell(AID.IronKissBeta), 5, false) { }
-}
+class PrototypeLaserBeta(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.IronKissBeta), 5, false);
 
-class GrandSword : Components.SelfTargetedAOEs
-{
-    public GrandSword() : base(ActionID.MakeSpell(AID.GrandSword), new AOEShapeCone(25, 45.Degrees())) { }
-}
+class GrandSword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandSword), new AOEShapeCone(25, 45.Degrees()));
 
 class D141ColossusStates : StateMachineBuilder
 {
@@ -58,7 +43,4 @@ class D141ColossusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2134)]
-public class D141Colossus : BossModule
-{
-    public D141Colossus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(192, 0), 15)) { }
-}
+public class D141Colossus(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(192, 0), 15));

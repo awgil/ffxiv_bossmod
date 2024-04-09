@@ -1,9 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
 
-class RightArmRayNormal : Components.SelfTargetedAOEs
-{
-    public RightArmRayNormal() : base(ActionID.MakeSpell(AID.RightArmRayNormalAOE), new AOEShapeCircle(10)) { }
-}
+class RightArmRayNormal(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightArmRayNormalAOE), new AOEShapeCircle(10));
 
 class RightArmRayBuffed : Components.GenericAOEs
 {
@@ -29,7 +26,7 @@ class RightArmRayBuffed : Components.GenericAOEs
 
     public bool Active => _spheres.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation == default)
             yield break;
@@ -40,24 +37,24 @@ class RightArmRayBuffed : Components.GenericAOEs
             yield return new(_shape, s.Sphere.Position, s.RotNext, _activation, ArenaColor.Danger);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_spheres.Count == 4 && NumCasts == 0)
         {
             // show positioning hint: find a pair of nearby spheres with opposite rotations, such that CCW is to the left of midpoint (if facing center)
             foreach (var ccwSphere in _spheres.Where(s => s.RotIncrement.Rad > 0))
             {
-                var ccwOffset = ccwSphere.Sphere.Position - module.Bounds.Center;
+                var ccwOffset = ccwSphere.Sphere.Position - Module.Bounds.Center;
                 foreach (var cwSphere in _spheres.Where(s => s.RotIncrement.Rad < 0))
                 {
                     // nearby spheres have distance ~20
-                    var cwOffset = cwSphere.Sphere.Position - module.Bounds.Center;
+                    var cwOffset = cwSphere.Sphere.Position - Module.Bounds.Center;
                     if ((ccwOffset - cwOffset).LengthSq() < 500)
                     {
                         var midpointOffset = (ccwOffset + cwOffset) * 0.5f;
                         if (midpointOffset.OrthoL().Dot(ccwOffset) < 0)
                         {
-                            arena.AddCircle(module.Bounds.Center + midpointOffset, 1, ArenaColor.Safe);
+                            arena.AddCircle(Module.Bounds.Center + midpointOffset, 1, ArenaColor.Safe);
                         }
                     }
                 }
@@ -65,13 +62,13 @@ class RightArmRayBuffed : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RightArmRayAOEFirst)
             _activation = spell.NPCFinishAt;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.RightArmRayAOEFirst or AID.RightArmRayAOERest)
         {
@@ -84,11 +81,11 @@ class RightArmRayBuffed : Components.GenericAOEs
                 if (--sphere.NumCastsLeft == 0)
                     _spheres.RemoveAt(sphereIndex);
             }
-            _activation = module.WorldState.CurrentTime.AddSeconds(1.6f);
+            _activation = WorldState.FutureTime(1.6f);
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var increment = (IconID)iconID switch
         {
@@ -101,7 +98,4 @@ class RightArmRayBuffed : Components.GenericAOEs
     }
 }
 
-class RightArmRayVoidzone : Components.PersistentVoidzoneAtCastTarget
-{
-    public RightArmRayVoidzone() : base(5, ActionID.MakeSpell(AID.RightArmRayVoidzone), m => m.Enemies(OID.AtomicSphereVoidzone), 0.9f) { }
-}
+class RightArmRayVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.RightArmRayVoidzone), m => m.Enemies(OID.AtomicSphereVoidzone), 0.9f);

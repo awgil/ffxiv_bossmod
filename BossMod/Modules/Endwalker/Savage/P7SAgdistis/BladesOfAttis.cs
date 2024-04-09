@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
-class BladesOfAttis : Components.Exaflare
+class BladesOfAttis(BossModule module) : Components.Exaflare(module, 7)
 {
     class LineWithActor : Line
     {
@@ -18,9 +18,7 @@ class BladesOfAttis : Components.Exaflare
         }
     }
 
-    public BladesOfAttis() : base(7) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BladesOfAttisFirst)
         {
@@ -28,18 +26,18 @@ class BladesOfAttis : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BladesOfAttisFirst or AID.BladesOfAttisRest)
         {
             int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
             if (index == -1)
             {
-                module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X}");
+                ReportError($"Failed to find entry for {caster.InstanceID:X}");
                 return;
             }
 
-            AdvanceLine(module, Lines[index], caster.Position);
+            AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }

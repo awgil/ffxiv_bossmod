@@ -9,23 +9,23 @@ class P2Eruption : Components.LocationTargetedAOEs
 
     public P2Eruption() : base(ActionID.MakeSpell(AID.EruptionAOE), 8) { }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (NumCastsStarted == 0)
         {
             var source = ((UWU)module).Ifrit();
             if (source != null)
-                _baiters = module.Raid.WithSlot().WhereActor(a => a.Class.IsDD()).SortedByRange(source.Position).TakeLast(2).Mask();
+                _baiters = Raid.WithSlot().WhereActor(a => a.Class.IsDD()).SortedByRange(source.Position).TakeLast(2).Mask();
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_baiters[pcSlot])
             arena.AddCircle(pc.Position, Shape.Radius, ArenaColor.Safe);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         base.OnCastStarted(module, caster, spell);
         if ((AID)spell.Action.ID == AID.EruptionAOE)
@@ -34,7 +34,7 @@ class P2Eruption : Components.LocationTargetedAOEs
             {
                 if (NumCastsStarted == 0)
                     _baiters.Reset();
-                var (baiterSlot, baiter) = module.Raid.WithSlot().ExcludedFromMask(_baiters).Closest(spell.LocXZ);
+                var (baiterSlot, baiter) = Raid.WithSlot().ExcludedFromMask(_baiters).Closest(spell.LocXZ);
                 if (baiter != null)
                     _baiters.Set(baiterSlot);
             }

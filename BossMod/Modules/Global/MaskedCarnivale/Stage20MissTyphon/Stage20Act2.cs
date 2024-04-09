@@ -15,34 +15,19 @@ public enum AID : uint
     LightningBolt = 14717, // 233C->location, 3,0s cast, range 3 circle
 }
 
-class AquaBreath : Components.SelfTargetedAOEs
-{
-    public AquaBreath() : base(ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f, 45.Degrees())) { }
-}
+class AquaBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f, 45.Degrees()));
 
-class Megavolt : Components.SelfTargetedAOEs
-{
-    public Megavolt() : base(ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f)) { }
-}
+class Megavolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f));
 
-class Waterspout : Components.LocationTargetedAOEs
-{
-    public Waterspout() : base(ActionID.MakeSpell(AID.Waterspout), 4) { }
-}
+class Waterspout(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Waterspout), 4);
 
-class LightningBolt : Components.LocationTargetedAOEs
-{
-    public LightningBolt() : base(ActionID.MakeSpell(AID.LightningBolt), 3) { }
-}
+class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), 3);
 
-class ImpSong : Components.CastHint
-{
-    public ImpSong() : base(ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!") { }
-}
+class ImpSong(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!");
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Ultros is weak to fire. Interrupt Imp Song.");
     }

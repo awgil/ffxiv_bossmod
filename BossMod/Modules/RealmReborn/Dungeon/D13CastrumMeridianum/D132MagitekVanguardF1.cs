@@ -20,35 +20,17 @@ public enum AID : uint
     Overcharge = 29146, // Boss->self, 3.0s cast, range 11 120-degree cone aoe
 }
 
-class ThermobaricCharge : Components.SelfTargetedAOEs
-{
-    public ThermobaricCharge() : base(ActionID.MakeSpell(AID.ThermobaricCharge), new AOEShapeCircle(20)) { }
-}
+class ThermobaricCharge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThermobaricCharge), new AOEShapeCircle(20));
 
-class HyperchargeInner : Components.SelfTargetedAOEs
-{
-    public HyperchargeInner() : base(ActionID.MakeSpell(AID.HyperchargeInner), new AOEShapeCircle(10)) { }
-}
+class HyperchargeInner(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HyperchargeInner), new AOEShapeCircle(10));
 
-class HyperchargeOuter : Components.SelfTargetedAOEs
-{
-    public HyperchargeOuter() : base(ActionID.MakeSpell(AID.HyperchargeOuter), new AOEShapeDonut(12.5f, 30)) { }
-}
+class HyperchargeOuter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HyperchargeOuter), new AOEShapeDonut(12.5f, 30));
 
-class TargetedSupport : Components.SelfTargetedAOEs
-{
-    public TargetedSupport() : base(ActionID.MakeSpell(AID.TargetedSupportAOE), new AOEShapeCircle(5)) { }
-}
+class TargetedSupport(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TargetedSupportAOE), new AOEShapeCircle(5));
 
-class CermetDrill : Components.SingleTargetCast
-{
-    public CermetDrill() : base(ActionID.MakeSpell(AID.CermetDrill)) { }
-}
+class CermetDrill(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CermetDrill));
 
-class Overcharge : Components.SelfTargetedAOEs
-{
-    public Overcharge() : base(ActionID.MakeSpell(AID.Overcharge), new AOEShapeCone(11, 60.Degrees())) { }
-}
+class Overcharge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Overcharge), new AOEShapeCone(11, 60.Degrees()));
 
 class D132MagitekVanguardF1States : StateMachineBuilder
 {
@@ -65,7 +47,4 @@ class D132MagitekVanguardF1States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 15, NameID = 2116)]
-public class D132MagitekVanguardF1 : BossModule
-{
-    public D132MagitekVanguardF1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-13, 31), 20, 20, 20.Degrees())) { }
-}
+public class D132MagitekVanguardF1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-13, 31), 20, 20, 20.Degrees()));

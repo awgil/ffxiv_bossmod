@@ -10,26 +10,26 @@ class Eruption : Components.LocationTargetedAOEs
 
     public Eruption() : base(ActionID.MakeSpell(AID.EruptionAOE), Radius) { }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (Casters.Count == 0)
             Baiters.Reset();
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         base.OnCastStarted(module, caster, spell);
         switch ((AID)spell.Action.ID)
         {
             case AID.Eruption:
-                _baitDetectDeadline = module.WorldState.CurrentTime.AddSeconds(1);
+                _baitDetectDeadline = WorldState.FutureTime(1);
                 break;
             case AID.EruptionAOE:
-                if (module.WorldState.CurrentTime < _baitDetectDeadline)
+                if (WorldState.CurrentTime < _baitDetectDeadline)
                 {
-                    var baiter = module.Raid.WithoutSlot().Closest(spell.LocXZ);
+                    var baiter = Raid.WithoutSlot().Closest(spell.LocXZ);
                     if (baiter != null)
-                        Baiters.Set(module.Raid.FindSlot(baiter.InstanceID));
+                        Baiters.Set(Raid.FindSlot(baiter.InstanceID));
                 }
                 break;
         }

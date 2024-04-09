@@ -19,27 +19,18 @@ public enum IconID : uint
     Baitaway = 140, // player
 }
 
-class BogBequest : Components.SelfTargetedAOEs
-{
-    public BogBequest() : base(ActionID.MakeSpell(AID.BogBequest), new AOEShapeDonut(5, 20)) { }
-}
+class BogBequest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BogBequest), new AOEShapeDonut(5, 20));
 
-class FeculentFlood : Components.SelfTargetedAOEs
-{
-    public FeculentFlood() : base(ActionID.MakeSpell(AID.FeculentFlood), new AOEShapeCone(40, 30.Degrees())) { }
-}
+class FeculentFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FeculentFlood), new AOEShapeCone(40, 30.Degrees()));
 
-class RoyalFlush : Components.SelfTargetedAOEs
-{
-    public RoyalFlush() : base(ActionID.MakeSpell(AID.RoyalFlush), new AOEShapeCircle(8)) { }
-}
+class RoyalFlush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RoyalFlush), new AOEShapeCircle(8));
 
 class GravityForce : Components.GenericBaitAway
 {
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Baitaway)
         {
@@ -49,7 +40,7 @@ class GravityForce : Components.GenericBaitAway
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GravityForce)
         {
@@ -58,7 +49,7 @@ class GravityForce : Components.GenericBaitAway
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(module, slot, actor, hints, movementHints);
         if (target == actor && targeted)
@@ -66,10 +57,7 @@ class GravityForce : Components.GenericBaitAway
     }
 }
 
-class GravityForceHint : Components.CastInterruptHint
-{
-    public GravityForceHint() : base(ActionID.MakeSpell(AID.GravityForce)) { }
-}
+class GravityForceHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.GravityForce));
 
 class TheMudmanStates : StateMachineBuilder
 {

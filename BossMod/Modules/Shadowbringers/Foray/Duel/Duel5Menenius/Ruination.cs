@@ -5,9 +5,9 @@ class RuinationCross : Components.GenericAOEs
     private static readonly AOEShapeRect _aoeShape = new(20, 4, 20);
     private List<AOEInstance> _aoes = new();
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Ruination)
         {
@@ -16,7 +16,7 @@ class RuinationCross : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Ruination)
         {
@@ -45,13 +45,13 @@ class RuinationExaflare : Components.Exaflare
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.RuinationExaStart)
             Lines.Add(new LineWithActor(caster));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Lines.Count > 0 && (AID)spell.Action.ID is AID.RuinationExaStart or AID.RuinationExaMove)
         {

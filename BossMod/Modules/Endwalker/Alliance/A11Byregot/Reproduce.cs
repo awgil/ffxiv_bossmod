@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Endwalker.Alliance.A11Byregot;
 
-class Reproduce : Components.Exaflare
+class Reproduce(BossModule module) : Components.Exaflare(module, 7)
 {
-    public Reproduce() : base(7) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.CloudToGroundFast or AID.CloudToGroundSlow)
         {
@@ -13,7 +11,7 @@ class Reproduce : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.CloudToGroundFast or AID.CloudToGroundSlow or AID.CloudToGroundFastAOE or AID.CloudToGroundSlowAOE)
         {
@@ -22,12 +20,12 @@ class Reproduce : Components.Exaflare
             int index = Lines.FindIndex(item => MathF.Abs(item.Next.Z - caster.Position.Z) < 1);
             if (index == -1)
             {
-                module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X}");
+                ReportError($"Failed to find entry for {caster.InstanceID:X}");
                 return;
             }
 
-            AdvanceLine(module, Lines[index], caster.Position);
-            if (Lines[index].Next.X < module.Bounds.Center.X - module.Bounds.HalfSize)
+            AdvanceLine(Lines[index], caster.Position);
+            if (Lines[index].Next.X < Module.Bounds.Center.X - Module.Bounds.HalfSize)
                 Lines.RemoveAt(index);
         }
     }

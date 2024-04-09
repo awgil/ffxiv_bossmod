@@ -52,7 +52,7 @@ class BambooSplits : Components.GenericAOEs
     private DateTime _activation;
     private DateTime _time;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var b in _doublesidedsplit)
             yield return new(rectdouble, b.Position, b.Rotation + 90.Degrees(), _activation.AddSeconds(7));
@@ -64,15 +64,15 @@ class BambooSplits : Components.GenericAOEs
             yield return new(bamboospawn, b.Position); //activation time varies a lot (depending on the set?), just avoid entirely
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.HelperCircle or OID.HelperDoubleRect or OID.HelperSingleRect)
             _bamboospawn.Add(actor);
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
-        if (_time != default && module.WorldState.CurrentTime > _time)
+        if (_time != default && WorldState.CurrentTime > _time)
         {
             _time = default;
             _circle.RemoveAll(_circleToberemoved.Contains);
@@ -94,7 +94,7 @@ class BambooSplits : Components.GenericAOEs
                 _singlesplit.Add(actor);
             if ((OID)actor.OID == OID.HelperDoubleRect && !_doublesidedsplit.Contains(actor))
                 _doublesidedsplit.Add(actor);
-            _activation = module.WorldState.CurrentTime.AddSeconds(7);
+            _activation = WorldState.FutureTime(7);
         }
         if (state == 0x00040008) //bamboo deactivation animation, spell casts end about 0.75s later
         {
@@ -104,31 +104,22 @@ class BambooSplits : Components.GenericAOEs
                 _singlesplitToberemoved.Add(actor);
             if ((OID)actor.OID == OID.HelperDoubleRect)
                 _doublesidedsplitToberemoved.Add(actor);
-            _time = module.WorldState.CurrentTime.AddSeconds(0.75f);
+            _time = WorldState.FutureTime(0.75f);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_bamboospawn.Count > 0 && (AID)spell.Action.ID == AID.BambooSpawn)
             _bamboospawn.RemoveAt(0);
     }
 }
 
-class DaigoroFirstGilJump : Components.ChargeAOEs
-{
-    public DaigoroFirstGilJump() : base(ActionID.MakeSpell(AID.FirstGilJump), 3.5f) { }
-}
+class DaigoroFirstGilJump(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.FirstGilJump), 3.5f);
 
-class DaigoroNextGilJump : Components.ChargeAOEs
-{
-    public DaigoroNextGilJump() : base(ActionID.MakeSpell(AID.NextGilJump), 3.5f) { }
-}
+class DaigoroNextGilJump(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.NextGilJump), 3.5f);
 
-class DaigoroBadCup : Components.SelfTargetedAOEs
-{
-    public DaigoroBadCup() : base(ActionID.MakeSpell(AID.BadCup), new AOEShapeCone(17.5f, 60.Degrees())) { }
-}
+class DaigoroBadCup(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadCup), new AOEShapeCone(17.5f, 60.Degrees()));
 
 class TheSliceIsRightStates : StateMachineBuilder
 {

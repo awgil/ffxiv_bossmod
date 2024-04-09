@@ -22,7 +22,7 @@ class ChestThump : BossComponent
     private bool casting;
     private DateTime _activation;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ChestThump)
         {
@@ -31,7 +31,7 @@ class ChestThump : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ChestThump)
         {
@@ -41,7 +41,7 @@ class ChestThump : BossComponent
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ChestThump2)
         {
@@ -54,7 +54,7 @@ class ChestThump : BossComponent
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (casting && NumCasts == 0)
             hints.Add($"Raidwide");
@@ -62,26 +62,17 @@ class ChestThump : BossComponent
             hints.Add($"Raidwide x5");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), _activation));
+        hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _activation));
     }
 }
 
-class StoolPelt : Components.LocationTargetedAOEs
-{
-    public StoolPelt() : base(ActionID.MakeSpell(AID.StoolPelt), 5) { }
-}
+class StoolPelt(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StoolPelt), 5);
 
-class Browbeat : Components.SingleTargetCast
-{
-    public Browbeat() : base(ActionID.MakeSpell(AID.Browbeat)) { }
-}
+class Browbeat(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Browbeat));
 
-class Streak : Components.ChargeAOEs
-{
-    public Streak() : base(ActionID.MakeSpell(AID.Streak), 3) { }
-}
+class Streak(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Streak), 3);
 
 class GrassmanStates : StateMachineBuilder
 {

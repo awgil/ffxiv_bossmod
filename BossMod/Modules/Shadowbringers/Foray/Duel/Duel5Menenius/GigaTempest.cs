@@ -7,7 +7,7 @@ abstract class GigaTempest : Components.Exaflare
     public abstract bool IsStart(AID aid);
     public abstract bool IsMove(AID aid);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (IsStart((AID)spell.Action.ID))
         {
@@ -26,7 +26,7 @@ abstract class GigaTempest : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Lines.Count > 0 && IsStart((AID)spell.Action.ID) || IsMove((AID)spell.Action.ID))
         {

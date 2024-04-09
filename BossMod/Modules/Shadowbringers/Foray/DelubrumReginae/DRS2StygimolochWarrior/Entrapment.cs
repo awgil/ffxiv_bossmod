@@ -6,12 +6,12 @@ class EntrapmentAttract : Components.Knockback
 
     public EntrapmentAttract() : base(ActionID.MakeSpell(AID.EntrapmentAttract), true) { }
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        yield return new(new(module.Bounds.Center.X, module.Bounds.Center.Z + module.Bounds.HalfSize), 60, _activation, Kind: Kind.TowardsOrigin);
+        yield return new(new(Module.Bounds.Center.X, Module.Bounds.Center.Z + Module.Bounds.HalfSize), 60, _activation, Kind: Kind.TowardsOrigin);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Entrapment)
             _activation = spell.NPCFinishAt.AddSeconds(0.8f);
@@ -47,7 +47,7 @@ class Entrapment : Components.CastCounter
         UpdatePotentiallyUnsafe();
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (!_possiblePatternsDirty)
             return;
@@ -56,11 +56,11 @@ class Entrapment : Components.CastCounter
         // TODO: ideally it should not be done here, but when reacting to perception cast...
         // note that range check is a bit fuzzy - perception range is 15, i've seen traps at ~18.3 uncovered - but sometimes traps at presumably smaller range not uncovered
         // so we consider a very conservative range
-        var player = module.Raid.Player();
+        var player = Raid.Player();
         if (player != null)
             for (int z = 0; z < 7; ++z)
                 for (int x = 0; x < 7; ++x)
-                    if (player.Position.InCircle(module.Bounds.Center + CellOffset(x, z), 10))
+                    if (player.Position.InCircle(Module.Bounds.Center + CellOffset(x, z), 10))
                         _uncovered.Set(IndexFromCell(x, z));
 
         // remove all patterns that have difference with current state in uncovered areas
@@ -74,18 +74,18 @@ class Entrapment : Components.CastCounter
                     _possiblePatterns.Clear(ip);
             }
             if (_possiblePatterns.None())
-                module.ReportError(this, "No matching patterns left...");
+                ReportError("No matching patterns left...");
         }
 
         UpdatePotentiallyUnsafe();
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add($"Matching patterns: {(_possiblePatterns.Any() ? string.Join(", ", _possiblePatterns.SetBits()): "none")}");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         DrawTraps(module, _curPattern.Normal, false, true, arena);
         DrawTraps(module, _curPattern.Toad, TrapToTake == TrapType.Toad, true, arena);
@@ -93,7 +93,7 @@ class Entrapment : Components.CastCounter
         DrawTraps(module, _curPattern.Mini, TrapToTake == TrapType.Mini, true, arena);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         DrawTraps(module, _potentiallyUnsafe.Normal, false, false, arena);
         DrawTraps(module, _potentiallyUnsafe.Toad, TrapToTake == TrapType.Toad, false, arena);
@@ -101,7 +101,7 @@ class Entrapment : Components.CastCounter
         DrawTraps(module, _potentiallyUnsafe.Mini, TrapToTake == TrapType.Mini, false, arena);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         switch ((OID)actor.OID)
         {
@@ -120,7 +120,7 @@ class Entrapment : Components.CastCounter
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -141,8 +141,8 @@ class Entrapment : Components.CastCounter
 
     private void AddTrap(ref BitMask mask, BossModule module, WPos position, bool exploded)
     {
-        var index = IndexFromOffset(position - module.Bounds.Center);
-        //module.ReportError(this, $"Trap @ {position} (dist={(position - module.Raid.Player()!.Position).Length()}) = {index}");
+        var index = IndexFromOffset(position - Module.Bounds.Center);
+        //ReportError($"Trap @ {position} (dist={(position - Raid.Player()!.Position).Length()}) = {index}");
         mask.Set(index);
         _uncovered.Set(index);
         if (exploded)
@@ -169,7 +169,7 @@ class Entrapment : Components.CastCounter
         mask &= ~_exploded; // don't draw already exploded traps
         foreach (var index in mask.SetBits())
         {
-            var pos = module.Bounds.Center + CellOffset(index);
+            var pos = Module.Bounds.Center + CellOffset(index);
             if (background)
                 arena.ZoneCircle(pos, 2.5f, safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
             else
@@ -239,7 +239,7 @@ class EntrapmentInescapable : Entrapment
 
     public EntrapmentInescapable() : base(_allowedPatterns) { }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var trap = (AID)spell.Action.ID switch
         {
@@ -253,17 +253,8 @@ class EntrapmentInescapable : Entrapment
     }
 }
 
-class LethalBlow : Components.SelfTargetedAOEs
-{
-    public LethalBlow() : base(ActionID.MakeSpell(AID.LethalBlow), new AOEShapeRect(44, 24)) { }
-}
+class LethalBlow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LethalBlow), new AOEShapeRect(44, 24));
 
-class LeapingSpark : Components.CastCounter
-{
-    public LeapingSpark() : base(ActionID.MakeSpell(AID.LeapingSparkAOE)) { }
-}
+class LeapingSpark(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LeapingSparkAOE));
 
-class Devour : Components.SelfTargetedAOEs
-{
-    public Devour() : base(ActionID.MakeSpell(AID.Devour), new AOEShapeCone(6, 60.Degrees())) { }
-}
+class Devour(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Devour), new AOEShapeCone(6, 60.Degrees()));

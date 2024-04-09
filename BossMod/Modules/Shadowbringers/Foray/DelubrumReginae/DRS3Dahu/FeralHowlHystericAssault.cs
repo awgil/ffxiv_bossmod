@@ -14,9 +14,9 @@ class FeralHowlHystericAssault : Components.Knockback
         StopAtWall = true; // TODO: not all the wall is safe...
     }
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_source);
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_source);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == _aidCast)
             _source = new(caster.Position, 30, spell.NPCFinishAt.AddSeconds(_delay));

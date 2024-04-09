@@ -124,7 +124,7 @@ public class StateMachineBuilder
     public Phase DeathPhase(uint seqID, Action<uint> buildState)
     {
         var phase = SimplePhase(seqID, buildState, "Boss death");
-        phase.Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur == 0;
+        phase.Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.PrimaryActor.HP.Cur == 0;
         return phase;
     }
 

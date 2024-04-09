@@ -1,6 +1,6 @@
 namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class Quintessence : Components.GenericAOEs
+class Quintessence(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCone cone = new(50, 90.Degrees());
     private static readonly AOEShapeDonut donut = new(8, 60);
@@ -17,7 +17,7 @@ class Quintessence : Components.GenericAOEs
     private WPos position;
     private readonly List<AOEInstance> _aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_aoes.Count > 0)
             yield return new(_aoes[0].Shape, _aoes[0].Origin, _aoes[0].Rotation, _aoes[0].Activation, ArenaColor.Danger);
@@ -25,7 +25,7 @@ class Quintessence : Components.GenericAOEs
             yield return new(_aoes[1].Shape, _aoes[1].Origin, _aoes[1].Rotation, _aoes[1].Activation);
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001)
         {
@@ -52,7 +52,7 @@ class Quintessence : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var _activation1 = spell.NPCFinishAt.AddSeconds(19.4f);
         var _activation2 = spell.NPCFinishAt.AddSeconds(15.7f);
@@ -82,7 +82,7 @@ class Quintessence : Components.GenericAOEs
         if ((AID)spell.Action.ID == AID.FirstFormAOE)
         {
             if (_index is 0x4F or 0x4C or 0x4E)
-                _aoes.Add(new(donut, position, activation: _activation1));
+                _aoes.Add(new(donut, position, default, _activation1));
         }
         if ((AID)spell.Action.ID == AID.SecondFormRight)
         {
@@ -103,7 +103,7 @@ class Quintessence : Components.GenericAOEs
         if ((AID)spell.Action.ID == AID.SecondFormAOE)
         {
             if (_index is 0x56 or 0x51)
-                _aoes.Add(new(donut, position, activation: _activation2));
+                _aoes.Add(new(donut, position, default, _activation2));
         }
         if ((AID)spell.Action.ID == AID.ThirdFormRight)
         {
@@ -126,11 +126,11 @@ class Quintessence : Components.GenericAOEs
         if ((AID)spell.Action.ID == AID.ThirdFormAOE)
         {
             if (_index is 0x53 or 0x54 or 0x57 or 0x56 or 0x51 or 0x50)
-                _aoes.Add(new(donut, position, activation: _activation3));
+                _aoes.Add(new(donut, position, default, _activation3));
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.QuintessenceFirstRight or AID.QuintessenceFirstLeft or AID.QuintessenceFirstAOE or AID.QuintessenceSecondRight or AID.QuintessenceSecondLeft or AID.QuintessenceSecondAOE or AID.QuintessenceThirdRight or AID.QuintessenceThirdLeft or AID.QuintessenceThirdAOE)
         {

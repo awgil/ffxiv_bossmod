@@ -8,25 +8,25 @@ class Plummet : Components.Cleave
     public override void Init(BossModule module)
     {
         base.Init(module);
-        NextExpected = module.WorldState.CurrentTime.AddSeconds(6.5f);
+        NextExpected = WorldState.FutureTime(6.5f);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
-        if ((NextExpected - module.WorldState.CurrentTime).TotalSeconds < 3)
+        if ((NextExpected - WorldState.CurrentTime).TotalSeconds < 3)
         {
-            var boss = hints.PotentialTargets.Find(e => e.Actor == module.PrimaryActor);
+            var boss = hints.PotentialTargets.Find(e => e.Actor == Module.PrimaryActor);
             if (boss != null)
                 boss.AttackStrength += 0.3f;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         if (spell.Action == WatchedAction)
-            NextExpected = module.WorldState.CurrentTime.AddSeconds(12.5f);
+            NextExpected = WorldState.FutureTime(12.5f);
     }
 }
 
@@ -43,21 +43,21 @@ class DeathSentence : Components.CastCounter
 
     public override void Init(BossModule module)
     {
-        NextCastStart = module.WorldState.CurrentTime.AddSeconds(18);
+        NextCastStart = WorldState.FutureTime(18);
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"Next death sentence in ~{(NextCastStart - module.WorldState.CurrentTime).TotalSeconds:f1}s");
+        hints.Add($"Next death sentence in ~{(NextCastStart - WorldState.CurrentTime).TotalSeconds:f1}s");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var boss = hints.PotentialTargets.Find(e => e.Actor == module.PrimaryActor);
+        var boss = hints.PotentialTargets.Find(e => e.Actor == Module.PrimaryActor);
         if (boss == null)
             return;
 
-        if ((NextCastStart - module.WorldState.CurrentTime).TotalSeconds < 1)
+        if ((NextCastStart - WorldState.CurrentTime).TotalSeconds < 1)
         {
             boss.AttackStrength += 0.3f;
         }
@@ -71,9 +71,9 @@ class DeathSentence : Components.CastCounter
         // - component gets destroyed at the end of P2 and recreated at the beginning of P4 - it takes at least 150s, which is more than any cooldowns we use
         boss.ShouldBeTanked = TankRole == assignment;
         boss.PreferProvoking = true;
-        if (module.PrimaryActor.CastInfo?.Action == WatchedAction)
+        if (Module.PrimaryActor.CastInfo?.Action == WatchedAction)
         {
-            var cooldownWindowEnd = (float)(module.PrimaryActor.CastInfo.NPCFinishAt - module.WorldState.CurrentTime).TotalSeconds;
+            var cooldownWindowEnd = (float)(Module.PrimaryActor.CastInfo.NPCFinishAt - WorldState.CurrentTime).TotalSeconds;
             switch (assignment)
             {
                 case PartyRolesConfig.Assignment.MT:
@@ -113,31 +113,31 @@ class DeathSentence : Components.CastCounter
                 case PartyRolesConfig.Assignment.M1:
                     if (NumCasts % 3 == 0)
                     {
-                        hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, cooldownWindowEnd, false));
+                        hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), Module.PrimaryActor, cooldownWindowEnd, false));
                     }
                     break;
                 case PartyRolesConfig.Assignment.M2:
                     if (NumCasts % 3 == 1)
                     {
-                        hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), module.PrimaryActor, cooldownWindowEnd, false));
+                        hints.PlannedActions.Add((ActionID.MakeSpell(DRG.AID.Feint), Module.PrimaryActor, cooldownWindowEnd, false));
                     }
                     break;
                 case PartyRolesConfig.Assignment.R1:
                 case PartyRolesConfig.Assignment.R2:
                     if (NumCasts % 3 == 2)
                     {
-                        hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), module.PrimaryActor, cooldownWindowEnd, false));
+                        hints.PlannedActions.Add((ActionID.MakeSpell(BLM.AID.Addle), Module.PrimaryActor, cooldownWindowEnd, false));
                     }
                     break;
             }
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
-            NextCastStart = module.WorldState.CurrentTime.AddSeconds(36);
+            NextCastStart = WorldState.FutureTime(36);
             TankedByOT = !TankedByOT;
         }
     }

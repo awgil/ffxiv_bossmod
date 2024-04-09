@@ -7,7 +7,7 @@ class PomStone : Components.GenericAOEs
     private static readonly AOEShapeDonut _shapeMid = new(10, 20);
     private static readonly AOEShapeDonut _shapeOut = new(20, 30);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
         {
@@ -18,7 +18,7 @@ class PomStone : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         AOEShape? shape = (AID)spell.Action.ID switch
         {
@@ -31,7 +31,7 @@ class PomStone : Components.GenericAOEs
             _casters.Add((caster, shape));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.PomStoneIn or AID.PomStoneMid or AID.PomStoneOut)
             _casters.RemoveAll(c => c.caster == caster);

@@ -26,39 +26,27 @@ class Hints : BossComponent
 {
     private DateTime _heartSpawn;
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         var heartExists = ((T02TitanN)module).ActiveHeart.Any();
         if (_heartSpawn == default && heartExists)
         {
-            _heartSpawn = module.WorldState.CurrentTime;
+            _heartSpawn = WorldState.CurrentTime;
         }
         if (_heartSpawn != default && heartExists)
         {
-            hints.Add($"Heart enrage in: {Math.Max(62 - (module.WorldState.CurrentTime - _heartSpawn).TotalSeconds, 0.0f):f1}s");
+            hints.Add($"Heart enrage in: {Math.Max(62 - (WorldState.CurrentTime - _heartSpawn).TotalSeconds, 0.0f):f1}s");
         }
     }
 }
 
-class RockBuster : Components.Cleave
-{
-    public RockBuster() : base(ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(11.25f, 60.Degrees())) { } // TODO: verify angle
-}
+class RockBuster(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(11.25f, 60.Degrees())); // TODO: verify angle
 
-class Geocrush : Components.SelfTargetedAOEs
-{
-    public Geocrush() : base(ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(18)) { } // TODO: verify falloff
-}
+class Geocrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(18)); // TODO: verify falloff
 
-class Landslide : Components.SelfTargetedLegacyRotationAOEs
-{
-    public Landslide() : base(ActionID.MakeSpell(AID.Landslide), new AOEShapeRect(40, 3)) { }
-}
+class Landslide(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Landslide), new AOEShapeRect(40, 3));
 
-class WeightOfTheLand : Components.LocationTargetedAOEs
-{
-    public WeightOfTheLand() : base(ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6) { }
-}
+class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6);
 
 class T02TitanNStates : StateMachineBuilder
 {

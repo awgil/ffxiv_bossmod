@@ -15,7 +15,7 @@ class Landslide : Components.GenericAOEs
 
     public bool CastsActive => _casters.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (PredictedSource != null)
         {
@@ -30,7 +30,7 @@ class Landslide : Components.GenericAOEs
             yield return new((OID)c.OID == OID.Titan ? ShapeBoss : ShapeHelper, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.LandslideBoss or AID.LandslideBossAwakened or AID.LandslideHelper or AID.LandslideHelperAwakened or AID.LandslideUltima or AID.LandslideUltimaHelper)
         {
@@ -41,14 +41,14 @@ class Landslide : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.LandslideBoss or AID.LandslideBossAwakened or AID.LandslideHelper or AID.LandslideHelperAwakened or AID.LandslideUltima or AID.LandslideUltimaHelper)
         {
             _casters.Remove(caster);
             ++NumCasts;
             if ((AID)spell.Action.ID == AID.LandslideBoss)
-                PredictedActivation = module.WorldState.CurrentTime.AddSeconds(2); // used if boss wasn't awakened when it should've been
+                PredictedActivation = WorldState.FutureTime(2); // used if boss wasn't awakened when it should've been
         }
     }
 }
@@ -57,12 +57,12 @@ class P3Landslide : Landslide { }
 
 class P4Landslide : Landslide
 {
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.Titan && id == 0x1E43)
         {
             PredictedSource = actor;
-            PredictedActivation = module.WorldState.CurrentTime.AddSeconds(8.1f);
+            PredictedActivation = WorldState.FutureTime(8.1f);
         }
     }
 }

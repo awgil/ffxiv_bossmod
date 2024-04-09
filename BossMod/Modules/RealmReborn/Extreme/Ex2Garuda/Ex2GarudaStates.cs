@@ -10,7 +10,7 @@ class Ex2GarudaStates : StateMachineBuilder
         SimplePhase(0, Phase1, "Plumes")
             .ActivateOnEnter<EyeOfTheStorm>()
             .ActivateOnEnter<FeatherRain>()
-            .Raw.Update = () => _module.PrimaryActor.IsDestroyed || _module.Chirada.Count + _module.Suparna.Count > 0;
+            .Raw.Update = () => _Module.PrimaryActor.IsDestroyed || _module.Chirada.Count + _module.Suparna.Count > 0;
         DeathPhase(1, Phase2)
             .ActivateOnEnter<AerialBlast>()
             .ActivateOnEnter<MistralShriek>()

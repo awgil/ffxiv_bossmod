@@ -6,7 +6,7 @@ class FlamingCrush : Components.UniformStackSpread
 
     public FlamingCrush() : base(4, 0, 6) { }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.FlamingCrush)
         {
@@ -14,7 +14,7 @@ class FlamingCrush : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.FlamingCrush)
         {
@@ -30,7 +30,7 @@ class P2FlamingCrush : FlamingCrush
     {
         if (module.FindComponent<P2SearingWind>() is var searingWind && searingWind != null)
             foreach (var sw in searingWind.Spreads)
-                Avoid.Set(module.Raid.FindSlot(sw.Target.InstanceID));
+                Avoid.Set(Raid.FindSlot(sw.Target.InstanceID));
     }
 }
 
@@ -42,6 +42,6 @@ class P5FlamingCrush : FlamingCrush
 {
     public override void Init(BossModule module)
     {
-        Avoid = module.Raid.WithSlot(true).WhereActor(p => p.FindStatus(SID.ThermalLow) != null && p.Role != Role.Healer).Mask();
+        Avoid = Raid.WithSlot(true).WhereActor(p => p.FindStatus(SID.ThermalLow) != null && p.Role != Role.Healer).Mask();
     }
 }

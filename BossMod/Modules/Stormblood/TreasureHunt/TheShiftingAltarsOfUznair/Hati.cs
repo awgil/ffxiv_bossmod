@@ -19,30 +19,15 @@ public enum AID : uint
     PolarRoar = 13360, // Boss->self, 3,0s cast, range 9-40 donut
 }
 
-class PolarRoar : Components.SelfTargetedAOEs
-{
-    public PolarRoar() : base(ActionID.MakeSpell(AID.PolarRoar), new AOEShapeDonut(9, 40)) { }
-}
+class PolarRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PolarRoar), new AOEShapeDonut(9, 40));
 
-class Hellstorm : Components.LocationTargetedAOEs
-{
-    public Hellstorm() : base(ActionID.MakeSpell(AID.Hellstorm2), 10) { }
-}
+class Hellstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hellstorm2), 10);
 
-class Netherwind : Components.SelfTargetedAOEs
-{
-    public Netherwind() : base(ActionID.MakeSpell(AID.Netherwind), new AOEShapeRect(18, 2)) { }
-}
+class Netherwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Netherwind), new AOEShapeRect(18, 2));
 
-class GlassyNova : Components.SelfTargetedAOEs
-{
-    public GlassyNova() : base(ActionID.MakeSpell(AID.GlassyNova), new AOEShapeRect(45.4f, 4)) { }
-}
+class GlassyNova(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GlassyNova), new AOEShapeRect(45.4f, 4));
 
-class BrainFreeze : Components.SelfTargetedAOEs
-{
-    public BrainFreeze() : base(ActionID.MakeSpell(AID.BrainFreeze), new AOEShapeCircle(15.4f)) { }
-}
+class BrainFreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrainFreeze), new AOEShapeCircle(15.4f));
 
 class HatiStates : StateMachineBuilder
 {

@@ -1,28 +1,26 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
-class ForbiddenFruit8 : ForbiddenFruitCommon
+class ForbiddenFruit8(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.StymphalianStrike))
 {
     private BitMask _noBirdsPlatforms = ValidPlatformsMask;
 
-    public ForbiddenFruit8() : base(ActionID.MakeSpell(AID.StymphalianStrike)) { }
-
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        var slot = TryAssignTether(module, source, tether);
+        var slot = TryAssignTether(source, tether);
         if (slot < 0)
             return;
         var safe = ValidPlatformsMask & ~_noBirdsPlatforms;
-        safe.Clear(PlatformIDFromOffset(source.Position - module.Bounds.Center));
+        safe.Clear(PlatformIDFromOffset(source.Position - Module.Bounds.Center));
         SafePlatforms[slot] = safe;
     }
 
-    protected override DateTime? PredictUntetheredCastStart(BossModule module, Actor fruit)
+    protected override DateTime? PredictUntetheredCastStart(Actor fruit)
     {
         if ((OID)fruit.OID != OID.ForbiddenFruitBird)
             return null;
 
-        _noBirdsPlatforms.Clear(PlatformIDFromOffset(fruit.Position - module.Bounds.Center));
+        _noBirdsPlatforms.Clear(PlatformIDFromOffset(fruit.Position - Module.Bounds.Center));
         Array.Fill(SafePlatforms, _noBirdsPlatforms);
-        return module.WorldState.CurrentTime.AddSeconds(12.5);
+        return WorldState.FutureTime(12.5f);
     }
 }

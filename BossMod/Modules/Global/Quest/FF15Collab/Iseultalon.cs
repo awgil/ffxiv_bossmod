@@ -37,12 +37,12 @@ public enum IconID : uint
 class Thunderbolt : Components.UniformStackSpread
 {
     public Thunderbolt() : base(0, 5, alwaysShowSpreads: true) { }
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.spread)
             AddSpread(actor);
     }
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Thunderbolt2)
             Spreads.Clear();
@@ -51,18 +51,18 @@ class Thunderbolt : Components.UniformStackSpread
 
 class Electrocution : Components.GenericTowers
 { //Noctis always goes to soak this tower, except on first cast as a tutorial
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Electrocution)
         {
             if (NumCasts > 0)
-                Towers.Add(new(DeterminePosition(module, caster, spell), 3, forbiddenSoakers: module.Raid.WithSlot(true).WhereActor(p => p.InstanceID == module.Raid.Player()!.InstanceID).Mask()));
+                Towers.Add(new(DeterminePosition(module, caster, spell), 3, forbiddenSoakers: Raid.WithSlot(true).WhereActor(p => p.InstanceID == Raid.Player()!.InstanceID).Mask()));
             if (NumCasts == 0)
                 Towers.Add(new(DeterminePosition(module, caster, spell), 3));
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Electrocution or AID.FatalCurrent)
         {
@@ -71,9 +71,9 @@ class Electrocution : Components.GenericTowers
         }
     }
 
-    private WPos DeterminePosition(BossModule module, Actor caster, ActorCastInfo spell) => spell.TargetID == caster.InstanceID ? caster.Position : module.WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
+    private WPos DeterminePosition(BossModule module, Actor caster, ActorCastInfo spell) => spell.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0 && NumCasts == 0) // Noctis ignores the first tower as a tutorial
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 3));
@@ -83,17 +83,14 @@ class Electrocution : Components.GenericTowers
 class Electrocution2 : Components.CastTowers
 {
     public Electrocution2() : base(ActionID.MakeSpell(AID.Electrocution2), 3) { }
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 3));
     }
 }
 
-class Stomp : Components.RaidwideCast
-{
-    public Stomp() : base(ActionID.MakeSpell(AID.Stomp)) { }
-}
+class Stomp(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Stomp));
 
 class DeathRay : Components.SelfTargetedAOEs
 {
@@ -103,39 +100,33 @@ class DeathRay : Components.SelfTargetedAOEs
     }
 }
 
-class TailWhip : Components.SelfTargetedAOEs
-{
-    public TailWhip() : base(ActionID.MakeSpell(AID.TailWhip), new AOEShapeCone(12, 135.Degrees())) { }
-}
+class TailWhip(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailWhip), new AOEShapeCone(12, 135.Degrees()));
 
 class DeathRay2 : Components.GenericAOEs
 {
     private static readonly AOEShapeRect rect = new(40, 11);
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(rect, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
+            yield return new(rect, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.DeathRay)
-            _activation = module.WorldState.CurrentTime.AddSeconds(6.1f);
+            _activation = WorldState.FutureTime(6.1f);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.DeathRay3)
             _activation = default;
     }
 }
 
-class NeedleShot : Components.StackWithCastTargets
-{
-    public NeedleShot() : base(ActionID.MakeSpell(AID.NeedleShot), 5) { }
-}
+class NeedleShot(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.NeedleShot), 5);
 
 class IseultalonStates : StateMachineBuilder
 {

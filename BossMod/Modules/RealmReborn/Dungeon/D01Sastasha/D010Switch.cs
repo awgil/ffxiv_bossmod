@@ -11,11 +11,11 @@ class SwitchHint : BossComponent
 {
     private string _hint = "";
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_hint.Length == 0)
         {
-            var a = module.WorldState.Actors.FirstOrDefault(a => a.IsTargetable && (OID)a.OID is OID.Blue or OID.Red or OID.Green);
+            var a = WorldState.Actors.FirstOrDefault(a => a.IsTargetable && (OID)a.OID is OID.Blue or OID.Red or OID.Green);
             if (a != null)
                 _hint = ((OID)a.OID).ToString();
         }

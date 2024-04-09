@@ -11,13 +11,13 @@ class Aetheroplasm : BossComponent
 
     private static readonly float _explosionRadius = 6;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_kiters[slot])
             hints.Add("Kite the orb!", false);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(a => !_explodedOrbs.Contains(a.InstanceID)))
         {
@@ -29,12 +29,12 @@ class Aetheroplasm : BossComponent
         }
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return _kiters[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(a => !_explodedOrbs.Contains(a.InstanceID)))
         {
@@ -46,12 +46,12 @@ class Aetheroplasm : BossComponent
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.OrbFixate:
-                _kiters.Set(module.Raid.FindSlot(spell.MainTargetID));
+                _kiters.Set(Raid.FindSlot(spell.MainTargetID));
                 break;
             case AID.AetheroplasmFixated:
                 _explodedOrbs.Add(caster.InstanceID);
@@ -69,6 +69,6 @@ class Aetheroplasm : BossComponent
         if (_kiters.None())
             return null;
         var orbDir = orb.Rotation.ToDirection();
-        return module.Raid.WithSlot().IncludedInMask(_kiters).MaxBy(a => (a.Item2.Position - orb.Position).Normalized().Dot(orbDir)).Item2;
+        return Raid.WithSlot().IncludedInMask(_kiters).MaxBy(a => (a.Item2.Position - orb.Position).Normalized().Dot(orbDir)).Item2;
     }
 }

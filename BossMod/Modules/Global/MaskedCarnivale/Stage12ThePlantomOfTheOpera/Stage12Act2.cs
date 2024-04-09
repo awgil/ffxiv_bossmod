@@ -15,29 +15,17 @@ public enum AID : uint
     InflammableFumes = 14753, // 271B->self, 15,0s cast, range 50 circle
 }
 
-class WildHorn : Components.SelfTargetedAOEs
-{
-    public WildHorn() : base(ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(16.96f, 60.Degrees())) { }
-}
+class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(16.96f, 60.Degrees()));
 
-class Trounce : Components.SelfTargetedAOEs
-{
-    public Trounce() : base(ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(46.96f, 30.Degrees())) { }
-}
+class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(46.96f, 30.Degrees()));
 
-class SporeSac : Components.CastHint
-{
-    public SporeSac() : base(ActionID.MakeSpell(AID.SporeSac), "Calls Roselets. Prepare Ice Spikes if available.") { }
-}
+class SporeSac(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SporeSac), "Calls Roselets. Prepare Ice Spikes if available.");
 
-class InflammableFumes : Components.CastHint
-{
-    public InflammableFumes() : base(ActionID.MakeSpell(AID.InflammableFumes), "Stun Boss with Bomb Toss. High damage but suriveable.") { }
-}
+class InflammableFumes(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.InflammableFumes), "Stun Boss with Bomb Toss. High damage but suriveable.");
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Use Bomb Toss to stun Hydnora when he casts Inflammable Fumes.\nUse Ice Spikes to instantly kill roselets once they become aggressive.\nHydnora is weak against water and strong against earth spells.");
     }

@@ -166,5 +166,5 @@ class C031KetudukeStates : StateMachineBuilder
             .DeactivateOnExit<AngrySeasAOE>();
     }
 }
-class C031NKetudukeStates : C031KetudukeStates { public C031NKetudukeStates(BossModule module) : base(module, false) { } }
-class C031SKetudukeStates : C031KetudukeStates { public C031SKetudukeStates(BossModule module) : base(module, true) { } }
+class C031NKetudukeStates(BossModule module) : C031KetudukeStates(module, false);
+class C031SKetudukeStates(BossModule module) : C031KetudukeStates(module, true);

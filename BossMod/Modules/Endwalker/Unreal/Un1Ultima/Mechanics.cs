@@ -22,19 +22,19 @@ class Mechanics : BossComponent
     private static readonly float _orbSharedRange = 8;
     private static readonly float _orbFixateRange = 6;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         // TODO: this is bad, we need to find a way to associate orb to kiter...
         if (_orbKiters.Count > 0 && module.Enemies(OID.Aetheroplasm).Count == 0)
             _orbKiters.Clear();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var mtSlot = module.WorldState.Party.FindSlot(module.PrimaryActor.TargetID);
+        var mtSlot = WorldState.Party.FindSlot(Module.PrimaryActor.TargetID);
         if (actor.Role == Role.Tank)
         {
-            if (module.PrimaryActor.TargetID == actor.InstanceID)
+            if (Module.PrimaryActor.TargetID == actor.InstanceID)
             {
                 if (_tankStacks[slot] >= 4)
                     hints.Add("Pass aggro to co-tank!");
@@ -46,24 +46,24 @@ class Mechanics : BossComponent
             }
         }
 
-        var mt = module.WorldState.Party[mtSlot];
-        if (slot != mtSlot && mt != null && (_aoeCleave.Check(actor.Position, mt) || _aoeDiffractive.Check(actor.Position, module.PrimaryActor.Position, Angle.FromDirection(mt.Position - module.PrimaryActor.Position))))
+        var mt = WorldState.Party[mtSlot];
+        if (slot != mtSlot && mt != null && (_aoeCleave.Check(actor.Position, mt) || _aoeDiffractive.Check(actor.Position, Module.PrimaryActor.Position, Angle.FromDirection(mt.Position - Module.PrimaryActor.Position))))
         {
             hints.Add("GTFO from tank!");
         }
 
         // TODO: reconsider whether we really care about spread for vents/lasers...
-        //if (actor.Role is Role.Healer or Role.Ranged && GeometryUtils.InCircle(actor.Position - module.PrimaryActor.Position, _ceruleumVentRange))
+        //if (actor.Role is Role.Healer or Role.Ranged && GeometryUtils.InCircle(actor.Position - Module.PrimaryActor.Position, _ceruleumVentRange))
         //{
         //    hints.Add("Move from boss");
         //}
 
-        //if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _homingLasersRange).Any())
+        //if (Raid.WithoutSlot().InRadiusExcluding(actor, _homingLasersRange).Any())
         //{
         //    hints.Add("Spread");
         //}
 
-        if (_magitekOffset != null && _aoeMagitekRay.Check(actor.Position, module.PrimaryActor.Position, module.PrimaryActor.Rotation + _magitekOffset.Value))
+        if (_magitekOffset != null && _aoeMagitekRay.Check(actor.Position, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation + _magitekOffset.Value))
         {
             hints.Add("GTFO from ray aoe!");
         }
@@ -81,25 +81,25 @@ class Mechanics : BossComponent
         // TODO: large detonations
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_magitekOffset != null)
-            _aoeMagitekRay.Draw(arena, module.PrimaryActor.Position, module.PrimaryActor.Rotation + _magitekOffset.Value);
+            _aoeMagitekRay.Draw(arena, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation + _magitekOffset.Value);
 
         foreach (var bit in module.Enemies(OID.MagitekBit).Where(bit => bit.CastInfo != null))
             _aoeAssaultCannon.Draw(arena, bit);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var mt = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
-        foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
+        var mt = WorldState.Actors.Find(Module.PrimaryActor.TargetID);
+        foreach (var player in Raid.WithoutSlot().Exclude(pc))
             arena.Actor(player, _orbKiters.Contains(player.InstanceID) ? ArenaColor.Danger : player == mt ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
         if (mt != null)
             arena.AddCircle(mt.Position, _aoeCleave.Radius, ArenaColor.Danger);
 
         //if (pc.Role is Role.Healer or Role.Ranged)
-        //    arena.AddCircle(module.PrimaryActor.Position, _ceruleumVentRange, ArenaColor.Danger);
+        //    arena.AddCircle(Module.PrimaryActor.Position, _ceruleumVentRange, ArenaColor.Danger);
 
         foreach (var orb in module.Enemies(OID.Ultimaplasm).Where(orb => !_orbsSharedExploded.Contains(orb.InstanceID)))
         {
@@ -121,19 +121,19 @@ class Mechanics : BossComponent
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ViscousAetheroplasm)
             SetTankStacks(module, actor, status.Extra);
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ViscousAetheroplasm)
             SetTankStacks(module, actor, 0);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         Angle? ray = (AID)spell.Action.ID switch
         {
@@ -145,17 +145,17 @@ class Mechanics : BossComponent
         if (ray == null)
             return;
         if (_magitekOffset != null)
-            module.ReportError(this, "Several concurrent magitek rays");
+            ReportError("Several concurrent magitek rays");
         _magitekOffset = ray.Value;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.MagitekRayCenter or AID.MagitekRayLeft or AID.MagitekRayRight)
             _magitekOffset = null;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -173,7 +173,7 @@ class Mechanics : BossComponent
 
     private void SetTankStacks(BossModule module, Actor actor, int stacks)
     {
-        int slot = module.Raid.FindSlot(actor.InstanceID);
+        int slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0)
             _tankStacks[slot] = stacks;
     }

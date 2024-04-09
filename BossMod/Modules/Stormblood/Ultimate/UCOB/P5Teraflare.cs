@@ -6,14 +6,11 @@ class P5Teraflare : Components.CastCounter
 
     public P5Teraflare() : base(ActionID.MakeSpell(AID.Teraflare)) { }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.DownForTheCount)
             DownForTheCountAssigned = true;
     }
 }
 
-class P5FlamesOfRebirth : Components.CastCounter
-{
-    public P5FlamesOfRebirth() : base(ActionID.MakeSpell(AID.FlamesOfRebirth)) { }
-}
+class P5FlamesOfRebirth(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.FlamesOfRebirth));

@@ -6,9 +6,9 @@ class RedHiddenMines : Components.GenericAOEs
     private static readonly AOEShapeCircle _shapeTrigger = new(3.6f);
     private static readonly AOEShapeCircle _shapeExplosion = new(8f);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _mines;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _mines;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ActivateRedMine)
         {
@@ -20,7 +20,7 @@ class RedHiddenMines : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.IndiscriminateDetonation)
         {

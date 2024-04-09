@@ -11,15 +11,15 @@ class FlamesOfBozja : Components.GenericAOEs
         _risky = risky;
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(AOE);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             AOE = new(new AOEShapeRect(45, 25), caster.Position, spell.Rotation, spell.NPCFinishAt, risky: _risky);
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (index is 0x12 or 0x13 && state == 0x00080004) // 12/13 for east/west
             AOE = null;
@@ -50,7 +50,7 @@ class ShimmeringShot : TemperatureAOE
         _spawnToActivation = spawnToActivation;
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_arrowsInited.Raw != 0x1B)
             yield break;
@@ -61,10 +61,10 @@ class ShimmeringShot : TemperatureAOE
 
         var xOffset = _pattern is Pattern.EWNormal or Pattern.EWInverted ? -20 : +20;
         var zOffset = 10 * (cell - 2);
-        yield return new(_shapeCell, module.Bounds.Center + new WDir(xOffset, zOffset), new(), _activation, ArenaColor.SafeFromAOE, false);
+        yield return new(_shapeCell, Module.Bounds.Center + new WDir(xOffset, zOffset), new(), _activation, ArenaColor.SafeFromAOE, false);
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         InitArrow(module, OID.SparkArrow, +1);
         InitArrow(module, OID.FlameArrow, +2);
@@ -72,13 +72,13 @@ class ShimmeringShot : TemperatureAOE
         InitArrow(module, OID.GlacierArrow, -2);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ChillArrow1 or AID.FreezingArrow1 or AID.HeatedArrow1 or AID.SearingArrow1 or AID.ChillArrow2 or AID.FreezingArrow2 or AID.HeatedArrow2 or AID.SearingArrow2)
             ++NumCasts;
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         var pattern = (index, state) switch
         {
@@ -94,7 +94,7 @@ class ShimmeringShot : TemperatureAOE
 
     public bool ActorUnsafeAt(BossModule module, Actor actor, WPos pos)
     {
-        var offset = pos - module.Bounds.Center;
+        var offset = pos - Module.Bounds.Center;
         bool posInFlames = _pattern switch
         {
             Pattern.EWNormal or Pattern.EWInverted => offset.X > -15,
@@ -110,7 +110,7 @@ class ShimmeringShot : TemperatureAOE
         return _slotTempAdjustments[row] != -Temperature(actor);
     }
 
-    protected int RowIndex(BossModule module, WPos pos) => (pos.Z - module.Bounds.Center.Z) switch
+    protected int RowIndex(BossModule module, WPos pos) => (pos.Z - Module.Bounds.Center.Z) switch
     {
         < -15 => 0,
         < -5 => 1,
@@ -127,20 +127,17 @@ class ShimmeringShot : TemperatureAOE
         if (arrow == null)
             return;
 
-        if (arrow.Position.X < module.Bounds.Center.X != _pattern is Pattern.WENormal or Pattern.WEInverted)
-            module.ReportError(this, "Unexpected arrow X coord");
+        if (arrow.Position.X < Module.Bounds.Center.X != _pattern is Pattern.WENormal or Pattern.WEInverted)
+            ReportError("Unexpected arrow X coord");
         int srcRow = RowIndex(module, arrow.Position);
         int destRow = _remap[(int)_pattern, srcRow];
         _slotTempAdjustments[destRow] = temp;
         _arrowsInited.Set(temp + 2);
-        _activation = module.WorldState.CurrentTime.AddSeconds(_spawnToActivation);
+        _activation = WorldState.FutureTime(_spawnToActivation);
     }
 }
 
-class FlamesOfBozja1 : FlamesOfBozja
-{
-    public FlamesOfBozja1() : base(false) { }
-}
+class FlamesOfBozja1(BossModule module) : FlamesOfBozja(module, false);
 
 class QuickMarchBow1 : QuickMarch
 {
@@ -148,30 +145,27 @@ class QuickMarchBow1 : QuickMarch
 
     public override void Init(BossModule module) => _flames = module.FindComponent<FlamesOfBozja1>();
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !module.Bounds.Contains(pos) || (_flames?.AOE?.Shape.Check(pos, _flames.AOE.Value.Origin, _flames.AOE.Value.Rotation) ?? false);
+    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_flames?.AOE?.Shape.Check(pos, _flames.AOE.Value.Origin, _flames.AOE.Value.Rotation) ?? false);
 }
 
 class ShimmeringShot1 : ShimmeringShot
 {
     public ShimmeringShot1() : base(12.8f) { }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (ActorUnsafeAt(module, actor, actor.Position))
             hints.Add("Go to safe zone!");
     }
 }
 
-class FlamesOfBozja2 : FlamesOfBozja
-{
-    public FlamesOfBozja2() : base(true) { }
-}
+class FlamesOfBozja2(BossModule module) : FlamesOfBozja(module, true);
 
 class ShimmeringShot2 : ShimmeringShot
 {
     public ShimmeringShot2() : base(14.0f) { }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints) { } // no need for hints, quick march handles that
+    public override void AddHints(int slot, Actor actor, TextHints hints) { } // no need for hints, quick march handles that
 }
 
 class QuickMarchBow2 : QuickMarch
@@ -180,5 +174,5 @@ class QuickMarchBow2 : QuickMarch
 
     public override void Init(BossModule module) => _shimmering = module.FindComponent<ShimmeringShot2>();
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !module.Bounds.Contains(pos) || (_shimmering?.ActorUnsafeAt(module, actor, pos) ?? false);
+    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_shimmering?.ActorUnsafeAt(module, actor, pos) ?? false);
 }

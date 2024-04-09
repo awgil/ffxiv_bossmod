@@ -12,13 +12,13 @@ class P3AethericProfusion : Components.CastCounter
         _neurolinks = module.Enemies(OID.Neurolink);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Active)
             hints.Add("Go to neurolink!", !_neurolinks.InRadius(actor.Position, 2).Any());
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var neurolink in _neurolinks)
             arena.AddCircle(neurolink.Position, 2, ArenaColor.Safe);

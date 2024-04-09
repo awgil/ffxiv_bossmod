@@ -19,35 +19,17 @@ public enum AID : uint
     PrevailingCurrent = 21717, // 302C->self, 3,0s cast, range 22+R width 6 rect
 }
 
-class ElectricWhorl : Components.SelfTargetedAOEs
-{
-    public ElectricWhorl() : base(ActionID.MakeSpell(AID.SeventhWave), new AOEShapeCircle(11)) { }
-}
+class ElectricWhorl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SeventhWave), new AOEShapeCircle(11));
 
-class PrevailingCurrent : Components.SelfTargetedAOEs
-{
-    public PrevailingCurrent() : base(ActionID.MakeSpell(AID.PrevailingCurrent), new AOEShapeRect(24, 3)) { }
-}
+class PrevailingCurrent(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PrevailingCurrent), new AOEShapeRect(24, 3));
 
-class SeventhWave : Components.SelfTargetedAOEs
-{
-    public SeventhWave() : base(ActionID.MakeSpell(AID.ElectricWhorl), new AOEShapeDonut(8, 60)) { }
-}
+class SeventhWave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectricWhorl), new AOEShapeDonut(8, 60));
 
-class Hydrocannon : Components.LocationTargetedAOEs
-{
-    public Hydrocannon() : base(ActionID.MakeSpell(AID.Hydrocannon2), 8) { }
-}
+class Hydrocannon(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrocannon2), 8);
 
-class Ceras : Components.SingleTargetCast
-{
-    public Ceras() : base(ActionID.MakeSpell(AID.Ceras)) { }
-}
+class Ceras(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Ceras));
 
-class BodySlam : Components.LocationTargetedAOEs
-{
-    public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), 10) { }
-}
+class BodySlam(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam), 10);
 
 class BodySlamKB : Components.KnockbackFromCastTarget
 {

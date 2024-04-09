@@ -5,7 +5,7 @@
 // 4  5  6  7
 // 8  9  A  B
 // C  D  E  F
-class Polyominoid : Components.GenericAOEs
+class Polyominoid(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.PolyominousDark))
 {
     public enum State { None, Plus, Cross }
 
@@ -16,15 +16,13 @@ class Polyominoid : Components.GenericAOEs
 
     private static readonly AOEShape _shape = new AOEShapeRect(5, 5, 5);
 
-    public Polyominoid() : base(ActionID.MakeSpell(AID.PolyominousDark)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // TODO: timing...
         return _dangerCells.SetBits().Select(index => new AOEInstance(_shape, IndexToPosition(index)));
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (!_dangerDirty)
             return;
@@ -55,11 +53,11 @@ class Polyominoid : Components.GenericAOEs
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PolyExchange)
         {
-            var target = module.WorldState.Actors.Find(tether.Target);
+            var target = WorldState.Actors.Find(tether.Target);
             if (target != null)
             {
                 _tethers.Add((source, target));
@@ -68,7 +66,7 @@ class Polyominoid : Components.GenericAOEs
         }
     }
 
-    //public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    //public override void OnUntethered(Actor source, ActorTetherInfo tether)
     //{
     //    if (tether.ID == (uint)TetherID.PolyExchange)
     //    {
@@ -77,7 +75,7 @@ class Polyominoid : Components.GenericAOEs
     //    }
     //}
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         int square = index switch
         {

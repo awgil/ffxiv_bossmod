@@ -10,7 +10,7 @@ class EinSof : Components.GenericAOEs
 
     public EinSof() : base(ActionID.MakeSpell(AID.EinSofAOE)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return _active.Select(p => new AOEInstance(_shape, p.Position));
     }

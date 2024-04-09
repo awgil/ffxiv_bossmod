@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P1SErichthonios;
 
 // state related to aether explosion mechanics, done as part of aetherflails, aetherchain and shackles of time abilities
-class AetherExplosion : BossComponent
+class AetherExplosion(BossModule module) : BossComponent(module)
 {
     private enum Cell { None, Red, Blue }
 
@@ -12,47 +12,47 @@ class AetherExplosion : BossComponent
 
     public bool SOTActive => _memberWithSOT != null;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (_memberWithSOT != null)
-            _explodingCells = CellFromOffset(_memberWithSOT.Position - module.Bounds.Center);
+            _explodingCells = CellFromOffset(_memberWithSOT.Position - Module.Bounds.Center);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - module.Bounds.Center))
+        if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - Module.Bounds.Center))
         {
             hints.Add("Hit by aether explosion!");
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_explodingCells == Cell.None || pc == _memberWithSOT)
             return; // nothing to draw
 
-        if (module.Bounds is not ArenaBoundsCircle)
+        if (Module.Bounds is not ArenaBoundsCircle)
         {
-            module.ReportError(this, "Trying to draw aether AOE when cells mode is not active...");
+            ReportError("Trying to draw aether AOE when cells mode is not active...");
             return;
         }
 
         var start = _explodingCells == Cell.Blue ? 0.Degrees() : 45.Degrees();
         for (int i = 0; i < 4; ++i)
         {
-            arena.ZoneCone(module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
-            arena.ZoneCone(module.Bounds.Center, P1S.InnerCircleRadius, module.Bounds.HalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
+            Arena.ZoneCone(Module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
+            Arena.ZoneCone(Module.Bounds.Center, P1S.InnerCircleRadius, Module.Bounds.HalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
             start += 90.Degrees();
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_memberWithSOT != pc)
-            arena.Actor(_memberWithSOT, _colorSOTActor);
+            Arena.Actor(_memberWithSOT, _colorSOTActor);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -65,24 +65,24 @@ class AetherExplosion : BossComponent
                     _ => Cell.None
                 };
                 if (_explodingCells == Cell.None)
-                    module.ReportError(this, $"Unexpected aether explosion param {status.Extra:X2}");
+                    ReportError($"Unexpected aether explosion param {status.Extra:X2}");
                 if (_memberWithSOT != null)
                 {
-                    module.ReportError(this, "Unexpected forced explosion while SOT is active");
+                    ReportError("Unexpected forced explosion while SOT is active");
                     _memberWithSOT = null;
                 }
                 break;
 
             case SID.ShacklesOfTime:
                 if (_memberWithSOT != null)
-                    module.ReportError(this, "Unexpected ShacklesOfTime: another is already active!");
+                    ReportError("Unexpected ShacklesOfTime: another is already active!");
                 _memberWithSOT = actor;
                 _explodingCells = Cell.None;
                 break;
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {

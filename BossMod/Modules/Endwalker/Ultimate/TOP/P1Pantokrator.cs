@@ -1,9 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P1BallisticImpact : Components.LocationTargetedAOEs
-{
-    public P1BallisticImpact() : base(ActionID.MakeSpell(AID.BallisticImpact), 5) { }
-}
+class P1BallisticImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BallisticImpact), 5);
 
 class P1FlameThrower : Components.GenericAOEs
 {
@@ -12,7 +9,7 @@ class P1FlameThrower : Components.GenericAOEs
 
     private static readonly AOEShapeCone _shape = new(65, 30.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in Casters.Skip(2))
             yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, ArenaColor.AOE, false);
@@ -25,7 +22,7 @@ class P1FlameThrower : Components.GenericAOEs
         _pantokrator = module.FindComponent<P1Pantokrator>();
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Casters.Count == 0 || NumCasts > 0)
             return;
@@ -33,7 +30,7 @@ class P1FlameThrower : Components.GenericAOEs
         var group = _pantokrator != null ? _pantokrator.PlayerStates[pcSlot].Group : 0;
         if (group > 0)
         {
-            var dir = (Casters.First().CastInfo!.Rotation - module.PrimaryActor.Rotation).Normalized().Deg switch
+            var dir = (Casters.First().CastInfo!.Rotation - Module.PrimaryActor.Rotation).Normalized().Deg switch
             {
                 (> 15 and < 45) or (> -165 and < -135) => -60.Degrees(),
                 (> 45 and < 75) or (> -135 and < -105) => -30.Degrees(),
@@ -42,25 +39,25 @@ class P1FlameThrower : Components.GenericAOEs
                 (> 135 and < 165) or (> -45 and < -15) => 60.Degrees(),
                 _ => -90.Degrees(), // assume groups go CW
             };
-            var offset = 12 * (module.PrimaryActor.Rotation + dir).ToDirection();
-            var pos = group == 1 ? module.Bounds.Center + offset : module.Bounds.Center - offset;
+            var offset = 12 * (Module.PrimaryActor.Rotation + dir).ToDirection();
+            var pos = group == 1 ? Module.Bounds.Center + offset : Module.Bounds.Center - offset;
             arena.AddCircle(pos, 1, ArenaColor.Safe);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FlameThrowerFirst or AID.FlameThrowerRest)
             Casters.Add(caster);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FlameThrowerFirst or AID.FlameThrowerRest)
             Casters.Remove(caster);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.FlameThrowerFirst or AID.FlameThrowerRest)
             ++NumCasts;
@@ -81,7 +78,7 @@ class P1Pantokrator : P1CommonAssignments
         return (config.P1PantokratorAssignments, config.P1PantokratorGlobalPriority);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(module, slot, actor, hints, movementHints);
 
@@ -92,23 +89,23 @@ class P1Pantokrator : P1CommonAssignments
         var stackOrder = NextStackOrder();
         if (ps.Order == NextSpreadOrder())
         {
-            hints.Add("Spread!", module.Raid.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any());
+            hints.Add("Spread!", Raid.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any());
         }
         else if (ps.Order != stackOrder)
         {
             var stackTargetSlot = Array.FindIndex(PlayerStates, s => s.Order == stackOrder && s.Group == ps.Group);
-            var stackTarget = module.Raid[stackTargetSlot];
-            if (stackTarget != null && !_stackShape.Check(actor.Position, module.PrimaryActor.Position, Angle.FromDirection(stackTarget.Position - module.PrimaryActor.Position)))
+            var stackTarget = Raid[stackTargetSlot];
+            if (stackTarget != null && !_stackShape.Check(actor.Position, Module.PrimaryActor.Position, Angle.FromDirection(stackTarget.Position - Module.PrimaryActor.Position)))
                 hints.Add("Stack!");
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var spreadOrder = NextSpreadOrder();
         var stackOrder = NextStackOrder();
 
-        foreach (var (i, p) in module.Raid.WithSlot(true))
+        foreach (var (i, p) in Raid.WithSlot(true))
         {
             var order = PlayerStates[i].Order;
             if (order == spreadOrder)
@@ -117,12 +114,12 @@ class P1Pantokrator : P1CommonAssignments
             }
             else if (order == stackOrder)
             {
-                _stackShape.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(p.Position - module.PrimaryActor.Position), i == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
+                _stackShape.Outline(arena, Module.PrimaryActor.Position, Angle.FromDirection(p.Position - Module.PrimaryActor.Position), i == pcSlot ? ArenaColor.Safe : ArenaColor.Danger);
             }
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -156,13 +153,13 @@ class P1DiffuseWaveCannonKyrios : Components.GenericBaitAway
 
     public override void Init(BossModule module)
     {
-        ForbiddenPlayers = module.Raid.WithSlot().WhereActor(a => a.Role != Role.Tank).Mask();
+        ForbiddenPlayers = Raid.WithSlot().WhereActor(a => a.Role != Role.Tank).Mask();
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
-        CurrentBaits.AddRange(module.Raid.WithoutSlot().SortedByRange(module.PrimaryActor.Position).TakeLast(2).Select(t => new Bait(module.PrimaryActor, t, _shape)));
+        CurrentBaits.AddRange(Raid.WithoutSlot().SortedByRange(Module.PrimaryActor.Position).TakeLast(2).Select(t => new Bait(Module.PrimaryActor, t, _shape)));
     }
 }
 
@@ -170,7 +167,7 @@ class P1WaveCannonKyrios : Components.GenericBaitAway
 {
     private static readonly AOEShapeRect _shape = new(50, 3);
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.WaveCannonKyrios)
         {
@@ -179,9 +176,9 @@ class P1WaveCannonKyrios : Components.GenericBaitAway
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.WaveCannonKyrios)
-            CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
+            CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape));
     }
 }

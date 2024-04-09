@@ -53,64 +53,37 @@ public enum SID : uint
     AllaganImmunity = 334, // none->player, extra=0x0
 }
 
-class CleaveCommon : Components.Cleave
-{
-    public CleaveCommon(AID aid, float hitboxRadius) : base(ActionID.MakeSpell(aid), new AOEShapeCone(6 + hitboxRadius, 60.Degrees()), activeWhileCasting: false) { }
-}
-class CleaveADS : CleaveCommon { public CleaveADS() : base(AID.CleaveADS, 2.3f) { } }
-class CleaveNode : CleaveCommon { public CleaveNode() : base(AID.CleaveNode, 1.15f) { } }
+class CleaveCommon(BossModule module, AID aid, float hitboxRadius) : Components.Cleave(module, ActionID.MakeSpell(aid), new AOEShapeCone(6 + hitboxRadius, 60.Degrees()), activeWhileCasting: false);
+class CleaveADS(BossModule module) : CleaveCommon(module, AID.CleaveADS, 2.3f);
+class CleaveNode(BossModule module) : CleaveCommon(module, AID.CleaveNode, 1.15f);
 
-class HighVoltage : Components.CastHint
-{
-    public HighVoltage() : base(ActionID.MakeSpell(AID.HighVoltage), "Interruptible") { }
-}
+class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interruptible");
 
-class RepellingCannons : Components.SelfTargetedAOEs
-{
-    public RepellingCannons() : base(ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(8.3f)) { }
-}
+class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(8.3f));
 
-class PiercingLaser : Components.SelfTargetedAOEs
-{
-    public PiercingLaser() : base(ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 3)) { }
-}
+class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 3));
 
 // TODO: chain lightning?..
 
-class Firestream : Components.SelfTargetedAOEs
-{
-    public Firestream() : base(ActionID.MakeSpell(AID.FirestreamAOE), new AOEShapeRect(35.5f, 3)) { }
-}
+class Firestream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FirestreamAOE), new AOEShapeRect(35.5f, 3));
 
-class Ballast1 : Components.SelfTargetedAOEs
-{
-    public Ballast1() : base(ActionID.MakeSpell(AID.BallastAOE1), new AOEShapeCone(5.5f, 135.Degrees())) { }
-}
+class Ballast1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BallastAOE1), new AOEShapeCone(5.5f, 135.Degrees()));
 
-class Ballast2 : Components.SelfTargetedAOEs
-{
-    public Ballast2() : base(ActionID.MakeSpell(AID.BallastAOE2), new AOEShapeDonutSector(5.5f, 10.5f, 135.Degrees())) { }
-}
+class Ballast2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BallastAOE2), new AOEShapeDonutSector(5.5f, 10.5f, 135.Degrees()));
 
-class Ballast3 : Components.SelfTargetedAOEs
-{
-    public Ballast3() : base(ActionID.MakeSpell(AID.BallastAOE3), new AOEShapeDonutSector(10.5f, 15.5f, 135.Degrees())) { }
-}
+class Ballast3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BallastAOE3), new AOEShapeDonutSector(10.5f, 15.5f, 135.Degrees()));
 
-class GravityField : Components.PersistentVoidzoneAtCastTarget
-{
-    public GravityField() : base(6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 1) { }
-}
+class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 1);
 
 class T02AI : BossComponent
 {
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var e in hints.PotentialTargets)
         {
-            if (e.Actor == module.PrimaryActor)
+            if (e.Actor == Module.PrimaryActor)
             {
-                int targetVulnStacks = module.WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.VulnerabilityUp)?.Extra ?? 0;
+                int targetVulnStacks = WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.VulnerabilityUp)?.Extra ?? 0;
                 e.AttackStrength = 0.2f + 0.05f * targetVulnStacks;
                 e.Priority = 1;
                 e.ShouldBeInterrupted = true; // interrupt every high voltage; TODO consider interrupt rotation
@@ -153,16 +126,10 @@ class T02ADSStates : StateMachineBuilder
 }
 
 [ConfigDisplay(Order = 0x120, Parent = typeof(RealmRebornConfig))]
-public class T02ADSConfig : CooldownPlanningConfigNode
-{
-    public T02ADSConfig() : base(50) { }
-}
+public class T02ADSConfig() : CooldownPlanningConfigNode(50);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.ADS, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 94, NameID = 1459, SortOrder = 1)]
-public class T02ADS : BossModule
-{
-    public T02ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 77), 18, 13)) { }
-}
+public class T02ADS(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(0, 77), 18, 13));
 
 class T02QuarantineNodeStates : StateMachineBuilder
 {

@@ -4,14 +4,15 @@
 // there are various variants (e.g. everyone should spread, or everyone should stack in one or more groups, or some combination of that)
 public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = false, bool raidwideOnResolve = true, bool includeDeadTargets = false) : BossComponent(module)
 {
-    public record struct Stack(
-        Actor Target,
-        float Radius,
-        int MinSize = 2,
-        int MaxSize = int.MaxValue,
-        DateTime Activation = default,
-        BitMask ForbiddenPlayers = default // raid members that aren't allowed to participate in the stack
-    );
+    public struct Stack(Actor target, float radius, int minSize = 2, int maxSize = int.MaxValue, DateTime activation = default, BitMask forbiddenPlayers = default)
+    {
+        public Actor Target = target;
+        public float Radius = radius;
+        public int MinSize = minSize;
+        public int MaxSize = maxSize;
+        public DateTime Activation = activation;
+        public BitMask ForbiddenPlayers = forbiddenPlayers; // raid members that aren't allowed to participate in the stack
+    }
 
     public record struct Spread(
         Actor Target,

@@ -20,35 +20,26 @@ public enum SID : uint
     Stun = 149,
 }
 
-class Sabotendance : Components.SelfTargetedAOEs
-{
-    public Sabotendance() : base(ActionID.MakeSpell(AID.Sabotendance), new AOEShapeCircle(8)) { }
-}
+class Sabotendance(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sabotendance), new AOEShapeCircle(8));
 
-class TwentyKNeedles : Components.SelfTargetedAOEs
-{
-    public TwentyKNeedles() : base(ActionID.MakeSpell(AID.TwentyKNeedles), new AOEShapeRect(20, 4)) { }
-}
+class TwentyKNeedles(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TwentyKNeedles), new AOEShapeRect(20, 4));
 
 class Haste : BossComponent
 {
     private bool HasteB;
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Haste)
             HasteB = true;
     }
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (HasteB)
             hints.Add("Getting hit by the needle attack will instantly kill you from now on!");
     }
 }
 
-class NineNineNineKNeedles : Components.SelfTargetedAOEs
-{
-    public NineNineNineKNeedles() : base(ActionID.MakeSpell(AID.NineNineNineKNeedles), new AOEShapeRect(20, 4)) { }
-}
+class NineNineNineKNeedles(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NineNineNineKNeedles), new AOEShapeRect(20, 4));
 
 class MaliktenderStates : StateMachineBuilder
 {

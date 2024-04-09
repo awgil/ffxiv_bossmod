@@ -23,7 +23,7 @@ class Hatch : Components.CastCounter
         _neurolinks = module.Enemies(OID.Neurolink);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (!Active)
             return;
@@ -35,45 +35,45 @@ class Hatch : Components.CastCounter
             hints.Add("GTFO from neurolink!");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return Active && _targets[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Active)
             foreach (var o in _orbs.Where(o => !o.IsDead))
                 arena.ZoneCircle(o.Position, 1, ArenaColor.AOE);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Active)
             foreach (var neurolink in _neurolinks)
                 arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? ArenaColor.Safe : ArenaColor.Danger);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Generate)
         {
-            _targets.Set(module.Raid.FindSlot(actor.InstanceID));
+            _targets.Set(Raid.FindSlot(actor.InstanceID));
             ++NumTargetsAssigned;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
         {
             ++NumCasts;
             foreach (var t in spell.Targets)
-                _targets.Clear(module.Raid.FindSlot(t.ID));
+                _targets.Clear(Raid.FindSlot(t.ID));
         }
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.Twintania && id == 0x94)
             ++NumNeurolinkSpawns;

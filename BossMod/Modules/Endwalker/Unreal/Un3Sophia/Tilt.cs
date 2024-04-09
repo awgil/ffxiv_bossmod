@@ -11,13 +11,13 @@ class Tilt : Components.Knockback
 
     public Tilt() : base(ActionID.MakeSpell(AID.QuasarTilt)) { }
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (Distance > 0)
             yield return new(new(), Distance, Activation, null, Direction, Kind.DirForward);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         if (spell.Action == WatchedAction)
@@ -29,7 +29,7 @@ class ScalesOfWisdom : Tilt
 {
     public bool RaidwideDone;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         switch ((AID)spell.Action.ID)
@@ -38,7 +38,7 @@ class ScalesOfWisdom : Tilt
                 // prepare for first tilt
                 Distance = DistanceShort;
                 Direction = -90.Degrees();
-                Activation = module.WorldState.CurrentTime.AddSeconds(8);
+                Activation = WorldState.FutureTime(8);
                 break;
             case AID.QuasarTilt:
                 if (NumCasts == 1)
@@ -46,7 +46,7 @@ class ScalesOfWisdom : Tilt
                     // prepare for second tilt
                     Distance = DistanceShort;
                     Direction = 90.Degrees();
-                    Activation = module.WorldState.CurrentTime.AddSeconds(4.9f);
+                    Activation = WorldState.FutureTime(4.9f);
                 }
                 break;
             case AID.ScalesOfWisdomRaidwide:
@@ -61,7 +61,7 @@ class Quasar : Tilt
     public int WeightLeft;
     public int WeightRight;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var weight = (AID)spell.Action.ID switch
         {

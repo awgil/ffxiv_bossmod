@@ -1,31 +1,29 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
-class EngravementOfSouls3Shock : Components.CastTowers
+class EngravementOfSouls3Shock(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Shock), 3)
 {
     private BitMask _towers;
     private BitMask _plus;
     private BitMask _cross;
 
-    public EngravementOfSouls3Shock() : base(ActionID.MakeSpell(AID.Shock), 3) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.UmbralbrightSoul:
             case SID.AstralbrightSoul:
-                _towers.Set(module.Raid.FindSlot(actor.InstanceID));
+                _towers.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.QuarteredSoul:
-                _plus.Set(module.Raid.FindSlot(actor.InstanceID));
+                _plus.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.XMarkedSoul:
-                _cross.Set(module.Raid.FindSlot(actor.InstanceID));
+                _cross.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
@@ -35,7 +33,7 @@ class EngravementOfSouls3Shock : Components.CastTowers
                 > 110 => ~_cross,
                 _ => ~_towers // TODO: assign specific towers based on priorities?
             };
-            Towers.Add(new(spell.LocXZ, Radius, forbiddenSoakers: forbidden));
+            Towers.Add(new(spell.LocXZ, Radius, ForbiddenSoakers: forbidden));
         }
     }
 }
@@ -45,22 +43,20 @@ class EngravementOfSouls3Spread : Components.UniformStackSpread
     private EngravementOfSoulsTethers? _tethers;
     private EngravementOfSoulsTethers.TetherType _soakers;
 
-    public EngravementOfSouls3Spread() : base(0, 3, alwaysShowSpreads: true, raidwideOnResolve: false) { }
-
-    public override void Init(BossModule module)
+    public EngravementOfSouls3Spread(BossModule module) : base(module, 0, 3, alwaysShowSpreads: true, raidwideOnResolve: false)
     {
         _tethers = module.FindComponent<EngravementOfSoulsTethers>();
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         if (IsSpreadTarget(pc))
             return _tethers?.States[playerSlot].Tether == _soakers ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
         else
-            return base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref customColor);
+            return base.CalcPriority(pcSlot, pc, playerSlot, player, ref customColor);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var soakers = (SID)status.ID switch
         {
@@ -75,25 +71,18 @@ class EngravementOfSouls3Spread : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.UmbralGlow or AID.AstralGlow)
             Spreads.Clear();
     }
 }
 
-class TheosCross : Components.SelfTargetedAOEs
-{
-    public TheosCross() : base(ActionID.MakeSpell(AID.TheosCross), new AOEShapeCross(40, 3)) { }
-}
-
-class TheosSaltire : Components.SelfTargetedAOEs
-{
-    public TheosSaltire() : base(ActionID.MakeSpell(AID.TheosSaltire), new AOEShapeCross(40, 3)) { }
-}
+class TheosCross(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheosCross), new AOEShapeCross(40, 3));
+class TheosSaltire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheosSaltire), new AOEShapeCross(40, 3));
 
 // TODO: this assumes standard strats, there could be variations i guess...
-class EngravementOfSouls3Hints : BossComponent
+class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)
 {
     public enum PlayerState { None, Tower, Plus, Cross, TetherTL, TetherBL, TetherTR, TetherBR }
     public enum Mechanic { Start, FixedTowers, Tethers, CrossPlusBait, TowersBait, WhiteFlameBait, TowersResolve }
@@ -104,83 +93,80 @@ class EngravementOfSouls3Hints : BossComponent
     private bool _leftTowerMatchTether;
     private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        if (movementHints != null)
+        foreach (var chain in PositionHints(slot))
         {
-            foreach (var chain in PositionHints(slot))
+            var from = actor.Position;
+            var color = ArenaColor.Safe;
+            foreach (var offset in chain)
             {
-                var from = actor.Position;
-                var color = ArenaColor.Safe;
-                foreach (var offset in chain)
-                {
-                    var to = module.Bounds.Center + offset;
-                    movementHints.Add(from, to, color);
-                    from = to;
-                    color = ArenaColor.Danger;
-                }
+                var to = Module.Bounds.Center + offset;
+                movementHints.Add(from, to, color);
+                from = to;
+                color = ArenaColor.Danger;
             }
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var chain in PositionHints(pcSlot))
             foreach (var offset in chain.Take(1))
-                arena.AddCircle(module.Bounds.Center + offset, 1, ArenaColor.Safe);
+                Arena.AddCircle(Module.Bounds.Center + offset, 1, ArenaColor.Safe);
     }
 
     // note: these statuses are assigned before any tethers
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.UmbralbrightSoul:
                 _towersLight = true;
-                SetState(module, module.Raid.FindSlot(actor.InstanceID), PlayerState.Tower);
+                SetState(Raid.FindSlot(actor.InstanceID), PlayerState.Tower);
                 break;
             case SID.AstralbrightSoul:
                 _towersLight = false;
-                SetState(module, module.Raid.FindSlot(actor.InstanceID), PlayerState.Tower);
+                SetState(Raid.FindSlot(actor.InstanceID), PlayerState.Tower);
                 break;
             case SID.QuarteredSoul:
-                SetState(module, module.Raid.FindSlot(actor.InstanceID), PlayerState.Plus);
+                SetState(Raid.FindSlot(actor.InstanceID), PlayerState.Plus);
                 break;
             case SID.XMarkedSoul:
-                SetState(module, module.Raid.FindSlot(actor.InstanceID), PlayerState.Cross);
+                SetState(Raid.FindSlot(actor.InstanceID), PlayerState.Cross);
                 break;
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {
             case TetherID.LightNear:
             case TetherID.LightFar:
-                AssignTether(module, source, module.Raid.FindSlot(tether.Target), true);
+                AssignTether(source, Raid.FindSlot(tether.Target), true);
                 break;
             case TetherID.DarkNear:
             case TetherID.DarkFar:
-                AssignTether(module, source, module.Raid.FindSlot(tether.Target), false);
+                AssignTether(source, Raid.FindSlot(tether.Target), false);
                 break;
             case TetherID.UnnaturalEnchainment:
                 if (source.Position.Z < 90)
                 {
-                    _topLeftSafe = source.Position.X > module.Bounds.Center.X;
+                    _topLeftSafe = source.Position.X > Module.Bounds.Center.X;
                     AdvanceMechanic(Mechanic.FixedTowers);
                 }
                 break;
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.TheosCross or AID.TheosSaltire)
             AdvanceMechanic(Mechanic.TowersBait);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -211,23 +197,23 @@ class EngravementOfSouls3Hints : BossComponent
             _nextMechanic = next;
     }
 
-    private void SetState(BossModule module, int slot, PlayerState state)
+    private void SetState(int slot, PlayerState state)
     {
         if (slot < 0)
         {
-            module.ReportError(this, "Failed to assign state");
+            ReportError("Failed to assign state");
             return;
         }
         if (_playerStates[slot] != PlayerState.None)
-            module.ReportError(this, $"State reassignment: {_playerStates[slot]} -> {state}");
+            ReportError($"State reassignment: {_playerStates[slot]} -> {state}");
         _playerStates[slot] = state;
     }
 
-    private void AssignTether(BossModule module, Actor source, int slot, bool light)
+    private void AssignTether(Actor source, int slot, bool light)
     {
-        bool stayLeft = source.Position.X > module.Bounds.Center.X;
-        bool stayTop = source.Position.Z > module.Bounds.Center.Z;
-        SetState(module, slot, stayLeft ? (stayTop ? PlayerState.TetherTL : PlayerState.TetherBL) : (stayTop ? PlayerState.TetherTR : PlayerState.TetherBR));
+        bool stayLeft = source.Position.X > Module.Bounds.Center.X;
+        bool stayTop = source.Position.Z > Module.Bounds.Center.Z;
+        SetState(slot, stayLeft ? (stayTop ? PlayerState.TetherTL : PlayerState.TetherBL) : (stayTop ? PlayerState.TetherTR : PlayerState.TetherBR));
 
         bool lightStayLeft = stayLeft == light;
         _leftTowerMatchTether = lightStayLeft == _towersLight;

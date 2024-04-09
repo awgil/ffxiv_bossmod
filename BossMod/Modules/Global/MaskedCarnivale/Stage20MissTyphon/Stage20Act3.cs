@@ -21,58 +21,31 @@ public enum AID : uint
     ImpSong = 14744, // 272D->self, 6,0s cast, range 50+R circle
 }
 
-class AquaBreath : Components.SelfTargetedAOEs
-{
-    public AquaBreath() : base(ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f, 45.Degrees())) { }
-}
+class AquaBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f, 45.Degrees()));
 
-class Megavolt : Components.SelfTargetedAOEs
-{
-    public Megavolt() : base(ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f)) { }
-}
+class Megavolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f));
 
-class Tentacle : Components.SelfTargetedAOEs
-{
-    public Tentacle() : base(ActionID.MakeSpell(AID.Tentacle), new AOEShapeCircle(8)) { }
-}
+class Tentacle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Tentacle), new AOEShapeCircle(8));
 
-class Wallop : Components.SelfTargetedAOEs
-{
-    public Wallop() : base(ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(57.2f, 5)) { }
-}
+class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(57.2f, 5));
 
-class WallopKB : Components.KnockbackFromCastTarget
-{
-    public WallopKB() : base(ActionID.MakeSpell(AID.Wallop), 20, kind: Kind.AwayFromOrigin) { } //knockback actually delayed by 0.8s
-}
+class WallopKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Wallop), 20, kind: Kind.AwayFromOrigin); //knockback actually delayed by 0.8s
 
-class Fireball : Components.LocationTargetedAOEs
-{
-    public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 8) { }
-}
+class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 8);
 
-class ImpSong : Components.CastHint
-{
-    public ImpSong() : base(ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!") { }
-}
+class ImpSong(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!");
 
-class Snort : Components.CastHint
-{
-    public Snort() : base(ActionID.MakeSpell(AID.Snort), "Use Diamondback!") { }
-}
+class Snort(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Snort), "Use Diamondback!");
 
-class SnortKB : Components.KnockbackFromCastTarget
-{
-    public SnortKB() : base(ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin) { }  //knockback actually delayed by 0.7s
-}
+class SnortKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin);  //knockback actually delayed by 0.7s
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("This act is act 1+2 combined with tentacles on top.\nThe Final Sting combo (Off-guard->Bristle->Moonflute->Final Sting) makes\nthis act including the achievement much easier. Ultros is weak to fire.");
     }
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         hints.Add("Requirement for achievement: Don't kill any tentacles in this act", false);
     }

@@ -12,21 +12,21 @@ class SpinyShield : BossComponent
         _shield = module.Enemies(OID.SpinyShield);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var shield = ActiveShield;
         if (shield != null && !actor.Position.InCircle(shield.Position, _radius))
             hints.Add("Go inside shield");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var shield = ActiveShield;
         if (shield != null)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(shield.Position, _radius));
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         var shield = ActiveShield;
         if (shield != null)

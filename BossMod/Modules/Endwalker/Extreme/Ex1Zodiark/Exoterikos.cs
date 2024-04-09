@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
 
 // state related to exoterikos, trimorphos exoterikos and triple esoteric ray mechanics
-class Exoterikos : BossComponent
+class Exoterikos(BossModule module) : BossComponent(module)
 {
     private List<(Actor, AOEShape)> _sources= new();
 
@@ -11,23 +11,23 @@ class Exoterikos : BossComponent
 
     public bool Done => _sources.Count == 0;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (ActiveSources(module).Any(actShape => actShape.Item2.Check(actor.Position, actShape.Item1)))
+        if (ActiveSources().Any(actShape => actShape.Item2.Check(actor.Position, actShape.Item1)))
             hints.Add("GTFO from exo aoe!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        foreach (var (src, shape) in ActiveSources(module))
-            shape.Draw(arena, src);
+        foreach (var (src, shape) in ActiveSources())
+            shape.Draw(Arena, src);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         // tethers appear much earlier than cast start, but not for all sigils
-        var target = module.WorldState.Actors.Find(tether.Target);
-        if (source != module.PrimaryActor || target == null)
+        var target = WorldState.Actors.Find(tether.Target);
+        if (source != Module.PrimaryActor || target == null)
             return;
 
         var shape = ShapeForSigil(target);
@@ -35,14 +35,14 @@ class Exoterikos : BossComponent
             _sources.Add((target, shape));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var shape = ShapeForSigil(caster);
         if (shape != null && !_sources.Any(actShape => actShape.Item1 == caster))
             _sources.Add((caster, shape));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         _sources.RemoveAll(actShape => actShape.Item1 == caster);
     }
@@ -58,13 +58,13 @@ class Exoterikos : BossComponent
         };
     }
 
-    private IEnumerable<(Actor, AOEShape)> ActiveSources(BossModule module)
+    private IEnumerable<(Actor, AOEShape)> ActiveSources()
     {
         bool hadSideSquare = false; // we don't show multiple side-squares, since that would cover whole arena and be useless
         DateTime lastRay = new(); // we only show first rays, otherwise triple rays would cover whole arena and be useless
         foreach (var (actor, shape) in _sources)
         {
-            if (shape == _aoeSquare && MathF.Abs(actor.Position.X - module.Bounds.Center.X) > 10)
+            if (shape == _aoeSquare && MathF.Abs(actor.Position.X - Module.Bounds.Center.X) > 10)
             {
                 if (hadSideSquare)
                     continue;

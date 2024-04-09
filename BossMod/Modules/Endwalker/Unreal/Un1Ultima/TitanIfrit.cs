@@ -11,13 +11,13 @@ class TitanIfrit : BossComponent
     private static readonly AOEShapeCircle _aoeEruption = new(8);
     private static readonly AOEShapeRect _aoeCrimsonCyclone = new(38, 6);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_activeLocationTargetedAOEs.Any(e => e.Item2.Check(actor.Position, e.Item1.CastInfo!.LocXZ)) || _crimsonCyclone.Any(a => _aoeCrimsonCyclone.Check(actor.Position, a)))
             hints.Add("GTFO from aoe!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var (a, aoe) in _activeLocationTargetedAOEs)
             aoe.Draw(arena, a.CastInfo!.LocXZ);
@@ -25,7 +25,7 @@ class TitanIfrit : BossComponent
             _aoeCrimsonCyclone.Draw(arena, a);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -44,7 +44,7 @@ class TitanIfrit : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {

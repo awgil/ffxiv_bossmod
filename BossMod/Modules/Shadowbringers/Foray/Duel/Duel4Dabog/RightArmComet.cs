@@ -6,14 +6,14 @@ class RightArmComet : Components.KnockbackFromCastTarget
 
     public RightArmComet(AID aid, float distance) : base(ActionID.MakeSpell(aid), distance, shape: new AOEShapeCircle(_radius)) { }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(module, slot, actor, hints, movementHints);
         if (Casters.Any(c => !Shape!.Check(actor.Position, c)))
             hints.Add("Soak the tower!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         base.DrawArenaForeground(module, pcSlot, pc, arena);
         foreach (var c in Casters)
@@ -21,12 +21,6 @@ class RightArmComet : Components.KnockbackFromCastTarget
     }
 }
 
-class RightArmCometShort : RightArmComet
-{
-    public RightArmCometShort() : base(AID.RightArmCometKnockbackShort, 12) { }
-}
+class RightArmCometShort(BossModule module) : RightArmComet(module, AID.RightArmCometKnockbackShort, 12);
 
-class RightArmCometLong : RightArmComet
-{
-    public RightArmCometLong() : base(AID.RightArmCometKnockbackLong, 25) { }
-}
+class RightArmCometLong(BossModule module) : RightArmComet(module, AID.RightArmCometKnockbackLong, 25);

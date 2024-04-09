@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 // general mechanic tracking
-class Palladion : BossComponent
+class Palladion(BossModule module) : BossComponent(module)
 {
     public Actor?[] JumpTargets = new Actor?[PartyState.MaxPartySize];
     public Actor?[] Partners = new Actor?[PartyState.MaxPartySize];
@@ -10,14 +10,14 @@ class Palladion : BossComponent
     public int NumBaitsDone;
     private Dictionary<ulong, bool> _baitedLight = new(); // key = instance id, value = true if bait, false if center aoe
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var order = Array.IndexOf(JumpTargets, actor);
         if (order >= 0)
             hints.Add($"Order: {order + 1}", false);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var (target, partner) = (IconID)iconID switch
         {
@@ -38,7 +38,7 @@ class Palladion : BossComponent
         }
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.Anthropos)
         {
@@ -58,7 +58,7 @@ class Palladion : BossComponent
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ClearCut or AID.WhiteFlame)
             ++NumBaitsDone;
@@ -67,13 +67,13 @@ class Palladion : BossComponent
 
 // limited arena for limit cuts
 // TODO: reconsider - base activation on env controls, show danger zone instead of border?..
-class PalladionArena : BossComponent
+class PalladionArena(BossModule module) : BossComponent(module)
 {
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         for (int i = 0; i < 8; ++i)
-            arena.PathLineTo(module.Bounds.Center + 14 * (i * 45).Degrees().ToDirection());
-        arena.PathStroke(true, ArenaColor.Border, 2);
+            Arena.PathLineTo(Module.Bounds.Center + 14 * (i * 45).Degrees().ToDirection());
+        Arena.PathStroke(true, ArenaColor.Border, 2);
     }
 }
 
@@ -84,39 +84,39 @@ class PalladionShockwave : Components.GenericAOEs
     private WPos _origin;
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public PalladionShockwave(BossModule module) : base(module)
+    {
+        _palladion = module.FindComponent<Palladion>();
+        _origin = Module.PrimaryActor.Position; // note: assumed to be activated when cast starts, so boss is in initial jump position; PATE 1E43 happens 1s earlier, but icons only appear right before cast start
+        _activation = Module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default;
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_palladion != null && NumCasts < _palladion.JumpTargets.Length && _palladion.JumpTargets[NumCasts] is var target && target != null && actor != target && actor != _palladion.Partners[NumCasts])
             yield return new(BuildShape(target.Position), _origin, default, _activation);
     }
 
-    public override void Init(BossModule module)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        _palladion = module.FindComponent<Palladion>();
-        _origin = module.PrimaryActor.Position; // note: assumed to be activated when cast starts, so boss is in initial jump position; PATE 1E43 happens 1s earlier, but icons only appear right before cast start
-        _activation = module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default;
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-    {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (_palladion != null && NumCasts < _palladion.JumpTargets.Length && _palladion.JumpTargets[NumCasts] is var target && (target == actor || target == _palladion.Partners[NumCasts]) && actor.Position.InCircle(_origin, 23))
             hints.Add("Too close!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_palladion != null && NumCasts < _palladion.JumpTargets.Length && _palladion.JumpTargets[NumCasts] is var target && target != null && (pc == target || pc == _palladion.Partners[NumCasts]))
-            BuildShape(target.Position).Outline(arena, _origin, default, ArenaColor.Safe);
+            BuildShape(target.Position).Outline(Arena, _origin, default, ArenaColor.Safe);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         // note: shockwave cast happens at exactly the same time, but it targets a player rather than location, making it slightly harder to work with
         if ((AID)spell.Action.ID == AID.PalladionAOE)
         {
             _origin = spell.TargetXZ;
-            _activation = module.WorldState.CurrentTime.AddSeconds(3);
+            _activation = WorldState.FutureTime(3);
             ++NumCasts;
         }
     }
@@ -134,40 +134,32 @@ class PalladionStack : Components.UniformStackSpread
     private int _numCasts;
     private Palladion? _palladion;
 
-    public PalladionStack() : base(6, 0, raidwideOnResolve: false) { }
-
-    public override void Init(BossModule module)
+    public PalladionStack(BossModule module) : base(module, 6, 0, raidwideOnResolve: false)
     {
         _palladion = module.FindComponent<Palladion>();
-        UpdateStack(module, module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default);
+        UpdateStack(Module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default);
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return IsStackTarget(player) ? PlayerPriority.Interesting : PlayerPriority.Normal;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => IsStackTarget(player) ? PlayerPriority.Interesting : PlayerPriority.Normal;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.PalladionAOE)
         {
             ++_numCasts;
-            UpdateStack(module, module.WorldState.CurrentTime.AddSeconds(3));
+            UpdateStack(WorldState.FutureTime(3));
         }
     }
 
-    private void UpdateStack(BossModule module, DateTime activation)
+    private void UpdateStack(DateTime activation)
     {
         Stacks.Clear();
         if (_palladion != null && _numCasts < _palladion.JumpTargets.Length && _palladion.JumpTargets[_numCasts] is var target && target != null)
-            AddStack(target, activation, module.Raid.WithSlot(true).Exclude(_palladion.Partners[_numCasts]).Mask());
+            AddStack(target, activation, Raid.WithSlot(true).Exclude(_palladion.Partners[_numCasts]).Mask());
     }
 }
 
-class PalladionVoidzone : Components.PersistentVoidzoneAtCastTarget
-{
-    public PalladionVoidzone() : base(6, ActionID.MakeSpell(AID.PalladionAOE), m => m.Enemies(OID.PalladionVoidzone).Where(z => z.EventState != 7), 0.9f) { }
-}
+class PalladionVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.PalladionAOE), m => m.Enemies(OID.PalladionVoidzone).Where(z => z.EventState != 7), 0.9f);
 
 class PalladionClearCut : Components.GenericAOEs
 {
@@ -175,15 +167,15 @@ class PalladionClearCut : Components.GenericAOEs
 
     private static readonly AOEShapeCircle _shape = new(4); // note: it's really a 270? degree cone, but we don't really know rotation early enough, and we just shouldn't stay in center anyway
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-    {
-        if (_palladion != null && _palladion.NumBaitsDone < _palladion.NumBaitsAssigned && !_palladion.BaitOrder[_palladion.NumBaitsDone])
-            yield return new(_shape, module.Bounds.Center);
-    }
-
-    public override void Init(BossModule module)
+    public PalladionClearCut(BossModule module) : base(module)
     {
         _palladion = module.FindComponent<Palladion>();
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_palladion != null && _palladion.NumBaitsDone < _palladion.NumBaitsAssigned && !_palladion.BaitOrder[_palladion.NumBaitsDone])
+            yield return new(_shape, Module.Bounds.Center);
     }
 }
 
@@ -195,44 +187,44 @@ class PalladionWhiteFlame : Components.GenericBaitAway
 
     private static readonly AOEShapeRect _shape = new(100, 2);
 
-    public override void Init(BossModule module)
+    public PalladionWhiteFlame(BossModule module) : base(module)
     {
         _palladion = module.FindComponent<Palladion>();
-        UpdateBaiters(module);
+        UpdateBaiters();
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
         if (_palladion != null && _palladion.NumBaitsDone < _palladion.NumBaitsAssigned && _palladion.BaitOrder[_palladion.NumBaitsDone])
-            foreach (var t in module.Raid.WithoutSlot().SortedByRange(module.Bounds.Center).Take(2))
+            foreach (var t in Raid.WithoutSlot().SortedByRange(Module.Bounds.Center).Take(2))
                 CurrentBaits.Add(new(_fakeSource, t, _shape));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (NumCasts < 4 && !ForbiddenPlayers[slot])
             hints.Add("Bait next aoe", CurrentBaits.Count > 0 && !ActiveBaitsOn(actor).Any());
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (CurrentBaits.Count > 0)
-            arena.Actor(module.Bounds.Center, default, ArenaColor.Object);
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+            Arena.Actor(Module.Bounds.Center, default, ArenaColor.Object);
+        base.DrawArenaForeground(pcSlot, pc);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.WhiteFlame)
         {
             ++NumCasts;
-            UpdateBaiters(module);
+            UpdateBaiters();
         }
     }
 
-    private void UpdateBaiters(BossModule module)
+    private void UpdateBaiters()
     {
         // TODO: we assume very strict bait order (5/7, 6/8, 1/3, 2/4), this is not strictly required...
         ForbiddenPlayers.Reset();
@@ -245,19 +237,17 @@ class PalladionWhiteFlame : Components.GenericBaitAway
                 2 => (0, 2),
                 _ => (1, 3)
             };
-            ForbiddenPlayers = module.Raid.WithSlot(true).Exclude(_palladion.JumpTargets[b1]).Exclude(_palladion.JumpTargets[b2]).Mask();
+            ForbiddenPlayers = Raid.WithSlot(true).Exclude(_palladion.JumpTargets[b1]).Exclude(_palladion.JumpTargets[b2]).Mask();
         }
     }
 }
 
-class PalladionDestroyPlatforms : Components.GenericAOEs
+class PalladionDestroyPlatforms(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.PalladionDestroyPlatforms), "Go to safe platform!")
 {
     private static readonly AOEShapeRect _shape = new(10, 20, 10);
 
-    public PalladionDestroyPlatforms() : base(ActionID.MakeSpell(AID.PalladionDestroyPlatforms), "Go to safe platform!") { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        yield return new(_shape, module.Bounds.Center);
+        yield return new(_shape, Module.Bounds.Center);
     }
 }

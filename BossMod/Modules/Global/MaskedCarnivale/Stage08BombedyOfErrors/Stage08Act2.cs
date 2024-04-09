@@ -16,20 +16,14 @@ public enum AID : uint
     Burst = 14680, // 270B->self, 6,0s cast, range 50 circle
 }
 
-class Sap : Components.LocationTargetedAOEs
-{
-    public Sap() : base(ActionID.MakeSpell(AID.Sap), 8) { }
-}
+class Sap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Sap), 8);
 
-class Burst : Components.CastHint
-{
-    public Burst() : base(ActionID.MakeSpell(AID.Burst), "Interrupt or wipe!") { }
-}
+class Burst(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Burst), "Interrupt or wipe!");
 
 class Selfdetonations : BossComponent
 {
     private static readonly string hint = "In bomb explosion radius!";
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
         {
@@ -45,7 +39,7 @@ class Selfdetonations : BossComponent
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 10))
@@ -58,7 +52,7 @@ class Selfdetonations : BossComponent
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Clever activation of cherry bombs will freeze the Progenitrix.\nInterrupt its burst skill or wipe. The Progenitrix is weak to wind spells.");
     }

@@ -60,75 +60,33 @@ public enum AID : uint
     MogCreation = 29208, // GoodKingMoggleMogXII->self, 3.0s cast, range 50 width 10 rect aoe
 }
 
-class SpinningMogshield : Components.SelfTargetedAOEs
-{
-    public SpinningMogshield() : base(ActionID.MakeSpell(AID.SpinningMogshield), new AOEShapeCircle(6)) { }
-}
+class SpinningMogshield(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpinningMogshield), new AOEShapeCircle(6));
 
-class ThousandKuponzeSwipe : Components.SelfTargetedAOEs
-{
-    public ThousandKuponzeSwipe() : base(ActionID.MakeSpell(AID.ThousandKuponzeSwipe), new AOEShapeCone(20, 45.Degrees())) { }
-}
+class ThousandKuponzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThousandKuponzeSwipe), new AOEShapeCone(20, 45.Degrees()));
 
-class MograinOfDeath : Components.SpreadFromCastTargets
-{
-    public MograinOfDeath() : base(ActionID.MakeSpell(AID.MograinOfDeathAOE), 6) { }
-}
+class MograinOfDeath(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.MograinOfDeathAOE), 6);
 
-class PomHoly : Components.RaidwideCast
-{
-    public PomHoly() : base(ActionID.MakeSpell(AID.PomHoly)) { }
-}
+class PomHoly(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PomHoly));
 
-class MoggledayNightFever : Components.SelfTargetedAOEs
-{
-    public MoggledayNightFever() : base(ActionID.MakeSpell(AID.MoggledayNightFever), new AOEShapeCone(30, 60.Degrees())) { }
-}
+class MoggledayNightFever(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MoggledayNightFever), new AOEShapeCone(30, 60.Degrees()));
 
-class MoogleThrust : Components.SingleTargetCast
-{
-    public MoogleThrust() : base(ActionID.MakeSpell(AID.MoogleThrust)) { }
-}
+class MoogleThrust(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.MoogleThrust));
 
-class MementoMoogle : Components.RaidwideCast
-{
-    public MementoMoogle() : base(ActionID.MakeSpell(AID.MementoMoogle)) { }
-}
+class MementoMoogle(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MementoMoogle));
 
-class PomHolyBoss : Components.RaidwideCast
-{
-    public PomHolyBoss() : base(ActionID.MakeSpell(AID.PomHolyBoss)) { }
-}
+class PomHolyBoss(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PomHolyBoss));
 
-class ThousandKuponzeCharge : Components.SingleTargetCast
-{
-    public ThousandKuponzeCharge() : base(ActionID.MakeSpell(AID.ThousandKuponzeCharge)) { }
-}
+class ThousandKuponzeCharge(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ThousandKuponzeCharge));
 
-class PomBog : Components.PersistentVoidzoneAtCastTarget
-{
-    public PomBog() : base(8, ActionID.MakeSpell(AID.PomBog), m => m.Enemies(OID.PomBog).Where(a => a.EventState != 7), 0.8f) { }
-}
+class PomBog(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, ActionID.MakeSpell(AID.PomBog), m => m.Enemies(OID.PomBog).Where(a => a.EventState != 7), 0.8f);
 
-class MogStone : Components.StackWithCastTargets
-{
-    public MogStone() : base(ActionID.MakeSpell(AID.MogStoneAOE), 6, 8) { }
-}
+class MogStone(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MogStoneAOE), 6, 8);
 
-class TwinPomMeteor : Components.CastSharedTankbuster
-{
-    public TwinPomMeteor() : base(ActionID.MakeSpell(AID.TwinPomMeteorAOE), 6) { }
-}
+class TwinPomMeteor(BossModule module) : Components.CastSharedTankbuster(module, ActionID.MakeSpell(AID.TwinPomMeteorAOE), 6);
 
-class MogComet : Components.LocationTargetedAOEs
-{
-    public MogComet() : base(ActionID.MakeSpell(AID.MogCometAOE), 6) { }
-}
+class MogComet(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MogCometAOE), 6);
 
-class MogCreation : Components.SelfTargetedAOEs
-{
-    public MogCreation() : base(ActionID.MakeSpell(AID.MogCreation), new AOEShapeRect(50, 5)) { }
-}
+class MogCreation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MogCreation), new AOEShapeRect(50, 5));
 
 // note: this fight has well-timed state machine for all phases, but it's just too simple to bother...
 class T08ThornmarchHStates : StateMachineBuilder

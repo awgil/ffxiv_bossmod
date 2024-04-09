@@ -21,20 +21,11 @@ public enum SID : uint
     Haste = 8, // Boss->Boss, extra=0x0
 }
 
-class DiffractiveLaser : Components.LocationTargetedAOEs
-{
-    public DiffractiveLaser() : base(ActionID.MakeSpell(AID.DiffractiveLaser), 5) { }
-}
+class DiffractiveLaser(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DiffractiveLaser), 5);
 
-class MagitekFlamehook : Components.RaidwideCast
-{
-    public MagitekFlamehook() : base(ActionID.MakeSpell(AID.MagitekFlamehook), "Raidwide + Pyretic") { }
-}
+class MagitekFlamehook(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MagitekFlamehook), "Raidwide + Pyretic");
 
-class Launcher : Components.RaidwideCast
-{
-    public Launcher() : base(ActionID.MakeSpell(AID.Launcher), "Raidwide (%HP based)") { }
-}
+class Launcher(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Launcher), "Raidwide (%HP based)");
 
 class MagitekFlamehookPyretic : BossComponent
 { //Note: boss is lvl 70, so this pyretic can probably be ignored at lvl 90, but we assume the player is also around lvl 70
@@ -42,37 +33,37 @@ class MagitekFlamehookPyretic : BossComponent
     public bool Pyretic { get; private set; }
     private bool casting;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.MagitekFlamehook)
             casting = true;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.MagitekFlamehook)
             casting = false;
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyretic)
-            _pyretic.Set(module.Raid.FindSlot(actor.InstanceID));
+            _pyretic.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyretic)
-            _pyretic.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _pyretic.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_pyretic[slot] != Pyretic)
             hints.Add("Pyretic on you! STOP everything!");
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (casting)
             hints.Add("Applies Pyretic - STOP everything until it runs out!");
@@ -92,7 +83,4 @@ class GammaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5985)]
-public class Gamma : SimpleBossModule
-{
-    public Gamma(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Gamma(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Savage.P11SThemis;
 
-class DarkCurrent : Components.GenericAOEs
+class DarkCurrent(BossModule module) : Components.GenericAOEs(module)
 {
     private List<AOEInstance> _aoes = new();
 
     private static readonly AOEShapeCircle _shape = new(8);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var aoe in _aoes.Skip(3).Take(6))
             yield return aoe;
@@ -14,7 +14,7 @@ class DarkCurrent : Components.GenericAOEs
             yield return aoe;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.DarkCurrentAOEFirst or AID.DarkCurrentAOERest)
         {
@@ -26,7 +26,7 @@ class DarkCurrent : Components.GenericAOEs
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (index is 1 or 2 && state is 0x00020001 or 0x00200010)
         {
@@ -38,15 +38,12 @@ class DarkCurrent : Components.GenericAOEs
             {
                 var offset = 13 * (startingAngle + i * rotation).ToDirection();
                 var color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE;
-                _aoes.Add(new(_shape, module.Bounds.Center, default, module.WorldState.CurrentTime.AddSeconds(7.1f + i * 1.1f), color));
-                _aoes.Add(new(_shape, module.Bounds.Center + offset, default, module.WorldState.CurrentTime.AddSeconds(7.1f + i * 1.1f), color));
-                _aoes.Add(new(_shape, module.Bounds.Center - offset, default, module.WorldState.CurrentTime.AddSeconds(7.1f + i * 1.1f), color));
+                _aoes.Add(new(_shape, Module.Bounds.Center, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
+                _aoes.Add(new(_shape, Module.Bounds.Center + offset, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
+                _aoes.Add(new(_shape, Module.Bounds.Center - offset, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
             }
         }
     }
 }
 
-class BlindingLight : Components.SpreadFromCastTargets
-{
-    public BlindingLight() : base(ActionID.MakeSpell(AID.BlindingLightAOE), 6) { }
-}
+class BlindingLight(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.BlindingLightAOE), 6);

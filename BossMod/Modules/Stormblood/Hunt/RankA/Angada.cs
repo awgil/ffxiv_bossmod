@@ -14,44 +14,35 @@ public enum AID : uint
     Rip = 8192, // 1AC0->self, no cast, range 6+R 120-degree cone, always happens directly after Butcher
 }
 
-class ScytheTail : Components.SelfTargetedAOEs
-{
-    public ScytheTail() : base(ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(9.4f)) { }
-}
+class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(9.4f));
 
-class Butcher : Components.SelfTargetedAOEs
-{
-    public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(11.4f, 60.Degrees())) { }
-}
+class Butcher(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(11.4f, 60.Degrees()));
 
 class Rip : Components.GenericAOEs
 {
     private DateTime _activation;
     private static readonly AOEShapeCone cone = new(11.4f, 60.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(cone, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
+            yield return new(cone, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Butcher) // boss can move after cast started, so we can't use aoe instance, since that would cause outdated position data to be used
             _activation = spell.NPCFinishAt.AddSeconds(1.1f);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Rip)
             _activation = default;
     }
 }
 
-class RockThrow : Components.LocationTargetedAOEs
-{
-    public RockThrow() : base(ActionID.MakeSpell(AID.RockThrow), 6) { }
-}
+class RockThrow(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RockThrow), 6);
 
 class AngadaStates : StateMachineBuilder
 {
@@ -66,7 +57,4 @@ class AngadaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5999)]
-public class Angada : SimpleBossModule
-{
-    public Angada(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Angada(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

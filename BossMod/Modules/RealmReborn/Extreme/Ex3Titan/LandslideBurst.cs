@@ -11,7 +11,7 @@ class LandslideBurst : Components.GenericAOEs
     private static readonly AOEShapeRect _shapeLandslide = new(40.25f, 3);
     private static readonly AOEShapeCircle _shapeBurst = new(6.3f);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var l in _landslides)
             yield return new(_shapeLandslide, l.Position, l.CastInfo!.Rotation, l.CastInfo.NPCFinishAt);
@@ -19,7 +19,7 @@ class LandslideBurst : Components.GenericAOEs
             yield return new(_shapeBurst, b.Position, b.CastInfo!.Rotation, b.CastInfo.NPCFinishAt);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -34,7 +34,7 @@ class LandslideBurst : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {

@@ -13,14 +13,11 @@ public enum AID : uint
     Object130 = 14711, // 2706->self, no cast, range 30+R circle - instant kill if you do not line of sight the towers when they die
 }
 
-class LowVoltage : Components.GenericLineOfSightAOE
-{
-    public LowVoltage() : base(ActionID.MakeSpell(AID.LowVoltage), 35, true) { } //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
-}
+class LowVoltage(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.LowVoltage), 35, true); //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
 
 class SlimeExplosion : Components.GenericStackSpread
 {
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var p in module.Enemies(OID.Slime).Where(x => !x.IsDead))
         {
@@ -30,7 +27,7 @@ class SlimeExplosion : Components.GenericStackSpread
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         foreach (var p in module.Enemies(OID.Slime).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 7.5f))
@@ -40,7 +37,7 @@ class SlimeExplosion : Components.GenericStackSpread
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Pull or push the Lava Slimes to the towers and then hit the slimes\nfrom a distance to set off the explosions. The towers create a damage\npulse every 12s and a deadly explosion when they die. Take cover.");
     }

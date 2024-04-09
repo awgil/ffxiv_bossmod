@@ -10,11 +10,11 @@ class P4WaveCannonProtean : Components.GenericBaitAway
     {
         NumCasts = 0;
         if (_source != null)
-            foreach (var p in module.Raid.WithoutSlot(true))
+            foreach (var p in Raid.WithoutSlot(true))
                 CurrentBaits.Add(new(_source, p, _shape));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.P4WaveCannonVisualStart)
         {
@@ -23,7 +23,7 @@ class P4WaveCannonProtean : Components.GenericBaitAway
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.P4WaveCannonProtean)
         {
@@ -33,10 +33,7 @@ class P4WaveCannonProtean : Components.GenericBaitAway
     }
 }
 
-class P4WaveCannonProteanAOE : Components.SelfTargetedAOEs
-{
-    public P4WaveCannonProteanAOE() : base(ActionID.MakeSpell(AID.P4WaveCannonProteanAOE), new AOEShapeRect(100, 3)) { }
-}
+class P4WaveCannonProteanAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.P4WaveCannonProteanAOE), new AOEShapeRect(100, 3));
 
 // TODO: generalize (line stack)
 class P4WaveCannonStack : BossComponent
@@ -52,36 +49,36 @@ class P4WaveCannonStack : BossComponent
 
     public override void Init(BossModule module)
     {
-        foreach (var (s, g) in Service.Config.Get<TOPConfig>().P4WaveCannonAssignments.Resolve(module.Raid))
+        foreach (var (s, g) in Service.Config.Get<TOPConfig>().P4WaveCannonAssignments.Resolve(Raid))
             _playerGroups[s] = g;
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Imminent && module.Raid.WithSlot(true).IncludedInMask(_targets).WhereActor(p => _shape.Check(actor.Position, module.Bounds.Center, Angle.FromDirection(p.Position - module.Bounds.Center))).Count() is var clips && clips != 1)
+        if (Imminent && Raid.WithSlot(true).IncludedInMask(_targets).WhereActor(p => _shape.Check(actor.Position, Module.Bounds.Center, Angle.FromDirection(p.Position - Module.Bounds.Center))).Count() is var clips && clips != 1)
             hints.Add(clips == 0 ? "Share the stack!" : "GTFO from second stack!");
 
         if (movementHints != null && SafeDir(slot) is var safeDir && safeDir != default)
-            movementHints.Add(actor.Position, module.Bounds.Center + 12 * safeDir.ToDirection(), ArenaColor.Safe);
+            movementHints.Add(actor.Position, Module.Bounds.Center + 12 * safeDir.ToDirection(), ArenaColor.Safe);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Imminent)
-            foreach (var (_, p) in module.Raid.WithSlot(true).IncludedInMask(_targets))
-                _shape.Outline(arena, module.Bounds.Center, Angle.FromDirection(p.Position - module.Bounds.Center), ArenaColor.Safe);
+            foreach (var (_, p) in Raid.WithSlot(true).IncludedInMask(_targets))
+                _shape.Outline(arena, Module.Bounds.Center, Angle.FromDirection(p.Position - Module.Bounds.Center), ArenaColor.Safe);
 
         var safeDir = SafeDir(pcSlot);
         if (safeDir != default)
-            arena.AddCircle(module.Bounds.Center + 12 * safeDir.ToDirection(), 1, ArenaColor.Safe);
+            arena.AddCircle(Module.Bounds.Center + 12 * safeDir.ToDirection(), 1, ArenaColor.Safe);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.P4WaveCannonStackTarget:
-                _targets.Set(module.Raid.FindSlot(spell.MainTargetID));
+                _targets.Set(Raid.FindSlot(spell.MainTargetID));
                 if (_targets.NumSetBits() > 1)
                     InitWestStack();
                 break;

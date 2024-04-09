@@ -42,12 +42,12 @@ class Orbs : Components.GenericAOEs
     private static readonly AOEShapeCircle circle = new(3);
     public Orbs() : base(new(), "GTFO from voidzone!") { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var p in _orbs)
             yield return new(circle, p.Position);
     }
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Orbs)
             _orbs.Add(actor);
@@ -65,7 +65,7 @@ class GoldChaser : Components.GenericAOEs
     private readonly List<Actor> _casters = [];
     private static readonly AOEShapeRect rect = new(100, 2.5f, 100);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1))))
         {
@@ -149,7 +149,7 @@ class GoldChaser : Components.GenericAOEs
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Rings)
         {
@@ -157,10 +157,10 @@ class GoldChaser : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Ringsmith)
-            _activation = module.WorldState.CurrentTime;
+            _activation = WorldState.CurrentTime;
         if ((AID)spell.Action.ID == AID.VenaAmoris)
         {
             ++NumCasts;
@@ -173,55 +173,25 @@ class GoldChaser : Components.GenericAOEs
     }
 }
 
-class SacramentSforzando : Components.SingleTargetCastDelay
-{
-    public SacramentSforzando() : base(ActionID.MakeSpell(AID.SacramentSforzando), ActionID.MakeSpell(AID.SacramentSforzando2), 0.8f) { }
-}
+class SacramentSforzando(BossModule module) : Components.SingleTargetCastDelay(module, ActionID.MakeSpell(AID.SacramentSforzando), ActionID.MakeSpell(AID.SacramentSforzando2), 0.8f);
 
-class OrisonFortissimo : Components.RaidwideCastDelay
-{
-    public OrisonFortissimo() : base(ActionID.MakeSpell(AID.OrisonFortissimo), ActionID.MakeSpell(AID.OrisonFortissimo2), 0.8f) { }
-}
+class OrisonFortissimo(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.OrisonFortissimo), ActionID.MakeSpell(AID.OrisonFortissimo2), 0.8f);
 
-class DivineDiminuendo : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo() : base(ActionID.MakeSpell(AID.DivineDiminuendo), new AOEShapeCircle(8)) { }
-}
+class DivineDiminuendo(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo), new AOEShapeCircle(8));
 
-class DivineDiminuendo1 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo1() : base(ActionID.MakeSpell(AID.DivineDiminuendo1), new AOEShapeCircle(8)) { }
-}
+class DivineDiminuendo1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo1), new AOEShapeCircle(8));
 
-class DivineDiminuendo2 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo2() : base(ActionID.MakeSpell(AID.DivineDiminuendo2), new AOEShapeDonut(10, 16)) { }
-}
+class DivineDiminuendo2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo2), new AOEShapeDonut(10, 16));
 
-class DivineDiminuendo3 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo3() : base(ActionID.MakeSpell(AID.DivineDiminuendo3), new AOEShapeDonut(18, 32)) { }
-}
+class DivineDiminuendo3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo3), new AOEShapeDonut(18, 32));
 
-class DivineDiminuendo4 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo4() : base(ActionID.MakeSpell(AID.DivineDiminuendo4), new AOEShapeCircle(8)) { }
-}
+class DivineDiminuendo4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo4), new AOEShapeCircle(8));
 
-class ConvictionMarcato : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato() : base(ActionID.MakeSpell(AID.ConvictionMarcato), new AOEShapeRect(40, 2.5f)) { }
-}
+class ConvictionMarcato(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato), new AOEShapeRect(40, 2.5f));
 
-class ConvictionMarcato2 : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato2() : base(ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f)) { }
-}
+class ConvictionMarcato2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f));
 
-class ConvictionMarcato3 : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato3() : base(ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f)) { }
-}
+class ConvictionMarcato3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f));
 
 class Voidzone : BossComponent
 {
@@ -240,7 +210,7 @@ class Voidzone : BossComponent
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         if (active)

@@ -29,35 +29,12 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 
-class HeavySmash : Components.LocationTargetedAOEs
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-}
-
-class StormWing : Components.SelfTargetedAOEs
-{
-    public StormWing() : base(ActionID.MakeSpell(AID.StormWing2), new AOEShapeCone(40, 45.Degrees())) { }
-}
-
-class FlashGale : Components.LocationTargetedAOEs
-{
-    public FlashGale() : base(ActionID.MakeSpell(AID.FlashGale), 6) { }
-}
-
-class WindCutter : Components.PersistentVoidzone
-{
-    public WindCutter() : base(4, m => m.Enemies(OID.StormsGrip)) { }
-}
-
-class Wingblow : Components.SelfTargetedAOEs
-{
-    public Wingblow() : base(ActionID.MakeSpell(AID.Wingblow2), new AOEShapeCircle(15)) { }
-}
-
-class DreadDive : Components.SingleTargetCast
-{
-    public DreadDive() : base(ActionID.MakeSpell(AID.DreadDive)) { }
-}
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class StormWing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormWing2), new AOEShapeCone(40, 45.Degrees()));
+class FlashGale(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlashGale), 6);
+class WindCutter(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.StormsGrip));
+class Wingblow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wingblow2), new AOEShapeCircle(15));
+class DreadDive(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DreadDive));
 
 class SatyrosStates : StateMachineBuilder
 {
@@ -75,10 +52,8 @@ class SatyrosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12003)]
-public class Satyros : BossModule
+public class Satyros(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Satyros(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

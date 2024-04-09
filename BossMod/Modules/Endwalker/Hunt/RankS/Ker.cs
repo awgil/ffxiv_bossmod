@@ -46,98 +46,31 @@ public enum SID : uint
     WhispersManifest = 2847, // Boss->Boss, extra=0x0
 }
 
-class MinaxGlare : Components.CastHint
-{
-    public MinaxGlare() : base(ActionID.MakeSpell(AID.MinaxGlare), "Applies temporary misdirection") { }
-}
+class MinaxGlare(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MinaxGlare), "Applies temporary misdirection");
+class Heliovoid(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Heliovoid), new AOEShapeCircle(12));
+class AncientBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientBlizzard), new AOEShapeDonut(8, 40));
+class AncientBlizzard2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientBlizzard2), new AOEShapeDonut(8, 40));
+class AncientBlizzardWhispersManifest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhispersManifest3), new AOEShapeDonut(8, 40));
+class ForeInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForeInterment), new AOEShapeCone(40, 90.Degrees()));
+class RearInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RearInterment), new AOEShapeCone(40, 90.Degrees()));
+class RightInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightInterment), new AOEShapeCone(40, 90.Degrees()));
+class LeftInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftInterment), new AOEShapeCone(40, 90.Degrees()));
+class Mirrored_ForeInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mirrored_ForeInterment), new AOEShapeCone(40, 90.Degrees()));
+class Mirrored_RearInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mirrored_RearInterment), new AOEShapeCone(40, 90.Degrees()));
+class Mirrored_RightInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mirrored_RightInterment), new AOEShapeCone(40, 90.Degrees()));
+class Mirrored_LeftInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mirrored_LeftInterment), new AOEShapeCone(40, 90.Degrees()));
+class EternalDamnation(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EternalDamnation));
+class EternalDamnationWhispersManifest(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.WhispersManifest4));
+class EternalDamnation2(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EternalDamnation2));
+class WhisperedIncantation(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.WhisperedIncantation), "Remembers the next skill and uses it again when casting Whispers Manifest");
 
-class Heliovoid : Components.SelfTargetedAOEs
-{
-    public Heliovoid() : base(ActionID.MakeSpell(AID.Heliovoid), new AOEShapeCircle(12)) { }
-}
-
-class AncientBlizzard : Components.SelfTargetedAOEs
-{
-    public AncientBlizzard() : base(ActionID.MakeSpell(AID.AncientBlizzard), new AOEShapeDonut(8, 40)) { }
-}
-
-class AncientBlizzard2 : Components.SelfTargetedAOEs
-{
-    public AncientBlizzard2() : base(ActionID.MakeSpell(AID.AncientBlizzard2), new AOEShapeDonut(8, 40)) { }
-}
-
-class AncientBlizzardWhispersManifest : Components.SelfTargetedAOEs
-{
-    public AncientBlizzardWhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest3), new AOEShapeDonut(8, 40)) { }
-}
-
-class ForeInterment : Components.SelfTargetedAOEs
-{
-    public ForeInterment() : base(ActionID.MakeSpell(AID.ForeInterment), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class RearInterment : Components.SelfTargetedAOEs
-{
-    public RearInterment() : base(ActionID.MakeSpell(AID.RearInterment), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class RightInterment : Components.SelfTargetedAOEs
-{
-    public RightInterment() : base(ActionID.MakeSpell(AID.RightInterment), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class LeftInterment : Components.SelfTargetedAOEs
-{
-    public LeftInterment() : base(ActionID.MakeSpell(AID.LeftInterment), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class Mirrored_ForeInterment : Components.SelfTargetedAOEs
-{
-    public Mirrored_ForeInterment() : base(ActionID.MakeSpell(AID.Mirrored_ForeInterment), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class Mirrored_RearInterment : Components.SelfTargetedAOEs
-{
-    public Mirrored_RearInterment() : base(ActionID.MakeSpell(AID.Mirrored_RearInterment), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class Mirrored_RightInterment : Components.SelfTargetedAOEs
-{
-    public Mirrored_RightInterment() : base(ActionID.MakeSpell(AID.Mirrored_RightInterment), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class Mirrored_LeftInterment : Components.SelfTargetedAOEs
-{
-    public Mirrored_LeftInterment() : base(ActionID.MakeSpell(AID.Mirrored_LeftInterment), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class EternalDamnation : Components.CastGaze
-{
-    public EternalDamnation() : base(ActionID.MakeSpell(AID.EternalDamnation)) { }
-}
-
-class EternalDamnationWhispersManifest : Components.CastGaze
-{
-    public EternalDamnationWhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest4)) { }
-}
-
-class EternalDamnation2 : Components.CastGaze
-{
-    public EternalDamnation2() : base(ActionID.MakeSpell(AID.EternalDamnation2)) { }
-}
-
-class WhisperedIncantation : Components.CastHint
-{
-    public WhisperedIncantation() : base(ActionID.MakeSpell(AID.WhisperedIncantation), "Remembers the next skill and uses it again when casting Whispers Manifest") { }
-}
-
-class MirroredIncantation : BossComponent
+class MirroredIncantation(BossModule module) : BossComponent(module)
 {
     private int Mirrorstacks;
     public enum Types { None, Mirroredx3, Mirroredx4 }
     public Types Type { get; private set; }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.MirroredIncantation)
             Type = Types.Mirroredx3;
@@ -145,15 +78,15 @@ class MirroredIncantation : BossComponent
             Type = Types.Mirroredx4;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.MirroredIncantation || (AID)spell.Action.ID == AID.MirroredIncantation2)
             Type = Types.None;
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if (actor == module.PrimaryActor)
+        if (actor == Module.PrimaryActor)
             switch ((SID)status.ID)
             {
                 case SID.MirroredIncantation:
@@ -170,16 +103,16 @@ class MirroredIncantation : BossComponent
             }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if (actor == module.PrimaryActor)
+        if (actor == Module.PrimaryActor)
         {
             if ((SID)status.ID == SID.MirroredIncantation)
                 Mirrorstacks = 0;
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (Mirrorstacks > 0)
             hints.Add($"Mirrored interments left: {Mirrorstacks}!");
@@ -190,63 +123,52 @@ class MirroredIncantation : BossComponent
     }
 }
 
-class AncientFlare : BossComponent
+class AncientFlare(BossModule module) : BossComponent(module)
 {
     private BitMask _pyretic;
     public bool Pyretic { get; private set; }
     private bool casting;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AncientFlare || (AID)spell.Action.ID == AID.AncientFlare2 || (AID)spell.Action.ID == AID.WhispersManifest)
             casting = true;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AncientFlare || (AID)spell.Action.ID == AID.AncientFlare2 || (AID)spell.Action.ID == AID.WhispersManifest)
             casting = false;
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyretic)
-            _pyretic.Set(module.Raid.FindSlot(actor.InstanceID));
+            _pyretic.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyretic)
-            _pyretic.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _pyretic.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_pyretic[slot] != Pyretic)
             hints.Add("Pyretic on you! STOP everything!");
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (casting)
             hints.Add("Applies Pyretic - STOP everything until it runs out!");
     }
 }
 
-class AncientHoly : Components.SelfTargetedAOEs
-{
-    public AncientHoly() : base(ActionID.MakeSpell(AID.AncientHoly), new AOEShapeCircle(20)) { }
-}
-
-class AncientHoly2 : Components.SelfTargetedAOEs
-{
-    public AncientHoly2() : base(ActionID.MakeSpell(AID.AncientHoly2), new AOEShapeCircle(20)) { }
-}
-
-class AncientHolyWhispersManifest : Components.SelfTargetedAOEs
-{
-    public AncientHolyWhispersManifest() : base(ActionID.MakeSpell(AID.WhispersManifest2), new AOEShapeCircle(20)) { }
-}
+class AncientHoly(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientHoly), new AOEShapeCircle(20));
+class AncientHoly2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientHoly2), new AOEShapeCircle(20));
+class AncientHolyWhispersManifest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhispersManifest2), new AOEShapeCircle(20));
 
 // TODO: wicked swipe, check if there are even more skills missing
 
@@ -280,7 +202,4 @@ class KerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10615)]
-public class Ker : SimpleBossModule
-{
-    public Ker(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Ker(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

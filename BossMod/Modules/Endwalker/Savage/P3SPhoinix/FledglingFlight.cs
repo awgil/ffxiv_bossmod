@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
 // state related to fledgling flight & death toll mechanics
-class FledglingFlight : BossComponent
+class FledglingFlight(BossModule module) : BossComponent(module)
 {
     public bool PlacementDone { get; private set; } = false;
     public bool CastsDone { get; private set; } = false;
@@ -12,24 +12,24 @@ class FledglingFlight : BossComponent
     private static readonly Angle _coneHalfAngle = 45.Degrees();
     private static readonly float _eyePlacementOffset = 10;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (_sources.Count == 0)
             return;
 
-        foreach ((int i, var player) in module.Raid.WithSlot())
+        foreach ((int i, var player) in Raid.WithSlot())
         {
             _playerDeathTollStacks[i] = player.FindStatus((uint)SID.DeathsToll)?.Extra ?? 0; // TODO: use status events here...
             _playerAOECount[i] = _sources.Where(srcRot => player.Position.InCone(srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle)).Count();
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_sources.Count == 0)
             return;
 
-        var eyePos = GetEyePlacementPosition(module, slot, actor);
+        var eyePos = GetEyePlacementPosition(slot, actor);
         if (eyePos != null && !actor.Position.InCircle(eyePos.Value, 5))
         {
             hints.Add("Get closer to eye placement position!");
@@ -45,29 +45,29 @@ class FledglingFlight : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_sources.Count == 0)
             return;
 
         // draw all players
-        foreach ((int i, var player) in module.Raid.WithSlot())
-            arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+        foreach ((int i, var player) in Raid.WithSlot())
+            Arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
 
-        var eyePos = GetEyePlacementPosition(module, pcSlot, pc);
+        var eyePos = GetEyePlacementPosition(pcSlot, pc);
         if (eyePos != null)
-            arena.AddCircle(eyePos.Value, 1, ArenaColor.Safe);
+            Arena.AddCircle(eyePos.Value, 1, ArenaColor.Safe);
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach ((var source, var dir) in _sources)
         {
-            arena.ZoneIsoscelesTri(source.Position, dir, _coneHalfAngle, 50, ArenaColor.AOE);
+            Arena.ZoneIsoscelesTri(source.Position, dir, _coneHalfAngle, 50, ArenaColor.AOE);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AshenEye)
         {
@@ -80,7 +80,7 @@ class FledglingFlight : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AshenEye)
         {
@@ -89,13 +89,13 @@ class FledglingFlight : BossComponent
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID >= 296 && iconID <= 299)
         {
             if (PlacementDone)
             {
-                module.ReportError(this, $"Unexpected icon after eyes started casting");
+                ReportError($"Unexpected icon after eyes started casting");
                 return;
             }
 
@@ -111,7 +111,7 @@ class FledglingFlight : BossComponent
         }
     }
 
-    private WPos? GetEyePlacementPosition(BossModule module, int slot, Actor player)
+    private WPos? GetEyePlacementPosition(int slot, Actor player)
     {
         if (PlacementDone)
             return null;
@@ -121,6 +121,6 @@ class FledglingFlight : BossComponent
             return null;
 
         var offset = rot.ToDirection() * _eyePlacementOffset;
-        return _playerDeathTollStacks[slot] > 0 ? module.Bounds.Center - offset : module.Bounds.Center + offset;
+        return _playerDeathTollStacks[slot] > 0 ? Module.Bounds.Center - offset : Module.Bounds.Center + offset;
     }
 }

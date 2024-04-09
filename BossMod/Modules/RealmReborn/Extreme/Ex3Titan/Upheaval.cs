@@ -7,32 +7,32 @@ class Upheaval : Components.Knockback
 
     public Upheaval() : base(ActionID.MakeSpell(AID.Upheaval)) { }
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (_remainInPosition > module.WorldState.CurrentTime)
-            yield return new(module.PrimaryActor.Position, 13);
+        if (_remainInPosition > WorldState.CurrentTime)
+            yield return new(Module.PrimaryActor.Position, 13);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_remainInPosition > module.WorldState.CurrentTime)
+        if (_remainInPosition > WorldState.CurrentTime)
         {
             // stack just behind boss, this is a good place to bait imminent landslide correctly
-            var dirToCenter = (module.Bounds.Center - module.PrimaryActor.Position).Normalized();
-            var pos = module.PrimaryActor.Position + 2 * dirToCenter;
+            var dirToCenter = (Module.Bounds.Center - Module.PrimaryActor.Position).Normalized();
+            var pos = Module.PrimaryActor.Position + 2 * dirToCenter;
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 1.5f), _remainInPosition);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             _remainInPosition = spell.NPCFinishAt.AddSeconds(1); // TODO: just wait for effectresult instead...
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            _remainInPosition = module.WorldState.CurrentTime.AddSeconds(1); // TODO: just wait for effectresult instead...
+            _remainInPosition = WorldState.FutureTime(1); // TODO: just wait for effectresult instead...
     }
 }

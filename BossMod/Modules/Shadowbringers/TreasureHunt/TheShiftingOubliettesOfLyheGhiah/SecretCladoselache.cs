@@ -41,7 +41,7 @@ class PelagicCleaverRotation : Components.GenericRotatingAOE
     private DateTime _activation;
     private static readonly AOEShapeCone _shape = new(40, 30.Degrees());
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var increment = (IconID)iconID switch
         {
@@ -56,7 +56,7 @@ class PelagicCleaverRotation : Components.GenericRotatingAOE
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.PelagicCleaverRotationStart)
         {
@@ -67,10 +67,10 @@ class PelagicCleaverRotation : Components.GenericRotatingAOE
             InitIfReady(module, caster);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.PelagicCleaverRotationStart or AID.PelagicCleaverDuringRotation)
-            AdvanceSequence(0, module.WorldState.CurrentTime);
+            AdvanceSequence(0, WorldState.CurrentTime);
     }
 
     private void InitIfReady(BossModule module, Actor source)
@@ -84,45 +84,21 @@ class PelagicCleaverRotation : Components.GenericRotatingAOE
     }
 }
 
-class PelagicCleaver : Components.SelfTargetedAOEs
-{
-    public PelagicCleaver() : base(ActionID.MakeSpell(AID.PelagicCleaver), new AOEShapeCone(40, 30.Degrees())) { }
-}
+class PelagicCleaver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver), new AOEShapeCone(40, 30.Degrees()));
 
-class TidalGuillotine : Components.SelfTargetedAOEs
-{
-    public TidalGuillotine() : base(ActionID.MakeSpell(AID.TidalGuillotine), new AOEShapeCircle(13)) { }
-}
+class TidalGuillotine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TidalGuillotine), new AOEShapeCircle(13));
 
-class ProtolithicPuncture : Components.SingleTargetCast
-{
-    public ProtolithicPuncture() : base(ActionID.MakeSpell(AID.ProtolithicPuncture)) { }
-}
+class ProtolithicPuncture(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ProtolithicPuncture));
 
-class BiteAndRun : Components.BaitAwayChargeCast
-{
-    public BiteAndRun() : base(ActionID.MakeSpell(AID.BiteAndRun), 2.5f) { }
-}
+class BiteAndRun(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.BiteAndRun), 2.5f);
 
-class AquaticLance : Components.SpreadFromCastTargets
-{
-    public AquaticLance() : base(ActionID.MakeSpell(AID.AquaticLance), 8) { }
-}
+class AquaticLance(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.AquaticLance), 8);
 
-class Spin : Components.SelfTargetedAOEs
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
-}
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
 
-class Mash : Components.SelfTargetedAOEs
-{
-    public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2)) { }
-}
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
 
-class Scoop : Components.SelfTargetedAOEs
-{
-    public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class CladoselacheStates : StateMachineBuilder
 {

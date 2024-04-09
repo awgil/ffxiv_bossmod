@@ -5,7 +5,7 @@ class Enaero : BossComponent
     private bool EnaeroBuff;
     private bool casting;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (casting)
             hints.Add("Applies Enaero to Lyon. Use Dispell to remove it");
@@ -13,27 +13,27 @@ class Enaero : BossComponent
             hints.Add("Enaero on Lyon. Use Dispell to remove it! You only need to do this once per duel, so you can switch to a different action after removing his buff.");
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if (actor == module.PrimaryActor && (SID)status.ID == SID.Enaero)
+        if (actor == Module.PrimaryActor && (SID)status.ID == SID.Enaero)
             EnaeroBuff = true;
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RagingWinds1)
             casting = true;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RagingWinds1)
             casting = false;
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if (actor == module.PrimaryActor && (SID)status.ID == SID.Enaero)
+        if (actor == Module.PrimaryActor && (SID)status.ID == SID.Enaero)
             EnaeroBuff = false;
     }
 }
@@ -44,13 +44,13 @@ class HeartOfNatureConcentric : Components.ConcentricAOEs
 
     public HeartOfNatureConcentric() : base(_shapes) { }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.NaturesPulse1)
             AddSequence(caster.Position, spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Sequences.Count > 0)
         {
@@ -66,15 +66,9 @@ class HeartOfNatureConcentric : Components.ConcentricAOEs
     }
 }
 
-class TasteOfBlood : Components.SelfTargetedAOEs
-{
-    public TasteOfBlood() : base(ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40, 90.Degrees())) { }
-}
+class TasteOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40, 90.Degrees()));
 
-class TasteOfBloodHint : Components.CastHint
-{
-    public TasteOfBloodHint() : base(ActionID.MakeSpell(AID.TasteOfBlood), "Go behind Lyon!") { }
-}
+class TasteOfBloodHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TasteOfBlood), "Go behind Lyon!");
 
 class RavenousGale : Components.GenericAOEs
 {
@@ -83,7 +77,7 @@ class RavenousGale : Components.GenericAOEs
     private DateTime _activation;
     private static readonly AOEShapeCircle circle = new(0.5f);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (casting)
             yield return new(circle, actor.Position, default, _activation);
@@ -92,13 +86,13 @@ class RavenousGale : Components.GenericAOEs
                 yield return new(circle, p.Position, default, _activation);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.RavenousGaleVoidzone)
         {
             activeTwister = true;
             casting = false;
-            _activation = module.WorldState.CurrentTime.AddSeconds(4.6f);
+            _activation = WorldState.FutureTime(4.6f);
         }
     }
 
@@ -111,13 +105,13 @@ class RavenousGale : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RavenousGale)
             casting = true;
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         base.AddGlobalHints(module, hints);
         if (casting)
@@ -125,15 +119,9 @@ class RavenousGale : Components.GenericAOEs
     }
 }
 
-class TwinAgonies : Components.SingleTargetCast
-{
-    public TwinAgonies() : base(ActionID.MakeSpell(AID.TwinAgonies), "Heavy Tankbuster, use Manawall or tank mitigations") { }
-}
+class TwinAgonies(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TwinAgonies), "Heavy Tankbuster, use Manawall or tank mitigations");
 
-class WindsPeak : Components.SelfTargetedAOEs
-{
-    public WindsPeak() : base(ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5)) { }
-}
+class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5));
 
 class WindsPeakKB : Components.Knockback
 {
@@ -141,32 +129,26 @@ class WindsPeakKB : Components.Knockback
     private bool watched;
     private DateTime _activation;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (watched && module.WorldState.CurrentTime < Time.AddSeconds(4.4f))
-            yield return new(module.PrimaryActor.Position, 15, _activation);
+        if (watched && WorldState.CurrentTime < Time.AddSeconds(4.4f))
+            yield return new(Module.PrimaryActor.Position, 15, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WindsPeak1)
         {
             watched = true;
-            Time = module.WorldState.CurrentTime;
+            Time = WorldState.CurrentTime;
             _activation = spell.NPCFinishAt;
         }
     }
 }
 
-class TheKingsNotice : Components.CastGaze
-{
-    public TheKingsNotice() : base(ActionID.MakeSpell(AID.TheKingsNotice)) { }
-}
+class TheKingsNotice(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.TheKingsNotice));
 
-class SplittingRage : Components.CastHint
-{
-    public SplittingRage() : base(ActionID.MakeSpell(AID.SplittingRage), "Applies temporary misdirection") { }
-}
+class SplittingRage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SplittingRage), "Applies temporary misdirection");
 
 class NaturesBlood : Components.Exaflare
 {
@@ -188,13 +170,13 @@ class NaturesBlood : Components.Exaflare
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NaturesBlood1)
             Lines.Add(new LineWithActor(caster));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Lines.Count > 0 && (AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
         {
@@ -212,20 +194,20 @@ class SpitefulFlameCircleVoidzone : Components.GenericAOEs
     private int casts;
     private static readonly AOEShapeCircle circle = new(10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (activeOrb && casts <= 11 && casts != 0)
             foreach (var p in module.Enemies(OID.VermillionFlame))
                 yield return new(circle, p.Position);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.VermillionFlame)
             activeOrb = true;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SpitefulFlame1)
             casts++;
@@ -237,10 +219,7 @@ class SpitefulFlameCircleVoidzone : Components.GenericAOEs
     }
 }
 
-class SpitefulFlameRect : Components.SelfTargetedAOEs
-{
-    public SpitefulFlameRect() : base(ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80, 2)) { }
-}
+class SpitefulFlameRect(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80, 2));
 
 class DynasticFlame : Components.BaitAwayTethers
 {
@@ -250,24 +229,24 @@ class DynasticFlame : Components.BaitAwayTethers
     {
         CenterAtTarget = true;
     }
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DynasticFlame1)
             target = spell.TargetID;
     }
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.Add("Go to the edge and run until 4 orbs are spawned");
     }
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.VermillionFlame)
             ++orbcount;
@@ -279,7 +258,4 @@ class DynasticFlame : Components.BaitAwayTethers
     }
 }
 
-class SkyrendingStrike : Components.CastHint
-{
-    public SkyrendingStrike() : base(ActionID.MakeSpell(AID.SkyrendingStrike), "Enrage!", true) { }
-}
+class SkyrendingStrike(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SkyrendingStrike), "Enrage!", true);

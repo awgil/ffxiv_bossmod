@@ -181,5 +181,5 @@ class C033StaticeStates : StateMachineBuilder
             .DeactivateOnExit<TrickReload>();
     }
 }
-class C033NStaticeStates : C033StaticeStates { public C033NStaticeStates(BossModule module) : base(module, false) { } }
-class C033SStaticeStates : C033StaticeStates { public C033SStaticeStates(BossModule module) : base(module, true) { } }
+class C033NStaticeStates(BossModule module) : C033StaticeStates(module, false);
+class C033SStaticeStates(BossModule module) : C033StaticeStates(module, true);

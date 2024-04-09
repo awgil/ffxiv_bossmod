@@ -22,7 +22,7 @@ public enum AID : uint
     Waterspout = 33342, // Helper->player, 5.0s cast, range 5 circle, spread
 }
 
-class Frequencies : Components.GenericAOEs
+class Frequencies(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCircle smallcircle = new(8);
     private static readonly AOEShapeCircle bigcircle = new(15);
@@ -31,17 +31,17 @@ class Frequencies : Components.GenericAOEs
     private readonly List<Actor> _bigcrystals = [];
     private readonly List<Actor> _smallcrystals = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_smallcrystals.Count > 0)
             foreach (var c in _smallcrystals)
-                yield return new(smallcircle, c.Position, activation: _activation1);
+                yield return new(smallcircle, c.Position, default, _activation1);
         if (_bigcrystals.Count > 0 && _smallcrystals.Count == 0)
             foreach (var c in _bigcrystals)
-                yield return new(bigcircle, c.Position, activation: _activation2);
+                yield return new(bigcircle, c.Position, default, _activation2);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ResonantFrequency)
         {
@@ -55,7 +55,7 @@ class Frequencies : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ResonantFrequency or AID.ExplosiveFrequency)
         {
@@ -65,35 +65,12 @@ class Frequencies : Components.GenericAOEs
     }
 }
 
-class SonicBloop : Components.SingleTargetCast
-{
-    public SonicBloop() : base(ActionID.MakeSpell(AID.SonicBloop)) { }
-}
-
-class Waterspout : Components.SpreadFromCastTargets
-{
-    public Waterspout() : base(ActionID.MakeSpell(AID.Waterspout), 5) { }
-}
-
-class TidalBreath : Components.SelfTargetedAOEs
-{
-    public TidalBreath() : base(ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class Tidalspout : Components.StackWithCastTargets
-{
-    public Tidalspout() : base(ActionID.MakeSpell(AID.Tidalspout), 6) { }
-}
-
-class Upsweep : Components.RaidwideCast
-{
-    public Upsweep() : base(ActionID.MakeSpell(AID.Upsweep)) { }
-}
-
-class BodySlam : Components.RaidwideCast
-{
-    public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam)) { }
-}
+class SonicBloop(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SonicBloop));
+class Waterspout(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Waterspout), 5);
+class TidalBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(40, 90.Degrees()));
+class Tidalspout(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Tidalspout), 6);
+class Upsweep(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Upsweep));
+class BodySlam(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BodySlam));
 
 class D121LyngbakrStates : StateMachineBuilder
 {
@@ -111,7 +88,4 @@ class D121LyngbakrStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12336)]
-public class D121Lyngbakr : BossModule
-{
-    public D121Lyngbakr(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-322, 120), 20)) { }
-}
+public class D121Lyngbakr(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-322, 120), 20));

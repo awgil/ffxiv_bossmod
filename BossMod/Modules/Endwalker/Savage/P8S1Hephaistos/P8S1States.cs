@@ -5,7 +5,7 @@ class P8S1States : StateMachineBuilder
     public P8S1States(BossModule module) : base(module)
     {
         SimplePhase(0, SinglePhase, "Single phase")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed;
     }
 
     private void SinglePhase(uint id)

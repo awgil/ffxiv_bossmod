@@ -17,25 +17,13 @@ public enum AID : uint
     Chirp = 13310, // Boss->self, 3,5s cast, range 8+R circle
 }
 
-class Chirp : Components.SelfTargetedAOEs
-{
-    public Chirp() : base(ActionID.MakeSpell(AID.Chirp), new AOEShapeCircle(12.48f)) { }
-}
+class Chirp(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Chirp), new AOEShapeCircle(12.48f));
 
-class Tornado : Components.LocationTargetedAOEs
-{
-    public Tornado() : base(ActionID.MakeSpell(AID.Tornado), 6) { }
-}
+class Tornado(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Tornado), 6);
 
-class VoidCall : Components.CastHint
-{
-    public VoidCall() : base(ActionID.MakeSpell(AID.VoidCall), "Calls adds") { }
-}
+class VoidCall(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidCall), "Calls adds");
 
-class RecklessAbandon : Components.SingleTargetDelayableCast
-{
-    public RecklessAbandon() : base(ActionID.MakeSpell(AID.RecklessAbandon)) { }
-}
+class RecklessAbandon(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.RecklessAbandon));
 
 class SkateneStates : StateMachineBuilder
 {

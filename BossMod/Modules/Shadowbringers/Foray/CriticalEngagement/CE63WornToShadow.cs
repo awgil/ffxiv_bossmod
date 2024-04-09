@@ -48,48 +48,39 @@ class Stormcall : Components.GenericAOEs
 
     public Stormcall() : base(ActionID.MakeSpell(AID.Explosion)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return _sources.Take(2).Select(e => new AOEInstance(_shape, e.dest, activation: e.activation));
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.OrbMovement)
         {
-            var dest = module.Bounds.Center + 29 * (actor.Position - module.Bounds.Center).Normalized();
-            _sources.Add((actor, dest, module.WorldState.CurrentTime.AddSeconds(status.Extra == 0x1E ? 9.7 : 19.9)));
+            var dest = Module.Bounds.Center + 29 * (actor.Position - Module.Bounds.Center).Normalized();
+            _sources.Add((actor, dest, WorldState.FutureTime(status.Extra == 0x1E ? 9.7 : 19.9)));
             _sources.SortBy(e => e.activation);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction && _sources.FindIndex(e => e.source == caster) is var index && index >= 0)
             _sources[index] = (caster, caster.Position, spell.NPCFinishAt);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             _sources.RemoveAll(e => e.source == caster);
     }
 }
 
-class BladedBeak : Components.SingleTargetCast
-{
-    public BladedBeak() : base(ActionID.MakeSpell(AID.BladedBeak)) { }
-}
+class BladedBeak(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.BladedBeak));
 
-class NihilitysSong : Components.RaidwideCast
-{
-    public NihilitysSong() : base(ActionID.MakeSpell(AID.NihilitysSong)) { }
-}
+class NihilitysSong(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.NihilitysSong));
 
-class Fantod : Components.LocationTargetedAOEs
-{
-    public Fantod() : base(ActionID.MakeSpell(AID.FantodAOE), 3) { }
-}
+class Fantod(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FantodAOE), 3);
 
 class Foreshadowing : Components.GenericAOEs
 {
@@ -101,10 +92,10 @@ class Foreshadowing : Components.GenericAOEs
     private static readonly AOEShapeCone _shapeStorm = new(36, 65.Degrees());
     private static readonly AOEShapeCircle _shapeGust = new(20);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_bossAOE != null)
-            yield return new(_bossAOE, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(_bossAOE, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
 
         if (_addActivation != default)
             foreach (var add in _addAOEs)
@@ -112,7 +103,7 @@ class Foreshadowing : Components.GenericAOEs
                     yield return new(add.shape, add.caster.Position, add.caster.CastInfo?.Rotation ?? add.caster.Rotation, add.caster.CastInfo?.NPCFinishAt ?? _addActivation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -131,7 +122,7 @@ class Foreshadowing : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -140,7 +131,7 @@ class Foreshadowing : Components.GenericAOEs
             case AID.PainfulGust:
                 _bossAOE = null;
                 if (_addAOEs.Count == 4)
-                    _addActivation = module.WorldState.CurrentTime.AddSeconds(11.1f);
+                    _addActivation = WorldState.FutureTime(11.1f);
                 break;
             case AID.ForeshadowingPulse:
             case AID.ForeshadowingStorm:
@@ -174,7 +165,4 @@ class CE63WornToShadowStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)] // bnpcname=9973
-public class CE63WornToShadow : BossModule
-{
-    public CE63WornToShadow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-480, -690), 30)) { }
-}
+public class CE63WornToShadow(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-480, -690), 30));

@@ -14,7 +14,7 @@ class AethericBoom : Components.CastHint
 
     public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), "Knockback + orbs") { }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         // cleanup
         _orbsToPop.RemoveAll(a => a.IsDestroyed);
@@ -52,12 +52,12 @@ class AethericBoom : Components.CastHint
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (!OrbsActive)
             return;
 
-        if (module.PrimaryActor.TargetID == actor.InstanceID)
+        if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {
             // current MT should not be doing this mechanic
             foreach (var orb in _activeOrbs)
@@ -70,7 +70,7 @@ class AethericBoom : Components.CastHint
             if (NumCasts < 2)
             {
                 // first or second cast in progress => stack S of boss to be knocked back roughly in same direction
-                hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 50, 180.Degrees(), 170.Degrees()));
+                hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 50, 180.Degrees(), 170.Degrees()));
             }
             else
             {
@@ -89,7 +89,7 @@ class AethericBoom : Components.CastHint
         {
             // run to pop next orb
             var nextOrb = _orbsToPop[0];
-            if (actor.Role is Role.Melee or Role.Tank && module.Raid.WithoutSlot().InRadius(nextOrb.Position, _explosionRadius).Count() > 5)
+            if (actor.Role is Role.Melee or Role.Tank && Raid.WithoutSlot().InRadius(nextOrb.Position, _explosionRadius).Count() > 5)
             {
                 // pop the orb
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nextOrb.Position, 1.5f));
@@ -102,7 +102,7 @@ class AethericBoom : Components.CastHint
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var orb in _activeOrbs)
         {
@@ -111,7 +111,7 @@ class AethericBoom : Components.CastHint
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         if ((AID)spell.Action.ID == AID.AetheroplasmBoom)

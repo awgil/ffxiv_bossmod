@@ -11,13 +11,13 @@ class CrimsonCyclone : Components.GenericAOEs
 
     public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_ifrit != null)
             yield return new(_shape, _ifrit.Position, _ifrit.Rotation, _resolve);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
@@ -26,18 +26,18 @@ class CrimsonCyclone : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             _ifrit = null;
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.UltimaIfrit && id == 0x008D)
         {
             _ifrit = actor;
-            _resolve = module.WorldState.CurrentTime.AddSeconds(5);
+            _resolve = WorldState.FutureTime(5);
         }
     }
 }

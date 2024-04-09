@@ -25,15 +25,9 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
 }
 
-class Gust : Components.LocationTargetedAOEs
-{
-    public Gust() : base(ActionID.MakeSpell(AID.Gust), 6) { }
-}
+class Gust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Gust), 6);
 
-class ChangelessWinds : Components.SelfTargetedAOEs
-{
-    public ChangelessWinds() : base(ActionID.MakeSpell(AID.ChangelessWinds), new AOEShapeRect(40, 4)) { }
-}
+class ChangelessWinds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ChangelessWinds), new AOEShapeRect(40, 4));
 
 class ChangelessWindsKB : Components.KnockbackFromCastTarget
 {
@@ -43,10 +37,7 @@ class ChangelessWindsKB : Components.KnockbackFromCastTarget
     }
 }
 
-class Whipwind : Components.SelfTargetedAOEs
-{
-    public Whipwind() : base(ActionID.MakeSpell(AID.Whipwind), new AOEShapeRect(55, 20)) { }
-}
+class Whipwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Whipwind), new AOEShapeRect(55, 20));
 
 class WhipwindKB : Components.KnockbackFromCastTarget
 {
@@ -56,15 +47,9 @@ class WhipwindKB : Components.KnockbackFromCastTarget
     }
 }
 
-class GentleBreeze : Components.SelfTargetedAOEs
-{
-    public GentleBreeze() : base(ActionID.MakeSpell(AID.GentleBreeze), new AOEShapeRect(15, 2)) { }
-}
+class GentleBreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GentleBreeze), new AOEShapeRect(15, 2));
 
-class WhirlingGaol : Components.RaidwideCast
-{
-    public WhirlingGaol() : base(ActionID.MakeSpell(AID.WhirlingGaol), "Raidwide + Knockback") { }
-}
+class WhirlingGaol(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WhirlingGaol), "Raidwide + Knockback");
 
 class WhirlingGaolKB : Components.KnockbackFromCastTarget
 {
@@ -74,20 +59,11 @@ class WhirlingGaolKB : Components.KnockbackFromCastTarget
     }
 }
 
-class Spin : Components.SelfTargetedAOEs
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
-}
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
 
-class Mash : Components.SelfTargetedAOEs
-{
-    public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2)) { }
-}
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
 
-class Scoop : Components.SelfTargetedAOEs
-{
-    public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class DjinnStates : StateMachineBuilder
 {

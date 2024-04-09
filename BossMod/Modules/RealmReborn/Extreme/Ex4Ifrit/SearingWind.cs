@@ -14,26 +14,26 @@ class SearingWind : Components.UniformStackSpread
         KeepOnPhaseChange = true;
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // we let AI provide soft positioning hints until resolve is imminent
-        if (module.WorldState.CurrentTime > _showHintsAfter)
+        if (WorldState.CurrentTime > _showHintsAfter)
             base.AddAIHints(module, slot, actor, assignment, hints);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.InfernoHowl)
         {
             Spreads.Clear();
-            if (module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
-                AddSpread(target, module.WorldState.CurrentTime.AddSeconds(5.4f));
+            if (WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+                AddSpread(target, WorldState.FutureTime(5.4f));
             _searingWindsLeft = 3;
-            _showHintsAfter = module.WorldState.CurrentTime.AddSeconds(3.4f);
+            _showHintsAfter = WorldState.FutureTime(3.4f);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         // note: there are 3 casts total, 6s apart - last one happens ~4.8s before status expires
         if ((AID)spell.Action.ID == AID.SearingWind)
@@ -46,7 +46,7 @@ class SearingWind : Components.UniformStackSpread
             else
             {
                 foreach (ref var s in Spreads.AsSpan())
-                    s.Activation = module.WorldState.CurrentTime.AddSeconds(6);
+                    s.Activation = WorldState.FutureTime(6);
             }
         }
     }

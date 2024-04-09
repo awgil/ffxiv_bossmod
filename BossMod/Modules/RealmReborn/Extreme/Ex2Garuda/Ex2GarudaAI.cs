@@ -10,7 +10,7 @@ class Ex2GarudaAI : BossComponent
         _aerialBlast = module.FindComponent<AerialBlast>();
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var e in hints.PotentialTargets)
         {
@@ -23,12 +23,12 @@ class Ex2GarudaAI : BossComponent
                     if (_aerialBlast?.NumCasts > 0)
                     {
                         e.DesiredRotation = 135.Degrees();
-                        e.DesiredPosition = module.Bounds.Center + 18 * e.DesiredRotation.ToDirection();
+                        e.DesiredPosition = Module.Bounds.Center + 18 * e.DesiredRotation.ToDirection();
                     }
                     else
                     {
                         e.DesiredRotation = 180.Degrees();
-                        e.DesiredPosition = module.Bounds.Center + 8 * e.DesiredRotation.ToDirection();
+                        e.DesiredPosition = Module.Bounds.Center + 8 * e.DesiredRotation.ToDirection();
                     }
                     break;
                 case OID.Chirada:
@@ -40,7 +40,7 @@ class Ex2GarudaAI : BossComponent
                     e.AttackStrength = 0.15f;
                     e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
                     e.DesiredRotation = (_aerialBlast?.NumCasts > 0 ? -45 : 0).Degrees();
-                    e.DesiredPosition = module.Bounds.Center + 18 * e.DesiredRotation.ToDirection();
+                    e.DesiredPosition = Module.Bounds.Center + 18 * e.DesiredRotation.ToDirection();
                     break;
                 case OID.RazorPlume:
                     e.Priority = assignment != PartyRolesConfig.Assignment.MT ? 4 : 0;
@@ -53,10 +53,10 @@ class Ex2GarudaAI : BossComponent
                     e.ShouldBeTanked = false;
                     break;
                 case OID.SpinyPlume:
-                    e.Priority = module.PrimaryActor.IsTargetable ? AIHints.Enemy.PriorityForbidAI : 6;
+                    e.Priority = Module.PrimaryActor.IsTargetable ? AIHints.Enemy.PriorityForbidAI : 6;
                     e.AttackStrength = 0;
                     e.ShouldBeTanked = false;
-                    if (actor.Role == Role.Tank && e.Actor.TargetID != actor.InstanceID && (module.WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.ThermalLow)?.Extra ?? 0) >= 2)
+                    if (actor.Role == Role.Tank && e.Actor.TargetID != actor.InstanceID && (WorldState.Actors.Find(e.Actor.TargetID)?.FindStatus(SID.ThermalLow)?.Extra ?? 0) >= 2)
                     {
                         e.Priority = 6;
                         e.ShouldBeTanked = e.PreferProvoking = true;
@@ -76,7 +76,7 @@ class Ex2GarudaAI : BossComponent
         if (haveMonoliths && actor.Role is Role.Healer or Role.Ranged)
         {
             // have ranged stay in center to avoid los issues
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, 7), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Bounds.Center, 7), DateTime.MaxValue);
         }
     }
 }

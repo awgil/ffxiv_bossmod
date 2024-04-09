@@ -1,24 +1,15 @@
 ﻿namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
 
-class MythrilGreataxe : Components.SelfTargetedAOEs
-{
-    public MythrilGreataxe() : base(ActionID.MakeSpell(AID.MythrilGreataxe), new AOEShapeCone(71, 30.Degrees())) { }
-}
-
-class Hydroptosis : Components.SpreadFromCastTargets
-{
-    public Hydroptosis() : base(ActionID.MakeSpell(AID.HydroptosisAOE), 6) { }
-}
+class MythrilGreataxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MythrilGreataxe), new AOEShapeCone(71, 30.Degrees()));
+class Hydroptosis(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HydroptosisAOE), 6);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Althyk, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12244)]
-public class A22AlthykNymeia : BossModule
+public class A22AlthykNymeia(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(50, -750), 25))
 {
     private Actor? _nymeia;
 
     public Actor? Althyk() => PrimaryActor;
     public Actor? Nymeia() => _nymeia;
-
-    public A22AlthykNymeia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(50, -750), 25)) { }
 
     protected override void UpdateModule()
     {

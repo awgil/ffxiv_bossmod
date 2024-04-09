@@ -17,13 +17,13 @@ public enum AID : uint
 class Selfdetonations : BossComponent
 {
     private static readonly string hint = "In bomb explosion radius!";
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (!module.PrimaryActor.IsDead)
+        if (!Module.PrimaryActor.IsDead)
         {
             if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(module.PrimaryActor.Position, 10, 0xFF000000, 2);
-            arena.AddCircle(module.PrimaryActor.Position, 10, ArenaColor.Danger);
+                arena.AddCircle(Module.PrimaryActor.Position, 10, 0xFF000000, 2);
+            arena.AddCircle(Module.PrimaryActor.Position, 10, ArenaColor.Danger);
         }
         foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
         {
@@ -39,9 +39,9 @@ class Selfdetonations : BossComponent
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (!module.PrimaryActor.IsDead && actor.Position.InCircle(module.PrimaryActor.Position, 10))
+        if (!Module.PrimaryActor.IsDead && actor.Position.InCircle(Module.PrimaryActor.Position, 10))
             hints.Add(hint);
         foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 6))
@@ -54,7 +54,7 @@ class Selfdetonations : BossComponent
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("For this stage the spell Flying Sardine to interrupt the Progenitrix in Act 2\nis highly recommended. Hit the Cherry Bomb from a safe distance\nwith anything but fire damage to set of a chain reaction to win this act.");
     }
@@ -62,7 +62,7 @@ class Hints : BossComponent
 
 class Hints2 : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Hit the Cherry Bomb from a safe distance to win this act.");
     }

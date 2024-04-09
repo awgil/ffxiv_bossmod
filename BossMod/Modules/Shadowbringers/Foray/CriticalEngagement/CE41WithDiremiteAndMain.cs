@@ -45,20 +45,11 @@ public enum IconID : uint
     Hailfire4 = 82, // player
 }
 
-class CrystallineFracture : Components.SelfTargetedAOEs
-{
-    public CrystallineFracture() : base(ActionID.MakeSpell(AID.CrystallineFracture), new AOEShapeCircle(4)) { }
-}
+class CrystallineFracture(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrystallineFracture), new AOEShapeCircle(4));
 
-class ResonantFrequencyDim : Components.SelfTargetedAOEs
-{
-    public ResonantFrequencyDim() : base(ActionID.MakeSpell(AID.ResonantFrequencyDim), new AOEShapeCircle(6)) { }
-}
+class ResonantFrequencyDim(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ResonantFrequencyDim), new AOEShapeCircle(6));
 
-class ResonantFrequencyCorrupted : Components.SelfTargetedAOEs
-{
-    public ResonantFrequencyCorrupted() : base(ActionID.MakeSpell(AID.ResonantFrequencyCorrupted), new AOEShapeCircle(6)) { }
-}
+class ResonantFrequencyCorrupted(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ResonantFrequencyCorrupted), new AOEShapeCircle(6));
 
 class CrystallineStingers : Components.CastLineOfSightAOE
 {
@@ -72,22 +63,19 @@ class AetherialStingers : Components.CastLineOfSightAOE
     public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.CorruptedCrystal).Where(a => !a.IsDead);
 }
 
-class Subduction : Components.SelfTargetedAOEs
-{
-    public Subduction() : base(ActionID.MakeSpell(AID.Subduction), new AOEShapeCircle(8)) { }
-}
+class Subduction(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Subduction), new AOEShapeCircle(8));
 
 // next aoe starts casting slightly before previous, so use a custom component
 class Earthbreaker : Components.GenericAOEs
 {
     private readonly List<(Actor caster, AOEShape shape)> _active = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return _active.Take(1).Select(e => new AOEInstance(e.shape, e.caster.Position, e.caster.CastInfo!.Rotation, e.caster.CastInfo.NPCFinishAt));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         AOEShape? shape = (AID)spell.Action.ID switch
         {
@@ -100,21 +88,15 @@ class Earthbreaker : Components.GenericAOEs
             _active.Add((caster, shape));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         _active.RemoveAll(c => c.caster == caster);
     }
 }
 
-class CrystalNeedle : Components.SingleTargetCast
-{
-    public CrystalNeedle() : base(ActionID.MakeSpell(AID.CrystalNeedle)) { }
-}
+class CrystalNeedle(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CrystalNeedle));
 
-class Shardstrike : Components.SpreadFromCastTargets
-{
-    public Shardstrike() : base(ActionID.MakeSpell(AID.ShardstrikeAOE), 5) { }
-}
+class Shardstrike(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ShardstrikeAOE), 5);
 
 // TODO: this should probably be generalized
 class Hailfire : Components.GenericAOEs
@@ -128,29 +110,29 @@ class Hailfire : Components.GenericAOEs
 
     public Hailfire() : base(ActionID.MakeSpell(AID.HailfireAOE)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (NextTarget is var target && target != null && target != actor)
-            yield return new(_shape, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), _activation);
+            yield return new(_shape, Module.PrimaryActor.Position, Angle.FromDirection(target.Position - Module.PrimaryActor.Position), _activation);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (NextTarget == pc)
-            _shape.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(pc.Position - module.PrimaryActor.Position), ArenaColor.Danger);
+            _shape.Outline(arena, Module.PrimaryActor.Position, Angle.FromDirection(pc.Position - Module.PrimaryActor.Position), ArenaColor.Danger);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction && NumCasts < _targets.Length)
         {
             _targets[NumCasts] = null;
-            _activation = module.WorldState.CurrentTime.AddSeconds(2.3f);
+            _activation = WorldState.FutureTime(2.3f);
         }
         base.OnEventCast(module, caster, spell);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var order = (IconID)iconID switch
         {
@@ -164,7 +146,7 @@ class Hailfire : Components.GenericAOEs
         {
             NumCasts = 0;
             _targets[order] = actor;
-            _activation = module.WorldState.CurrentTime.AddSeconds(8.2f);
+            _activation = WorldState.FutureTime(8.2f);
         }
     }
 }

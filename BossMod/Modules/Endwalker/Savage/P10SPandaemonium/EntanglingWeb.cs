@@ -1,23 +1,20 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class EntanglingWebAOE : Components.LocationTargetedAOEs
-{
-    public EntanglingWebAOE() : base(ActionID.MakeSpell(AID.EntanglingWebAOE), 5) { }
-}
+class EntanglingWebAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EntanglingWebAOE), 5);
 
 class EntanglingWebHints : BossComponent
 {
-    private IReadOnlyList<Actor> _pillars = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _pillars;
     private List<Actor> _targets = new();
 
     private static readonly float _radius = 5;
 
-    public override void Init(BossModule module)
+    public EntanglingWebHints(BossModule module) : base(module)
     {
         _pillars = module.Enemies(OID.Pillar);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_targets.Contains(actor))
         {
@@ -33,20 +30,20 @@ class EntanglingWebHints : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actors(_pillars, ArenaColor.Object, true);
+        Arena.Actors(_pillars, ArenaColor.Object, true);
         foreach (var t in _targets)
-            arena.AddCircle(t.Position, _radius, ArenaColor.Danger);
+            Arena.AddCircle(t.Position, _radius, ArenaColor.Danger);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.EntanglingWebAOE && _targets.Count > 0)
             _targets.RemoveAt(0);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.EntanglingWeb)
             _targets.Add(actor);

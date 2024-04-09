@@ -12,7 +12,7 @@ class P2Nails : BossComponent
         _nails = module.Enemies(OID.InfernalNail);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         arena.Actors(_nails, ArenaColor.Enemy);
     }

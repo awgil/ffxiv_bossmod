@@ -2,7 +2,7 @@
 
 class FieryIcyPortent : Components.StayMove
 {
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var req = (AID)spell.Action.ID switch
         {
@@ -16,7 +16,7 @@ class FieryIcyPortent : Components.StayMove
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FieryPortent or AID.IcyPortent)
         {

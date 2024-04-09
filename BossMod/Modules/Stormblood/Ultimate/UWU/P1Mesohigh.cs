@@ -13,11 +13,11 @@ class P1Mesohigh : Components.CastCounter
         _sisters = module.Enemies(OID.GarudaSister);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var s in EnumerateTetherSources(module))
         {
-            var tetherTarget = module.WorldState.Actors.Find(s.Tether.Target);
+            var tetherTarget = WorldState.Actors.Find(s.Tether.Target);
             if (tetherTarget != null)
             {
                 arena.AddLine(s.Position, tetherTarget.Position, ArenaColor.Danger);
@@ -26,7 +26,7 @@ class P1Mesohigh : Components.CastCounter
         }
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return _sisters.Any(s => s.Tether.Target == player.InstanceID) ? PlayerPriority.Danger : PlayerPriority.Normal;
     }
@@ -35,7 +35,7 @@ class P1Mesohigh : Components.CastCounter
     {
         foreach (var s in _sisters.Tethered(TetherID.Mesohigh))
             yield return s;
-        if (module.PrimaryActor.Tether.ID == (uint)TetherID.Mesohigh)
-            yield return module.PrimaryActor;
+        if (Module.PrimaryActor.Tether.ID == (uint)TetherID.Mesohigh)
+            yield return Module.PrimaryActor;
     }
 }

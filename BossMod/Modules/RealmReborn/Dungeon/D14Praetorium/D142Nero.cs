@@ -21,41 +21,26 @@ public enum AID : uint
     WheelOfSuffering = 28481, // Boss->self, 3.5s cast, range 7 circle aoe (knockback 12)
 }
 
-class IronUprising : Components.SelfTargetedAOEs
-{
-    public IronUprising() : base(ActionID.MakeSpell(AID.IronUprising), new AOEShapeCone(7, 60.Degrees())) { }
-}
+class IronUprising(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IronUprising), new AOEShapeCone(7, 60.Degrees()));
 
-class SpineShatter : Components.SingleTargetCast
-{
-    public SpineShatter() : base(ActionID.MakeSpell(AID.SpineShatter)) { }
-}
+class SpineShatter(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpineShatter));
 
 class AugmentedSuffering : Components.KnockbackFromCastTarget
 {
     public AugmentedSuffering() : base(ActionID.MakeSpell(AID.AugmentedSuffering), 12) { }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, module.Bounds.HalfSize - Distance), Casters[0].CastInfo!.NPCFinishAt);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Bounds.Center, Module.Bounds.HalfSize - Distance), Casters[0].CastInfo!.NPCFinishAt);
     }
 }
 
-class AugmentedShatter : Components.StackWithCastTargets
-{
-    public AugmentedShatter() : base(ActionID.MakeSpell(AID.AugmentedShatter), 6, 4) { }
-}
+class AugmentedShatter(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.AugmentedShatter), 6, 4);
 
-class AugmentedUprising : Components.SelfTargetedAOEs
-{
-    public AugmentedUprising() : base(ActionID.MakeSpell(AID.AugmentedUprising), new AOEShapeCone(45, 45.Degrees())) { }
-}
+class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AugmentedUprising), new AOEShapeCone(45, 45.Degrees()));
 
-class WheelOfSuffering : Components.SelfTargetedAOEs
-{
-    public WheelOfSuffering() : base(ActionID.MakeSpell(AID.WheelOfSuffering), new AOEShapeCircle(7)) { }
-}
+class WheelOfSuffering(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WheelOfSuffering), new AOEShapeCircle(7));
 
 class D142NeroStates : StateMachineBuilder
 {

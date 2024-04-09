@@ -4,14 +4,12 @@ class A22AlthykNymeiaStates : StateMachineBuilder
 {
     private A22AlthykNymeia _module;
 
-    private bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
-
     public A22AlthykNymeiaStates(A22AlthykNymeia module) : base(module)
     {
         _module = module;
         SimplePhase(0, SinglePhase, "Single phase")
             .ActivateOnEnter<Axioma>()
-            .Raw.Update = () => IsDead(_module.Althyk()) && IsDead(_module.Nymeia());
+            .Raw.Update = () => (_module.Althyk()?.IsDeadOrDestroyed ?? true) && (_module.Nymeia()?.IsDeadOrDestroyed ?? true);
     }
 
     private void SinglePhase(uint id)

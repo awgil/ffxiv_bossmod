@@ -16,30 +16,30 @@ class P3SniperCannon : Components.UniformStackSpread
 
     public P3SniperCannon() : base(6, 6, alwaysShowSpreads: true) { }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         base.DrawArenaForeground(module, pcSlot, pc, arena);
         foreach (var s in EnumerateSafeSpots(module, pcSlot))
             arena.AddCircle(s, 1, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.SniperCannonFodder:
                 AddSpread(actor, status.ExpireAt);
-                Assign(module, module.Raid.FindSlot(actor.InstanceID), PlayerRole.Spread);
+                Assign(module, Raid.FindSlot(actor.InstanceID), PlayerRole.Spread);
                 break;
             case SID.HighPoweredSniperCannonFodder:
                 AddStack(actor, status.ExpireAt);
-                Assign(module, module.Raid.FindSlot(actor.InstanceID), PlayerRole.Stack);
+                Assign(module, Raid.FindSlot(actor.InstanceID), PlayerRole.Stack);
                 break;
         }
     }
 
     // note: if player dies, stack/spread immediately hits random target, so we use status loss to end stack/spread
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -64,7 +64,7 @@ class P3SniperCannon : Components.UniformStackSpread
         _haveSafeSpots = true;
 
         int[] slotsInPriorityOrder = Utils.MakeArray(PartyState.MaxPartySize, -1);
-        foreach (var a in _config.P3IntermissionAssignments.Resolve(module.Raid))
+        foreach (var a in _config.P3IntermissionAssignments.Resolve(Raid))
             slotsInPriorityOrder[a.group] = a.slot;
 
         int[] assignedRoles = { 0, 0, 0 };
@@ -98,7 +98,7 @@ class P3SniperCannon : Components.UniformStackSpread
         }
     }
 
-    private WPos SafeSpotAt(BossModule module, Angle dirIfStacksNorth) => module.Bounds.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
+    private WPos SafeSpotAt(BossModule module, Angle dirIfStacksNorth) => Module.Bounds.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
 }
 
 class P3WaveRepeater : Components.ConcentricAOEs
@@ -107,13 +107,13 @@ class P3WaveRepeater : Components.ConcentricAOEs
 
     public P3WaveRepeater() : base(_shapes) { }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaveRepeater1)
             AddSequence(caster.Position, spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         var order = (AID)spell.Action.ID switch
         {
@@ -123,15 +123,12 @@ class P3WaveRepeater : Components.ConcentricAOEs
             AID.WaveRepeater4 => 3,
             _ => -1
         };
-        if (!AdvanceSequence(order, caster.Position, module.WorldState.CurrentTime.AddSeconds(2.1f)))
-            module.ReportError(this, $"Unexpected ring {order}");
+        if (!AdvanceSequence(order, caster.Position, WorldState.FutureTime(2.1f)))
+            ReportError($"Unexpected ring {order}");
     }
 }
 
-class P3IntermissionVoidzone : Components.PersistentVoidzone
-{
-    public P3IntermissionVoidzone() : base(6, m => m.Enemies(OID.P3IntermissionVoidzone).Where(z => z.EventState != 7)) { }
-}
+class P3IntermissionVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.P3IntermissionVoidzone).Where(z => z.EventState != 7));
 
 class P3ColossalBlow : Components.GenericAOEs
 {
@@ -139,15 +136,15 @@ class P3ColossalBlow : Components.GenericAOEs
 
     private static readonly AOEShapeCircle _shape = new(11);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs.Take(3);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs.Take(3);
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID is OID.LeftArmUnit or OID.RightArmUnit && id is 0x1E43 or 0x1E44)
-            AOEs.Add(new(_shape, actor.Position, default, module.WorldState.CurrentTime.AddSeconds(13.5f)));
+            AOEs.Add(new(_shape, actor.Position, default, WorldState.FutureTime(13.5f)));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.ColossalBlow)
         {

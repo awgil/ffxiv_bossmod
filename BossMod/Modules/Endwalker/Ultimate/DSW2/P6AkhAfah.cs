@@ -5,13 +5,13 @@ class P6HPCheck : BossComponent
     private Actor? _nidhogg;
     private Actor? _hraesvelgr;
 
-    public override void Init(BossModule module)
+    public P6HPCheck(BossModule module) : base(module)
     {
         _nidhogg = module.Enemies(OID.NidhoggP6).FirstOrDefault();
         _hraesvelgr = module.Enemies(OID.HraesvelgrP6).FirstOrDefault();
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_nidhogg != null && _hraesvelgr != null)
         {
@@ -21,19 +21,17 @@ class P6HPCheck : BossComponent
     }
 }
 
-class P6AkhAfah : Components.UniformStackSpread
+class P6AkhAfah(BossModule module) : Components.UniformStackSpread(module, 4, 0, 4)
 {
     public bool Done { get; private set; }
 
-    public P6AkhAfah() : base(4, 0, 4) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AkhAfahN)
-            AddStacks(module.Raid.WithoutSlot(true).Where(p => p.Role == Role.Healer));
+            AddStacks(Raid.WithoutSlot(true).Where(p => p.Role == Role.Healer));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.AkhAfahHAOE or AID.AkhAfahNAOE)
         {

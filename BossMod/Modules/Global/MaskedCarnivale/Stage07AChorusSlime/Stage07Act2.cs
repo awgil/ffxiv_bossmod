@@ -14,7 +14,7 @@ public enum AID : uint
 
 class SlimeExplosion : Components.GenericStackSpread
 {
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var p in module.Enemies(OID.Boss).Where(x => !x.IsDead))
         {
@@ -24,7 +24,7 @@ class SlimeExplosion : Components.GenericStackSpread
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         foreach (var p in module.Enemies(OID.Boss).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 7.5f))
@@ -34,7 +34,7 @@ class SlimeExplosion : Components.GenericStackSpread
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Pull or push the Lava Slimes to the Ice Sprites and then hit the slimes\nfrom a distance to set of the explosions.");
     }

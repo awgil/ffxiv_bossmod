@@ -23,7 +23,7 @@ class BlasphemousHowl : Components.GenericBaitAway
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Baitaway)
         {
@@ -33,7 +33,7 @@ class BlasphemousHowl : Components.GenericBaitAway
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BlasphemousHowl)
         {
@@ -42,7 +42,7 @@ class BlasphemousHowl : Components.GenericBaitAway
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(module, slot, actor, hints, movementHints);
         if (target == actor && targeted)
@@ -50,10 +50,7 @@ class BlasphemousHowl : Components.GenericBaitAway
     }
 }
 
-class PetroEyes : Components.CastGaze
-{
-    public PetroEyes() : base(ActionID.MakeSpell(AID.PetroEyes)) { }
-}
+class PetroEyes(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.PetroEyes));
 
 class SupayStates : StateMachineBuilder
 {

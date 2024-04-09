@@ -11,7 +11,7 @@ class P3Inception2 : Components.GenericBaitAway
     public P3Inception2(BossModule module) : base(module)
     {
         // assume first two are baited by tanks
-        ForbiddenPlayers = module.Raid.WithSlot(true).WhereActor(a => a.Role != Role.Tank).Mask();
+        ForbiddenPlayers = Raid.WithSlot(true).WhereActor(a => a.Role != Role.Tank).Mask();
     }
 
     public override void Update()

@@ -1,25 +1,25 @@
 ﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
 // state related to darkblaze twister mechanics
-class DarkblazeTwister : BossComponent
+class DarkblazeTwister(BossModule module) : BossComponent(module)
 {
     private static readonly float _knockbackRange = 17;
     private static readonly float _aoeInnerRadius = 5;
     private static readonly float _aoeMiddleRadius = 7;
     private static readonly float _aoeOuterRadius = 20;
 
-    public IEnumerable<Actor> BurningTwisters(BossModule module) => module.Enemies(OID.DarkblazeTwister).Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
-    public Actor? DarkTwister(BossModule module) => module.Enemies(OID.DarkblazeTwister).FirstOrDefault(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
+    public IEnumerable<Actor> BurningTwisters() => Module.Enemies(OID.DarkblazeTwister).Where(twister => twister.CastInfo?.IsSpell(AID.BurningTwister) ?? false);
+    public Actor? DarkTwister() => Module.Enemies(OID.DarkblazeTwister).FirstOrDefault(twister => twister.CastInfo?.IsSpell(AID.DarkTwister) ?? false);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var adjPos = Components.Knockback.AwayFromSource(actor.Position, DarkTwister(module), _knockbackRange);
-        if (actor.Position != adjPos && !module.Bounds.Contains(adjPos))
+        var adjPos = Components.Knockback.AwayFromSource(actor.Position, DarkTwister(), _knockbackRange);
+        if (actor.Position != adjPos && !Module.Bounds.Contains(adjPos))
         {
             hints.Add("About to be knocked back into wall!");
         }
 
-        foreach (var twister in BurningTwisters(module))
+        foreach (var twister in BurningTwisters())
         {
             if (adjPos.InCircle(twister.Position, _aoeInnerRadius) || adjPos.InDonut(twister.Position, _aoeMiddleRadius, _aoeOuterRadius))
             {
@@ -29,36 +29,36 @@ class DarkblazeTwister : BossComponent
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        foreach (var twister in BurningTwisters(module))
+        foreach (var twister in BurningTwisters())
         {
-            arena.ZoneCircle(twister.Position, _aoeInnerRadius, ArenaColor.AOE);
-            arena.ZoneDonut(twister.Position, _aoeMiddleRadius, _aoeOuterRadius, ArenaColor.AOE);
+            Arena.ZoneCircle(twister.Position, _aoeInnerRadius, ArenaColor.AOE);
+            Arena.ZoneDonut(twister.Position, _aoeMiddleRadius, _aoeOuterRadius, ArenaColor.AOE);
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var darkTwister = DarkTwister(module);
+        var darkTwister = DarkTwister();
         if (darkTwister == null)
             return;
 
         var adjPos = Components.Knockback.AwayFromSource(pc.Position, darkTwister, _knockbackRange);
         if (adjPos != pc.Position)
         {
-            arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-            arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
+            Arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+            Arena.Actor(adjPos, pc.Rotation, ArenaColor.Danger);
         }
 
         var safeOffset = _knockbackRange + (_aoeInnerRadius + _aoeMiddleRadius) / 2;
         var safeRadius = (_aoeMiddleRadius - _aoeInnerRadius) / 2;
-        foreach (var burningTwister in BurningTwisters(module))
+        foreach (var burningTwister in BurningTwisters())
         {
             var dir = burningTwister.Position - darkTwister.Position;
             var len = dir.Length();
             dir /= len;
-            arena.AddCircle(darkTwister.Position + dir * (len - safeOffset), safeRadius, ArenaColor.Safe);
+            Arena.AddCircle(darkTwister.Position + dir * (len - safeOffset), safeRadius, ArenaColor.Safe);
         }
     }
 }

@@ -14,14 +14,11 @@ public enum AID : uint
     IronJustice = 14199, // 25BE->self, 2,5s cast, range 8+R 120-degree cone
 }
 
-class IronJustice : Components.SelfTargetedAOEs
-{
-    public IronJustice() : base(ActionID.MakeSpell(AID.IronJustice), new AOEShapeCone(9.5f, 60.Degrees())) { }
-}
+class IronJustice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IronJustice), new AOEShapeCone(9.5f, 60.Degrees()));
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("This stage is trivial.\nUse whatever skills you have to defeat these opponents.");
     }

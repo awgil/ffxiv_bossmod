@@ -18,20 +18,11 @@ public enum AID : uint
     SeaOfPitch = 962, // VoidPitch->location, no cast, range 4 circle
 }
 
-class GrimFate : Components.Cleave
-{
-    public GrimFate() : base(ActionID.MakeSpell(AID.GrimFate), new AOEShapeCone(12.6f, 60.Degrees())) { } // TODO: verify angle
-}
+class GrimFate(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.GrimFate), new AOEShapeCone(12.6f, 60.Degrees())); // TODO: verify angle
 
-class Desolation : Components.SelfTargetedAOEs
-{
-    public Desolation() : base(ActionID.MakeSpell(AID.Desolation), new AOEShapeRect(60, 3)) { }
-}
+class Desolation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Desolation), new AOEShapeRect(60, 3));
 
-class AetherialSurge : Components.SelfTargetedAOEs
-{
-    public AetherialSurge() : base(ActionID.MakeSpell(AID.AetherialSurge), new AOEShapeCircle(6)) { }
-}
+class AetherialSurge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherialSurge), new AOEShapeCircle(6));
 
 // note: actor 'dies' immediately after casting
 class SeaOfPitch : Components.GenericAOEs
@@ -40,7 +31,7 @@ class SeaOfPitch : Components.GenericAOEs
 
     public SeaOfPitch() : base(ActionID.MakeSpell(AID.SeaOfPitch)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // TODO: proper timings...
         return module.Enemies(OID.VoidPitch).Where(a => !a.IsDead).Select(a => new AOEInstance(_shape, a.Position));

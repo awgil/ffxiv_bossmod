@@ -16,20 +16,11 @@ public enum AID : uint
     Obliterate = 680, // Boss->self, 2.0s cast, range 6? ??? aoe
 }
 
-class BoulderClap : Components.SelfTargetedLegacyRotationAOEs
-{
-    public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14.2f, 60.Degrees())) { }
-}
+class BoulderClap(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14.2f, 60.Degrees()));
 
-class TrueGrit : Components.SelfTargetedLegacyRotationAOEs
-{
-    public TrueGrit() : base(ActionID.MakeSpell(AID.TrueGrit), new AOEShapeCone(14.2f, 60.Degrees())) { }
-}
+class TrueGrit(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.TrueGrit), new AOEShapeCone(14.2f, 60.Degrees()));
 
-class Rockslide : Components.SelfTargetedLegacyRotationAOEs
-{
-    public Rockslide() : base(ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(16.2f, 4)) { }
-}
+class Rockslide(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(16.2f, 4));
 
 class D082TempleGuardianStates : StateMachineBuilder
 {

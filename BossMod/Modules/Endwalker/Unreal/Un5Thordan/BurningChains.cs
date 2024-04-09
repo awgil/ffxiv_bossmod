@@ -7,25 +7,25 @@ class BurningChains : Components.CastCounter
 
     public BurningChains() : base(ActionID.MakeSpell(AID.HolyChain)) { }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_tetherPartners[slot] >= 0)
             hints.Add("Break chains!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var partner = module.Raid[_tetherPartners[pcSlot]];
+        var partner = Raid[_tetherPartners[pcSlot]];
         if (partner != null)
             arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.BurningChains)
         {
-            var src = module.Raid.FindSlot(source.InstanceID);
-            var tgt = module.Raid.FindSlot(tether.Target);
+            var src = Raid.FindSlot(source.InstanceID);
+            var tgt = Raid.FindSlot(tether.Target);
             if (src >= 0 && tgt >= 0)
             {
                 _tetherPartners[src] = tgt;
@@ -34,12 +34,12 @@ class BurningChains : Components.CastCounter
         }
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.BurningChains)
         {
-            var src = module.Raid.FindSlot(source.InstanceID);
-            var tgt = module.Raid.FindSlot(tether.Target);
+            var src = Raid.FindSlot(source.InstanceID);
+            var tgt = Raid.FindSlot(tether.Target);
             if (src >= 0)
                 _tetherPartners[src] = -1;
             if (tgt >= 0)

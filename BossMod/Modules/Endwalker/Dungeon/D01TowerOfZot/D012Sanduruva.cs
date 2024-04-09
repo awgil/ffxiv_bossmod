@@ -30,37 +30,34 @@ public enum SID : uint
     WhoIsShe2 = 2654, // none->BerserkerSphere, extra=0x1A8
 }
 
-class IsitvaSiddhi : Components.SingleTargetCast
-{
-    public IsitvaSiddhi() : base(ActionID.MakeSpell(AID.IsitvaSiddhi)) { }
-}
+class IsitvaSiddhi(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.IsitvaSiddhi));
 
-class SphereShatter : Components.GenericAOEs
+class SphereShatter(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private readonly List<Actor> _casters = [];
     private static readonly AOEShapeCircle circle = new(15);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
             foreach (var c in _casters)
-                yield return new(circle, c.Position, activation: _activation, risky: _activation.AddSeconds(-7) < module.WorldState.CurrentTime);
+                yield return new(circle, c.Position, default, _activation, Risky: _activation.AddSeconds(-7) < WorldState.CurrentTime);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.BerserkerSphere)
         {
             _casters.Add(actor);
             if (NumCasts == 0)
-                _activation = module.WorldState.CurrentTime.AddSeconds(10.8f);
+                _activation = WorldState.FutureTime(10.8f);
             else
-                _activation = module.WorldState.CurrentTime.AddSeconds(20);
+                _activation = WorldState.FutureTime(20);
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SphereShatter)
         {
@@ -70,25 +67,10 @@ class SphereShatter : Components.GenericAOEs
     }
 }
 
-class PraptiSiddhi : Components.SelfTargetedAOEs
-{
-    public PraptiSiddhi() : base(ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(40, 2)) { }
-}
-
-class PrakamyaSiddhi : Components.SelfTargetedAOEs
-{
-    public PrakamyaSiddhi() : base(ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(5)) { }
-}
-
-class ManusyaConfuse : Components.CastHint
-{
-    public ManusyaConfuse() : base(ActionID.MakeSpell(AID.ManusyaConfuse), "Applies Manyusa Confusion") { }
-}
-
-class ManusyaStop : Components.CastHint
-{
-    public ManusyaStop() : base(ActionID.MakeSpell(AID.ManusyaStop), "Applies Manyusa Stop") { }
-}
+class PraptiSiddhi(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(40, 2));
+class PrakamyaSiddhi(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(5));
+class ManusyaConfuse(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ManusyaConfuse), "Applies Manyusa Confusion");
+class ManusyaStop(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ManusyaStop), "Applies Manyusa Stop");
 
 class D012SanduruvaStates : StateMachineBuilder
 {
@@ -105,10 +87,8 @@ class D012SanduruvaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10257)]
-public class D012Sanduruva : BossModule
+public class D012Sanduruva(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-258, -26), 20))
 {
-    public D012Sanduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-258, -26), 20)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

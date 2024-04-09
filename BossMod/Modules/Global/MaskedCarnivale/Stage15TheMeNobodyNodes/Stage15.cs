@@ -26,10 +26,7 @@ public enum AID : uint
     Disseminate = 14899, // 26FB->self, 2,0s cast, range 6+R circle, casts on death of serpents
 }
 
-class HighVoltage : Components.CastHint
-{
-    public HighVoltage() : base(ActionID.MakeSpell(AID.HighVoltage), "Interrupt!") { }
-}
+class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interrupt!");
 
 class Ballast : Components.GenericAOEs
 {
@@ -45,38 +42,38 @@ class Ballast : Components.GenericAOEs
     private static readonly AOEShapeDonutSector cone2 = new(5.5f, 10.5f, 135.Degrees());
     private static readonly AOEShapeDonutSector cone3 = new(10.5f, 15.5f, 135.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (casting2)
         {
-            yield return new(cone1, module.PrimaryActor.Position, _rotation, _activation1, ArenaColor.Danger);
-            yield return new(cone2, module.PrimaryActor.Position, _rotation, _activation2);
-            yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3);
+            yield return new(cone1, Module.PrimaryActor.Position, _rotation, _activation1, ArenaColor.Danger);
+            yield return new(cone2, Module.PrimaryActor.Position, _rotation, _activation2);
+            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation3);
         }
         if (casting3 && !casting2)
         {
-            yield return new(cone2, module.PrimaryActor.Position, _rotation, _activation2, ArenaColor.Danger);
-            yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3);
+            yield return new(cone2, Module.PrimaryActor.Position, _rotation, _activation2, ArenaColor.Danger);
+            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation3);
         }
         if (casting4 && !casting3)
-            yield return new(cone3, module.PrimaryActor.Position, _rotation, _activation3, ArenaColor.Danger);
+            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation3, ArenaColor.Danger);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Ballast0)
         {
             casting2 = true;
             casting3 = true;
             casting4 = true;
-            _rotation = module.PrimaryActor.Rotation;
-            _activation1 = module.WorldState.CurrentTime.AddSeconds(4.6f);
-            _activation2 = module.WorldState.CurrentTime.AddSeconds(5.2f);
-            _activation3 = module.WorldState.CurrentTime.AddSeconds(5.8f);
+            _rotation = Module.PrimaryActor.Rotation;
+            _activation1 = WorldState.FutureTime(4.6f);
+            _activation2 = WorldState.FutureTime(5.2f);
+            _activation3 = WorldState.FutureTime(5.8f);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Ballast2)
             casting2 = false;
@@ -87,30 +84,15 @@ class Ballast : Components.GenericAOEs
     }
 }
 
-class PiercingLaser : Components.SelfTargetedAOEs
-{
-    public PiercingLaser() : base(ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 4)) { }
-}
+class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 4));
 
-class RepellingCannons : Components.SelfTargetedAOEs
-{
-    public RepellingCannons() : base(ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(12.3f)) { }
-}
+class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(12.3f));
 
-class Superstorm : Components.SelfTargetedAOEs
-{
-    public Superstorm() : base(ActionID.MakeSpell(AID.Superstorm2), new AOEShapeDonut(8, 20)) { }
-}
+class Superstorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Superstorm2), new AOEShapeDonut(8, 20));
 
-class Spellsword : Components.SelfTargetedAOEs
-{
-    public Spellsword() : base(ActionID.MakeSpell(AID.Spellsword), new AOEShapeCone(7.1f, 60.Degrees())) { }
-}
+class Spellsword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spellsword), new AOEShapeCone(7.1f, 60.Degrees()));
 
-class Disseminate : Components.SelfTargetedAOEs
-{
-    public Disseminate() : base(ActionID.MakeSpell(AID.Disseminate), new AOEShapeCircle(7.2f)) { }
-}
+class Disseminate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Disseminate), new AOEShapeCircle(7.2f));
 
 class BallastKB : Components.Knockback //actual knockbacks are 0.274s after snapshot
 {
@@ -126,31 +108,31 @@ class BallastKB : Components.Knockback //actual knockbacks are 0.274s after snap
     private static readonly AOEShapeDonutSector cone2 = new(5.5f, 10.5f, 135.Degrees());
     private static readonly AOEShapeDonutSector cone3 = new(10.5f, 15.5f, 135.Degrees());
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (casting2)
-            yield return new(module.PrimaryActor.Position, 20, _activation1, cone1, _rotation);
+            yield return new(Module.PrimaryActor.Position, 20, _activation1, cone1, _rotation);
         if (casting3)
-            yield return new(module.PrimaryActor.Position, 20, _activation2, cone2, _rotation);
+            yield return new(Module.PrimaryActor.Position, 20, _activation2, cone2, _rotation);
         if (casting4)
-            yield return new(module.PrimaryActor.Position, 20, _activation3, cone3, _rotation);
+            yield return new(Module.PrimaryActor.Position, 20, _activation3, cone3, _rotation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Ballast0)
         {
             casting2 = true;
             casting3 = true;
             casting4 = true;
-            _rotation = module.PrimaryActor.Rotation;
-            _activation1 = module.WorldState.CurrentTime.AddSeconds(4.6f);
-            _activation2 = module.WorldState.CurrentTime.AddSeconds(5.2f);
-            _activation3 = module.WorldState.CurrentTime.AddSeconds(5.8f);
+            _rotation = Module.PrimaryActor.Rotation;
+            _activation1 = WorldState.FutureTime(4.6f);
+            _activation2 = WorldState.FutureTime(5.2f);
+            _activation3 = WorldState.FutureTime(5.8f);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Ballast2)
             casting2 = false;
@@ -163,7 +145,7 @@ class BallastKB : Components.Knockback //actual knockbacks are 0.274s after snap
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("For this stage Flying Sardine and Acorn Bomb are highly recommended.\nUse Flying Sardine to interrupt High Voltage.\nUse Acorn Bomb to put Shabtis to sleep until their buff runs out.");
     }

@@ -11,15 +11,15 @@ class Tumult : Components.CastCounter
         _nextExpected = module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Raidwide);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), _nextExpected));
+        hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _nextExpected));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         if (spell.Action == WatchedAction)
-            _nextExpected = module.WorldState.CurrentTime.AddSeconds(1.2f);
+            _nextExpected = WorldState.FutureTime(1.2f);
     }
 }

@@ -10,15 +10,15 @@ class Freefire : Components.GenericAOEs
 
     public Freefire() : base(ActionID.MakeSpell(AID.Freefire)) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in _casters)
             yield return new(_shape, c.Position, new(), _resolve);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Active && module.PrimaryActor.TargetID == actor.InstanceID && NumCasts > 0)
+        if (Active && Module.PrimaryActor.TargetID == actor.InstanceID && NumCasts > 0)
         {
             // for second set, let current MT stay in place and use invuln instead of risking cleaving the raid
             var invuln = actor.Class switch
@@ -29,7 +29,7 @@ class Freefire : Components.GenericAOEs
             };
             if (invuln)
             {
-                hints.PlannedActions.Add((invuln, actor, (float)(_resolve - module.WorldState.CurrentTime).TotalSeconds, false));
+                hints.PlannedActions.Add((invuln, actor, (float)(_resolve - WorldState.CurrentTime).TotalSeconds, false));
                 return;
             }
         }
@@ -37,16 +37,16 @@ class Freefire : Components.GenericAOEs
         base.AddAIHints(module, slot, actor, assignment, hints);
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.Helper && id == 0x0449)
         {
             _casters.Add(actor);
-            _resolve = module.WorldState.CurrentTime.AddSeconds(6);
+            _resolve = WorldState.FutureTime(6);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(module, caster, spell);
         if (spell.Action == WatchedAction)

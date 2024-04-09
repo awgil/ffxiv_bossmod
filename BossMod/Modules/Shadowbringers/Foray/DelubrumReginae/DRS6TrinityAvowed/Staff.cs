@@ -13,7 +13,7 @@ class FreedomOfBozja : TemperatureAOE
         _risky = risky;
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var playerTemp = Temperature(actor);
         foreach (var o in _orbs)
@@ -26,10 +26,10 @@ class FreedomOfBozja : TemperatureAOE
         InitOrb(module, OID.TempestuousOrb, -2);
         InitOrb(module, OID.BlazingOrb, +1);
         InitOrb(module, OID.RoaringOrb, +2);
-        _activation = module.WorldState.CurrentTime.AddSeconds(10);
+        _activation = WorldState.FutureTime(10);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ChillBlast1 or AID.FreezingBlast1 or AID.HeatedBlast1 or AID.SearingBlast1 or AID.ChillBlast2 or AID.FreezingBlast2 or AID.HeatedBlast2 or AID.SearingBlast2)
             ++NumCasts;
@@ -49,10 +49,7 @@ class FreedomOfBozja : TemperatureAOE
     }
 }
 
-class FreedomOfBozja1 : FreedomOfBozja
-{
-    public FreedomOfBozja1() : base(false) { }
-}
+class FreedomOfBozja1(BossModule module) : FreedomOfBozja(module, false);
 
 class QuickMarchStaff1 : QuickMarch
 {
@@ -60,10 +57,7 @@ class QuickMarchStaff1 : QuickMarch
 
     public override void Init(BossModule module) => _freedom = module.FindComponent<FreedomOfBozja1>();
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !module.Bounds.Contains(pos) || (_freedom?.ActorUnsafeAt(actor, pos) ?? false);
+    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_freedom?.ActorUnsafeAt(actor, pos) ?? false);
 }
 
-class FreedomOfBozja2 : FreedomOfBozja
-{
-    public FreedomOfBozja2() : base(true) { }
-}
+class FreedomOfBozja2(BossModule module) : FreedomOfBozja(module, true);

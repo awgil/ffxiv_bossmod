@@ -32,7 +32,7 @@ public class Layout2Corners : BossComponent
         yield return new WPos(105.5f, 94.5f);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         arena.AddPolygon(Wall1A(), ArenaColor.Border);
         arena.AddPolygon(Wall1B(), ArenaColor.Border);
@@ -40,7 +40,7 @@ public class Layout2Corners : BossComponent
         arena.AddPolygon(Wall2B(), ArenaColor.Border);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Wall1A(), false));
@@ -82,7 +82,7 @@ public class Layout4Quads : BossComponent
         yield return new WPos(110, 87);
         yield return new WPos(107, 90);
     }
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         arena.AddPolygon(Quad1(), ArenaColor.Border);
         arena.AddPolygon(Quad2(), ArenaColor.Border);
@@ -90,7 +90,7 @@ public class Layout4Quads : BossComponent
         arena.AddPolygon(Quad4(), ArenaColor.Border);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad1(), false));
@@ -109,12 +109,12 @@ public class LayoutBigQuad : BossComponent
         yield return new WPos(100, 93);
         yield return new WPos(93, 100);
     }
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         arena.AddPolygon(Quad(), ArenaColor.Border);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         hints.AddForbiddenZone(ShapeDistance.ConvexPolygon(Quad(), false));

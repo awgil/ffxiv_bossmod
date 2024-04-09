@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
 
-class Analysis : BossComponent
+class Analysis(BossModule module) : BossComponent(module)
 {
     public Angle[] SafeDir = new Angle[4];
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         Angle? offset = (SID)status.ID switch
         {
@@ -14,7 +14,7 @@ class Analysis : BossComponent
             SID.RightUnseen => -90.Degrees(),
             _ => null
         };
-        if (offset != null && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < SafeDir.Length)
+        if (offset != null && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < SafeDir.Length)
             SafeDir[slot] = offset.Value;
     }
 }
@@ -25,28 +25,26 @@ class AnalysisRadiance : Components.GenericGaze
     private ArcaneArray? _pulse;
     private List<Actor> _globes = new();
 
-    public AnalysisRadiance() : base(default, true) { }
+    public AnalysisRadiance(BossModule module) : base(module, default, true)
+    {
+        _analysis = module.FindComponent<Analysis>();
+        _pulse = module.FindComponent<ArcaneArray>();
+    }
 
-    public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
         var (nextGlobe, activation) = NextGlobe();
         if (_analysis != null && nextGlobe != null && activation != default)
             yield return new(nextGlobe.Position, activation, _analysis.SafeDir[slot]);
     }
 
-    public override void Init(BossModule module)
-    {
-        _analysis = module.FindComponent<Analysis>();
-        _pulse = module.FindComponent<ArcaneArray>();
-    }
-
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.NArcaneGlobe or OID.SArcaneGlobe)
             _globes.Add(actor);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NRadiance1 or AID.SRadiance1)
         {
@@ -68,27 +66,25 @@ class TargetedLight : Components.GenericGaze
     private int[] _rotationCount = new int[4];
     private DateTime _activation;
 
-    public TargetedLight() : base(default, true) { }
-
-    public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
-    {
-        if (Active)
-            yield return new(module.Bounds.Center, _activation, _safeDir[slot]);
-    }
-
-    public override void Init(BossModule module)
+    public TargetedLight(BossModule module) : base(module, default, true)
     {
         _analysis = module.FindComponent<Analysis>();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
+    {
+        if (Active)
+            yield return new(Module.Bounds.Center, _activation, _safeDir[slot]);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_rotation[slot] != default)
             hints.Add($"Rotation: {(_rotation[slot].Rad < 0 ? "CW" : "CCW")}", false);
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var count = (SID)status.ID switch
         {
@@ -96,11 +92,11 @@ class TargetedLight : Components.GenericGaze
             SID.TimesFivePlayer => 1,
             _ => 0
         };
-        if (count != 0 && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotationCount.Length)
+        if (count != 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotationCount.Length)
             _rotationCount[slot] = count;
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var rot = (IconID)iconID switch
         {
@@ -108,7 +104,7 @@ class TargetedLight : Components.GenericGaze
             IconID.PlayerRotateCCW => 90.Degrees(),
             _ => default
         };
-        if (rot != default && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotation.Length)
+        if (rot != default && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotation.Length)
         {
             _rotation[slot] = rot * _rotationCount[slot];
             if (_analysis != null)
@@ -116,13 +112,13 @@ class TargetedLight : Components.GenericGaze
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NTargetedLightAOE or AID.STargetedLightAOE)
             _activation = spell.NPCFinishAt;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NTargetedLightAOE or AID.STargetedLightAOE)
             ++NumCasts;

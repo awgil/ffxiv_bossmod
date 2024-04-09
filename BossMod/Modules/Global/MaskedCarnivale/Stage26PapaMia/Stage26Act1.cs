@@ -23,39 +23,30 @@ public enum SID : uint
 }
 
 
-class Gust : Components.LocationTargetedAOEs
-{
-    public Gust() : base(ActionID.MakeSpell(AID.Gust), 3) { }
-}
+class Gust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Gust), 3);
 
-class AlternatePlumage : Components.CastHint
-{
-    public AlternatePlumage() : base(ActionID.MakeSpell(AID.AlternatePlumage), "Prepare to dispel buff") { }
-}
+class AlternatePlumage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.AlternatePlumage), "Prepare to dispel buff");
 
-class CaberToss : Components.CastHint
-{
-    public CaberToss() : base(ActionID.MakeSpell(AID.CaberToss), "Interrupt or wipe!") { }
-}
+class CaberToss(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.CaberToss), "Interrupt or wipe!");
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"{module.PrimaryActor.Name} will cast Alternate Plumage, which makes him almost\nimmune to damage. Use Eerie Soundwave to dispel it. Caber Toss must be\ninterrupted or you wipe.\nAdditionally Exuviation and earth spells are recommended for act 2.");
+        hints.Add($"{Module.PrimaryActor.Name} will cast Alternate Plumage, which makes him almost\nimmune to damage. Use Eerie Soundwave to dispel it. Caber Toss must be\ninterrupted or you wipe.\nAdditionally Exuviation and earth spells are recommended for act 2.");
     }
 }
 
 class Hints2 : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         var armorbuff = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.VulnerabilityDown) != null).FirstOrDefault();
         if (armorbuff != null)
-            hints.Add($"Dispel {module.PrimaryActor.Name} with Eerie Soundwave!");
+            hints.Add($"Dispel {Module.PrimaryActor.Name} with Eerie Soundwave!");
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var windburn = actor.FindStatus(SID.Windburn);
         if (windburn != null)

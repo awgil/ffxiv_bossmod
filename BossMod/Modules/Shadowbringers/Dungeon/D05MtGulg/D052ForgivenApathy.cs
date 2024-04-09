@@ -28,15 +28,9 @@ class PunitiveLight : Components.CastInterruptHint
     public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true) { }
 }
 
-class Sanctification : Components.SelfTargetedAOEs
-{
-    public Sanctification() : base(ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees())) { }
-}
+class Sanctification(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees()));
 
-class EarthShaker : Components.SelfTargetedAOEs
-{
-    public EarthShaker() : base(ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 30.Degrees())) { }
-}
+class EarthShaker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 30.Degrees()));
 
 class D052ForgivenApathyStates : StateMachineBuilder
 {

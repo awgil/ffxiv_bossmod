@@ -30,25 +30,13 @@ public enum IconID : uint
     BuffetTarget = 23, // player
 }
 
-class HurlBoss : Components.LocationTargetedAOEs
-{
-    public HurlBoss() : base(ActionID.MakeSpell(AID.HurlBoss), 6) { }
-}
+class HurlBoss(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HurlBoss), 6);
 
-class SpinBoss : Components.SelfTargetedAOEs
-{
-    public SpinBoss() : base(ActionID.MakeSpell(AID.SpinBoss), new AOEShapeCone(30, 60.Degrees())) { }
-}
+class SpinBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpinBoss), new AOEShapeCone(30, 60.Degrees()));
 
-class BarbarousScream : Components.SelfTargetedAOEs
-{
-    public BarbarousScream() : base(ActionID.MakeSpell(AID.BarbarousScream), new AOEShapeCircle(13)) { }
-}
+class BarbarousScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BarbarousScream), new AOEShapeCircle(13));
 
-class Huff : Components.SingleTargetDelayableCast
-{
-    public Huff() : base(ActionID.MakeSpell(AID.Huff)) { }
-}
+class Huff(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Huff));
 
 class Buffet : Components.KnockbackFromCastTarget
 {
@@ -60,7 +48,7 @@ class Buffet : Components.KnockbackFromCastTarget
         StopAtWall = true;
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.BuffetTarget)
         {
@@ -69,19 +57,19 @@ class Buffet : Components.KnockbackFromCastTarget
         }
     }
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         return target == actor ? base.Sources(module, slot, actor) : Enumerable.Empty<Source>();
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         base.OnCastFinished(module, caster, spell);
         if ((AID)spell.Action.ID == AID.Buffet)
             targeted = false;
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(module, slot, actor, hints, movementHints);
         if (target == actor && targeted)
@@ -90,11 +78,11 @@ class Buffet : Components.KnockbackFromCastTarget
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(module, slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
     }
 }
 
@@ -102,45 +90,36 @@ class Buffet2 : Components.BaitAwayCast //Boss jumps on player and does a cone a
 {
     public Buffet2() : base(ActionID.MakeSpell(AID.Buffet), new AOEShapeCone(30, 60.Degrees()), true) { }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var b in CurrentBaits)
             if (b.Target.InstanceID != actor.InstanceID && CurrentBaits.Count > 0)
-                hints.AddForbiddenZone(b.Shape, b.Target.Position + (b.Target.HitboxRadius + module.PrimaryActor.HitboxRadius) * (module.PrimaryActor.Position - b.Target.Position).Normalized(), b.Rotation);
+                hints.AddForbiddenZone(b.Shape, b.Target.Position + (b.Target.HitboxRadius + Module.PrimaryActor.HitboxRadius) * (Module.PrimaryActor.Position - b.Target.Position).Normalized(), b.Rotation);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var bait in ActiveBaitsOn(pc))
         {
-            bait.Shape.Outline(arena, bait.Target.Position + (bait.Target.HitboxRadius + module.PrimaryActor.HitboxRadius) * (module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
+            bait.Shape.Outline(arena, bait.Target.Position + (bait.Target.HitboxRadius + Module.PrimaryActor.HitboxRadius) * (Module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (!IgnoreOtherBaits)
             foreach (var bait in ActiveBaitsNotOn(pc))
                 if (AlwaysDrawOtherBaits || IsClippedBy(pc, bait))
-                    bait.Shape.Draw(arena, bait.Target.Position + (bait.Target.HitboxRadius + module.PrimaryActor.HitboxRadius) * (module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
+                    bait.Shape.Draw(arena, bait.Target.Position + (bait.Target.HitboxRadius + Module.PrimaryActor.HitboxRadius) * (Module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
     }
 }
 
 
-class RaucousScritch : Components.SelfTargetedAOEs
-{
-    public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
-}
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
 
-class Hurl : Components.LocationTargetedAOEs
-{
-    public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
-}
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
 
-class Spin : Components.Cleave
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
-}
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class AiravataStates : StateMachineBuilder
 {

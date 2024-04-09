@@ -1,39 +1,18 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-class RadiantPlume : Components.LocationTargetedAOEs
-{
-    public RadiantPlume() : base(ActionID.MakeSpell(AID.RadiantPlume), 8) { }
-}
+class RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlume), 8);
 
-class WeightOfTheLand : Components.LocationTargetedAOEs
-{
-    public WeightOfTheLand() : base(ActionID.MakeSpell(AID.WeightOfTheLand), 6) { }
-}
+class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLand), 6);
 
-class Eruption : Components.LocationTargetedAOEs
-{
-    public Eruption() : base(ActionID.MakeSpell(AID.Eruption), 8) { }
-}
+class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Eruption), 8);
 
-class MagitekRayCenter : Components.SelfTargetedAOEs
-{
-    public MagitekRayCenter() : base(ActionID.MakeSpell(AID.MagitekRayCenter), new AOEShapeRect(40, 3)) { }
-}
+class MagitekRayCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayCenter), new AOEShapeRect(40, 3));
 
-class MagitekRayLeft : Components.SelfTargetedAOEs
-{
-    public MagitekRayLeft() : base(ActionID.MakeSpell(AID.MagitekRayLeft), new AOEShapeRect(40, 3)) { }
-}
+class MagitekRayLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayLeft), new AOEShapeRect(40, 3));
 
-class MagitekRayRight : Components.SelfTargetedAOEs
-{
-    public MagitekRayRight() : base(ActionID.MakeSpell(AID.MagitekRayRight), new AOEShapeRect(40, 3)) { }
-}
+class MagitekRayRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayRight), new AOEShapeRect(40, 3));
 
-class AssaultCannon : Components.SelfTargetedAOEs
-{
-    public AssaultCannon() : base(ActionID.MakeSpell(AID.AssaultCannon), new AOEShapeRect(45, 1)) { }
-}
+class AssaultCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCannon), new AOEShapeRect(45, 1));
 
 // TODO: homing lasers & ceruleum vent? do we care? damage is not high, and visual clutter sucks
 // TODO: diffractive laser cleave? do we care?.. it's a bit problematic, since it shouldn't be active when many other mechanics are in progress, and it doesn't really add much value...

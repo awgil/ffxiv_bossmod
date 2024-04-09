@@ -4,10 +4,10 @@ class DSW2States : StateMachineBuilder
 {
     private DSW2 _module;
 
-    private bool IsReset => _module.PrimaryActor.IsDestroyed && (_module.ArenaFeatures?.IsDestroyed ?? true);
+    private bool IsReset => Module.PrimaryActor.IsDestroyed && (_module.ArenaFeatures?.IsDestroyed ?? true);
     private bool IsResetOrRewindFailed => IsReset || Module.Enemies(OID.BossP2).Any();
-    private bool IsDead(Actor? actor) => actor != null && (actor.IsDestroyed || actor.IsDead);
-    private bool IsEffectivelyDead(Actor? actor) => actor != null && (actor.IsDestroyed || actor.IsDead || !actor.IsTargetable && actor.HP.Cur <= 1);
+    private bool IsDead(Actor? actor) => actor != null && actor.IsDeadOrDestroyed;
+    private bool IsEffectivelyDead(Actor? actor) => actor != null && (actor.IsDeadOrDestroyed || !actor.IsTargetable && actor.HP.Cur <= 1);
 
     public DSW2States(DSW2 module) : base(module)
     {

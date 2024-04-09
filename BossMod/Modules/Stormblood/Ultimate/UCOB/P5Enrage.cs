@@ -6,13 +6,13 @@ class P5Enrage : Components.UniformStackSpread
 
     public P5Enrage() : base(0, 4) { }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Enrage)
-            AddSpreads(module.Raid.WithoutSlot(true), spell.NPCFinishAt);
+            AddSpreads(Raid.WithoutSlot(true), spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.Enrage or AID.EnrageAOE)
             ++NumCasts;

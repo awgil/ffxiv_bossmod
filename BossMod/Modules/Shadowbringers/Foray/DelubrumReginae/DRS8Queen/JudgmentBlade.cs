@@ -4,9 +4,9 @@ class JudgmentBlade : Components.GenericAOEs
 {
     private AOEInstance? _aoe;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var offset = (AID)spell.Action.ID switch
         {
@@ -18,7 +18,7 @@ class JudgmentBlade : Components.GenericAOEs
             _aoe = new(new AOEShapeRect(70, 15), caster.Position + offset * spell.Rotation.ToDirection().OrthoL(), spell.Rotation, spell.NPCFinishAt);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.JudgmentBladeRAOE or AID.JudgmentBladeLAOE)
         {

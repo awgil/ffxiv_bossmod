@@ -6,20 +6,14 @@ class P3SeventhUmbralEra : Components.Knockback
 
     public P3SeventhUmbralEra() : base(ActionID.MakeSpell(AID.SeventhUmbralEra), true) { }
 
-    public override void Init(BossModule module) => _activation = module.WorldState.CurrentTime.AddSeconds(5.3f);
+    public override void Init(BossModule module) => _activation = WorldState.FutureTime(5.3f);
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        yield return new(module.Bounds.Center, 11, _activation);
+        yield return new(Module.Bounds.Center, 11, _activation);
     }
 }
 
-class P3CalamitousFlame : Components.CastCounter
-{
-    public P3CalamitousFlame() : base(ActionID.MakeSpell(AID.CalamitousFlame)) { }
-}
+class P3CalamitousFlame(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CalamitousFlame));
 
-class P3CalamitousBlaze : Components.CastCounter
-{
-    public P3CalamitousBlaze() : base(ActionID.MakeSpell(AID.CalamitousBlaze)) { }
-}
+class P3CalamitousBlaze(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CalamitousBlaze));

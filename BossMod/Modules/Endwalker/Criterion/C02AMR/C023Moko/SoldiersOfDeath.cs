@@ -9,16 +9,16 @@ class IronRainStorm : Components.GenericAOEs
     private static readonly AOEShapeCircle _shapeStorm = new(20);
     private static readonly WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
-
-    public override void Init(BossModule module)
+    public IronRainStorm(BossModule module) : base(module)
     {
         _bait = module.FindComponent<IaiGiriBait>();
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         // draw safespots (TODO: consider assigning specific side)
         var bait = _bait?.Instances.Find(i => i.Target == pc);
@@ -27,16 +27,16 @@ class IronRainStorm : Components.GenericAOEs
             var offset = bait.DirOffsets[1].Rad > 0 ? 5 : -5;
             foreach (var dir in _safespotDirections)
             {
-                var safespot = module.Bounds.Center + 19 * dir;
+                var safespot = Module.Bounds.Center + 19 * dir;
                 if (!AOEs.Any(aoe => aoe.Check(safespot)))
                 {
-                    arena.AddCircle(safespot + offset * dir.OrthoR(), 1, ArenaColor.Safe);
+                    Arena.AddCircle(safespot + offset * dir.OrthoR(), 1, ArenaColor.Safe);
                 }
             }
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         AOEShapeCircle? shape = (AID)spell.Action.ID switch
         {
@@ -48,7 +48,7 @@ class IronRainStorm : Components.GenericAOEs
             AOEs.Add(new(shape, spell.LocXZ, default, spell.NPCFinishAt));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -58,7 +58,7 @@ class IronRainStorm : Components.GenericAOEs
             case AID.SIronStormFirst:
                 ++NumCasts;
                 foreach (ref var aoe in AOEs.AsSpan())
-                    aoe.Activation = module.WorldState.CurrentTime.AddSeconds(6.2f); // second aoe will happen at same location
+                    aoe.Activation = WorldState.FutureTime(6.2f); // second aoe will happen at same location
                 break;
             case AID.NIronRainSecond:
             case AID.SIronRainSecond:

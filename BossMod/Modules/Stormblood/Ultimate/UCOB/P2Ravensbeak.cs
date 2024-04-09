@@ -6,7 +6,7 @@ class P2Ravensbeak : BossComponent
     private Actor? _caster;
     private ulong _targetId;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_caster == null || _caster.TargetID != _targetId)
             return;
@@ -17,7 +17,7 @@ class P2Ravensbeak : BossComponent
             hints.Add("Taunt!");
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Ravensbeak)
         {

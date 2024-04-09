@@ -45,7 +45,4 @@ public enum AID : uint
     SLeftSwipe = 34441, // SYuki->self, 4.0s cast, range 60 180-degree cone
 }
 
-public abstract class C020Trash1 : BossModule
-{
-    public C020Trash1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 0), 20)) { }
-}
+public abstract class C020Trash1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(0, 0), 20));

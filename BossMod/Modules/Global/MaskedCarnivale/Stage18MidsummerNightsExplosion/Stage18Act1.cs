@@ -16,31 +16,19 @@ public enum AID : uint
     TailSmash = 15052, // 2724->self, 4,0s cast, range 12+R 90-degree cone
 }
 
-class Explosion : Components.SelfTargetedAOEs
-{
-    public Explosion() : base(ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(10)) { }
-}
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(10));
 
-class Fireball : Components.LocationTargetedAOEs
-{
-    public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 6) { }
-}
+class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 6);
 
-class RipperClaw : Components.SelfTargetedAOEs
-{
-    public RipperClaw() : base(ActionID.MakeSpell(AID.RipperClaw), new AOEShapeCone(8, 45.Degrees())) { }
-}
+class RipperClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RipperClaw), new AOEShapeCone(8, 45.Degrees()));
 
-class TailSmash : Components.SelfTargetedAOEs
-{
-    public TailSmash() : base(ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(15, 45.Degrees())) { }
-}
+class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(15, 45.Degrees()));
 
 class WildCharge : Components.BaitAwayChargeCast
 {
     public WildCharge() : base(ActionID.MakeSpell(AID.WildCharge), 4) { }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (CurrentBaits.Count > 0 && !module.Enemies(OID.Keg).All(e => e.IsDead))
             hints.Add("Aim charge at a keg!");
@@ -57,7 +45,7 @@ class WildChargeKB : Components.KnockbackFromCastTarget
 
 class KegExplosion : Components.GenericStackSpread
 {
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var p in module.Enemies(OID.Keg).Where(x => !x.IsDead))
         {
@@ -67,7 +55,7 @@ class KegExplosion : Components.GenericStackSpread
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         foreach (var p in module.Enemies(OID.Keg).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 10))
@@ -77,7 +65,7 @@ class KegExplosion : Components.GenericStackSpread
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Make the manticores run to the kegs and their attacks will make them\nblow up. They take 2500 damage per keg explosion.\nThe Ram's Voice and Ultravibration combo can be used to kill manticores.");
     }

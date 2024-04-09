@@ -5,7 +5,7 @@ class P4S1States : StateMachineBuilder
     public P4S1States(BossModule module) : base(module)
     {
         SimplePhase(0, SinglePhase, "P1")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || !module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
     }
 
     private void SinglePhase(uint id)

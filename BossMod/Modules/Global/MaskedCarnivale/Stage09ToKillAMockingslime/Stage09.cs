@@ -25,24 +25,15 @@ public enum AID : uint
     Water = 14271, // 2716->player, 1,0s cast, single-target
 }
 
-class GoldenTongue : Components.CastHint
-{
-    public GoldenTongue() : base(ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increase its magic damage") { }
-}
+class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increase its magic damage");
 
-class DarkVoidzone : Components.PersistentVoidzoneAtCastTarget
-{
-    public DarkVoidzone() : base(4, ActionID.MakeSpell(AID.Dark), m => m.Enemies(OID.DarkVoidzone), 0) { }
-}
+class DarkVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Dark), m => m.Enemies(OID.DarkVoidzone), 0);
 
-class Dark : Components.LocationTargetedAOEs
-{
-    public Dark() : base(ActionID.MakeSpell(AID.Dark), 5) { }
-}
+class Dark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Dark), 5);
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Guimauve summons a total of 6 adds during the fight, one of each element.\nHealer mimikry can be helpful if you have trouble surviving.");
     }

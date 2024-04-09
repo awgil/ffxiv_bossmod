@@ -9,12 +9,12 @@ class Hellfire : BossComponent
         _expectedRaidwide = module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Raidwide);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), _expectedRaidwide));
+        hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _expectedRaidwide));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Hellfire)
             _expectedRaidwide = spell.NPCFinishAt;

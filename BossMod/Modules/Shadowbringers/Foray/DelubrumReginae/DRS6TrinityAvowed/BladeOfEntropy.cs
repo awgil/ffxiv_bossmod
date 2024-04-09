@@ -7,14 +7,14 @@ class BladeOfEntropy : TemperatureAOE
 
     private static readonly AOEShapeRect _shapeCell = new(5, 5, 5);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var playerTemp = Math.Clamp(Temperature(actor), -2, +2);
         for (int x = -2; x <= +2; ++x)
         {
             for (int z = -2; z <= +2; ++z)
             {
-                var cellCenter = module.Bounds.Center + 10 * new WDir(x, z);
+                var cellCenter = Module.Bounds.Center + 10 * new WDir(x, z);
                 int temperature = 0;
                 int numClips = 0;
                 DateTime activation = new();
@@ -37,7 +37,7 @@ class BladeOfEntropy : TemperatureAOE
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -60,7 +60,7 @@ class BladeOfEntropy : TemperatureAOE
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BladeOfEntropyAC11 or AID.BladeOfEntropyBC11 or AID.BladeOfEntropyAC21 or AID.BladeOfEntropyBC21 or AID.BladeOfEntropyAH11 or AID.BladeOfEntropyBH11 or AID.BladeOfEntropyAH21 or AID.BladeOfEntropyBH21)
             _casters.RemoveAll(c => c.caster == caster);

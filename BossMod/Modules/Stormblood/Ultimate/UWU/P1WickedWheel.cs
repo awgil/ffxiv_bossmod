@@ -14,12 +14,12 @@ class WickedWheel : Components.GenericAOEs
 
     public bool Active => Sources.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return Sources.Select(s => new AOEInstance(s.shape, s.source.Position, s.source.Rotation, s.activation));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -37,13 +37,13 @@ class WickedWheel : Components.GenericAOEs
         };
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.WickedWheel:
                 Sources.RemoveAll(s => s.source == caster);
-                AwakenedResolve = module.WorldState.CurrentTime.AddSeconds(2.1f); // for tornado
+                AwakenedResolve = WorldState.FutureTime(2.1f); // for tornado
                 if (caster.FindStatus(SID.Woken) != null)
                     Sources.Add((caster, ShapeTornado, AwakenedResolve));
                 ++NumCasts;
@@ -64,9 +64,9 @@ class P1WickedWheel : WickedWheel { }
 
 class P4WickedWheel : WickedWheel
 {
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.Garuda && id == 0x1E43)
-            Sources.Add((actor, ShapeCombined, module.WorldState.CurrentTime.AddSeconds(8.1f)));
+            Sources.Add((actor, ShapeCombined, WorldState.FutureTime(8.1f)));
     }
 }

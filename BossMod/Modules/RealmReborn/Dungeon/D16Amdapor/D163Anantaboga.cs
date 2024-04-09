@@ -29,20 +29,11 @@ public enum TetherID : uint
     PlagueDance = 1, // Boss->player
 }
 
-class TheLook : Components.Cleave
-{
-    public TheLook() : base(ActionID.MakeSpell(AID.TheLook), new AOEShapeCone(11.5f, 45.Degrees())) { } // TODO: verify angle
-}
+class TheLook(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.TheLook), new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
 
-class RottenBreath : Components.SelfTargetedAOEs
-{
-    public RottenBreath() : base(ActionID.MakeSpell(AID.RottenBreath), new AOEShapeCone(11.5f, 45.Degrees())) { } // TODO: verify angle
-}
+class RottenBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RottenBreath), new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
 
-class TailDrive : Components.SelfTargetedAOEs
-{
-    public TailDrive() : base(ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(35.5f, 45.Degrees())) { }
-}
+class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(35.5f, 45.Degrees()));
 
 class ImminentCatastrophe : Components.CastLineOfSightAOE
 {
@@ -50,10 +41,7 @@ class ImminentCatastrophe : Components.CastLineOfSightAOE
     public override IEnumerable<Actor> BlockerActors(BossModule module) => ((D163Anantaboga)module).ActivePillars();
 }
 
-class TerrorEye : Components.LocationTargetedAOEs
-{
-    public TerrorEye() : base(ActionID.MakeSpell(AID.TerrorEye), 6) { }
-}
+class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TerrorEye), 6);
 
 class PlagueDance : BossComponent
 {
@@ -62,7 +50,7 @@ class PlagueDance : BossComponent
 
     private static readonly AOEShapeCircle _shape = new(11.5f);
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (actor == _target)
         {
@@ -75,36 +63,33 @@ class PlagueDance : BossComponent
         }
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return player == _target ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         _shape.Outline(arena, _target);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PlagueDance)
         {
-            _target = module.WorldState.Actors.Find(tether.Target);
-            _activation = module.WorldState.CurrentTime.AddSeconds(6.1f);
+            _target = WorldState.Actors.Find(tether.Target);
+            _activation = WorldState.FutureTime(6.1f);
         }
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PlagueDance)
             _target = null;
     }
 }
 
-class BubonicCloud : Components.PersistentVoidzone
-{
-    public BubonicCloud() : base(11.5f, m => m.Enemies(OID.DarkNova)) { }
-}
+class BubonicCloud(BossModule module) : Components.PersistentVoidzone(module, 11.5f, m => m.Enemies(OID.DarkNova));
 
 class D163AnantabogaStates : StateMachineBuilder
 {

@@ -14,13 +14,13 @@ class MistralSong : Components.GenericLineOfSightAOE
         Modify(_predictedPosition, ActiveBlockers(module));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             Modify(caster.Position, ActiveBlockers(module));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             Modify(null, ActiveBlockers(module));
@@ -29,12 +29,6 @@ class MistralSong : Components.GenericLineOfSightAOE
     private IEnumerable<(WPos, float)> ActiveBlockers(BossModule module) => module.Enemies(OID.Monolith).Where(a => !a.IsDead).Select(a => (a.Position, a.HitboxRadius - 0.5f));
 }
 
-class MistralSong1 : MistralSong
-{
-    public MistralSong1() : base(new(0, -13)) { }
-}
+class MistralSong1(BossModule module) : MistralSong(module, new(0, -13));
 
-class MistralSong2 : MistralSong
-{
-    public MistralSong2() : base(new(13, 0)) { }
-}
+class MistralSong2(BossModule module) : MistralSong(module, new(13, 0));

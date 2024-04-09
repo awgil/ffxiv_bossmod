@@ -14,26 +14,26 @@ public enum AID : uint
 
 class SlimeExplosion : Components.GenericStackSpread
 {
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (!module.PrimaryActor.IsDead)
+        if (!Module.PrimaryActor.IsDead)
         {
             if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(module.PrimaryActor.Position, 7.6f, 0xFF000000, 2);
-            arena.AddCircle(module.PrimaryActor.Position, 7.6f, ArenaColor.Danger);
+                arena.AddCircle(Module.PrimaryActor.Position, 7.6f, 0xFF000000, 2);
+            arena.AddCircle(Module.PrimaryActor.Position, 7.6f, ArenaColor.Danger);
         }
     }
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (!module.PrimaryActor.IsDead)
-            if (module.PrimaryActor.Position.InCircle(module.PrimaryActor.Position, 7.6f))
+        if (!Module.PrimaryActor.IsDead)
+            if (Module.PrimaryActor.Position.InCircle(Module.PrimaryActor.Position, 7.6f))
                 hints.Add("In slime explosion radius!");
     }
 }
 
 class Hints : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("For this stage the spells Sticky Tongue and Snort are recommended.\nUse them to pull or push Slimes close toIce Sprites.\nThen hit the slime from a distance with anything but fire spells to set of an explosion.");
     }
@@ -41,7 +41,7 @@ class Hints : BossComponent
 
 class Hints2 : BossComponent
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Hit the Lava Slime from a safe distance to win this act.");
     }

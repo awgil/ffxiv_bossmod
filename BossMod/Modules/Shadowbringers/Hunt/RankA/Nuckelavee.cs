@@ -14,29 +14,23 @@ public enum AID : uint
     Spite = 18037, // 288F->self, no cast, range 8 circle
 }
 
-class Torpedo : Components.SingleTargetDelayableCast
-{
-    public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo)) { }
-}
+class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Torpedo));
 
-class BogBody : Components.SpreadFromCastTargets
-{
-    public BogBody() : base(ActionID.MakeSpell(AID.BogBody), 5) { }
-}
+class BogBody(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.BogBody), 5);
 
 class Spite : Components.GenericAOEs
 {
     private AOEInstance? _aoe;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Gallop)
             _aoe = new(new AOEShapeCircle(8), spell.LocXZ, activation: spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Spite)
             _aoe = null;
