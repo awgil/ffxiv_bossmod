@@ -48,7 +48,9 @@ class Octagons : BossComponent
 
     public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var octagons = new List<Func<WPos, float>>();
+        var octagons = new List<Func<WPos, float>>(); //inverted octagons
+        var octagons2 = new List<Func<WPos, float>>(); //octagons
+        
         base.AddAIHints(module, slot, actor, assignment, hints);
 
         if (module.Enemies(OID.GlacialSpearSmall).Count(x => !x.IsDead) == 3)
@@ -63,7 +65,18 @@ class Octagons : BossComponent
             octagons.Add(ShapeDistance.InvertedConvexPolygon(Octagon2(), true));
         else if (module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[2], 1) && !x.IsDead) && actor.Position.InConvexPolygon(Octagon3()))
             octagons.Add(ShapeDistance.InvertedConvexPolygon(Octagon3(), true));
+        if (octagons.Count == 0)
+        {
+            if (module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[0], 1) && !x.IsDead) && !actor.Position.InConvexPolygon(Octagon1()))
+                octagons2.Add(ShapeDistance.ConvexPolygon(Octagon1(), true));
+            if (module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[1], 1) && !x.IsDead) && !actor.Position.InConvexPolygon(Octagon2()))
+                octagons2.Add(ShapeDistance.ConvexPolygon(Octagon2(), true));
+            if (module.Enemies(OID.GlacialSpearSmall).Any(x => x.Position.AlmostEqual(spears[2], 1) && !x.IsDead) && !actor.Position.InConvexPolygon(Octagon3()))
+                octagons2.Add(ShapeDistance.ConvexPolygon(Octagon3(), true));
+        }
         if (octagons.Count > 0)
             hints.AddForbiddenZone(p => octagons.Select(f => f(p)).Max());
+        if (octagons2.Count > 0)
+            hints.AddForbiddenZone(p => octagons2.Select(f => f(p)).Min());
     }
 }
