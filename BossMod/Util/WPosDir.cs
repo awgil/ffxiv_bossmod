@@ -134,4 +134,23 @@ public struct WPos
     {
         return InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
     }
+
+    public readonly bool InConvexPolygon(IEnumerable<WPos> vertices) //note: returns false if points aren't clockwise
+    {
+        int intersections = 0;
+        WPos prevVertex = vertices.Last();
+        foreach (WPos vertex in vertices)
+        {
+            if (vertex.X <= X && X <= prevVertex.X)
+            {
+                float det = (prevVertex.X - X) * (vertex.Z - Z) - (prevVertex.Z - Z) * (vertex.X - X);
+                if (det > 0)
+                    intersections++;
+                else if (det == 0)
+                    return true;
+            }
+            prevVertex = vertex;
+        }
+        return (intersections % 2) == 1;
+    }
 }

@@ -74,22 +74,7 @@ class SurgingWavesArenaChange : BossComponent
     }
 }
 
-class SeaFoam : Components.PersistentVoidzone
-{
-    public SeaFoam() : base(1.5f, m => m.Enemies(OID.SeaFoam).Where(x => !x.IsDead)) { }
-}
-
-class SurgingWave : Components.SelfTargetedAOEs
-{
-    public SurgingWave() : base(ActionID.MakeSpell(AID.SurgingWaveAOE), new AOEShapeCircle(6)) { }
-}
-
-class Shockwave : Components.KnockbackFromCastTarget
-{
-    public Shockwave() : base(ActionID.MakeSpell(AID.Shockwave), 68, true, kind: Kind.AwayFromOrigin) { }
-}
-
-class ShockwaveRaidwide : Components.RaidwideCast
-{
-    public ShockwaveRaidwide() : base(ActionID.MakeSpell(AID.Shockwave)) { }
-}
+class SeaFoam() : Components.PersistentVoidzone(1.5f, m => m.Enemies(OID.SeaFoam).Where(x => !x.IsDead));
+class SurgingWave() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SurgingWaveAOE), new AOEShapeCircle(6));
+class Shockwave() : Components.KnockbackFromCastTarget(ActionID.MakeSpell(AID.Shockwave), 68, true, kind: Kind.AwayFromOrigin);
+class ShockwaveRaidwide() : Components.RaidwideCast(ActionID.MakeSpell(AID.Shockwave));

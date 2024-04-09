@@ -1,14 +1,7 @@
 ﻿namespace BossMod.Endwalker.Alliance.A36Eulogia;
 
-class ByregotStrikeJump : Components.LocationTargetedAOEs
-{
-    public ByregotStrikeJump() : base(ActionID.MakeSpell(AID.ByregotStrikeJump), 8) { }
-}
-
-class ByregotStrikeKnockback : Components.KnockbackFromCastTarget
-{
-    public ByregotStrikeKnockback() : base(ActionID.MakeSpell(AID.ByregotStrikeKnockback), 20) { }
-}
+class ByregotStrikeJump() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.ByregotStrikeJump), 8);
+class ByregotStrikeKnockback() : Components.KnockbackFromCastTarget(ActionID.MakeSpell(AID.ByregotStrikeKnockback), 20);
 
 class ByregotStrikeCone : Components.GenericAOEs
 {

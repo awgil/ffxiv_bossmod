@@ -175,4 +175,11 @@ public static class ShapeDistance
 
         return p => edges.Max(e => e.normal.Dot(p - e.point)) - offset;
     }
+
+    // positive offset increases area
+    public static Func<WPos, float> InvertedConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
+    {
+        var convexpolygon = ConvexPolygon(vertices, cw, offset);
+        return p => -convexpolygon(p);
+    }
 }
