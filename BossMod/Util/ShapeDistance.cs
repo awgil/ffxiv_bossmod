@@ -102,20 +102,10 @@ public static class ShapeDistance
 
     public static Func<WPos, float> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
-        // dir points outside far side
-        var normal = dir.OrthoL(); // points outside left side
-        return p =>
-        {
-            var offset = p - origin;
-            var distParr = offset.Dot(dir);
-            var distOrtho = offset.Dot(normal);
-            var distFront = distParr - lenFront;
-            var distBack = -distParr - lenBack;
-            var distLeft = distOrtho - halfWidth;
-            var distRight = -distOrtho - halfWidth;
-            return -Math.Max(Math.Max(distFront, distBack), Math.Max(distLeft, distRight));
-        };
+        var rect = Rect(origin, dir, lenFront, lenBack, halfWidth);
+        return p => -rect(p);
     }
+
     public static Func<WPos, float> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
     public static Func<WPos, float> InvertedRect(WPos from, WPos to, float halfWidth)
     {
@@ -150,15 +140,15 @@ public static class ShapeDistance
     // positive offset increases area
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
     {
-        List<(WPos point, WDir normal)> edges = new();
-        Action<WPos, WPos> addEdge = (p1, p2) =>
+        List<(WPos point, WDir normal)> edges = [];
+        void addEdge(WPos p1, WPos p2)
         {
             if (p1 != p2)
             {
                 var dir = (p2 - p1).Normalized();
                 edges.Add((p1, cw ? dir.OrthoL() : dir.OrthoR()));
             }
-        };
+        }
 
         var en = vertices.GetEnumerator();
         if (!en.MoveNext())
@@ -176,7 +166,6 @@ public static class ShapeDistance
         return p => edges.Max(e => e.normal.Dot(p - e.point)) - offset;
     }
 
-    // positive offset increases area
     public static Func<WPos, float> InvertedConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
     {
         var convexpolygon = ConvexPolygon(vertices, cw, offset);
