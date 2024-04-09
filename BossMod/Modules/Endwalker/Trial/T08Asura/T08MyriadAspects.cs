@@ -5,8 +5,8 @@ class MyriadAspects : Components.GenericAOEs
     private static readonly AOEShapeCone cone = new(40, 15.Degrees());
     private DateTime _activation1;
     private DateTime _activation2;
-    private List<ActorCastInfo> _spell1 = new();
-    private List<ActorCastInfo> _spell2 = new();
+    private readonly List<ActorCastInfo> _spell1 = [];
+    private readonly List<ActorCastInfo> _spell2 = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
     {
@@ -35,12 +35,11 @@ class MyriadAspects : Components.GenericAOEs
     public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.MyriadAspects1 or AID.MyriadAspects2)
-            ++NumCasts;
-        if (NumCasts == 12)
-        {
-            NumCasts = 0;
-            _spell1.Clear();
-            _spell2.Clear();
-        }
+            if (++NumCasts == 12)
+            {
+                NumCasts = 0;
+                _spell1.Clear();
+                _spell2.Clear();
+            }
     }
 }

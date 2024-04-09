@@ -6,6 +6,7 @@ class InfernalShadowStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<VulcanBurst>()
+            .ActivateOnEnter<Pyrosault>()
             .ActivateOnEnter<Incinerate>()
             .ActivateOnEnter<SpreadingFire>()
             .ActivateOnEnter<SmolderingClaw>()

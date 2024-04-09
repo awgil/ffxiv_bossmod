@@ -70,7 +70,7 @@ class Border : BossComponent
 
     private static Angle DirToPointAtDistance(float d) => Angle.Acos((_platformOffset * _platformOffset + d * d - _platformRadius * _platformRadius) / (2 * _platformOffset * d));
 
-    private void DrawBridgeLine(MiniArena arena, WPos center, Angle from, Angle to, Angle offset, float distance)
+    private static void DrawBridgeLine(MiniArena arena, WPos center, Angle from, Angle to, Angle offset, float distance)
     {
         var p1 = center + distance * (from + offset).ToDirection();
         var p2 = center + distance * (to - offset).ToDirection();
@@ -78,50 +78,15 @@ class Border : BossComponent
     }
 }
 
-class Wallop : Components.SelfTargetedAOEs
-{
-    public Wallop() : base(ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(22, 4)) { }
-}
-
-class VividEyes : Components.SelfTargetedAOEs
-{
-    public VividEyes() : base(ActionID.MakeSpell(AID.VividEyes), new AOEShapeDonut(20, 26)) { }
-}
-
-class Clearout : Components.SelfTargetedAOEs
-{
-    public Clearout() : base(ActionID.MakeSpell(AID.Clearout), new AOEShapeCone(16, 60.Degrees())) { }
-}
-
-class TidalBreath : Components.SelfTargetedAOEs
-{
-    public TidalBreath() : base(ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(35, 90.Degrees())) { }
-}
-
-class Breathstroke : Components.SelfTargetedAOEs
-{
-    public Breathstroke() : base(ActionID.MakeSpell(AID.Breathstroke), new AOEShapeCone(35, 90.Degrees())) { }
-}
-
-class TidalRoar : Components.RaidwideCast
-{
-    public TidalRoar() : base(ActionID.MakeSpell(AID.TidalRoar)) { }
-}
-
-class WaterDrop : Components.SpreadFromCastTargets
-{
-    public WaterDrop() : base(ActionID.MakeSpell(AID.WaterDrop), 6) { }
-}
-
-class SalineSpit : Components.SelfTargetedAOEs
-{
-    public SalineSpit() : base(ActionID.MakeSpell(AID.SalineSpit2), new AOEShapeCircle(8)) { }
-}
-
-class Telekinesis : Components.SelfTargetedAOEs
-{
-    public Telekinesis() : base(ActionID.MakeSpell(AID.Telekinesis2), new AOEShapeCircle(12)) { }
-}
+class Wallop() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(22, 4));
+class VividEyes() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.VividEyes), new AOEShapeDonut(20, 26));
+class Clearout() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.Clearout), new AOEShapeCone(16, 60.Degrees()));
+class TidalBreath() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(35, 90.Degrees()));
+class Breathstroke() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.Breathstroke), new AOEShapeCone(35, 90.Degrees()));
+class TidalRoar() : Components.RaidwideCast(ActionID.MakeSpell(AID.TidalRoar));
+class WaterDrop() : Components.SpreadFromCastTargets(ActionID.MakeSpell(AID.WaterDrop), 6);
+class SalineSpit() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SalineSpit2), new AOEShapeCircle(8));
+class Telekinesis() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.Telekinesis2), new AOEShapeCircle(12));
 
 class D123OctomammothStates : StateMachineBuilder
 {

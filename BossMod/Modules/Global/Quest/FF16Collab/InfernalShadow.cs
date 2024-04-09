@@ -1,19 +1,16 @@
 namespace BossMod.Global.Quest.FF16Collab.InfernalShadow;
 
-class VulcanBurst : Components.RaidwideCast
-{
-    public VulcanBurst() : base(ActionID.MakeSpell(AID.VulcanBurstReal), "Time your dodge correctly") { }
-}
-
-class Hellfire : Components.RaidwideCastDelay
-{
-    public Hellfire() : base(ActionID.MakeSpell(AID.HellfireVisual), ActionID.MakeSpell(AID.HellfireRaidwide), 0.6f) { }
-}
-
-class Incinerate : Components.SpreadFromCastTargets
-{
-    public Incinerate() : base(ActionID.MakeSpell(AID.IncinerateReal), 5) { }
-}
+class VulcanBurst() : Components.RaidwideCast(ActionID.MakeSpell(AID.VulcanBurstReal), "Time your dodge correctly");
+class Hellfire() : Components.RaidwideCastDelay(ActionID.MakeSpell(AID.HellfireVisual), ActionID.MakeSpell(AID.HellfireRaidwide), 0.6f);
+class Incinerate() : Components.SpreadFromCastTargets(ActionID.MakeSpell(AID.IncinerateReal), 5);
+class SmolderingClaw() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SmolderingClawReal), new AOEShapeCone(40, 75.Degrees()));
+class TailStrike() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TailStrikeReal), new AOEShapeCone(40, 75.Degrees()));
+class FieryRampageCircle() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.FieryRampageCircleReal), new AOEShapeCircle(16));
+class FieryRampageRaidwide() : Components.RaidwideCast(ActionID.MakeSpell(AID.FieryRampageRaidwideReal), "Time your dodge correctly");
+class Pyrosault() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.PyrosaultReal), new AOEShapeCircle(10));
+class Fireball() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.FireballReal), 6);
+class CrimsonRush() : Components.ChargeAOEs(ActionID.MakeSpell(AID.CrimsonRushReal), 10);
+class Eruption() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.EruptionReal), 8);
 
 class SpreadingFire : Components.ConcentricAOEs
 {
@@ -42,16 +39,6 @@ class SpreadingFire : Components.ConcentricAOEs
             AdvanceSequence(order, caster.Position, module.WorldState.CurrentTime.AddSeconds(2));
         }
     }
-}
-
-class SmolderingClaw : Components.SelfTargetedAOEs
-{
-    public SmolderingClaw() : base(ActionID.MakeSpell(AID.SmolderingClawReal), new AOEShapeCone(40, 75.Degrees())) { }
-}
-
-class TailStrike : Components.SelfTargetedAOEs
-{
-    public TailStrike() : base(ActionID.MakeSpell(AID.TailStrikeReal), new AOEShapeCone(40, 75.Degrees())) { }
 }
 
 class FireRampageCleave : Components.GenericAOEs
@@ -86,31 +73,6 @@ class FireRampageCleave : Components.GenericAOEs
     }
 }
 
-class FieryRampageCircle : Components.SelfTargetedAOEs
-{
-    public FieryRampageCircle() : base(ActionID.MakeSpell(AID.FieryRampageCircleReal), new AOEShapeCircle(16)) { }
-}
-
-class FieryRampageRaidwide : Components.RaidwideCast
-{
-    public FieryRampageRaidwide() : base(ActionID.MakeSpell(AID.FieryRampageRaidwideReal), "Time your dodge correctly") { }
-}
-
-class PyrosaultReal : Components.SelfTargetedAOEs
-{
-    public PyrosaultReal() : base(ActionID.MakeSpell(AID.PyrosaultReal), new AOEShapeCircle(10)) { }
-}
-
-class Fireball : Components.LocationTargetedAOEs
-{
-    public Fireball() : base(ActionID.MakeSpell(AID.FireballReal), 6) { }
-}
-
-class CrimsonRush : Components.ChargeAOEs
-{
-    public CrimsonRush() : base(ActionID.MakeSpell(AID.CrimsonRushReal), 10) { }
-}
-
 class CrimsonStreak : Components.GenericAOEs
 {
     private readonly List<(WPos source, AOEShape shape, Angle direction, DateTime activation)> _casters = [];
@@ -137,11 +99,6 @@ class CrimsonStreak : Components.GenericAOEs
         if (_casters.Count > 0 && (AID)spell.Action.ID == AID.CrimsonStreakReal)
             _casters.RemoveAt(0);
     }
-}
-
-class Eruption : Components.LocationTargetedAOEs
-{
-    public Eruption() : base(ActionID.MakeSpell(AID.EruptionReal), 8) { }
 }
 
 class Eruption2 : Components.GenericAOEs
@@ -255,9 +212,8 @@ class SearingStomp : BossComponent
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70334, NameID = 12564)] // also: CFC 959
-public class InfernalShadow : BossModule
+public class InfernalShadow(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))
 {
-    public InfernalShadow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20)) { }
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

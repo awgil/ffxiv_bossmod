@@ -65,35 +65,12 @@ class Frequencies : Components.GenericAOEs
     }
 }
 
-class SonicBloop : Components.SingleTargetCast
-{
-    public SonicBloop() : base(ActionID.MakeSpell(AID.SonicBloop)) { }
-}
-
-class Waterspout : Components.SpreadFromCastTargets
-{
-    public Waterspout() : base(ActionID.MakeSpell(AID.Waterspout), 5) { }
-}
-
-class TidalBreath : Components.SelfTargetedAOEs
-{
-    public TidalBreath() : base(ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(40, 90.Degrees())) { }
-}
-
-class Tidalspout : Components.StackWithCastTargets
-{
-    public Tidalspout() : base(ActionID.MakeSpell(AID.Tidalspout), 6) { }
-}
-
-class Upsweep : Components.RaidwideCast
-{
-    public Upsweep() : base(ActionID.MakeSpell(AID.Upsweep)) { }
-}
-
-class BodySlam : Components.RaidwideCast
-{
-    public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam)) { }
-}
+class SonicBloop() : Components.SingleTargetCast(ActionID.MakeSpell(AID.SonicBloop));
+class Waterspout() : Components.SpreadFromCastTargets(ActionID.MakeSpell(AID.Waterspout), 5);
+class TidalBreath() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(40, 90.Degrees()));
+class Tidalspout() : Components.StackWithCastTargets(ActionID.MakeSpell(AID.Tidalspout), 6);
+class Upsweep() : Components.RaidwideCast(ActionID.MakeSpell(AID.Upsweep));
+class BodySlam() : Components.RaidwideCast(ActionID.MakeSpell(AID.BodySlam));
 
 class D121LyngbakrStates : StateMachineBuilder
 {
@@ -111,7 +88,4 @@ class D121LyngbakrStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12336)]
-public class D121Lyngbakr : BossModule
-{
-    public D121Lyngbakr(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-322, 120), 20)) { }
-}
+public class D121Lyngbakr(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-322, 120), 20));

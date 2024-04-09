@@ -191,13 +191,13 @@ class Voidzone : BossComponent
     {
         if (state == 0x00040008)
         {
-            module.Arena.Bounds = new ArenaBoundsRect(new(-240, 237), 15, 20);
+            module.Arena.Bounds = new ArenaBoundsRect(module.Bounds.Center, 15, 20);
             active = false;
         }
         if (state == 0x00010002)
         {
             active = true;
-            module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15);
+            module.Arena.Bounds = new ArenaBoundsCircle(module.Bounds.Center, 15);
         }
     }
 

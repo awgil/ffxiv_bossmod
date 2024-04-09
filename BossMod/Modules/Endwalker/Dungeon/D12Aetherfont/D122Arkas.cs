@@ -44,22 +44,26 @@ class Voidzone : BossComponent
         if (index == 0x00)
         {
             if (state == 0x00020001)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 10);
+                module.Arena.Bounds = new ArenaBoundsCircle(module.Bounds.Center, 10);
             if (state == 0x00080004)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 14.5f);
+                module.Arena.Bounds = new ArenaBoundsCircle(module.Bounds.Center, 14.5f);
         }
     }
 }
 
-class SpunLightning : Components.SelfTargetedAOEs
-{
-    public SpunLightning() : base(ActionID.MakeSpell(AID.SpunLightning), new AOEShapeRect(30, 4)) { }
-}
-
-class LightningClaw : Components.StackWithIcon
-{
-    public LightningClaw() : base((uint)IconID.Stackmarker, ActionID.MakeSpell(AID.LightningClaw2), 6, 5.2f, 4) { }
-}
+class SpunLightning() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SpunLightning), new AOEShapeRect(30, 4));
+class LightningClaw() : Components.StackWithIcon((uint)IconID.Stackmarker, ActionID.MakeSpell(AID.LightningClaw2), 6, 5.2f, 4);
+class ElectricEruption() : Components.RaidwideCast(ActionID.MakeSpell(AID.ElectricEruption));
+class Electrify() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.Electrify), 10);
+class LightningLeap1() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.LightningLeap1), 10);
+class LightningLeap2() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.LightningLeap2), 10);
+class LightningRampage1() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.LightningRampage1), 10);
+class LightningRampage2() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.LightningRampage2), 10);
+class RipperClaw() : Components.SingleTargetCast(ActionID.MakeSpell(AID.RipperClaw));
+class Shock() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.Shock), 6);
+class SpinningClaw() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.SpinningClaw), new AOEShapeCircle(10));
+class BattleCry1() : Components.RaidwideCast(ActionID.MakeSpell(AID.BattleCry1));
+class BattleCry2() : Components.RaidwideCast(ActionID.MakeSpell(AID.BattleCry2));
 
 class ForkedFissures : Components.GenericAOEs
 {
@@ -118,61 +122,6 @@ class ForkedFissures : Components.GenericAOEs
     }
 }
 
-class ElectricEruption : Components.RaidwideCast
-{
-    public ElectricEruption() : base(ActionID.MakeSpell(AID.ElectricEruption)) { }
-}
-
-class Electrify : Components.LocationTargetedAOEs
-{
-    public Electrify() : base(ActionID.MakeSpell(AID.Electrify), 10) { }
-}
-
-class LightningLeap1 : Components.LocationTargetedAOEs
-{
-    public LightningLeap1() : base(ActionID.MakeSpell(AID.LightningLeap1), 10) { }
-}
-
-class LightningLeap2 : Components.LocationTargetedAOEs
-{
-    public LightningLeap2() : base(ActionID.MakeSpell(AID.LightningLeap2), 10) { }
-}
-
-class LightningRampage1 : Components.LocationTargetedAOEs
-{
-    public LightningRampage1() : base(ActionID.MakeSpell(AID.LightningRampage1), 10) { }
-}
-
-class LightningRampage2 : Components.LocationTargetedAOEs
-{
-    public LightningRampage2() : base(ActionID.MakeSpell(AID.LightningRampage2), 10) { }
-}
-
-class RipperClaw : Components.SingleTargetCast
-{
-    public RipperClaw() : base(ActionID.MakeSpell(AID.RipperClaw)) { }
-}
-
-class Shock : Components.LocationTargetedAOEs
-{
-    public Shock() : base(ActionID.MakeSpell(AID.Shock), 6) { }
-}
-
-class SpinningClaw : Components.SelfTargetedAOEs
-{
-    public SpinningClaw() : base(ActionID.MakeSpell(AID.SpinningClaw), new AOEShapeCircle(10)) { }
-}
-
-class BattleCry1 : Components.RaidwideCast
-{
-    public BattleCry1() : base(ActionID.MakeSpell(AID.BattleCry1)) { }
-}
-
-class BattleCry2 : Components.RaidwideCast
-{
-    public BattleCry2() : base(ActionID.MakeSpell(AID.BattleCry2)) { }
-}
-
 class D122ArkasStates : StateMachineBuilder
 {
     public D122ArkasStates(BossModule module) : base(module)
@@ -197,7 +146,4 @@ class D122ArkasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12337)]
-public class D122Arkas : BossModule
-{
-    public D122Arkas(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(425, -440), 14.5f)) { }
-}
+public class D122Arkas(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(425, -440), 14.5f));
