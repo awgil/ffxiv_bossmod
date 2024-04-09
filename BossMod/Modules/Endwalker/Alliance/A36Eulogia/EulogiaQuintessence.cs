@@ -72,6 +72,8 @@ class Quintessence : Components.GenericAOEs
             _aoes.Add(new(donut, position, activation: _activation1));
         if ((AID)spell.Action.ID == AID.SecondFormRight)
         {
+            if (_index == 0x52)
+                _aoes.Add(new(cone, position, _rot3, _activation2));
             if (_index is 0x57 or 0x50)
                 _aoes.Add(new(cone, position, _rot2, _activation2));
             if (_index is 0x54 or 0x53)
