@@ -1,7 +1,7 @@
 ﻿namespace BossMod.RealmReborn.Raid.T02MultiADS;
 
 // note: currently we assume that there is max 1 rot being passed around
-class AllaganRot : BossComponent
+class AllaganRot(BossModule module) : BossComponent(module)
 {
     private DateTime[] _rotExpiration = new DateTime[PartyState.MaxPartySize];
     private DateTime[] _immunityExpiration = new DateTime[PartyState.MaxPartySize];
@@ -25,16 +25,14 @@ class AllaganRot : BossComponent
         if (rotHolder == null)
             return;
 
-        if (WantToPickUpRot(module, assignment))
+        if (WantToPickUpRot(assignment))
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(rotHolder.Position, _rotPassRadius - 1), _rotExpiration[_rotHolderSlot]);
         else
             hints.AddForbiddenZone(ShapeDistance.Circle(rotHolder.Position, _rotPassRadius + 4), _immunityExpiration[slot]);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return _rotHolderSlot == playerSlot ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
-    }
+        => _rotHolderSlot == playerSlot ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -64,7 +62,7 @@ class AllaganRot : BossComponent
         }
     }
 
-    private bool WantToPickUpRot(BossModule module, PartyRolesConfig.Assignment assignment)
+    private bool WantToPickUpRot(PartyRolesConfig.Assignment assignment)
     {
         var deadline = _rotExpiration[_rotHolderSlot];
         if ((deadline - WorldState.CurrentTime).TotalSeconds > 7)

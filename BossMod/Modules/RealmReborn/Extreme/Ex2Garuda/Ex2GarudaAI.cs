@@ -1,14 +1,9 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
 
 // common AI for all phases
-class Ex2GarudaAI : BossComponent
+class Ex2GarudaAI(BossModule module) : BossComponent(module)
 {
-    private AerialBlast? _aerialBlast;
-
-    public override void Init(BossModule module)
-    {
-        _aerialBlast = module.FindComponent<AerialBlast>();
-    }
+    private AerialBlast? _aerialBlast = module.FindComponent<AerialBlast>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -67,7 +62,7 @@ class Ex2GarudaAI : BossComponent
 
         // don't stand near monoliths to avoid clipping them with friction
         bool haveMonoliths = false;
-        foreach (var monolith in module.Enemies(OID.Monolith).Where(a => !a.IsDead))
+        foreach (var monolith in Module.Enemies(OID.Monolith).Where(a => !a.IsDead))
         {
             hints.AddForbiddenZone(ShapeDistance.Circle(monolith.Position, 5));
             haveMonoliths = true;

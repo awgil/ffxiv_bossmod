@@ -1,14 +1,12 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
-class GraniteGaol : BossComponent
+class GraniteGaol(BossModule module) : BossComponent(module)
 {
     public BitMask PendingFetters;
     public DateTime ResolveAt;
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return PendingFetters[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
+        => PendingFetters[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

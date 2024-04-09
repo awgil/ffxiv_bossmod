@@ -1,6 +1,6 @@
 ﻿namespace BossMod.RealmReborn.Trial.T08ThornmarchH;
 
-class PomMeteor : BossComponent
+class PomMeteor(BossModule module) : BossComponent(module)
 {
     private BitMask _activeTowers;
     private BitMask _soakedTowers;
@@ -51,7 +51,7 @@ class PomMeteor : BossComponent
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (int i in _activeTowers.SetBits())
-            arena.AddCircle(Module.Bounds.Center + _towerOffsets[i], _towerRadius, _soakedTowers[i] ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(Module.Bounds.Center + _towerOffsets[i], _towerRadius, _soakedTowers[i] ? ArenaColor.Safe : ArenaColor.Danger);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

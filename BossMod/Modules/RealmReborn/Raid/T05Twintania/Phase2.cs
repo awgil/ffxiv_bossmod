@@ -1,18 +1,13 @@
 ﻿namespace BossMod.RealmReborn.Raid.T05Twintania;
 
 // P2 mechanics
-class P2Fireball : BossComponent
+class P2Fireball(BossModule module) : BossComponent(module)
 {
     public Actor? Target { get; private set; }
     public DateTime ExplosionAt { get; private set; }
-    public DateTime NextAt { get; private set; }
+    public DateTime NextAt { get; private set; } = module.WorldState.FutureTime(7.5f);
 
     public const float Radius = 4;
-
-    public override void Init(BossModule module)
-    {
-        NextAt = WorldState.FutureTime(7.5f);
-    }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -23,7 +18,7 @@ class P2Fireball : BossComponent
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Target != null)
-            arena.AddCircle(Target.Position, Radius, ArenaColor.Safe);
+            Arena.AddCircle(Target.Position, Radius, ArenaColor.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -42,16 +37,11 @@ class P2Fireball : BossComponent
     }
 }
 
-class P2Conflagrate : BossComponent
+class P2Conflagrate(BossModule module) : BossComponent(module)
 {
     public Actor? Target { get; private set; }
     public DateTime FettersAt { get; private set; }
-    public DateTime NextAt { get; private set; }
-
-    public override void Init(BossModule module)
-    {
-        NextAt = WorldState.FutureTime(29);
-    }
+    public DateTime NextAt { get; private set; } = module.WorldState.FutureTime(29);
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -78,18 +68,11 @@ class P2Conflagrate : BossComponent
     }
 }
 
-class P2AI : BossComponent
+class P2AI(BossModule module) : BossComponent(module)
 {
-    private DeathSentence? _deathSentence;
-    private P2Fireball? _fireball;
-    private P2Conflagrate? _conflagrate;
-
-    public override void Init(BossModule module)
-    {
-        _deathSentence = module.FindComponent<DeathSentence>();
-        _fireball = module.FindComponent<P2Fireball>();
-        _conflagrate = module.FindComponent<P2Conflagrate>();
-    }
+    private DeathSentence? _deathSentence = module.FindComponent<DeathSentence>();
+    private P2Fireball? _fireball = module.FindComponent<P2Fireball>();
+    private P2Conflagrate? _conflagrate = module.FindComponent<P2Conflagrate>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

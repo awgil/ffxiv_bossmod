@@ -42,22 +42,16 @@ public enum AID : uint
 }
 
 class TankPurge(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TankPurge));
-
 class HomingLasers(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HomingLasers));
-
 class MagitekRayF(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayAOEForward), new AOEShapeRect(40, 3));
-
 class MagitekRayR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayAOERight), new AOEShapeRect(40, 3));
-
 class MagitekRayL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayAOELeft), new AOEShapeRect(40, 3));
-
 class HomingRay(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HomingRayAOE), 6);
-
 class LaserFocus(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.LaserFocusAOE), 6);
 
 class AethericBoom : Components.KnockbackFromCastTarget
 {
-    public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), 30)
+    public AethericBoom(BossModule module) : base(module, ActionID.MakeSpell(AID.AethericBoom), 30)
     {
         StopAtWall = true;
     }
@@ -78,16 +72,11 @@ class AethericBoom : Components.KnockbackFromCastTarget
     }
 }
 
-class Aetheroplasm : BossComponent
+class Aetheroplasm(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _orbs = module.Enemies(OID.Aetheroplasm);
 
     public IEnumerable<Actor> ActiveOrbs => _orbs.Where(orb => !orb.IsDead);
-
-    public override void Init(BossModule module)
-    {
-        _orbs = module.Enemies(OID.Aetheroplasm);
-    }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -108,22 +97,19 @@ class Aetheroplasm : BossComponent
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var orb in ActiveOrbs)
-            arena.AddCircle(orb.Position, 1.4f, ArenaColor.Safe);
+            Arena.AddCircle(orb.Position, 1.4f, ArenaColor.Safe);
     }
 }
 
 class AssaultCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCannon), new AOEShapeRect(40, 2));
-
 class CitadelBuster(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CitadelBuster), new AOEShapeRect(40, 6));
 
-class Explosion : Components.SelfTargetedAOEs
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(16)) // TODO: verify falloff
 {
-    public Explosion() : base(ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(16)) { } // TODO: verify falloff
-
     // there is an overlap with another mechanic which has to be resolved first
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (module.FindComponent<AssaultCannon>()!.Casters.Count == 0)
+        if (Module.FindComponent<AssaultCannon>()!.Casters.Count == 0)
             base.AddAIHints(slot, actor, assignment, hints);
     }
 }
@@ -152,9 +138,8 @@ class T04PortaDecumana2States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 2)]
-public class T04PortaDecumana2 : BossModule
+public class T04PortaDecumana2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-704, 480), 20))
 {
-    public T04PortaDecumana2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-704, 480), 20)) { }
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);

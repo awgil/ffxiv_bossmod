@@ -28,13 +28,13 @@ public enum AID : uint
     MountainBuster = 643, // Boss->self, no cast, range 16+R ?-degree cone cleave
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     private DateTime _heartSpawn;
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var heartExists = ((T07TitanH)module).ActiveHeart.Any();
+        var heartExists = ((T07TitanH)Module).ActiveHeart.Any();
         if (_heartSpawn == default && heartExists)
         {
             _heartSpawn = WorldState.CurrentTime;
@@ -50,17 +50,14 @@ class Hints : BossComponent
 class MountainBuster(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.MountainBuster), new AOEShapeCone(21.25f, 60.Degrees())); // TODO: verify angle
 
 class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6);
-
 class Landslide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Landslide), new AOEShapeRect(40.25f, 3));
 
-class Geocrush : Components.GenericAOEs
+class Geocrush(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Geocrush))
 {
     private int _currentCast;
     private AOEShapeDonut? _outer;
     private AOEShapeCircle? _inner;
     private DateTime _innerFinish;
-
-    public Geocrush() : base(ActionID.MakeSpell(AID.Geocrush)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -96,10 +93,8 @@ class Geocrush : Components.GenericAOEs
     }
 }
 
-class Burst : Components.SelfTargetedAOEs
+class Burst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(6.3f))
 {
-    public Burst() : base(ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(6.3f)) { }
-
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // pattern 1: one-by-one explosions every ~0.4-0.5s, 8 clockwise then center

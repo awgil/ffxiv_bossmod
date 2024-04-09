@@ -1,6 +1,6 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-class CrimsonCyclone : Components.GenericAOEs
+class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrimsonCyclone))
 {
     private Actor? _ifrit; // non-null while mechanic is active
     private DateTime _resolve;
@@ -8,8 +8,6 @@ class CrimsonCyclone : Components.GenericAOEs
     public bool Active => _ifrit != null;
 
     private static readonly AOEShapeRect _shape = new(43, 6, 5);
-
-    public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

@@ -1,6 +1,6 @@
 namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
-class SpinningDive : Components.GenericAOEs //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
+class SpinningDive(BossModule module) : Components.GenericAOEs(module) //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
 {
     private AOEInstance? _aoe;
 
@@ -8,7 +8,7 @@ class SpinningDive : Components.GenericAOEs //TODO: Find out how to detect spinn
 
     public override void OnActorCreated(Actor actor)
     {
-        var SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
+        var SpinningDiveHelper = Module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
         if ((OID)actor.OID == OID.SpinningDiveHelper)
             _aoe = new(new AOEShapeRect(46, 8), SpinningDiveHelper!.Position, SpinningDiveHelper.Rotation, WorldState.FutureTime(0.6f));
     }
@@ -24,7 +24,7 @@ class SpinningDiveKB : Components.Knockback //TODO: Find out how to detect spinn
 {
     private Source? _knockback;
 
-    public SpinningDiveKB()
+    public SpinningDiveKB(BossModule module) : base(module)
     {
         StopAtWall = true;
     }
@@ -33,7 +33,7 @@ class SpinningDiveKB : Components.Knockback //TODO: Find out how to detect spinn
 
     public override void OnActorCreated(Actor actor)
     {
-        var SpinningDiveHelper = module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
+        var SpinningDiveHelper = Module.Enemies(OID.SpinningDiveHelper).FirstOrDefault();
         if ((OID)actor.OID == OID.SpinningDiveHelper)
             _knockback = new(SpinningDiveHelper!.Position, 10, WorldState.FutureTime(1.4f), new AOEShapeRect(46, 8), SpinningDiveHelper!.Rotation);
     }
@@ -44,5 +44,5 @@ class SpinningDiveKB : Components.Knockback //TODO: Find out how to detect spinn
             _knockback = null;
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<Hydroshot>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<Dreadstorm>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<Hydroshot>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (Module.FindComponent<Dreadstorm>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 }

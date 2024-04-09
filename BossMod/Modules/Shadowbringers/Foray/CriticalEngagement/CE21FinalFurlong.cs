@@ -56,7 +56,7 @@ class GraspingRancor : Components.LocationTargetedAOEs
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (Casters.Count > 0)
         {
             var hand = _hands.FirstOrDefault(h => h.Tether.Target == actor.InstanceID);

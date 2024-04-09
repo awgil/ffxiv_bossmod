@@ -4,7 +4,7 @@
 // so currently I do the following hack:
 // - assume any created orb will eventually explode; whenever explosion counter matches kiter count, reset both
 // - any existing orb that hasn't exploded yet is assumed to target kiter with smallest angular distance
-class Aetheroplasm : BossComponent
+class Aetheroplasm(BossModule module) : BossComponent(module)
 {
     private BitMask _kiters;
     private HashSet<ulong> _explodedOrbs = new();
@@ -19,30 +19,28 @@ class Aetheroplasm : BossComponent
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(a => !_explodedOrbs.Contains(a.InstanceID)))
+        foreach (var orb in Module.Enemies(OID.Aetheroplasm).Where(a => !_explodedOrbs.Contains(a.InstanceID)))
         {
             // TODO: + line to kiter
             hints.AddForbiddenZone(ShapeDistance.Circle(orb.Position, _explosionRadius + 1));
-            var kiter = MostLikelyKiter(module, orb);
+            var kiter = MostLikelyKiter(orb);
             if (kiter != null && kiter != actor)
                 hints.AddForbiddenZone(ShapeDistance.Rect(orb.Position, kiter.Position, 2));
         }
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return _kiters[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
-    }
+        => _kiters[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var orb in module.Enemies(OID.Aetheroplasm).Where(a => !_explodedOrbs.Contains(a.InstanceID)))
+        foreach (var orb in Module.Enemies(OID.Aetheroplasm).Where(a => !_explodedOrbs.Contains(a.InstanceID)))
         {
-            arena.Actor(orb, ArenaColor.Object, true);
-            arena.AddCircle(orb.Position, _explosionRadius, ArenaColor.Danger);
-            var kiter = MostLikelyKiter(module, orb);
+            Arena.Actor(orb, ArenaColor.Object, true);
+            Arena.AddCircle(orb.Position, _explosionRadius, ArenaColor.Danger);
+            var kiter = MostLikelyKiter(orb);
             if (kiter != null)
-                arena.AddLine(orb.Position, kiter.Position, ArenaColor.Danger);
+                Arena.AddLine(orb.Position, kiter.Position, ArenaColor.Danger);
         }
     }
 
@@ -64,7 +62,7 @@ class Aetheroplasm : BossComponent
         }
     }
 
-    private Actor? MostLikelyKiter(BossModule module, Actor orb)
+    private Actor? MostLikelyKiter(Actor orb)
     {
         if (_kiters.None())
             return null;

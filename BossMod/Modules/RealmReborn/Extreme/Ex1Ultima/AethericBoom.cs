@@ -3,7 +3,7 @@
 // AI idea: we want to run as a group and pop all orbs, without necessarily involving tanks
 // for 1/2 casts, we first try to stack S of boss, since everyone is somewhat close to that point, to get knocked back to the south edge; we then pop S orb and E orb(s) in order S->N
 // for 3 cast, we immune knockbacks and stack where two south orbs spawn to immediately handle two pairs; we then run to pop N orbs
-class AethericBoom : Components.CastHint
+class AethericBoom(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.AethericBoom), "Knockback + orbs")
 {
     private bool _waitingForOrbs;
     private List<Actor> _activeOrbs = new();
@@ -11,8 +11,6 @@ class AethericBoom : Components.CastHint
     public bool OrbsActive => _waitingForOrbs || _orbsToPop.Count > 0;
 
     private static readonly float _explosionRadius = 8;
-
-    public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), "Knockback + orbs") { }
 
     public override void Update()
     {
@@ -25,7 +23,7 @@ class AethericBoom : Components.CastHint
 
         if (_waitingForOrbs)
         {
-            var orbs = module.Enemies(OID.Ultimaplasm);
+            var orbs = Module.Enemies(OID.Ultimaplasm);
             if (orbs.Count == 2 * (NumCasts + 1)) // 4/6/8 orbs should spawn after 1/2/3 casts
             {
                 _activeOrbs.AddRange(orbs);
@@ -106,8 +104,8 @@ class AethericBoom : Components.CastHint
     {
         foreach (var orb in _activeOrbs)
         {
-            arena.Actor(orb, ArenaColor.Object, true);
-            arena.AddCircle(orb.Position, _explosionRadius, ArenaColor.Danger);
+            Arena.Actor(orb, ArenaColor.Object, true);
+            Arena.AddCircle(orb.Position, _explosionRadius, ArenaColor.Danger);
         }
     }
 

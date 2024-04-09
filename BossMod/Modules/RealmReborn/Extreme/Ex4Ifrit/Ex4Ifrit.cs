@@ -1,10 +1,8 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
-class Incinerate : Components.Cleave
+class Incinerate(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Incinerate), CleaveShape)
 {
     public static readonly AOEShapeCone CleaveShape = new(21, 60.Degrees());
-
-    public Incinerate() : base(ActionID.MakeSpell(AID.Incinerate), CleaveShape) { }
 }
 
 class RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlumeAOE), 8);

@@ -19,13 +19,13 @@ public enum AID : uint
     RadiantPlumeAOE = 734, // Helper->location, 3.0s cast, range 8 aoe
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     private DateTime _nailSpawn;
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var nail = module.Enemies(OID.InfernalNail).FirstOrDefault();
+        var nail = Module.Enemies(OID.InfernalNail).FirstOrDefault();
         if (_nailSpawn == default && nail != null && nail.IsTargetable)
         {
             _nailSpawn = WorldState.CurrentTime;
@@ -38,9 +38,7 @@ class Hints : BossComponent
 }
 
 class Incinerate(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(16, 60.Degrees())); // TODO: verify angle
-
 class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EruptionAOE), 8);
-
 class RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlumeAOE), 8);
 
 class T01IfritNStates : StateMachineBuilder

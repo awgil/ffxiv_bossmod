@@ -1,19 +1,11 @@
 ﻿namespace BossMod.RealmReborn.Raid.T01Caduceus;
 
-class T01AI : BossComponent
+class T01AI(BossModule module) : BossComponent(module)
 {
-    private Platforms? _platforms;
-    private HoodSwing? _hoodSwing;
-    private CloneMerge? _clone;
-    private IReadOnlyList<Actor> _slimes = ActorEnumeration.EmptyList;
-
-    public override void Init(BossModule module)
-    {
-        _platforms = module.FindComponent<Platforms>();
-        _hoodSwing = module.FindComponent<HoodSwing>();
-        _clone = module.FindComponent<CloneMerge>();
-        _slimes = module.Enemies(OID.DarkMatterSlime);
-    }
+    private Platforms? _platforms = module.FindComponent<Platforms>();
+    private HoodSwing? _hoodSwing = module.FindComponent<HoodSwing>();
+    private CloneMerge? _clone = module.FindComponent<CloneMerge>();
+    private IReadOnlyList<Actor> _slimes = module.Enemies(OID.DarkMatterSlime);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -29,7 +21,7 @@ class T01AI : BossComponent
         var hpDiff = clone != null ? (int)(clone.HP.Cur - Module.PrimaryActor.HP.Cur) * 100.0f / Module.PrimaryActor.HP.Max : 0;
 
         var activePlatforms = _platforms?.ActivePlatforms ?? new BitMask();
-        if (module.StateMachine.TimeSincePhaseEnter < 10)
+        if (Module.StateMachine.TimeSincePhaseEnter < 10)
         {
             // do nothing for first few seconds to let MT position the boss
         }
@@ -114,7 +106,7 @@ class T01AI : BossComponent
                         e.DesiredPosition = Platforms.HexaPlatformCenters[6];
                     e.DesiredRotation = -90.Degrees();
                 }
-                e.AttackStrength = _hoodSwing!.SecondsUntilNextCast(module) < 3 ? 0.5f : 0.2f;
+                e.AttackStrength = _hoodSwing!.SecondsUntilNextCast() < 3 ? 0.5f : 0.2f;
                 e.StayAtLongRange = true;
             }
             else if ((OID)e.Actor.OID == OID.DarkMatterSlime)

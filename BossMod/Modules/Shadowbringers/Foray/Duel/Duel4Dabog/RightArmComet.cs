@@ -8,7 +8,7 @@ class RightArmComet : Components.KnockbackFromCastTarget
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (Casters.Any(c => !Shape!.Check(actor.Position, c)))
             hints.Add("Soak the tower!");
     }

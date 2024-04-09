@@ -1,11 +1,9 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-class ViscousAetheroplasm : Components.Cleave
+class ViscousAetheroplasm(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.ViscousAetheroplasm), new AOEShapeCircle(2), originAtTarget: true)
 {
     public bool NeedTankSwap { get; private set; }
     private int[] _stacks = new int[PartyState.MaxPartySize];
-
-    public ViscousAetheroplasm() : base(ActionID.MakeSpell(AID.ViscousAetheroplasm), new AOEShapeCircle(2), originAtTarget: true) { }
 
     public override void Update()
     {
@@ -15,7 +13,7 @@ class ViscousAetheroplasm : Components.Cleave
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         if (NeedTankSwap && actor.Role == Role.Tank)
             hints.Add(Module.PrimaryActor.TargetID == actor.InstanceID ? "Pass aggro to co-tank!" : "Taunt boss!");
@@ -24,16 +22,16 @@ class ViscousAetheroplasm : Components.Cleave
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ViscousAetheroplasm)
-            UpdateStacks(module, actor, status.Extra);
+            UpdateStacks(actor, status.Extra);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ViscousAetheroplasm)
-            UpdateStacks(module, actor, 0);
+            UpdateStacks(actor, 0);
     }
 
-    private void UpdateStacks(BossModule module, Actor actor, int stacks)
+    private void UpdateStacks(Actor actor, int stacks)
     {
         int slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0)

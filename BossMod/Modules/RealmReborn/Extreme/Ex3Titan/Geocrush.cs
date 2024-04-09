@@ -1,14 +1,9 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
-class Geocrush : Components.CastCounter
+class Geocrush(BossModule module, float radius) : Components.CastCounter(module, ActionID.MakeSpell(AID.Geocrush))
 {
-    private float _radius;
+    private float _radius = radius;
     private static readonly float _ringWidth = 2;
-
-    public Geocrush(float radius) : base(ActionID.MakeSpell(AID.Geocrush))
-    {
-        _radius = radius;
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -27,19 +22,17 @@ class Geocrush : Components.CastCounter
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        arena.ZoneDonut(Module.Bounds.Center, _radius, 25, ArenaColor.AOE);
-        arena.ZoneDonut(Module.Bounds.Center, _radius - _ringWidth, _radius, ArenaColor.SafeFromAOE);
+        Arena.ZoneDonut(Module.Bounds.Center, _radius, 25, ArenaColor.AOE);
+        Arena.ZoneDonut(Module.Bounds.Center, _radius - _ringWidth, _radius, ArenaColor.SafeFromAOE);
     }
 }
 
-class Geocrush1 : Geocrush
+class Geocrush1(BossModule module) : Geocrush(module, Radius)
 {
     public const float Radius = 15;
-    public Geocrush1() : base(Radius) { }
 }
 
-class Geocrush2 : Geocrush
+class Geocrush2(BossModule module) : Geocrush(module, Radius)
 {
     public const float Radius = 12;
-    public Geocrush2() : base(Radius) { }
 }

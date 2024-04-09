@@ -18,7 +18,7 @@ class P2Cauterize : Components.GenericAOEs
     {
         if (BaitOrder[slot] >= NextBaitOrder)
             hints.Add($"Bait {BaitOrder[slot]}", false);
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

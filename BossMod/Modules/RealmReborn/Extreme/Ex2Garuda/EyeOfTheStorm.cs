@@ -1,14 +1,12 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
 
-class EyeOfTheStorm : Components.GenericAOEs
+class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStorm))
 {
     private Actor? _caster;
     private DateTime _nextCastAt;
     private static readonly AOEShapeDonut _shape = new(12, 25); // TODO: verify inner radius
 
-    public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStorm)) { }
-
-    public bool Active(BossModule module) => _caster?.CastInfo != null || _nextCastAt > WorldState.CurrentTime;
+    public bool Active() => _caster?.CastInfo != null || _nextCastAt > WorldState.CurrentTime;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

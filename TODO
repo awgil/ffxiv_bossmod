@@ -1,6 +1,7 @@
 components refactor checklist
 - config should all use primary ctor
 - bitmasks in record structs!
+- reverify primary ctors for components, add base class args if needed
 
 autorotation rework:
 - priority action suggestions

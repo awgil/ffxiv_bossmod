@@ -1,9 +1,7 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-class TankPurge : Components.RaidwideCast
+class TankPurge(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TankPurge))
 {
-    public TankPurge() : base(ActionID.MakeSpell(AID.TankPurge)) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);

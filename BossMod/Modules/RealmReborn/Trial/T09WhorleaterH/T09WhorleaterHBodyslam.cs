@@ -5,7 +5,7 @@ class BodySlamKB : Components.Knockback
     private Source? _knockback;
     private float LeviathanZ;
 
-    public BodySlamKB()
+    public BodySlamKB(BossModule module) : base(module)
     {
         StopAtWall = true;
     }
@@ -28,11 +28,11 @@ class BodySlamKB : Components.Knockback
         if ((AID)spell.Action.ID is AID.BodySlamNorth or AID.BodySlamSouth)
             _knockback = null;
     }
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<Hydroshot>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<Dreadstorm>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<Hydroshot>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (Module.FindComponent<Dreadstorm>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 
 }
 
-class BodySlamAOE : Components.GenericAOEs
+class BodySlamAOE(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
     private float LeviathanZ;

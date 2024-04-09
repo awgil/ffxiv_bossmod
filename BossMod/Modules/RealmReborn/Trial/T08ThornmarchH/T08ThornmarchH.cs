@@ -61,31 +61,18 @@ public enum AID : uint
 }
 
 class SpinningMogshield(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpinningMogshield), new AOEShapeCircle(6));
-
 class ThousandKuponzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThousandKuponzeSwipe), new AOEShapeCone(20, 45.Degrees()));
-
 class MograinOfDeath(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.MograinOfDeathAOE), 6);
-
 class PomHoly(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PomHoly));
-
 class MoggledayNightFever(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MoggledayNightFever), new AOEShapeCone(30, 60.Degrees()));
-
 class MoogleThrust(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.MoogleThrust));
-
 class MementoMoogle(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MementoMoogle));
-
 class PomHolyBoss(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PomHolyBoss));
-
 class ThousandKuponzeCharge(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ThousandKuponzeCharge));
-
 class PomBog(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, ActionID.MakeSpell(AID.PomBog), m => m.Enemies(OID.PomBog).Where(a => a.EventState != 7), 0.8f);
-
 class MogStone(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MogStoneAOE), 6, 8);
-
 class TwinPomMeteor(BossModule module) : Components.CastSharedTankbuster(module, ActionID.MakeSpell(AID.TwinPomMeteorAOE), 6);
-
 class MogComet(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MogCometAOE), 6);
-
 class MogCreation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MogCreation), new AOEShapeRect(50, 5));
 
 // note: this fight has well-timed state machine for all phases, but it's just too simple to bother...
@@ -116,10 +103,8 @@ class T08ThornmarchHStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.WhiskerwallKupdiKoop, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 66, NameID = 725)]
-public class T08ThornmarchH : BossModule
+public class T08ThornmarchH(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 21))
 {
-    public T08ThornmarchH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

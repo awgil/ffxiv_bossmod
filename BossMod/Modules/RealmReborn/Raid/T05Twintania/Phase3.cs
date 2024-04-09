@@ -2,7 +2,7 @@
 
 // P3 mechanics
 // TODO: preposition for divebombs? it seems that boss spawns in one of the fixed spots that is closest to target...
-class P3Divebomb : Components.GenericAOEs
+class P3Divebomb(BossModule module) : Components.GenericAOEs(module)
 {
     public WPos? Target { get; private set; }
     public DateTime HitAt { get; private set; }
@@ -36,19 +36,13 @@ class P3Divebomb : Components.GenericAOEs
     }
 }
 
-class P3Adds : BossComponent
+class P3Adds(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _hygieia = ActorEnumeration.EmptyList;
-    public IReadOnlyList<Actor> Asclepius { get; private set; } = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _hygieia = module.Enemies(OID.Hygieia);
+    public IReadOnlyList<Actor> Asclepius { get; private set; } = module.Enemies(OID.Asclepius);
     public IEnumerable<Actor> ActiveHygieia => _hygieia.Where(a => !a.IsDead);
 
     private const float _explosionRadius = 8;
-
-    public override void Init(BossModule module)
-    {
-        _hygieia = module.Enemies(OID.Hygieia);
-        Asclepius = module.Enemies(OID.Asclepius);
-    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -97,21 +91,14 @@ class P3Adds : BossComponent
     }
 }
 
-class P3AethericProfusion : Components.CastCounter
+class P3AethericProfusion(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AethericProfusion))
 {
-    private DateTime _activation;
-
-    public P3AethericProfusion() : base(ActionID.MakeSpell(AID.AethericProfusion)) { }
-
-    public override void Init(BossModule module)
-    {
-        _activation = WorldState.FutureTime(6.7f);
-    }
+    private DateTime _activation = module.WorldState.FutureTime(6.7f);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // select neurolinks to stand at; let everyone except MT stay in one closer to boss
-        var neurolinks = module.Enemies(OID.Neurolink);
+        var neurolinks = Module.Enemies(OID.Neurolink);
         var closerNeurolink = neurolinks.Closest(Module.PrimaryActor.Position);
         foreach (var neurolink in neurolinks)
         {
@@ -134,7 +121,7 @@ class P3AethericProfusion : Components.CastCounter
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var neurolink in module.Enemies(OID.Neurolink))
-            arena.AddCircle(neurolink.Position, T05Twintania.NeurolinkRadius, ArenaColor.Safe);
+        foreach (var neurolink in Module.Enemies(OID.Neurolink))
+            Arena.AddCircle(neurolink.Position, T05Twintania.NeurolinkRadius, ArenaColor.Safe);
     }
 }

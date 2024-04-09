@@ -1,6 +1,6 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
-class InfernalFetters : BossComponent
+class InfernalFetters(BossModule module) : BossComponent(module)
 {
     public BitMask Fetters;
     private int _fettersStrength;
@@ -15,10 +15,7 @@ class InfernalFetters : BossComponent
         }
     }
 
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return Fetters[playerSlot] ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Fetters[playerSlot] ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -27,7 +24,7 @@ class InfernalFetters : BossComponent
             var from = Raid[Fetters.LowestSetBit()];
             var to = Raid[Fetters.HighestSetBit()];
             if (from != null && to != null)
-                arena.AddLine(from.Position, to.Position, _fettersStrength > 1 ? ArenaColor.Danger : ArenaColor.Safe);
+                Arena.AddLine(from.Position, to.Position, _fettersStrength > 1 ? ArenaColor.Danger : ArenaColor.Safe);
         }
     }
 

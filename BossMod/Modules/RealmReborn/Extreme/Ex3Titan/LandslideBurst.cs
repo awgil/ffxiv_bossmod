@@ -1,7 +1,7 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
 // burst (bomb explosion) needs to be shown in particular moment (different for different patterns) so that ai can avoid them nicely
-class LandslideBurst : Components.GenericAOEs
+class LandslideBurst(BossModule module) : Components.GenericAOEs(module)
 {
     public int MaxBombs = 9;
     private List<Actor> _landslides = new();

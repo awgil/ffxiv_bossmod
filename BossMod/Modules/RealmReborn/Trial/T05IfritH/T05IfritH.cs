@@ -21,13 +21,13 @@ public enum AID : uint
     Hellfire = 1357, // Boss->self, 2.0s cast, infernal nail 'enrage' (raidwide if killed)
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     private DateTime _nailSpawn;
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        bool nailsActive = ((T05IfritH)module).ActiveNails.Any();
+        bool nailsActive = ((T05IfritH)Module).ActiveNails.Any();
         if (_nailSpawn == default && nailsActive)
         {
             _nailSpawn = WorldState.CurrentTime;
@@ -40,16 +40,13 @@ class Hints : BossComponent
 }
 
 class Incinerate(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees()));
-
 class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EruptionAOE), 8);
 
-class CrimsonCyclone : Components.GenericAOEs
+class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrimsonCyclone))
 {
     private List<Actor> _casters = new();
 
     private static readonly AOEShape _shape = new AOEShapeRect(43, 6);
-
-    public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

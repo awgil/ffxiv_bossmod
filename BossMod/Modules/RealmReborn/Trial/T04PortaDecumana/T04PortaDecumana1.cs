@@ -51,29 +51,18 @@ public enum SID : uint
 }
 
 class EarthenFury(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EarthenFuryAOE));
-
 class Geocrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(25)); // TODO: verify falloff...
-
 class Landslide1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Landslide1), new AOEShapeRect(40, 3));
-
 class Landslide2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Landslide2), new AOEShapeRect(40, 3));
-
 class WeightOfTheLand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLand), new AOEShapeCircle(6));
-
 class AerialBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AerialBlastAOE));
-
 class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStormAOE), new AOEShapeDonut(12.5f, 25));
-
 class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(23));
-
 class Hellfire(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HellfireAOE));
-
 class RadiantPlume(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlumeAOE), new AOEShapeCircle(8));
 
-class VulcanBurst : Components.KnockbackFromCastTarget
+class VulcanBurst(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.VulcanBurst), 15)
 {
-    public VulcanBurst() : base(ActionID.MakeSpell(AID.VulcanBurst), 15) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.Count > 0)
@@ -101,10 +90,8 @@ class T04PortaDecumana1States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 1)]
-public class T04PortaDecumana1 : BossModule
+public class T04PortaDecumana1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-772, -600), 20))
 {
-    public T04PortaDecumana1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-772, -600), 20)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

@@ -1,23 +1,14 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
 // common ai features for whole fight
-class Ex4IfritAICommon : BossComponent
+class Ex4IfritAICommon(BossModule module) : BossComponent(module)
 {
-    private Incinerate? _incinerate;
-    private Eruption? _eruption;
-    private SearingWind? _searingWind;
-    private InfernalFetters? _infernalFetters;
-    protected DateTime CreatedAt;
+    private Incinerate? _incinerate = module.FindComponent<Incinerate>();
+    private Eruption? _eruption = module.FindComponent<Eruption>();
+    private SearingWind? _searingWind = module.FindComponent<SearingWind>();
+    private InfernalFetters? _infernalFetters = module.FindComponent<InfernalFetters>();
+    protected DateTime CreatedAt = module.WorldState.CurrentTime;
     public PartyRolesConfig.Assignment BossTankRole = PartyRolesConfig.Assignment.Unassigned;
-
-    public override void Init(BossModule module)
-    {
-        _incinerate = module.FindComponent<Incinerate>();
-        _eruption = module.FindComponent<Eruption>();
-        _searingWind = module.FindComponent<SearingWind>();
-        _infernalFetters = module.FindComponent<InfernalFetters>();
-        CreatedAt = WorldState.CurrentTime;
-    }
 
     protected bool IsInvincible(Actor actor) => actor.FindStatus(SID.Invincibility) != null;
     protected int TankVulnStacks(Actor? tank) => tank?.FindStatus(SID.Suppuration)?.Extra ?? 0;
@@ -27,7 +18,7 @@ class Ex4IfritAICommon : BossComponent
     protected bool IsFettered(int slot) => _infernalFetters != null && _infernalFetters.Fetters[slot];
     protected int IncinerateCount => _incinerate?.NumCasts ?? 0;
 
-    protected void UpdateBossTankingProperties(BossModule module, AIHints.Enemy boss, Actor player, PartyRolesConfig.Assignment assignment)
+    protected void UpdateBossTankingProperties(AIHints.Enemy boss, Actor player, PartyRolesConfig.Assignment assignment)
     {
         boss.AttackStrength = 0.35f;
         boss.DesiredRotation = Angle.FromDirection(Module.PrimaryActor.Position - Module.Bounds.Center); // point to the wall
@@ -55,7 +46,7 @@ class Ex4IfritAICommon : BossComponent
         hints.AddForbiddenZone(ShapeDistance.InvertedCircle(target, radius), asap ? new() : DateTime.MaxValue);
     }
 
-    protected void AddDefaultEruptionBaiterHints(BossModule module, AIHints hints)
+    protected void AddDefaultEruptionBaiterHints(AIHints hints)
     {
         // avoid non-baiters (TODO: should this be done by eruption component itself?)
         if (_eruption != null)
@@ -100,7 +91,7 @@ class Ex4IfritAICommon : BossComponent
 // - non-caster dd stand in a clump near right leg (45 degrees, to allow both types of positionals for melees)
 // - casters (typically 1) stand farther away - this way they are out of vulcan burst range and won't have to move if not targeted by eruptions
 // - for dd eruption baiters, we provide a defined bait spot for second eruption, same distance away from both caster and non-caster locations
-class Ex4IfritAINormal : Ex4IfritAICommon
+class Ex4IfritAINormal(BossModule module) : Ex4IfritAICommon(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -112,7 +103,7 @@ class Ex4IfritAINormal : Ex4IfritAICommon
         {
             boss.Priority = 1;
             boss.StayAtLongRange = true;
-            UpdateBossTankingProperties(module, boss, actor, assignment);
+            UpdateBossTankingProperties(boss, actor, assignment);
         }
 
         // position hints
@@ -128,7 +119,7 @@ class Ex4IfritAINormal : Ex4IfritAICommon
                 }
                 else
                 {
-                    AddDefaultEruptionBaiterHints(module, hints);
+                    AddDefaultEruptionBaiterHints(hints);
                 }
             }
         }
@@ -180,7 +171,7 @@ class Ex4IfritAINormal : Ex4IfritAICommon
         if (Module.PrimaryActor.TargetID == pc.InstanceID)
         {
             // cone to help mt with proper positioning
-            arena.AddCone(Module.PrimaryActor.Position, 2, Angle.FromDirection(Module.PrimaryActor.Position - Module.Bounds.Center), Incinerate.CleaveShape.HalfAngle, ArenaColor.Safe);
+            Arena.AddCone(Module.PrimaryActor.Position, 2, Angle.FromDirection(Module.PrimaryActor.Position - Module.Bounds.Center), Incinerate.CleaveShape.HalfAngle, ArenaColor.Safe);
         }
     }
 }
@@ -198,15 +189,11 @@ class Ex4IfritAINails : Ex4IfritAINormal
     private int MinNailsForCWSearingWinds;
     private BitMask OTTankAtIncinerateCounts;
 
-    public Ex4IfritAINails(int minNailsForCWSearingWinds, ulong otTankAtIncinerateCounts)
+    public Ex4IfritAINails(BossModule module, int minNailsForCWSearingWinds, ulong otTankAtIncinerateCounts) : base(module)
     {
         MinNailsForCWSearingWinds = minNailsForCWSearingWinds;
         OTTankAtIncinerateCounts = new(otTankAtIncinerateCounts);
-    }
 
-    public override void Init(BossModule module)
-    {
-        base.Init(module);
         var smallNails = module.Enemies(OID.InfernalNailSmall);
         var startingNail = smallNails.Closest(Module.Bounds.Center + new WDir(15, 0));
         if (startingNail != null)
@@ -218,7 +205,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
         NailKillOrder.AddRange(module.Enemies(OID.InfernalNailLarge));
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         NailKillOrder.RemoveAll(a => a.IsDestroyed || a.IsDead);
         BossTankRole = OTTankAtIncinerateCounts[IncinerateCount] ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT;
@@ -241,7 +228,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
                 {
                     case OID.Boss:
                         e.Priority = 1; // attack only if it's the only thing to do...
-                        UpdateBossTankingProperties(module, e, actor, assignment);
+                        UpdateBossTankingProperties(e, actor, assignment);
                         if (nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation, Incinerate.CleaveShape.HalfAngle))
                         {
                             var bossToNail = Angle.FromDirection(nextNail.Position - e.Actor.Position);
@@ -261,7 +248,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
             // position hints
             if (IsEruptionBaiter(slot))
             {
-                AddDefaultEruptionBaiterHints(module, hints);
+                AddDefaultEruptionBaiterHints(hints);
             }
             else if (Module.PrimaryActor.TargetID != actor.InstanceID)
             {
@@ -300,7 +287,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
         base.DrawArenaForeground(pcSlot, pc);
         var nextNail = NailKillOrder.FirstOrDefault();
         if (nextNail != null)
-            arena.AddCircle(nextNail.Position, 2, ArenaColor.Safe);
+            Arena.AddCircle(nextNail.Position, 2, ArenaColor.Safe);
     }
 
     private (float, float) NailDirDist(WDir offset, Angle startingDir)
@@ -312,10 +299,8 @@ class Ex4IfritAINails : Ex4IfritAINormal
     }
 }
 
-class Ex4IfritAINails1 : Ex4IfritAINails
+class Ex4IfritAINails1(BossModule module) : Ex4IfritAINails(module, 1, 0x8)
 {
-    public Ex4IfritAINails1() : base(1, 0x8) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
@@ -328,10 +313,8 @@ class Ex4IfritAINails1 : Ex4IfritAINails
     }
 }
 
-class Ex4IfritAINails2 : Ex4IfritAINails
+class Ex4IfritAINails2(BossModule module) : Ex4IfritAINails(module, 4, 0x7)
 {
-    public Ex4IfritAINails2() : base(4, 0x7) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
@@ -344,10 +327,8 @@ class Ex4IfritAINails2 : Ex4IfritAINails
     }
 }
 
-class Ex4IfritAINails3 : Ex4IfritAINails
+class Ex4IfritAINails3(BossModule module) : Ex4IfritAINails(module, 7, 0x3C70)
 {
-    public Ex4IfritAINails3() : base(7, 0x3C70) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
@@ -371,7 +352,7 @@ class Ex4IfritAIHellfire : Ex4IfritAICommon
 {
     private WDir _safespotOffset;
 
-    public Ex4IfritAIHellfire(Angle safeSpotDir, PartyRolesConfig.Assignment tankRole)
+    public Ex4IfritAIHellfire(BossModule module, Angle safeSpotDir, PartyRolesConfig.Assignment tankRole) : base(module)
     {
         _safespotOffset = 18 * safeSpotDir.ToDirection();
         BossTankRole = tankRole;
@@ -405,7 +386,7 @@ class Ex4IfritAIHellfire : Ex4IfritAICommon
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.AddCircle(Module.Bounds.Center + _safespotOffset, 2, ArenaColor.Safe);
+        Arena.AddCircle(Module.Bounds.Center + _safespotOffset, 2, ArenaColor.Safe);
     }
 }
 class Ex4IfritAIHellfire1(BossModule module) : Ex4IfritAIHellfire(module, 150.Degrees(), PartyRolesConfig.Assignment.MT);

@@ -9,7 +9,7 @@ class SearingWind : Components.UniformStackSpread
     private int _searingWindsLeft;
     private DateTime _showHintsAfter = DateTime.MaxValue;
 
-    public SearingWind() : base(0, 14)
+    public SearingWind(BossModule module) : base(module, 0, 14)
     {
         KeepOnPhaseChange = true;
     }

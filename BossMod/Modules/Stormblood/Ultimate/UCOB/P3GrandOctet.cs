@@ -22,7 +22,7 @@ class P3GrandOctet : Components.GenericAOEs
     {
         if (_baitOrder[slot] >= NextBaitOrder)
             hints.Add($"Bait {_baitOrder[slot]}", false);
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
     }
 
     public override void AddGlobalHints(GlobalHints hints)

@@ -1,20 +1,15 @@
 ﻿namespace BossMod.RealmReborn.Raid.T05Twintania;
 
 // P4 mechanics
-class P4Twisters : BossComponent
+class P4Twisters(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _twisters = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _twisters = module.Enemies(OID.Twister);
     private List<WPos> _predictedPositions = new();
     private IEnumerable<Actor> ActiveTwisters => _twisters.Where(t => t.EventState != 7);
 
     private const float PredictBeforeCastFinish = 0; // 0.5f
     private const float PredictAvoidRadius = 2; // 5
     private const float TwisterCushion = 1; // 1
-
-    public override void Init(BossModule module)
-    {
-        _twisters = module.Enemies(OID.Twister);
-    }
 
     public override void Update()
     {
@@ -41,20 +36,15 @@ class P4Twisters : BossComponent
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var twister in ActiveTwisters)
-            arena.AddCircle(twister.Position, twister.HitboxRadius, ArenaColor.Danger);
+            Arena.AddCircle(twister.Position, twister.HitboxRadius, ArenaColor.Danger);
     }
 }
 
-class P4Dreadknights : BossComponent
+class P4Dreadknights(BossModule module) : BossComponent(module)
 {
     private Actor? _target;
-    private IReadOnlyList<Actor> _dreadknights = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _dreadknights = module.Enemies(OID.Dreadknight);
     public IEnumerable<Actor> ActiveDreadknights => _dreadknights.Where(a => !a.IsDead);
-
-    public override void Init(BossModule module)
-    {
-        _dreadknights = module.Enemies(OID.Dreadknight);
-    }
 
     public override void Update()
     {
@@ -88,9 +78,9 @@ class P4Dreadknights : BossComponent
     {
         foreach (var a in ActiveDreadknights)
         {
-            arena.Actor(a, ArenaColor.Enemy);
+            Arena.Actor(a, ArenaColor.Enemy);
             if (_target != null)
-                arena.AddLine(a.Position, _target.Position, ArenaColor.Danger);
+                Arena.AddLine(a.Position, _target.Position, ArenaColor.Danger);
         }
     }
 
@@ -101,14 +91,9 @@ class P4Dreadknights : BossComponent
     }
 }
 
-class P4AI : BossComponent
+class P4AI(BossModule module) : BossComponent(module)
 {
-    private DeathSentence? _deathSentence;
-
-    public override void Init(BossModule module)
-    {
-        _deathSentence = module.FindComponent<DeathSentence>();
-    }
+    private DeathSentence? _deathSentence = module.FindComponent<DeathSentence>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

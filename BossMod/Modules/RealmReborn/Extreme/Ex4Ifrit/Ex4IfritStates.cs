@@ -31,8 +31,8 @@ class Ex4IfritStates : StateMachineBuilder
     }
 
     private void NailsSubphase<AINails, AIHellfire>(uint id, string name, bool withFetters, bool startWithOT, float nailEnrage)
-        where AINails : Ex4IfritAINails, new()
-        where AIHellfire : Ex4IfritAIHellfire, new()
+        where AINails : Ex4IfritAINails
+        where AIHellfire : Ex4IfritAIHellfire
     {
         Condition(id, 1000, () => _module.SmallNails.Any(a => a.IsTargetable && !a.IsDead), name)
             .ActivateOnEnter<Incinerate>()

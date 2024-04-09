@@ -22,13 +22,13 @@ public enum AID : uint
     WeightOfTheLandAOE = 973, // Helper->location, 3.5s cast, range 6 puddle
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     private DateTime _heartSpawn;
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var heartExists = ((T02TitanN)module).ActiveHeart.Any();
+        var heartExists = ((T02TitanN)Module).ActiveHeart.Any();
         if (_heartSpawn == default && heartExists)
         {
             _heartSpawn = WorldState.CurrentTime;
@@ -41,11 +41,8 @@ class Hints : BossComponent
 }
 
 class RockBuster(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(11.25f, 60.Degrees())); // TODO: verify angle
-
 class Geocrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(18)); // TODO: verify falloff
-
 class Landslide(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Landslide), new AOEShapeRect(40, 3));
-
 class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6);
 
 class T02TitanNStates : StateMachineBuilder

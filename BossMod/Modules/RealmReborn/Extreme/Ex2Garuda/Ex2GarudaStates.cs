@@ -30,7 +30,7 @@ class Ex2GarudaStates : StateMachineBuilder
         SimpleState(id + 0x20000, 37.6f, "Forced phase end");
     }
 
-    private void MistralSong<Song>(uint id, float delay) where Song : MistralSong, new()
+    private void MistralSong<Song>(uint id, float delay) where Song : MistralSong
     {
         Targetable(id, false, delay, "Disappear")
             .ActivateOnEnter<DownburstBoss>()

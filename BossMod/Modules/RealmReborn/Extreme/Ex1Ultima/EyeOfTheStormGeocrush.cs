@@ -1,7 +1,7 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
 // note that it could be a GenericAOEs, but we customize everything anyway...
-class EyeOfTheStormGeocrush : BossComponent
+class EyeOfTheStormGeocrush(BossModule module) : BossComponent(module)
 {
     private Actor? _eotsCaster;
     private Actor? _geocrushCaster;
@@ -36,9 +36,9 @@ class EyeOfTheStormGeocrush : BossComponent
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_eotsCaster != null)
-            _aoeEOTS.Draw(arena, _eotsCaster);
+            _aoeEOTS.Draw(Arena, _eotsCaster);
         else if (_geocrushCaster != null)
-            _aoeGeocrush.Draw(arena, _geocrushCaster);
+            _aoeGeocrush.Draw(Arena, _geocrushCaster);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -29,11 +29,9 @@ public enum AID : uint
 
 class Rotoswipe(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Rotoswipe), new AOEShapeCone(11, 60.Degrees()), (uint)OID.ClockworkDreadnaught); // TODO: verify angle
 
-class GravityThrustPox : Components.GenericAOEs
+class GravityThrustPox(BossModule module) : Components.GenericAOEs(module, default, "Move behind rook!")
 {
     private static readonly AOEShape _shape = new AOEShapeRect(50, 50);
-
-    public GravityThrustPox() : base(new(), "Move behind rook!") { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

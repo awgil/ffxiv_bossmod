@@ -82,7 +82,7 @@ class TheRamsKeeperBait : Components.GenericBaitAway
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (target == actor && targeted)
             hints.Add("Bait voidzone away!");
     }

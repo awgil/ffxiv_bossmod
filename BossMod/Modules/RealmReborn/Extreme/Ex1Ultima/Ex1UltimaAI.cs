@@ -1,20 +1,15 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-class Ex1UltimaAI : BossComponent
+class Ex1UltimaAI(BossModule module) : BossComponent(module)
 {
-    private ViscousAetheroplasm? _viscousAetheroplasm;
+    private ViscousAetheroplasm? _viscousAetheroplasm = module.FindComponent<ViscousAetheroplasm>();
 
     private static readonly float _meleeRange = 7;
     private static readonly float _rangedRange = 15; // outside ceruleum vent range, which is 14
 
-    public override void Init(BossModule module)
-    {
-        _viscousAetheroplasm = module.FindComponent<ViscousAetheroplasm>();
-    }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.PrimaryActor.TargetID != actor.InstanceID && hints.ForbiddenZones.Count == 1 && !module.Enemies(OID.MagitekBit).Any(a => !a.IsDead)) // for non-mt, there is always a cleave
+        if (Module.PrimaryActor.TargetID != actor.InstanceID && hints.ForbiddenZones.Count == 1 && !Module.Enemies(OID.MagitekBit).Any(a => !a.IsDead)) // for non-mt, there is always a cleave
         {
             // default positions: tank boss at the edge facing N, OT south of boss, M1/M2 to the left/right (so that they can slightly adjust for positionals), H1/H2/R1/R2 to S outside ceruleum vent range, all spread somewhat to avoid homing lasers
             // when tanks need to swap, OT moves between boss and MT and taunts; OT needs to ignore diffractive lasers at this point

@@ -1,16 +1,9 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
 
-class WickedWheel : Components.CastCounter
+class WickedWheel(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.WickedWheel))
 {
-    private DateTime _expectedNext;
+    private DateTime _expectedNext = module.WorldState.FutureTime(25);
     private static readonly float _radius = 8.7f;
-
-    public WickedWheel() : base(ActionID.MakeSpell(AID.WickedWheel)) { }
-
-    public override void Init(BossModule module)
-    {
-        _expectedNext = WorldState.FutureTime(25);
-    }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -28,7 +21,7 @@ class WickedWheel : Components.CastCounter
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_expectedNext != default && (_expectedNext - WorldState.CurrentTime).TotalSeconds < 3)
-            arena.AddCircle(Module.PrimaryActor.Position, _radius, ArenaColor.Danger);
+            Arena.AddCircle(Module.PrimaryActor.Position, _radius, ArenaColor.Danger);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -37,7 +30,7 @@ class WickedWheel : Components.CastCounter
         if (spell.Action == WatchedAction)
         {
             // not sure about this ...
-            _expectedNext = module.Enemies(OID.Suparna).Any(a => a.IsTargetable && !a.IsDead) ? WorldState.FutureTime(25) : new();
+            _expectedNext = Module.Enemies(OID.Suparna).Any(a => a.IsTargetable && !a.IsDead) ? WorldState.FutureTime(25) : new();
         }
     }
 }

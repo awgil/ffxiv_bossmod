@@ -30,16 +30,14 @@ public enum SID : uint
     SteelScales = 349, // Boss->Boss, extra=1-8 (num stacks)
 }
 
-class HoodSwing : Components.Cleave
+class HoodSwing(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.HoodSwing), new AOEShapeCone(11, 60.Degrees()), (uint)OID.Boss) // TODO: verify angle
 {
     private DateTime _lastBossCast; // assume boss/add cleaves are synchronized?..
-    public float SecondsUntilNextCast(BossModule module) => Math.Max(0, 18 - (float)(WorldState.CurrentTime - _lastBossCast).TotalSeconds);
-
-    public HoodSwing() : base(ActionID.MakeSpell(AID.HoodSwing), new AOEShapeCone(11, 60.Degrees()), (uint)OID.Boss) { } // TODO: verify angle
+    public float SecondsUntilNextCast() => Math.Max(0, 18 - (float)(WorldState.CurrentTime - _lastBossCast).TotalSeconds);
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"Next cleave in ~{SecondsUntilNextCast(module):f1}s");
+        hints.Add($"Next cleave in ~{SecondsUntilNextCast():f1}s");
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -51,13 +49,11 @@ class HoodSwing : Components.Cleave
 }
 
 class WhipBack(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhipBack), new AOEShapeCone(9, 60.Degrees()));
-
 class Regorge(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Regorge), m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f);
-
 class Syrup(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.3f);
 
 // TODO: merge happens if bosses are 'close enough' (threshold is >20.82 at least) or have high enough hp difference (>5% at least) and more than 20s passed since split
-class CloneMerge : BossComponent
+class CloneMerge(BossModule module) : BossComponent(module)
 {
     public Actor? Clone { get; private set; }
     public DateTime CloneSpawnTime { get; private set; }
@@ -67,7 +63,7 @@ class CloneMerge : BossComponent
     {
         if (Clone != null || Module.PrimaryActor.HP.Cur > Module.PrimaryActor.HP.Max / 2)
             return;
-        Clone = module.Enemies(OID.Boss).FirstOrDefault(a => a != Module.PrimaryActor);
+        Clone = Module.Enemies(OID.Boss).FirstOrDefault(a => a != Module.PrimaryActor);
         if (Clone != null)
             CloneSpawnTime = WorldState.CurrentTime;
     }
@@ -85,7 +81,7 @@ class CloneMerge : BossComponent
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actor(Clone, ArenaColor.Enemy);
+        Arena.Actor(Clone, ArenaColor.Enemy);
     }
 }
 

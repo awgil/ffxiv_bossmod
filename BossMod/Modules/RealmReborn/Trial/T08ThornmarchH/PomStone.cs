@@ -1,6 +1,6 @@
 ﻿namespace BossMod.RealmReborn.Trial.T08ThornmarchH;
 
-class PomStone : Components.GenericAOEs
+class PomStone(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(Actor caster, AOEShape shape)> _casters = new();
     private static readonly AOEShapeCircle _shapeIn = new(10);

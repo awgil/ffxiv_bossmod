@@ -20,7 +20,7 @@ class SpitFlame : Components.UniformStackSpread
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (Array.IndexOf(_targets, actor) is var order && order >= 0)
         {
             hints.Add($"Order: {order + 1}", false);

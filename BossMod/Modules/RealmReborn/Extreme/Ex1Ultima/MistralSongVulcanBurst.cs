@@ -1,14 +1,12 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-class MistralSongVulcanBurst : Components.GenericAOEs
+class MistralSongVulcanBurst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MistralSong))
 {
     public bool Active { get; private set; }
     private Actor? _garuda; // non-null while mechanic is active
     private DateTime _resolve;
     private bool _burstImminent;
     private static readonly AOEShapeCone _shape = new(23.4f, 75.Degrees());
-
-    public MistralSongVulcanBurst() : base(ActionID.MakeSpell(AID.MistralSong)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -47,8 +45,8 @@ class MistralSongVulcanBurst : Components.GenericAOEs
     {
         base.DrawArenaForeground(pcSlot, pc);
 
-        var adjPos = _burstImminent ? arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, Module.PrimaryActor, 30)) : pc.Position;
-        Components.Knockback.DrawKnockback(pc, adjPos, arena);
+        var adjPos = _burstImminent ? Arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, Module.PrimaryActor, 30)) : pc.Position;
+        Components.Knockback.DrawKnockback(pc, adjPos, Arena);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
