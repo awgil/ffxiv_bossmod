@@ -273,10 +273,10 @@ unsafe class ActionManagerEx : IDisposable
     }
 
     // skips queueing etc
-    public bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0, float? facingAngleOverride = null)
+    public bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0, Angle? facingAngleOverride = null)
     {
         if (facingAngleOverride != null)
-            FaceDirection(facingAngleOverride.Value.Radians().ToDirection());
+            FaceDirection(facingAngleOverride.Value.ToDirection());
 
         return UseActionLocationDetour(_inst, action.Type, action.ID, targetID, &targetPos, itemLocation);
     }

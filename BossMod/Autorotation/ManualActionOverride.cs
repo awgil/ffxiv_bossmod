@@ -16,12 +16,12 @@ class ManualActionOverride
         public ActionID Action;
         public Actor? Target;
         public Vector3 TargetPos;
-        public float? FacingAngle;
+        public Angle? FacingAngle;
         public ActionDefinition Definition;
         public Func<Actor?, bool>? Condition;
         public DateTime ExpireAt;
 
-        public Entry(ActionID action, Actor? target, Vector3 targetPos, float? facingAngle, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
+        public Entry(ActionID action, Actor? target, Vector3 targetPos, Angle? facingAngle, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
         {
             Action = action;
             Target = target;
@@ -67,7 +67,7 @@ class ManualActionOverride
         _queue.RemoveAll(CheckExpired);
     }
 
-    public void Push(ActionID action, Actor? target, Vector3 targetPos, float? facingAngle, ActionDefinition def, Func<Actor?, bool>? condition, bool simulated = false)
+    public void Push(ActionID action, Actor? target, Vector3 targetPos, Angle? facingAngle, ActionDefinition def, Func<Actor?, bool>? condition, bool simulated = false)
     {
         bool isGCD = def.CooldownGroup == CommonDefinitions.GCDGroup;
         float expire = isGCD ? 1.0f : 3.0f;

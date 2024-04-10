@@ -145,9 +145,9 @@ class Actions : CommonActions
         // elusive jump aiming
         SupportedSpell(AID.ElusiveJump).TransformAngle = _config.ElusiveJump switch
         {
-            DRGConfig.ElusiveJumpBehavior.CharacterForward => () => Player.PosRot.W + MathF.PI,
-            DRGConfig.ElusiveJumpBehavior.CameraBackward => () => Camera.Instance!.CameraAzimuth + MathF.PI,
-            DRGConfig.ElusiveJumpBehavior.CameraForward => () => Camera.Instance!.CameraAzimuth,
+            DRGConfig.ElusiveJumpBehavior.CharacterForward => () => Player.Rotation + 180.Degrees(),
+            DRGConfig.ElusiveJumpBehavior.CameraBackward => () => new Angle(Camera.Instance!.CameraAzimuth + MathF.PI),
+            DRGConfig.ElusiveJumpBehavior.CameraForward => () => new Angle(Camera.Instance!.CameraAzimuth),
             _ => null
         };
     }

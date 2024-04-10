@@ -16,10 +16,10 @@ abstract class CommonActions : IDisposable
         public ActionID Action;
         public Actor? Target;
         public Vector3 TargetPos;
-        public float? FacingAngle;
+        public Angle? FacingAngle;
         public ActionSource Source;
 
-        public NextAction(ActionID action, Actor? target, Vector3 targetPos, float? facingAngle, ActionSource source)
+        public NextAction(ActionID action, Actor? target, Vector3 targetPos, Angle? facingAngle, ActionSource source)
         {
             Action = action;
             Target = target;
@@ -53,7 +53,7 @@ abstract class CommonActions : IDisposable
         public int PlaceholderForAuto; // if set, attempting to execute this action would instead initiate auto-strategy
         public Func<ActionID>? TransformAction;
         public Func<Actor?, Actor?>? TransformTarget;
-        public Func<float?>? TransformAngle;
+        public Func<Angle?>? TransformAngle;
 
         public SupportedAction(ActionDefinition definition, bool isGT)
         {
@@ -262,7 +262,7 @@ abstract class CommonActions : IDisposable
             target = supportedAction.TransformTarget(target);
         }
 
-        float? angleOverride = null;
+        Angle? angleOverride = null;
         if (supportedAction.TransformAngle != null)
             angleOverride = supportedAction.TransformAngle();
 
