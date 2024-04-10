@@ -17,10 +17,14 @@ public enum AID : uint
     TheRamsVoice = 16962, // Boss->self, 4,0s cast, range 9 circle
 }
 
-class TheLionsBreath : Components.SelfTargetedAOEs
-{
-    public TheLionsBreath() : base(ActionID.MakeSpell(AID.TheLionsBreath), new AOEShapeCone(30, 60.Degrees())) { }
-}
+class TheLionsBreath() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TheLionsBreath), new AOEShapeCone(30, 60.Degrees()));
+class TheDragonsBreath() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TheDragonsBreath), new AOEShapeCone(30, 60.Degrees()));
+class TheRamsBreath() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TheRamsBreath), new AOEShapeCone(30, 60.Degrees()));
+class TheRamsEmbrace() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.TheRamsEmbrace), 9);
+class TheRamsVoice() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9));
+class TheRamsVoiceHint() : Components.CastInterruptHint(ActionID.MakeSpell(AID.TheRamsVoice));
+class TheDragonsVoice() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30));
+class TheDragonsVoiceHint() : Components.CastInterruptHint(ActionID.MakeSpell(AID.TheDragonsVoice), hintExtra: "Donut Raidwide");
 
 class TheScorpionsSting : Components.GenericAOEs
 {
@@ -52,41 +56,6 @@ class TheScorpionsSting : Components.GenericAOEs
     }
 }
 
-class TheDragonsBreath : Components.SelfTargetedAOEs
-{
-    public TheDragonsBreath() : base(ActionID.MakeSpell(AID.TheDragonsBreath), new AOEShapeCone(30, 60.Degrees())) { }
-}
-
-class TheRamsBreath : Components.SelfTargetedAOEs
-{
-    public TheRamsBreath() : base(ActionID.MakeSpell(AID.TheRamsBreath), new AOEShapeCone(30, 60.Degrees())) { }
-}
-
-class TheRamsEmbrace : Components.SelfTargetedAOEs
-{
-    public TheRamsEmbrace() : base(ActionID.MakeSpell(AID.TheRamsEmbrace), new AOEShapeCircle(9)) { }
-}
-
-class TheRamsVoice : Components.SelfTargetedAOEs
-{
-    public TheRamsVoice() : base(ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9)) { }
-}
-
-class TheRamsVoiceHint : Components.CastInterruptHint
-{
-    public TheRamsVoiceHint() : base(ActionID.MakeSpell(AID.TheRamsVoice)) { }
-}
-
-class TheDragonsVoice : Components.SelfTargetedAOEs
-{
-    public TheDragonsVoice() : base(ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30)) { }
-}
-
-class TheDragonsVoiceHint : Components.CastInterruptHint
-{
-    public TheDragonsVoiceHint() : base(ActionID.MakeSpell(AID.TheDragonsVoice), hintExtra: "Donut Raidwide") { }
-}
-
 class TygerStates : StateMachineBuilder
 {
     public TygerStates(BossModule module) : base(module)
@@ -105,7 +74,4 @@ class TygerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8905)]
-public class Tyger : SimpleBossModule
-{
-    public Tyger(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Tyger(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
