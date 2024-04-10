@@ -68,13 +68,13 @@ class Hints : BossComponent
 {
     public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
-        hints.Add($"{module.PrimaryActor.Name} will spawn upto 4 waves of adds which are weak to fire.\nA way to quickly heal yourself to full is mandatory and\na ranged fire ability such as Mustard Bomb are highly recommended.");
+        hints.Add($"For this act Excuviation and Diamondback are mandatory.\nBringing Flying Sardine, lightning and wind spells is higly recommended.");
     }
 }
 
-class Stage28States : StateMachineBuilder
+class Stage29Act1States : StateMachineBuilder
 {
-    public Stage28States(BossModule module) : base(module)
+    public Stage29Act1States(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<FluidSwing>()
@@ -93,9 +93,9 @@ class Stage28States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 698, NameID = 9239)]
-public class Stage28 : BossModule
+public class Stage29Act1 : BossModule
 {
-    public Stage28(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
+    public Stage29Act1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
     {
         ActivateComponent<Hints>();
     }
