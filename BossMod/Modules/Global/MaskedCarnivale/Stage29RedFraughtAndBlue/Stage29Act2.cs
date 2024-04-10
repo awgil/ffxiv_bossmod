@@ -20,7 +20,7 @@ public enum AID : uint
     ProteanWave3 = 18984, // 2C60->self, 3,0s cast, range 50 30-degree cone
     Throttle = 18964, // 2C5D->player, no cast, range 5 circle
     FerrofluidKB = 18963, // 2C5D->self, 5,0s cast, range 80 circle, knockback 6, away from source
-    FluidConvection = 18974, // 2C5D->self, no cast, range 12-40 donut
+    FluidConvection = 18974, // 2C5D->self, no cast, range 10-40 donut
     FerrofluidAttract = 18962, // Boss->self, 5,0s cast, range 80 circle, pull 6, between centers
     FluidDynamic = 18973, // Boss->self, no cast, range 6 circle
     FluidBallVisual = 18968, // 2C5D->self, 3,0s cast, single-target
