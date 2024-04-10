@@ -134,9 +134,6 @@ unsafe class ActionManagerEx : IDisposable
     private delegate bool CancelStatusDelegate(uint statusId, uint sourceId);
     private CancelStatusDelegate _cancelStatusFunc;
 
-    private delegate void SetGameObjectRotationDelegate(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj, float rotation);
-    private SetGameObjectRotationDelegate _setGameObjectRotationFunc;
-
     public ActionManagerEx()
     {
         InputOverride = new();
@@ -180,10 +177,6 @@ unsafe class ActionManagerEx : IDisposable
         var cancelStatusAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 2C 48 8B 07");
         _cancelStatusFunc = Marshal.GetDelegateForFunctionPointer<CancelStatusDelegate>(cancelStatusAddress);
         Service.Log($"[AMEx] CancelStatus address = 0x{cancelStatusAddress:X}");
-
-        var setRotAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 83 FE 4F");
-        _setGameObjectRotationFunc = Marshal.GetDelegateForFunctionPointer<SetGameObjectRotationDelegate>(setRotAddress);
-        Service.Log($"[AMEx] SetGameObjectRotation address = 0x{setRotAddress:X}");
     }
 
     public void Dispose()
@@ -282,11 +275,9 @@ unsafe class ActionManagerEx : IDisposable
     // skips queueing etc
     public bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0, float? facingAngleOverride = null)
     {
-        if (facingAngleOverride != null) {
-            var pl = Service.ClientState.LocalPlayer!.Address;
-            var playerObj = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)pl;
-            _setGameObjectRotationFunc.Invoke(playerObj, facingAngleOverride.Value);
-        }
+        if (facingAngleOverride != null)
+            FaceDirection(facingAngleOverride.Value.Radians().ToDirection());
+
         return UseActionLocationDetour(_inst, action.Type, action.ID, targetID, &targetPos, itemLocation);
     }
 
