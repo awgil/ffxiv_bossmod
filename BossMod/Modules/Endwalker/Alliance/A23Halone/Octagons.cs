@@ -1,5 +1,9 @@
 namespace BossMod.Endwalker.Alliance.A23Halone;
 
+// TODO: assign alliances members to a specific octagon. in duty finder it is usually:
+// NW (Octagon3): Alliance A
+// NE (Octagon1): Alliance C
+// S (Octagon2): Alliance B
 class Octagons : BossComponent
 {
     private static readonly WPos[] spears = [new(-686, 592), new(-700, 616.2f), new(-714, 592)];

@@ -22,10 +22,9 @@ class TetraTriangles : Components.GenericAOEs
     private static readonly Angle _rot3 = 179.995f.Degrees();
     private static readonly Angle _rot4 = 59.995f.Degrees();
     private static readonly Angle _rot5 = -60.Degrees();
-    private static readonly Angle _rot6 = 179.995f.Degrees();
-    private static readonly Angle _rot7 = 119.997f.Degrees();
-    private static readonly Angle _rot8 = -120.003f.Degrees();
-    private static readonly Angle _rot9 = 60.Degrees();
+    private static readonly Angle _rot6 = 119.997f.Degrees();
+    private static readonly Angle _rot7 = -120.003f.Degrees();
+    private static readonly Angle _rot8 = 60.Degrees();
     private bool TutorialDone;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
@@ -68,18 +67,18 @@ class TetraTriangles : Components.GenericAOEs
             if (index == 0x13 && TutorialDone) //pair 13+15 always happen together after tutorial
             {
                 _aoes.Add(new(tri, new WPos(-961, 948.7f), _rot1, _activation2));
-                _aoes.Add(new(tri, new WPos(-937, 962.356f), _rot6, _activation2));
+                _aoes.Add(new(tri, new WPos(-937, 962.356f), _rot3, _activation2));
                 _aoes.Add(new(rect, new WPos(-933, 955.428f), _rot4, _activation2));
                 _aoes.Add(new(rect, new WPos(-941, 955.428f), _rot5, _activation2));
                 _aoes.Add(new(rect, new WPos(-937, 948.5f), _rot2, _activation2));
-                _aoes.Add(new(rect, new WPos(-957, 955.428f), _rot7, _activation2));
+                _aoes.Add(new(rect, new WPos(-957, 955.428f), _rot6, _activation2));
             }
             if (index == 0x12 && TutorialDone) //pair 12+16 always happen together after tutorial
             {
                 _aoes.Add(new(tri, new WPos(-945, 948.5f), _rot2, _activation2));
                 _aoes.Add(new(tri, new WPos(-929, 948.7f), _rot1, _activation2));
-                _aoes.Add(new(rect, new WPos(-933, 955.428f), _rot8, _activation2));
-                _aoes.Add(new(rect, new WPos(-941.173f, 941.828f), _rot9, _activation2));
+                _aoes.Add(new(rect, new WPos(-933, 955.428f), _rot7, _activation2));
+                _aoes.Add(new(rect, new WPos(-941.173f, 941.828f), _rot8, _activation2));
                 _aoes.Add(new(rect, new WPos(-948.827f, 941.828f), _rot5, _activation2));
                 _aoes.Add(new(rect, new WPos(-945, 935), _rot2, _activation2));
             }
@@ -102,7 +101,7 @@ class TetraTriangles : Components.GenericAOEs
             }
             if (index == 0x15 && !TutorialDone)
             {
-                _aoes.Add(new(tri, new WPos(-937, 962.356f), _rot6, _activation));
+                _aoes.Add(new(tri, new WPos(-937, 962.356f), _rot3, _activation));
                 _aoes.Add(new(rect, new WPos(-937, 948.5f), _rot2, _activation));
                 _aoes.Add(new(rect, new WPos(-933, 955.428f), _rot4, _activation));
                 _aoes.Add(new(rect, new WPos(-941, 955.428f), _rot5, _activation));
@@ -113,7 +112,7 @@ class TetraTriangles : Components.GenericAOEs
                 _aoes.Add(new(tri, new WPos(-945, 948.5f), _rot2, _activation));
                 _aoes.Add(new(rect, new WPos(-945, 935), _rot2, _activation));
                 _aoes.Add(new(rect, new WPos(-948.827f, 941.828f), _rot5, _activation));
-                _aoes.Add(new(rect, new WPos(-941.173f, 941.828f), _rot9, _activation));
+                _aoes.Add(new(rect, new WPos(-941.173f, 941.828f), _rot8, _activation));
                 TutorialDone = true;
             }
         }
