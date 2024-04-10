@@ -2,72 +2,66 @@ namespace BossMod.Global.MaskedCarnivale.Stage29.Act1;
 
 public enum OID : uint
 {
-    Boss = 0x2C5D, //R=3.0
-    UndeadSerf = 0x2CD4, // R=0.5
-    UndeadSerf2 = 0x2CD3, // R=0.5
-    UndeadSoldier = 0x2CD5, // R=0.5
-    UndeadWarrior = 0x2CD6, // R=1.9
-    UndeadGravekeeper = 0x2CD7, // R=0.75
-    NecrobaneVoidzone = 0x1EA9FA,
-    MagitekExplosive = 0x2CEC, //R=0.8
+    Boss = 0x2C5B, //R=3.0
+    FireTornado = 0x2C5C, // R=4.0
     Helper = 0x233C,
 }
 
 public enum AID : uint
 {
-    AutoAttack = 19052, // Boss->player, no cast, single-target
-    AutoAttack2 = 6499, // 2CD4/2CD6/2CD7->player, no cast, single-target
-    AutoAttack3 = 19068, // 2CD5->player, no cast, single-target
-    DoomImpending = 19051, // Boss->self, 8,0s cast, range 80 circle, heal to full before cast ends
-    MarchOfTheDraugar = 19057, // Boss->self, 3,0s cast, single-target, summons 4 different sets of adds
-    DeathThroes = 19061, // 2CD3->player, no cast, single-target, pull 20 between hitboxes, player becomes unable to move
-    DeathThroesRecover = 19062, // 2CD3->self, no cast, range 100 circle
-    Necrobane = 19059, // Boss->location, 4,0s cast, range 6 circle
-    MegaDeath = 19055, // Boss->self, 6,0s cast, range 80 circle, deadly if not in voidzone
-    HelblarShriek = 19084, // Boss->self, 4,0s cast, range 50 circle, high dmg if in Necrobane voidzone
-    FireIII = 19069, // 2CD5->player, 5,0s cast, single-target
-    FuneralPyre = 19056, // Boss->self, 6,0s cast, range 40 circle, deadly if in Necrobane voidzone
-    ButterflyFloat = 19065, // 2CD6->player, 3,0s cast, single-target
-    GlassPunch = 19063, // 2CD6->self, no cast, range 6+R 90-degree cone
-    Brainstorm = 19054, // Boss->self, 4,0s cast, range 60 circle, forced march debuffs
-    BilrostSquallVisual = 19081, // Boss->self, 9,0s cast, single-target
-    BilrostSquall = 19082, // Helper->location, 9,0s cast, range 10 circle
-    NailInTheCoffin = 19066, // 2CD7->player, no cast, single-target
-    VengefulSoul = 19067, // 2CD7->location, 3,0s cast, range 6 circle
-    Cackle = 19053, // Boss->player, 4,0s cast, single-target, high dmg, interruptible
-    Catapult = 19064, // 2CD6->location, 3,0s cast, range 6 circle
+    AutoAttack = 6499, // Boss->player, no cast, single-target
+    Unknown = 18872, // Boss->self, no cast, single-target
+    FluidSwing = 18689, // Boss->self/player, 4,0s cast, range 11 30-degree cone, interruptible, knockback 50, source forward
+    SeaOfFlamesVisual = 18693, // Boss->self, 3,0s cast, single-target
+    SeaOfFlames = 18694, // Helper->location, 3,0s cast, range 6 circle
+    Pyretic = 18691, // Boss->self, 4,0s cast, range 80 circle, applies pyretic
+    FireII = 18692, // Boss->location, 4,0s cast, range 5 circle
+    PillarOfFlameVisual = 18695, // Boss->self, 3,0s cast, single-target
+    PillarOfFlame = 18696, // Helper->location, 3,0s cast, range 8 circle
+    PillarOfFlameVisual2 = 18894, // Boss->self, 6,0s cast, single-target
+    PillarOfFlame2 = 18895, // Helper->location, 6,0s cast, range 8 circle
+    Rush = 18690, // Boss->player, 5,0s cast, width 4 rect charge, does distance based damage, seems to scale all the way until the other side of the arena
+    FlareStarVisual = 18697, // Boss->self, 5,0s cast, single-target
+    FlareStar = 18698, // Helper->location, 5,0s cast, range 40 circle, distance based AOE, radius 10 seems to be a good compromise
+    FireBlast = 18699, // FireTornado->self, 3,0s cast, range 70+R width 4 rect
 }
 
 public enum SID : uint
 {
-    Doom = 1769, // Boss->player, extra=0x0
-    Incurable = 1488, // Boss->player, extra=0x0
-    DeathThroes = 608, // 2CD3->player, extra=0x0
-    DeathBecomesYou = 2197, // none->player, extra=0x0
-    Bleeding = 320, // none->player, extra=0x0
-    RightFace = 1961, // Boss->player, extra=0x0
-    LeftFace = 1960, // Boss->player, extra=0x0
-    ForwardMarch = 1958, // Boss->player, extra=0x0
-    AboutFace = 1959, // Boss->player, extra=0x0
-    ForcedMarch = 1257, // Boss->player, extra=0x8/0x4/0x2/0x1
+    Pyretic = 960, // Boss->player, extra=0x0
+
 }
 
-class DoomImpending() : Components.CastHint(ActionID.MakeSpell(AID.DoomImpending), "Heal to full before cast ends!");
-class MarchOfTheDraugar() : Components.CastHint(ActionID.MakeSpell(AID.MarchOfTheDraugar), "Summons adds! (Kill with fire!)");
-class NecrobaneVoidzone() : Components.PersistentInvertibleVoidzoneByCast(6, m => m.Enemies(OID.NecrobaneVoidzone).Where(z => z.EventState != 7), ActionID.MakeSpell(AID.MegaDeath));
-class Necrobane() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.Necrobane), 6);
-class HelblarShriek() : Components.RaidwideCast(ActionID.MakeSpell(AID.HelblarShriek));
-class FuneralPyre() : Components.RaidwideCast(ActionID.MakeSpell(AID.FuneralPyre));
-class Catapult() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.Catapult), 6);
-class VengefulSoul() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.VengefulSoul), 6);
-class BilrostSquall() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.BilrostSquall), 10);
-class Cackle() : Components.CastInterruptHint(ActionID.MakeSpell(AID.Cackle));
+class FluidSwing() : Components.CastInterruptHint(ActionID.MakeSpell(AID.FluidSwing));
+class FluidSwingKnockback() : Components.KnockbackFromCastTarget(ActionID.MakeSpell(AID.FluidSwing), 50, kind: Kind.DirForward);
+class SeaOfFlames() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.SeaOfFlames), 6);
+class FireII() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.FireII), 5);
+class PillarOfFlame() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.PillarOfFlame), 8);
+class PillarOfFlame2() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.PillarOfFlame2), 8);
+class Rush() : Components.CastHint(ActionID.MakeSpell(AID.Rush), "GTFO from boss! (Distance based charge)");
+class FlareStar() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.FlareStar), 10);
+class FireBlast() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.FireBlast), new AOEShapeRect(74, 2));
+class PyreticHint() : Components.CastHint(ActionID.MakeSpell(AID.Pyretic), "Pyretic, stop everything! Dodge the AOE after it runs out.");
 
-class Brainstorm : Components.StatusDrivenForcedMarch
+class Pyretic : Components.StayMove
 {
-    public Brainstorm() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
+    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID is SID.Pyretic)
+        {
+            if (module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < Requirements.Length)
+                Requirements[slot] = Requirement.Stay;
+        }
+    }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<BilrostSquall>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false || !module.Bounds.Contains(pos);
+    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID is SID.Pyretic)
+        {
+            if (module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < Requirements.Length)
+                Requirements[slot] = Requirement.None;
+        }
+    }
 }
 
 class Hints : BossComponent
@@ -83,55 +77,26 @@ class Stage28States : StateMachineBuilder
     public Stage28States(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Brainstorm>()
-            .ActivateOnEnter<Cackle>()
-            .ActivateOnEnter<BilrostSquall>()
-            .ActivateOnEnter<VengefulSoul>()
-            .ActivateOnEnter<Catapult>()
-            .ActivateOnEnter<FuneralPyre>()
-            .ActivateOnEnter<HelblarShriek>()
-            .ActivateOnEnter<Necrobane>()
-            .ActivateOnEnter<NecrobaneVoidzone>()
-            .ActivateOnEnter<MarchOfTheDraugar>()
-            .ActivateOnEnter<DoomImpending>()
+            .ActivateOnEnter<FluidSwing>()
+            .ActivateOnEnter<FluidSwingKnockback>()
+            .ActivateOnEnter<SeaOfFlames>()
+            .ActivateOnEnter<FireII>()
+            .ActivateOnEnter<PillarOfFlame>()
+            .ActivateOnEnter<PillarOfFlame2>()
+            .ActivateOnEnter<Rush>()
+            .ActivateOnEnter<FlareStar>()
+            .ActivateOnEnter<FireBlast>()
+            .ActivateOnEnter<Pyretic>()
+            .ActivateOnEnter<PyreticHint>()
             .DeactivateOnEnter<Hints>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 697, NameID = 9233)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 698, NameID = 9239)]
 public class Stage28 : BossModule
 {
     public Stage28(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
     {
         ActivateComponent<Hints>();
-    }
-
-    protected override void DrawEnemies(int pcSlot, Actor pc)
-    {
-        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.UndeadSerf))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.UndeadSerf2))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.UndeadGravekeeper))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.UndeadSoldier))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.UndeadWarrior))
-            Arena.Actor(s, ArenaColor.Enemy);
-    }
-
-    public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.CalculateAIHints(slot, actor, assignment, hints);
-        foreach (var e in hints.PotentialTargets)
-        {
-            e.Priority = (OID)e.Actor.OID switch
-            {
-                OID.UndeadSerf or OID.UndeadSerf2 or OID.UndeadSoldier or OID.UndeadGravekeeper or OID.UndeadWarrior => 2,
-                OID.Boss => 1,
-                _ => 0
-            };
-        }
     }
 }

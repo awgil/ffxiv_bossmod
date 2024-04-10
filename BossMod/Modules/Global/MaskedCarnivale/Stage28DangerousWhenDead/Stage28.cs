@@ -74,7 +74,7 @@ class Hints : BossComponent
 {
     public override void AddGlobalHints(BossModule module, GlobalHints hints)
     {
-        hints.Add($"{module.PrimaryActor.Name} will spawn upto 4 waves of adds which are weak to fire.\nA way to quickly heal yourself to full is mandatory and\na ranged fire ability such as Mustard Bomb are highly recommended.");
+        hints.Add($"{module.PrimaryActor.Name} will spawn upto 4 waves of adds which are weak to fire.\nA way to quickly heal yourself to full is mandatory and\na ranged fire ability such as Mustard Bomb and Flysing Sardine for interrupts are highly recommended.");
     }
 }
 
