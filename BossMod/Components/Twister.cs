@@ -2,23 +2,16 @@
 
 // generic 'twister' component: a set of aoes that appear under players, but can't be accurately predicted until it's too late
 // normally you'd predict them at the end (or slightly before the end) of some cast, or on component creation
-public class GenericTwister : GenericAOEs
+public class GenericTwister(BossModule module, float radius, uint oid, ActionID aid = default) : GenericAOEs(module, aid, "GTFO from twister!")
 {
-    private AOEShapeCircle _shape;
-    private uint _twisterOID;
-    protected IReadOnlyList<Actor> Twisters;
+    private AOEShapeCircle _shape = new(radius);
+    private uint _twisterOID = oid;
+    protected IReadOnlyList<Actor> Twisters = module.Enemies(oid);
     protected DateTime PredictedActivation;
     protected List<WPos> PredictedPositions = new();
 
     public IEnumerable<Actor> ActiveTwisters => Twisters.Where(v => v.EventState != 7);
     public bool Active => ActiveTwisters.Count() > 0;
-
-    public GenericTwister(BossModule module, float radius, uint oid, ActionID aid = default) : base(module, aid, "GTFO from twister!")
-    {
-        _shape = new(radius);
-        _twisterOID = oid;
-        Twisters = module.Enemies(oid);
-    }
 
     public void AddPredicted(float activationDelay)
     {

@@ -1,24 +1,15 @@
 ﻿namespace BossMod.Components;
 
 // generic component for cleaving autoattacks; shows shape outline and warns when anyone other than main target is inside
-public class Cleave : CastCounter
+// enemy OID == 0 means 'primary actor'
+public class Cleave(BossModule module, ActionID aid, AOEShape shape, uint enemyOID = 0, bool activeForUntargetable = false, bool originAtTarget = false, bool activeWhileCasting = true) : CastCounter(module, aid)
 {
-    public AOEShape Shape { get; init; }
-    public bool ActiveForUntargetable { get; init; }
-    public bool ActiveWhileCasting { get; init; }
-    public bool OriginAtTarget { get; init; }
+    public AOEShape Shape { get; init; } = shape;
+    public bool ActiveForUntargetable { get; init; } = activeForUntargetable;
+    public bool ActiveWhileCasting { get; init; } = activeWhileCasting;
+    public bool OriginAtTarget { get; init; } = originAtTarget;
     public DateTime NextExpected;
-    private readonly IReadOnlyList<Actor> _enemies;
-
-    // enemy OID == 0 means 'primary actor'
-    public Cleave(BossModule module, ActionID aid, AOEShape shape, uint enemyOID = 0, bool activeForUntargetable = false, bool originAtTarget = false, bool activeWhileCasting = true) : base(module, aid)
-    {
-        Shape = shape;
-        ActiveForUntargetable = activeForUntargetable;
-        ActiveWhileCasting = activeWhileCasting;
-        OriginAtTarget = originAtTarget;
-        _enemies = module.Enemies(enemyOID != 0 ? enemyOID : module.PrimaryActor.OID);
-    }
+    private readonly IReadOnlyList<Actor> _enemies = module.Enemies(enemyOID != 0 ? enemyOID : module.PrimaryActor.OID);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
