@@ -18,10 +18,9 @@ public enum AID : uint
 }
 
 class SpringBreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpringBreeze), new AOEShapeRect(40, 5, 40));
-
 class SummerHeat(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SummerHeat));
 
-class Combos : Components.GenericAOEs
+class Combos(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeDonut donut = new(10, 20);
     private static readonly AOEShapeCircle circle = new(6);
@@ -38,7 +37,7 @@ class Combos : Components.GenericAOEs
             if (NumCasts == 0)
             {
                 yield return new(_shape, Module.PrimaryActor.Position, _rotation, _activation, ArenaColor.Danger);
-                yield return new(rect2, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation.AddSeconds(3.1f), risky: false);
+                yield return new(rect2, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation.AddSeconds(3.1f), Risky: false);
             }
             if (NumCasts == 1)
                 yield return new(rect2, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation.AddSeconds(3.1f), ArenaColor.Danger);

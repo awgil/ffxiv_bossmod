@@ -38,7 +38,7 @@ public enum SID : uint
 
 class Brainstorm(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => module.FindComponent<SapShower>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<SapShower>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
 class FetchingFulgence(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.FetchingFulgence));

@@ -17,9 +17,7 @@ public enum AID : uint
 }
 
 class TripleTrident(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.TripleTrident));
-
 class FishOutOfWater(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.FishOutOfWater), "Spawns adds");
-
 class Tingle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Tingle), new AOEShapeCircle(12.4f));
 
 class TheGreatGoldWhiskerStates : StateMachineBuilder
@@ -35,10 +33,8 @@ class TheGreatGoldWhiskerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7599)]
-public class TheGreatGoldWhisker : BossModule
+public class TheGreatGoldWhisker(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public TheGreatGoldWhisker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

@@ -21,17 +21,18 @@ public enum SID : uint
 }
 
 class Sabotendance(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sabotendance), new AOEShapeCircle(8));
-
 class TwentyKNeedles(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TwentyKNeedles), new AOEShapeRect(20, 4));
 
-class Haste : BossComponent
+class Haste(BossModule module) : BossComponent(module)
 {
     private bool HasteB;
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Haste)
             HasteB = true;
     }
+
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (HasteB)

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
-class GunberdShot : BossComponent
+class GunberdShot(BossModule module) : BossComponent(module)
 {
     private Actor? _gunberdCaster;
 
@@ -65,7 +65,7 @@ class GunberdShot : BossComponent
         if (Gunberding && windslicerLoaded)
         {
             var adjPos = Components.Knockback.AwayFromSource(pc.Position, _gunberdCaster, 10);
-            Components.Knockback.DrawKnockback(pc, adjPos, arena);
+            Components.Knockback.DrawKnockback(pc, adjPos, Arena);
         }
     }
 }

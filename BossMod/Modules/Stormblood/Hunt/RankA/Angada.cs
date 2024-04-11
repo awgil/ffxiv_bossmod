@@ -15,10 +15,9 @@ public enum AID : uint
 }
 
 class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(9.4f));
-
 class Butcher(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(11.4f, 60.Degrees()));
 
-class Rip : Components.GenericAOEs
+class Rip(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeCone cone = new(11.4f, 60.Degrees());

@@ -22,17 +22,11 @@ public enum AID : uint
 }
 
 class Thumbscrew(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Thumbscrew), 4);
-
 class ThePathofLight(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ThePathOfLight));
-
 class GibbetCage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GibbetCage), new AOEShapeCircle(8));
-
 class HereticsFork(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HereticsFork), new AOEShapeCross(40, 3));
-
 class LightShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2));
-
 class WoodenHorse(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WoodenHorse), new AOEShapeCone(40, 45.Degrees()));
-
 class Pillory(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Pillory));
 
 class D011ForgivenDissonanceStates : StateMachineBuilder

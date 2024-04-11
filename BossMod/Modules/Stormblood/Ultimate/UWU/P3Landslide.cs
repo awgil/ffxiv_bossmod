@@ -3,7 +3,7 @@
 // in p3, landslide is baited on a random (?) target (rotation phi for main cast); helpers cast their casts at phi +- 45 and phi +- 135
 // if boss is awakened, these 5 landslides are followed by another 5 landslides at phi +- 22.5, phi +- 90 and phi + 180; there is no point predicting them, since corresponding casts start almost immediately (<0.1s)
 // in p4, landslides are cast at predetermined angles (ultimate predation, ???)
-class Landslide : Components.GenericAOEs
+class Landslide(BossModule module) : Components.GenericAOEs(module)
 {
     public bool Awakened { get; private set; }
     public DateTime PredictedActivation;
@@ -53,9 +53,9 @@ class Landslide : Components.GenericAOEs
     }
 }
 
-class P3Landslide : Landslide { }
+class P3Landslide(BossModule module) : Landslide(module);
 
-class P4Landslide : Landslide
+class P4Landslide(BossModule module) : Landslide(module)
 {
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {

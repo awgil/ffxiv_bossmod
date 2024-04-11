@@ -42,32 +42,22 @@ class Filoplumes(BossModule module) : Components.SelfTargetedAOEs(module, Action
 class Wingbeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wingbeat), new AOEShapeCone(43.36f, 30.Degrees()));
 class WingbeatKB : Components.KnockbackFromCastTarget
 {
-    public WingbeatKB() : base(ActionID.MakeSpell(AID.Wingbeat), 20, false, 1, new AOEShapeCone(43.36f, 30.Degrees()))
+    public WingbeatKB(BossModule module) : base(module, ActionID.MakeSpell(AID.Wingbeat), 20, false, 1, new AOEShapeCone(43.36f, 30.Degrees()))
     {
         StopAtWall = true;
     }
 }
 
 class FeatherSquall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FeatherSquall2), 6);
-
 class Pinion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pinion), new AOEShapeRect(40.5f, 1.5f));
-
 class Sideslip(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Sideslip));
-
 class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-
 class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-
 class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-
 class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-
 class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
-
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-
 class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class TheWingedStates : StateMachineBuilder
@@ -94,10 +84,8 @@ class TheWingedStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7595)]
-public class TheWinged : BossModule
+public class TheWinged(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public TheWinged(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

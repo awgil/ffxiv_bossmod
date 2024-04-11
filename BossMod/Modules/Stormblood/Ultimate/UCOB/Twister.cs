@@ -4,5 +4,5 @@ class Twister(BossModule module) : Components.CastTwister(module, 2, (uint)OID.V
 
 class P1Twister : Twister
 {
-    public P1Twister() { KeepOnPhaseChange = true; }
+    public P1Twister(BossModule module) : base(module) { KeepOnPhaseChange = true; }
 }

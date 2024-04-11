@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
 [ConfigDisplay(Order = 0x200, Parent = typeof(StormbloodConfig))]
-public class UCOBConfig : CooldownPlanningConfigNode
+public class UCOBConfig() : CooldownPlanningConfigNode(70)
 {
-    public UCOBConfig() : base(70) { }
-
     [PropertyDisplay("P3 Quickmarch/Heavensfall Trio: safespot assignments (assuming bahamut is relative north/up, group L goes left; L1/R1 closest to bosses)")]
     [GroupDetails(["L1", "L2", "L3", "L4", "R1", "R2", "R3", "R4"])]
     [GroupPreset("Hector: THMR", [0, 4, 1, 5, 2, 6, 3, 7])]

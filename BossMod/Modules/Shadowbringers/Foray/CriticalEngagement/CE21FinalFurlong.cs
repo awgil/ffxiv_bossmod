@@ -41,16 +41,12 @@ public enum TetherID : uint
 
 class GraspingRancor : Components.LocationTargetedAOEs
 {
-    private IReadOnlyList<Actor> _hands = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _hands;
 
-    public GraspingRancor() : base(ActionID.MakeSpell(AID.PurifyingLight), 12)
+    public GraspingRancor(BossModule module) : base(module, ActionID.MakeSpell(AID.PurifyingLight), 12)
     {
         Color = ArenaColor.SafeFromAOE;
         Risky = false;
-    }
-
-    public override void Init(BossModule module)
-    {
         _hands = module.Enemies(OID.GraspingRancor);
     }
 
@@ -75,26 +71,19 @@ class GraspingRancor : Components.LocationTargetedAOEs
         if (hand != null)
         {
             bool isFrozen = hand.Tether.ID == (uint)TetherID.Frozen;
-            arena.Actor(hand, ArenaColor.Object, true);
-            arena.AddLine(hand.Position, pc.Position, isFrozen ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.Actor(hand, ArenaColor.Object, true);
+            Arena.AddLine(hand.Position, pc.Position, isFrozen ? ArenaColor.Safe : ArenaColor.Danger);
         }
     }
 }
 
 class HatefulMiasma(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.HatefulMiasma), 6);
-
 class PoisonedWords(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PoisonedWords), 6);
-
 class TalonedGaze(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TalonedGaze), "AOE front/back --> sides");
-
 class TalonedWings(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TalonedWings), "AOE sides --> front/back");
-
 class CoffinNails(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CoffinNails), new AOEShapeCone(60, 45.Degrees()), 2);
-
 class Stab(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Stab));
-
 class GripOfPoison(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.GripOfPoison));
-
 class StepsOfDestruction(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StepsOfDestructionAOE), 6);
 
 class CE21FinalFurlongStates : StateMachineBuilder

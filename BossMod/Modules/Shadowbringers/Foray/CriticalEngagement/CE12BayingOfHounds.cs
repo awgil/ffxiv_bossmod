@@ -33,18 +33,13 @@ public enum AID : uint
 }
 
 class Hellclaw(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Hellclaw));
-
 class TailBlow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailBlow), new AOEShapeCone(19, 45.Degrees()));
-
 class LavaSpit(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LavaSpitAOE), 5);
-
 class ScorchingLash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScorchingLash), new AOEShapeRect(50, 5));
 
-class Hellpounce : Components.GenericAOEs
+class Hellpounce(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Hellpounce), "GTFO from charge!")
 {
     private AOEInstance? _charge;
-
-    public Hellpounce() : base(ActionID.MakeSpell(AID.Hellpounce), "GTFO from charge!") { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_charge);
 
@@ -72,19 +67,16 @@ class Hellpounce : Components.GenericAOEs
     {
         var shape = new AOEShapeRect(0, 5);
         shape.SetEndPoint(target, source, new());
-        _charge = new(shape, source, activation: activation);
+        _charge = new(shape, source, default, activation);
     }
 }
 
 class LionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 45.Degrees()));
-
 class DragonsBreathR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DragonsBreathAOER), new AOEShapeCone(60, 36.Degrees(), -10.Degrees())); // TODO: verify; there should not be an offset in reality here...
-
 class DragonsBreathL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DragonsBreathAOEL), new AOEShapeCone(60, 36.Degrees(), 10.Degrees())); // TODO: verify; there should not be an offset in reality here...
-
 class VoidTornado(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidTornado), "Set hp to 1");
 
-class VoidQuake : Components.GenericAOEs //this concentric AOE can happen forwards or backwards in order with the same AID as the starter
+class VoidQuake(BossModule module) : Components.GenericAOEs(module) //this concentric AOE can happen forwards or backwards in order with the same AID as the starter
 {
     private readonly List<(Actor caster, AOEShape shape)> _active = [];
 

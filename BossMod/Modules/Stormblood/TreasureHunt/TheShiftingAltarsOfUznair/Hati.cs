@@ -20,13 +20,9 @@ public enum AID : uint
 }
 
 class PolarRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PolarRoar), new AOEShapeDonut(9, 40));
-
 class Hellstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hellstorm2), 10);
-
 class Netherwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Netherwind), new AOEShapeRect(18, 2));
-
 class GlassyNova(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GlassyNova), new AOEShapeRect(45.4f, 4));
-
 class BrainFreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrainFreeze), new AOEShapeCircle(15.4f));
 
 class HatiStates : StateMachineBuilder
@@ -44,10 +40,8 @@ class HatiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7590)]
-public class Hati : BossModule
+public class Hati(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Hati(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P5Teraflare : Components.CastCounter
+class P5Teraflare(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Teraflare))
 {
     public bool DownForTheCountAssigned;
-
-    public P5Teraflare() : base(ActionID.MakeSpell(AID.Teraflare)) { }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

@@ -20,12 +20,10 @@ public enum AID : uint
 }
 
 class BodySlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11));
-
 class NumbingNoise(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NumbingNoise), new AOEShapeCone(13, 60.Degrees()));
-
 class TailSnap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18, 60.Degrees()));
 
-class NumbingNoiseTailSnapRotating : Components.GenericRotatingAOE
+class NumbingNoiseTailSnapRotating(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private static readonly AOEShapeCone _shapeNumbingNoise = new(13, 60.Degrees());
     private static readonly AOEShapeCone _shapeTailSnap = new(18, 60.Degrees());
@@ -50,14 +48,12 @@ class NumbingNoiseTailSnapRotating : Components.GenericRotatingAOE
     }
 }
 
-class NumbingNoiseTailSnapAttract : Components.Knockback
+class NumbingNoiseTailSnapAttract(BossModule module) : Components.Knockback(module)
 {
-    private NumbingNoiseTailSnapRotating? _rotating;
+    private NumbingNoiseTailSnapRotating? _rotating = module.FindComponent<NumbingNoiseTailSnapRotating>();
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(30);
-
-    public override void Init(BossModule module) => _rotating = module.FindComponent<NumbingNoiseTailSnapRotating>();
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -65,7 +61,7 @@ class NumbingNoiseTailSnapAttract : Components.Knockback
             yield return new(Module.PrimaryActor.Position, 25, _activation, _shape, default, Kind.TowardsOrigin, Module.PrimaryActor.HitboxRadius + actor.HitboxRadius);
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => _rotating?.ActiveAOEs(module, slot, actor).Any(aoe => aoe.Check(pos)) ?? false;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _rotating?.ActiveAOEs(slot, actor).Any(aoe => aoe.Check(pos)) ?? false;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

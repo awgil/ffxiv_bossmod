@@ -46,15 +46,11 @@ public enum AID : uint
 }
 
 class IcePillar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IcePillarAOE), new AOEShapeCircle(4));
-
 class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarPierce), new AOEShapeRect(80, 2));
-
 class Shatter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shatter), new AOEShapeCircle(8));
 
-class BracingWind : Components.KnockbackFromCastTarget
+class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BracingWind), 40, false, 1, new AOEShapeRect(60, 6), Kind.DirForward)
 {
-    public BracingWind() : base(ActionID.MakeSpell(AID.BracingWind), 40, false, 1, new AOEShapeRect(60, 6), Kind.DirForward) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var length = Module.Bounds.HalfSize * 2; // casters are at the border, orthogonal to borders
@@ -65,16 +61,12 @@ class BracingWind : Components.KnockbackFromCastTarget
     }
 }
 
-class LunarCry : Components.CastLineOfSightAOE
+class LunarCry(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.LunarCry), 80, false)
 {
     private readonly List<Actor> _safePillars = [];
-    private BracingWind? _knockback;
+    private BracingWind? _knockback = module.FindComponent<BracingWind>();
 
-    public LunarCry() : base(ActionID.MakeSpell(AID.LunarCry), 80, false) { }
-
-    public override IEnumerable<Actor> BlockerActors(BossModule module) => _safePillars;
-
-    public override void Init(BossModule module) => _knockback = module.FindComponent<BracingWind>();
+    public override IEnumerable<Actor> BlockerActors() => _safePillars;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -98,7 +90,7 @@ class LunarCry : Components.CastLineOfSightAOE
 }
 
 // this AOE only got 2s cast time, but the actors already spawn 4.5s earlier, so we can use that to our advantage
-class ThermalGust : Components.GenericAOEs
+class ThermalGust(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _casters = [];
     private DateTime _activation;
@@ -123,7 +115,7 @@ class ThermalGust : Components.GenericAOEs
     }
 }
 
-class AgeOfEndlessFrost : Components.GenericAOEs
+class AgeOfEndlessFrost(BossModule module) : Components.GenericAOEs(module)
 {
     private Angle _increment;
     private readonly List<Angle> _angles = [];
@@ -161,11 +153,11 @@ class AgeOfEndlessFrost : Components.GenericAOEs
         {
             if (NumCasts == 0)
             {
-                _nextActivation = WorldState.FutureTime(2.6);
+                _nextActivation = WorldState.FutureTime(2.6f);
             }
             else if (NumCasts < 6)
             {
-                _nextActivation = WorldState.FutureTime(2.1);
+                _nextActivation = WorldState.FutureTime(2.1f);
             }
             else
             {
@@ -180,11 +172,8 @@ class AgeOfEndlessFrost : Components.GenericAOEs
 }
 
 class StormWithout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormWithout), new AOEShapeDonut(10, 40));
-
 class StormWithin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormWithin), new AOEShapeCircle(10));
-
 class AncientGlacier(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AncientGlacierAOE), 6);
-
 class Glaciation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Glaciation));
 
 class CE54NeverCryWolfStates : StateMachineBuilder

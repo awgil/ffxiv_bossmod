@@ -15,10 +15,9 @@ public enum AID : uint
 }
 
 class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Torpedo));
-
 class BogBody(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.BogBody), 5);
 
-class Spite : Components.GenericAOEs
+class Spite(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
@@ -27,7 +26,7 @@ class Spite : Components.GenericAOEs
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Gallop)
-            _aoe = new(new AOEShapeCircle(8), spell.LocXZ, activation: spell.NPCFinishAt);
+            _aoe = new(new AOEShapeCircle(8), spell.LocXZ, default, spell.NPCFinishAt);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

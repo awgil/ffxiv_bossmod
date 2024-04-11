@@ -6,15 +6,7 @@ class TurretsTour : Components.GenericAOEs
     private List<(Actor caster, AOEShapeRect shape)> _casters = new();
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        foreach (var t in _turrets)
-            yield return new(t.shape, t.turret.Position, t.turret.Rotation, _activation);
-        foreach (var c in _casters)
-            yield return new(c.shape, c.caster.Position, c.caster.CastInfo!.Rotation, c.caster.CastInfo.NPCFinishAt);
-    }
-
-    public override void Init(BossModule module)
+    public TurretsTour(BossModule module) : base(module)
     {
         var turrets = module.Enemies(OID.AutomaticTurret);
         foreach (var t in turrets)
@@ -25,6 +17,14 @@ class TurretsTour : Components.GenericAOEs
                 shape.LengthFront = (target.Position - t.Position).Length();
             _turrets.Add((t, shape));
         }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var t in _turrets)
+            yield return new(t.shape, t.turret.Position, t.turret.Rotation, _activation);
+        foreach (var c in _casters)
+            yield return new(c.shape, c.caster.Position, c.caster.CastInfo!.Rotation, c.caster.CastInfo.NPCFinishAt);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

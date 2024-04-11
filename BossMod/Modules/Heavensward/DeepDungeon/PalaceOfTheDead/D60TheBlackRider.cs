@@ -69,8 +69,8 @@ class ValfodrKB(BossModule module) : Components.Knockback(module) // note actual
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (module.FindComponent<Valfodr>()?.CurrentBaits.Count > 0)
-            yield return new(Module.PrimaryActor.Position, 25, _activation, module.FindComponent<Valfodr>()!.CurrentBaits[0].Shape, Angle.FromDirection(module.FindComponent<Valfodr>()!.CurrentBaits[0].Target.Position - Module.PrimaryActor.Position), Kind: Kind.DirForward);
+        if (Module.FindComponent<Valfodr>()?.CurrentBaits.Count > 0)
+            yield return new(Module.PrimaryActor.Position, 25, _activation, Module.FindComponent<Valfodr>()!.CurrentBaits[0].Shape, Angle.FromDirection(Module.FindComponent<Valfodr>()!.CurrentBaits[0].Target.Position - Module.PrimaryActor.Position), Kind: Kind.DirForward);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -82,7 +82,7 @@ class ValfodrKB(BossModule module) : Components.Knockback(module) // note actual
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (module.FindComponent<HallOfSorrow>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<Infaturation>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<HallOfSorrow>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (Module.FindComponent<Infaturation>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 }
 
 class D60TheBlackRiderStates : StateMachineBuilder

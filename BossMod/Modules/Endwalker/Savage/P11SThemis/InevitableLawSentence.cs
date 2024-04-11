@@ -43,13 +43,13 @@ class InevitableLawSentence(BossModule module) : Components.GenericStackSpread(m
     {
         Stacks.Clear();
         foreach (var t in Raid.WithoutSlot(true).Where(t => t.Role == Role.Healer))
-            Stacks.Add(new(t, 6, 4, Activation: Module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Raidwide)));
+            Stacks.Add(new(t, 6, 4, activation: Module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Raidwide)));
     }
 
     private void AddPairStacks()
     {
         Stacks.Clear();
         foreach (var t in Raid.WithoutSlot(true).Where(t => t.Class.IsDD()))
-            Stacks.Add(new(t, 3, 2, Activation: Module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Raidwide)));
+            Stacks.Add(new(t, 3, 2, activation: Module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Raidwide)));
     }
 }

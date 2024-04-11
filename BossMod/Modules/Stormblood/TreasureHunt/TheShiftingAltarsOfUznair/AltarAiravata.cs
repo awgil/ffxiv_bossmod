@@ -31,11 +31,8 @@ public enum IconID : uint
 }
 
 class HurlBoss(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HurlBoss), 6);
-
 class SpinBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpinBoss), new AOEShapeCone(30, 60.Degrees()));
-
 class BarbarousScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BarbarousScream), new AOEShapeCircle(13));
-
 class Huff(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Huff));
 
 class Buffet : Components.KnockbackFromCastTarget
@@ -43,7 +40,7 @@ class Buffet : Components.KnockbackFromCastTarget
     private bool targeted;
     private Actor? target;
 
-    public Buffet() : base(ActionID.MakeSpell(AID.Buffet), 20, kind: Kind.DirForward)
+    public Buffet(BossModule module) : base(module, ActionID.MakeSpell(AID.Buffet), 20, kind: Kind.DirForward)
     {
         StopAtWall = true;
     }
@@ -59,7 +56,7 @@ class Buffet : Components.KnockbackFromCastTarget
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        return target == actor ? base.Sources(module, slot, actor) : Enumerable.Empty<Source>();
+        return target == actor ? base.Sources(slot, actor) : Enumerable.Empty<Source>();
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -86,10 +83,8 @@ class Buffet : Components.KnockbackFromCastTarget
     }
 }
 
-class Buffet2 : Components.BaitAwayCast //Boss jumps on player and does a cone attack, this is supposed to predict the position of the cone attack
+class Buffet2(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Buffet), new AOEShapeCone(30, 60.Degrees()), true) //Boss jumps on player and does a cone attack, this is supposed to predict the position of the cone attack
 {
-    public Buffet2() : base(ActionID.MakeSpell(AID.Buffet), new AOEShapeCone(30, 60.Degrees()), true) { }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var b in CurrentBaits)
@@ -101,7 +96,7 @@ class Buffet2 : Components.BaitAwayCast //Boss jumps on player and does a cone a
     {
         foreach (var bait in ActiveBaitsOn(pc))
         {
-            bait.Shape.Outline(arena, bait.Target.Position + (bait.Target.HitboxRadius + Module.PrimaryActor.HitboxRadius) * (Module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
+            bait.Shape.Outline(Arena, bait.Target.Position + (bait.Target.HitboxRadius + Module.PrimaryActor.HitboxRadius) * (Module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
         }
     }
 
@@ -110,15 +105,12 @@ class Buffet2 : Components.BaitAwayCast //Boss jumps on player and does a cone a
         if (!IgnoreOtherBaits)
             foreach (var bait in ActiveBaitsNotOn(pc))
                 if (AlwaysDrawOtherBaits || IsClippedBy(pc, bait))
-                    bait.Shape.Draw(arena, bait.Target.Position + (bait.Target.HitboxRadius + Module.PrimaryActor.HitboxRadius) * (Module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
+                    bait.Shape.Draw(Arena, bait.Target.Position + (bait.Target.HitboxRadius + Module.PrimaryActor.HitboxRadius) * (Module.PrimaryActor.Position - bait.Target.Position).Normalized(), bait.Rotation);
     }
 }
 
-
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-
 class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class AiravataStates : StateMachineBuilder
@@ -140,10 +132,8 @@ class AiravataStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7601)]
-public class Airavata : BossModule
+public class Airavata(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Airavata(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

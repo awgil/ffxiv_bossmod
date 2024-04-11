@@ -15,11 +15,8 @@ public enum AID : uint
 }
 
 class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustingClaw), new AOEShapeCone(12.025f, 60.Degrees()));
-
 class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(34.025f, 60.Degrees()));
-
 class WordsOfWoe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WordsOfWoe), new AOEShapeRect(49.025f, 3));
-
 class TheSpin(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TheSpin));
 
 class OPoorestPauldiaStates : StateMachineBuilder

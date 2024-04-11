@@ -162,6 +162,6 @@ class EngravementOfSoulsTowers(BossModule module) : Components.GenericTowers(mod
             }
         }
 
-        Towers.Add(new(pos, 3, ForbiddenSoakers: _globallyForbidden | (isLight ? _lightForbidden : _darkForbidden)));
+        Towers.Add(new(pos, 3, forbiddenSoakers: _globallyForbidden | (isLight ? _lightForbidden : _darkForbidden)));
     }
 }

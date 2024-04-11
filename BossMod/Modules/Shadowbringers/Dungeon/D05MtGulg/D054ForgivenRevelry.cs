@@ -18,12 +18,12 @@ public enum AID : uint
     RightPalm2 = 16248, // 233C->self, 4,5s cast, range 30 width 15 rect
 }
 
-class PalmAttacks : Components.GenericAOEs //Palm Attacks have a wrong origin, so i made a custom solution
+class PalmAttacks(BossModule module) : Components.GenericAOEs(module) //Palm Attacks have a wrong origin, so i made a custom solution
 {
-
     private AOEInstance? _aoe;
 
     private static readonly AOEShapeRect rect = new(15, 15);
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

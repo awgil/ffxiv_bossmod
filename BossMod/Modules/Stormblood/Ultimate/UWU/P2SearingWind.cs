@@ -1,9 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P2SearingWind : Components.UniformStackSpread
+class P2SearingWind(BossModule module) : Components.UniformStackSpread(module, 0, 14, alwaysShowSpreads: true, includeDeadTargets: true)
 {
-    public P2SearingWind() : base(0, 14, alwaysShowSpreads: true, includeDeadTargets: true) { }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.InfernoHowl && WorldState.Actors.Find(spell.TargetID) is var target && target != null)

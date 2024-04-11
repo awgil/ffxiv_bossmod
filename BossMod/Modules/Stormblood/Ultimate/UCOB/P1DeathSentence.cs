@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
 // TODO: generalize to tankswap
-class P1DeathSentence : BossComponent
+class P1DeathSentence(BossModule module) : BossComponent(module)
 {
     private Actor? _caster;
     private ulong _targetId;

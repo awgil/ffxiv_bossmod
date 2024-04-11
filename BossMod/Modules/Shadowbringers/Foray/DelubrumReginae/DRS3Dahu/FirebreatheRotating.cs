@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3Dahu;
 
-class FirebreatheRotating : Components.GenericRotatingAOE
+class FirebreatheRotating(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private Angle _increment;
 

@@ -29,20 +29,14 @@ public enum IconID : uint
     Stackmarker = 93, // player
 }
 
-
 class TheDeepSeeks(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TheDeepSeeks));
-
 class TheDeepReaches(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDeepReaches), new AOEShapeRect(40, 1));
-
 class TheDeepBeckons(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TheDeepBeckons));
-
 class CoinToss(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CoinToss));
-
 class TheDeepRends(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDeepRends), new AOEShapeCone(20, 30.Degrees()));
-
 class TheDeepRendsHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TheDeepRends), "Targets 5 random players after initial hit");
 
-class SwivelGun : Components.GenericStackSpread
+class SwivelGun(BossModule module) : Components.GenericStackSpread(module)
 {
     private BitMask _forbidden;
 
@@ -61,6 +55,7 @@ class SwivelGun : Components.GenericStackSpread
         if (iconID == (uint)IconID.Stackmarker)
             Stacks.Add(new(actor, 10, activation: WorldState.FutureTime(5), forbiddenPlayers: _forbidden));
     }
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.MagicVulnerabilityUp)

@@ -1,21 +1,14 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3Dahu;
 
-class SpitFlame : Components.UniformStackSpread
+class SpitFlame(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true, raidwideOnResolve: false)
 {
     private Actor?[] _targets = { null, null, null, null };
-    private IReadOnlyList<Actor> _adds = ActorEnumeration.EmptyList;
-
-    public SpitFlame() : base(0, 4, alwaysShowSpreads: true, raidwideOnResolve: false) { }
-
-    public override void Init(BossModule module)
-    {
-        _adds = module.Enemies(OID.Marchosias);
-    }
+    private IReadOnlyList<Actor> _adds = module.Enemies(OID.Marchosias);
 
     public override void Update()
     {
         Spreads.RemoveAll(s => s.Target.IsDead); // if target dies after being marked, cast will be skipped
-        base.Update(module);
+        base.Update();
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -31,7 +24,7 @@ class SpitFlame : Components.UniformStackSpread
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actors(_adds, ArenaColor.Object, true);
+        Arena.Actors(_adds, ArenaColor.Object, true);
         base.DrawArenaForeground(pcSlot, pc);
     }
 

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3QuickmarchTrio : BossComponent
+class P3QuickmarchTrio(BossModule module) : BossComponent(module)
 {
     private Actor? _relNorth;
     private WPos[] _safeSpots = new WPos[PartyState.MaxPartySize];
@@ -9,10 +9,10 @@ class P3QuickmarchTrio : BossComponent
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actor(_relNorth, ArenaColor.Object, true);
+        Arena.Actor(_relNorth, ArenaColor.Object, true);
         var safespot = _safeSpots[pcSlot];
         if (safespot != default)
-            arena.AddCircle(safespot, 1, ArenaColor.Safe);
+            Arena.AddCircle(safespot, 1, ArenaColor.Safe);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -34,21 +34,16 @@ class P3QuickmarchTrio : BossComponent
 }
 
 class P3TwistingDive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TwistingDive), new AOEShapeRect(60, 4));
-
 class P3LunarDive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LunarDive), new AOEShapeRect(60, 4));
-
 class P3MegaflareDive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MegaflareDive), new AOEShapeRect(60, 6));
-
 class P3Twister(BossModule module) : Components.ImmediateTwister(module, 2, (uint)OID.VoidzoneTwister, 1.4f); // TODO: verify radius
 
 class P3MegaflareSpreadStack : Components.UniformStackSpread
 {
     private BitMask _stackTargets;
 
-    public P3MegaflareSpreadStack() : base(5, 5, 3, 3, alwaysShowSpreads: true) { }
-
-    public override void Init(BossModule module)
-    {
+    public P3MegaflareSpreadStack(BossModule module) : base(module, 5, 5, 3, 3, alwaysShowSpreads: true)
+{
         AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(2.6f));
     }
 
@@ -76,5 +71,4 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
 }
 
 class P3MegaflarePuddle(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MegaflarePuddle), 6);
-
 class P3TempestWing(BossModule module) : Components.TankbusterTether(module, ActionID.MakeSpell(AID.TempestWing), (uint)TetherID.TempestWing, 5);

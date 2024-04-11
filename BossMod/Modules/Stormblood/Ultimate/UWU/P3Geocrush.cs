@@ -3,15 +3,13 @@
 class P3Geocrush1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geocrush1), new AOEShapeCircle(18));
 
 // TODO: add prediction after PATE xxx - need non-interpolated actor rotation for that...
-class P3Geocrush2 : Components.GenericAOEs
+class P3Geocrush2(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Geocrush2))
 {
     private Actor? _caster;
     private AOEShapeDonut? _shapeReduced;
 
     //private static WDir[] _possibleOffsets = { new(14, 0), new(0, 14), new(-14, 0), new(0, -14) };
     private static readonly AOEShapeCircle _shapeCrush = new(24);
-
-    public P3Geocrush2() : base(ActionID.MakeSpell(AID.Geocrush2)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2StygimolochWarrior;
 
-class EntrapmentAttract : Components.Knockback
+class EntrapmentAttract(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.EntrapmentAttract), true)
 {
     private DateTime _activation;
-
-    public EntrapmentAttract() : base(ActionID.MakeSpell(AID.EntrapmentAttract), true) { }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -40,7 +38,7 @@ class Entrapment : Components.CastCounter
     private Pattern _potentiallyUnsafe;
     private bool _possiblePatternsDirty;
 
-    public Entrapment(Pattern[] allowedPatterns) : base(ActionID.MakeSpell(AID.MassiveExplosion))
+    public Entrapment(BossModule module, Pattern[] allowedPatterns) : base(module, ActionID.MakeSpell(AID.MassiveExplosion))
     {
         _allowedPatterns = allowedPatterns;
         _possiblePatterns = new((1u << allowedPatterns.Length) - 1);
@@ -87,18 +85,18 @@ class Entrapment : Components.CastCounter
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        DrawTraps(module, _curPattern.Normal, false, true, arena);
-        DrawTraps(module, _curPattern.Toad, TrapToTake == TrapType.Toad, true, arena);
-        DrawTraps(module, _curPattern.Ice, TrapToTake == TrapType.Ice, true, arena);
-        DrawTraps(module, _curPattern.Mini, TrapToTake == TrapType.Mini, true, arena);
+        DrawTraps(_curPattern.Normal, false, true);
+        DrawTraps(_curPattern.Toad, TrapToTake == TrapType.Toad, true);
+        DrawTraps(_curPattern.Ice, TrapToTake == TrapType.Ice, true);
+        DrawTraps(_curPattern.Mini, TrapToTake == TrapType.Mini, true);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        DrawTraps(module, _potentiallyUnsafe.Normal, false, false, arena);
-        DrawTraps(module, _potentiallyUnsafe.Toad, TrapToTake == TrapType.Toad, false, arena);
-        DrawTraps(module, _potentiallyUnsafe.Ice, TrapToTake == TrapType.Ice, false, arena);
-        DrawTraps(module, _potentiallyUnsafe.Mini, TrapToTake == TrapType.Mini, false, arena);
+        DrawTraps(_potentiallyUnsafe.Normal, false, false);
+        DrawTraps(_potentiallyUnsafe.Toad, TrapToTake == TrapType.Toad, false);
+        DrawTraps(_potentiallyUnsafe.Ice, TrapToTake == TrapType.Ice, false);
+        DrawTraps(_potentiallyUnsafe.Mini, TrapToTake == TrapType.Mini, false);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -106,16 +104,16 @@ class Entrapment : Components.CastCounter
         switch ((OID)actor.OID)
         {
             case OID.TrapNormal:
-                AddTrap(ref _curPattern.Normal, module, actor.Position, false);
+                AddTrap(ref _curPattern.Normal, actor.Position, false);
                 break;
             case OID.TrapToad:
-                AddTrap(ref _curPattern.Toad, module, actor.Position, false);
+                AddTrap(ref _curPattern.Toad, actor.Position, false);
                 break;
             case OID.TrapIce:
-                AddTrap(ref _curPattern.Ice, module, actor.Position, false);
+                AddTrap(ref _curPattern.Ice, actor.Position, false);
                 break;
             case OID.TrapMini:
-                AddTrap(ref _curPattern.Mini, module, actor.Position, false);
+                AddTrap(ref _curPattern.Mini, actor.Position, false);
                 break;
         }
     }
@@ -125,21 +123,21 @@ class Entrapment : Components.CastCounter
         switch ((AID)spell.Action.ID)
         {
             case AID.MassiveExplosion:
-                AddTrap(ref _curPattern.Normal, module, spell.TargetXZ, true);
+                AddTrap(ref _curPattern.Normal, spell.TargetXZ, true);
                 break;
             case AID.Toad:
-                AddTrap(ref _curPattern.Toad, module, spell.TargetXZ, true);
+                AddTrap(ref _curPattern.Toad, spell.TargetXZ, true);
                 break;
             case AID.TrappedUnderIce:
-                AddTrap(ref _curPattern.Ice, module, spell.TargetXZ, true);
+                AddTrap(ref _curPattern.Ice, spell.TargetXZ, true);
                 break;
             case AID.Mini:
-                AddTrap(ref _curPattern.Mini, module, spell.TargetXZ, true);
+                AddTrap(ref _curPattern.Mini, spell.TargetXZ, true);
                 break;
         }
     }
 
-    private void AddTrap(ref BitMask mask, BossModule module, WPos position, bool exploded)
+    private void AddTrap(ref BitMask mask, WPos position, bool exploded)
     {
         var index = IndexFromOffset(position - Module.Bounds.Center);
         //ReportError($"Trap @ {position} (dist={(position - Raid.Player()!.Position).Length()}) = {index}");
@@ -164,16 +162,16 @@ class Entrapment : Components.CastCounter
     private WDir CellOffset(int x, int z) => 5 * new WDir(x - 3, z - 3);
     private WDir CellOffset(int index) => CellOffset(index & 7, index >> 3);
 
-    private void DrawTraps(BossModule module, BitMask mask, bool safe, bool background, MiniArena arena)
+    private void DrawTraps(BitMask mask, bool safe, bool background)
     {
         mask &= ~_exploded; // don't draw already exploded traps
         foreach (var index in mask.SetBits())
         {
             var pos = Module.Bounds.Center + CellOffset(index);
             if (background)
-                arena.ZoneCircle(pos, 2.5f, safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+                Arena.ZoneCircle(pos, 2.5f, safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
             else
-                arena.AddCircle(pos, 2.5f, safe ? ArenaColor.Safe : ArenaColor.Danger);
+                Arena.AddCircle(pos, 2.5f, safe ? ArenaColor.Safe : ArenaColor.Danger);
         }
     }
 
@@ -216,7 +214,7 @@ class Entrapment : Components.CastCounter
     }
 }
 
-class EntrapmentNormal : Entrapment
+class EntrapmentNormal(BossModule module) : Entrapment(module, _allowedPatterns)
 {
     private readonly static Pattern[] _allowedPatterns = [
         new() { Normal = BuildMask( 8,  9, 10, 11, 12, 13, 18, 20, 34, 35, 36, 37, 38, 40, 42, 45) },
@@ -225,10 +223,9 @@ class EntrapmentNormal : Entrapment
         new() { Normal = BuildMask( 9, 11, 12, 13, 14, 16, 17, 27, 28, 32, 33, 38, 41, 42, 44, 46) }, // TODO: i'm not sure whether this pattern is real
         new() { Normal = BuildMask(10, 11, 13, 14, 19, 20, 21, 24, 25, 30, 33, 34, 35, 36, 44, 45) },
     ];
-    public EntrapmentNormal() : base(_allowedPatterns) { }
 }
 
-class EntrapmentInescapable : Entrapment
+class EntrapmentInescapable(BossModule module) : Entrapment(module, _allowedPatterns)
 {
     private readonly static Pattern[] _allowedPatterns = [
         new() { Normal = BuildMask(3, 4,  5,  8, 20, 25, 38, 43, 46, 49, 52), Toad = BuildMask(10, 50, 54), Ice = BuildMask(40), Mini = BuildMask(29) },
@@ -236,8 +233,6 @@ class EntrapmentInescapable : Entrapment
         new() { Normal = BuildMask(5, 8, 11, 16, 18, 22, 24, 29, 43, 49, 53), Toad = BuildMask( 6, 33, 38), Ice = BuildMask( 4), Mini = BuildMask(48) },
         new() { Normal = BuildMask(5, 8, 11, 25, 30, 32, 38, 43, 49, 50, 54), Toad = BuildMask(16, 21, 48), Ice = BuildMask(36), Mini = BuildMask( 1) },
     ];
-
-    public EntrapmentInescapable() : base(_allowedPatterns) { }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -254,7 +249,5 @@ class EntrapmentInescapable : Entrapment
 }
 
 class LethalBlow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LethalBlow), new AOEShapeRect(44, 24));
-
 class LeapingSpark(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LeapingSparkAOE));
-
 class Devour(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Devour), new AOEShapeCone(6, 60.Degrees()));

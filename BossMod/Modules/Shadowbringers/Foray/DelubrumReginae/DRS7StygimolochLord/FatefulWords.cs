@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7StygimolochLord;
 
-class FatefulWords : Components.Knockback
+class FatefulWords(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.FatefulWordsAOE), true)
 {
     private Kind[] _mechanics = new Kind[PartyState.MaxPartySize];
-
-    public FatefulWords() : base(ActionID.MakeSpell(AID.FatefulWordsAOE), true) { }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -22,16 +20,16 @@ class FatefulWords : Components.Knockback
             _ => Kind.None
         };
         if (kind != Kind.None)
-            AssignMechanic(module, actor, kind);
+            AssignMechanic(actor, kind);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.WanderersFate or SID.SacrificesFate)
-            AssignMechanic(module, actor, Kind.None);
+            AssignMechanic(actor, Kind.None);
     }
 
-    private void AssignMechanic(BossModule module, Actor actor, Kind mechanic)
+    private void AssignMechanic(Actor actor, Kind mechanic)
     {
         var slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0 && slot < _mechanics.Length)

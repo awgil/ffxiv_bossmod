@@ -19,7 +19,7 @@ public enum AID : uint
     SatelliteLaser = 20137, // Boss->self, 10,0s cast, range 100 circle
 }
 
-class MagitekBitLasers : Components.GenericAOEs
+class MagitekBitLasers(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly Angle[] rotations = [0.Degrees(), 90.Degrees(), 180.Degrees(), -90.Degrees()];
     private readonly List<DateTime> _times = [];
@@ -32,7 +32,7 @@ class MagitekBitLasers : Components.GenericAOEs
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_times.Count > 0)
-            foreach (var p in module.Enemies(OID.MagitekBit))
+            foreach (var p in Module.Enemies(OID.MagitekBit))
             {
                 if (Type == Types.SatelliteLaser && WorldState.CurrentTime > _times[0])
                     yield return new(rect, p.Position, p.Rotation, _times[1]);
@@ -93,11 +93,8 @@ class MagitekBitLasers : Components.GenericAOEs
 }
 
 class Rush(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Rush), 7);
-
 class LaserShower(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LaserShower2), 10);
-
 class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DiffractiveLaser), new AOEShapeCone(60, 75.Degrees()));
-
 class SatelliteLaser(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SatelliteLaser), "Raidwide + all lasers fire at the same time");
 
 class CE31MetalFoxChaosStates : StateMachineBuilder
@@ -114,9 +111,8 @@ class CE31MetalFoxChaosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 13)] // bnpcname=9424
-public class CE31MetalFoxChaos : BossModule
+public class CE31MetalFoxChaos(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-234, 262), 30.2f))
 {
-    public CE31MetalFoxChaos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-234, 262), 30.2f)) { }
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         foreach (var s in Enemies(OID.Boss))

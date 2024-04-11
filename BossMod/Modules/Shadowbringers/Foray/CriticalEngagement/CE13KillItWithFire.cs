@@ -39,7 +39,7 @@ public enum SID : uint
 
 class Pheromones(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Pheromones));
 
-class DeadLeaves : Components.GenericAOEs
+class DeadLeaves(BossModule module) : Components.GenericAOEs(module, default, "Go to different color!")
 {
     private BitMask _tenderStatuses;
     private BitMask _jealousStatuses;
@@ -47,8 +47,6 @@ class DeadLeaves : Components.GenericAOEs
     private readonly List<Actor> _jealousCasters = [];
 
     private static readonly AOEShapeCone _shape = new(30, 45.Degrees());
-
-    public DeadLeaves() : base(new(), "Go to different color!") { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -105,13 +103,9 @@ class DeadLeaves : Components.GenericAOEs
 }
 
 class AnaphylacticShock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AnaphylacticShock), new AOEShapeRect(30, 1));
-
 class SplashBomb(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SplashBombAOE), new AOEShapeCircle(6));
-
 class SplashGrenade(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SplashGrenadeAOE), 6);
-
 class PlayfulBreeze(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PlayfulBreeze));
-
 class Budbutt(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Budbutt));
 
 class CE13KillItWithFireStates : StateMachineBuilder

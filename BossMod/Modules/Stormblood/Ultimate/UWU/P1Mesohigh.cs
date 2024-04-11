@@ -1,27 +1,20 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 // TODO :implement hints...
-class P1Mesohigh : Components.CastCounter
+class P1Mesohigh(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Mesohigh))
 {
-    private IReadOnlyList<Actor> _sisters = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _sisters = module.Enemies(OID.GarudaSister);
     private static readonly float _radius = 3;
-
-    public P1Mesohigh() : base(ActionID.MakeSpell(AID.Mesohigh)) { }
-
-    public override void Init(BossModule module)
-    {
-        _sisters = module.Enemies(OID.GarudaSister);
-    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var s in EnumerateTetherSources(module))
+        foreach (var s in EnumerateTetherSources())
         {
             var tetherTarget = WorldState.Actors.Find(s.Tether.Target);
             if (tetherTarget != null)
             {
-                arena.AddLine(s.Position, tetherTarget.Position, ArenaColor.Danger);
-                arena.AddCircle(tetherTarget.Position, _radius, ArenaColor.Danger);
+                Arena.AddLine(s.Position, tetherTarget.Position, ArenaColor.Danger);
+                Arena.AddCircle(tetherTarget.Position, _radius, ArenaColor.Danger);
             }
         }
     }
@@ -31,7 +24,7 @@ class P1Mesohigh : Components.CastCounter
         return _sisters.Any(s => s.Tether.Target == player.InstanceID) ? PlayerPriority.Danger : PlayerPriority.Normal;
     }
 
-    private IEnumerable<Actor> EnumerateTetherSources(BossModule module)
+    private IEnumerable<Actor> EnumerateTetherSources()
     {
         foreach (var s in _sisters.Tethered(TetherID.Mesohigh))
             yield return s;

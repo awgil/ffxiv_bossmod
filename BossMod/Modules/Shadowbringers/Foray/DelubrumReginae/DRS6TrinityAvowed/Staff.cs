@@ -8,9 +8,14 @@ class FreedomOfBozja : TemperatureAOE
 
     private static readonly AOEShapeCircle _shape = new(22);
 
-    public FreedomOfBozja(bool risky)
+    public FreedomOfBozja(BossModule module, bool risky) : base(module)
     {
         _risky = risky;
+        _activation = WorldState.FutureTime(10);
+        InitOrb(OID.SwirlingOrb, -1);
+        InitOrb(OID.TempestuousOrb, -2);
+        InitOrb(OID.BlazingOrb, +1);
+        InitOrb(OID.RoaringOrb, +2);
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -18,15 +23,6 @@ class FreedomOfBozja : TemperatureAOE
         var playerTemp = Temperature(actor);
         foreach (var o in _orbs)
             yield return new(_shape, o.orb.Position, o.orb.Rotation, _activation, o.temperature == -playerTemp ? ArenaColor.SafeFromAOE : ArenaColor.AOE, _risky);
-    }
-
-    public override void Init(BossModule module)
-    {
-        InitOrb(module, OID.SwirlingOrb, -1);
-        InitOrb(module, OID.TempestuousOrb, -2);
-        InitOrb(module, OID.BlazingOrb, +1);
-        InitOrb(module, OID.RoaringOrb, +2);
-        _activation = WorldState.FutureTime(10);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -41,9 +37,9 @@ class FreedomOfBozja : TemperatureAOE
         return _orbs.Any(o => _shape.Check(pos, o.orb.Position) != (o.temperature == -playerTemp));
     }
 
-    private void InitOrb(BossModule module, OID oid, int temp)
+    private void InitOrb(OID oid, int temp)
     {
-        var orb = module.Enemies(oid).FirstOrDefault();
+        var orb = Module.Enemies(oid).FirstOrDefault();
         if (orb != null)
             _orbs.Add((orb, temp));
     }
@@ -51,13 +47,11 @@ class FreedomOfBozja : TemperatureAOE
 
 class FreedomOfBozja1(BossModule module) : FreedomOfBozja(module, false);
 
-class QuickMarchStaff1 : QuickMarch
+class QuickMarchStaff1(BossModule module) : QuickMarch(module)
 {
-    private FreedomOfBozja1? _freedom;
+    private FreedomOfBozja1? _freedom = module.FindComponent<FreedomOfBozja1>();
 
-    public override void Init(BossModule module) => _freedom = module.FindComponent<FreedomOfBozja1>();
-
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_freedom?.ActorUnsafeAt(actor, pos) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_freedom?.ActorUnsafeAt(actor, pos) ?? false);
 }
 
 class FreedomOfBozja2(BossModule module) : FreedomOfBozja(module, true);

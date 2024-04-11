@@ -15,7 +15,7 @@ public enum AID : uint
     GoblinSlash = 17489, // Boss->self, no cast, range 8 circle, sometimes boss uses Gobthunder II on itself, next attack after is this
 }
 
-class GoblinSlash : Components.GenericAOEs
+class GoblinSlash(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
@@ -24,7 +24,7 @@ class GoblinSlash : Components.GenericAOEs
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GobthunderII && spell.LocXZ == caster.Position)
-            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, activation: spell.NPCFinishAt.AddSeconds(2.6f));
+            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(2.6f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -35,13 +35,9 @@ class GoblinSlash : Components.GenericAOEs
 }
 
 class GobthunderIII(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.GobthunderIII), 20);
-
 class GobthunderIIIHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.GobthunderIII));
-
 class GoblinPunch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.GoblinPunch));
-
 class Gobhaste(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Gobhaste), "Attack speed buff");
-
 class GobthunderII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GobthunderII), 8);
 
 class LilMurdererStates : StateMachineBuilder

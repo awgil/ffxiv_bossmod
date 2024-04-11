@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
-class RuinationCross : Components.GenericAOEs
+class RuinationCross(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect _aoeShape = new(20, 4, 20);
     private List<AOEInstance> _aoes = new();
@@ -12,7 +12,7 @@ class RuinationCross : Components.GenericAOEs
         if ((AID)spell.Action.ID is AID.Ruination)
         {
             _aoes.Add(new(_aoeShape, caster.Position));
-            _aoes.Add(new(_aoeShape, caster.Position, rotation: 90.Degrees()));
+            _aoes.Add(new(_aoeShape, caster.Position, 90.Degrees()));
         }
     }
 
@@ -25,10 +25,8 @@ class RuinationCross : Components.GenericAOEs
     }
 }
 
-class RuinationExaflare : Components.Exaflare
+class RuinationExaflare(BossModule module) : Components.Exaflare(module, 4)
 {
-    public RuinationExaflare() : base(4) { }
-
     class LineWithActor : Line
     {
         public Actor Caster;
@@ -57,7 +55,7 @@ class RuinationExaflare : Components.Exaflare
         {
             int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
             if (index < 0) return;
-            AdvanceLine(module, Lines[index], caster.Position);
+            AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }

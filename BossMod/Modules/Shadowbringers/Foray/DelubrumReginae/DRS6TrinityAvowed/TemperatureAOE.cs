@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6TrinityAvowed;
 
-abstract class TemperatureAOE : Components.GenericAOEs
+abstract class TemperatureAOE(BossModule module) : Components.GenericAOEs(module)
 {
     private class PlayerState
     {

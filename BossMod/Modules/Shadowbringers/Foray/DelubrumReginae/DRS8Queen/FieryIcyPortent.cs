@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS8Queen;
 
-class FieryIcyPortent : Components.StayMove
+class FieryIcyPortent(BossModule module) : Components.StayMove(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

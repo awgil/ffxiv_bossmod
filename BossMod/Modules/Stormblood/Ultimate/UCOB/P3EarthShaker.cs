@@ -1,16 +1,14 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3EarthShaker : Components.GenericBaitAway
+class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.EarthShakerAOE))
 {
     private List<Bait> _futureBaits = new();
 
     private static readonly AOEShapeCone _shape = new(60, 45.Degrees());
 
-    public P3EarthShaker() : base(ActionID.MakeSpell(AID.EarthShakerAOE)) { }
-
     public override void OnEventIcon(Actor actor, uint iconID)
     {
-        if (iconID == (uint)IconID.Earthshaker && module.Enemies(OID.BahamutPrime).FirstOrDefault() is var source && source != null)
+        if (iconID == (uint)IconID.Earthshaker && Module.Enemies(OID.BahamutPrime).FirstOrDefault() is var source && source != null)
         {
             var list = CurrentBaits.Count < 4 ? CurrentBaits : _futureBaits;
             list.Add(new(source, actor, _shape));
@@ -28,20 +26,13 @@ class P3EarthShaker : Components.GenericBaitAway
     }
 }
 
-class P3EarthShakerVoidzone : Components.GenericAOEs
+class P3EarthShakerVoidzone(BossModule module) : Components.GenericAOEs(module, default, "GTFO from voidzone!")
 {
-    private IReadOnlyList<Actor> _voidzones = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _voidzones = module.Enemies(OID.VoidzoneEarthShaker);
     private List<AOEInstance> _predicted = new();
     private BitMask _targets;
 
     private static readonly AOEShapeCircle _shape = new(5); // TODO: verify radius
-
-    public P3EarthShakerVoidzone() : base(default, "GTFO from voidzone!") { }
-
-    public override void Init(BossModule module)
-    {
-        _voidzones = module.Enemies(OID.VoidzoneEarthShaker);
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

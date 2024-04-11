@@ -27,20 +27,13 @@ public enum AID : uint
 }
 
 class Buffet(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Buffet), new AOEShapeCone(11, 60.Degrees()));
-
 class Inhale(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InhaleBoss), new AOEShapeCone(20, 60.Degrees()));
 class InhalePull(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.InhaleBoss), 20, false, 1, new AOEShapeCone(20, 60.Degrees()), Kind.TowardsOrigin, default, true);
-
 class HeavyScrapline(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavyScrapline), new AOEShapeCircle(11));
-
 class MoldyPhlegm(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.MoldyPhlegm), m => m.Enemies(OID.ResinVoidzone).Where(z => z.EventState != 7), 0);
-
 class MoldySneeze(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.MoldySneeze), new AOEShapeCone(12, 60.Degrees()), (uint)OID.Boss);
-
 class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
-
 class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
-
 class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class KeeperStates : StateMachineBuilder
@@ -62,10 +55,8 @@ class KeeperStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9807)]
-public class Keeper : BossModule
+public class Keeper(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public Keeper(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

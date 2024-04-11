@@ -42,7 +42,7 @@ class PrincessThrenody(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
         {
-            _direction = spell.Rotation + ThrenodyDirection(module);
+            _direction = spell.Rotation + ThrenodyDirection();
             _activation = spell.NPCFinishAt.AddSeconds(2); //saw delays of upto ~0.3s higher because delay between Prepare and Resolve can vary
         }
     }
@@ -53,7 +53,7 @@ class PrincessThrenody(BossModule module) : Components.GenericAOEs(module)
             _activation = default;
     }
 
-    private Angle ThrenodyDirection(BossModule module)
+    private Angle ThrenodyDirection()
     {
         foreach (var s in Module.PrimaryActor.Statuses)
         {

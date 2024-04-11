@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class VulcanBurst : Components.Knockback
+class VulcanBurst(BossModule module, AID aid, Actor? source) : Components.Knockback(module, ActionID.MakeSpell(aid))
 {
-    protected Actor? SourceActor;
-
-    public VulcanBurst(AID aid) : base(ActionID.MakeSpell(aid)) { }
+    protected Actor? SourceActor = source;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -13,22 +11,5 @@ class VulcanBurst : Components.Knockback
     }
 }
 
-class P2VulcanBurst : VulcanBurst
-{
-    public P2VulcanBurst() : base(AID.VulcanBurst) { }
-
-    public override void Init(BossModule module)
-    {
-        SourceActor = ((UWU)module).Ifrit();
-    }
-}
-
-class P4VulcanBurst : VulcanBurst
-{
-    public P4VulcanBurst() : base(AID.VulcanBurstUltima) { }
-
-    public override void Init(BossModule module)
-    {
-        SourceActor = ((UWU)module).Ultima();
-    }
-}
+class P2VulcanBurst(BossModule module) : VulcanBurst(module, AID.VulcanBurst, ((UWU)module).Ifrit());
+class P4VulcanBurst(BossModule module) : VulcanBurst(module, AID.VulcanBurstUltima, ((UWU)module).Ultima());

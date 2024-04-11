@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class Quote : BossComponent
+class Quote(BossModule module) : BossComponent(module)
 {
     public Actor? Source;
     public List<AID> PendingMechanics = new();
@@ -22,7 +22,7 @@ class Quote : BossComponent
         }
     }
 
-    public override void OnActorNpcYell(BossModule module, Actor actor, ushort id)
+    public override void OnActorNpcYell(Actor actor, ushort id)
     {
         List<AID> aids = id switch
         {
@@ -60,9 +60,9 @@ class Quote : BossComponent
     }
 }
 
-class QuoteIronChariotLunarDynamo : Components.GenericAOEs
+class QuoteIronChariotLunarDynamo(BossModule module) : Components.GenericAOEs(module)
 {
-    private Quote? _quote;
+    private Quote? _quote = module.FindComponent<Quote>();
 
     private static readonly AOEShapeCircle _shapeChariot = new(8.55f);
     private static readonly AOEShapeDonut _shapeDynamo = new(6, 22); // TODO: verify inner radius
@@ -78,17 +78,11 @@ class QuoteIronChariotLunarDynamo : Components.GenericAOEs
         if (shape != null && _quote?.Source != null)
             yield return new(shape, _quote.Source.Position, default, _quote.NextActivation);
     }
-
-    public override void Init(BossModule module) => _quote = module.FindComponent<Quote>();
 }
 
-class QuoteThermionicBeam : Components.UniformStackSpread
+class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(module, 4, 0, 8)
 {
-    private Quote? _quote;
-
-    public QuoteThermionicBeam() : base(4, 0, 8) { }
-
-    public override void Init(BossModule module) => _quote = module.FindComponent<Quote>();
+    private Quote? _quote = module.FindComponent<Quote>();
 
     public override void Update()
     {
@@ -97,17 +91,13 @@ class QuoteThermionicBeam : Components.UniformStackSpread
             AddStack(target, _quote!.NextActivation);
         else if (!stackImminent && Stacks.Count > 0)
             Stacks.Clear();
-        base.Update(module);
+        base.Update();
     }
 }
 
-class QuoteRavenDive : Components.UniformStackSpread
+class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 0, 3, alwaysShowSpreads: true)
 {
-    private Quote? _quote;
-
-    public QuoteRavenDive() : base(0, 3, alwaysShowSpreads: true) { }
-
-    public override void Init(BossModule module) => _quote = module.FindComponent<Quote>();
+    private Quote? _quote = module.FindComponent<Quote>();
 
     public override void Update()
     {
@@ -116,17 +106,13 @@ class QuoteRavenDive : Components.UniformStackSpread
             AddSpreads(Raid.WithoutSlot(true), _quote!.NextActivation);
         else if (!spreadImminent && Spreads.Count > 0)
             Spreads.Clear();
-        base.Update(module);
+        base.Update();
     }
 }
 
-class QuoteMeteorStream : Components.UniformStackSpread
+class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true)
 {
-    private Quote? _quote;
-
-    public QuoteMeteorStream() : base(0, 4, alwaysShowSpreads: true) { }
-
-    public override void Init(BossModule module) => _quote = module.FindComponent<Quote>();
+    private Quote? _quote = module.FindComponent<Quote>();
 
     public override void Update()
     {
@@ -135,24 +121,20 @@ class QuoteMeteorStream : Components.UniformStackSpread
             AddSpreads(Raid.WithoutSlot(true), _quote!.NextActivation);
         else if (!spreadImminent && Spreads.Count > 0)
             Spreads.Clear();
-        base.Update(module);
+        base.Update();
     }
 }
 
-class QuoteDalamudDive : Components.GenericBaitAway
+class QuoteDalamudDive(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DalamudDive), true, true)
 {
-    private Quote? _quote;
+    private Quote? _quote = module.FindComponent<Quote>();
 
     private static readonly AOEShapeCircle _shape = new(5);
-
-    public QuoteDalamudDive() : base(ActionID.MakeSpell(AID.DalamudDive), true, true) { }
-
-    public override void Init(BossModule module) => _quote = module.FindComponent<Quote>();
 
     public override void Update()
     {
         bool imminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.DalamudDive;
-        if (imminent && CurrentBaits.Count == 0 && module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is var source && WorldState.Actors.Find(source?.TargetID ?? 0) is var target && target != null)
+        if (imminent && CurrentBaits.Count == 0 && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is var source && WorldState.Actors.Find(source?.TargetID ?? 0) is var target && target != null)
             CurrentBaits.Add(new(target, target, _shape));
         else if (!imminent && CurrentBaits.Count > 0)
             CurrentBaits.Clear();

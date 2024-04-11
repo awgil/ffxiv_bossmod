@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5Phantom;
 
 // TODO: improve hints, currently they are not good... we probably don't need a fully generic implementation, since there are few possible patterns
-class Miasma : Components.GenericAOEs
+class Miasma(BossModule module) : Components.GenericAOEs(module)
 {
     public enum Order { Unknown, LowHigh, HighLow }
 
@@ -68,7 +68,7 @@ class Miasma : Components.GenericAOEs
         if (shape == null)
             return;
 
-        int laneIndex = LaneIndex(module, shape == _shapeRect ? caster.Position : spell.TargetXZ);
+        int laneIndex = LaneIndex(shape == _shapeRect ? caster.Position : spell.TargetXZ);
         if ((AID)spell.Action.ID is AID.CreepingMiasmaFirst or AID.LingeringMiasmaFirst or AID.SwirlingMiasmaFirst)
         {
             int heightIndex = (_laneStates[laneIndex, 0].NumCasts, _laneStates[laneIndex, 1].NumCasts) switch
@@ -85,7 +85,7 @@ class Miasma : Components.GenericAOEs
             }
             else
             {
-                AdvanceLane(module, ref l);
+                AdvanceLane(ref l);
             }
         }
         else
@@ -103,7 +103,7 @@ class Miasma : Components.GenericAOEs
             }
             else
             {
-                AdvanceLane(module, ref l);
+                AdvanceLane(ref l);
             }
         }
     }
@@ -122,11 +122,11 @@ class Miasma : Components.GenericAOEs
         if (shape == null)
             return;
         int heightIndex = (OID)actor.OID is OID.MiasmaLowRect or OID.MiasmaLowCircle or OID.MiasmaLowDonut ? 0 : 1;
-        int laneIndex = LaneIndex(module, actor.Position);
+        int laneIndex = LaneIndex(actor.Position);
         _laneStates[laneIndex, heightIndex] = new() { Shape = shape, Activation = WorldState.FutureTime(16.1f), NextOrigin = new(actor.Position.X, Module.Bounds.Center.Z - Module.Bounds.HalfSize + (shape == _shapeRect ? 0 : 5)) };
     }
 
-    private int LaneIndex(BossModule module, WPos pos) => (pos.X - Module.Bounds.Center.X) switch
+    private int LaneIndex(WPos pos) => (pos.X - Module.Bounds.Center.X) switch
     {
         < -10 => 0,
         < 0 => 1,
@@ -134,7 +134,7 @@ class Miasma : Components.GenericAOEs
         _ => 3,
     };
 
-    private void AdvanceLane(BossModule module, ref LaneState lane)
+    private void AdvanceLane(ref LaneState lane)
     {
         lane.Activation = WorldState.FutureTime(1.6f);
         ++lane.NumCasts;

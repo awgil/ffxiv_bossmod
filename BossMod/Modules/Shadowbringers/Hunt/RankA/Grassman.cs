@@ -15,7 +15,7 @@ public enum AID : uint
     Streak = 17862, // 283A->location, 3,0s cast, width 6 rect charge, knockback 10, away from source
 }
 
-class ChestThump : BossComponent
+class ChestThump(BossModule module) : BossComponent(module)
 {
     private int NumCasts;
     private int NumCasts2;
@@ -69,9 +69,7 @@ class ChestThump : BossComponent
 }
 
 class StoolPelt(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StoolPelt), 5);
-
 class Browbeat(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Browbeat));
-
 class Streak(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Streak), 3);
 
 class GrassmanStates : StateMachineBuilder

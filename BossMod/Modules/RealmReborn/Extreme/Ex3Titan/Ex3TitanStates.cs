@@ -184,7 +184,7 @@ class Ex3TitanStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
-    private void Geocrush<Crush>(uint id, float delay, float newRadius = 0) where Crush : Geocrush, new()
+    private void Geocrush<Crush>(uint id, float delay, float newRadius = 0) where Crush : Geocrush
     {
         Targetable(id, false, delay, "Disappear")
             .ActivateOnEnter<Crush>();

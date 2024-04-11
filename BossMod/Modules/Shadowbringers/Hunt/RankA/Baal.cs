@@ -17,10 +17,9 @@ public enum AID : uint
 }
 
 class SewerWater(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SewerWater), new AOEShapeCone(12, 90.Degrees()));
-
 class SewerWater2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SewerWater2), new AOEShapeCone(12, 90.Degrees()));
 
-class SewageWave : Components.GenericAOEs
+class SewageWave(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCone cone = new(30, 90.Degrees());
     private DateTime _activation;
@@ -33,7 +32,7 @@ class SewageWave : Components.GenericAOEs
             if (NumCasts == 0)
             {
                 yield return new(cone, Module.PrimaryActor.Position, _rotation, _activation, ArenaColor.Danger);
-                yield return new(cone, Module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(2.3f), risky: false);
+                yield return new(cone, Module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(2.3f), Risky: false);
             }
             if (NumCasts == 1)
                 yield return new(cone, Module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(2.3f), ArenaColor.Danger);

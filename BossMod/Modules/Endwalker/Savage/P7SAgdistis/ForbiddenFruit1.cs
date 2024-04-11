@@ -2,5 +2,5 @@
 
 class ForbiddenFruit1(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.StaticMoon))
 {
-    protected override DateTime? PredictUntetheredCastStart(Actor fruit) => WorldState.FutureTime(12.5);
+    protected override DateTime? PredictUntetheredCastStart(Actor fruit) => WorldState.FutureTime(12.5f);
 }

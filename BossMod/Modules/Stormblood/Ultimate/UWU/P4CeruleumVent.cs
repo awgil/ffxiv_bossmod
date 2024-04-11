@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P4CeruleumVent : Components.GenericAOEs
+class P4CeruleumVent(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CeruleumVent))
 {
     private Actor? _source;
     private DateTime _activation;
@@ -8,8 +8,6 @@ class P4CeruleumVent : Components.GenericAOEs
     private static readonly AOEShapeCircle _shape = new(14);
 
     public bool Active => _source != null;
-
-    public P4CeruleumVent() : base(ActionID.MakeSpell(AID.CeruleumVent)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

@@ -1,16 +1,14 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P2Heavensfall : Components.Knockback
+class P2Heavensfall(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Heavensfall), true)
 {
-    public P2Heavensfall() : base(ActionID.MakeSpell(AID.Heavensfall), true) { }
-
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         yield return new(Module.Bounds.Center, 11); // TODO: activation
     }
 }
 
-class P2HeavensfallPillar : Components.GenericAOEs
+class P2HeavensfallPillar(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
@@ -45,9 +43,7 @@ class P2MeteorStream : Components.UniformStackSpread
 {
     public int NumCasts;
 
-    public P2MeteorStream() : base(0, 4, alwaysShowSpreads: true) { }
-
-    public override void Init(BossModule module)
+    public P2MeteorStream(BossModule module) : base(module, 0, 4, alwaysShowSpreads: true)
     {
         AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(5.6f));
     }
@@ -62,13 +58,11 @@ class P2MeteorStream : Components.UniformStackSpread
     }
 }
 
-class P2HeavensfallDalamudDive : Components.GenericBaitAway
+class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DalamudDive), true, true)
 {
-    private Actor? _target;
+    private Actor? _target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
 
     private static readonly AOEShapeCircle _shape = new(5);
-
-    public P2HeavensfallDalamudDive() : base(ActionID.MakeSpell(AID.DalamudDive), true, true) { }
 
     public void Show()
     {
@@ -76,10 +70,5 @@ class P2HeavensfallDalamudDive : Components.GenericBaitAway
         {
             CurrentBaits.Add(new(_target, _target, _shape));
         }
-    }
-
-    public override void Init(BossModule module)
-    {
-        _target = WorldState.Actors.Find(Module.PrimaryActor.TargetID);
     }
 }

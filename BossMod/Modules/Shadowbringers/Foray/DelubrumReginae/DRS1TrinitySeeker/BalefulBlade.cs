@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
-class BalefulBlade : BossComponent
+class BalefulBlade(BossModule module) : BossComponent(module)
 {
     private bool _phantomEdge;
 
@@ -9,7 +9,7 @@ class BalefulBlade : BossComponent
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        hints.Add(_phantomEdge ? "Stay in front of barricade!" : "Hide behind barricade!", !IsSafe(module, actor));
+        hints.Add(_phantomEdge ? "Stay in front of barricade!" : "Hide behind barricade!", !IsSafe(actor));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -18,7 +18,7 @@ class BalefulBlade : BossComponent
         for (int i = 0; i < 4; ++i)
         {
             var center = (45 + i * 90).Degrees();
-            shape.Draw(arena, Module.Bounds.Center, center, ArenaColor.SafeFromAOE);
+            shape.Draw(Arena, Module.Bounds.Center, center, ArenaColor.SafeFromAOE);
         }
     }
 
@@ -28,7 +28,7 @@ class BalefulBlade : BossComponent
             _phantomEdge = true;
     }
 
-    public bool IsSafe(BossModule module, Actor actor)
+    public bool IsSafe(Actor actor)
     {
         var offset = actor.Position - Module.Bounds.Center;
         var angle = Angle.FromDirection(offset).Rad; // 4 barricades to check, at +-45 and +-135

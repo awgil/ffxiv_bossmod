@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
 // TODO: consider showing something before clones jump?
-class BalefulFirestorm : Components.GenericAOEs
+class BalefulFirestorm(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(Actor caster, AOEInstance aoe)> _casters = new();
     private static readonly AOEShapeRect _shape = new(50, 10);

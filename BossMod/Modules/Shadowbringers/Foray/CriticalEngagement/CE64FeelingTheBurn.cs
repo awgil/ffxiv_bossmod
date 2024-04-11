@@ -1,4 +1,6 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn;
+﻿using Dalamud.Logging.Internal;
+
+namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn;
 
 public enum OID : uint
 {
@@ -45,12 +47,10 @@ public enum IconID : uint
 
 class DiveFormation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DiveFormation), new AOEShapeRect(60, 3));
 
-class AntiPersonnelMissile : Components.GenericAOEs
+class AntiPersonnelMissile(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BallisticImpact))
 {
     private readonly List<WPos> _positions = [];
     private static readonly AOEShapeRect _shape = new(12, 12, 12);
-
-    public AntiPersonnelMissile() : base(ActionID.MakeSpell(AID.BallisticImpact)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -71,7 +71,7 @@ class AntiPersonnelMissile : Components.GenericAOEs
     }
 }
 
-class ChainCannonEscort : Components.GenericAOEs
+class ChainCannonEscort(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(Actor caster, int numCasts, DateTime activation)> _casters = [];
     private static readonly AOEShapeRect _shape = new(60, 2.5f);
@@ -84,7 +84,7 @@ class ChainCannonEscort : Components.GenericAOEs
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var c in _casters.Where(c => IsTrackingPlayer(c, pc)))
-            _shape.Outline(arena, c.caster);
+            _shape.Outline(Arena, c.caster);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -112,7 +112,7 @@ class ChainCannonEscort : Components.GenericAOEs
     private bool IsTrackingPlayer((Actor caster, int numCasts, DateTime activation) c, Actor actor) => c.numCasts == 0 && c.caster.CastInfo == null && c.caster.TargetID == actor.InstanceID;
 }
 
-class ChainCannonBoss : Components.GenericAOEs
+class ChainCannonBoss(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _instance;
     private static readonly AOEShapeRect _shape = new(60, 2.5f);
@@ -143,11 +143,8 @@ class ChainCannonBoss : Components.GenericAOEs
 }
 
 class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SurfaceMissileAOE), 6);
-
 class SuppressiveMagitekRays(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SuppressiveMagitekRays));
-
 class Analysis(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Analysis), "Face open weakpoint to charging adds");
-
 class PreciseStrike(BossModule module) : Components.CastWeakpoint(module, ActionID.MakeSpell(AID.PreciseStrike), new AOEShapeRect(60, 3), (uint)SID.FrontUnseen, (uint)SID.BackUnseen, 0, 0);
 
 class CE64FeelingTheBurnStates : StateMachineBuilder

@@ -587,7 +587,7 @@ class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(mod
         {
             var index = ClassifyTower(spell.LocXZ);
             var forbidden = Raid.WithSlot(true).WhereSlot(s => _playerTowers[s] >= 0 && _playerTowers[s] != index).Mask();
-            Towers.Add(new(spell.LocXZ, Radius, ForbiddenSoakers: forbidden));
+            Towers.Add(new(spell.LocXZ, Radius, forbiddenSoakers: forbidden));
         }
     }
 

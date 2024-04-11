@@ -22,7 +22,7 @@ public enum AID : uint
     WitchHunt2 = 17445, // 298A->players, no cast, width 10 rect charge, targets main tank
 }
 
-class LeftRightCheek : Components.GenericAOEs
+class LeftRightCheek(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCone cone = new(60, 90.Degrees());
     private DateTime _activation;
@@ -35,7 +35,7 @@ class LeftRightCheek : Components.GenericAOEs
             if (NumCasts == 0)
             {
                 yield return new(cone, Module.PrimaryActor.Position, _rotation, _activation, ArenaColor.Danger);
-                yield return new(cone, Module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(3.1f), risky: false);
+                yield return new(cone, Module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(3.1f), Risky: false);
             }
             if (NumCasts == 1)
                 yield return new(cone, Module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(3.1f), ArenaColor.Danger);
@@ -68,17 +68,12 @@ class LeftRightCheek : Components.GenericAOEs
 }
 
 class TerrifyingGlance(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.TerrifyingGlance));
-
 class TheStake(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheStake), new AOEShapeCircle(18));
-
 class SecondCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SecondCircle), new AOEShapeRect(40, 4));
-
 class CleansingFire(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CleansingFire));
 
-class FeveredFlagellation : Components.BaitAwayCast
+class FeveredFlagellation(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.FeveredFlagellation), new AOEShapeCone(15, 45.Degrees()))
 {
-    public FeveredFlagellation() : base(ActionID.MakeSpell(AID.FeveredFlagellation), new AOEShapeCone(15, 45.Degrees())) { }
-
     public override void OnCastFinished(Actor caster, ActorCastInfo spell) { }
     public override void OnEventCast(Actor caster, ActorCastEvent spell) //tankbuster resolves on cast event, which can be delayed by moving out of tankbuster range
     {
@@ -89,7 +84,7 @@ class FeveredFlagellation : Components.BaitAwayCast
 
 class FeveredFlagellationHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FeveredFlagellation), "Cleave tankbuster");
 
-class WitchHunt : Components.GenericBaitAway
+class WitchHunt(BossModule module) : Components.GenericBaitAway(module)
 {
     private static readonly AOEShapeRect rect = new AOEShapeRect(0, 5);
     private bool witchHunt1done;

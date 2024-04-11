@@ -65,7 +65,7 @@ class Landslip(BossModule module) : Components.Knockback(module)
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (module.FindComponent<Towerfall>() is var towerfall && towerfall != null && towerfall.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+        if (Module.FindComponent<Towerfall>() is var towerfall && towerfall != null && towerfall.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
             return true;
         if (!Module.Bounds.Contains(pos))
             return true;

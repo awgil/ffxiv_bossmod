@@ -26,12 +26,11 @@ public enum AID : uint
 }
 
 class Gust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Gust), 6);
-
 class ChangelessWinds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ChangelessWinds), new AOEShapeRect(40, 4));
 
 class ChangelessWindsKB : Components.KnockbackFromCastTarget
 {
-    public ChangelessWindsKB() : base(ActionID.MakeSpell(AID.ChangelessWinds), 10, shape: new AOEShapeRect(40, 4), kind: Kind.DirForward)
+    public ChangelessWindsKB(BossModule module) : base(module, ActionID.MakeSpell(AID.ChangelessWinds), 10, shape: new AOEShapeRect(40, 4), kind: Kind.DirForward)
     {
         StopAtWall = true;
     }
@@ -41,28 +40,25 @@ class Whipwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID
 
 class WhipwindKB : Components.KnockbackFromCastTarget
 {
-    public WhipwindKB() : base(ActionID.MakeSpell(AID.Whipwind), 25, shape: new AOEShapeRect(55, 20), kind: Kind.DirForward)
+    public WhipwindKB(BossModule module) : base(module, ActionID.MakeSpell(AID.Whipwind), 25, shape: new AOEShapeRect(55, 20), kind: Kind.DirForward)
     {
         StopAtWall = true;
     }
 }
 
 class GentleBreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GentleBreeze), new AOEShapeRect(15, 2));
-
 class WhirlingGaol(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WhirlingGaol), "Raidwide + Knockback");
 
 class WhirlingGaolKB : Components.KnockbackFromCastTarget
 {
-    public WhirlingGaolKB() : base(ActionID.MakeSpell(AID.WhirlingGaol), 25)
+    public WhirlingGaolKB(BossModule module) : base(module, ActionID.MakeSpell(AID.WhirlingGaol), 25)
     {
         StopAtWall = true;
     }
 }
 
 class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
-
 class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
-
 class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class DjinnStates : StateMachineBuilder
@@ -86,10 +82,8 @@ class DjinnStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9788)]
-public class Djinn : BossModule
+public class Djinn(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public Djinn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

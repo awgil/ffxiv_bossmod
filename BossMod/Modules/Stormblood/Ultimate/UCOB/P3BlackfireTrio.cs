@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3BlackfireTrio : BossComponent
+class P3BlackfireTrio(BossModule module) : BossComponent(module)
 {
     private Actor? _nael;
 
@@ -8,7 +8,7 @@ class P3BlackfireTrio : BossComponent
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actor(_nael, ArenaColor.Object, true);
+        Arena.Actor(_nael, ArenaColor.Object, true);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -22,9 +22,7 @@ class P3BlackfireTrio : BossComponent
 
 class P3ThermionicBeam : Components.UniformStackSpread
 {
-    public P3ThermionicBeam() : base(4, 0, 8) { }
-
-    public override void Init(BossModule module)
+    public P3ThermionicBeam(BossModule module) : base(module, 4, 0, 8)
     {
         var target = Raid.Player(); // note: target is random
         if (target != null)
@@ -38,10 +36,8 @@ class P3ThermionicBeam : Components.UniformStackSpread
     }
 }
 
-class P3MegaflareTower : Components.CastTowers
+class P3MegaflareTower(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.MegaflareTower), 3)
 {
-    public P3MegaflareTower() : base(ActionID.MakeSpell(AID.MegaflareTower), 3) { }
-
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.MegaflareStack)
@@ -54,10 +50,8 @@ class P3MegaflareTower : Components.CastTowers
     }
 }
 
-class P3MegaflareStack : Components.UniformStackSpread
+class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module, 5, 0, 4, 4)
 {
-    public P3MegaflareStack() : base(5, 0, 4, 4) { }
-
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.MegaflareStack)

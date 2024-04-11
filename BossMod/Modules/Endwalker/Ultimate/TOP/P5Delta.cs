@@ -426,7 +426,7 @@ class P5DeltaHyperPulse : Components.GenericAOEs
                     var angle = Angle.FromDirection(actor.Position - pos);
                     for (int j = 0; j < _numRepeats; ++j)
                     {
-                        yield return new(_shape, pos, angle + j * _delta.ArmRotations[i], risky: false);
+                        yield return new(_shape, pos, angle + j * _delta.ArmRotations[i], Risky: false);
                     }
                 }
             }

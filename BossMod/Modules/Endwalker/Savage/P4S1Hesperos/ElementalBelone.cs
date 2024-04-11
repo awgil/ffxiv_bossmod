@@ -12,7 +12,7 @@ class ElementalBelone : BossComponent
         var assignments = module.FindComponent<SettingTheScene>()!;
         uint forbiddenCorners = 1; // 0 corresponds to 'unknown' corner
         foreach (var actor in WorldState.Actors.Where(a => a.OID == (uint)OID.Helper).Tethered(TetherID.Bloodrake))
-            forbiddenCorners |= 1u << (int)assignments.FromPos(module, actor.Position);
+            forbiddenCorners |= 1u << (int)assignments.FromPos(actor.Position);
         var safeCorner = (SettingTheScene.Corner)BitOperations.TrailingZeroCount(~forbiddenCorners);
         _safeElement = assignments.FindElement(safeCorner);
     }

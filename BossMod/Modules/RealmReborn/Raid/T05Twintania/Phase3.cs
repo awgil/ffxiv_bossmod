@@ -83,11 +83,11 @@ class P3Adds(BossModule module) : BossComponent(module)
     {
         foreach (var a in ActiveHygieia)
         {
-            arena.Actor(a, ArenaColor.Enemy);
-            arena.AddCircle(a.Position, _explosionRadius, ArenaColor.Danger);
+            Arena.Actor(a, ArenaColor.Enemy);
+            Arena.AddCircle(a.Position, _explosionRadius, ArenaColor.Danger);
         }
         foreach (var a in Asclepius)
-            arena.Actor(a, ArenaColor.Enemy);
+            Arena.Actor(a, ArenaColor.Enemy);
     }
 }
 

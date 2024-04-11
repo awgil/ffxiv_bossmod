@@ -140,13 +140,13 @@ class BouncingBomb(BossModule module) : Components.GenericAOEs(module)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 7 && NumCasts == 0)
                 for (int i = 2; i < 7; ++i)
-                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky: false);
+                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), Risky: false);
             if (_casters.Count >= 5 && NumCasts == 2)
                 for (int i = 0; i < 5; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 13 && NumCasts == 2)
                 for (int i = 5; i < 13; ++i)
-                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky: false);
+                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), Risky: false);
             if (_casters.Count >= 8 && NumCasts == 7)
                 for (int i = 0; i < 8; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
@@ -203,9 +203,9 @@ class Combos(BossModule module) : Components.GenericAOEs(module)
             {
                 yield return new(combo.shape1, Module.PrimaryActor.Position, combo.rotation, combo.activation1, ArenaColor.Danger);
                 if (!combo.offset)
-                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation, combo.activation2, risky: combo.shape1 != combo.shape2);
+                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation, combo.activation2, Risky: combo.shape1 != combo.shape2);
                 else
-                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, risky: combo.shape1 != combo.shape2);
+                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, Risky: combo.shape1 != combo.shape2);
             }
             if (NumCasts == 1)
             {

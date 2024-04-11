@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7StygimolochLord;
 
-class AddPhaseArena : BossComponent
+class AddPhaseArena(BossModule module) : BossComponent(module)
 {
     private float _innerRingRadius = 14.5f;
     private float _outerRingRadius = 27.5f;
@@ -10,12 +10,12 @@ class AddPhaseArena : BossComponent
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        arena.Zone(Module.Bounds.ClipAndTriangulate(InDanger(module)), ArenaColor.AOE);
-        arena.Zone(Module.Bounds.ClipAndTriangulate(MidDanger(module)), ArenaColor.AOE);
-        arena.Zone(Module.Bounds.ClipAndTriangulate(OutDanger(module)), ArenaColor.AOE);
+        Arena.Zone(Module.Bounds.ClipAndTriangulate(InDanger()), ArenaColor.AOE);
+        Arena.Zone(Module.Bounds.ClipAndTriangulate(MidDanger()), ArenaColor.AOE);
+        Arena.Zone(Module.Bounds.ClipAndTriangulate(OutDanger()), ArenaColor.AOE);
     }
 
-    private IEnumerable<WPos> RingBorder(BossModule module, Angle centerOffset, float ringRadius, bool innerBorder)
+    private IEnumerable<WPos> RingBorder(Angle centerOffset, float ringRadius, bool innerBorder)
     {
         float offsetMultiplier = innerBorder ? -1 : 1;
         Angle halfWidth = (_alcoveWidth / ringRadius).Radians();
@@ -41,21 +41,21 @@ class AddPhaseArena : BossComponent
             yield return first.Value;
     }
 
-    private IEnumerable<WPos> InDanger(BossModule module) => RingBorder(module, 22.5f.Degrees(), _innerRingRadius, true);
+    private IEnumerable<WPos> InDanger() => RingBorder(22.5f.Degrees(), _innerRingRadius, true);
 
-    private IEnumerable<WPos> MidDanger(BossModule module)
+    private IEnumerable<WPos> MidDanger()
     {
-        foreach (var p in RepeatFirst(RingBorder(module, 0.Degrees(), _outerRingRadius, true)))
+        foreach (var p in RepeatFirst(RingBorder(0.Degrees(), _outerRingRadius, true)))
             yield return p;
-        foreach (var p in RepeatFirst(RingBorder(module, 22.5f.Degrees(), _innerRingRadius, false)))
+        foreach (var p in RepeatFirst(RingBorder(22.5f.Degrees(), _innerRingRadius, false)))
             yield return p;
     }
 
-    private IEnumerable<WPos> OutDanger(BossModule module)
+    private IEnumerable<WPos> OutDanger()
     {
         foreach (var p in RepeatFirst(CurveApprox.Circle(Module.Bounds.Center, Module.Bounds.HalfSize, Module.Bounds.MaxApproxError)))
             yield return p;
-        foreach (var p in RepeatFirst(RingBorder(module, 0.Degrees(), _outerRingRadius, false)))
+        foreach (var p in RepeatFirst(RingBorder(0.Degrees(), _outerRingRadius, false)))
             yield return p;
     }
 }

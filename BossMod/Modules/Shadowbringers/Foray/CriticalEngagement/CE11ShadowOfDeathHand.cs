@@ -49,25 +49,15 @@ public enum AID : uint
 }
 
 class BestialLoyalty(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BestialLoyalty), "Summon crows");
-
 class RunWild(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.RunWild), "Interrupt beastmaster");
-
 class HardBeak(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HardBeak));
-
 class PiercingBarrageBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingBarrageBoss), new AOEShapeRect(40, 4));
-
 class Helldive(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Helldive), 6);
-
 class BroadsideBarrage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BroadsideBarrage), new AOEShapeRect(40, 20));
-
 class BlindsideBarrage(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BlindsideBarrage), "Raidwide + deathwall appears");
-
 class RollingBarrage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RollingBarrageAOE), new AOEShapeCircle(8));
-
 class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind));
-
 class Wind(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WindVisual), 30, kind: Kind.DirForward);
-
 class PiercingBarrageCrow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingBarrageCrow), new AOEShapeRect(40, 4));
 
 class CE11ShadowOfDeathHandStates : StateMachineBuilder
@@ -90,10 +80,8 @@ class CE11ShadowOfDeathHandStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 5)] // bnpcname=9400
-public class CE11ShadowOfDeathHand : BossModule
+public class CE11ShadowOfDeathHand(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(825, 640), 20))
 {
-    public CE11ShadowOfDeathHand(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(825, 640), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         base.DrawEnemies(pcSlot, pc);

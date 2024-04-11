@@ -37,33 +37,19 @@ public enum AID : uint
 }
 
 class Wellbore(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wellbore), new AOEShapeCircle(15));
-
 class Compress(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Compress), new AOEShapeCross(100, 3.5f));
-
 class Compress2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Compress2), new AOEShapeRect(102.1f, 3.5f));
-
 class Accelerate(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Accelerate), 6);
-
 class Incinerate(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Incinerate));
-
 class Fount(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fount), 4);
-
 class MechanicalBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.MechanicalBlow));
-
 class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-
 class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-
 class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-
 class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-
 class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
-
 class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
-
 class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(15.23f, 2));
-
 class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class GoliathStates : StateMachineBuilder
@@ -87,10 +73,8 @@ class GoliathStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 688, NameID = 8953)]
-public class Goliath : BossModule
+public class Goliath(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, -390), 20))
 {
-    public Goliath(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -390), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS8Queen;
 
-class JudgmentBlade : Components.GenericAOEs
+class JudgmentBlade(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 

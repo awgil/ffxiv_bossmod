@@ -34,10 +34,9 @@ public enum IconID : uint
 }
 
 class TheTickler(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.TheTickler));
-
 class ScoldsBridle(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ScoldsBridle));
 
-class FeveredFlagellation : Components.GenericBaitAway
+class FeveredFlagellation(BossModule module) : Components.GenericBaitAway(module)
 {
     public override void Update()
     {
@@ -60,7 +59,6 @@ class FeveredFlagellation : Components.GenericBaitAway
 }
 
 class Exorcise(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ExorciseA), 6);
-
 class HolyWater(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.HolyWater), m => m.Enemies(OID.HolyWaterVoidzone).Where(z => z.EventState != 7), 0.8f);
 
 class D012TesleentheForgivenStates : StateMachineBuilder

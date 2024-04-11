@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3Dahu;
 
-class Shockwave : Components.GenericAOEs
+class Shockwave(BossModule module) : Components.GenericAOEs(module)
 {
     private List<AOEInstance> _aoes = new();
     private static readonly AOEShapeCone _shape = new(15, 90.Degrees());

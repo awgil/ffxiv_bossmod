@@ -41,16 +41,14 @@ public enum TetherID : uint
     Foreshadowing = 45, // AlkonostsShadow->Boss
 }
 
-class Stormcall : Components.GenericAOEs
+class Stormcall(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Explosion))
 {
     private readonly List<(Actor source, WPos dest, DateTime activation)> _sources = [];
     private static readonly AOEShapeCircle _shape = new(35);
 
-    public Stormcall() : base(ActionID.MakeSpell(AID.Explosion)) { }
-
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _sources.Take(2).Select(e => new AOEInstance(_shape, e.dest, activation: e.activation));
+        return _sources.Take(2).Select(e => new AOEInstance(_shape, e.dest, default, e.activation));
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -58,7 +56,7 @@ class Stormcall : Components.GenericAOEs
         if ((SID)status.ID == SID.OrbMovement)
         {
             var dest = Module.Bounds.Center + 29 * (actor.Position - Module.Bounds.Center).Normalized();
-            _sources.Add((actor, dest, WorldState.FutureTime(status.Extra == 0x1E ? 9.7 : 19.9)));
+            _sources.Add((actor, dest, WorldState.FutureTime(status.Extra == 0x1E ? 9.7f : 19.9f)));
             _sources.SortBy(e => e.activation);
         }
     }
@@ -77,12 +75,10 @@ class Stormcall : Components.GenericAOEs
 }
 
 class BladedBeak(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.BladedBeak));
-
 class NihilitysSong(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.NihilitysSong));
-
 class Fantod(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FantodAOE), 3);
 
-class Foreshadowing : Components.GenericAOEs
+class Foreshadowing(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEShape? _bossAOE;
     private List<(Actor caster, AOEShape? shape)> _addAOEs = []; // shape is null if add starts cast slightly before boss

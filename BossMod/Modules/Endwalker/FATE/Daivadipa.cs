@@ -216,11 +216,11 @@ class DivineCall(BossModule module) : Components.StatusDrivenForcedMarch(module,
     {
         if (Module.FindComponent<LeftwardTrisula>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
-        if (module.FindComponent<RightwardParasu>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
+        if (Module.FindComponent<RightwardParasu>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
-        if (module.FindComponent<Burn>() is var burn && burn != null && burn.ActiveAOEs(slot, actor).Any() && !burn.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
+        if (Module.FindComponent<Burn>() is var burn && burn != null && burn.ActiveAOEs(slot, actor).Any() && !burn.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
             return true;
-        if (module.FindComponent<LitPath>() is var lit && lit != null && lit.ActiveAOEs(slot, actor).Any() && !lit.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
+        if (Module.FindComponent<LitPath>() is var lit && lit != null && lit.ActiveAOEs(slot, actor).Any() && !lit.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation))) //safe and non-safe areas reverse by the time forced march runs out
             return true;
         else
             return false;
@@ -246,7 +246,7 @@ class DivineCall(BossModule module) : Components.StatusDrivenForcedMarch(module,
         var backwards = actor.FindStatus(SID.AboutFace) != null;
         var marching = actor.FindStatus(SID.ForcedMarch) != null;
         var last = ForcedMovements(actor).LastOrDefault();
-        if (DestinationUnsafe(slot, actor, last.to) && !marching && (forward || left || right || backwards) && ((module.FindComponent<LitPath>()?.ActiveAOEs(slot, actor).Any() ?? false) || (module.FindComponent<Burn>()?.ActiveAOEs(slot, actor).Any() ?? false)))
+        if (DestinationUnsafe(slot, actor, last.to) && !marching && (forward || left || right || backwards) && ((Module.FindComponent<LitPath>()?.ActiveAOEs(slot, actor).Any() ?? false) || (Module.FindComponent<Burn>()?.ActiveAOEs(slot, actor).Any() ?? false)))
             hints.Add("Aim into AOEs!");
         else if (!marching)
             base.AddHints(slot, actor, hints);

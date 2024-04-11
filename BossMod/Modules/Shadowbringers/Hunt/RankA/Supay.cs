@@ -18,7 +18,7 @@ public enum IconID : uint
     Baitaway = 159, // player
 }
 
-class BlasphemousHowl : Components.GenericBaitAway
+class BlasphemousHowl(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;

@@ -41,16 +41,14 @@ class Earthquake(BossModule module) : Components.RaidwideCast(module, ActionID.M
 
 class HeavyStrike1 : Components.SelfTargetedAOEs
 {
-    public HeavyStrike1() : base(ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(0.5f, 6.5f, 135.Degrees()))
+    public HeavyStrike1(BossModule module) : base(module, ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(0.5f, 6.5f, 135.Degrees()))
     {
         Color = ArenaColor.Danger;
     }
 }
 
-class HeavyStrike2 : Components.SelfTargetedAOEs
+class HeavyStrike2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavyStrike2), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees()))
 {
-    public HeavyStrike2() : base(ActionID.MakeSpell(AID.HeavyStrike2), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees())) { }
-
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         base.OnCastFinished(caster, spell);
@@ -59,12 +57,10 @@ class HeavyStrike2 : Components.SelfTargetedAOEs
         else
             Color = ArenaColor.AOE;
     }
-
 }
 
-class HeavyStrike3 : Components.SelfTargetedAOEs
+class HeavyStrike3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavyStrike3), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees()))
 {
-    public HeavyStrike3() : base(ActionID.MakeSpell(AID.HeavyStrike3), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees())) { }
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         base.OnCastFinished(caster, spell);
@@ -76,21 +72,13 @@ class HeavyStrike3 : Components.SelfTargetedAOEs
 }
 
 class PollenCorona(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PollenCorona), new AOEShapeCircle(8));
-
 class StraightPunch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.StraightPunch));
-
 class Leafcutter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Leafcutter), new AOEShapeRect(15, 2));
-
 class EarthCrusher(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EarthCrusher2), new AOEShapeDonut(10, 20));
-
 class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-
 class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-
 class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-
 class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-
 class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
 class BasketStates : StateMachineBuilder
@@ -116,10 +104,8 @@ class BasketStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9784)]
-public class Basket : BossModule
+public class Basket(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public Basket(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

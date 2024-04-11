@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3HeavensfallTrio : BossComponent
+class P3HeavensfallTrio(BossModule module) : BossComponent(module)
 {
     private Actor? _nael;
     private Actor? _twin;
@@ -14,10 +14,10 @@ class P3HeavensfallTrio : BossComponent
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actor(_nael, ArenaColor.Object, true);
+        Arena.Actor(_nael, ArenaColor.Object, true);
         var safespot = _safeSpots[pcSlot];
         if (safespot != default)
-            arena.AddCircle(safespot, 1, ArenaColor.Safe);
+            Arena.AddCircle(safespot, 1, ArenaColor.Safe);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -25,21 +25,21 @@ class P3HeavensfallTrio : BossComponent
         if ((OID)actor.OID == OID.NaelDeusDarnus && id == 0x1E43)
         {
             _nael = actor;
-            InitIfReady(module);
+            InitIfReady();
         }
         else if ((OID)actor.OID == OID.Twintania && id == 0x1E44)
         {
             _twin = actor;
-            InitIfReady(module);
+            InitIfReady();
         }
         else if ((OID)actor.OID == OID.BahamutPrime && id == 0x1E43)
         {
             _baha = actor;
-            InitIfReady(module);
+            InitIfReady();
         }
     }
 
-    private void InitIfReady(BossModule module)
+    private void InitIfReady()
     {
         if (_nael == null || _twin == null || _baha == null)
             return;
@@ -65,17 +65,15 @@ class P3HeavensfallTrio : BossComponent
     }
 }
 
-class P3HeavensfallTowers : Components.CastTowers
+class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.MegaflareTower), 3)
 {
-    public P3HeavensfallTowers() : base(ActionID.MakeSpell(AID.MegaflareTower), 3) { }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         base.OnCastStarted(caster, spell);
 
         if (spell.Action == WatchedAction && Towers.Count == 8)
         {
-            var nael = module.Enemies(OID.NaelDeusDarnus).FirstOrDefault();
+            var nael = Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault();
             if (nael != null)
             {
                 var dirToNael = Angle.FromDirection(nael.Position - Module.Bounds.Center);

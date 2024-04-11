@@ -3,7 +3,7 @@
 class HeavensWrathAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavensWrathVisual), new AOEShapeRect(25, 5, 25));
 
 // TODO: generalize
-class HeavensWrathKnockback : Components.Knockback
+class HeavensWrathKnockback(BossModule module) : Components.Knockback(module)
 {
     private List<Source> _sources = new();
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());

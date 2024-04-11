@@ -1,9 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P5Exaflare : Components.Exaflare
+class P5Exaflare(BossModule module) : Components.Exaflare(module, 6)
 {
-    public P5Exaflare() : base(6) { }
-
     public void Reset() => NumCasts = 0;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -26,7 +24,7 @@ class P5Exaflare : Components.Exaflare
                 return;
             }
 
-            AdvanceLine(module, Lines[index], caster.Position);
+            AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }

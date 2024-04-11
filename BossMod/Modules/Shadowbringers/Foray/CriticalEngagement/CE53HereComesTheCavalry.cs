@@ -45,28 +45,22 @@ public enum TetherID : uint
 }
 
 class StormSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormSlash), new AOEShapeCone(8, 60.Degrees()));
-
 class MagitekBurst(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekBurst), 8);
-
 class BurnishedJoust(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.BurnishedJoust), 3);
 
 // note: there are two casters, probably to avoid 32-target limit - we only want to show one
 class GustSlash(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.GustSlashAOE), 35, true, 1, null, Kind.DirForward);
 
 class FireShot(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.FireShot), m => m.Enemies(OID.FireShot).Where(e => e.EventState != 7), 0);
-
 class AirborneExplosion(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AirborneExplosion), 10);
-
 class RideDownAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RideDown), new AOEShapeRect(60, 5));
 
 // note: there are two casters, probably to avoid 32-target limit - we only want to show one
 // TODO: generalize to reusable component
-class RideDownKnockback : Components.Knockback
+class RideDownKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.RideDownAOE), false, 1)
 {
     private readonly List<Source> _sources = [];
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
-
-    public RideDownKnockback() : base(ActionID.MakeSpell(AID.RideDownAOE), false, 1) { }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _sources;
 
@@ -94,11 +88,9 @@ class CallRaze(BossModule module) : Components.RaidwideCast(module, ActionID.Mak
 // - distance ~6.4 (inside hitbox) and 1 vuln stack: 79194 damage
 // - distance ~22.2 and 4 vuln stacks: 21083 damage
 // since hitbox is 7.2 it is probably starting to be optimal around distance 15
-class RawSteel : Components.BaitAwayChargeCast
+class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.RawSteel), 2)
 {
     private static readonly float _safeDistance = 15;
-
-    public RawSteel() : base(ActionID.MakeSpell(AID.RawSteel), 2) { }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -128,17 +120,14 @@ class RawSteel : Components.BaitAwayChargeCast
     {
         foreach (var bait in ActiveBaitsOn(pc))
         {
-            bait.Shape.Outline(arena, BaitOrigin(bait), bait.Rotation, bait.Target.Position.InCircle(bait.Source.Position, 15) ? ArenaColor.Danger : ArenaColor.Safe);
+            bait.Shape.Outline(Arena, BaitOrigin(bait), bait.Rotation, bait.Target.Position.InCircle(bait.Source.Position, 15) ? ArenaColor.Danger : ArenaColor.Safe);
         }
     }
 }
 
 class CloseQuarters(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CloseQuartersAOE), new AOEShapeCircle(15));
-
 class FarAfield(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FarAfieldAOE), new AOEShapeDonut(10, 30));
-
 class CallControlledBurn(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.CallControlledBurnAOE), 6);
-
 class MagitekBlaster(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MagitekBlaster), 8);
 
 class CE53HereComesTheCavalryStates : StateMachineBuilder
@@ -164,10 +153,8 @@ class CE53HereComesTheCavalryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 22)] // bnpcname=9929
-public class CE53HereComesTheCavalry : BossModule
+public class CE53HereComesTheCavalry(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-750, 790), 25))
 {
-    public CE53HereComesTheCavalry(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-750, 790), 25)) { }
-
     protected override bool CheckPull() => PrimaryActor.InCombat; // not targetable at start
 
     protected override void DrawEnemies(int pcSlot, Actor pc)

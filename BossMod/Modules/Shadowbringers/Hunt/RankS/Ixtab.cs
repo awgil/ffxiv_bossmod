@@ -30,31 +30,32 @@ public enum SID : uint
     Doom = 1769, // Boss->player, extra=0x0
 }
 
-class DualCastTartareanFlameThunder : Components.GenericAOEs
+class DualCastTartareanFlameThunder(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = new();
     private static readonly AOEShapeCircle circle = new(20);
     private static readonly AOEShapeDonut donut = new(8, 40);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var dualcast = Module.PrimaryActor.FindStatus(SID.Dualcast) != null;
         if ((AID)spell.Action.ID == AID.TartareanThunder)
             if (!dualcast)
-                _aoes.Add(new(circle, caster.Position, activation: spell.NPCFinishAt));
+                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt));
             else
             {
-                _aoes.Add(new(circle, caster.Position, activation: spell.NPCFinishAt));
-                _aoes.Add(new(donut, caster.Position, activation: spell.NPCFinishAt.AddSeconds(5.1f)));
+                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt));
+                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt.AddSeconds(5.1f)));
             }
         if ((AID)spell.Action.ID == AID.TartareanFlame)
             if (!dualcast)
-                _aoes.Add(new(donut, caster.Position, activation: spell.NPCFinishAt));
+                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt));
             else
             {
-                _aoes.Add(new(donut, caster.Position, activation: spell.NPCFinishAt));
-                _aoes.Add(new(circle, caster.Position, activation: spell.NPCFinishAt.AddSeconds(5.1f)));
+                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt));
+                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt.AddSeconds(5.1f)));
             }
     }
 
@@ -72,25 +73,16 @@ class DualCastTartareanFlameThunder : Components.GenericAOEs
 }
 
 class TartareanTwister(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TartareanTwister));
-
 class TartareanBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanBlizzard), new AOEShapeCone(40, 22.5f.Degrees()));
-
 class TartareanQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TartareanQuake));
-
 class TartareanAbyss(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.TartareanAbyss), new AOEShapeCircle(6), true);
-
 class TartareanAbyssHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TartareanAbyss), "Tankbuster circle");
-
 class TartareanFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanFlare), 18);
-
 class TartareanMeteor(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TartareanMeteor), 10);
-
 class ArchaicDualcast(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ArchaicDualcast), "Preparing In/Out or Out/In AOE");
 
-class Cryptcall : Components.BaitAwayCast
+class Cryptcall(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Cryptcall), new AOEShapeCone(38.24f, 60.Degrees()))
 {
-    public Cryptcall() : base(ActionID.MakeSpell(AID.Cryptcall), new AOEShapeCone(38.24f, 60.Degrees())) { }
-
     public override void OnCastFinished(Actor caster, ActorCastInfo spell) { }
     public override void OnEventCast(Actor caster, ActorCastEvent spell) //bait resolves on cast event instead of cast finish
     {
@@ -101,7 +93,7 @@ class Cryptcall : Components.BaitAwayCast
 
 class CryptcallHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Cryptcall), "Cone reduces health to 1 + applies Doom");
 
-class Doom : BossComponent
+class Doom(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> _doomed = [];
     public bool Doomed { get; private set; }

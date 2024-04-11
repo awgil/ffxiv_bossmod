@@ -2,7 +2,7 @@
 
 class RightArmRayNormal(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightArmRayNormalAOE), new AOEShapeCircle(10));
 
-class RightArmRayBuffed : Components.GenericAOEs
+class RightArmRayBuffed(BossModule module) : Components.GenericAOEs(module)
 {
     public class SphereState
     {
@@ -32,7 +32,7 @@ class RightArmRayBuffed : Components.GenericAOEs
             yield break;
 
         foreach (var s in _spheres.Where(s => s.NumCastsLeft > 1))
-            yield return new(_shape, s.Sphere.Position, s.RotNext + s.RotIncrement, _activation, risky: false);
+            yield return new(_shape, s.Sphere.Position, s.RotNext + s.RotIncrement, _activation, Risky: false);
         foreach (var s in _spheres)
             yield return new(_shape, s.Sphere.Position, s.RotNext, _activation, ArenaColor.Danger);
     }
@@ -54,7 +54,7 @@ class RightArmRayBuffed : Components.GenericAOEs
                         var midpointOffset = (ccwOffset + cwOffset) * 0.5f;
                         if (midpointOffset.OrthoL().Dot(ccwOffset) < 0)
                         {
-                            arena.AddCircle(Module.Bounds.Center + midpointOffset, 1, ArenaColor.Safe);
+                            Arena.AddCircle(Module.Bounds.Center + midpointOffset, 1, ArenaColor.Safe);
                         }
                     }
                 }

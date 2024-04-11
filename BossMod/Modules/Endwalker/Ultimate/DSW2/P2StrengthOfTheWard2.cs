@@ -191,6 +191,6 @@ class P2StrengthOfTheWard2Towers(BossModule module) : Components.CastTowers(modu
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Towers.Add(new(spell.LocXZ, Radius, ForbiddenSoakers: Raid.WithSlot(true).WhereActor(p => p.Role == Role.Tank).Mask()));
+            Towers.Add(new(spell.LocXZ, Radius, forbiddenSoakers: Raid.WithSlot(true).WhereActor(p => p.Role == Role.Tank).Mask()));
     }
 }

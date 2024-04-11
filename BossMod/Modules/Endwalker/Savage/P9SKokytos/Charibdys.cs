@@ -108,7 +108,7 @@ class EclipticMeteor(BossModule module) : Components.GenericLineOfSightAOE(modul
     {
         if (iconID == (uint)IconID.EclipticMeteor)
         {
-            Modify(actor.Position, module.Enemies(OID.Comet).Where(c => c != actor && !Comet.IsFinished(c)).Select(c => (c.Position, c.HitboxRadius)));
+            Modify(actor.Position, Module.Enemies(OID.Comet).Where(c => c != actor && !Comet.IsFinished(c)).Select(c => (c.Position, c.HitboxRadius)));
         }
     }
 }

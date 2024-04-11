@@ -1,15 +1,15 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS4QueensGuard;
 
-class AboveBoard : Components.GenericAOEs
+class AboveBoard(BossModule module) : Components.GenericAOEs(module)
 {
     public enum State { Initial, ThrowUpDone, ShortExplosionsDone, LongExplosionsDone }
 
     public State CurState { get; private set; }
-    private IReadOnlyList<Actor> _smallBombs = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _bigBombs = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _smallBombs = module.Enemies(OID.AetherialBolt);
+    private IReadOnlyList<Actor> _bigBombs = module.Enemies(OID.AetherialBurst);
     private bool _invertedBombs; // bombs are always either all normal (big=short) or all inverted
     private BitMask _invertedPlayers; // default for player is 'long', short is considered inverted (has visible status)
-    private DateTime _activation;
+    private DateTime _activation = module.WorldState.FutureTime(12);
 
     private static readonly AOEShapeCircle _shape = new(10);
 
@@ -17,13 +17,6 @@ class AboveBoard : Components.GenericAOEs
     {
         var imminentBombs = AreBigBombsDangerous(slot) ? _bigBombs : _smallBombs;
         return imminentBombs.Select(b => new AOEInstance(_shape, b.Position, new(), _activation));
-    }
-
-    public override void Init(BossModule module)
-    {
-        _smallBombs = module.Enemies(OID.AetherialBolt);
-        _bigBombs = module.Enemies(OID.AetherialBurst);
-        _activation = WorldState.FutureTime(12);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

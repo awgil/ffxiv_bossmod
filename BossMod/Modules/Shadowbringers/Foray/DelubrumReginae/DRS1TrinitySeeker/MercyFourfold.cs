@@ -1,13 +1,11 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
-class MercyFourfold : Components.GenericAOEs
+class MercyFourfold(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MercyFourfoldAOE))
 {
     public readonly List<AOEInstance> AOEs = new();
     private readonly List<AOEInstance?> _safezones = new();
     private static readonly AOEShapeCone _shapeAOE = new(50, 90.Degrees());
     private static readonly AOEShapeCone _shapeSafe = new(50, 45.Degrees());
-
-    public MercyFourfold() : base(ActionID.MakeSpell(AID.MercyFourfoldAOE)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -50,7 +48,7 @@ class MercyFourfold : Components.GenericAOEs
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
         {
             if (AOEs.Count > 0)

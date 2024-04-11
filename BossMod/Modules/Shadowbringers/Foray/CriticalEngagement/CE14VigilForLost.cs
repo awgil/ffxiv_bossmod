@@ -25,21 +25,13 @@ public enum AID : uint
 }
 
 class LightLeap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightLeap), 10);
-
 class ChemicalMissile(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ChemicalMissile), new AOEShapeCircle(12));
-
 class TailMissile(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailMissileAOE), new AOEShapeCircle(30));
-
 class Shockwave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shockwave), new AOEShapeCircle(16));
-
 class ExplosiveFlare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosiveFlare), new AOEShapeCircle(10));
-
 class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CripplingBlow));
-
 class PlasmaField(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PlasmaField));
-
 class Towers(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Explosion), 6);
-
 class MagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRay), new AOEShapeRect(50, 2));
 
 class CE14VigilForLostStates : StateMachineBuilder

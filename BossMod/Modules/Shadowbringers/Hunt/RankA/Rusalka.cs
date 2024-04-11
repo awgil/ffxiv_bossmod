@@ -15,17 +15,14 @@ public enum AID : uint
 }
 
 class Hydrocannon(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrocannon), 8);
-
 class AetherialSpark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherialSpark), new AOEShapeRect(12, 2));
 
-class AetherialPull : Components.KnockbackFromCastTarget
+class AetherialPull(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AetherialPull), 30, shape: new AOEShapeCircle(30), kind: Kind.TowardsOrigin)
 {
-    public AetherialPull() : base(ActionID.MakeSpell(AID.AetherialPull), 30, shape: new AOEShapeCircle(30), kind: Kind.TowardsOrigin) { }
-
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<Flood>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Flood>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class Flood : Components.GenericAOEs
+class Flood(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
@@ -34,7 +31,7 @@ class Flood : Components.GenericAOEs
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AetherialPull)
-            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, activation: spell.NPCFinishAt.AddSeconds(3.6f));
+            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(3.6f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -29,23 +29,14 @@ public enum AID : uint
 }
 
 class DarkSpike(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.DarkSpike));
-
 class FrondAffeared(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.FrondAffeared));
-
 class SilkenSpray(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SilkenSpray), new AOEShapeCone(24, 30.Degrees()));
-
 class Implosion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Implosion));
-
 class Earthquake1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Earthquake1), new AOEShapeCircle(10.5f));
-
 class Earthquake2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Earthquake2), new AOEShapeDonut(10, 20));
-
 class Earthquake3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Earthquake3), new AOEShapeDonut(20, 30));
-
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-
 class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class ArachneStates : StateMachineBuilder
@@ -68,10 +59,8 @@ class ArachneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7623)]
-public class Arachne : BossModule
+public class Arachne(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Arachne(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

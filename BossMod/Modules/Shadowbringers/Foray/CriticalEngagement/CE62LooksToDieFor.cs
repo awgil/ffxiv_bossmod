@@ -40,7 +40,7 @@ public enum AID : uint
 
 class Thundercall(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Thundercall), "Raidwide + summon lighting orbs");
 
-class LightningBoltDistantClap : Components.GenericAOEs
+class LightningBoltDistantClap(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
 
@@ -61,7 +61,7 @@ class LightningBoltDistantClap : Components.GenericAOEs
         {
             case AID.LightningBoltAOE:
                 if (_aoes.FindIndex(a => a.Origin.AlmostEqual(spell.TargetXZ, 1)) is var index && index >= 0)
-                    _aoes[index] = new(_shapeClap, spell.TargetXZ, activation: WorldState.FutureTime(6.1f));
+                    _aoes[index] = new(_shapeClap, spell.TargetXZ, default, WorldState.FutureTime(6.1f));
                 break;
             case AID.DistantClap:
                 _aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 1));
@@ -72,10 +72,8 @@ class LightningBoltDistantClap : Components.GenericAOEs
 
 class TwistingWinds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TwistingWinds), new AOEShapeRect(40, 5, 40));
 
-class CloudToGround : Components.Exaflare
+class CloudToGround(BossModule module) : Components.Exaflare(module, 5)
 {
-    public CloudToGround() : base(5) { }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.CloudToGroundFirst)
@@ -95,7 +93,7 @@ class CloudToGround : Components.Exaflare
                 return;
             }
 
-            AdvanceLine(module, Lines[index], caster.Position);
+            AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }
@@ -104,9 +102,9 @@ class CloudToGround : Components.Exaflare
 
 class Flame(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Flame), "Raidwide + summon flame orbs");
 
-class Burn : Components.GenericAOEs
+class Burn(BossModule module) : Components.GenericAOEs(module)
 {
-    private IReadOnlyList<Actor> _flames = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _flames = module.Enemies(OID.BallOfFire);
     private List<(Actor actor, AOEInstance? aoe)> _casters = [];
 
     private static readonly AOEShapeCircle _shape = new(8);
@@ -125,16 +123,11 @@ class Burn : Components.GenericAOEs
         }
     }
 
-    public override void Init(BossModule module)
-    {
-        _flames = module.Enemies(OID.BallOfFire);
-    }
-
     public override void Update()
     {
         foreach (var f in _flames.Where(f => f.ModelState.AnimState1 == 1 && _casters.FindIndex(c => c.actor == f) < 0))
         {
-            _casters.Add((f, new (_shape, f.Position, activation: WorldState.FutureTime(5))));
+            _casters.Add((f, new (_shape, f.Position, default, WorldState.FutureTime(5))));
         }
     }
 
@@ -146,15 +139,10 @@ class Burn : Components.GenericAOEs
 }
 
 class Forelash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Forelash), new AOEShapeCone(40, 90.Degrees()));
-
 class Backlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Backlash), new AOEShapeCone(40, 90.Degrees()));
-
 class Charybdis(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Charybdis), "Set hp to 1");
-
 class Roar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Roar));
-
 class Levinbolt(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.LevinboltAOE), 6);
-
 class SerpentsEdge(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SerpentsEdge));
 
 class CE62LooksToDieForStates : StateMachineBuilder

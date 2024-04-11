@@ -140,10 +140,10 @@ class Shatter(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.Ferocity)
             FerocityCasted = true;
         if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnDonut)
-            foreach (var c in module.Enemies(OID.AllaganCrystal))
+            foreach (var c in Module.Enemies(OID.AllaganCrystal))
                 _aoes.Add(new(circle, c.Position, default, spell.NPCFinishAt.AddSeconds(0.5f)));
         if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnCircle)
-            foreach (var c in module.Enemies(OID.AllaganCrystal))
+            foreach (var c in Module.Enemies(OID.AllaganCrystal))
                 _aoes.Add(new(cone, c.Position, c.Rotation, spell.NPCFinishAt.AddSeconds(0.5f)));
     }
 

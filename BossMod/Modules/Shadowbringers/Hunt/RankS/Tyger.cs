@@ -19,7 +19,7 @@ public enum AID : uint
 
 class TheLionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheLionsBreath), new AOEShapeCone(30, 60.Degrees()));
 
-class TheScorpionsSting : Components.GenericAOEs
+class TheScorpionsSting(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeCone cone = new(18, 45.Degrees());
@@ -50,17 +50,11 @@ class TheScorpionsSting : Components.GenericAOEs
 }
 
 class TheDragonsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsBreath), new AOEShapeCone(30, 60.Degrees()));
-
 class TheRamsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsBreath), new AOEShapeCone(30, 60.Degrees()));
-
 class TheRamsEmbrace(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsEmbrace), new AOEShapeCircle(9));
-
 class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9));
-
 class TheRamsVoiceHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TheRamsVoice));
-
 class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30));
-
 class TheDragonsVoiceHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TheDragonsVoice), hintExtra: "Donut Raidwide");
 
 class TygerStates : StateMachineBuilder

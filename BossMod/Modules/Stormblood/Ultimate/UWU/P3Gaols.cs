@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 // TODO: add sludge voidzones?..
-class P3Gaols : Components.GenericAOEs
+class P3Gaols(BossModule module) : Components.GenericAOEs(module)
 {
     public enum State { None, TargetSelection, Fetters, Done }
 
@@ -41,7 +41,7 @@ class P3Gaols : Components.GenericAOEs
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         switch ((AID)spell.Action.ID)
         {
             case AID.RockThrowBoss:

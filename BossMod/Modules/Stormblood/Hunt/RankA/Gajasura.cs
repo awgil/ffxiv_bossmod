@@ -14,9 +14,7 @@ public enum AID : uint
 }
 
 class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(8.23f, 60.Degrees()));
-
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-
 class Buffet(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Buffet), "Heavy damage on random target (except tank)");
 
 class GajasuraStates : StateMachineBuilder

@@ -1,12 +1,10 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P2BahamutsFavorFireball : Components.UniformStackSpread
+class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread(module, 4, 0, 1)
 {
     public Actor? Target;
     private BitMask _forbidden;
     private DateTime _activation;
-
-    public P2BahamutsFavorFireball() : base(4, 0, 1) { }
 
     public void Show()
     {
@@ -39,7 +37,7 @@ class P2BahamutsFavorFireball : Components.UniformStackSpread
         if ((TetherID)tether.ID == TetherID.Fireball)
         {
             Target = WorldState.Actors.Find(tether.Target);
-            _activation = WorldState.FutureTime(5.1);
+            _activation = WorldState.FutureTime(5.1f);
         }
     }
 
@@ -55,14 +53,12 @@ class P2BahamutsFavorFireball : Components.UniformStackSpread
 }
 
 // note: if player dies immediately after chain lightning cast, he won't get a status or have aoe cast; if he dies after status application, aoe will be triggered immediately
-class P2BahamutsFavorChainLightning : Components.UniformStackSpread
+class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStackSpread(module, 0, 5, alwaysShowSpreads: true)
 {
     private BitMask _pendingTargets;
     private DateTime _expectedStatuses;
 
-    public P2BahamutsFavorChainLightning() : base(0, 5, alwaysShowSpreads: true) { }
-
-    public bool ActiveOrSkipped(BossModule module) => Active || _pendingTargets.Any() && WorldState.CurrentTime >= _expectedStatuses && Raid.WithSlot(true).IncludedInMask(_pendingTargets).All(ip => ip.Item2.IsDead);
+    public bool ActiveOrSkipped() => Active || _pendingTargets.Any() && WorldState.CurrentTime >= _expectedStatuses && Raid.WithSlot(true).IncludedInMask(_pendingTargets).All(ip => ip.Item2.IsDead);
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -89,7 +85,7 @@ class P2BahamutsFavorChainLightning : Components.UniformStackSpread
     }
 }
 
-class P2BahamutsFavorDeathstorm : BossComponent
+class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
 {
     public int NumDeathstorms { get; private set; }
     private List<(Actor player, DateTime expiration, bool cleansed)> _dooms = new();
@@ -106,7 +102,7 @@ class P2BahamutsFavorDeathstorm : BossComponent
     {
         var doomOrder = _dooms.FindIndex(d => d.player == pc);
         if (doomOrder >= 0 && !_dooms[doomOrder].cleansed && doomOrder < _cleanses.Count)
-            arena.AddCircle(_cleanses[doomOrder].voidzone?.Position ?? _cleanses[doomOrder].predicted, 1, ArenaColor.Safe);
+            Arena.AddCircle(_cleanses[doomOrder].voidzone?.Position ?? _cleanses[doomOrder].predicted, 1, ArenaColor.Safe);
     }
 
     public override void OnActorCreated(Actor actor)

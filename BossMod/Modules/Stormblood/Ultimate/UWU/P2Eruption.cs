@@ -2,18 +2,16 @@
 
 // TODO: is it baited on farthest dps or any roles? can subsequent eruptions bait on other targets?
 // casts are 3s long and 2s apart (overlapping)
-class P2Eruption : Components.LocationTargetedAOEs
+class P2Eruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EruptionAOE), 8)
 {
     public int NumCastsStarted { get; private set; }
     private BitMask _baiters;
-
-    public P2Eruption() : base(ActionID.MakeSpell(AID.EruptionAOE), 8) { }
 
     public override void Update()
     {
         if (NumCastsStarted == 0)
         {
-            var source = ((UWU)module).Ifrit();
+            var source = ((UWU)Module).Ifrit();
             if (source != null)
                 _baiters = Raid.WithSlot().WhereActor(a => a.Class.IsDD()).SortedByRange(source.Position).TakeLast(2).Mask();
         }
@@ -22,7 +20,7 @@ class P2Eruption : Components.LocationTargetedAOEs
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_baiters[pcSlot])
-            arena.AddCircle(pc.Position, Shape.Radius, ArenaColor.Safe);
+            Arena.AddCircle(pc.Position, Shape.Radius, ArenaColor.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P2InfernalFetters : BossComponent
+class P2InfernalFetters(BossModule module) : BossComponent(module)
 {
     public BitMask Fetters;
     private int _fettersStrength;
@@ -17,7 +17,7 @@ class P2InfernalFetters : BossComponent
             var from = Raid[Fetters.LowestSetBit()];
             var to = Raid[Fetters.HighestSetBit()];
             if (from != null && to != null)
-                arena.AddLine(from.Position, to.Position, _fettersStrength > 1 ? ArenaColor.Danger : ArenaColor.Safe);
+                Arena.AddLine(from.Position, to.Position, _fettersStrength > 1 ? ArenaColor.Danger : ArenaColor.Safe);
         }
     }
 

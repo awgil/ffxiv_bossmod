@@ -34,7 +34,7 @@ class SpringCrystalsRect : Components.GenericAOEs
                 pos.X += pos.X < Module.Bounds.Center.X ? 20 : -20;
                 pos.Z += pos.Z < Module.Bounds.Center.Z ? 20 : -20;
             }
-            _aoes.Add(new(_shape, pos, actor.Rotation, WorldState.FutureTime(_delay), risky: _risky));
+            _aoes.Add(new(_shape, pos, actor.Rotation, WorldState.FutureTime(_delay), Risky: _risky));
             SafeZoneCenters.RemoveAll(c => _shape.Check(c, pos, actor.Rotation));
         }
     }

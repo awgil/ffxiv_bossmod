@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
 // TODO: generalize to tankswap
-class P2Ravensbeak : BossComponent
+class P2Ravensbeak(BossModule module) : BossComponent(module)
 {
     private Actor? _caster;
     private ulong _targetId;

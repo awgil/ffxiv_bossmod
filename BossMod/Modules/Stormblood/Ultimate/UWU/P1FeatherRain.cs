@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 // predict puddles under all players until actual casts start
-class P1FeatherRain : Components.GenericAOEs
+class P1FeatherRain(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FeatherRain), "GTFO from puddle!")
 {
     private List<WPos> _predicted = new();
     private List<Actor> _casters = new();
@@ -11,8 +11,6 @@ class P1FeatherRain : Components.GenericAOEs
 
     public bool CastsPredicted => _predicted.Count > 0;
     public bool CastsActive => _casters.Count > 0;
-
-    public P1FeatherRain() : base(ActionID.MakeSpell(AID.FeatherRain), "GTFO from puddle!") { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

@@ -1,13 +1,11 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P4Freefire : Components.GenericAOEs
+class P4Freefire(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FreefireIntermission))
 {
     private List<Actor> _casters = new();
     private DateTime _activation;
 
     private static readonly AOEShape _shape = new AOEShapeCircle(15); // TODO: verify falloff
-
-    public P4Freefire() : base(ActionID.MakeSpell(AID.FreefireIntermission)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

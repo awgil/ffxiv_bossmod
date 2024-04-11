@@ -13,7 +13,6 @@ public enum AID : uint
 }
 
 class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Icefall), 5);
-
 class PetrifyingEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.PetrifyingEye));
 
 class ForgivenGossipStates : StateMachineBuilder

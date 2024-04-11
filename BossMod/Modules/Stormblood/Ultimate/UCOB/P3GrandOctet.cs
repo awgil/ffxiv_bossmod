@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3GrandOctet : Components.GenericAOEs
+class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
 {
     public List<Actor> Casters = new();
     private Actor? _nael;
@@ -35,15 +35,15 @@ class P3GrandOctet : Components.GenericAOEs
     {
         // draw safespot
         if (NumCasts == 0 && AOEs.Count <= 1 && _initialSafespot != default)
-            arena.AddCircle(_initialSafespot, 1, ArenaColor.Safe);
+            Arena.AddCircle(_initialSafespot, 1, ArenaColor.Safe);
 
         // draw bait
         var order = _baitOrder[pcSlot];
         if (order >= NextBaitOrder && order <= Casters.Count)
         {
             var source = Casters[order - 1];
-            arena.Actor(source, ArenaColor.Object, true);
-            BaitShape(order).Outline(arena, source.Position, Angle.FromDirection(pc.Position - source.Position));
+            Arena.Actor(source, ArenaColor.Object, true);
+            BaitShape(order).Outline(Arena, source.Position, Angle.FromDirection(pc.Position - source.Position));
         }
     }
 
@@ -101,21 +101,21 @@ class P3GrandOctet : Components.GenericAOEs
         if ((OID)actor.OID == OID.NaelDeusDarnus && id == 0x1E43)
         {
             _nael = actor;
-            InitIfReady(module);
+            InitIfReady();
         }
         else if ((OID)actor.OID == OID.Twintania && id == 0x1E44)
         {
             _twin = actor;
-            InitIfReady(module);
+            InitIfReady();
         }
         else if ((OID)actor.OID == OID.BahamutPrime && id == 0x1E43)
         {
             _baha = actor;
-            InitIfReady(module);
+            InitIfReady();
         }
     }
 
-    private void InitIfReady(BossModule module)
+    private void InitIfReady()
     {
         if (_nael == null || _twin == null || _baha == null)
             return;

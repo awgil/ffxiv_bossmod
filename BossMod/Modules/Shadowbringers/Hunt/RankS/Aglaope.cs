@@ -27,7 +27,7 @@ class SongOfTorment(BossModule module) : Components.CastInterruptHint(module, Ac
 
 //TODO: ideally this AOE should just wait for Effect Results, since they can be delayed by over 2.1s, which would cause unknowning players and AI to run back into the death zone, 
 //not sure how to do this though considering there can be anywhere from 0-32 targets with different time for effect results each
-class SeductiveSonata : Components.GenericAOEs
+class SeductiveSonata(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private DateTime _time;
@@ -37,7 +37,7 @@ class SeductiveSonata : Components.GenericAOEs
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (casting || (_time != default && _time > WorldState.CurrentTime))
-            yield return new(circle, Module.PrimaryActor.Position, activation: _activation);
+            yield return new(circle, Module.PrimaryActor.Position, default, _activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -61,15 +61,10 @@ class SeductiveSonata : Components.GenericAOEs
 }
 
 class DeathlyVerse(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathlyVerse), new AOEShapeCircle(6));
-
 class Tornado(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Tornado), 6);
-
 class FourfoldSuffering(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FourfoldSuffering), new AOEShapeDonut(5, 50));
-
 class AncientAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientAero), new AOEShapeRect(42.4f, 3));
-
 class AncientAeroIII(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AncientAeroIII));
-
 class AncientAeroIIIKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AncientAeroIII), 10, shape: new AOEShapeCircle(30));
 
 class AglaopeStates : StateMachineBuilder

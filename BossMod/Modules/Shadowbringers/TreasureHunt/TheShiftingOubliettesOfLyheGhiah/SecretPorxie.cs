@@ -44,15 +44,11 @@ public enum AID : uint
 }
 
 class BrewingStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrewingStorm), new AOEShapeCone(5, 30.Degrees()));
-
 class HarrowingDream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HarrowingDream), new AOEShapeCircle(6));
-
 class BecloudingDust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BecloudingDust2), 6);
 
-class Sweep : Components.Exaflare
+class Sweep(BossModule module) : Components.Exaflare(module, 6)
 {
-    public Sweep() : base(6) { }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SweepStart)
@@ -64,7 +60,7 @@ class Sweep : Components.Exaflare
         if (Lines.Count > 0 && (AID)spell.Action.ID == AID.SweepRest)
         {
             int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
-            AdvanceLine(module, Lines[index], caster.Position);
+            AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }
@@ -72,19 +68,12 @@ class Sweep : Components.Exaflare
 }
 
 class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
-
 class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
-
 class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
-
 class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-
 class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-
 class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-
 class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-
 class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
 class PorxieStates : StateMachineBuilder
@@ -109,10 +98,8 @@ class PorxieStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9795)]
-public class Porxie : BossModule
+public class Porxie(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public Porxie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

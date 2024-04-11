@@ -1,10 +1,9 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
 class SpiralScourge(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpiralScourge), "Use Manawall, Excellence, or Invuln.");
-
 class CallousCrossfire(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CallousCrossfire), "Use Light Curtain / Reflect.");
 
-class ReactiveMunition : Components.StayMove
+class ReactiveMunition(BossModule module) : Components.StayMove(module)
 {
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -25,7 +24,7 @@ class ReactiveMunition : Components.StayMove
     }
 }
 
-class SenseWeakness : Components.StayMove
+class SenseWeakness(BossModule module) : Components.StayMove(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -48,7 +47,7 @@ class SenseWeakness : Components.StayMove
 
 class MagitekImpetus : Components.StatusDrivenForcedMarch
 {
-    public MagitekImpetus() : base(3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
+    public MagitekImpetus(BossModule module) : base(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
     {
         ActivationLimit = 1;
     }

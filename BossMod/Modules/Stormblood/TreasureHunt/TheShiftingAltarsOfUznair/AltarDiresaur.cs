@@ -36,20 +36,14 @@ public enum IconID : uint
 }
 
 class DeadlyHold(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.DeadlyHold));
-
 class HeatBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeatBreath), new AOEShapeCone(14.6f, 45.Degrees()));
-
 class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(26.6f, 45.Degrees()));
-
 class RagingInferno(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RagingInferno));
-
 class Comet(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Comet), 4);
-
 class HardStomp(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HardStomp), new AOEShapeCircle(10));
-
 class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 6);
 
-class FireballBait : Components.GenericBaitAway
+class FireballBait(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;
@@ -91,11 +85,8 @@ class FireballBait : Components.GenericBaitAway
 }
 
 class FireballVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7));
-
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-
 class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class DiresaurStates : StateMachineBuilder
@@ -120,10 +111,8 @@ class DiresaurStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7627)]
-public class Diresaur : BossModule
+public class Diresaur(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Diresaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

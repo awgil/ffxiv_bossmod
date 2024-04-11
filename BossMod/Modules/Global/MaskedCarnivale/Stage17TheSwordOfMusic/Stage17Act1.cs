@@ -24,7 +24,7 @@ class Hints2(BossModule module) : BossComponent(module)
         if (!Module.PrimaryActor.IsDead)
             hints.Add($"{Module.PrimaryActor.Name} counters magical damage!");
         if (!Module.Enemies(OID.RightClaw).All(e => e.IsDead))
-            hints.Add($"{module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
+            hints.Add($"{Module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
     }
 }
 

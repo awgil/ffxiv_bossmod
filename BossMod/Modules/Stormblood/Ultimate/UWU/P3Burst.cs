@@ -1,13 +1,11 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P3Burst : Components.GenericAOEs
+class P3Burst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Burst))
 {
-    private IReadOnlyList<Actor> _bombs = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _bombs = module.Enemies(OID.BombBoulder);
     private Dictionary<ulong, DateTime?> _bombActivation = new();
 
     private static readonly AOEShape _shape = new AOEShapeCircle(6.3f);
-
-    public P3Burst() : base(ActionID.MakeSpell(AID.Burst)) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -17,11 +15,6 @@ class P3Burst : Components.GenericAOEs
             if (activation != null)
                 yield return new(_shape, b.Position, b.Rotation, b.CastInfo?.NPCFinishAt ?? activation.Value);
         }
-    }
-
-    public override void Init(BossModule module)
-    {
-        _bombs = module.Enemies(OID.BombBoulder);
     }
 
     public override void Update()

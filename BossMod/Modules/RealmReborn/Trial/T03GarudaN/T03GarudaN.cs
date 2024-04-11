@@ -51,7 +51,7 @@ class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (NumCasts > 0)
-            foreach (var c in module.Enemies(OID.EyeOfTheStormHelper))
+            foreach (var c in Module.Enemies(OID.EyeOfTheStormHelper))
                 yield return new(_shape, c.Position);
     }
 }

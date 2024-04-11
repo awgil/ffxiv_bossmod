@@ -27,7 +27,7 @@ public enum IconID : uint
 
 class OdiousMiasma(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OdiousMiasma), new AOEShapeCone(12, 60.Degrees()));
 
-class AllergenInjection : Components.GenericBaitAway
+class AllergenInjection(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;
@@ -59,7 +59,7 @@ class AllergenInjection : Components.GenericBaitAway
     }
 }
 
-class RootsOfAtopy : Components.GenericStackSpread
+class RootsOfAtopy(BossModule module) : Components.GenericStackSpread(module)
 {
     private BitMask _forbidden;
 

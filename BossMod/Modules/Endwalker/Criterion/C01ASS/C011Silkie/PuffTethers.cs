@@ -1,18 +1,12 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie;
 
-class PuffTethers : BossComponent
+class PuffTethers(BossModule module, bool originAtBoss) : BossComponent(module)
 {
-    private bool _originAtBoss;
-    private PuffTracker? _tracker;
+    private bool _originAtBoss = originAtBoss;
+    private PuffTracker? _tracker = module.FindComponent<PuffTracker>();
     private SlipperySoap.Color _bossColor;
 
     private static readonly uint _hintColor = 0x40008080;
-
-    public PuffTethers(BossModule module, bool originAtBoss) : base(module)
-    {
-        _originAtBoss = originAtBoss;
-        _tracker = module.FindComponent<PuffTracker>();
-    }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {

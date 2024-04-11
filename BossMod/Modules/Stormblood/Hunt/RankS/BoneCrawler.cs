@@ -20,17 +20,11 @@ public enum AID : uint
 }
 
 class HeatBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeatBreath), new AOEShapeCone(14.2f, 45.Degrees()));
-
 class RipperClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RipperClaw), new AOEShapeCone(11.2f, 45.Degrees()));
-
 class WildCharge(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.WildCharge), 4);
-
 class HotCharge(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.HotCharge), 6);
-
 class TailSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSwing), new AOEShapeCircle(10));
-
 class TailSwingKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TailSwing), 20, shape: new AOEShapeCircle(10));
-
 class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(18.2f, 45.Degrees()));
 
 class BoneCrawlerStates : StateMachineBuilder

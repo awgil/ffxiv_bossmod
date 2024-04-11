@@ -30,14 +30,12 @@ public enum AID : uint
 }
 
 class Catechism(BossModule module) : Components.SingleTargetCastDelay(module, ActionID.MakeSpell(AID.Catechism), ActionID.MakeSpell(AID.Catechism2), 0.5f);
-
 class SacramentOfPenance(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.SacramentOfPenance), ActionID.MakeSpell(AID.SacramentOfPenance2), 0.5f);
-
 class PerfectContrition(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PerfectContrition), new AOEShapeDonut(5, 15));
 
-public class JudgmentDay : Components.GenericTowers
+class JudgmentDay(BossModule module) : Components.GenericTowers(module)
 {
-    public override void OnActorEState(BossModule module, Actor actor, ushort state)
+    public override void OnActorEState(Actor actor, ushort state)
     {
         if (state is 0x01C or 0x02C)
         {
@@ -61,7 +59,7 @@ public class JudgmentDay : Components.GenericTowers
     }
 }
 
-class Exegesis : Components.GenericAOEs
+class Exegesis(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     public enum Patterns { None, Diagonal, Cross, EastWest, NorthSouth }

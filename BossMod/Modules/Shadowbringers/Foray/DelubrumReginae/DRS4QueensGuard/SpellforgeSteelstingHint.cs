@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS4QueensGuard;
 
 // TODO: improve hints (check player's class; for healers, hints for party members having incorrect buff)
-class SpellforgeSteelstingHint : BossComponent
+class SpellforgeSteelstingHint(BossModule module) : BossComponent(module)
 {
     private string _hint = "";
     public bool Active => _hint.Length > 0;

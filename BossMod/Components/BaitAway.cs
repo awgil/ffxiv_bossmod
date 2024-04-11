@@ -30,7 +30,7 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
     public bool IgnoreOtherBaits = false; // if true, don't show hints/aoes for baits by others
     public PlayerPriority BaiterPriority = PlayerPriority.Interesting;
     public BitMask ForbiddenPlayers; // these players should avoid baiting
-    public readonly List<Bait> CurrentBaits = new();
+    public List<Bait> CurrentBaits = new();
 
     public IEnumerable<Bait> ActiveBaits => AllowDeadTargets ? CurrentBaits : CurrentBaits.Where(b => !b.Target.IsDead);
     public IEnumerable<Bait> ActiveBaitsOn(Actor target) => ActiveBaits.Where(b => b.Target == target);

@@ -5,22 +5,21 @@ class Hatch : Components.CastCounter
     public bool Active = true;
     public int NumNeurolinkSpawns { get; private set; }
     public int NumTargetsAssigned { get; private set; }
-    private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _neurolinks = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _orbs;
+    private IReadOnlyList<Actor> _neurolinks;
     private BitMask _targets;
 
-    public Hatch() : base(ActionID.MakeSpell(AID.Hatch)) { KeepOnPhaseChange = true; }
+    public Hatch(BossModule module) : base(module, ActionID.MakeSpell(AID.Hatch))
+    {
+        _orbs = module.Enemies(OID.Oviform);
+        _neurolinks = module.Enemies(OID.Neurolink);
+        KeepOnPhaseChange = true;
+    }
 
     public void Reset()
     {
         _targets.Reset();
         NumTargetsAssigned = NumCasts = 0;
-    }
-
-    public override void Init(BossModule module)
-    {
-        _orbs = module.Enemies(OID.Oviform);
-        _neurolinks = module.Enemies(OID.Neurolink);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -44,14 +43,14 @@ class Hatch : Components.CastCounter
     {
         if (Active)
             foreach (var o in _orbs.Where(o => !o.IsDead))
-                arena.ZoneCircle(o.Position, 1, ArenaColor.AOE);
+                Arena.ZoneCircle(o.Position, 1, ArenaColor.AOE);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Active)
             foreach (var neurolink in _neurolinks)
-                arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? ArenaColor.Safe : ArenaColor.Danger);
+                Arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? ArenaColor.Safe : ArenaColor.Danger);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID)

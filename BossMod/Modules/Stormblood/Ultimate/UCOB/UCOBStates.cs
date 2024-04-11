@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P2BlockTransition : BossComponent { }
+class P2BlockTransition(BossModule module) : BossComponent(module);
 
 class UCOBStates : StateMachineBuilder
 {
@@ -261,7 +261,7 @@ class UCOBStates : StateMachineBuilder
     {
         // there are 24 iceballs total; first 4 groups of 4 are 2s apart, and have fireball after each one; then the last 8 are fired in quick succession (1s apart)
         ActorCast(id, _module.Nael, AID.BahamutsFavor, delay, 3, true);
-        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x10, 8, comp => comp.ActiveOrSkipped(Module))
+        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x10, 8, comp => comp.ActiveOrSkipped())
             .ActivateOnEnter<Quote>()
             .ActivateOnEnter<P2BahamutsFavorChainLightning>();
         ComponentCondition<Quote>(id + 0x11, 0.1f, comp => comp.PendingMechanics.Count > 0); // first quote
@@ -305,7 +305,7 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P2BahamutsClaw>();
         // +0.6s: iceball 8
 
-        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x200, 2.5f, comp => comp.ActiveOrSkipped(Module))
+        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x200, 2.5f, comp => comp.ActiveOrSkipped())
             .ActivateOnEnter<P2BahamutsFavorChainLightning>();
         ComponentCondition<P2BahamutsFavorFireball>(id + 0x210, 1.0f, comp => !comp.Active, "Fireball 2")
             .DeactivateOnExit<P2BahamutsFavorFireball>();
@@ -327,7 +327,7 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x303, 2.2f, comp => comp.NumCasts > 0);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x310, 1.2f, comp => comp.Casters.Count > 0); // wings of salvation 2 bait
         // +2.1s: iceball 9
-        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x312, 2.8f, comp => comp.ActiveOrSkipped(Module))
+        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x312, 2.8f, comp => comp.ActiveOrSkipped())
             .ActivateOnEnter<P2BahamutsFavorChainLightning>();
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x313, 0.2f, comp => comp.NumCasts > 1);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x320, 1.2f, comp => comp.Casters.Count > 0); // wings of salvation 3 bait
@@ -361,7 +361,7 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
             .DeactivateOnExit<Quote>();
         // +0.9s: iceball 16
-        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x530, 1.4f, comp => comp.ActiveOrSkipped(Module))
+        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x530, 1.4f, comp => comp.ActiveOrSkipped())
             .ActivateOnEnter<P2BahamutsFavorChainLightning>();
         ComponentCondition<P2BahamutsFavorFireball>(id + 0x540, 2.1f, comp => !comp.Active, "Fireball 4")
             .DeactivateOnExit<P2BahamutsFavorFireball>();

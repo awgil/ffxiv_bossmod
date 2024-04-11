@@ -21,16 +21,12 @@ public enum AID : uint
 }
 
 class LozatlsFuryA(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryA), new AOEShapeRect(60, 20, directionOffset: 90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
-
 class LozatlsFuryB(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, directionOffset: -90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
-
 class Stonefist(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Stonefist));
-
 class LozatlsScorn(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LozatlsScorn));
-
 class SunToss(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SunToss), 5);
 
-class RonkanLight : Components.GenericAOEs
+class RonkanLight(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect rect = new(60, 20); //TODO: double halfwidth is strange
     private AOEInstance? _aoe;

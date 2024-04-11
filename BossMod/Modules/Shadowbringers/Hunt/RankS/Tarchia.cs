@@ -20,20 +20,14 @@ public enum AID : uint
 }
 
 class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(17, 60.Degrees()));
-
 class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(40, 30.Degrees()));
-
 class Groundstorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Groundstorm), new AOEShapeDonut(5, 40));
-
 class MightySpin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MightySpin), new AOEShapeCircle(14));
-
 class ForestFire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForestFire), new AOEShapeCircle(15));
-
 class BafflementBulb(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BafflementBulb), "Pull + Temporary Misdirection -> Donut -> Out");
-
 class MetamorphicBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MetamorphicBlast));
 
-class MightySpin2 : Components.GenericAOEs
+class MightySpin2(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeCircle circle = new(14);
@@ -41,7 +35,7 @@ class MightySpin2 : Components.GenericAOEs
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default || NumCasts == 0)
-            yield return new(circle, Module.PrimaryActor.Position, activation: _activation);
+            yield return new(circle, Module.PrimaryActor.Position, default, _activation);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

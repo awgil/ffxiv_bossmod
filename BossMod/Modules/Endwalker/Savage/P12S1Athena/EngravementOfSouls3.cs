@@ -33,7 +33,7 @@ class EngravementOfSouls3Shock(BossModule module) : Components.CastTowers(module
                 > 110 => ~_cross,
                 _ => ~_towers // TODO: assign specific towers based on priorities?
             };
-            Towers.Add(new(spell.LocXZ, Radius, ForbiddenSoakers: forbidden));
+            Towers.Add(new(spell.LocXZ, Radius, forbiddenSoakers: forbidden));
         }
     }
 }

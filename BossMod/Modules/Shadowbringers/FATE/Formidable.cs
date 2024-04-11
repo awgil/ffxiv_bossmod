@@ -51,10 +51,9 @@ public enum SID : uint
 }
 
 class Spincrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spincrush), new AOEShapeCone(15, 60.Degrees()));
-
 class FireShot(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FireShot), 7);
 
-class FiresOfMtGulg : Components.GenericAOEs
+class FiresOfMtGulg(BossModule module) : Components.GenericAOEs(module)
 {
     private Actor? _caster;
     private DateTime _activation;
@@ -93,10 +92,8 @@ class BarrageFire(BossModule module) : Components.RaidwideCast(module, ActionID.
 // note: it could have been a simple StackWithCastTargets, however sometimes there is no cast - i assume it happens because actor spawns right before starting a cast, and sometimes due to timings cast-start is missed by the game
 // because of that, we just use icons & cast events
 // i've also seen player getting rez, immediately getting stack later than others, but then caster gets destroyed without finishing the cast
-class DrillShot : Components.StackWithCastTargets
+class DrillShot(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.DrillShot), 6)
 {
-    public DrillShot() : base(ActionID.MakeSpell(AID.DrillShot), 6) { }
-
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.DrillShot)
@@ -112,7 +109,7 @@ class DrillShot : Components.StackWithCastTargets
     }
 }
 
-class ExplosionMissile : BossComponent
+class ExplosionMissile(BossModule module) : BossComponent(module)
 {
     private List<Actor> _activeMissiles = new();
 
@@ -120,8 +117,8 @@ class ExplosionMissile : BossComponent
     {
         foreach (var m in _activeMissiles)
         {
-            arena.Actor(m, ArenaColor.Object, true);
-            arena.AddCircle(m.Position, 6, ArenaColor.Danger);
+            Arena.Actor(m, ArenaColor.Object, true);
+            Arena.AddCircle(m.Position, 6, ArenaColor.Danger);
         }
     }
 
@@ -131,7 +128,7 @@ class ExplosionMissile : BossComponent
             _activeMissiles.Add(actor);
     }
 
-    public override void OnActorDestroyed(BossModule module, Actor actor)
+    public override void OnActorDestroyed(Actor actor)
     {
         if ((OID)actor.OID == OID.DwarvenDynamite)
             _activeMissiles.Remove(actor);
@@ -146,7 +143,7 @@ class ExplosionMissile : BossComponent
 
 class ExplosionGrenade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionGrenade), new AOEShapeCircle(12));
 
-class DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay) : Components.GenericAOEs
+class DwarvenDischarge(BossModule module, AOEShape shape, OID oid, AID aid, float delay) : Components.GenericAOEs(module)
 {
     private readonly AOEShape _shape = shape;
     private readonly OID _oid = oid;
@@ -166,7 +163,7 @@ class DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay) : Componen
             _casters.Add((actor, WorldState.FutureTime(_delay)));
     }
 
-    public override void OnActorDestroyed(BossModule module, Actor actor)
+    public override void OnActorDestroyed(Actor actor)
     {
         if ((OID)actor.OID == _oid)
             _casters.RemoveAll(c => c.caster == actor);
@@ -178,18 +175,14 @@ class DwarvenDischarge(AOEShape shape, OID oid, AID aid, float delay) : Componen
             _casters.RemoveAll(c => c.caster == caster);
     }
 }
-
 class DwarvenDischargeDonut(BossModule module) : DwarvenDischarge(module, new AOEShapeDonut(9, 60), OID.DwarvenChargeDonut, AID.DwarvenDischargeDonut, 9.3f);
-
 class DwarvenDischargeCircle(BossModule module) : DwarvenDischarge(module, new AOEShapeCircle(8), OID.DwarvenChargeCircle, AID.DwarvenDischargeCircle, 8.1f);
 
 class AutomatonEscort(BossModule module) : Components.Adds(module, (uint)OID.AutomatonEscort);
-
 class SteamDome(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.SteamDome), 15);
 
-class DynamicSensoryJammer : Components.CastHint
+class DynamicSensoryJammer(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.DynamicSensoryJammer), "")
 {
-    public DynamicSensoryJammer() : base(ActionID.MakeSpell(AID.DynamicSensoryJammer), "") { }
     private BitMask _ec;
     public bool Ec { get; private set; }
     private bool casting;

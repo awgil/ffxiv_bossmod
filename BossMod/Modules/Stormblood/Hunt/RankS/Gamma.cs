@@ -22,12 +22,10 @@ public enum SID : uint
 }
 
 class DiffractiveLaser(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DiffractiveLaser), 5);
-
 class MagitekFlamehook(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MagitekFlamehook), "Raidwide + Pyretic");
-
 class Launcher(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Launcher), "Raidwide (%HP based)");
 
-class MagitekFlamehookPyretic : BossComponent
+class MagitekFlamehookPyretic(BossModule module) : BossComponent(module)
 { //Note: boss is lvl 70, so this pyretic can probably be ignored at lvl 90, but we assume the player is also around lvl 70
     private BitMask _pyretic;
     public bool Pyretic { get; private set; }

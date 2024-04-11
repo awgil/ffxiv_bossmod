@@ -33,11 +33,11 @@ public enum AID : uint
 // - bombs only (x3 instead of x2)
 // - complex: eruption visual -> 9 eruption eobjanims -> pause cast -> bomb visual -> spawn bombs -> reproduce visual & bomb countdown -> cyclone cast start -> bomb resolve -> cyclone resolve -> start cast -> eruption resolve
 // => rules: show bombs if active (activate by visual, deactivate by resolve, show for each object); otherwise show cyclone cast if active; otherwise show eruptions
-class TimeEruptionBombReproduce : Components.GenericAOEs
+class TimeEruptionBombReproduce(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _bombsActivation;
     private DateTime _eruptionStart; // timestamp of StartTime cast start
-    private IReadOnlyList<Actor> _bombs = ActorEnumeration.EmptyList;
+    private IReadOnlyList<Actor> _bombs = module.Enemies(OID.TimeBomb1); // either 1 or 2 works, dunno what's the difference
     private readonly List<Actor> _cycloneCasters = [];
     private readonly List<(WPos pos, TimeSpan delay)> _clocks = [];
     private readonly List<WPos> _eruptionSafeSpots = [];
@@ -65,15 +65,10 @@ class TimeEruptionBombReproduce : Components.GenericAOEs
         }
     }
 
-    public override void Init(BossModule module)
-    {
-        _bombs = module.Enemies(OID.TimeBomb1); // either 1 or 2 works, dunno what's the difference
-    }
-
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var p in _eruptionSafeSpots)
-            _shapeEruption.Draw(arena, p, new(), ArenaColor.SafeFromAOE);
+            _shapeEruption.Draw(Arena, p, new(), ArenaColor.SafeFromAOE);
         base.DrawArenaBackground(pcSlot, pc);
     }
 
@@ -137,9 +132,7 @@ class TimeEruptionBombReproduce : Components.GenericAOEs
 }
 
 class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Eruption), 8);
-
 class FireTankbuster(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FireTankbuster));
-
 class FireRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FireRaidwide));
 
 class CE52TimeToBurnStates : StateMachineBuilder

@@ -22,13 +22,9 @@ public enum AID : uint
 }
 
 class CroakingChorus(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.CroakingChorus), "Calls adds");
-
 class FrigidNeedle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrigidNeedle2), new AOEShapeCross(40, 2.5f));
-
 class Spittle(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Spittle2), 8);
-
 class ToyHammer(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ToyHammer));
-
 class Hydrocannon(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Hydrocannon), 6);
 
 class FuathTroublemakerStates : StateMachineBuilder
@@ -46,10 +42,8 @@ class FuathTroublemakerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9786)]
-public class FuathTroublemaker : BossModule
+public class FuathTroublemaker(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public FuathTroublemaker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

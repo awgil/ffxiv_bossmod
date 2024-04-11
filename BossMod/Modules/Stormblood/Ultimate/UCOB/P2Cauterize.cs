@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P2Cauterize : Components.GenericAOEs
+class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 {
     public int[] BaitOrder = new int[PartyState.MaxPartySize];
     public int NumBaitsAssigned;
@@ -27,8 +27,8 @@ class P2Cauterize : Components.GenericAOEs
         {
             foreach (var d in DragonsForOrder(BaitOrder[pcSlot]))
             {
-                arena.Actor(d, ArenaColor.Object, true);
-                _shape.Outline(arena, d.Position, Angle.FromDirection(pc.Position - d.Position));
+                Arena.Actor(d, ArenaColor.Object, true);
+                _shape.Outline(Arena, d.Position, Angle.FromDirection(pc.Position - d.Position));
             }
             // TODO: safe spots
         }

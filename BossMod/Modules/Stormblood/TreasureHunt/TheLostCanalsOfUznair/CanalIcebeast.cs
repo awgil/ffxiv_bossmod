@@ -28,17 +28,11 @@ public enum AID : uint
 }
 
 class Eyeshine(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Eyeshine));
-
 class AbsoluteZero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AbsoluteZero), new AOEShapeCone(45.5f, 45.Degrees()));
-
 class Freezeover(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Freezeover), 6);
-
 class PlainPound(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PlainPound), new AOEShapeCircle(4.56f));
-
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-
 class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_Abharamu);
 
 class IcebeastStates : StateMachineBuilder
@@ -58,10 +52,8 @@ class IcebeastStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 268, NameID = 6650)]
-public class Icebeast : BossModule
+public class Icebeast(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, -420), 20))
 {
-    public Icebeast(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -420), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

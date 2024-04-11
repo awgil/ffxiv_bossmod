@@ -20,12 +20,10 @@ public enum IconID : uint
 }
 
 class BogBequest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BogBequest), new AOEShapeDonut(5, 20));
-
 class FeculentFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FeculentFlood), new AOEShapeCone(40, 30.Degrees()));
-
 class RoyalFlush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RoyalFlush), new AOEShapeCircle(8));
 
-class GravityForce : Components.GenericBaitAway
+class GravityForce(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;

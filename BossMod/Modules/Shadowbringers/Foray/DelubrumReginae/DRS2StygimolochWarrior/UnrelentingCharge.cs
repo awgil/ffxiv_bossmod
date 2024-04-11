@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2StygimolochWarrior;
 
-class UnrelentingCharge : Components.Knockback
+class UnrelentingCharge(BossModule module) : Components.Knockback(module)
 {
     private Actor? _source;
     private DateTime _activation;

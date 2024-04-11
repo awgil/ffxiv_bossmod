@@ -7,7 +7,7 @@ class FeralHowlHystericAssault : Components.Knockback
     private float _delay;
     private Source? _source;
 
-    public FeralHowlHystericAssault(AID aidCast, AID aidAOE, float delay) : base(ActionID.MakeSpell(aidAOE), true)
+    public FeralHowlHystericAssault(BossModule module, AID aidCast, AID aidAOE, float delay) : base(module, ActionID.MakeSpell(aidAOE), true)
     {
         _aidCast = aidCast;
         _delay = delay;
@@ -23,5 +23,5 @@ class FeralHowlHystericAssault : Components.Knockback
     }
 }
 
-class FeralHowl() : FeralHowlHystericAssault(AID.FeralHowl, AID.FeralHowlAOE, 2.1f) { }
-class HystericAssault() : FeralHowlHystericAssault(AID.HystericAssault, AID.HystericAssaultAOE, 0.9f) { }
+class FeralHowl(BossModule module) : FeralHowlHystericAssault(module, AID.FeralHowl, AID.FeralHowlAOE, 2.1f) { }
+class HystericAssault(BossModule module) : FeralHowlHystericAssault(module, AID.HystericAssault, AID.HystericAssaultAOE, 0.9f) { }

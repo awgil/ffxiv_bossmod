@@ -5,9 +5,9 @@
 // p2 second cast is two charges along both cardinals
 // p2 third cast is four staggered charges, with different patterns depending on whether awakening happened (TODO: we can predict that very early)
 // p4 predation is a single awakened charge along intercardinal
-class CrimsonCyclone : Components.GenericAOEs
+class CrimsonCyclone(BossModule module, float predictionDelay) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrimsonCyclone))
 {
-    private float _predictionDelay;
+    private float _predictionDelay = predictionDelay;
     private List<(AOEShape shape, WPos pos, Angle rot, DateTime activation)> _predicted = new(); // note: there could be 1/2/4 predicted normal charges and 0 or 2 'cross' charges
     private List<Actor> _casters = new();
 
@@ -15,11 +15,6 @@ class CrimsonCyclone : Components.GenericAOEs
     private static readonly AOEShapeRect _shapeCross = new(44.5f, 5, 0.5f);
 
     public bool CastsPredicted => _predicted.Count > 0;
-
-    public CrimsonCyclone(float predictionDelay) : base(ActionID.MakeSpell(AID.CrimsonCyclone))
-    {
-        _predictionDelay = predictionDelay;
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -51,7 +46,7 @@ class CrimsonCyclone : Components.GenericAOEs
         if (spell.Action == WatchedAction)
         {
             _casters.Remove(caster);
-            if (caster == ((UWU)module).Ifrit() && caster.FindStatus(SID.Woken) != null)
+            if (caster == ((UWU)Module).Ifrit() && caster.FindStatus(SID.Woken) != null)
             {
                 _predicted.Add((_shapeCross, Module.Bounds.Center - 19.5f * (spell.Rotation + 45.Degrees()).ToDirection(), spell.Rotation + 45.Degrees(), WorldState.FutureTime(2.2f)));
                 _predicted.Add((_shapeCross, Module.Bounds.Center - 19.5f * (spell.Rotation - 45.Degrees()).ToDirection(), spell.Rotation - 45.Degrees(), WorldState.FutureTime(2.2f)));
@@ -70,5 +65,4 @@ class CrimsonCyclone : Components.GenericAOEs
 }
 
 class P2CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 5.2f);
-
 class P4CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 8.1f);

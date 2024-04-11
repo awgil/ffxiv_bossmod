@@ -42,13 +42,9 @@ public enum AID : uint
 }
 
 class TectonicEruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TectonicEruption), 6);
-
 class RockCutter(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.RockCutter));
-
 class AncientQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AncientQuake));
-
 class Roxxor(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Roxxor), 6);
-
 class ControlTowerAppear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ControlTowerAppear), new AOEShapeCircle(6));
 
 // note: we could predict aoes way in advance, when FallingTower actors are created - they immediately have correct rotation
@@ -56,7 +52,7 @@ class ControlTowerAppear(BossModule module) : Components.SelfTargetedAOEs(module
 // however, just watching casts normally gives more than enough time to avoid aoes and does not interfere with mechanics that resolve earlier
 class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Towerfall), new AOEShapeRect(40, 5));
 
-class ExtremeEdge : Components.GenericAOEs
+class ExtremeEdge(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(Actor caster, float offset)> _casters = new();
 
@@ -87,10 +83,8 @@ class ExtremeEdge : Components.GenericAOEs
     }
 }
 
-class IntractableLand : Components.Exaflare
+class IntractableLand(BossModule module) : Components.Exaflare(module, 8)
 {
-    public IntractableLand() : base(8) { }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.IntractableLandFirst)
@@ -111,14 +105,14 @@ class IntractableLand : Components.Exaflare
                 return;
             }
 
-            AdvanceLine(module, Lines[index], pos);
+            AdvanceLine(Lines[index], pos);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }
     }
 }
 
-class Hammerfall : Components.GenericAOEs
+class Hammerfall(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeCircle _shape = new(37);
@@ -128,7 +122,7 @@ class Hammerfall : Components.GenericAOEs
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Hammer)
-            _aoes.Add(new(_shape, actor.Position, activation: WorldState.FutureTime(12.6f)));
+            _aoes.Add(new(_shape, actor.Position, default, WorldState.FutureTime(12.6f)));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

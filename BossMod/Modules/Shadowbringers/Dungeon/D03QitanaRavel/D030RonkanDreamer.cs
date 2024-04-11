@@ -29,10 +29,9 @@ public enum TetherID : uint
 }
 
 class RonkanFire(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.RonkanFire));
-
 class RonkanAbyss(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RonkanAbyss), 6);
 
-class WrathOfTheRonka : Components.GenericAOEs
+class WrathOfTheRonka(BossModule module) : Components.GenericAOEs(module)
 {
     private List<Actor> _casters = new();
     private static readonly AOEShapeRect RectShort = new(12, 4);
@@ -88,7 +87,7 @@ class WrathOfTheRonka : Components.GenericAOEs
     }
 }
 
-public class Layout : BossComponent
+public class Layout(BossModule module) : BossComponent(module)
 {
     private static IEnumerable<WPos> Wall1()
     {
@@ -125,13 +124,13 @@ public class Layout : BossComponent
     {
         if (Module.PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
         {
-            arena.AddPolygon(Wall1(), ArenaColor.Border, 2);
-            arena.AddPolygon(Wall2(), ArenaColor.Border, 2);
+            Arena.AddPolygon(Wall1(), ArenaColor.Border, 2);
+            Arena.AddPolygon(Wall2(), ArenaColor.Border, 2);
         }
         if (Module.PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
         {
-            arena.AddPolygon(Wall3(), ArenaColor.Border, 2);
-            arena.AddPolygon(Wall4(), ArenaColor.Border, 2);
+            Arena.AddPolygon(Wall3(), ArenaColor.Border, 2);
+            Arena.AddPolygon(Wall4(), ArenaColor.Border, 2);
         }
     }
 
@@ -167,9 +166,8 @@ class D030RonkanDreamerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8639)]
-public class D030RonkanDreamer : BossModule
+public class D030RonkanDreamer(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 0))
 {
-    public D030RonkanDreamer(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 0)) { }
     protected override void UpdateModule()
     {
         if (PrimaryActor.Position.AlmostEqual(new(0, 634), 1))

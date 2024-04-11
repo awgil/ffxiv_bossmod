@@ -38,10 +38,9 @@ public enum AID : uint
 }
 
 class Innocence(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Innocence), 5);
-
 class HydroPush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HydroPush), new AOEShapeRect(49.4f, 22, 5));
 
-class BloodyPuddle : Components.GenericAOEs
+class BloodyPuddle(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCircle circle = new(11.2f);
     private readonly List<Actor> _spheres = [];
@@ -50,7 +49,7 @@ class BloodyPuddle : Components.GenericAOEs
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var s in _spheres)
-            yield return new(circle, s.Position, activation: _activation);
+            yield return new(circle, s.Position, default, _activation);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -70,12 +69,11 @@ class BloodyPuddle : Components.GenericAOEs
 }
 
 class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Torpedo));
-
 class RisingSeas(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RisingSeas));
 
 class HydroPushKB : Components.KnockbackFromCastTarget
 {
-    public HydroPushKB() : base(ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward)
+    public HydroPushKB(BossModule module) : base(module, ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward)
     {
         StopAtWall = true;
     }
@@ -83,27 +81,20 @@ class HydroPushKB : Components.KnockbackFromCastTarget
 
 class RisingSeasKB : Components.KnockbackFromCastTarget
 {
-    public RisingSeasKB() : base(ActionID.MakeSpell(AID.RisingSeas), 20)
+    public RisingSeasKB(BossModule module) : base(module, ActionID.MakeSpell(AID.RisingSeas), 20)
     {
         StopAtWall = true;
     }
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<BloodyPuddle>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<BloodyPuddle>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-
 class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
-
 class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-
 class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-
 class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-
 class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-
 class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
 class KelpieStates : StateMachineBuilder
@@ -131,10 +122,8 @@ class KelpieStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7589)]
-public class Kelpie : BossModule
+public class Kelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Kelpie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
