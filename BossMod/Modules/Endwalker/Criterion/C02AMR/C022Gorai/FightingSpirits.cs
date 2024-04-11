@@ -1,44 +1,39 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
 
-class FightingSpirits : Components.KnockbackFromCastTarget
-{
-    public FightingSpirits(AID aid) : base(ActionID.MakeSpell(aid), 16) { }
-}
-class NFightingSpirits : FightingSpirits { public NFightingSpirits() : base(AID.NFightingSpiritsAOE) { } }
-class SFightingSpirits : FightingSpirits { public SFightingSpirits() : base(AID.SFightingSpiritsAOE) { } }
+class FightingSpirits(BossModule module, AID aid) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(aid), 16);
+class NFightingSpirits(BossModule module) : FightingSpirits(module, AID.NFightingSpiritsAOE);
+class SFightingSpirits(BossModule module) : FightingSpirits(module, AID.SFightingSpiritsAOE);
 
-class WorldlyPursuitBait : Components.GenericBaitAway
+class WorldlyPursuitBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     private int[] _order = { -1, -1, -1, -1 };
 
     private static readonly AOEShapeCross _shape = new(60, 10);
 
-    public WorldlyPursuitBait() : base(centerAtTarget: true) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_order[slot] >= 0)
             hints.Add($"Order: {_order[slot] + 1}", false);
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
     }
 
     // TODO: reconsider when we start showing first hint...
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FightingSpirits)
-            UpdateBait(module);
+            UpdateBait();
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NWorldlyPursuitAOE or AID.SWorldlyPursuitAOE)
         {
             ++NumCasts;
-            UpdateBait(module);
+            UpdateBait();
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var order = (IconID)iconID switch
         {
@@ -48,35 +43,33 @@ class WorldlyPursuitBait : Components.GenericBaitAway
             IconID.Order4 => 3,
             _ => -1,
         };
-        if (order >= 0 && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (order >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
         {
             _order[slot] = order;
         }
     }
 
-    private void UpdateBait(BossModule module)
+    private void UpdateBait()
     {
         CurrentBaits.Clear();
-        var baiter = module.Raid[Array.IndexOf(_order, NumCasts)];
+        var baiter = Raid[Array.IndexOf(_order, NumCasts)];
         if (baiter != null)
-            CurrentBaits.Add(new(module.PrimaryActor, baiter, _shape));
+            CurrentBaits.Add(new(Module.PrimaryActor, baiter, _shape));
     }
 }
 
-class WorldlyPursuitLast : Components.GenericAOEs
+class WorldlyPursuitLast(BossModule module) : Components.GenericAOEs(module)
 {
-    private DateTime _activation;
+    private DateTime _activation = module.WorldState.FutureTime(3.1f);
 
     private static readonly AOEShapeCross _shape = new(60, 10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        yield return new(_shape, module.Bounds.Center, Angle.FromDirection(module.Bounds.Center - module.PrimaryActor.Position), _activation);
+        yield return new(_shape, Module.Bounds.Center, Angle.FromDirection(Module.Bounds.Center - Module.PrimaryActor.Position), _activation);
     }
 
-    public override void Init(BossModule module) => _activation = module.WorldState.CurrentTime.AddSeconds(3.1f);
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NWorldlyPursuitAOE or AID.SWorldlyPursuitAOE)
             ++NumCasts;

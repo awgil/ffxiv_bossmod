@@ -42,75 +42,20 @@ public enum AID : uint
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
 }
 
-class MysticLight : Components.SelfTargetedAOEs
-{
-    public MysticLight() : base(ActionID.MakeSpell(AID.MysticLight), new AOEShapeCone(45.06f, 30.Degrees())) { }
-}
-
-class MysticFlame : Components.LocationTargetedAOEs
-{
-    public MysticFlame() : base(ActionID.MakeSpell(AID.MysticFlame2), 7) { }
-}
-
-class MysticHeat : Components.SelfTargetedAOEs
-{
-    public MysticHeat() : base(ActionID.MakeSpell(AID.MysticHeat), new AOEShapeRect(41.72f, 1.5f)) { }
-}
-
-class SelfDetonate : Components.SelfTargetedAOEs
-{
-    public SelfDetonate() : base(ActionID.MakeSpell(AID.SelfDetonate), new AOEShapeCircle(10.72f)) { }
-}
-
-class MysticLevin : Components.RaidwideCast
-{
-    public MysticLevin() : base(ActionID.MakeSpell(AID.MysticLevin)) { }
-}
-
-class MysticFlash : Components.SingleTargetDelayableCast
-{
-    public MysticFlash() : base(ActionID.MakeSpell(AID.MysticFlash)) { }
-}
-
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
-}
-
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
-}
-
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
-}
-
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
-}
-
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
-}
-
-class RaucousScritch : Components.SelfTargetedAOEs
-{
-    public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
-}
-
-class Hurl : Components.LocationTargetedAOEs
-{
-    public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
-}
-
-class Spin : Components.Cleave
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
-}
+class MysticLight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MysticLight), new AOEShapeCone(45.06f, 30.Degrees()));
+class MysticFlame(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MysticFlame2), 7);
+class MysticHeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MysticHeat), new AOEShapeRect(41.72f, 1.5f));
+class SelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SelfDetonate), new AOEShapeCircle(10.72f));
+class MysticLevin(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MysticLevin));
+class MysticFlash(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.MysticFlash));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class TheOlderOneStates : StateMachineBuilder
 {
@@ -136,10 +81,8 @@ class TheOlderOneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7597)]
-public class TheOlderOne : BossModule
+public class TheOlderOne(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public TheOlderOne(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

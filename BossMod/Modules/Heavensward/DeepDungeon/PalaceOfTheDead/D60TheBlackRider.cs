@@ -17,39 +17,36 @@ public enum AID : uint
     Valfodr = 7089, // Boss->player, 4.0s cast, width 6 rect charge, knockback 25, dir forward
 }
 
-class CleaveAuto : Components.Cleave
-{
-    public CleaveAuto() : base(ActionID.MakeSpell(AID.AutoAttack), new AOEShapeCone(11.92f, 45.Degrees())) { }
-}
+class CleaveAuto(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.AutoAttack), new AOEShapeCone(11.92f, 45.Degrees()));
 
-class Geirrothr : Components.GenericAOEs
+class Geirrothr(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeCone cone = new(9.92f, 45.Degrees());
     private bool Pulled;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (!Pulled)
         {
-            _activation = module.WorldState.CurrentTime.AddSeconds(5.1f);
+            _activation = WorldState.FutureTime(5.1f);
             Pulled = true;
         }
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(cone, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
+            yield return new(cone, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Valfodr) // boss can move after cast started, so we can't use aoe instance, since that would cause outdated position data to be used
-            _activation = module.WorldState.CurrentTime.AddSeconds(7.1f);
+            _activation = WorldState.FutureTime(7.1f);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Geirrothr)
             _activation = default;
@@ -57,37 +54,26 @@ class Geirrothr : Components.GenericAOEs
         {
             ++NumCasts;
             if (NumCasts % 2 == 0)
-                _activation = module.WorldState.CurrentTime.AddSeconds(8.1f);
+                _activation = WorldState.FutureTime(8.1f);
         }
     }
 }
 
-class Infaturation : Components.SelfTargetedAOEs
-{
-    public Infaturation() : base(ActionID.MakeSpell(AID.Infaturation), new AOEShapeCircle(7)) { }
-}
+class Infaturation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Infaturation), new AOEShapeCircle(7));
+class HallOfSorrow(BossModule module) : Components.PersistentVoidzone(module, 9, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7));
+class Valfodr(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Valfodr), 3);
 
-class HallOfSorrow : Components.PersistentVoidzone
-{
-    public HallOfSorrow() : base(9, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7)) { }
-}
-
-class Valfodr : Components.BaitAwayChargeCast
-{
-    public Valfodr() : base(ActionID.MakeSpell(AID.Valfodr), 3) { }
-}
-
-class ValfodrKB : Components.Knockback //note actual knockback is delayed by upto 1.2s in replay
+class ValfodrKB(BossModule module) : Components.Knockback(module) // note actual knockback is delayed by upto 1.2s in replay
 {
     private DateTime _activation;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (module.FindComponent<Valfodr>()?.CurrentBaits.Count > 0)
-            yield return new(module.PrimaryActor.Position, 25, _activation, module.FindComponent<Valfodr>()!.CurrentBaits[0].Shape, Angle.FromDirection(module.FindComponent<Valfodr>()!.CurrentBaits[0].Target.Position - module.PrimaryActor.Position), Kind: Kind.DirForward);
+        if (Module.FindComponent<Valfodr>()?.CurrentBaits.Count > 0)
+            yield return new(Module.PrimaryActor.Position, 25, _activation, Module.FindComponent<Valfodr>()!.CurrentBaits[0].Shape, Angle.FromDirection(Module.FindComponent<Valfodr>()!.CurrentBaits[0].Target.Position - Module.PrimaryActor.Position), Kind: Kind.DirForward);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Valfodr)
         {
@@ -96,7 +82,7 @@ class ValfodrKB : Components.Knockback //note actual knockback is delayed by upt
         }
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => (module.FindComponent<HallOfSorrow>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (module.FindComponent<Infaturation>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<HallOfSorrow>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (Module.FindComponent<Infaturation>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 }
 
 class D60TheBlackRiderStates : StateMachineBuilder
@@ -114,7 +100,4 @@ class D60TheBlackRiderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 204, NameID = 5309)]
-public class D60TheBlackRider : BossModule
-{
-    public D60TheBlackRider(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -220), 25)) { }
-}
+public class D60TheBlackRider(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-300, -220), 25));

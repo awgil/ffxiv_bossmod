@@ -29,82 +29,64 @@ public enum IconID : uint
     BaitKnockback = 23, // player
 }
 
-class Thunderhead : Components.PersistentVoidzone
-{
-    public Thunderhead() : base(8, m => m.Enemies(OID.Thunderhead)) { }
-}
+class Thunderhead(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Thunderhead));
 
-class DadJoke : Components.Knockback
+class DadJoke(BossModule module) : Components.Knockback(module)
 {
     private DateTime _activation;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(module.PrimaryActor.Position, 15, _activation, Direction: Angle.FromDirection(actor.Position - module.PrimaryActor.Position), Kind: Kind.DirForward);
+            yield return new(Module.PrimaryActor.Position, 15, _activation, Direction: Angle.FromDirection(actor.Position - Module.PrimaryActor.Position), Kind: Kind.DirForward);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.BaitKnockback)
-            _activation = module.WorldState.CurrentTime.AddSeconds(5);
+            _activation = WorldState.FutureTime(5);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.DadJoke)
             _activation = default;
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos)
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (module.FindComponent<Thunderhead>() != null && module.FindComponent<Thunderhead>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+        if (Module.FindComponent<Thunderhead>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
-        if (!module.Bounds.Contains(pos))
+        if (!Module.Bounds.Contains(pos))
             return true;
         else
             return false;
     }
 }
 
-class VoidThunderII : Components.LocationTargetedAOEs
-{
-    public VoidThunderII() : base(ActionID.MakeSpell(AID.VoidThunderII), 4) { }
-}
+class VoidThunderII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidThunderII), 4);
+class RawInstinct(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.RawInstinct), "Prepare to dispel buff");
+class VoidThunderIII(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VoidThunderIII), "Raidwide + Electrocution");
+class BodyBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.BodyBlow), "Soft Tankbuster");
 
-class RawInstinct : Components.CastHint
+class Hints(BossModule module) : BossComponent(module)
 {
-    public RawInstinct() : base(ActionID.MakeSpell(AID.RawInstinct), "Prepare to dispel buff") { }
-}
-
-class VoidThunderIII : Components.RaidwideCast
-{
-    public VoidThunderIII() : base(ActionID.MakeSpell(AID.VoidThunderIII), "Raidwide + Electrocution") { }
-}
-
-class BodyBlow : Components.SingleTargetCast
-{
-    public BodyBlow() : base(ActionID.MakeSpell(AID.BodyBlow), "Soft Tankbuster") { }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"{module.PrimaryActor.Name} will cast Raw Instinct, which causes all his hits to crit.\nUse Eerie Soundwave to dispel it.\n{module.PrimaryActor.Name} is weak against earth and strong against lightning attacks.");
+        hints.Add($"{Module.PrimaryActor.Name} will cast Raw Instinct, which causes all his hits to crit.\nUse Eerie Soundwave to dispel it.\n{Module.PrimaryActor.Name} is weak against earth and strong against lightning attacks.");
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        var critbuff = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.CriticalStrikes) != null).FirstOrDefault();
+        var critbuff = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.CriticalStrikes) != null).FirstOrDefault();
         if (critbuff != null)
-            hints.Add($"Dispel {module.PrimaryActor.Name} with Eerie Soundwave!");
+            hints.Add($"Dispel {Module.PrimaryActor.Name} with Eerie Soundwave!");
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var electrocution = actor.FindStatus(SID.Electrocution);
         if (electrocution != null)

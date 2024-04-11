@@ -5,7 +5,7 @@ class Ex5RubicanteStates : StateMachineBuilder
     public Ex5RubicanteStates(BossModule module) : base(module)
     {
         SimplePhase(0, Phase1, "Start + adds")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || (Module.PrimaryActor.CastInfo?.IsSpell(AID.BlazingRapture) ?? false);
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || (Module.PrimaryActor.CastInfo?.IsSpell(AID.BlazingRapture) ?? false);
         DeathPhase(1, Phase2);
     }
 

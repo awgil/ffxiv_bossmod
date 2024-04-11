@@ -1,25 +1,25 @@
 namespace BossMod.Endwalker.Trial.T08Asura;
 
-class Laceration : Components.GenericAOEs
+class Laceration(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCircle circle = new(9);
 
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var c in module.Enemies(OID.PhantomAsura))
+        foreach (var c in Module.Enemies(OID.PhantomAsura))
             if (_activation != default)
-                yield return new(circle, c.Position, activation: _activation);
+                yield return new(circle, c.Position, default, _activation);
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (id == 0x11D6)
-            _activation = module.WorldState.CurrentTime.AddSeconds(5); //actual time is 5-7s delay, but the AOEs end up getting casted at the same time, so we take the earliest time
+            _activation = WorldState.FutureTime(5); //actual time is 5-7s delay, but the AOEs end up getting casted at the same time, so we take the earliest time
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Laceration)
             _activation = default;

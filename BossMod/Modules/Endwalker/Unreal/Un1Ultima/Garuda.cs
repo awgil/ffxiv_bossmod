@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un1Ultima;
 
-class Garuda : BossComponent
+class Garuda(BossModule module) : BossComponent(module)
 {
     private bool _vulcanBurstImminent;
     private Actor? _mistralSong;
@@ -11,11 +11,11 @@ class Garuda : BossComponent
     private static readonly AOEShapeDonut _aoeEOTS = new(13, 25); // TODO: check inner range
     private static readonly AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_aoeMistralSong != null)
         {
-            var adjPos = _vulcanBurstImminent ? module.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(actor.Position, _mistralSong, 30)) : actor.Position;
+            var adjPos = _vulcanBurstImminent ? Module.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(actor.Position, _mistralSong, 30)) : actor.Position;
             if (_aoeMistralSong.Check(adjPos, _mistralSong))
                 hints.Add("GTFO from aoe!");
         }
@@ -26,25 +26,25 @@ class Garuda : BossComponent
             hints.Add("Go to edge!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        _aoeMistralSong.Draw(arena, _mistralSong);
-        _aoeEOTS.Draw(arena, _eots);
+        _aoeMistralSong.Draw(Arena, _mistralSong);
+        _aoeEOTS.Draw(Arena, _eots);
         if (_eots == null)
-            _aoeGeocrush.Draw(arena, _geocrush);
+            _aoeGeocrush.Draw(Arena, _geocrush);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var adjPos = _vulcanBurstImminent ? arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, _mistralSong, 30)) : pc.Position;
+        var adjPos = _vulcanBurstImminent ? Arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, _mistralSong, 30)) : pc.Position;
         if (adjPos != pc.Position)
         {
-            arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
-            arena.Actor(adjPos, 0.Degrees(), ArenaColor.Danger);
+            Arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);
+            Arena.Actor(adjPos, 0.Degrees(), ArenaColor.Danger);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -61,7 +61,7 @@ class Garuda : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -78,7 +78,7 @@ class Garuda : BossComponent
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.VulcanBurst)
             _vulcanBurstImminent = false;

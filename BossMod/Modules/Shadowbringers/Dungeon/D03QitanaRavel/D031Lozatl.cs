@@ -20,50 +20,31 @@ public enum AID : uint
     LozatlsFuryB = 15503, // 27AF->self, 4,0s cast, range 60 width 20 rect
 }
 
-class LozatlsFuryA : Components.SelfTargetedAOEs
-{
-    public LozatlsFuryA() : base(ActionID.MakeSpell(AID.LozatlsFuryA), new AOEShapeRect(60, 20, directionOffset: 90.Degrees())) { } // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
-}
+class LozatlsFuryA(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryA), new AOEShapeRect(60, 20, directionOffset: 90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
+class LozatlsFuryB(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, directionOffset: -90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
+class Stonefist(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Stonefist));
+class LozatlsScorn(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LozatlsScorn));
+class SunToss(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SunToss), 5);
 
-class LozatlsFuryB : Components.SelfTargetedAOEs
-{
-    public LozatlsFuryB() : base(ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, directionOffset: -90.Degrees())) { } // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
-}
-
-class Stonefist : Components.SingleTargetDelayableCast
-{
-    public Stonefist() : base(ActionID.MakeSpell(AID.Stonefist)) { }
-}
-
-class LozatlsScorn : Components.RaidwideCast
-{
-    public LozatlsScorn() : base(ActionID.MakeSpell(AID.LozatlsScorn)) { }
-}
-
-class SunToss : Components.LocationTargetedAOEs
-{
-    public SunToss() : base(ActionID.MakeSpell(AID.SunToss), 5) { }
-}
-
-class RonkanLight : Components.GenericAOEs
+class RonkanLight(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect rect = new(60, 20); //TODO: double halfwidth is strange
     private AOEInstance? _aoe;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008)
         {
             if (actor.Position.AlmostEqual(new(8, 328), 1))
-                _aoe = new(rect, module.Bounds.Center, 90.Degrees(), module.WorldState.CurrentTime.AddSeconds(8));
+                _aoe = new(rect, Module.Bounds.Center, 90.Degrees(), WorldState.FutureTime(8));
             if (actor.Position.AlmostEqual(new(-7, 328), 1))
-                _aoe = new(rect, module.Bounds.Center, -90.Degrees(), module.WorldState.CurrentTime.AddSeconds(8));
+                _aoe = new(rect, Module.Bounds.Center, -90.Degrees(), WorldState.FutureTime(8));
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.RonkanLightLeft or AID.RonkanLightRight)
             _aoe = null;
@@ -85,7 +66,4 @@ class D031LozatlStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8231)]
-public class D031Lozatl : BossModule
-{
-    public D031Lozatl(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 315), 20)) { }
-}
+public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 315), 20));

@@ -1,35 +1,23 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
-class TidalRoar : Components.CastCounter
-{
-    public TidalRoar(AID aid) : base(ActionID.MakeSpell(aid)) { }
-}
-class NTidalRoar : TidalRoar { public NTidalRoar() : base(AID.NTidalRoarAOE) { } }
-class STidalRoar : TidalRoar { public STidalRoar() : base(AID.STidalRoarAOE) { } }
+class TidalRoar(BossModule module, AID aid) : Components.CastCounter(module, ActionID.MakeSpell(aid));
+class NTidalRoar(BossModule module) : TidalRoar(module, AID.NTidalRoarAOE);
+class STidalRoar(BossModule module) : TidalRoar(module, AID.STidalRoarAOE);
 
-class BubbleNet : Components.CastCounter
-{
-    public BubbleNet(AID aid) : base(ActionID.MakeSpell(aid)) { }
-}
-class NBubbleNet1 : BubbleNet { public NBubbleNet1() : base(AID.NBubbleNet1AOE) { } }
-class SBubbleNet1 : BubbleNet { public SBubbleNet1() : base(AID.SBubbleNet1AOE) { } }
-class NBubbleNet2 : BubbleNet { public NBubbleNet2() : base(AID.NBubbleNet2AOE) { } }
-class SBubbleNet2 : BubbleNet { public SBubbleNet2() : base(AID.SBubbleNet2AOE) { } }
+class BubbleNet(BossModule module, AID aid) : Components.CastCounter(module, ActionID.MakeSpell(aid));
+class NBubbleNet1(BossModule module) : BubbleNet(module, AID.NBubbleNet1AOE);
+class SBubbleNet1(BossModule module) : BubbleNet(module, AID.SBubbleNet1AOE);
+class NBubbleNet2(BossModule module) : BubbleNet(module, AID.NBubbleNet2AOE);
+class SBubbleNet2(BossModule module) : BubbleNet(module, AID.SBubbleNet2AOE);
 
-class Hydrobomb : Components.LocationTargetedAOEs
-{
-    public Hydrobomb(AID aid) : base(ActionID.MakeSpell(aid), 5) { }
-}
-class NHydrobomb : Hydrobomb { public NHydrobomb() : base(AID.NHydrobombAOE) { } }
-class SHydrobomb : Hydrobomb { public SHydrobomb() : base(AID.SHydrobombAOE) { } }
+class Hydrobomb(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 5);
+class NHydrobomb(BossModule module) : Hydrobomb(module, AID.NHydrobombAOE);
+class SHydrobomb(BossModule module) : Hydrobomb(module, AID.SHydrobombAOE);
 
-public abstract class C031Ketuduke : BossModule
-{
-    public C031Ketuduke(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, 0), 20)) { }
-}
+public abstract class C031Ketuduke(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(0, 0), 20));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12605, SortOrder = 5)]
-public class C031NKetuduke : C031Ketuduke { public C031NKetuduke(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C031NKetuduke(WorldState ws, Actor primary) : C031Ketuduke(ws, primary);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12605, SortOrder = 5)]
-public class C031SKetuduke : C031Ketuduke { public C031SKetuduke(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C031SKetuduke(WorldState ws, Actor primary) : C031Ketuduke(ws, primary);

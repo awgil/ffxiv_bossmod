@@ -14,38 +14,36 @@ class LimitlessDesolation : Components.UniformStackSpread
     private static readonly float _towerRadius = 4;
     private static readonly WDir[] _towerOffsets = { new(-15, -15), new(-15, -5), new(-15, 5), new(-5, -15), new(-5, -5), new(-5, 5), new(5, -15), new(5, -5), new(5, 5), new(15, -15), new(15, -5), new(15, 5) };
 
-    public LimitlessDesolation() : base(0, 6, alwaysShowSpreads: true, raidwideOnResolve: false) { }
-
-    public override void Init(BossModule module)
+    public LimitlessDesolation(BossModule module) : base(module, 0, 6, alwaysShowSpreads: true, raidwideOnResolve: false)
     {
-        AddSpreads(module.Raid.WithoutSlot());
+        AddSpreads(Raid.WithoutSlot());
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         var towerIndex = _towerAssignments[slot];
-        if (towerIndex >= 0 && !actor.Position.InCircle(module.Bounds.Center + _towerOffsets[towerIndex], _towerRadius))
+        if (towerIndex >= 0 && !actor.Position.InCircle(Module.Bounds.Center + _towerOffsets[towerIndex], _towerRadius))
             hints.Add("Soak assigned tower!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         var towerIndex = _towerAssignments[pcSlot];
         if (towerIndex >= 0)
-            arena.AddCircle(module.Bounds.Center + _towerOffsets[towerIndex], _towerRadius, ArenaColor.Safe, 2);
+            Arena.AddCircle(Module.Bounds.Center + _towerOffsets[towerIndex], _towerRadius, ArenaColor.Safe, 2);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.TyrantsFire:
                 Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
-                _waitingForTowers.Set(module.Raid.FindSlot(spell.MainTargetID));
+                _waitingForTowers.Set(Raid.FindSlot(spell.MainTargetID));
                 ++NumAOEs;
                 break;
             case AID.Burst:
@@ -54,7 +52,7 @@ class LimitlessDesolation : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         var towerIndex = index switch
         {
@@ -84,7 +82,7 @@ class LimitlessDesolation : Components.UniformStackSpread
             case 0x00020001: // appear
                 _activeTowers.Set(towerIndex);
                 bool towerForTH = _thRight == towerIndex >= 6;
-                var (slot, player) = module.Raid.WithSlot(true).Where(ia => _waitingForTowers[ia.Item1] && ia.Item2.Class.IsSupport() == towerForTH).FirstOrDefault();
+                var (slot, player) = Raid.WithSlot(true).Where(ia => _waitingForTowers[ia.Item1] && ia.Item2.Class.IsSupport() == towerForTH).FirstOrDefault();
                 if (player != null)
                 {
                     _towerAssignments[slot] = towerIndex;
@@ -108,7 +106,4 @@ class LimitlessDesolation : Components.UniformStackSpread
     }
 }
 
-class LimitlessDesolationTyrantsFlare : Components.LocationTargetedAOEs
-{
-    public LimitlessDesolationTyrantsFlare() : base(ActionID.MakeSpell(AID.TyrantsFlareLimitless), 8) { }
-}
+class LimitlessDesolationTyrantsFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TyrantsFlareLimitless), 8);

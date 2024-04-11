@@ -1,17 +1,17 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class ArenaChanges : BossComponent
+class ArenaChanges(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (index == 0x1B)
         {
             if (state == 0x00080004)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 35);
+                Module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 35);
             if (state is 0x00020001 or 0x00100001)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 30);
+                Module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 30);
             if (state == 0x00400020)
-                module.Arena.Bounds = new ArenaBoundsSquare(new(945, -945), 24);
+                Module.Arena.Bounds = new ArenaBoundsSquare(new(945, -945), 24);
         }
     }
 }

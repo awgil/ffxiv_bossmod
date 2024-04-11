@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A11Byregot;
 
-class HammersCells : Components.GenericAOEs
+class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.DestroySideTiles), "GTFO from dangerous cell!")
 {
     public bool Active { get; private set; }
     public bool MovementPending { get; private set; }
@@ -9,9 +9,7 @@ class HammersCells : Components.GenericAOEs
 
     private static readonly AOEShapeRect _shape = new(5, 5, 5);
 
-    public HammersCells() : base(ActionID.MakeSpell(AID.DestroySideTiles), "GTFO from dangerous cell!") { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (!Active)
             yield break;
@@ -21,35 +19,35 @@ class HammersCells : Components.GenericAOEs
             for (int x = -2; x <= 2; ++x)
             {
                 if (CellDangerous(x, z, true))
-                    yield return new(_shape, CellCenter(module, x, z), color: ArenaColor.AOE);
+                    yield return new(_shape, CellCenter(x, z), Color: ArenaColor.AOE);
                 else if (CellDangerous(x, z, false))
-                    yield return new(_shape, CellCenter(module, x, z), color: ArenaColor.SafeFromAOE);
+                    yield return new(_shape, CellCenter(x, z), Color: ArenaColor.SafeFromAOE);
             }
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (!Active)
             return;
 
-        arena.AddLine(module.Bounds.Center + new WDir(-15, -25), module.Bounds.Center + new WDir(-15, +25), ArenaColor.Border);
-        arena.AddLine(module.Bounds.Center + new WDir( -5, -25), module.Bounds.Center + new WDir( -5, +25), ArenaColor.Border);
-        arena.AddLine(module.Bounds.Center + new WDir( +5, -25), module.Bounds.Center + new WDir( +5, +25), ArenaColor.Border);
-        arena.AddLine(module.Bounds.Center + new WDir(+15, -25), module.Bounds.Center + new WDir(+15, +25), ArenaColor.Border);
-        arena.AddLine(module.Bounds.Center + new WDir(-25, -15), module.Bounds.Center + new WDir(+25, -15), ArenaColor.Border);
-        arena.AddLine(module.Bounds.Center + new WDir(-25,  -5), module.Bounds.Center + new WDir(+25,  -5), ArenaColor.Border);
-        arena.AddLine(module.Bounds.Center + new WDir(-25,  +5), module.Bounds.Center + new WDir(+25,  +5), ArenaColor.Border);
-        arena.AddLine(module.Bounds.Center + new WDir(-25, +15), module.Bounds.Center + new WDir(+25, +15), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(-15, -25), Module.Bounds.Center + new WDir(-15, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir( -5, -25), Module.Bounds.Center + new WDir( -5, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir( +5, -25), Module.Bounds.Center + new WDir( +5, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(+15, -25), Module.Bounds.Center + new WDir(+15, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(-25, -15), Module.Bounds.Center + new WDir(+25, -15), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(-25,  -5), Module.Bounds.Center + new WDir(+25,  -5), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(-25,  +5), Module.Bounds.Center + new WDir(+25,  +5), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(-25, +15), Module.Bounds.Center + new WDir(+25, +15), ArenaColor.Border);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             Active = true;
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (index is >= 7 and <= 11)
         {
@@ -64,7 +62,7 @@ class HammersCells : Components.GenericAOEs
             };
             MovementPending = true;
             if (_lineMovement[i] == 0)
-                module.ReportError(this, $"Unexpected env-control {i}={state:X}, offset={_lineOffset[i]}");
+                ReportError($"Unexpected env-control {i}={state:X}, offset={_lineOffset[i]}");
         }
         else if (index == 26)
         {
@@ -83,7 +81,7 @@ class HammersCells : Components.GenericAOEs
         }
     }
 
-    private WPos CellCenter(BossModule module, int x, int z) => module.Bounds.Center + 10 * new WDir(x, z);
+    private WPos CellCenter(int x, int z) => Module.Bounds.Center + 10 * new WDir(x, z);
 
     private bool CellDangerous(int x, int z, bool future)
     {
@@ -94,12 +92,5 @@ class HammersCells : Components.GenericAOEs
     }
 }
 
-class HammersLevinforge : Components.SelfTargetedAOEs
-{
-    public HammersLevinforge() : base(ActionID.MakeSpell(AID.Levinforge), new AOEShapeRect(50, 5)) { }
-}
-
-class HammersSpire : Components.SelfTargetedAOEs
-{
-    public HammersSpire() : base(ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15)) { }
-}
+class HammersLevinforge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Levinforge), new AOEShapeRect(50, 5));
+class HammersSpire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15));

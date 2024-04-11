@@ -16,28 +16,14 @@ public enum AID : uint
     TyphoonAOE = 28731, // MaelstromHelper->self, no cast, range 3 aoe
 }
 
-class SpikedTail : Components.SingleTargetCast
+class SpikedTail(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpikedTail));
+class SonicStorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SonicStorm), 6);
+
+class Typhoon(BossModule module) : Components.Exaflare(module, 3)
 {
-    public SpikedTail() : base(ActionID.MakeSpell(AID.SpikedTail)) { }
-}
+    private IReadOnlyList<Actor> _maelstroms = module.Enemies(OID.MaelstromVisual);
 
-class SonicStorm : Components.LocationTargetedAOEs
-{
-    public SonicStorm() : base(ActionID.MakeSpell(AID.SonicStorm), 6) { }
-}
-
-class Typhoon : Components.Exaflare
-{
-    private IReadOnlyList<Actor> _maelstroms = ActorEnumeration.EmptyList;
-
-    public Typhoon() : base(3) { }
-
-    public override void Init(BossModule module)
-    {
-        _maelstroms = module.Enemies(OID.MaelstromVisual);
-    }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         foreach (var m in _maelstroms)
         {
@@ -49,14 +35,14 @@ class Typhoon : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.TyphoonAOE && caster.Position.X < 56)
         {
             var line = FindLine(caster.Position.Z);
             if (line == null)
             {
-                module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X} @ {caster.Position}");
+                ReportError($"Failed to find entry for {caster.InstanceID:X} @ {caster.Position}");
                 return;
             }
 
@@ -66,7 +52,7 @@ class Typhoon : Components.Exaflare
                 line.MaxShownExplosions = 10;
                 line.ExplosionsLeft = 15;
             }
-            AdvanceLine(module, line, caster.Position);
+            AdvanceLine(line, caster.Position);
         }
     }
 
@@ -85,7 +71,4 @@ class D102KoshcheiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1678)]
-public class D102Koshchei : BossModule
-{
-    public D102Koshchei(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(40, -80), 10)) { }
-}
+public class D102Koshchei(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(40, -80), 10));

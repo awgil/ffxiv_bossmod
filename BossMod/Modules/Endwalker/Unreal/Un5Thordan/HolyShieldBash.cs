@@ -1,23 +1,19 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
-class HolyShieldBash : Components.GenericWildCharge
+class HolyShieldBash(BossModule module) : Components.GenericWildCharge(module, 3)
 {
-    public HolyShieldBash() : base(3) { }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        => PlayerRoles[playerSlot] == PlayerRole.Target ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return PlayerRoles[playerSlot] == PlayerRole.Target ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.HolyShieldBash:
-                foreach (var (i, p) in module.Raid.WithSlot(true))
+                foreach (var (i, p) in Raid.WithSlot(true))
                 {
                     // TODO: we don't really account for possible MT changes...
-                    PlayerRoles[i] = p.InstanceID == spell.TargetID ? PlayerRole.Target : p.Role != Role.Tank ? PlayerRole.ShareNotFirst : p.InstanceID != module.PrimaryActor.TargetID ? PlayerRole.Share : PlayerRole.Avoid;
+                    PlayerRoles[i] = p.InstanceID == spell.TargetID ? PlayerRole.Target : p.Role != Role.Tank ? PlayerRole.ShareNotFirst : p.InstanceID != Module.PrimaryActor.TargetID ? PlayerRole.Share : PlayerRole.Avoid;
                 }
                 break;
             case AID.SpearOfTheFury:
@@ -26,7 +22,7 @@ class HolyShieldBash : Components.GenericWildCharge
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

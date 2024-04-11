@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P2PlasmaShield : Components.DirectionalParry
+class P2PlasmaShield(BossModule module) : Components.DirectionalParry(module, (uint)OID.PlasmaShield)
 {
-    public P2PlasmaShield() : base((uint)OID.PlasmaShield) { }
-
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.PlasmaShield)
             PredictParrySide(actor.InstanceID, Side.Left | Side.Right | Side.Back);

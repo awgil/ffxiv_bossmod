@@ -21,36 +21,25 @@ public enum AID : uint
     Telega = 9630, // BonusAdds_Lampas->self, no cast, single-target, bonus loot add despawn
 }
 
-class Shine : Components.LocationTargetedAOEs
-{
-    public Shine() : base(ActionID.MakeSpell(AID.Shine2), 5) { }
-}
+class Shine(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Shine2), 5);
 
-class AetherialLight : Components.SelfTargetedAOEs
+class AetherialLight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherialLight2), new AOEShapeCone(40, 30.Degrees()), 4)
 {
-    public AetherialLight() : base(ActionID.MakeSpell(AID.AetherialLight2), new AOEShapeCone(40, 30.Degrees()), 4) { }
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, (NumCasts > 2 && i < 2) ? ArenaColor.Danger : ArenaColor.AOE));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastStarted(module, caster, spell);
+        base.OnCastStarted(caster, spell);
         if ((AID)spell.Action.ID == AID.AetherialLight2)
             ++NumCasts;
     }
 }
 
-class Lightburst : Components.SingleTargetCast
-{
-    public Lightburst() : base(ActionID.MakeSpell(AID.Lightburst2)) { }
-}
-
-class Summon : Components.CastHint
-{
-    public Summon() : base(ActionID.MakeSpell(AID.Summon), "Calls bonus adds") { }
-}
+class Lightburst(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Lightburst2));
+class Summon(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Summon), "Calls bonus adds");
 
 class LampasStates : StateMachineBuilder
 {
@@ -66,10 +55,8 @@ class LampasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12021)]
-public class Lampas : BossModule
+public class Lampas(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Lampas(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

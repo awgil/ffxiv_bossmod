@@ -24,50 +24,15 @@ public enum AID : uint
     MagitekRay = 21268, // MagitekBit->self, 2.5s cast, range 50 width 4 rect
 }
 
-class LightLeap : Components.LocationTargetedAOEs
-{
-    public LightLeap() : base(ActionID.MakeSpell(AID.LightLeap), 10) { }
-}
-
-class ChemicalMissile : Components.SelfTargetedAOEs
-{
-    public ChemicalMissile() : base(ActionID.MakeSpell(AID.ChemicalMissile), new AOEShapeCircle(12)) { }
-}
-
-class TailMissile : Components.SelfTargetedAOEs
-{
-    public TailMissile() : base(ActionID.MakeSpell(AID.TailMissileAOE), new AOEShapeCircle(30)) { }
-}
-
-class Shockwave : Components.SelfTargetedAOEs
-{
-    public Shockwave() : base(ActionID.MakeSpell(AID.Shockwave), new AOEShapeCircle(16)) { }
-}
-
-class ExplosiveFlare : Components.SelfTargetedAOEs
-{
-    public ExplosiveFlare() : base(ActionID.MakeSpell(AID.ExplosiveFlare), new AOEShapeCircle(10)) { }
-}
-
-class CripplingBlow : Components.SingleTargetCast
-{
-    public CripplingBlow() : base(ActionID.MakeSpell(AID.CripplingBlow)) { }
-}
-
-class PlasmaField : Components.RaidwideCast
-{
-    public PlasmaField() : base(ActionID.MakeSpell(AID.PlasmaField)) { }
-}
-
-class Towers : Components.CastTowers
-{
-    public Towers() : base(ActionID.MakeSpell(AID.Explosion), 6) { }
-}
-
-class MagitekRay : Components.SelfTargetedAOEs
-{
-    public MagitekRay() : base(ActionID.MakeSpell(AID.MagitekRay), new AOEShapeRect(50, 2)) { }
-}
+class LightLeap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightLeap), 10);
+class ChemicalMissile(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ChemicalMissile), new AOEShapeCircle(12));
+class TailMissile(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailMissileAOE), new AOEShapeCircle(30));
+class Shockwave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shockwave), new AOEShapeCircle(16));
+class ExplosiveFlare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosiveFlare), new AOEShapeCircle(10));
+class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CripplingBlow));
+class PlasmaField(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PlasmaField));
+class Towers(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Explosion), 6);
+class MagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRay), new AOEShapeRect(50, 2));
 
 class CE14VigilForLostStates : StateMachineBuilder
 {
@@ -87,7 +52,4 @@ class CE14VigilForLostStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 3)] // bnpcname=9396
-public class CE14VigilForLost : BossModule
-{
-    public CE14VigilForLost(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(451, 830), 30)) { }
-}
+public class CE14VigilForLost(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(451, 830), 30));

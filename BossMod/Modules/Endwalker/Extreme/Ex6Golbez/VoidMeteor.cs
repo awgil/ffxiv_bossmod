@@ -1,12 +1,10 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
-class VoidMeteor : Components.GenericBaitAway
+class VoidMeteor(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.VoidMeteorAOE), centerAtTarget: true)
 {
-    public VoidMeteor() : base(ActionID.MakeSpell(AID.VoidMeteorAOE), centerAtTarget: true) { }
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.VoidMeteor)
-            CurrentBaits.Add(new(module.PrimaryActor, actor, new AOEShapeCircle(6)));
+            CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeCircle(6)));
     }
 }

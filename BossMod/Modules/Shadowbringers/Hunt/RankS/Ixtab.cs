@@ -30,122 +30,87 @@ public enum SID : uint
     Doom = 1769, // Boss->player, extra=0x0
 }
 
-class DualCastTartareanFlameThunder : Components.GenericAOEs
+class DualCastTartareanFlameThunder(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = new();
     private static readonly AOEShapeCircle circle = new(20);
     private static readonly AOEShapeDonut donut = new(8, 40);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        var dualcast = module.PrimaryActor.FindStatus(SID.Dualcast) != null;
+        var dualcast = Module.PrimaryActor.FindStatus(SID.Dualcast) != null;
         if ((AID)spell.Action.ID == AID.TartareanThunder)
             if (!dualcast)
-                _aoes.Add(new(circle, caster.Position, activation: spell.NPCFinishAt));
+                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt));
             else
             {
-                _aoes.Add(new(circle, caster.Position, activation: spell.NPCFinishAt));
-                _aoes.Add(new(donut, caster.Position, activation: spell.NPCFinishAt.AddSeconds(5.1f)));
+                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt));
+                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt.AddSeconds(5.1f)));
             }
         if ((AID)spell.Action.ID == AID.TartareanFlame)
             if (!dualcast)
-                _aoes.Add(new(donut, caster.Position, activation: spell.NPCFinishAt));
+                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt));
             else
             {
-                _aoes.Add(new(donut, caster.Position, activation: spell.NPCFinishAt));
-                _aoes.Add(new(circle, caster.Position, activation: spell.NPCFinishAt.AddSeconds(5.1f)));
+                _aoes.Add(new(donut, caster.Position, default, spell.NPCFinishAt));
+                _aoes.Add(new(circle, caster.Position, default, spell.NPCFinishAt.AddSeconds(5.1f)));
             }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.TartareanThunder or AID.TartareanFlame)
             _aoes.RemoveAt(0);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.TartareanThunder2 or AID.TartareanFlame2)
             _aoes.RemoveAt(0);
     }
 }
 
-class TartareanTwister : Components.CastInterruptHint
-{
-    public TartareanTwister() : base(ActionID.MakeSpell(AID.TartareanTwister)) { }
-}
+class TartareanTwister(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TartareanTwister));
+class TartareanBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanBlizzard), new AOEShapeCone(40, 22.5f.Degrees()));
+class TartareanQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TartareanQuake));
+class TartareanAbyss(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.TartareanAbyss), new AOEShapeCircle(6), true);
+class TartareanAbyssHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TartareanAbyss), "Tankbuster circle");
+class TartareanFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanFlare), 18);
+class TartareanMeteor(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TartareanMeteor), 10);
+class ArchaicDualcast(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ArchaicDualcast), "Preparing In/Out or Out/In AOE");
 
-class TartareanBlizzard : Components.SelfTargetedAOEs
+class Cryptcall(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Cryptcall), new AOEShapeCone(38.24f, 60.Degrees()))
 {
-    public TartareanBlizzard() : base(ActionID.MakeSpell(AID.TartareanBlizzard), new AOEShapeCone(40, 22.5f.Degrees())) { }
-}
-
-class TartareanQuake : Components.RaidwideCast
-{
-    public TartareanQuake() : base(ActionID.MakeSpell(AID.TartareanQuake)) { }
-}
-
-class TartareanAbyss : Components.BaitAwayCast
-{
-    public TartareanAbyss() : base(ActionID.MakeSpell(AID.TartareanAbyss), new AOEShapeCircle(6), true) { }
-}
-
-class TartareanAbyssHint : Components.SingleTargetCast
-{
-    public TartareanAbyssHint() : base(ActionID.MakeSpell(AID.TartareanAbyss), "Tankbuster circle") { }
-}
-
-class TartareanFlare : Components.LocationTargetedAOEs
-{
-    public TartareanFlare() : base(ActionID.MakeSpell(AID.TartareanFlare), 18) { }
-}
-
-class TartareanMeteor : Components.StackWithCastTargets
-{
-    public TartareanMeteor() : base(ActionID.MakeSpell(AID.TartareanMeteor), 10) { }
-}
-
-class ArchaicDualcast : Components.CastHint
-{
-    public ArchaicDualcast() : base(ActionID.MakeSpell(AID.ArchaicDualcast), "Preparing In/Out or Out/In AOE") { }
-}
-
-class Cryptcall : Components.BaitAwayCast
-{
-    public Cryptcall() : base(ActionID.MakeSpell(AID.Cryptcall), new AOEShapeCone(38.24f, 60.Degrees())) { }
-
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { }
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell) //bait resolves on cast event instead of cast finish
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell) { }
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) //bait resolves on cast event instead of cast finish
     {
         if (spell.Action == WatchedAction)
             CurrentBaits.RemoveAll(b => b.Source == caster);
     }
 }
 
-class CryptcallHint : Components.CastHint
-{
-    public CryptcallHint() : base(ActionID.MakeSpell(AID.Cryptcall), "Cone reduces health to 1 + applies Doom") { }
-}
+class CryptcallHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Cryptcall), "Cone reduces health to 1 + applies Doom");
 
-class Doom : BossComponent
+class Doom(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> _doomed = [];
     public bool Doomed { get; private set; }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _doomed.Add(actor);
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _doomed.Remove(actor);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_doomed.Contains(actor) && !(actor.Role == Role.Healer))
             hints.Add("You were doomed! Get healed to full fast.");
@@ -155,9 +120,9 @@ class Doom : BossComponent
             hints.Add($"One or more players are affected by doom. Heal them to full.");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         foreach (var c in _doomed)
         {
             if (_doomed.Count > 0 && actor.Role == Role.Healer)
@@ -189,7 +154,4 @@ class IxtabStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8890)]
-public class Ixtab : SimpleBossModule
-{
-    public Ixtab(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Ixtab(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

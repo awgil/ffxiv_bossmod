@@ -1,18 +1,9 @@
 ﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
-[ConfigDisplay(Order = 0x130, Parent = typeof(EndwalkerConfig))]
-public class P3SConfig : CooldownPlanningConfigNode
-{
-    public P3SConfig() : base(90) { }
-}
+class HeatOfCondemnation(BossModule module) : Components.TankbusterTether(module, ActionID.MakeSpell(AID.HeatOfCondemnationAOE), (uint)TetherID.HeatOfCondemnation, 6);
 
-class HeatOfCondemnation : Components.TankbusterTether
-{
-    public HeatOfCondemnation() : base(ActionID.MakeSpell(AID.HeatOfCondemnationAOE), (uint)TetherID.HeatOfCondemnation, 6) { }
-}
+[ConfigDisplay(Order = 0x130, Parent = typeof(EndwalkerConfig))]
+public class P3SConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 807, NameID = 10720)]
-public class P3S : BossModule
-{
-    public P3S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-}
+public class P3S(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20));

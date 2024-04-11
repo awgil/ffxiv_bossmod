@@ -1,13 +1,10 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
-class FlukeTyphoon : Components.CastCounter
-{
-    public FlukeTyphoon() : base(ActionID.MakeSpell(AID.FlukeTyphoonAOE)) { }
-}
+class FlukeTyphoon(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.FlukeTyphoonAOE));
 
-class FlukeTyphoonBurst : Components.GenericTowers
+class FlukeTyphoonBurst(BossModule module) : Components.GenericTowers(module)
 {
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001)
         {
@@ -22,11 +19,11 @@ class FlukeTyphoonBurst : Components.GenericTowers
                 _ => default
             };
             if (offset != default)
-                Towers.Add(new(module.Bounds.Center + offset, 4));
+                Towers.Add(new(Module.Bounds.Center + offset, 4));
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NBurst or AID.SBurst or AID.NBigBurst or AID.SBigBurst)
         {

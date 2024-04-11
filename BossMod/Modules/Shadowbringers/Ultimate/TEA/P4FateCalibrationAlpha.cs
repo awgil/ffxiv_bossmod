@@ -1,18 +1,18 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P4FateCalibrationAlphaStillnessMotion : Components.StayMove
+class P4FateCalibrationAlphaStillnessMotion(BossModule module) : Components.StayMove(module)
 {
     public int NumCasts { get; private set; }
     private Requirement _first;
     private Requirement _second;
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_first != Requirement.None)
             hints.Add($"Movement: {_first} -> {(_second != Requirement.None ? _second.ToString() : "???")}");
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -49,34 +49,27 @@ class P4FateCalibrationAlphaStillnessMotion : Components.StayMove
     }
 }
 
-class P4FateCalibrationAlphaDebuffs : Components.UniformStackSpread
+class P4FateCalibrationAlphaDebuffs(BossModule module) : Components.UniformStackSpread(module, 4, 30, 3, alwaysShowSpreads: true)
 {
     public enum Debuff { None, Defamation, SharedSentence, AggravatedAssault }
 
     public Debuff[] Debuffs = new Debuff[PartyState.MaxPartySize];
-    private P4FateProjection? _proj;
+    private P4FateProjection? _proj = module.FindComponent<P4FateProjection>();
     private BitMask _avoidMask;
 
-    public P4FateCalibrationAlphaDebuffs() : base(4, 30, 3, alwaysShowSpreads: true) { }
-
-    public override void Init(BossModule module)
-    {
-        _proj = module.FindComponent<P4FateProjection>();
-    }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.FateCalibrationAlphaDefamation:
                 // applied to nearest projection
-                var defamationSlot = _proj?.ProjectionOwner(module.Enemies(OID.FateProjection).Closest(caster.Position)?.InstanceID ?? 0) ?? -1;
+                var defamationSlot = _proj?.ProjectionOwner(Module.Enemies(OID.FateProjection).Closest(caster.Position)?.InstanceID ?? 0) ?? -1;
                 if (defamationSlot >= 0)
                 {
                     Debuffs[defamationSlot] = Debuff.Defamation;
-                    var defamationTarget = module.Raid[defamationSlot];
+                    var defamationTarget = Raid[defamationSlot];
                     if (defamationTarget != null)
-                        AddSpread(defamationTarget, module.WorldState.CurrentTime.AddSeconds(20.1f));
+                        AddSpread(defamationTarget, WorldState.FutureTime(20.1f));
                 }
                 break;
             case AID.FateCalibrationAlphaSharedSentence:
@@ -84,9 +77,9 @@ class P4FateCalibrationAlphaDebuffs : Components.UniformStackSpread
                 if (sharedSlot >= 0)
                 {
                     Debuffs[sharedSlot] = Debuff.SharedSentence;
-                    var sharedTarget = module.Raid[sharedSlot];
+                    var sharedTarget = Raid[sharedSlot];
                     if (sharedTarget != null)
-                        AddStack(sharedTarget, module.WorldState.CurrentTime.AddSeconds(20.1f), _avoidMask); // note: avoid mask is typically empty here, since aggravated assaults happen later
+                        AddStack(sharedTarget, WorldState.FutureTime(20.1f), _avoidMask); // note: avoid mask is typically empty here, since aggravated assaults happen later
                 }
                 break;
             case AID.FateCalibrationAlphaAggravatedAssault:
@@ -103,40 +96,36 @@ class P4FateCalibrationAlphaDebuffs : Components.UniformStackSpread
     }
 }
 
-class P4FateCalibrationAlphaSacrament : Components.GenericAOEs
+class P4FateCalibrationAlphaSacrament(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(Actor caster, DateTime activation)> _casters = new();
     private WPos[]? _safespots;
 
     private static readonly AOEShapeCross _shape = new(100, 8);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-    {
-        return _casters.Select(c => new AOEInstance(_shape, c.caster.Position, c.caster.Rotation, c.activation));
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(_shape, c.caster.Position, c.caster.Rotation, c.activation));
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
-        if (movementHints != null && _safespots != null)
+        if (_safespots != null)
             movementHints.Add(actor.Position, _safespots[slot], ArenaColor.Safe);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         if (_safespots != null)
-            arena.AddCircle(_safespots[pcSlot], 1, ArenaColor.Safe);
+            Arena.AddCircle(_safespots[pcSlot], 1, ArenaColor.Safe);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.FateCalibrationAlphaSacrament:
-                _casters.Add((caster, module.WorldState.CurrentTime.AddSeconds(18.1f)));
+                _casters.Add((caster, WorldState.FutureTime(18.1f)));
                 if (_casters.Count == 3)
-                    InitSafeSpots(module);
+                    InitSafeSpots();
                 break;
             case AID.FateCalibrationAlphaResolveSacrament:
                 _casters.RemoveAll(c => c.caster == caster);
@@ -145,18 +134,18 @@ class P4FateCalibrationAlphaSacrament : Components.GenericAOEs
         }
     }
 
-    private void InitSafeSpots(BossModule module)
+    private void InitSafeSpots()
     {
-        var safeClone = module.Enemies(OID.PerfectAlexander).FirstOrDefault(a => a != ((TEA)module).PerfectAlex() && _casters.FindIndex(c => c.caster == a) < 0);
-        var debuffs = module.FindComponent<P4FateCalibrationAlphaDebuffs>();
+        var safeClone = Module.Enemies(OID.PerfectAlexander).FirstOrDefault(a => a != ((TEA)Module).PerfectAlex() && _casters.FindIndex(c => c.caster == a) < 0);
+        var debuffs = Module.FindComponent<P4FateCalibrationAlphaDebuffs>();
         if (safeClone == null || debuffs == null)
             return;
 
-        var dirToSafe = (safeClone.Position - module.Bounds.Center).Normalized();
+        var dirToSafe = (safeClone.Position - Module.Bounds.Center).Normalized();
         _safespots = new WPos[PartyState.MaxPartySize];
         for (int i = 0; i < _safespots.Length; ++i)
         {
-            _safespots[i] = module.Bounds.Center + debuffs.Debuffs[i] switch
+            _safespots[i] = Module.Bounds.Center + debuffs.Debuffs[i] switch
             {
                 P4FateCalibrationAlphaDebuffs.Debuff.Defamation => 18 * dirToSafe,
                 P4FateCalibrationAlphaDebuffs.Debuff.AggravatedAssault => -18 * dirToSafe + 3 * dirToSafe.OrthoR(),

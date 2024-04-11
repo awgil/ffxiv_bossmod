@@ -21,40 +21,13 @@ public enum AID : uint
     Pillory = 15812, // Boss->player, 5.0s cast, single-target
 }
 
-class Thumbscrew : Components.ChargeAOEs
-{
-    public Thumbscrew() : base(ActionID.MakeSpell(AID.Thumbscrew), 4) { }
-}
-
-class ThePathofLight : Components.RaidwideCast
-{
-    public ThePathofLight() : base(ActionID.MakeSpell(AID.ThePathOfLight)) { }
-}
-
-class GibbetCage : Components.SelfTargetedAOEs
-{
-    public GibbetCage() : base(ActionID.MakeSpell(AID.GibbetCage), new AOEShapeCircle(8)) { }
-}
-
-class HereticsFork : Components.SelfTargetedAOEs
-{
-    public HereticsFork() : base(ActionID.MakeSpell(AID.HereticsFork), new AOEShapeCross(40, 3)) { }
-}
-
-class LightShot : Components.SelfTargetedAOEs
-{
-    public LightShot() : base(ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2)) { }
-}
-
-class WoodenHorse : Components.SelfTargetedAOEs
-{
-    public WoodenHorse() : base(ActionID.MakeSpell(AID.WoodenHorse), new AOEShapeCone(40, 45.Degrees())) { }
-}
-
-class Pillory : Components.SingleTargetDelayableCast
-{
-    public Pillory() : base(ActionID.MakeSpell(AID.Pillory)) { }
-}
+class Thumbscrew(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Thumbscrew), 4);
+class ThePathofLight(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ThePathOfLight));
+class GibbetCage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GibbetCage), new AOEShapeCircle(8));
+class HereticsFork(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HereticsFork), new AOEShapeCross(40, 3));
+class LightShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2));
+class WoodenHorse(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WoodenHorse), new AOEShapeCone(40, 45.Degrees()));
+class Pillory(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Pillory));
 
 class D011ForgivenDissonanceStates : StateMachineBuilder
 {
@@ -73,7 +46,4 @@ class D011ForgivenDissonanceStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8299)]
-public class D011ForgivenDissonance : BossModule
-{
-    public D011ForgivenDissonance(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-15, 240), 19.5f)) { }
-}
+public class D011ForgivenDissonance(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-15, 240), 19.5f));

@@ -10,9 +10,9 @@ public enum AID : uint
     Fulmination = 14583, // 2719->self, 23,0s cast, range 60 circle
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Same as last act, but this time there are 4 bombs. Pull them to the\nmiddle with Sticky Tongue and attack them with any AOE to keep them\ninterrupted. They are weak against wind and strong against fire.");
     }
@@ -36,6 +36,7 @@ public class Stage11Act2 : BossModule
         ActivateComponent<Hints>();
         ActivateComponent<Layout4Quads>();
     }
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         foreach (var s in Enemies(OID.Boss))

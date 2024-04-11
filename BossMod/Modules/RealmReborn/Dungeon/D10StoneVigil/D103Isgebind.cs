@@ -17,42 +17,21 @@ public enum AID : uint
     Touchdown = 1027, // Boss->self, no cast, range 5 aoe around center
 }
 
-class RimeWreath : Components.RaidwideCast
-{
-    public RimeWreath() : base(ActionID.MakeSpell(AID.RimeWreath)) { }
-}
+class RimeWreath(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RimeWreath));
+class FrostBreath(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.FrostBreath), new AOEShapeCone(27, 60.Degrees())); // TODO: verify angle
+class SheetOfIce(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SheetOfIce), 5);
+class SheetOfIce2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SheetOfIce2), 5);
+class Cauterize(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(48, 10));
 
-class FrostBreath : Components.Cleave
-{
-    public FrostBreath() : base(ActionID.MakeSpell(AID.FrostBreath), new AOEShapeCone(27, 60.Degrees())) { } // TODO: verify angle
-}
-
-class SheetOfIce : Components.LocationTargetedAOEs
-{
-    public SheetOfIce() : base(ActionID.MakeSpell(AID.SheetOfIce), 5) { }
-}
-
-class SheetOfIce2 : Components.LocationTargetedAOEs
-{
-    public SheetOfIce2() : base(ActionID.MakeSpell(AID.SheetOfIce2), 5) { }
-}
-
-class Cauterize : Components.SelfTargetedLegacyRotationAOEs
-{
-    public Cauterize() : base(ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(48, 10)) { }
-}
-
-class Touchdown : Components.GenericAOEs
+class Touchdown(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Touchdown))
 {
     private AOEShapeCircle _shape = new(5);
 
-    public Touchdown() : base(ActionID.MakeSpell(AID.Touchdown)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // TODO: proper timings...
-        if (!module.PrimaryActor.IsTargetable && !module.FindComponent<Cauterize>()!.ActiveCasters.Any())
-            yield return new(_shape, module.Bounds.Center);
+        if (!Module.PrimaryActor.IsTargetable && !Module.FindComponent<Cauterize>()!.ActiveCasters.Any())
+            yield return new(_shape, Module.Bounds.Center);
     }
 }
 
@@ -71,7 +50,4 @@ class D103IsgebindStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1680)]
-public class D103Isgebind : BossModule
-{
-    public D103Isgebind(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(0, -248), 20)) { }
-}
+public class D103Isgebind(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(0, -248), 20));

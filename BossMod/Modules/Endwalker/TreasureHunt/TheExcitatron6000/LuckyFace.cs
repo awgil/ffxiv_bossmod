@@ -56,102 +56,38 @@ public enum IconID : uint
     spreadmarker = 194,
 }
 
-class LeftInTheDark1 : Components.SelfTargetedAOEs
-{
-    public LeftInTheDark1() : base(ActionID.MakeSpell(AID.LeftInTheDark), new AOEShapeCone(20, 90.Degrees())) { }
-}
+class LeftInTheDark1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftInTheDark), new AOEShapeCone(20, 90.Degrees()));
+class LeftInTheDark2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftInTheDark2), new AOEShapeCone(20, 90.Degrees()));
+class RightInTheDark1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightInTheDark1), new AOEShapeCone(20, 90.Degrees()));
+class RightInTheDark2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightInTheDark2), new AOEShapeCone(20, 90.Degrees()));
+class QuakeInYourBoots1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.QuakeInYourBoots), new AOEShapeCircle(10));
+class QuakeInYourBoots2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.QuakeInYourBoots2), new AOEShapeDonut(10, 20));
+class QuakeMeAway1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.QuakeMeAway), new AOEShapeDonut(10, 20));
+class QuakeMeAway2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.QuakeMeAway2), new AOEShapeCircle(10));
+class HeartOnFireII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeartOnFireII), 6);
+class HeartOnFireIV(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HeartOnFireIV));
 
-class LeftInTheDark2 : Components.SelfTargetedAOEs
+class HeartOnFireIII(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)
 {
-    public LeftInTheDark2() : base(ActionID.MakeSpell(AID.LeftInTheDark2), new AOEShapeCone(20, 90.Degrees())) { }
-}
-
-class RightInTheDark1 : Components.SelfTargetedAOEs
-{
-    public RightInTheDark1() : base(ActionID.MakeSpell(AID.RightInTheDark1), new AOEShapeCone(20, 90.Degrees())) { }
-}
-
-class RightInTheDark2 : Components.SelfTargetedAOEs
-{
-    public RightInTheDark2() : base(ActionID.MakeSpell(AID.RightInTheDark2), new AOEShapeCone(20, 90.Degrees())) { }
-}
-
-class QuakeInYourBoots1 : Components.SelfTargetedAOEs
-{
-    public QuakeInYourBoots1() : base(ActionID.MakeSpell(AID.QuakeInYourBoots), new AOEShapeCircle(10)) { }
-}
-
-class QuakeInYourBoots2 : Components.SelfTargetedAOEs
-{
-    public QuakeInYourBoots2() : base(ActionID.MakeSpell(AID.QuakeInYourBoots2), new AOEShapeDonut(10, 20)) { }
-}
-
-class QuakeMeAway1 : Components.SelfTargetedAOEs
-{
-    public QuakeMeAway1() : base(ActionID.MakeSpell(AID.QuakeMeAway), new AOEShapeDonut(10, 20)) { }
-}
-
-class QuakeMeAway2 : Components.SelfTargetedAOEs
-{
-    public QuakeMeAway2() : base(ActionID.MakeSpell(AID.QuakeMeAway2), new AOEShapeCircle(10)) { }
-}
-
-class HeartOnFireII : Components.LocationTargetedAOEs
-{
-    public HeartOnFireII() : base(ActionID.MakeSpell(AID.HeartOnFireII), 6) { }
-}
-
-class HeartOnFireIV : Components.SingleTargetCast
-{
-    public HeartOnFireIV() : base(ActionID.MakeSpell(AID.HeartOnFireIV)) { }
-}
-
-class HeartOnFireIII : Components.UniformStackSpread
-{
-    public HeartOnFireIII() : base(0, 6, alwaysShowSpreads: true) { }
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.spreadmarker)
             AddSpread(actor);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.HeartOnFireIII)
             Spreads.Clear();
     }
 }
 
-class TempersFlare : Components.RaidwideCast
-{
-    public TempersFlare() : base(ActionID.MakeSpell(AID.TempersFlare)) { }
-}
-
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
-}
-
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
-}
-
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
-}
-
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
-}
-
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
-}
+class TempersFlare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TempersFlare));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
 class LuckyFaceStates : StateMachineBuilder
 {
@@ -180,10 +116,8 @@ class LuckyFaceStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 819, NameID = 10831)]
-public class LuckyFace : BossModule
+public class LuckyFace(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, -460), 20))
 {
-    public LuckyFace(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -460), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

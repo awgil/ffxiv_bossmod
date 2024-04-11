@@ -1,32 +1,20 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash1;
 
-class Tornado : Components.LocationTargetedAOEs
-{
-    public Tornado(AID aid) : base(ActionID.MakeSpell(aid), 6) { }
-}
-class NTornado : Tornado { public NTornado() : base(AID.NTornado) { } }
-class STornado : Tornado { public STornado() : base(AID.STornado) { } }
+class Tornado(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 6);
+class NTornado(BossModule module) : Tornado(module, AID.NTornado);
+class STornado(BossModule module) : Tornado(module, AID.STornado);
 
-class ScytheTail : Components.SelfTargetedAOEs
-{
-    public ScytheTail(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(10)) { }
-}
-class NScytheTail : ScytheTail { public NScytheTail() : base(AID.NScytheTail) { } }
-class SScytheTail : ScytheTail { public SScytheTail() : base(AID.SScytheTail) { } }
+class ScytheTail(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(10));
+class NScytheTail(BossModule module) : ScytheTail(module, AID.NScytheTail);
+class SScytheTail(BossModule module) : ScytheTail(module, AID.SScytheTail);
 
-class Twister : Components.StackWithCastTargets
-{
-    public Twister(AID aid) : base(ActionID.MakeSpell(aid), 8, 4) { }
-}
-class NTwister : Twister { public NTwister() : base(AID.NTwister) { } }
-class STwister : Twister { public STwister() : base(AID.STwister) { } }
+class Twister(BossModule module, AID aid) : Components.StackWithCastTargets(module, ActionID.MakeSpell(aid), 8, 4);
+class NTwister(BossModule module) : Twister(module, AID.NTwister);
+class STwister(BossModule module) : Twister(module, AID.STwister);
 
-class Crosswind : Components.KnockbackFromCastTarget
-{
-    public Crosswind(AID aid) : base(ActionID.MakeSpell(aid), 25) { }
-}
-class NCrosswind : Crosswind { public NCrosswind() : base(AID.NCrosswind) { } }
-class SCrosswind : Crosswind { public SCrosswind() : base(AID.SCrosswind) { } }
+class Crosswind(BossModule module, AID aid) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(aid), 25);
+class NCrosswind(BossModule module) : Crosswind(module, AID.NCrosswind);
+class SCrosswind(BossModule module) : Crosswind(module, AID.SCrosswind);
 
 class C020FukoStates : StateMachineBuilder
 {
@@ -79,14 +67,12 @@ class C020FukoStates : StateMachineBuilder
         Cast(id, _savage ? AID.SCrosswind : AID.NCrosswind, delay, 4, "Knockback");
     }
 }
-class C020NFukoStates : C020FukoStates { public C020NFukoStates(BossModule module) : base(module, false) { } }
-class C020SFukoStates : C020FukoStates { public C020SFukoStates(BossModule module) : base(module, true) { } }
+class C020NFukoStates(BossModule module) : C020FukoStates(module, false);
+class C020SFukoStates(BossModule module) : C020FukoStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NFuko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12399, SortOrder = 2)]
-public class C020NFuko : C020Trash1
+public class C020NFuko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
 {
-    public C020NFuko(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
@@ -96,10 +82,8 @@ public class C020NFuko : C020Trash1
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SFuko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12399, SortOrder = 2)]
-public class C020SFuko : C020Trash1
+public class C020SFuko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
 {
-    public C020SFuko(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

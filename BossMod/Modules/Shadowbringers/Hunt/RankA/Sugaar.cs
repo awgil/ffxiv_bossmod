@@ -19,72 +19,59 @@ public enum AID : uint
     TailSnapAttract = 18101, // rotation, pulls player in from 30 by max 25 units between hitboxes, 3 attacks of TailSnapRotating
 }
 
-class BodySlam : Components.SelfTargetedAOEs
-{
-    public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11)) { }
-}
+class BodySlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11));
+class NumbingNoise(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NumbingNoise), new AOEShapeCone(13, 60.Degrees()));
+class TailSnap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18, 60.Degrees()));
 
-class NumbingNoise : Components.SelfTargetedAOEs
-{
-    public NumbingNoise() : base(ActionID.MakeSpell(AID.NumbingNoise), new AOEShapeCone(13, 60.Degrees())) { }
-}
-
-class TailSnap : Components.SelfTargetedAOEs
-{
-    public TailSnap() : base(ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18, 60.Degrees())) { }
-}
-
-class NumbingNoiseTailSnapRotating : Components.GenericRotatingAOE
+class NumbingNoiseTailSnapRotating(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private static readonly AOEShapeCone _shapeNumbingNoise = new(13, 60.Degrees());
     private static readonly AOEShapeCone _shapeTailSnap = new(18, 60.Degrees());
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.NumbingNoiseAttract: // NN always seems to go CCW
-                Sequences.Add(new(_shapeNumbingNoise, module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
+                Sequences.Add(new(_shapeNumbingNoise, Module.PrimaryActor.Position, spell.Rotation, 120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
                 break;
             case AID.TailSnapAttract: // TS always seems to go CW
-                Sequences.Add(new(_shapeTailSnap, module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
+                Sequences.Add(new(_shapeTailSnap, Module.PrimaryActor.Position, spell.Rotation + 180.Degrees(), -120.Degrees(), spell.NPCFinishAt.AddSeconds(1.1f), 2.7f, 3));
                 break;
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.NumbingNoiseRotating or AID.TailSnapRotating)
-            AdvanceSequence(0, module.WorldState.CurrentTime);
+            AdvanceSequence(0, WorldState.CurrentTime);
     }
 }
 
-class NumbingNoiseTailSnapAttract : Components.Knockback
+class NumbingNoiseTailSnapAttract(BossModule module) : Components.Knockback(module)
 {
-    private NumbingNoiseTailSnapRotating? _rotating;
+    private NumbingNoiseTailSnapRotating? _rotating = module.FindComponent<NumbingNoiseTailSnapRotating>();
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(30);
 
-    public override void Init(BossModule module) => _rotating = module.FindComponent<NumbingNoiseTailSnapRotating>();
-
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(module.PrimaryActor.Position, 25, _activation, _shape, default, Kind.TowardsOrigin, module.PrimaryActor.HitboxRadius + actor.HitboxRadius);
+            yield return new(Module.PrimaryActor.Position, 25, _activation, _shape, default, Kind.TowardsOrigin, Module.PrimaryActor.HitboxRadius + actor.HitboxRadius);
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => _rotating?.ActiveAOEs(module, slot, actor).Any(aoe => aoe.Check(pos)) ?? false;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _rotating?.ActiveAOEs(slot, actor).Any(aoe => aoe.Check(pos)) ?? false;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (caster == module.PrimaryActor && (AID)spell.Action.ID is AID.NumbingNoiseAttract or AID.TailSnapAttract)
+        if (caster == Module.PrimaryActor && (AID)spell.Action.ID is AID.NumbingNoiseAttract or AID.TailSnapAttract)
             _activation = spell.NPCFinishAt;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (caster == module.PrimaryActor && (AID)spell.Action.ID is AID.NumbingNoiseAttract or AID.TailSnapAttract)
+        if (caster == Module.PrimaryActor && (AID)spell.Action.ID is AID.NumbingNoiseAttract or AID.TailSnapAttract)
             _activation = default;
     }
 }

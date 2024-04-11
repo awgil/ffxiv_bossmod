@@ -21,21 +21,22 @@ public enum AID : uint
     DivineBurst = 35441, // DivineSprite->self, no cast, range 40 circle, raidwide when Divine Sprite dies
 }
 
-class WaterIII() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.WaterIII), 8);
-class PelagicCleaver1() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.PelagicCleaver1), new AOEShapeCone(40, 30.Degrees()));
-class PelagicCleaver2() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.PelagicCleaver2), new AOEShapeCone(40, 30.Degrees()));
-class PelagicCleaver1InterruptHint() : Components.CastInterruptHint(ActionID.MakeSpell(AID.PelagicCleaver1));
-class PelagicCleaver2InterruptHint() : Components.CastInterruptHint(ActionID.MakeSpell(AID.PelagicCleaver2));
-class WaterFlood() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.WaterFlood), new AOEShapeCircle(6));
-class DivineFlood() : Components.SelfTargetedAOEs(ActionID.MakeSpell(AID.DivineFlood), new AOEShapeCircle(6));
+class WaterIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WaterIII), 8);
+class PelagicCleaver1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver1), new AOEShapeCone(40, 30.Degrees()));
+class PelagicCleaver2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver2), new AOEShapeCone(40, 30.Degrees()));
+class PelagicCleaver1InterruptHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.PelagicCleaver1));
+class PelagicCleaver2InterruptHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.PelagicCleaver2));
+class WaterFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WaterFlood), new AOEShapeCircle(6));
+class DivineFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineFlood), new AOEShapeCircle(6));
 
 public class A30Trash1States : StateMachineBuilder
 {
     public A30Trash1States(A30Trash1 module) : base(module)
     {
+        // as soon as the last serpent dies, other adds are spawned; serpents are destroyed a bit later
         TrivialPhase()
             .ActivateOnEnter<WaterIII>()
-            .Raw.Update = () => module.Serpents.All(e => e.IsDeadOrDestroyed);
+            .Raw.Update = () => module.Enemies(OID.Serpent).All(e => e.IsDead);
         TrivialPhase(1)
             .ActivateOnEnter<PelagicCleaver1>()
             .ActivateOnEnter<PelagicCleaver2>()
@@ -43,31 +44,18 @@ public class A30Trash1States : StateMachineBuilder
             .ActivateOnEnter<PelagicCleaver2InterruptHint>()
             .ActivateOnEnter<WaterFlood>()
             .ActivateOnEnter<DivineFlood>()
-            .Raw.Update = () => module.Serpents.All(e => e.IsDestroyed) && module.Tritons.All(e => e.IsDeadOrDestroyed) && module.DivineSprites.All(e => e.IsDeadOrDestroyed) && module.WaterSprites.All(e => e.IsDeadOrDestroyed);
+            .Raw.Update = () => module.Enemies(OID.Serpent).Count == 0 && module.Enemies(OID.Triton).All(e => e.IsDead) && module.Enemies(OID.DivineSprite).All(e => e.IsDead) && module.Enemies(OID.WaterSprite).All(e => e.IsDead);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", PrimaryActorOID = (uint)OID.Serpent, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12478, SortOrder = 1)]
-public class A30Trash1 : BossModule
+public class A30Trash1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-800, -800), 20))
 {
-    public readonly IReadOnlyList<Actor> Serpents; // available from start
-    public readonly IReadOnlyList<Actor> Tritons; // spawned after all serpents are dead
-    public readonly IReadOnlyList<Actor> DivineSprites; // spawned after all serpents are dead
-    public readonly IReadOnlyList<Actor> WaterSprites; // spawned after all serpents are dead
-
-    public A30Trash1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-800, -800), 20))
-    {
-        Serpents = Enemies(OID.Serpent);
-        Tritons = Enemies(OID.Triton);
-        DivineSprites = Enemies(OID.DivineSprite);
-        WaterSprites = Enemies(OID.WaterSprite);
-    }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        Arena.Actors(Serpents, ArenaColor.Enemy);
-        Arena.Actors(Tritons, ArenaColor.Enemy);
-        Arena.Actors(DivineSprites, ArenaColor.Enemy);
-        Arena.Actors(WaterSprites, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Serpent), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Triton), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.DivineSprite), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.WaterSprite), ArenaColor.Enemy);
     }
 }

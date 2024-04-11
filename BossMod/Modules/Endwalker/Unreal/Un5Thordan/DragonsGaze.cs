@@ -1,20 +1,20 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
-class DragonsGaze : Components.GenericGaze
+class DragonsGaze(BossModule module) : Components.GenericGaze(module)
 {
     private List<Actor> _casters = new();
     private WPos _posHint;
 
-    public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.NPCFinishAt));
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.NPCFinishAt));
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         if (_posHint != default)
-            arena.AddCircle(_posHint, 1, ArenaColor.Safe);
+            Arena.AddCircle(_posHint, 1, ArenaColor.Safe);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.DragonsGaze or AID.DragonsGlory)
         {
@@ -23,18 +23,18 @@ class DragonsGaze : Components.GenericGaze
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.DragonsGaze or AID.DragonsGlory)
             _casters.Remove(caster);
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008 && (OID)actor.OID is >= OID.DragonEyeN and <= OID.DragonEyeNW)
         {
             var index = actor.OID - (uint)OID.DragonEyeN; // 0 = N, then CW
-            _posHint = module.Bounds.Center + 19 * (180 - (int)index * 45).Degrees().ToDirection();
+            _posHint = Module.Bounds.Center + 19 * (180 - (int)index * 45).Degrees().ToDirection();
         }
     }
 }

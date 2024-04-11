@@ -40,7 +40,7 @@ public enum IconID : uint
     RotateCW = 167, // Boss
 }
 
-class SanctifiedBlizzardChain : Components.GenericRotatingAOE
+class SanctifiedBlizzardChain(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private Angle _increment;
     private DateTime _activation;
@@ -48,25 +48,25 @@ class SanctifiedBlizzardChain : Components.GenericRotatingAOE
     private Angle _rot2;
     private static readonly AOEShapeCone _shape = new(40, 22.5f.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // direction seems to be server side until after first rotation
         if (_rot1 != default && Sequences.Count == 0 && NumCasts == 0)
         {
-            yield return new(_shape, module.PrimaryActor.Position, _rot1, _activation, ImminentColor);
-            yield return new(_shape, module.PrimaryActor.Position, _rot1 + 45.Degrees(), _activation, FutureColor);
-            yield return new(_shape, module.PrimaryActor.Position, _rot1 - 45.Degrees(), _activation, FutureColor);
+            yield return new(_shape, Module.PrimaryActor.Position, _rot1, _activation, ImminentColor);
+            yield return new(_shape, Module.PrimaryActor.Position, _rot1 + 45.Degrees(), _activation, FutureColor);
+            yield return new(_shape, Module.PrimaryActor.Position, _rot1 - 45.Degrees(), _activation, FutureColor);
         }
         if (_rot1 != default && Sequences.Count == 0 && NumCasts == 1)
         {
-            yield return new(_shape, module.PrimaryActor.Position, _rot1 + 45.Degrees(), _activation, ImminentColor);
-            yield return new(_shape, module.PrimaryActor.Position, _rot1 - 45.Degrees(), _activation, ImminentColor);
+            yield return new(_shape, Module.PrimaryActor.Position, _rot1 + 45.Degrees(), _activation, ImminentColor);
+            yield return new(_shape, Module.PrimaryActor.Position, _rot1 - 45.Degrees(), _activation, ImminentColor);
         }
         foreach (var s in Sequences)
         {
             int num = Math.Min(s.NumRemainingCasts, s.MaxShownAOEs);
             var rot = s.Rotation;
-            var time = s.NextActivation > module.WorldState.CurrentTime ? s.NextActivation : module.WorldState.CurrentTime;
+            var time = s.NextActivation > WorldState.CurrentTime ? s.NextActivation : WorldState.CurrentTime;
             for (int i = 1; i < num; ++i)
             {
                 rot += s.Increment;
@@ -79,7 +79,7 @@ class SanctifiedBlizzardChain : Components.GenericRotatingAOE
                 yield return new(s.Shape, s.Origin, s.Rotation, s.NextActivation, ImminentColor);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SanctifiedBlizzardChain)
         {
@@ -95,17 +95,17 @@ class SanctifiedBlizzardChain : Components.GenericRotatingAOE
             if ((_rot1 - _rot2).Normalized().Rad < 0)
                 _increment = 45.Degrees();
             if (Sequences.Count == 0)
-                Sequences.Add(new(_shape, module.PrimaryActor.Position, _rot2, _increment, _activation, 1.3f, 7));
+                Sequences.Add(new(_shape, Module.PrimaryActor.Position, _rot2, _increment, _activation, 1.3f, 7));
         }
     }
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SanctifiedBlizzardChain)
             ++NumCasts;
         if ((AID)spell.Action.ID is AID.SanctifiedBlizzardChain2 or AID.SanctifiedBlizzardChain3)
         {
             if (Sequences.Count > 0)
-                AdvanceSequence(0, module.WorldState.CurrentTime);
+                AdvanceSequence(0, WorldState.CurrentTime);
             if (NumCasts == 8)
             {
                 NumCasts = 0;
@@ -116,19 +116,16 @@ class SanctifiedBlizzardChain : Components.GenericRotatingAOE
     }
 }
 
-class SanctifiedBlizzardChainHint : Components.RaidwideCast
-{
-    public SanctifiedBlizzardChainHint() : base(ActionID.MakeSpell(AID.SanctifiedBlizzardChain), "Rotation direction undeterminable until start of the 2nd cast") { }
-}
+class SanctifiedBlizzardChainHint(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SanctifiedBlizzardChain), "Rotation direction undeterminable until start of the 2nd cast");
 
-class HeavenlyCyclone : Components.GenericRotatingAOE
+class HeavenlyCyclone(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private Angle _increment;
     private Angle _rotation;
     private DateTime _activation;
     private static readonly AOEShapeCone _shape = new(28, 90.Degrees());
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var increment = (IconID)iconID switch
         {
@@ -139,11 +136,11 @@ class HeavenlyCyclone : Components.GenericRotatingAOE
         if (increment != default)
         {
             _increment = increment;
-            InitIfReady(module, actor);
+            InitIfReady(actor);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.RotateCW or AID.RotateCCW)
         {
@@ -151,16 +148,16 @@ class HeavenlyCyclone : Components.GenericRotatingAOE
             _activation = spell.NPCFinishAt.AddSeconds(5.2f);
         }
         if (_rotation != default)
-            InitIfReady(module, caster);
+            InitIfReady(caster);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Sequences.Count > 0 && (AID)spell.Action.ID is AID.HeavenlyCyclone or AID.HeavenlyCyclone1 or AID.HeavenlyCyclone2)
-            AdvanceSequence(0, module.WorldState.CurrentTime);
+            AdvanceSequence(0, WorldState.CurrentTime);
     }
 
-    private void InitIfReady(BossModule module, Actor source)
+    private void InitIfReady(Actor source)
     {
         if (_rotation != default && _increment != default)
         {
@@ -171,40 +168,19 @@ class HeavenlyCyclone : Components.GenericRotatingAOE
     }
 }
 
-class HeavenlyScythe : Components.SelfTargetedAOEs
-{
-    public HeavenlyScythe() : base(ActionID.MakeSpell(AID.HeavenlyScythe), new AOEShapeCircle(10)) { }
-}
+class HeavenlyScythe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavenlyScythe), new AOEShapeCircle(10));
+class RagingFire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingFire), new AOEShapeDonut(5, 40));
+class Interference(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Interference), new AOEShapeCone(28, 90.Degrees()));
+class SanctifiedBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzard), new AOEShapeCone(40, 22.5f.Degrees()));
+class RoyalDecree(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RoyalDecree));
 
-class RagingFire : Components.SelfTargetedAOEs
+class MindJack(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
-    public RagingFire() : base(ActionID.MakeSpell(AID.RagingFire), new AOEShapeDonut(5, 40)) { }
-}
-
-class Interference : Components.SelfTargetedAOEs
-{
-    public Interference() : base(ActionID.MakeSpell(AID.Interference), new AOEShapeCone(28, 90.Degrees())) { }
-}
-
-class SanctifiedBlizzard : Components.SelfTargetedAOEs
-{
-    public SanctifiedBlizzard() : base(ActionID.MakeSpell(AID.SanctifiedBlizzard), new AOEShapeCone(40, 22.5f.Degrees())) { }
-}
-
-class RoyalDecree : Components.RaidwideCast
-{
-    public RoyalDecree() : base(ActionID.MakeSpell(AID.RoyalDecree)) { }
-}
-
-class MindJack : Components.StatusDrivenForcedMarch
-{
-    public MindJack() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
-
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos)
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (module.FindComponent<Interference>() != null && module.FindComponent<Interference>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+        if (Module.FindComponent<Interference>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
-        if (module.FindComponent<RagingFire>() != null && module.FindComponent<RagingFire>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+        if (Module.FindComponent<RagingFire>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
         else
             return false;
@@ -229,7 +205,4 @@ class ForgivenRebellionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8915)]
-public class ForgivenRebellion : SimpleBossModule
-{
-    public ForgivenRebellion(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class ForgivenRebellion(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.Savage.P2SHippokampos;
 
 // state related to dissociation mechanic
-class Dissociation : BossComponent
+class Dissociation(BossModule module) : BossComponent(module)
 {
     private AOEShapeRect? _shape = new(50, 10);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var head = module.Enemies(OID.DissociatedHead).FirstOrDefault();
-        if (_shape == null || head == null || module.Bounds.Contains(head.Position))
+        var head = Module.Enemies(OID.DissociatedHead).FirstOrDefault();
+        if (_shape == null || head == null || Module.Bounds.Contains(head.Position))
             return; // inactive or head not teleported yet
 
         if (_shape.Check(actor.Position, head))
@@ -17,16 +17,16 @@ class Dissociation : BossComponent
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        var head = module.Enemies(OID.DissociatedHead).FirstOrDefault();
-        if (_shape == null || head == null || module.Bounds.Contains(head.Position))
+        var head = Module.Enemies(OID.DissociatedHead).FirstOrDefault();
+        if (_shape == null || head == null || Module.Bounds.Contains(head.Position))
             return; // inactive or head not teleported yet
 
-        _shape.Draw(arena, head);
+        _shape.Draw(Arena, head);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (caster.OID == (uint)OID.DissociatedHead && (AID)spell.Action.ID == AID.DissociationAOE)
             _shape = null;

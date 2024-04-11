@@ -1,17 +1,17 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2StygimolochWarrior;
 
-class UnrelentingCharge : Components.Knockback
+class UnrelentingCharge(BossModule module) : Components.Knockback(module)
 {
     private Actor? _source;
     private DateTime _activation;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_source != null)
             yield return new(_source.Position, 10, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.UnrelentingCharge)
         {
@@ -20,12 +20,12 @@ class UnrelentingCharge : Components.Knockback
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.UnrelentingChargeAOE)
         {
             ++NumCasts;
-            _activation = module.WorldState.CurrentTime.AddSeconds(1.6f);
+            _activation = WorldState.FutureTime(1.6f);
         }
     }
 }

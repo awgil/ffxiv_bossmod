@@ -19,6 +19,7 @@ public class WorldState
     public PendingEffects PendingEffects { get; init; } = new();
 
     public DateTime CurrentTime => Frame.Timestamp;
+    public DateTime FutureTime(float deltaSeconds) => Frame.Timestamp.AddSeconds(deltaSeconds);
 
     public WorldState(ulong qpf, string gameVersion)
     {

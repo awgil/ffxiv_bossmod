@@ -40,18 +40,15 @@ public abstract class BossModule : IDisposable
     public IReadOnlyList<BossComponent> Components => _components;
     public T? FindComponent<T>() where T : BossComponent => _components.OfType<T>().FirstOrDefault();
 
-    public void ActivateComponent<T>() where T : BossComponent, new()
+    public void ActivateComponent<T>() where T : BossComponent
     {
         if (FindComponent<T>() != null)
         {
             ReportError(null, $"State {StateMachine.ActiveState?.ID:X}: Activating a component of type {typeof(T)} when another of the same type is already active; old one is deactivated automatically");
             DeactivateComponent<T>();
         }
-        T comp = new();
+        var comp = New<T>.Create(this);
         _components.Add(comp);
-
-        // execute init customization point
-        comp.Init(this);
 
         // execute callbacks for existing state
         foreach (var actor in WorldState.Actors)
@@ -59,15 +56,15 @@ public abstract class BossModule : IDisposable
             bool nonPlayer = actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo;
             if (nonPlayer)
             {
-                comp.OnActorCreated(this, actor);
+                comp.OnActorCreated(actor);
                 if (actor.CastInfo?.IsSpell() ?? false)
-                    comp.OnCastStarted(this, actor, actor.CastInfo);
+                    comp.OnCastStarted(actor, actor.CastInfo);
             }
             if (actor.Tether.ID != 0)
-                comp.OnTethered(this, actor, actor.Tether);
+                comp.OnTethered(actor, actor.Tether);
             for (int i = 0; i < actor.Statuses.Length; ++i)
                 if (actor.Statuses[i].ID != 0)
-                    comp.OnStatusGain(this, actor, actor.Statuses[i]);
+                    comp.OnStatusGain(actor, actor.Statuses[i]);
         }
     }
 
@@ -171,17 +168,17 @@ public abstract class BossModule : IDisposable
         {
             UpdateModule();
             foreach (var comp in _components)
-                comp.Update(this);
+                comp.Update();
         }
     }
 
-    public void Draw(float cameraAzimuth, int pcSlot, BossComponent.MovementHints? pcMovementHints, bool includeText, bool includeArena)
+    public void Draw(float cameraAzimuth, int pcSlot, bool includeText, bool includeArena)
     {
         var pc = Raid[pcSlot];
         if (pc == null)
             return;
 
-        var pcHints = CalculateHintsForRaidMember(pcSlot, pc, pcMovementHints);
+        var pcHints = CalculateHintsForRaidMember(pcSlot, pc);
         if (includeText)
         {
             if (WindowConfig.ShowMechanicTimers)
@@ -206,7 +203,7 @@ public abstract class BossModule : IDisposable
         // draw background
         DrawArenaBackground(pcSlot, pc);
         foreach (var comp in _components)
-            comp.DrawArenaBackground(this, pcSlot, pc, Arena);
+            comp.DrawArenaBackground(pcSlot, pc);
 
         // draw borders
         if (WindowConfig.ShowBorder)
@@ -222,18 +219,26 @@ public abstract class BossModule : IDisposable
         // draw foreground
         DrawArenaForeground(pcSlot, pc);
         foreach (var comp in _components)
-            comp.DrawArenaForeground(this, pcSlot, pc, Arena);
+            comp.DrawArenaForeground(pcSlot, pc);
 
         // draw enemies & player
         DrawEnemies(pcSlot, pc);
         Arena.Actor(pc, ArenaColor.PC, true);
     }
 
-    public BossComponent.TextHints CalculateHintsForRaidMember(int slot, Actor actor, BossComponent.MovementHints? movementHints = null)
+    public BossComponent.TextHints CalculateHintsForRaidMember(int slot, Actor actor)
     {
         BossComponent.TextHints hints = new();
         foreach (var comp in _components)
-            comp.AddHints(this, slot, actor, hints, movementHints);
+            comp.AddHints(slot, actor, hints);
+        return hints;
+    }
+
+    public BossComponent.MovementHints CalculateMovementHintsForRaidMember(int slot, Actor actor)
+    {
+        BossComponent.MovementHints hints = new();
+        foreach (var comp in _components)
+            comp.AddMovementHints(slot, actor, hints);
         return hints;
     }
 
@@ -241,7 +246,7 @@ public abstract class BossModule : IDisposable
     {
         BossComponent.GlobalHints hints = new();
         foreach (var comp in _components)
-            comp.AddGlobalHints(this, hints);
+            comp.AddGlobalHints(hints);
         return hints;
     }
 
@@ -250,7 +255,7 @@ public abstract class BossModule : IDisposable
     {
         hints.Bounds = Bounds;
         foreach (var comp in _components)
-            comp.AddAIHints(this, slot, actor, assignment, hints);
+            comp.AddAIHints(slot, actor, assignment, hints);
     }
 
     public virtual bool NeedToJump(WPos from, WDir dir) => false; // if arena has complicated shape that requires jumps to navigate, module can provide this info to AI
@@ -350,7 +355,7 @@ public abstract class BossModule : IDisposable
         foreach (var s in _components)
         {
             uint subColor = 0;
-            var subPrio = s.CalcPriority(this, pcSlot, pc, playerSlot, player, ref subColor);
+            var subPrio = s.CalcPriority(pcSlot, pc, playerSlot, player, ref subColor);
             if (subPrio > highestPrio)
             {
                 highestPrio = subPrio;
@@ -371,7 +376,7 @@ public abstract class BossModule : IDisposable
         _relevantEnemies.GetValueOrDefault(actor.OID)?.Add(actor);
         if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
             foreach (var comp in _components)
-                comp.OnActorCreated(this, actor);
+                comp.OnActorCreated(actor);
     }
 
     private void OnActorDestroyed(Actor actor)
@@ -379,94 +384,94 @@ public abstract class BossModule : IDisposable
         _relevantEnemies.GetValueOrDefault(actor.OID)?.Remove(actor);
         if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
             foreach (var comp in _components)
-                comp.OnActorDestroyed(this, actor);
+                comp.OnActorDestroyed(actor);
     }
 
     private void OnActorCastStarted(Actor actor)
     {
         if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
             foreach (var comp in _components)
-                comp.OnCastStarted(this, actor, actor.CastInfo);
+                comp.OnCastStarted(actor, actor.CastInfo);
     }
 
     private void OnActorCastFinished(Actor actor)
     {
         if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
             foreach (var comp in _components)
-                comp.OnCastFinished(this, actor, actor.CastInfo);
+                comp.OnCastFinished(actor, actor.CastInfo);
     }
 
     private void OnActorTethered(Actor actor)
     {
         foreach (var comp in _components)
-            comp.OnTethered(this, actor, actor.Tether);
+            comp.OnTethered(actor, actor.Tether);
     }
 
     private void OnActorUntethered(Actor actor)
     {
         foreach (var comp in _components)
-            comp.OnUntethered(this, actor, actor.Tether);
+            comp.OnUntethered(actor, actor.Tether);
     }
 
     private void OnActorStatusGain(Actor actor, int index)
     {
         foreach (var comp in _components)
-            comp.OnStatusGain(this, actor, actor.Statuses[index]);
+            comp.OnStatusGain(actor, actor.Statuses[index]);
     }
 
     private void OnActorStatusLose(Actor actor, int index)
     {
         foreach (var comp in _components)
-            comp.OnStatusLose(this, actor, actor.Statuses[index]);
+            comp.OnStatusLose(actor, actor.Statuses[index]);
     }
 
     private void OnActorIcon(Actor actor, uint iconID)
     {
         foreach (var comp in _components)
-            comp.OnEventIcon(this, actor, iconID);
+            comp.OnEventIcon(actor, iconID);
     }
 
     private void OnActorCastEvent(Actor actor, ActorCastEvent cast)
     {
         if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && cast.IsSpell())
             foreach (var comp in _components)
-                comp.OnEventCast(this, actor, cast);
+                comp.OnEventCast(actor, cast);
     }
 
     private void OnActorEState(Actor actor, ushort state)
     {
         foreach (var comp in _components)
-            comp.OnActorEState(this, actor, state);
+            comp.OnActorEState(actor, state);
     }
 
     private void OnActorEAnim(Actor actor, ushort p1, ushort p2)
     {
         uint state = ((uint)p1 << 16) | p2;
         foreach (var comp in _components)
-            comp.OnActorEAnim(this, actor, state);
+            comp.OnActorEAnim(actor, state);
     }
 
     private void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         foreach (var comp in _components)
-            comp.OnActorPlayActionTimelineEvent(this, actor, id);
+            comp.OnActorPlayActionTimelineEvent(actor, id);
     }
 
     private void OnActorNpcYell(Actor actor, ushort id)
     {
         foreach (var comp in _components)
-            comp.OnActorNpcYell(this, actor, id);
+            comp.OnActorNpcYell(actor, id);
     }
 
     private void OnActorModelStateChange(Actor actor)
     {
         foreach (var comp in _components)
-            comp.OnActorModelStateChange(this, actor, actor.ModelState.ModelState, actor.ModelState.AnimState1, actor.ModelState.AnimState2);
+            comp.OnActorModelStateChange(actor, actor.ModelState.ModelState, actor.ModelState.AnimState1, actor.ModelState.AnimState2);
     }
 
     private void OnEnvControl(WorldState.OpEnvControl op)
     {
         foreach (var comp in _components)
-            comp.OnEventEnvControl(this, op.Index, op.State);
+            comp.OnEventEnvControl(op.Index, op.State);
     }
 }

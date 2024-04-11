@@ -17,50 +17,15 @@ public enum AID : uint
     RubyTide = 7992, // Boss->self, 2,0s cast, single-target, boss gives itself Dmg up buff
 }
 
-class Hydrocannon : Components.SelfTargetedAOEs
-{
-    public Hydrocannon() : base(ActionID.MakeSpell(AID.Hydrocannon), new AOEShapeRect(30, 3)) { }
-}
-
-class ElectricWhorl : Components.SelfTargetedAOEs
-{
-    public ElectricWhorl() : base(ActionID.MakeSpell(AID.ElectricWhorl), new AOEShapeDonut(8, 60)) { }
-}
-
-class Expulsion : Components.SelfTargetedAOEs
-{
-    public Expulsion() : base(ActionID.MakeSpell(AID.Expulsion), new AOEShapeCircle(14)) { }
-}
-
-class ExpulsionKB : Components.KnockbackFromCastTarget
-{
-    public ExpulsionKB() : base(ActionID.MakeSpell(AID.Expulsion), 30, shape: new AOEShapeCircle(14)) { }
-}
-
-class ElectricSwipe : Components.SelfTargetedAOEs
-{
-    public ElectricSwipe() : base(ActionID.MakeSpell(AID.ElectricSwipe), new AOEShapeCone(25, 30.Degrees())) { }
-}
-
-class BodySlam : Components.LocationTargetedAOEs
-{
-    public BodySlam() : base(ActionID.MakeSpell(AID.BodySlam), 10) { }
-}
-
-class BodySlamKB : Components.KnockbackFromCastTarget
-{
-    public BodySlamKB() : base(ActionID.MakeSpell(AID.BodySlam), 20, shape: new AOEShapeCircle(10)) { }
-}
-
-class Immersion : Components.RaidwideCast
-{
-    public Immersion() : base(ActionID.MakeSpell(AID.Immersion)) { }
-}
-
-class RubyTide : Components.CastHint
-{
-    public RubyTide() : base(ActionID.MakeSpell(AID.RubyTide), "Applies damage buff to self") { }
-}
+class Hydrocannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrocannon), new AOEShapeRect(30, 3));
+class ElectricWhorl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectricWhorl), new AOEShapeDonut(8, 60));
+class Expulsion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Expulsion), new AOEShapeCircle(14));
+class ExpulsionKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Expulsion), 30, shape: new AOEShapeCircle(14));
+class ElectricSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectricSwipe), new AOEShapeCone(25, 30.Degrees()));
+class BodySlam(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam), 10);
+class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam), 20, shape: new AOEShapeCircle(10));
+class Immersion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Immersion));
+class RubyTide(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.RubyTide), "Applies damage buff to self");
 
 class OkinaStates : StateMachineBuilder
 {
@@ -80,7 +45,4 @@ class OkinaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5984)]
-public class Okina : SimpleBossModule
-{
-    public Okina(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Okina(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

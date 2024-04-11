@@ -1,46 +1,46 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster;
 
-class CrypticFlames : BossComponent
+class CrypticFlames(BossModule module) : BossComponent(module)
 {
     public bool ReadyToBreak { get; private set; }
     private int[] _playerOrder = new int[4];
     private List<(Actor laser, int order)> _lasers = new();
     private int _numBrokenLasers;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var order = _playerOrder[slot];
         if (order != 0)
             hints.Add($"Break order: {order}", order == CurrentBreakOrder);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var order = _playerOrder[pcSlot];
         foreach (var l in _lasers)
         {
             var dir = l.laser.Rotation.ToDirection();
-            var extent = 2 * dir * dir.Dot(module.Bounds.Center - l.laser.Position);
+            var extent = 2 * dir * dir.Dot(Module.Bounds.Center - l.laser.Position);
             var color = l.order != _playerOrder[pcSlot] ? ArenaColor.Enemy : order == CurrentBreakOrder ? ArenaColor.Safe : ArenaColor.Danger;
-            arena.AddLine(l.laser.Position, l.laser.Position + extent, color, 2);
+            Arena.AddLine(l.laser.Position, l.laser.Position + extent, color, 2);
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.FirstBrand:
-                SetPlayerOrder(module, actor, 1);
+                SetPlayerOrder(actor, 1);
                 break;
             case SID.SecondBrand:
-                SetPlayerOrder(module, actor, 2);
+                SetPlayerOrder(actor, 2);
                 break;
             case SID.ThirdBrand:
-                SetPlayerOrder(module, actor, 3);
+                SetPlayerOrder(actor, 3);
                 break;
             case SID.FourthBrand:
-                SetPlayerOrder(module, actor, 4);
+                SetPlayerOrder(actor, 4);
                 break;
             case SID.FirstFlame:
             case SID.SecondFlame:
@@ -64,7 +64,7 @@ class CrypticFlames : BossComponent
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Counter)
         {
@@ -72,9 +72,9 @@ class CrypticFlames : BossComponent
         }
     }
 
-    private void SetPlayerOrder(BossModule module, Actor player, int order)
+    private void SetPlayerOrder(Actor player, int order)
     {
-        int slot = module.Raid.FindSlot(player.InstanceID);
+        int slot = Raid.FindSlot(player.InstanceID);
         if (slot >= 0 && slot < _playerOrder.Length)
             _playerOrder[slot] = order;
     }

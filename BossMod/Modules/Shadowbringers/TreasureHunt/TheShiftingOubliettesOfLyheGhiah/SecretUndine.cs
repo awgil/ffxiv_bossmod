@@ -28,50 +28,15 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
 }
 
-class Hydrofan : Components.SelfTargetedAOEs
-{
-    public Hydrofan() : base(ActionID.MakeSpell(AID.Hydrofan), new AOEShapeCone(44, 15.Degrees())) { }
-}
-
-class Hypnowave : Components.SelfTargetedAOEs
-{
-    public Hypnowave() : base(ActionID.MakeSpell(AID.Hypnowave), new AOEShapeCone(30, 60.Degrees())) { }
-}
-
-class Hydropins : Components.SelfTargetedAOEs
-{
-    public Hydropins() : base(ActionID.MakeSpell(AID.Hydropins), new AOEShapeRect(12, 2)) { }
-}
-
-class AquaGlobe : Components.LocationTargetedAOEs
-{
-    public AquaGlobe() : base(ActionID.MakeSpell(AID.AquaGlobe), 8) { }
-}
-
-class Hydrowhirl : Components.SelfTargetedAOEs
-{
-    public Hydrowhirl() : base(ActionID.MakeSpell(AID.Hydrowhirl), new AOEShapeCircle(8)) { }
-}
-
-class Hydrotaph : Components.RaidwideCast
-{
-    public Hydrotaph() : base(ActionID.MakeSpell(AID.Hydrotaph2)) { }
-}
-
-class Spin : Components.SelfTargetedAOEs
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
-}
-
-class Mash : Components.SelfTargetedAOEs
-{
-    public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2)) { }
-}
-
-class Scoop : Components.SelfTargetedAOEs
-{
-    public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Hydrofan(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrofan), new AOEShapeCone(44, 15.Degrees()));
+class Hypnowave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hypnowave), new AOEShapeCone(30, 60.Degrees()));
+class Hydropins(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydropins), new AOEShapeRect(12, 2));
+class AquaGlobe(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AquaGlobe), 8);
+class Hydrowhirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrowhirl), new AOEShapeCircle(8));
+class Hydrotaph(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Hydrotaph2));
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class UndineStates : StateMachineBuilder
 {
@@ -92,10 +57,8 @@ class UndineStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9790)]
-public class Undine : BossModule
+public class Undine(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public Undine(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

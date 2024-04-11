@@ -8,25 +8,25 @@ class P3Inception2 : Components.GenericBaitAway
 
     private static readonly AOEShapeCone _shape = new(100, 45.Degrees()); // TODO: verify angle
 
-    public override void Init(BossModule module)
+    public P3Inception2(BossModule module) : base(module)
     {
         // assume first two are baited by tanks
-        ForbiddenPlayers = module.Raid.WithSlot(true).WhereActor(a => a.Role != Role.Tank).Mask();
+        ForbiddenPlayers = Raid.WithSlot(true).WhereActor(a => a.Role != Role.Tank).Mask();
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
         if (_numAetheroplasmsDone >= 4) // do not show anything until all aetheroplasms (part 1 of the mechanic) are done
         {
-            var source = ((TEA)module).BruteJustice();
-            var target = source != null ? module.Raid.WithoutSlot().Closest(source.Position) : null;
+            var source = ((TEA)Module).BruteJustice();
+            var target = source != null ? Raid.WithoutSlot().Closest(source.Position) : null;
             if (source != null && target != null)
                 CurrentBaits.Add(new(source, target, _shape));
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -37,7 +37,7 @@ class P3Inception2 : Components.GenericBaitAway
                 ++NumCasts;
                 foreach (var t in spell.Targets)
                 {
-                    var slot = module.Raid.FindSlot(t.ID);
+                    var slot = Raid.FindSlot(t.ID);
                     _taken.Set(slot);
                     ForbiddenPlayers.Set(slot);
                 }

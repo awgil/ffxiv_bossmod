@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
 [ConfigDisplay(Order = 0x181, Parent = typeof(EndwalkerConfig))]
-public class P8S1Config : CooldownPlanningConfigNode
+public class P8S1Config() : CooldownPlanningConfigNode(90)
 {
     [PropertyDisplay("Snake 1: assignments")]
     [GroupDetails(new string[] { "Prio 1 (always CW from N)", "Prio 2 (flex CW from N)", "Prio 3 (flex CCW from NW)", "Prio 4 (always CCW from NW)" })]
@@ -16,6 +16,4 @@ public class P8S1Config : CooldownPlanningConfigNode
 
     [PropertyDisplay("Snake 2: use cardinal priorities (G1 N/W, PF strat) instead of ordering (G1 first safe CCW from NW, Hector strat)")]
     public bool Snake2CardinalPriorities = true;
-
-    public P8S1Config() : base(90) { }
 }

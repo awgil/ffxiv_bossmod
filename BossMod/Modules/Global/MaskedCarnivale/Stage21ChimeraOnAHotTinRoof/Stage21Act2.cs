@@ -19,49 +19,26 @@ public enum AID : uint
 
 }
 
-class TheRamsKeeper : Components.PersistentVoidzoneAtCastTarget
-{
-    public TheRamsKeeper() : base(9, ActionID.MakeSpell(AID.TheRamsKeeper), m => m.Enemies(OID.Voidzone), 0) { }
-}
+class TheRamsKeeper(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, ActionID.MakeSpell(AID.TheRamsKeeper), m => m.Enemies(OID.Voidzone), 0);
+class TheRamsKeeperHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TheRamsKeeper), "Interrupt");
+class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9));
+class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30));
+class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Icefall), 5);
+class VoidBlizzard(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidBlizzard), "Interrupt");
 
-class TheRamsKeeperHint : Components.CastHint
+class Hints(BossModule module) : BossComponent(module)
 {
-    public TheRamsKeeperHint() : base(ActionID.MakeSpell(AID.TheRamsKeeper), "Interrupt") { }
-}
-
-class TheRamsVoice : Components.SelfTargetedAOEs
-{
-    public TheRamsVoice() : base(ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9)) { }
-}
-
-class TheDragonsVoice : Components.SelfTargetedAOEs
-{
-    public TheDragonsVoice() : base(ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30)) { }
-}
-
-class Icefall : Components.LocationTargetedAOEs
-{
-    public Icefall() : base(ActionID.MakeSpell(AID.Icefall), 5) { }
-}
-
-class VoidBlizzard : Components.CastHint
-{
-    public VoidBlizzard() : base(ActionID.MakeSpell(AID.VoidBlizzard), "Interrupt") { }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Interrupt The Rams Keeper with Spitting Sardine. You can start the\nFinal Sting combination at about 50% health left.\n(Off-guard->Bristle->Moonflute->Final Sting).\nThe boss will sometimes spawn an Arena Imp during the fight.");
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!module.Enemies(OID.ArenaImp).All(e => e.IsDead))
+        if (!Module.Enemies(OID.ArenaImp).All(e => e.IsDead))
             hints.Add("The imps are weak to fire spells and strong against ice.\nInterrupt Void Blizzard with Spitting Sardine.");
     }
 }

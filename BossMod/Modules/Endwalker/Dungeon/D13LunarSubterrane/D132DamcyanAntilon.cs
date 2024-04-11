@@ -25,32 +25,30 @@ public enum AID : uint
     PoundSand = 34443, // Boss->location, 6,0s cast, range 12 circle
 }
 
-class Sandblast : Components.RaidwideCast
-{
-    public Sandblast() : base(ActionID.MakeSpell(AID.Sandblast)) { }
-}
+class Sandblast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Sandblast));
 
-class Voidzone : BossComponent
+class Voidzone(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x00)
-            module.Arena.Bounds = new ArenaBoundsRect(new(0, 60), 19.5f, 20);
+            Module.Arena.Bounds = new ArenaBoundsRect(new(0, 60), 19.5f, 20);
     }
 }
 
-class Landslip : Components.Knockback
+class Landslip(BossModule module) : Components.Knockback(module)
 {
     private List<Actor> _casters = new();
     private DateTime _activation;
     private static readonly AOEShapeRect rect = new(40, 5);
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         foreach (var c in _casters)
             yield return new(c.Position, 20, _activation, rect, c.Rotation, Kind.DirForward);
     }
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Landslip2)
         {
@@ -59,44 +57,33 @@ class Landslip : Components.Knockback
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Landslip2)
             _casters.Remove(caster);
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos)
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (module.FindComponent<Towerfall>() != null && module.FindComponent<Towerfall>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+        if (Module.FindComponent<Towerfall>() is var towerfall && towerfall != null && towerfall.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
             return true;
-        if (!module.Bounds.Contains(pos))
+        if (!Module.Bounds.Contains(pos))
             return true;
         else
             return false;
     }
 }
 
-class EarthenGeyser : Components.StackWithCastTargets
-{
-    public EarthenGeyser() : base(ActionID.MakeSpell(AID.EarthenGeyser2), 10) { }
-}
+class EarthenGeyser(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.EarthenGeyser2), 10);
+class QuicksandVoidzone(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.QuicksandVoidzone).Where(z => z.EventState != 7));
+class PoundSand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PoundSand), 12);
 
-class QuicksandVoidzone : Components.PersistentVoidzone
-{
-    public QuicksandVoidzone() : base(10, m => m.Enemies(OID.QuicksandVoidzone).Where(z => z.EventState != 7)) { }
-}
-
-class PoundSand : Components.LocationTargetedAOEs
-{
-    public PoundSand() : base(ActionID.MakeSpell(AID.PoundSand), 12) { }
-}
-
-class AntlionMarch : Components.GenericAOEs
+class AntlionMarch(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(WPos source, AOEShape shape, Angle direction)> _casters = new();
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
             yield return new(_casters[0].shape, _casters[0].source, _casters[0].direction, _activation, ArenaColor.Danger);
@@ -104,7 +91,7 @@ class AntlionMarch : Components.GenericAOEs
             yield return new(_casters[i].shape, _casters[i].source, _casters[i].direction, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AntilonMarchTelegraph)
         {
@@ -115,21 +102,21 @@ class AntlionMarch : Components.GenericAOEs
             _activation = spell.NPCFinishAt.AddSeconds(0.2f); //since these are charges of different length with 0s cast time, the activation times are different for each and there are different patterns, so we just pretend that they all start after the telegraphs end
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_casters.Count > 0 && (AID)spell.Action.ID == AID.AntlionMarch2)
             _casters.RemoveAt(0);
     }
 }
 
-class Towerfall : Components.GenericAOEs
+class Towerfall(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(WPos source, AOEShape shape, Angle direction, DateTime activation)> _casters = new();
     private static readonly AOEShapeRect rect = new(40, 5);
     private static readonly Angle _rot1 = 89.999f.Degrees();
     private static readonly Angle _rot2 = -90.004f.Degrees();
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
             yield return new(_casters[0].shape, _casters[0].source, _casters[0].direction, _casters[0].activation);
@@ -137,30 +124,30 @@ class Towerfall : Components.GenericAOEs
             yield return new(_casters[1].shape, _casters[1].source, _casters[1].direction, _casters[1].activation);
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001)
         {
             if (index == 0x01)
-                _casters.Add((new WPos(-20, 45), rect, _rot1, module.WorldState.CurrentTime.AddSeconds(13 - _casters.Count)));  //timings can vary 1-3 seconds depending on Antilonmarch charges duration, so i took the lowest i could find
+                _casters.Add((new WPos(-20, 45), rect, _rot1, WorldState.FutureTime(13 - _casters.Count))); // timings can vary 1-3 seconds depending on Antilonmarch charges duration, so i took the lowest i could find
             if (index == 0x02)
-                _casters.Add((new WPos(-20, 55), rect, _rot1, module.WorldState.CurrentTime.AddSeconds(13 - _casters.Count)));
+                _casters.Add((new WPos(-20, 55), rect, _rot1, WorldState.FutureTime(13 - _casters.Count)));
             if (index == 0x03)
-                _casters.Add((new WPos(-20, 65), rect, _rot1, module.WorldState.CurrentTime.AddSeconds(13 - _casters.Count)));
+                _casters.Add((new WPos(-20, 65), rect, _rot1, WorldState.FutureTime(13 - _casters.Count)));
             if (index == 0x04)
-                _casters.Add((new WPos(-20, 75), rect, _rot1, module.WorldState.CurrentTime.AddSeconds(13 - _casters.Count)));
+                _casters.Add((new WPos(-20, 75), rect, _rot1, WorldState.FutureTime(13 - _casters.Count)));
             if (index == 0x05)
-                _casters.Add((new WPos(20, 45), rect, _rot2, module.WorldState.CurrentTime.AddSeconds(13 - _casters.Count)));
+                _casters.Add((new WPos(20, 45), rect, _rot2, WorldState.FutureTime(13 - _casters.Count)));
             if (index == 0x06)
-                _casters.Add((new WPos(20, 55), rect, _rot2, module.WorldState.CurrentTime.AddSeconds(13 - _casters.Count)));
+                _casters.Add((new WPos(20, 55), rect, _rot2, WorldState.FutureTime(13 - _casters.Count)));
             if (index == 0x07)
-                _casters.Add((new WPos(20, 65), rect, _rot2, module.WorldState.CurrentTime.AddSeconds(13 - _casters.Count)));
+                _casters.Add((new WPos(20, 65), rect, _rot2, WorldState.FutureTime(13 - _casters.Count)));
             if (index == 0x08)
-                _casters.Add((new WPos(20, 75), rect, _rot2, module.WorldState.CurrentTime.AddSeconds(13 - _casters.Count)));
+                _casters.Add((new WPos(20, 75), rect, _rot2, WorldState.FutureTime(13 - _casters.Count)));
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Towerfall)
             _casters.Clear();
@@ -184,7 +171,4 @@ class D132DamcyanAntilonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
-public class D132DamcyanAntilon : BossModule
-{
-    public D132DamcyanAntilon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 60), 19.5f, 25)) { }
-}
+public class D132DamcyanAntilon(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(0, 60), 19.5f, 25));

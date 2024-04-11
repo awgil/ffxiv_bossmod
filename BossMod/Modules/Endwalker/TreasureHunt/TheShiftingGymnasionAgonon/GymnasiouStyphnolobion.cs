@@ -38,42 +38,22 @@ public enum AID : uint
     HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
 }
 
-class Rake : Components.SingleTargetCast
-{
-    public Rake() : base(ActionID.MakeSpell(AID.Rake)) { }
-}
+class Rake(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Rake));
+class Tiiimbeeer(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Tiiimbeeer));
+class StoneIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StoneIII2), 6);
+class EarthShaker(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 15.Degrees()), endsOnCastEvent: true);
 
-class Tiiimbeeer : Components.RaidwideCast
-{
-    public Tiiimbeeer() : base(ActionID.MakeSpell(AID.Tiiimbeeer)) { }
-}
-
-class StoneIII : Components.LocationTargetedAOEs
-{
-    public StoneIII() : base(ActionID.MakeSpell(AID.StoneIII2), 6) { }
-}
-
-class EarthShaker : Components.BaitAwayCast
-{
-    public EarthShaker() : base(ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 15.Degrees()))
-    {
-        EndsOnCastEvent = true;
-    }
-}
-
-class EarthQuaker : Components.ConcentricAOEs
+class EarthQuaker(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
     private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 20)];
 
-    public EarthQuaker() : base(_shapes) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.EarthQuaker)
-            AddSequence(module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.5f));
+            AddSequence(Module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.5f));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Sequences.Count > 0)
         {
@@ -83,40 +63,17 @@ class EarthQuaker : Components.ConcentricAOEs
                 AID.EarthQuaker2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(1.95f));
+            AdvanceSequence(order, Module.Bounds.Center, WorldState.FutureTime(1.95f));
         }
     }
 }
 
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7)) { }
-}
-
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7)) { }
-}
-
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7)) { }
-}
-
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7)) { }
-}
-
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
-}
-
-class HeavySmash : Components.LocationTargetedAOEs
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-}
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
 
 class StyphnolobionStates : StateMachineBuilder
 {
@@ -139,10 +96,8 @@ class StyphnolobionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12012)]
-public class Styphnolobion : BossModule
+public class Styphnolobion(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Styphnolobion(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

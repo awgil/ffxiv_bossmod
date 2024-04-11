@@ -20,82 +20,69 @@ public enum AID : uint
     SelfDetonate = 15329, // 273A->player, 3,0s cast, single-target
 }
 
-class MagicHammer : Components.LocationTargetedAOEs
-{
-    public MagicHammer() : base(ActionID.MakeSpell(AID.MagicHammer), 8) { }
-}
+class MagicHammer(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagicHammer), 8);
+class PageTear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PageTear), new AOEShapeCone(8, 45.Degrees()));
 
-class PageTear : Components.SelfTargetedAOEs
-{
-    public PageTear() : base(ActionID.MakeSpell(AID.PageTear), new AOEShapeCone(8, 45.Degrees())) { }
-}
-
-class VacuumBlade : Components.GenericAOEs
+class VacuumBlade(BossModule module) : Components.GenericAOEs(module)
 {
     private bool activeVacuumWave;
     private DateTime _activation;
     private static readonly AOEShapeCircle circle = new(3);
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (activeVacuumWave)
-            foreach (var p in module.Enemies(OID.VacuumWave))
-                yield return new(circle, p.Position, activation: _activation);
+            foreach (var p in Module.Enemies(OID.VacuumWave))
+                yield return new(circle, p.Position, default, _activation);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.VacuumWave)
         {
             activeVacuumWave = true;
-            _activation = module.WorldState.CurrentTime.AddSeconds(7.7f);
+            _activation = WorldState.FutureTime(7.7f);
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.VacuumBlade)
             activeVacuumWave = false;
     }
 }
 
-class HeadDown : Components.BaitAwayChargeCast
-{
-    public HeadDown() : base(ActionID.MakeSpell(AID.HeadDown), 4) { }
-}
+class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.HeadDown), 4);
 
-class HeadDownKB : Components.KnockbackFromCastTarget
+class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HeadDown), 10, kind: Kind.DirForward)
 {
-    public HeadDownKB() : base(ActionID.MakeSpell(AID.HeadDown), 10, kind: Kind.DirForward) { }
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos)
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        if (module.FindComponent<VacuumBlade>() != null && module.FindComponent<VacuumBlade>()!.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
+        if (Module.FindComponent<VacuumBlade>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
-        if (!module.Bounds.Contains(pos))
+        if (!Module.Bounds.Contains(pos))
             return true;
         else
             return false;
     }
 }
 
-class BoneShaker : Components.RaidwideCast
-{
-    public BoneShaker() : base(ActionID.MakeSpell(AID.BoneShaker), "Adds + Raidwide") { }
-}
+class BoneShaker(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BoneShaker), "Adds + Raidwide");
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!module.Enemies(OID.ArenaMagus).All(e => e.IsDead))
-            hints.Add($"Kill {module.Enemies(OID.ArenaMagus).FirstOrDefault()!.Name} fast or wipe!\nUse ranged physical attacks.");
+        if (!Module.Enemies(OID.ArenaMagus).All(e => e.IsDead))
+            hints.Add($"Kill {Module.Enemies(OID.ArenaMagus).FirstOrDefault()!.Name} fast or wipe!\nUse ranged physical attacks.");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"{module.PrimaryActor.Name} spawns two adds when casting Boneshaker. These should be a\npriority or they will explode and wipe you. To kill them without touching\nthe electric field use a ranged physical attack such as Fire Angon.\nYou can start the Final Sting combination at about 50% health left.\n(Off-guard->Bristle->Moonflute->Final Sting)");
+        hints.Add($"{Module.PrimaryActor.Name} spawns two adds when casting Boneshaker. These should be a\npriority or they will explode and wipe you. To kill them without touching\nthe electric field use a ranged physical attack such as Fire Angon.\nYou can start the Final Sting combination at about 50% health left.\n(Off-guard->Bristle->Moonflute->Final Sting)");
     }
 }
 

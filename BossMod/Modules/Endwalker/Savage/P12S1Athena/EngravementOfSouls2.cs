@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 // TODO: generalize (line stack/spread)
-class EngravementOfSouls2Lines : BossComponent
+class EngravementOfSouls2Lines(BossModule module) : BossComponent(module)
 {
     public int NumCasts { get; private set; }
     private Actor? _lightRay;
@@ -11,70 +11,68 @@ class EngravementOfSouls2Lines : BossComponent
 
     private static readonly AOEShapeRect _shape = new(100, 3);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (InAOE(module, _lightRay, actor) != _darkCamp[slot])
+        if (InAOE(_lightRay, actor) != _darkCamp[slot])
             hints.Add(_darkCamp[slot] ? "Go to dark camp" : "GTFO from dark camp");
-        if (InAOE(module, _darkRay, actor) != _lightCamp[slot])
+        if (InAOE(_darkRay, actor) != _lightCamp[slot])
             hints.Add(_lightCamp[slot] ? "Go to light camp" : "GTFO from light camp");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return player == _lightRay || player == _darkRay ? PlayerPriority.Interesting : PlayerPriority.Normal;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        DrawOutline(module, _lightRay, _darkCamp[pcSlot]);
-        DrawOutline(module, _darkRay, _lightCamp[pcSlot]);
+        DrawOutline(_lightRay, _darkCamp[pcSlot]);
+        DrawOutline(_darkRay, _lightCamp[pcSlot]);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.UmbralTilt:
             case SID.UmbralbrightSoul:
-                _lightCamp.Set(module.Raid.FindSlot(actor.InstanceID));
+                _lightCamp.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.AstralTilt:
             case SID.AstralbrightSoul:
-                _darkCamp.Set(module.Raid.FindSlot(actor.InstanceID));
+                _darkCamp.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.UmbralstrongSoul:
                 _lightRay = actor;
-                _darkCamp.Set(module.Raid.FindSlot(actor.InstanceID));
+                _darkCamp.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.AstralstrongSoul:
                 _darkRay = actor;
-                _lightCamp.Set(module.Raid.FindSlot(actor.InstanceID));
+                _lightCamp.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.UmbralImpact or AID.AstralImpact)
             ++NumCasts;
     }
 
-    private bool InAOE(BossModule module, Actor? target, Actor actor) => target != null && _shape.Check(actor.Position, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position));
+    private bool InAOE(Actor? target, Actor actor) => target != null && _shape.Check(actor.Position, Module.PrimaryActor.Position, Angle.FromDirection(target.Position - Module.PrimaryActor.Position));
 
-    private void DrawOutline(BossModule module, Actor? target, bool safe)
+    private void DrawOutline(Actor? target, bool safe)
     {
         if (target != null)
-            _shape.Outline(module.Arena, module.PrimaryActor.Position, Angle.FromDirection(target.Position - module.PrimaryActor.Position), safe ? ArenaColor.Safe : ArenaColor.Danger);
+            _shape.Outline(Arena, Module.PrimaryActor.Position, Angle.FromDirection(target.Position - Module.PrimaryActor.Position), safe ? ArenaColor.Safe : ArenaColor.Danger);
     }
 }
 
-class EngrameventOfSouls2Spread : Components.GenericStackSpread
+class EngrameventOfSouls2Spread(BossModule module) : Components.GenericStackSpread(module, true, false)
 {
     public int NumCasts { get; private set; }
 
-    public EngrameventOfSouls2Spread() : base(true, false) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var radius = (SID)status.ID switch
         {
@@ -86,7 +84,7 @@ class EngrameventOfSouls2Spread : Components.GenericStackSpread
             Spreads.Add(new(actor, radius)); // TODO: activation
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         var radius = (AID)spell.Action.ID switch
         {

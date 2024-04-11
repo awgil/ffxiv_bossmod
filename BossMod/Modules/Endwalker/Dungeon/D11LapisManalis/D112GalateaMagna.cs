@@ -44,14 +44,14 @@ public enum SID : uint
     GlassyEyed = 3511, // Boss->player, extra=0x0, takes possession of the player after status ends and does a petrifying attack in all direction
 }
 
-class ScarecrowChase : Components.GenericAOEs
+class ScarecrowChase(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(Actor actor, uint icon)> _casters = [];
     private List<Actor> _casterssorted = [];
     private static readonly AOEShapeCross cross = new(40, 5);
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var activation = 3 * (_casters.Count - _casterssorted.Count);
         if (_casterssorted.Count == 1)
@@ -63,19 +63,19 @@ class ScarecrowChase : Components.GenericAOEs
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var icon = (IconID)iconID;
         if (icon >= IconID.Icon1 && icon <= IconID.Icon4)
         {
             _casters.Add((actor, iconID));
             if (_activation == default)
-                _activation = module.WorldState.CurrentTime.AddSeconds(9.9f);
+                _activation = WorldState.FutureTime(9.9f);
         }
         _casterssorted = _casters.OrderBy(x => x.icon).Select(x => x.actor).ToList();
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (_casters.Count > 0 && _casterssorted.Count > 0 && (AID)spell.Action.ID == AID.ScarecrowChase3)
         {
@@ -89,19 +89,17 @@ class ScarecrowChase : Components.GenericAOEs
     }
 }
 
-class OutInAOE : Components.ConcentricAOEs
+class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
     private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 40)];
 
-    public OutInAOE() : base(_shapes) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaxingCycle1)
-            AddSequence(module.Bounds.Center, spell.NPCFinishAt);
+            AddSequence(Module.Bounds.Center, spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Sequences.Count > 0)
         {
@@ -111,24 +109,22 @@ class OutInAOE : Components.ConcentricAOEs
                 AID.WaxingCycle2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, caster.Position, module.WorldState.CurrentTime.AddSeconds(2.7f));
+            AdvanceSequence(order, caster.Position, WorldState.FutureTime(2.7f));
         }
     }
 }
 
-class InOutAOE : Components.ConcentricAOEs
+class InOutAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
     private static readonly AOEShape[] _shapes = [new AOEShapeDonut(10, 40), new AOEShapeCircle(10)];
 
-    public InOutAOE() : base(_shapes) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaningCycle1)
-            AddSequence(module.Bounds.Center, spell.NPCFinishAt);
+            AddSequence(Module.Bounds.Center, spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Sequences.Count > 0)
         {
@@ -138,24 +134,24 @@ class InOutAOE : Components.ConcentricAOEs
                 AID.WaningCycle2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, caster.Position, module.WorldState.CurrentTime.AddSeconds(2));
+            AdvanceSequence(order, caster.Position, WorldState.FutureTime(2));
         }
     }
 }
 
-class GlassyEyed : Components.GenericGaze
+class GlassyEyed(BossModule module) : Components.GenericGaze(module)
 {
     private DateTime _activation;
     private readonly List<Actor> _affected = [];
 
-    public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
         foreach (var a in _affected)
-            if (_affected.Count > 0 && module.WorldState.CurrentTime > _activation.AddSeconds(-10))
+            if (_affected.Count > 0 && WorldState.CurrentTime > _activation.AddSeconds(-10))
                 yield return new(a.Position, _activation);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.GlassyEyed)
         {
@@ -164,19 +160,19 @@ class GlassyEyed : Components.GenericGaze
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.GlassyEyed)
             _affected.Remove(actor);
     }
 }
 
-public class TenebrismTowers : Components.GenericTowers
+public class TenebrismTowers(BossModule module) : Components.GenericTowers(module)
 {
     private WPos position;
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
-    {
 
+    public override void OnEventEnvControl(byte index, uint state)
+    {
         if (state == 0x00010008)
         {
             switch (index)
@@ -198,36 +194,36 @@ public class TenebrismTowers : Components.GenericTowers
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.Burst or AID.BigBurst)
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 6));
     }
 }
 
-class Doom : BossComponent
+class Doom(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> _doomed = [];
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _doomed.Add(actor);
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _doomed.Remove(actor);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_doomed.Contains(actor) && !(actor.Role == Role.Healer || actor.Class == Class.BRD))
             hints.Add("You were doomed! Get cleansed fast.");
@@ -238,9 +234,9 @@ class Doom : BossComponent
                 hints.Add($"Cleanse {c.Name} (Doom)");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         foreach (var c in _doomed)
         {
             if (_doomed.Count > 0 && actor.Role == Role.Healer)
@@ -251,10 +247,7 @@ class Doom : BossComponent
     }
 }
 
-class SoulScythe : Components.LocationTargetedAOEs
-{
-    public SoulScythe() : base(ActionID.MakeSpell(AID.SoulScythe), 18) { }
-}
+class SoulScythe(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SoulScythe), 18);
 
 class D112GalateaMagnaStates : StateMachineBuilder
 {
@@ -272,7 +265,4 @@ class D112GalateaMagnaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 10308)]
-public class D112GalateaMagna : BossModule
-{
-    public D112GalateaMagna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(350, -394), 19.5f)) { }
-}
+public class D112GalateaMagna(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(350, -394), 19.5f));

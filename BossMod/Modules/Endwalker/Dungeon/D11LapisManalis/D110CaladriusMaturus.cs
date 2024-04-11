@@ -12,10 +12,7 @@ public enum AID : uint
     TransonicBlast = 32535, // Caladrius->self, 4,0s cast, range 9 90-degree cone
 }
 
-class TransonicBlast : Components.SelfTargetedAOEs
-{
-    public TransonicBlast() : base(ActionID.MakeSpell(AID.TransonicBlast), new AOEShapeCone(9, 45.Degrees())) { }
-}
+class TransonicBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TransonicBlast), new AOEShapeCone(9, 45.Degrees()));
 
 class D110CaladriusMaturusStates : StateMachineBuilder
 {
@@ -28,14 +25,11 @@ class D110CaladriusMaturusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 12078)]
-public class D110CaladriusMaturus : BossModule
+public class D110CaladriusMaturus(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f))
 {
-    public D110CaladriusMaturus(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.Caladrius))
-            Arena.Actor(s, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Caladrius), ArenaColor.Enemy);
     }
 }

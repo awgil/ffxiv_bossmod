@@ -1,49 +1,39 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie;
 
-class PuffTethers : BossComponent
+class PuffTethers(BossModule module, bool originAtBoss) : BossComponent(module)
 {
-    private bool _originAtBoss;
-    private PuffTracker? _tracker;
+    private bool _originAtBoss = originAtBoss;
+    private PuffTracker? _tracker = module.FindComponent<PuffTracker>();
     private SlipperySoap.Color _bossColor;
 
     private static readonly uint _hintColor = 0x40008080;
 
-    public PuffTethers(bool originAtBoss)
-    {
-        _originAtBoss = originAtBoss;
-    }
-
-    public override void Init(BossModule module)
-    {
-        _tracker = module.FindComponent<PuffTracker>();
-    }
-
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_tracker == null)
             return;
-        DrawTetherHints(module, pc, _tracker.ChillingPuffs, false);
-        DrawTetherHints(module, pc, _tracker.FizzlingPuffs, true);
+        DrawTetherHints(pc, _tracker.ChillingPuffs, false);
+        DrawTetherHints(pc, _tracker.FizzlingPuffs, true);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_tracker == null)
             return;
-        DrawTether(module, pc, _tracker.ChillingPuffs);
-        DrawTether(module, pc, _tracker.FizzlingPuffs);
+        DrawTether(pc, _tracker.ChillingPuffs);
+        DrawTether(pc, _tracker.FizzlingPuffs);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if (actor != module.PrimaryActor)
+        if (actor != Module.PrimaryActor)
             return;
         var color = SlipperySoap.ColorForStatus(status.ID);
         if (color != SlipperySoap.Color.None)
             _bossColor = color;
     }
 
-    private void DrawTetherHints(BossModule module, Actor player, List<Actor> puffs, bool yellow)
+    private void DrawTetherHints(Actor player, List<Actor> puffs, bool yellow)
     {
         var source = puffs.Find(p => p.Tether.Target == player.InstanceID);
         if (source == null)
@@ -54,37 +44,36 @@ class PuffTethers : BossComponent
         var moveAngle = Angle.FromDirection(moveDir);
         if (yellow)
         {
-            C011Silkie.ShapeYellow.Draw(module.Arena, movePos, moveAngle + 45.Degrees(), _hintColor);
-            C011Silkie.ShapeYellow.Draw(module.Arena, movePos, moveAngle + 135.Degrees(), _hintColor);
-            C011Silkie.ShapeYellow.Draw(module.Arena, movePos, moveAngle - 135.Degrees(), _hintColor);
-            C011Silkie.ShapeYellow.Draw(module.Arena, movePos, moveAngle - 45.Degrees(), _hintColor);
+            C011Silkie.ShapeYellow.Draw(Arena, movePos, moveAngle + 45.Degrees(), _hintColor);
+            C011Silkie.ShapeYellow.Draw(Arena, movePos, moveAngle + 135.Degrees(), _hintColor);
+            C011Silkie.ShapeYellow.Draw(Arena, movePos, moveAngle - 135.Degrees(), _hintColor);
+            C011Silkie.ShapeYellow.Draw(Arena, movePos, moveAngle - 45.Degrees(), _hintColor);
         }
         else
         {
-            C011Silkie.ShapeBlue.Draw(module.Arena, movePos, moveAngle, _hintColor);
+            C011Silkie.ShapeBlue.Draw(Arena, movePos, moveAngle, _hintColor);
         }
 
-        var bossOrigin = _originAtBoss ? module.PrimaryActor.Position : module.Bounds.Center;
+        var bossOrigin = _originAtBoss ? Module.PrimaryActor.Position : Module.Bounds.Center;
         switch (_bossColor)
         {
             case SlipperySoap.Color.Green:
-                C011Silkie.ShapeGreen.Draw(module.Arena, bossOrigin, new(), _hintColor);
+                C011Silkie.ShapeGreen.Draw(Arena, bossOrigin, new(), _hintColor);
                 break;
             case SlipperySoap.Color.Blue:
-                C011Silkie.ShapeBlue.Draw(module.Arena, bossOrigin, new(), _hintColor);
+                C011Silkie.ShapeBlue.Draw(Arena, bossOrigin, new(), _hintColor);
                 break;
         }
     }
 
-    private void DrawTether(BossModule module, Actor player, List<Actor> puffs)
+    private void DrawTether(Actor player, List<Actor> puffs)
     {
         var source = puffs.Find(p => p.Tether.Target == player.InstanceID);
         if (source != null)
         {
-            module.Arena.AddLine(source.Position, player.Position, ArenaColor.Danger);
+            Arena.AddLine(source.Position, player.Position, ArenaColor.Danger);
         }
     }
 }
-
-class PuffTethers1 : PuffTethers { public PuffTethers1() : base(false) { } }
-class PuffTethers2 : PuffTethers { public PuffTethers2() : base(true) { } }
+class PuffTethers1(BossModule module) : PuffTethers(module, false);
+class PuffTethers2(BossModule module) : PuffTethers(module, true);

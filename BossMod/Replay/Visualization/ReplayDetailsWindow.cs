@@ -57,7 +57,7 @@ class ReplayDetailsWindow : UIWindow
         if (_mgr.ActiveModule != null)
         {
             var drawTimerPre = DateTime.Now;
-            _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null, true, true);
+            _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
 
             var compList = string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name));

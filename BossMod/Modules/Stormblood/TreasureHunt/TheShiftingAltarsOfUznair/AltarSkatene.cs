@@ -17,25 +17,10 @@ public enum AID : uint
     Chirp = 13310, // Boss->self, 3,5s cast, range 8+R circle
 }
 
-class Chirp : Components.SelfTargetedAOEs
-{
-    public Chirp() : base(ActionID.MakeSpell(AID.Chirp), new AOEShapeCircle(12.48f)) { }
-}
-
-class Tornado : Components.LocationTargetedAOEs
-{
-    public Tornado() : base(ActionID.MakeSpell(AID.Tornado), 6) { }
-}
-
-class VoidCall : Components.CastHint
-{
-    public VoidCall() : base(ActionID.MakeSpell(AID.VoidCall), "Calls adds") { }
-}
-
-class RecklessAbandon : Components.SingleTargetDelayableCast
-{
-    public RecklessAbandon() : base(ActionID.MakeSpell(AID.RecklessAbandon)) { }
-}
+class Chirp(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Chirp), new AOEShapeCircle(12.48f));
+class Tornado(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Tornado), 6);
+class VoidCall(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidCall), "Calls adds");
+class RecklessAbandon(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.RecklessAbandon));
 
 class SkateneStates : StateMachineBuilder
 {
@@ -51,10 +36,8 @@ class SkateneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7587)]
-public class Skatene : BossModule
+public class Skatene(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Skatene(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

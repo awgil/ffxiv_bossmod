@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex3Endsigner;
 
-class TwinsongAporrhoia : BossComponent
+class TwinsongAporrhoia(BossModule module) : BossComponent(module)
 {
     private enum HeadID { Center, Danger1, Danger2, Safe1, Safe2, Count }
 
@@ -13,7 +13,7 @@ class TwinsongAporrhoia : BossComponent
     private static readonly AOEShapeCircle _aoeDanger = new(15);
     private static readonly AOEShapeDonut _aoeSafe = new(5, 15);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_castsDone >= 3 && !_ringsAssigned)
             return;
@@ -42,7 +42,7 @@ class TwinsongAporrhoia : BossComponent
             hints.Add("GTFO from aoe!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_castsDone >= 3 && !_ringsAssigned)
             return;
@@ -51,7 +51,7 @@ class TwinsongAporrhoia : BossComponent
         if (center.Actor != null)
         {
             Angle rot = _centerStartingRotation - (_castsDone - center.Rings) * 90.Degrees();
-            _aoeCenter.Draw(arena, center.Actor.Position, rot);
+            _aoeCenter.Draw(Arena, center.Actor.Position, rot);
         }
 
         for (var i = HeadID.Danger1; i < HeadID.Count; ++i)
@@ -61,12 +61,12 @@ class TwinsongAporrhoia : BossComponent
             {
                 int safeCounter = (i >= HeadID.Safe1 ? 1 : 0) + _castsDone - head.Rings;
                 AOEShape aoe = (safeCounter & 1) != 0 ? _aoeSafe : _aoeDanger;
-                aoe.Draw(arena, head.Actor);
+                aoe.Draw(Arena, head.Actor);
             }
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.RewindTwinsong)
         {
@@ -79,14 +79,14 @@ class TwinsongAporrhoia : BossComponent
             };
             if (rings == 0)
             {
-                module.ReportError(this, $"Unexpected extra {status.Extra:X} for rewind status");
+                ReportError($"Unexpected extra {status.Extra:X} for rewind status");
                 return;
             }
 
             int slot = Array.FindIndex(_heads, ar => ar.Actor == actor);
             if (slot == -1)
             {
-                module.ReportError(this, $"Unexpected actor for rewind status");
+                ReportError($"Unexpected actor for rewind status");
                 return;
             }
 
@@ -95,7 +95,7 @@ class TwinsongAporrhoia : BossComponent
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -121,7 +121,7 @@ class TwinsongAporrhoia : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {

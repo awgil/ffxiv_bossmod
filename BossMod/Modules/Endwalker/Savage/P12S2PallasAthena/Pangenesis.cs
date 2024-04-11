@@ -3,7 +3,7 @@
 // note: this assumes standard strategy, not sure whether alternatives are possible...
 // TODO: assign sides...
 // TODO: show biochemical factor tethers - not sure how exactly they work...
-class Pangenesis : Components.GenericTowers
+class Pangenesis(BossModule module) : Components.GenericTowers(module)
 {
     public enum Color { None, Light, Dark }
 
@@ -20,39 +20,44 @@ class Pangenesis : Components.GenericTowers
     private List<Color> _towerColors = new(); // parallel to Towers
     private Color _firstLeftTower;
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.UnstableFactor:
-                if (module.Raid.FindSlot(actor.InstanceID) is var slotUnstable && slotUnstable >= 0)
+                if (Raid.FindSlot(actor.InstanceID) is var slotUnstable && slotUnstable >= 0)
                 {
                     _states[slotUnstable].UnstableCount = status.Extra;
                 }
                 break;
             case SID.UmbralTilt:
             case SID.AstralTilt:
-                if (module.Raid.FindSlot(actor.InstanceID) is var slotColor && slotColor >= 0)
+                if (Raid.FindSlot(actor.InstanceID) is var slotColor && slotColor >= 0)
                 {
                     _states[slotColor].Color = (SID)status.ID == SID.UmbralTilt ? Color.Light : Color.Dark;
                     _states[slotColor].ColorExpire = status.ExpireAt;
 
                     // update forbidden towers
-                    bool isLeft = actor.Position.X < module.Bounds.Center.X;
+                    bool isLeft = actor.Position.X < Module.Bounds.Center.X;
                     for (int i = 0; i < Towers.Count; ++i)
-                        if ((Towers[i].Position.X < module.Bounds.Center.X) == isLeft)  // don't care about towers on other side, keep forbidden
-                            Towers.AsSpan()[i].ForbiddenSoakers[slotColor] = _states[slotColor].Color == _towerColors[i];
+                    {
+                        ref var tower = ref Towers.Ref(i);
+                        if ((tower.Position.X < Module.Bounds.Center.X) == isLeft)  // don't care about towers on other side, keep forbidden
+                        {
+                            tower.ForbiddenSoakers[slotColor] = _states[slotColor].Color == _towerColors[i];
+                        }
+                    }
                 }
                 break;
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.UmbralAdvent or AID.AstralAdvent)
         {
             bool isLight = (AID)spell.Action.ID == AID.UmbralAdvent;
-            bool isLeft = caster.Position.X < module.Bounds.Center.X;
+            bool isLeft = caster.Position.X < Module.Bounds.Center.X;
             bool isPrimary = caster.Position.Z > 90; // first tower at 91, second/third same color is 94, opposite is 88
             var towerColor = isLight ? Color.Light : Color.Dark;
 
@@ -91,7 +96,7 @@ class Pangenesis : Components.GenericTowers
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.UmbralAdvent or AID.AstralAdvent)
         {
@@ -105,11 +110,11 @@ class Pangenesis : Components.GenericTowers
             // note: tower will assign new color in ~0.4s; clear previous colors immediately, since new towers will start before debuffs are gone
             foreach (var t in spell.Targets)
             {
-                var slot = module.Raid.FindSlot(t.ID);
+                var slot = Raid.FindSlot(t.ID);
                 if (slot >= 0)
                 {
                     _states[slot].Color = Color.None;
-                    _states[slot].AssignedSide = caster.Position.X < module.Bounds.Center.X ? -1 : 1; // ensure correct side is assigned
+                    _states[slot].AssignedSide = caster.Position.X < Module.Bounds.Center.X ? -1 : 1; // ensure correct side is assigned
                     _states[slot].SoakedPrimary = caster.Position.Z > 90;
                 }
             }
@@ -117,40 +122,38 @@ class Pangenesis : Components.GenericTowers
     }
 }
 
-class FactorIn : Components.GenericBaitAway
+class FactorIn(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FactorIn), centerAtTarget: true)
 {
     private List<(Actor source, Actor target)> _slimes = new();
 
     private static readonly AOEShapeCircle _shape = new(20);
 
-    public FactorIn() : base(ActionID.MakeSpell(AID.FactorIn), centerAtTarget: true) { }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         foreach (var s in _slimes)
         {
-            arena.Actor(s.source, ArenaColor.Object, true);
-            arena.AddLine(s.source.Position, s.target.Position, ArenaColor.Danger);
+            Arena.Actor(s.source, ArenaColor.Object, true);
+            Arena.AddLine(s.source.Position, s.target.Position, ArenaColor.Danger);
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.CriticalFactor)
-            ForbiddenPlayers.Set(module.Raid.FindSlot(actor.InstanceID));
+            ForbiddenPlayers.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.FactorIn && module.WorldState.Actors.Find(tether.Target) is var target && target != null)
+        if (tether.ID == (uint)TetherID.FactorIn && WorldState.Actors.Find(tether.Target) is var target && target != null)
         {
             _slimes.Add((source, target));
             UpdateBaits();
         }
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.FactorIn)
         {

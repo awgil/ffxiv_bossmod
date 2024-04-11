@@ -1,22 +1,22 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P5OmegaDoubleAOEs : Components.GenericAOEs
+class P5OmegaDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 {
     public List<AOEInstance> AOEs = new();
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var midpoint = AOEs.FirstOrDefault().Activation.AddSeconds(2);
         return NumCasts == 0 ? AOEs.TakeWhile(aoe => aoe.Activation <= midpoint) : AOEs.SkipWhile(aoe => aoe.Activation <= midpoint);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BeyondStrength or AID.EfficientBladework or AID.SuperliminalSteel or AID.OptimizedBlizzard)
             ++NumCasts;
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (id != 0x1E43)
             return;
@@ -25,37 +25,37 @@ class P5OmegaDoubleAOEs : Components.GenericAOEs
             case OID.OmegaMP5:
                 if (actor.ModelState.ModelState == 4)
                 {
-                    AOEs.Add(new(new AOEShapeDonut(10, 40), actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(13.2f)));
+                    AOEs.Add(new(new AOEShapeDonut(10, 40), actor.Position, actor.Rotation, WorldState.FutureTime(13.2f)));
                 }
                 else
                 {
-                    AOEs.Add(new(new AOEShapeCircle(10), actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(13.2f)));
+                    AOEs.Add(new(new AOEShapeCircle(10), actor.Position, actor.Rotation, WorldState.FutureTime(13.2f)));
                 }
                 break;
             case OID.OmegaFP5:
                 if (actor.ModelState.ModelState == 4)
                 {
-                    AOEs.Add(new(new AOEShapeRect(40, 40, -4), actor.Position, actor.Rotation + 90.Degrees(), module.WorldState.CurrentTime.AddSeconds(13.2f)));
-                    AOEs.Add(new(new AOEShapeRect(40, 40, -4), actor.Position, actor.Rotation - 90.Degrees(), module.WorldState.CurrentTime.AddSeconds(13.2f)));
+                    AOEs.Add(new(new AOEShapeRect(40, 40, -4), actor.Position, actor.Rotation + 90.Degrees(), WorldState.FutureTime(13.2f)));
+                    AOEs.Add(new(new AOEShapeRect(40, 40, -4), actor.Position, actor.Rotation - 90.Degrees(), WorldState.FutureTime(13.2f)));
                 }
                 else
                 {
-                    AOEs.Add(new(new AOEShapeCross(100, 5), actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(13.2f)));
+                    AOEs.Add(new(new AOEShapeCross(100, 5), actor.Position, actor.Rotation, WorldState.FutureTime(13.2f)));
                 }
                 break;
         }
     }
 }
 
-class P5OmegaDiffuseWaveCannon : Components.GenericAOEs
+class P5OmegaDiffuseWaveCannon(BossModule module) : Components.GenericAOEs(module)
 {
     private List<AOEInstance> _aoes = new();
 
     private static readonly AOEShapeCone _shape = new(100, 60.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(2);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.OmegaDiffuseWaveCannonFront or AID.OmegaDiffuseWaveCannonSides)
         {
@@ -67,19 +67,19 @@ class P5OmegaDiffuseWaveCannon : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.OmegaDiffuseWaveCannonAOE)
         {
             ++NumCasts;
             var count = _aoes.RemoveAll(aoe => aoe.Rotation.AlmostEqual(caster.Rotation, 0.1f));
             if (count != 1)
-                module.ReportError(this, $"Unexpected removed count: {count}");
+                ReportError($"Unexpected removed count: {count}");
         }
     }
 }
 
-class P5OmegaNearDistantWorld : P5NearDistantWorld
+class P5OmegaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 {
     private BitMask _near;
     private BitMask _distant;
@@ -90,25 +90,25 @@ class P5OmegaNearDistantWorld : P5NearDistantWorld
 
     public bool HaveDebuffs => (_near | _distant | _first | _second).Any();
 
-    public void ShowFirst(BossModule module) => Reset(module.Raid[(_near & _first).LowestSetBit()], module.Raid[(_distant & _first).LowestSetBit()], _firstActivation);
-    public void ShowSecond(BossModule module) => Reset(module.Raid[(_near & _second).LowestSetBit()], module.Raid[(_distant & _second).LowestSetBit()], _secondActivation);
+    public void ShowFirst() => Reset(Raid[(_near & _first).LowestSetBit()], Raid[(_distant & _first).LowestSetBit()], _firstActivation);
+    public void ShowSecond() => Reset(Raid[(_near & _second).LowestSetBit()], Raid[(_distant & _second).LowestSetBit()], _secondActivation);
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.HelloNearWorld:
-                _near.Set(module.Raid.FindSlot(actor.InstanceID));
+                _near.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.HelloDistantWorld:
-                _distant.Set(module.Raid.FindSlot(actor.InstanceID));
+                _distant.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.InLine1:
-                _first.Set(module.Raid.FindSlot(actor.InstanceID));
+                _first.Set(Raid.FindSlot(actor.InstanceID));
                 _firstActivation = status.ExpireAt;
                 break;
             case SID.InLine2:
-                _second.Set(module.Raid.FindSlot(actor.InstanceID));
+                _second.Set(Raid.FindSlot(actor.InstanceID));
                 _secondActivation = status.ExpireAt;
                 break;
         }
@@ -116,9 +116,9 @@ class P5OmegaNearDistantWorld : P5NearDistantWorld
 }
 
 // TODO: assign soakers
-class P5OmegaOversampledWaveCannon : Components.UniformStackSpread
+class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
-    private P5OmegaNearDistantWorld? _ndw;
+    private P5OmegaNearDistantWorld? _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
     private Actor? _boss;
     private Angle _bossAngle;
 
@@ -126,32 +126,28 @@ class P5OmegaOversampledWaveCannon : Components.UniformStackSpread
 
     public bool IsActive => _boss != null;
 
-    public P5OmegaOversampledWaveCannon() : base(0, 7) { }
-
-    public override void Init(BossModule module) => _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         Spreads.Clear();
         if (_boss != null)
-            AddSpreads(module.Raid.WithoutSlot().InShape(_shape, _boss.Position, _boss.Rotation + _bossAngle));
-        base.Update(module);
+            AddSpreads(Raid.WithoutSlot().InShape(_shape, _boss.Position, _boss.Rotation + _bossAngle));
+        base.Update();
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_boss != null)
-            _shape.Draw(arena, _boss.Position, _boss.Rotation + _bossAngle, ArenaColor.AOE);
+            _shape.Draw(Arena, _boss.Position, _boss.Rotation + _bossAngle, ArenaColor.AOE);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var p in SafeSpots(module, pcSlot, pc))
-            arena.AddCircle(p, 1, ArenaColor.Safe);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var p in SafeSpots(pcSlot, pc))
+            Arena.AddCircle(p, 1, ArenaColor.Safe);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var angle = (AID)spell.Action.ID switch
         {
@@ -165,7 +161,7 @@ class P5OmegaOversampledWaveCannon : Components.UniformStackSpread
         _bossAngle = angle;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.OversampledWaveCannonAOE)
         {
@@ -174,28 +170,28 @@ class P5OmegaOversampledWaveCannon : Components.UniformStackSpread
         }
     }
 
-    private IEnumerable<WPos> SafeSpots(BossModule module, int slot, Actor actor)
+    private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
         if (_ndw == null || _boss == null)
             yield break;
 
         if (actor == _ndw.NearWorld)
         {
-            yield return module.Bounds.Center + 10 * (_boss.Rotation - _bossAngle).ToDirection();
+            yield return Module.Bounds.Center + 10 * (_boss.Rotation - _bossAngle).ToDirection();
         }
         else if (actor == _ndw.DistantWorld)
         {
-            yield return module.Bounds.Center + 10 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
+            yield return Module.Bounds.Center + 10 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
         }
         else
         {
             // TODO: assignments...
-            yield return module.Bounds.Center + 19 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection(); // '1' - first distant
-            yield return module.Bounds.Center + 19 * (_boss.Rotation - 0.95f * _bossAngle).ToDirection(); // '2' - first near
-            yield return module.Bounds.Center + 19 * (_boss.Rotation - 1.05f * _bossAngle).ToDirection(); // '3' - second near
-            yield return module.Bounds.Center + 19 * (_boss.Rotation - 1.95f * _bossAngle).ToDirection(); // '4' - second distant
-            yield return module.Bounds.Center + 15 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(); // first soaker
-            yield return module.Bounds.Center + 15 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(); // second soaker
+            yield return Module.Bounds.Center + 19 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection(); // '1' - first distant
+            yield return Module.Bounds.Center + 19 * (_boss.Rotation - 0.95f * _bossAngle).ToDirection(); // '2' - first near
+            yield return Module.Bounds.Center + 19 * (_boss.Rotation - 1.05f * _bossAngle).ToDirection(); // '3' - second near
+            yield return Module.Bounds.Center + 19 * (_boss.Rotation - 1.95f * _bossAngle).ToDirection(); // '4' - second distant
+            yield return Module.Bounds.Center + 15 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(); // first soaker
+            yield return Module.Bounds.Center + 15 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(); // second soaker
         }
     }
 }
@@ -205,57 +201,55 @@ class P5OmegaBlaster : Components.BaitAwayTethers
 {
     private P5OmegaNearDistantWorld? _ndw;
 
-    public P5OmegaBlaster() : base(new AOEShapeCircle(15), (uint)TetherID.Blaster, ActionID.MakeSpell(AID.OmegaBlasterAOE)) { }
-
-    public override void Init(BossModule module)
+    public P5OmegaBlaster(BossModule module) : base(module, new AOEShapeCircle(15), (uint)TetherID.Blaster, ActionID.MakeSpell(AID.OmegaBlasterAOE))
     {
         CenterAtTarget = true;
         ForbiddenPlayers = new(0xFF);
         _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var p in SafeSpots(module, pcSlot, pc))
-            arena.AddCircle(p, 1, ArenaColor.Safe);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var p in SafeSpots(pcSlot, pc))
+            Arena.AddCircle(p, 1, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.QuickeningDynamis && status.Extra >= 3)
-            ForbiddenPlayers.Clear(module.Raid.FindSlot(actor.InstanceID));
+            ForbiddenPlayers.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    private IEnumerable<WPos> SafeSpots(BossModule module, int slot, Actor actor)
+    private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
         if (_ndw == null || CurrentBaits.Count == 0)
             yield break;
 
-        var toBoss = (CurrentBaits.First().Source.Position - module.Bounds.Center).Normalized();
+        var toBoss = (CurrentBaits.First().Source.Position - Module.Bounds.Center).Normalized();
         if (actor == _ndw.NearWorld)
         {
-            yield return module.Bounds.Center - 10 * toBoss;
+            yield return Module.Bounds.Center - 10 * toBoss;
         }
         else if (actor == _ndw.DistantWorld)
         {
             // TODO: select one of the spots...
-            yield return module.Bounds.Center + 10 * toBoss.OrthoL();
-            yield return module.Bounds.Center + 10 * toBoss.OrthoR();
+            yield return Module.Bounds.Center + 10 * toBoss.OrthoL();
+            yield return Module.Bounds.Center + 10 * toBoss.OrthoR();
         }
         else if (CurrentBaits.Any(b => b.Target == actor))
         {
-            var p = module.Bounds.Center + 16 * toBoss;
+            var p = Module.Bounds.Center + 16 * toBoss;
             yield return p + 10 * toBoss.OrthoL();
             yield return p + 10 * toBoss.OrthoR();
         }
         else
         {
             // TODO: assignments...
-            yield return module.Bounds.Center + 19 * toBoss.OrthoL(); // '1' - first distant
-            yield return module.Bounds.Center - 18 * toBoss + 5 * toBoss.OrthoL(); // '2' - first near
-            yield return module.Bounds.Center - 18 * toBoss + 5 * toBoss.OrthoR(); // '3' - second near
-            yield return module.Bounds.Center + 19 * toBoss.OrthoR(); // '4' - second distant
+            yield return Module.Bounds.Center + 19 * toBoss.OrthoL(); // '1' - first distant
+            yield return Module.Bounds.Center - 18 * toBoss + 5 * toBoss.OrthoL(); // '2' - first near
+            yield return Module.Bounds.Center - 18 * toBoss + 5 * toBoss.OrthoR(); // '3' - second near
+            yield return Module.Bounds.Center + 19 * toBoss.OrthoR(); // '4' - second distant
         }
     }
 }

@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS4QueensGuard;
 
-class CoatOfArms : Components.DirectionalParry
+class CoatOfArms(BossModule module) : Components.DirectionalParry(module, (uint)OID.AetherialWard)
 {
-    public CoatOfArms() : base((uint)OID.AetherialWard) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var sides = (AID)spell.Action.ID switch
         {

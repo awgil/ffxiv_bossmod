@@ -37,139 +37,99 @@ public enum AID : uint
     DeathsJourney3 = 35872, // Helper->self, 6,5s cast, range 30 30-degree cone, visual
 }
 
-class Voidzone : BossComponent
+class Voidzone(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x0A)
-            module.Arena.Bounds = new ArenaBoundsCircle(new(0, -422), 20);
+            Module.Arena.Bounds = new ArenaBoundsCircle(new(0, -422), 20);
     }
 }
 
-class ArcaneEdge : Components.RaidwideCast
-{
-    public ArcaneEdge() : base(ActionID.MakeSpell(AID.ArcaneEdge)) { }
-}
+class ArcaneEdge(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ArcaneEdge));
+class OldMagic(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OldMagic));
+class Contrapasso(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Contrapasso));
 
-class OldMagic : Components.RaidwideCast
-{
-    public OldMagic() : base(ActionID.MakeSpell(AID.OldMagic)) { }
-}
-
-class Contrapasso : Components.RaidwideCast
-{
-    public Contrapasso() : base(ActionID.MakeSpell(AID.Contrapasso)) { }
-}
-
-class DuplicitousBattery : Components.GenericAOEs
+class DuplicitousBattery(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(WPos source, DateTime activation)> _casters = new();
     private static readonly AOEShapeCircle circle = new(5);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
             for (int i = 0; i < Math.Clamp(_casters.Count, 1, 16); ++i)
-                yield return new(circle, _casters[i].source, activation: _casters[i].activation, color: ArenaColor.Danger);
+                yield return new(circle, _casters[i].source, default, _casters[i].activation, ArenaColor.Danger);
         if (_casters.Count > 16)
             for (int i = 16; i < Math.Clamp(_casters.Count, 16, 32); ++i)
-                yield return new(circle, _casters[i].source, activation: _casters[i].activation, risky: false);
+                yield return new(circle, _casters[i].source, default, _casters[i].activation, Risky: false);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DuplicitousBatteryTelegraph)
-            _casters.Add((spell.LocXZ, module.WorldState.CurrentTime.AddSeconds(6.5f)));
+            _casters.Add((spell.LocXZ, WorldState.FutureTime(6.5f)));
 
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_casters.Count > 0 && (AID)spell.Action.ID == AID.DuplicitousBattery2)
             _casters.RemoveAt(0);
     }
 }
 
-class Explosion : Components.SelfTargetedAOEs
-{
-    public Explosion() : base(ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(11)) { }
-}
-
-class Explosion2 : Components.SelfTargetedAOEs
-{
-    public Explosion2() : base(ActionID.MakeSpell(AID.Explosion2), new AOEShapeCircle(9)) { }
-}
-class FallenGrace : Components.SpreadFromCastTargets
-{
-    public FallenGrace() : base(ActionID.MakeSpell(AID.FallenGrace), 6) { }
-}
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(11));
+class Explosion2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion2), new AOEShapeCircle(9));
+class FallenGrace(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FallenGrace), 6);
 
 // TODO: create and use generic 'line stack' component
-class AntipodalAssault : Components.GenericBaitAway
+class AntipodalAssault(BossModule module) : Components.GenericBaitAway(module)
 {
     private Actor? target;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.AntipodalAssaultMarker)
         {
-            target = module.WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(module.PrimaryActor, target!, new AOEShapeRect(50, 4))); // the actual range is not 50, but just a charge of 8 width, but always goes until the edge of the arena, so we can simplify it
+            target = WorldState.Actors.Find(spell.MainTargetID);
+            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(50, 4))); // the actual range is not 50, but just a charge of 8 width, but always goes until the edge of the arena, so we can simplify it
         }
         if ((AID)spell.Action.ID == AID.AntipodalAssault2)
             CurrentBaits.Clear();
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 50, 0, 4));
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (CurrentBaits.Count > 0)
         {
-            if (!actor.Position.InRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 50, 0, 4))
+            if (!actor.Position.InRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4))
                 hints.Add("Stack!");
             else
                 hints.Add("Stack!", false);
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var bait in CurrentBaits)
-            bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
+            bait.Shape.Draw(Arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
+    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
-class HardSlash : Components.SelfTargetedAOEs
-{
-    public HardSlash() : base(ActionID.MakeSpell(AID.HardSlash), new AOEShapeCone(50, 45.Degrees())) { }
-}
-
-class TwilightPhase : Components.SelfTargetedAOEs
-{
-    public TwilightPhase() : base(ActionID.MakeSpell(AID.TwilightPhase2), new AOEShapeRect(30, 10, 30)) { }
-}
-
-class DarkImpact : Components.SelfTargetedAOEs
-{
-    public DarkImpact() : base(ActionID.MakeSpell(AID.DarkImpact2), new AOEShapeCircle(25)) { }
-}
-
-class DeathsJourney : Components.SelfTargetedAOEs
-{
-    public DeathsJourney() : base(ActionID.MakeSpell(AID.DeathsJourney), new AOEShapeCircle(8)) { }
-}
-
-class DeathsJourney2 : Components.SelfTargetedAOEs
-{
-    public DeathsJourney2() : base(ActionID.MakeSpell(AID.DeathsJourney2), new AOEShapeCone(30, 15.Degrees())) { }
-}
+class HardSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HardSlash), new AOEShapeCone(50, 45.Degrees()));
+class TwilightPhase(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TwilightPhase2), new AOEShapeRect(30, 10, 30));
+class DarkImpact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkImpact2), new AOEShapeCircle(25));
+class DeathsJourney(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathsJourney), new AOEShapeCircle(8));
+class DeathsJourney2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathsJourney2), new AOEShapeCone(30, 15.Degrees()));
 
 class D133DuranteStates : StateMachineBuilder
 {
@@ -194,7 +154,4 @@ class D133DuranteStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
-class D133Durante : BossModule
-{
-    public D133Durante(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, -422), 23)) { }
-}
+class D133Durante(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, -422), 23));

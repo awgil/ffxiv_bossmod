@@ -13,20 +13,9 @@ public enum AID : uint
     Buffet = 8189, // 1ABF->none, 3,0s cast, single-target, randomly hits a target that isn't tanking, only happens when at least 2 actors are in combat with Gajasura (chocobos count)
 }
 
-class Spin : Components.SelfTargetedAOEs
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(8.23f, 60.Degrees())) { }
-}
-
-class Hurl : Components.LocationTargetedAOEs
-{
-    public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
-}
-
-class Buffet : Components.SingleTargetCast
-{
-    public Buffet() : base(ActionID.MakeSpell(AID.Buffet), "Heavy damage on random target (except tank)") { }
-}
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(8.23f, 60.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
+class Buffet(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Buffet), "Heavy damage on random target (except tank)");
 
 class GajasuraStates : StateMachineBuilder
 {
@@ -40,7 +29,4 @@ class GajasuraStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5998)]
-public class Gajasura : SimpleBossModule
-{
-    public Gajasura(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Gajasura(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

@@ -10,9 +10,9 @@ public enum AID : uint
     Attack = 6497, // 26F2->player, no cast, single-target
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("The cyclops are very slow, but will instantly kill you, if they catch you.\nKite them or kill them with the self-destruct combo. (Toad Oil->Bristle->\nMoonflute->Swiftcast->Self-destruct) If you don't use the self-destruct\ncombo in act 1, you can bring the Final Sting combo for act 2.\n(Off-guard->Bristle->Moonflute->Final Sting)\nDiamondback is highly recommended in act 2.");
     }

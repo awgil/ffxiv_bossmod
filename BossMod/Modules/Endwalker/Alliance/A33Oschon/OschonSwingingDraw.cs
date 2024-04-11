@@ -1,14 +1,15 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class SwingingDraw : Components.GenericAOEs
+class SwingingDraw(BossModule module) : Components.GenericAOEs(module)
 {
     private const float maxError = MathF.PI / 180;
     private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shape = new(60, 60.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var _activation = spell.NPCFinishAt.AddSeconds(6.1f);
         if ((AID)spell.Action.ID == AID.SwingingDrawCW)
@@ -35,7 +36,7 @@ class SwingingDraw : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SwingingDraw)
         {

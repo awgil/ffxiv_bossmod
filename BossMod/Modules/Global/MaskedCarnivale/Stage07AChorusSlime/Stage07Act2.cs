@@ -12,35 +12,35 @@ public enum AID : uint
     Blizzard = 14709, // 2704->player, 1,0s cast, single-target
 }
 
-class SlimeExplosion : Components.GenericStackSpread
+class SlimeExplosion(BossModule module) : Components.GenericStackSpread(module)
 {
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var p in module.Enemies(OID.Boss).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Boss).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 7.6f, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 7.6f, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 7.6f, ArenaColor.Danger);
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        foreach (var p in module.Enemies(OID.Boss).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Boss).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 7.5f))
                 hints.Add("In slime explosion radius!");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Pull or push the Lava Slimes to the Ice Sprites and then hit the slimes\nfrom a distance to set of the explosions.");
     }
 }
 
-class Layout : Layout4Quads { }
+class Layout(BossModule module) : Layout4Quads(module);
 
 class Stage07Act2States : StateMachineBuilder
 {

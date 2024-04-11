@@ -29,44 +29,29 @@ public enum TetherID : uint
     PlagueDance = 1, // Boss->player
 }
 
-class TheLook : Components.Cleave
+class TheLook(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.TheLook), new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
+class RottenBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RottenBreath), new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
+class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(35.5f, 45.Degrees()));
+
+class ImminentCatastrophe(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.ImminentCatastrophe), 100, true)
 {
-    public TheLook() : base(ActionID.MakeSpell(AID.TheLook), new AOEShapeCone(11.5f, 45.Degrees())) { } // TODO: verify angle
+    public override IEnumerable<Actor> BlockerActors() => ((D163Anantaboga)Module).ActivePillars();
 }
 
-class RottenBreath : Components.SelfTargetedAOEs
-{
-    public RottenBreath() : base(ActionID.MakeSpell(AID.RottenBreath), new AOEShapeCone(11.5f, 45.Degrees())) { } // TODO: verify angle
-}
+class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TerrorEye), 6);
 
-class TailDrive : Components.SelfTargetedAOEs
-{
-    public TailDrive() : base(ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(35.5f, 45.Degrees())) { }
-}
-
-class ImminentCatastrophe : Components.CastLineOfSightAOE
-{
-    public ImminentCatastrophe() : base(ActionID.MakeSpell(AID.ImminentCatastrophe), 100, true) { }
-    public override IEnumerable<Actor> BlockerActors(BossModule module) => ((D163Anantaboga)module).ActivePillars();
-}
-
-class TerrorEye : Components.LocationTargetedAOEs
-{
-    public TerrorEye() : base(ActionID.MakeSpell(AID.TerrorEye), 6) { }
-}
-
-class PlagueDance : BossComponent
+class PlagueDance(BossModule module) : BossComponent(module)
 {
     private Actor? _target;
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(11.5f);
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (actor == _target)
         {
-            foreach (var p in ((D163Anantaboga)module).ActivePillars())
+            foreach (var p in ((D163Anantaboga)Module).ActivePillars())
                 hints.AddForbiddenZone(_shape, p.Position, new(), _activation);
         }
         else if (_target != null)
@@ -75,36 +60,33 @@ class PlagueDance : BossComponent
         }
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return player == _target ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        _shape.Outline(arena, _target);
+        _shape.Outline(Arena, _target);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PlagueDance)
         {
-            _target = module.WorldState.Actors.Find(tether.Target);
-            _activation = module.WorldState.CurrentTime.AddSeconds(6.1f);
+            _target = WorldState.Actors.Find(tether.Target);
+            _activation = WorldState.FutureTime(6.1f);
         }
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PlagueDance)
             _target = null;
     }
 }
 
-class BubonicCloud : Components.PersistentVoidzone
-{
-    public BubonicCloud() : base(11.5f, m => m.Enemies(OID.DarkNova)) { }
-}
+class BubonicCloud(BossModule module) : Components.PersistentVoidzone(module, 11.5f, m => m.Enemies(OID.DarkNova));
 
 class D163AnantabogaStates : StateMachineBuilder
 {
@@ -122,10 +104,8 @@ class D163AnantabogaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1696)]
-public class D163Anantaboga : BossModule
+public class D163Anantaboga(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(10, 0), 25))
 {
-    public D163Anantaboga(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(10, 0), 25)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

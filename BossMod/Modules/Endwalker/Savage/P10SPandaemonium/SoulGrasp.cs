@@ -1,16 +1,14 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class SoulGrasp : Components.GenericSharedTankbuster
+class SoulGrasp(BossModule module) : Components.GenericSharedTankbuster(module, ActionID.MakeSpell(AID.SoulGraspAOE), 4)
 {
-    public SoulGrasp() : base(ActionID.MakeSpell(AID.SoulGraspAOE), 4) { }
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.SoulGrasp)
         {
-            Source = module.PrimaryActor;
+            Source = Module.PrimaryActor;
             Target = actor;
-            Activation = module.WorldState.CurrentTime.AddSeconds(5.8f);
+            Activation = WorldState.FutureTime(5.8f);
         }
     }
 }

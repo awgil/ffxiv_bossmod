@@ -1,27 +1,27 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class RadiantFlourish : Components.GenericAOEs
+class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCircle circle = new(27);
     private readonly List<AOEInstance> _aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SolarFansAOE)
-            _aoes.Add(new(circle, spell.LocXZ, activation: module.WorldState.CurrentTime.AddSeconds(13.7f)));
+            _aoes.Add(new(circle, spell.LocXZ, default, WorldState.FutureTime(13.7f)));
         if ((AID)spell.Action.ID == AID.RadiantFlourish)
             _aoes.Clear();
     }
 }
 
-class RadiantRhythm : Components.GenericAOEs
+class RadiantRhythm(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeDonutSector _shape = new(20, 30, 45.Degrees());
     private readonly List<AOEInstance> _aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_aoes.Count > 1)
             for (int i = 0; i < 2; ++i)
@@ -31,7 +31,7 @@ class RadiantRhythm : Components.GenericAOEs
                 yield return new(_aoes[i].Shape, _aoes[i].Origin, _aoes[i].Rotation, _aoes[i].Activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var _activation = spell.NPCFinishAt.AddSeconds(2.7f);
         if ((AID)spell.Action.ID == AID.SolarFansAOE)
@@ -51,7 +51,7 @@ class RadiantRhythm : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (_aoes.Count > 0 && (AID)spell.Action.ID == AID.RadiantFlight)
             _aoes.RemoveAt(0);

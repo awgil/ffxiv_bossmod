@@ -45,117 +45,95 @@ public enum TetherID : uint
     HoundOutOfHeavenTetherStretch = 57, // Boss->player
 }
 
-class HoundOutOfHeavenGood : Components.BaitAwayTethers  //TODO: consider generalizing stretched tethers?
+class HoundOutOfHeavenGood(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherGood) // TODO: consider generalizing stretched tethers?
 {
     private ulong target;
-    public HoundOutOfHeavenGood() : base(new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherGood) { }
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        base.OnTethered(module, source, tether);
+        base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherGood)
             target = tether.Target;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (DrawTethers && target == pc.InstanceID && CurrentBaits.Count > 0)
         {
             foreach (var b in ActiveBaits)
             {
-                if (arena.Config.ShowOutlinesAndShadows)
-                    arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-                arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Safe);
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
+                Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Safe);
             }
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.Add("Tether is stretched!", false);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.PrimaryActor.Position, 15));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
     }
 }
 
-class HoundOutOfHeavenBad : Components.BaitAwayTethers
+class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherStretch)
 {
     private ulong target;
-    public HoundOutOfHeavenBad() : base(new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.HoundOutOfHeavenTetherStretch) { }
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        base.OnTethered(module, source, tether);
+        base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherStretch)
             target = tether.Target;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (DrawTethers && target == pc.InstanceID && CurrentBaits.Count > 0)
         {
             foreach (var b in ActiveBaits)
             {
-                if (arena.Config.ShowOutlinesAndShadows)
-                    arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-                arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
+                Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
             }
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.Add("Stretch tether further!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.PrimaryActor.Position, 15));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
     }
 }
 
-class ViperPoisonPatterns : Components.PersistentVoidzoneAtCastTarget
-{
-    public ViperPoisonPatterns() : base(6, ActionID.MakeSpell(AID.ViperPoisonPatterns), m => m.Enemies(OID.PoisonVoidzone).Where(z => z.EventState != 7), 0) { }
-}
+class ViperPoisonPatterns(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.ViperPoisonPatterns), m => m.Enemies(OID.PoisonVoidzone).Where(z => z.EventState != 7), 0);
+class ConfessionOfFaithLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithLeft), new AOEShapeCone(60, 46.Degrees(), 20.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class ConfessionOfFaithRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithRight), new AOEShapeCone(60, 46.Degrees(), -20.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class ConfessionOfFaithStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ConfessionOfFaithStack), 6);
+class ConfessionOfFaithCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConfessionOfFaithCenter), new AOEShapeCone(60, 40.Degrees()));
+class ConfessionOfFaithSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ConfessionOfFaithSpread), 5);
 
-class ConfessionOfFaithLeft : Components.SelfTargetedAOEs
-{
-    public ConfessionOfFaithLeft() : base(ActionID.MakeSpell(AID.ConfessionOfFaithLeft), new AOEShapeCone(60, 46.Degrees(), 20.Degrees())) { } // TODO: verify; there should not be an offset in reality here...
-}
-
-class ConfessionOfFaithRight : Components.SelfTargetedAOEs
-{
-    public ConfessionOfFaithRight() : base(ActionID.MakeSpell(AID.ConfessionOfFaithRight), new AOEShapeCone(60, 46.Degrees(), -20.Degrees())) { } // TODO: verify; there should not be an offset in reality here...
-}
-class ConfessionOfFaithStack : Components.StackWithCastTargets
-{
-    public ConfessionOfFaithStack() : base(ActionID.MakeSpell(AID.ConfessionOfFaithStack), 6) { }
-}
-
-class ConfessionOfFaithCenter : Components.SelfTargetedAOEs
-{
-    public ConfessionOfFaithCenter() : base(ActionID.MakeSpell(AID.ConfessionOfFaithCenter), new AOEShapeCone(60, 40.Degrees())) { }
-}
-
-class ConfessionOfFaithSpread : Components.SpreadFromCastTargets
-{
-    public ConfessionOfFaithSpread() : base(ActionID.MakeSpell(AID.ConfessionOfFaithSpread), 5) { }
-}
-
-class ViperPoisonBait : Components.GenericBaitAway
+class ViperPoisonBait(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.poisonbait)
         {
@@ -165,7 +143,7 @@ class ViperPoisonBait : Components.GenericBaitAway
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ViperPoisonBaitAway)
         {
@@ -174,49 +152,35 @@ class ViperPoisonBait : Components.GenericBaitAway
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (target == actor && targeted)
             hints.Add("Bait voidzone away!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
             hints.AddForbiddenZone(ShapeDistance.Rect(new(17, -518), new(17, -558), 13));
     }
 }
 
-class Inhale : Components.KnockbackFromCastTarget
+class Inhale(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Inhale), 50, kind: Kind.TowardsOrigin)
 {
-    public Inhale() : base(ActionID.MakeSpell(AID.Inhale), 50, kind: Kind.TowardsOrigin) { }
-
     //TODO: consider testing if path is unsafe in addition to destination
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class HeavingBreath : Components.KnockbackFromCastTarget
+class HeavingBreath(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HeavingBreath), 35, kind: Kind.DirForward, stopAtWall: true)
 {
-    public HeavingBreath() : base(ActionID.MakeSpell(AID.HeavingBreath), 35, kind: Kind.DirForward)
-    {
-        StopAtWall = true;
-    }
-
     //TODO: consider testing if path is unsafe in addition to destination
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class Glossolalia : Components.RaidwideCast
-{
-    public Glossolalia() : base(ActionID.MakeSpell(AID.Glossolalia)) { }
-}
-
-class Rend : Components.SingleTargetDelayableCast
-{
-    public Rend() : base(ActionID.MakeSpell(AID.Rend)) { }
-}
+class Glossolalia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Glossolalia));
+class Rend(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Rend));
 
 class D033ErosStates : StateMachineBuilder
 {
@@ -240,7 +204,4 @@ class D033ErosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8233)]
-public class D033Eros : BossModule
-{
-    public D033Eros(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(17, -538), 15, 20)) { }
-}
+public class D033Eros(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(17, -538), 15, 20));

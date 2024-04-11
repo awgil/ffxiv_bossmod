@@ -1,21 +1,19 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
-class Flameviper : Components.CastCounter
+class Flameviper(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.FlameviperSecond))
 {
     private ulong _firstTarget;
 
-    public Flameviper() : base(ActionID.MakeSpell(AID.FlameviperSecond)) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (actor.Role != Role.Tank)
             return;
 
-        if (module.PrimaryActor.TargetID == _firstTarget)
+        if (Module.PrimaryActor.TargetID == _firstTarget)
             hints.Add(actor.InstanceID == _firstTarget ? "Pass aggro to co-tank" : "Taunt!");
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Flameviper)
             _firstTarget = spell.TargetID;

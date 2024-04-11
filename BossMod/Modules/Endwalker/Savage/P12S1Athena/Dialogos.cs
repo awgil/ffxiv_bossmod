@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
-class Dialogos : Components.UniformStackSpread
+class Dialogos(BossModule module) : Components.UniformStackSpread(module, 6, 6, 7, alwaysShowSpreads: true)
 {
     public enum Type { None, TankOutPartyIn, TankInPartyOut }
 
@@ -8,16 +8,14 @@ class Dialogos : Components.UniformStackSpread
     private Type _type;
     private DateTime _tankActivation; // party activation is +1s
 
-    public Dialogos() : base(6, 6, 7, alwaysShowSpreads: true) { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         Stacks.Clear();
         Spreads.Clear();
         if (_type != Type.None && NumCasts < 2)
         {
-            var closest = module.Raid.WithoutSlot().Closest(module.PrimaryActor.Position);
-            var farthest = module.Raid.WithoutSlot().Farthest(module.PrimaryActor.Position);
+            var closest = Raid.WithoutSlot().Closest(Module.PrimaryActor.Position);
+            var farthest = Raid.WithoutSlot().Farthest(Module.PrimaryActor.Position);
             if (closest != null && farthest != null)
             {
                 if (NumCasts == 0)
@@ -26,12 +24,12 @@ class Dialogos : Components.UniformStackSpread
                     AddStack(_type == Type.TankOutPartyIn ? closest : farthest, _tankActivation.AddSeconds(1));
             }
         }
-        base.Update(module);
+        base.Update();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (Spreads.Count > 0 && Spreads[0].Target.Role != Role.Tank)
         {
             if (Spreads[0].Target == actor)
@@ -41,13 +39,13 @@ class Dialogos : Components.UniformStackSpread
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_type != Type.None && NumCasts < 2)
             hints.Add(_type == Type.TankOutPartyIn ? "Tank out, party in" : "Tank in, party out");
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var type = (AID)spell.Action.ID switch
         {
@@ -62,7 +60,7 @@ class Dialogos : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ApodialogosAOE or AID.PeridialogosAOE or AID.Dialogos)
             ++NumCasts;

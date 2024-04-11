@@ -7,13 +7,13 @@ class DRS1States : StateMachineBuilder
     public DRS1States(BossModule module) : base(module)
     {
         SimplePhase(0, Phase1, "P1")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || module.PrimaryActor.HP.Cur <= 1 || (module.PrimaryActor.CastInfo?.IsSpell(AID.VerdantPathSword) ?? false);
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.VerdantPathSword) ?? false);
         SimplePhase(1, Phase2, "P2")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || module.PrimaryActor.HP.Cur <= 1 || (module.PrimaryActor.CastInfo?.IsSpell(AID.VerdantPathFist) ?? false);
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.VerdantPathFist) ?? false);
         SimplePhase(2, Phase3, "P3")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || module.PrimaryActor.HP.Cur <= 1 || (module.PrimaryActor.CastInfo?.IsSpell(AID.VerdantPathKatana) ?? false);
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.VerdantPathKatana) ?? false);
         SimplePhase(3, Phase4, "P4")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || module.PrimaryActor.HP.Cur <= 1;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1;
     }
 
     private void Phase1(uint id)

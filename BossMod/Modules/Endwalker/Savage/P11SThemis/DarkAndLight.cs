@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P11SThemis;
 
-class DarkAndLight : BossComponent
+class DarkAndLight(BossModule module) : BossComponent(module)
 {
     public enum TetherType { None, Near, Far }
 
@@ -17,47 +17,51 @@ class DarkAndLight : BossComponent
     private static readonly float _farOffset = 13;
     private static readonly float _nearOffset = 7;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var state = _states[slot];
         if (state.Tether != TetherType.None)
             hints.Add($"{state.Tether} tether", state.TetherBad);
-        if (movementHints != null && Safespot(module, slot, actor) is var safespot && safespot != null)
+    }
+
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (Safespot(slot, actor) is var safespot && safespot != null)
             movementHints.Add(actor.Position, safespot.Value, ArenaColor.Safe);
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         var pcState = _states[pcSlot];
         return pcState.Tether != TetherType.None && pcState.PartnerSlot == playerSlot ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var pcState = _states[pcSlot];
-        if (pcState.Tether != TetherType.None && module.Raid[pcState.PartnerSlot] is var partner && partner != null)
-            arena.AddLine(pc.Position, partner.Position, pcState.TetherBad ? ArenaColor.Danger : ArenaColor.Safe);
-        if (Safespot(module, pcSlot, pc) is var safespot && safespot != null)
-            arena.AddCircle(safespot.Value, 1, ArenaColor.Safe);
+        if (pcState.Tether != TetherType.None && Raid[pcState.PartnerSlot] is var partner && partner != null)
+            Arena.AddLine(pc.Position, partner.Position, pcState.TetherBad ? ArenaColor.Danger : ArenaColor.Safe);
+        if (Safespot(pcSlot, pc) is var safespot && safespot != null)
+            Arena.AddCircle(safespot.Value, 1, ArenaColor.Safe);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {
             case TetherID.LightLightGood:
             case TetherID.DarkDarkGood:
-                UpdateTether(module.Raid.FindSlot(source.InstanceID), module.Raid.FindSlot(tether.Target), TetherType.Far, false);
+                UpdateTether(Raid.FindSlot(source.InstanceID), Raid.FindSlot(tether.Target), TetherType.Far, false);
                 break;
             case TetherID.LightLightBad:
             case TetherID.DarkDarkBad:
-                UpdateTether(module.Raid.FindSlot(source.InstanceID), module.Raid.FindSlot(tether.Target), TetherType.Far, true);
+                UpdateTether(Raid.FindSlot(source.InstanceID), Raid.FindSlot(tether.Target), TetherType.Far, true);
                 break;
             case TetherID.DarkLightGood:
-                UpdateTether(module.Raid.FindSlot(source.InstanceID), module.Raid.FindSlot(tether.Target), TetherType.Near, false);
+                UpdateTether(Raid.FindSlot(source.InstanceID), Raid.FindSlot(tether.Target), TetherType.Near, false);
                 break;
             case TetherID.DarkLightBad:
-                UpdateTether(module.Raid.FindSlot(source.InstanceID), module.Raid.FindSlot(tether.Target), TetherType.Near, true);
+                UpdateTether(Raid.FindSlot(source.InstanceID), Raid.FindSlot(tether.Target), TetherType.Near, true);
                 break;
         }
     }
@@ -71,7 +75,7 @@ class DarkAndLight : BossComponent
     }
 
     // note: this uses default strats (kindred etc)
-    private WPos? Safespot(BossModule module, int slot, Actor actor)
+    private WPos? Safespot(int slot, Actor actor)
     {
         var tether = _states[slot].Tether;
         if (!ShowSafespots || tether == TetherType.None)
@@ -82,8 +86,8 @@ class DarkAndLight : BossComponent
         {
             Role.Tank => isFar ? 180.Degrees() : -90.Degrees(),
             Role.Healer => isFar ? 0.Degrees() : 90.Degrees(),
-            _ => module.Raid[_states[slot].PartnerSlot]?.Role == Role.Tank ? (isFar ? -45.Degrees() : -135.Degrees()) : (isFar ? 135.Degrees() : 45.Degrees())
+            _ => Raid[_states[slot].PartnerSlot]?.Role == Role.Tank ? (isFar ? -45.Degrees() : -135.Degrees()) : (isFar ? 135.Degrees() : 45.Degrees())
         };
-        return module.Bounds.Center + (isFar ? _farOffset : _nearOffset) * dir.ToDirection();
+        return Module.Bounds.Center + (isFar ? _farOffset : _nearOffset) * dir.ToDirection();
     }
 }

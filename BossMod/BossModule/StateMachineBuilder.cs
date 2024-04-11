@@ -1,6 +1,4 @@
-﻿using System.Xml.Linq;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // utility for building state machines for boss modules
 // conventions for id:
@@ -39,8 +37,8 @@ public class StateMachineBuilder
         }
 
         // note: usually components are deactivated automatically on phase change - manual deactivate is needed only for components that opt out of this (useful for components that need to maintain state across multiple phases)
-        public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.ActivateComponent<C>, condition);
-        public Phase DeactivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.DeactivateComponent<C>, condition); // TODO: reconsider...
+        public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent => OnEnter(_module.ActivateComponent<C>, condition);
+        public Phase DeactivateOnEnter<C>(bool condition = true) where C : BossComponent => OnEnter(_module.DeactivateComponent<C>, condition); // TODO: reconsider...
         public Phase DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(_module.DeactivateComponent<C>, condition);
     }
 
@@ -70,7 +68,7 @@ public class StateMachineBuilder
             return this;
         }
 
-        public State ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.ActivateComponent<C>, condition);
+        public State ActivateOnEnter<C>(bool condition = true) where C : BossComponent => OnEnter(_module.ActivateComponent<C>, condition);
         public State DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(_module.DeactivateComponent<C>, condition);
         public State ExecOnEnter<C>(Action<C> fn, bool condition = true) where C : BossComponent => OnEnter(() => { var c = _module.FindComponent<C>(); if (c != null) fn(c); }, condition);
         public State ExecOnExit<C>(Action<C> fn, bool condition = true) where C : BossComponent => OnExit(() => { var c = _module.FindComponent<C>(); if (c != null) fn(c); }, condition);
@@ -126,7 +124,7 @@ public class StateMachineBuilder
     public Phase DeathPhase(uint seqID, Action<uint> buildState)
     {
         var phase = SimplePhase(seqID, buildState, "Boss death");
-        phase.Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur == 0;
+        phase.Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.PrimaryActor.HP.Cur == 0;
         return phase;
     }
 

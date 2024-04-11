@@ -5,12 +5,12 @@ class P2Eidos : BossComponent
 {
     public int PhaseIndex { get; private set; }
 
-    public P2Eidos()
+    public P2Eidos(BossModule module) : base(module)
     {
         KeepOnPhaseChange = true;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         var nextPhase = (AID)spell.Action.ID switch
         {

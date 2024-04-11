@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S2;
 
-class NaturalAlignment : Components.GenericStackSpread
+class NaturalAlignment(BossModule module) : Components.GenericStackSpread(module, true)
 {
     public enum Mechanic { None, StackSpread, FireIce }
 
@@ -11,9 +11,7 @@ class NaturalAlignment : Components.GenericStackSpread
     private bool CurMechanicInverted;
     public int CurMechanicProgress { get; private set; }
 
-    public NaturalAlignment() : base(true) { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         Stacks.Clear();
         Spreads.Clear();
@@ -21,7 +19,7 @@ class NaturalAlignment : Components.GenericStackSpread
             return;
 
         bool firstPart = CurMechanicProgress == (CurMechanicInverted ? 1 : 0);
-        var potentialTargets = module.Raid.WithSlot().ExcludedFromMask(_targets).Actors().ToList();
+        var potentialTargets = Raid.WithSlot().ExcludedFromMask(_targets).Actors().ToList();
         switch (CurMechanic)
         {
             case Mechanic.StackSpread:
@@ -51,10 +49,10 @@ class NaturalAlignment : Components.GenericStackSpread
                 }
                 break;
         }
-        base.Update(module);
+        base.Update();
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (CurMechanicProgress >= 2 || CurMechanicSource == null)
             return;
@@ -69,45 +67,45 @@ class NaturalAlignment : Components.GenericStackSpread
             hints.Add($"Next NA: {hint}");
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.InverseMagicks:
-                _inverse.Set(module.Raid.FindSlot(actor.InstanceID));
+                _inverse.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.NaturalAlignmentMechanic:
                 switch (status.Extra)
                 {
                     case 0x209: // initial application
-                        _targets.Set(module.Raid.FindSlot(actor.InstanceID));
+                        _targets.Set(Raid.FindSlot(actor.InstanceID));
                         break;
                     case 0x1E0: // stack->spread filling progress bars
                     case 0x1E1: // stack->spread empty progress bars
                         CurMechanic = Mechanic.StackSpread;
                         CurMechanicSource = actor;
-                        CurMechanicInverted = _inverse[module.Raid.FindSlot(actor.InstanceID)];
+                        CurMechanicInverted = _inverse[Raid.FindSlot(actor.InstanceID)];
                         CurMechanicProgress = 0;
                         break;
                     case 0x1E2: // spread->stack filling progress bars
                     case 0x1E3: // spread->stack empty progress bars
                         CurMechanic = Mechanic.StackSpread;
                         CurMechanicSource = actor;
-                        CurMechanicInverted = !_inverse[module.Raid.FindSlot(actor.InstanceID)];
+                        CurMechanicInverted = !_inverse[Raid.FindSlot(actor.InstanceID)];
                         CurMechanicProgress = 0;
                         break;
                     case 0x1DC: // fire->ice filling progress bars
                     case 0x1DD: // fire->ice empty progress bars
                         CurMechanic = Mechanic.FireIce;
                         CurMechanicSource = actor;
-                        CurMechanicInverted = _inverse[module.Raid.FindSlot(actor.InstanceID)];
+                        CurMechanicInverted = _inverse[Raid.FindSlot(actor.InstanceID)];
                         CurMechanicProgress = 0;
                         break;
                     case 0x1DE: // ice->fire filling progress bars
                     case 0x1DF: // ice->fire empty progress bars
                         CurMechanic = Mechanic.FireIce;
                         CurMechanicSource = actor;
-                        CurMechanicInverted = !_inverse[module.Raid.FindSlot(actor.InstanceID)];
+                        CurMechanicInverted = !_inverse[Raid.FindSlot(actor.InstanceID)];
                         CurMechanicProgress = 0;
                         break;
                 }
@@ -115,7 +113,7 @@ class NaturalAlignment : Components.GenericStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

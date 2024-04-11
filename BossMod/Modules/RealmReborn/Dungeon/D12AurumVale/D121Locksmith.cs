@@ -13,20 +13,13 @@ public enum AID : uint
     GoldDust = 1033, // Boss->location, 3.5s cast, range 8 circle
 }
 
-class HundredLashings : Components.Cleave
-{
-    public HundredLashings() : base(ActionID.MakeSpell(AID.HundredLashings), new AOEShapeCone(12, 45.Degrees())) { } // TODO: verify angle
-}
-
-class GoldDust : Components.LocationTargetedAOEs
-{
-    public GoldDust() : base(ActionID.MakeSpell(AID.GoldDust), 8) { }
-}
+class HundredLashings(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.HundredLashings), new AOEShapeCone(12, 45.Degrees())); // TODO: verify angle
+class GoldDust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GoldDust), 8);
 
 // arena has multiple weirdly-shaped puddles, so just prefer standing in large safe zone
-class AIPosition : BossComponent
+class AIPosition(BossModule module) : BossComponent(module)
 {
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(30, 0), 5));
     }
@@ -44,7 +37,4 @@ class D121LocksmithStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 5, NameID = 1534)]
-public class D121Locksmith : BossModule
-{
-    public D121Locksmith(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(35, 0), 15, 25)) { }
-}
+public class D121Locksmith(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(35, 0), 15, 25));

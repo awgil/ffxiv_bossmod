@@ -1,41 +1,39 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
-class P3GevurahChesed : Components.CastCounter
+class P3GevurahChesed(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LifeForce)) // doesn't matter which spell to track
 {
     private BitMask _physResistMask;
     private int _physSide; // 0 if not active, -1 if left, +1 if right
 
     private static readonly AOEShape _shape = new AOEShapeRect(40, 10);
 
-    public P3GevurahChesed() : base(ActionID.MakeSpell(AID.LifeForce)) { } // doesn't matter which spell to track
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var side = ForbiddenSide(slot);
         if (side != 0 && _shape.Check(actor.Position, Origin(side), 0.Degrees()))
             hints.Add("GTFO from aoe!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         var side = ForbiddenSide(pcSlot);
         if (side != 0)
-            _shape.Draw(arena, Origin(side), 0.Degrees());
+            _shape.Draw(Arena, Origin(side), 0.Degrees());
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ForceAgainstMight)
-            _physResistMask.Set(module.Raid.FindSlot(actor.InstanceID));
+            _physResistMask.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.GevurahChesed or AID.ChesedGevurah)
             _physSide = (AID)spell.Action.ID == AID.GevurahChesed ? -1 : +1;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.GevurahChesed or AID.ChesedGevurah)
             _physSide = 0;

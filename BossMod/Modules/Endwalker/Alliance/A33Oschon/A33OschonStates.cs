@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class Phase2ArenaUpdate : BossComponent
+class Phase2ArenaUpdate(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00200010 && index == 0x42)
-            module.Arena.Bounds = new ArenaBoundsSquare(new(0, 750), 20);
+            Module.Arena.Bounds = new ArenaBoundsSquare(new(0, 750), 20);
     }
 }
 
