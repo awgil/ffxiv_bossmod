@@ -1,14 +1,9 @@
 namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
-class BodySlamKB : Components.Knockback
+class BodySlamKB(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
     private Source? _knockback;
     private float LeviathanZ;
-
-    public BodySlamKB(BossModule module) : base(module)
-    {
-        StopAtWall = true;
-    }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
 

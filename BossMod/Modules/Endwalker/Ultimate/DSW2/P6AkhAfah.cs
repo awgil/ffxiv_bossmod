@@ -1,15 +1,9 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
-class P6HPCheck : BossComponent
+class P6HPCheck(BossModule module) : BossComponent(module)
 {
-    private Actor? _nidhogg;
-    private Actor? _hraesvelgr;
-
-    public P6HPCheck(BossModule module) : base(module)
-    {
-        _nidhogg = module.Enemies(OID.NidhoggP6).FirstOrDefault();
-        _hraesvelgr = module.Enemies(OID.HraesvelgrP6).FirstOrDefault();
-    }
+    private Actor? _nidhogg = module.Enemies(OID.NidhoggP6).FirstOrDefault();
+    private Actor? _hraesvelgr = module.Enemies(OID.HraesvelgrP6).FirstOrDefault();
 
     public override void AddGlobalHints(GlobalHints hints)
     {

@@ -20,14 +20,9 @@ class SpinningDive(BossModule module) : Components.GenericAOEs(module) //TODO: F
     }
 }
 
-class SpinningDiveKB : Components.Knockback //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
+class SpinningDiveKB(BossModule module) : Components.Knockback(module, stopAtWall: true) //TODO: Find out how to detect spinning dives earlier eg. the water column telegraph
 {
     private Source? _knockback;
-
-    public SpinningDiveKB(BossModule module) : base(module)
-    {
-        StopAtWall = true;
-    }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
 

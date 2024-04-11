@@ -1,20 +1,15 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P1JagdDolls : BossComponent
+class P1JagdDolls(BossModule module) : BossComponent(module)
 {
     public int NumExhausts { get; private set; }
-    private IReadOnlyList<Actor> _dolls;
+    private IReadOnlyList<Actor> _dolls = module.Enemies(OID.JagdDoll);
     private HashSet<ulong> _exhaustsDone = new();
 
     private static readonly float _exhaustRadius = 8.8f;
 
     private IEnumerable<Actor> ActiveDolls => _dolls.Where(d => d.IsTargetable && !d.IsDead);
     public bool Active => ActiveDolls.Any();
-
-    public P1JagdDolls(BossModule module) : base(module)
-    {
-        _dolls = module.Enemies(OID.JagdDoll);
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

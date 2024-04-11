@@ -2,10 +2,10 @@
 
 class P1BallisticImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BallisticImpact), 5);
 
-class P1FlameThrower : Components.GenericAOEs
+class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
 {
     public List<Actor> Casters = new();
-    private P1Pantokrator? _pantokrator;
+    private P1Pantokrator? _pantokrator = module.FindComponent<P1Pantokrator>();
 
     private static readonly AOEShapeCone _shape = new(65, 30.Degrees());
 
@@ -15,11 +15,6 @@ class P1FlameThrower : Components.GenericAOEs
             yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, ArenaColor.AOE, false);
         foreach (var c in Casters.Take(2))
             yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, ArenaColor.Danger, true);
-    }
-
-    public P1FlameThrower(BossModule module) : base(module)
-    {
-        _pantokrator = module.FindComponent<P1Pantokrator>();
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

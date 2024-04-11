@@ -94,14 +94,9 @@ class P6Wyrmsbreath1(BossModule module) : P6Wyrmsbreath(module, true);
 class P6Wyrmsbreath2(BossModule module) : P6Wyrmsbreath(module, false);
 
 // note: it is actually symmetrical (both tanks get tankbusters), but that is hard to express, so we select one to show arbitrarily (nidhogg)
-class P6WyrmsbreathTankbusterShared : Components.GenericSharedTankbuster
+class P6WyrmsbreathTankbusterShared(BossModule module) : Components.GenericSharedTankbuster(module, ActionID.MakeSpell(AID.DarkOrb), 6)
 {
-    private P6Wyrmsbreath? _main;
-
-    public P6WyrmsbreathTankbusterShared(BossModule module) : base(module, ActionID.MakeSpell(AID.DarkOrb), 6)
-    {
-        _main = module.FindComponent<P6Wyrmsbreath>();
-    }
+    private P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
 
     public override void Update()
     {
@@ -115,16 +110,11 @@ class P6WyrmsbreathTankbusterShared : Components.GenericSharedTankbuster
     }
 }
 
-class P6WyrmsbreathTankbusterSolo : Components.GenericBaitAway
+class P6WyrmsbreathTankbusterSolo(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private P6Wyrmsbreath? _main;
+    private P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
 
     private static readonly AOEShapeCircle _shape = new(15);
-
-    public P6WyrmsbreathTankbusterSolo(BossModule module) : base(module, centerAtTarget: true)
-    {
-        _main = module.FindComponent<P6Wyrmsbreath>();
-    }
 
     public override void Update()
     {
@@ -139,16 +129,11 @@ class P6WyrmsbreathTankbusterSolo : Components.GenericBaitAway
     }
 }
 
-class P6WyrmsbreathCone : Components.GenericAOEs
+class P6WyrmsbreathCone(BossModule module) : Components.GenericAOEs(module)
 {
-    private P6Wyrmsbreath? _main;
+    private P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
 
     private static readonly AOEShapeCone _shape = new(50, 15.Degrees()); // TODO: verify angle
-
-    public P6WyrmsbreathCone(BossModule module) : base(module)
-    {
-        _main = module.FindComponent<P6Wyrmsbreath>();
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

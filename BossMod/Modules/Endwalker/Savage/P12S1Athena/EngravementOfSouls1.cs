@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
-class EngravementOfSouls1Spread : Components.UniformStackSpread
+class EngravementOfSouls1Spread(BossModule module) : Components.UniformStackSpread(module, 0, 3, alwaysShowSpreads: true, raidwideOnResolve: false, includeDeadTargets: true)
 {
     public enum DebuffType { None, Light, Dark }
 
@@ -10,15 +10,9 @@ class EngravementOfSouls1Spread : Components.UniformStackSpread
         public WPos CachedSafespot;
     }
 
-    private P12S1AthenaConfig _config;
-    private EngravementOfSoulsTethers? _tethers;
+    private P12S1AthenaConfig _config = Service.Config.Get<P12S1AthenaConfig>();
+    private EngravementOfSoulsTethers? _tethers = module.FindComponent<EngravementOfSoulsTethers>();
     private PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
-
-    public EngravementOfSouls1Spread(BossModule module) : base(module, 0, 3, alwaysShowSpreads: true, raidwideOnResolve: false, includeDeadTargets: true)
-    {
-        _config = Service.Config.Get<P12S1AthenaConfig>();
-        _tethers = module.FindComponent<EngravementOfSoulsTethers>();
-    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

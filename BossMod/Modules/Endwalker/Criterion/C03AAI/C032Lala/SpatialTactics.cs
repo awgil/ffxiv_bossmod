@@ -1,17 +1,12 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
 
-class SpatialTactics : Components.GenericAOEs
+class SpatialTactics(BossModule module) : Components.GenericAOEs(module)
 {
-    private ArcaneArray? _array;
+    private ArcaneArray? _array = module.FindComponent<ArcaneArray>();
     private List<Actor> _fonts = new();
     private int[] _remainingStacks = new int[4];
 
     private static readonly AOEShapeCross _shape = new(50, 4);
-
-    public SpatialTactics(BossModule module) : base(module)
-    {
-        _array = module.FindComponent<ArcaneArray>();
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

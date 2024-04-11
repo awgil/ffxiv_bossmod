@@ -38,15 +38,10 @@ class EngravementOfSouls3Shock(BossModule module) : Components.CastTowers(module
     }
 }
 
-class EngravementOfSouls3Spread : Components.UniformStackSpread
+class EngravementOfSouls3Spread(BossModule module) : Components.UniformStackSpread(module, 0, 3, alwaysShowSpreads: true, raidwideOnResolve: false)
 {
-    private EngravementOfSoulsTethers? _tethers;
+    private EngravementOfSoulsTethers? _tethers = module.FindComponent<EngravementOfSoulsTethers>();
     private EngravementOfSoulsTethers.TetherType _soakers;
-
-    public EngravementOfSouls3Spread(BossModule module) : base(module, 0, 3, alwaysShowSpreads: true, raidwideOnResolve: false)
-    {
-        _tethers = module.FindComponent<EngravementOfSoulsTethers>();
-    }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {

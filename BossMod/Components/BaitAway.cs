@@ -180,10 +180,10 @@ public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, Action
 }
 
 // component for mechanics requiring cast targets to gtfo from raid (aoe tankbusters etc)
-public class BaitAwayCast(BossModule module, ActionID aid, AOEShape shape, bool centerAtTarget = false) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget)
+public class BaitAwayCast(BossModule module, ActionID aid, AOEShape shape, bool centerAtTarget = false, bool endsOnCastEvent = false) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget)
 {
     public AOEShape Shape = shape;
-    public bool EndsOnCastEvent;
+    public bool EndsOnCastEvent = endsOnCastEvent;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

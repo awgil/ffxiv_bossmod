@@ -5,15 +5,10 @@ class ConstructiveFigure(BossModule module, AID aid) : Components.SelfTargetedAO
 class NConstructiveFigure(BossModule module) : ConstructiveFigure(module, AID.NAero);
 class SConstructiveFigure(BossModule module) : ConstructiveFigure(module, AID.SAero);
 
-class ArcanePoint : BossComponent
+class ArcanePoint(BossModule module) : BossComponent(module)
 {
     public int NumCasts { get; private set; }
-    private ArcanePlot? _plot;
-
-    public ArcanePoint(BossModule module) : base(module)
-    {
-        _plot = module.FindComponent<ArcanePlot>();
-    }
+    private ArcanePlot? _plot = module.FindComponent<ArcanePlot>();
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

@@ -77,16 +77,10 @@ class P6AkhMorn(BossModule module) : Components.StackWithCastTargets(module, Act
 
 class P6AkhMornVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.VoidzoneAhkMorn).Where(z => z.EventState != 7));
 
-class P6SpreadingEntangledFlames : Components.UniformStackSpread
+class P6SpreadingEntangledFlames(BossModule module) : Components.UniformStackSpread(module, 4, 5, 2, alwaysShowSpreads: true)
 {
-    private P6HotWingTail? _wingTail;
-    private bool _voidzonesNorth;
-
-    public P6SpreadingEntangledFlames(BossModule module) : base(module, 4, 5, 2, alwaysShowSpreads: true)
-    {
-        _wingTail = module.FindComponent<P6HotWingTail>();
-        _voidzonesNorth = module.Enemies(OID.VoidzoneAhkMorn).Sum(z => z.Position.Z - Module.Bounds.Center.Z) < 0;
-    }
+    private P6HotWingTail? _wingTail = module.FindComponent<P6HotWingTail>();
+    private bool _voidzonesNorth = module.Enemies(OID.VoidzoneAhkMorn).Sum(z => z.Position.Z - module.Bounds.Center.Z) < 0;
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {

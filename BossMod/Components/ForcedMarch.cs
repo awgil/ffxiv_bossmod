@@ -3,7 +3,7 @@
 // generic component dealing with 'forced march' mechanics
 // these mechanics typically feature 'march left/right/forward/backward' debuffs, which rotate player and apply 'forced march' on expiration
 // if there are several active march debuffs, we assume they are chained together
-public class GenericForcedMarch(BossModule module) : BossComponent(module)
+public class GenericForcedMarch(BossModule module, float activationLimit = float.MaxValue) : BossComponent(module)
 {
     public class PlayerState
     {
@@ -16,7 +16,7 @@ public class GenericForcedMarch(BossModule module) : BossComponent(module)
     public int NumActiveForcedMarches { get; private set; }
     public Dictionary<ulong, PlayerState> State = new(); // key = instance ID
     public float MovementSpeed = 6; // default movement speed, can be overridden if necessary
-    public float ActivationLimit = float.MaxValue; // do not show pending moves that activate later than this limit
+    public float ActivationLimit = activationLimit; // do not show pending moves that activate later than this limit
 
     // called to determine whether we need to show hint
     public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos);
@@ -89,7 +89,7 @@ public class GenericForcedMarch(BossModule module) : BossComponent(module)
 }
 
 // typical forced march is driven by statuses
-public class StatusDrivenForcedMarch(BossModule module, float duration, uint statusForward, uint statusBackward, uint statusLeft, uint statusRight, uint statusForced = 1257) : GenericForcedMarch(module)
+public class StatusDrivenForcedMarch(BossModule module, float duration, uint statusForward, uint statusBackward, uint statusLeft, uint statusRight, uint statusForced = 1257, float activationLimit = float.MaxValue) : GenericForcedMarch(module, activationLimit)
 {
     public float Duration = duration;
     public readonly uint[] Statuses = [statusForward, statusLeft, statusBackward, statusRight, statusForced]; // 5 elements: fwd, left, back, right, forced

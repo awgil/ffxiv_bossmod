@@ -386,15 +386,10 @@ class P5SigmaDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P5SigmaNearDistantWorld : P5NearDistantWorld
+class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 {
-    private P5SigmaRearLasers? _lasers;
+    private P5SigmaRearLasers? _lasers = module.FindComponent<P5SigmaRearLasers>();
     private BitMask _dynamisStacks;
-
-    public P5SigmaNearDistantWorld(BossModule module) : base(module)
-    {
-        _lasers = module.FindComponent<P5SigmaRearLasers>();
-    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

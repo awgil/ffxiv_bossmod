@@ -2,17 +2,12 @@
 
 class EntanglingWebAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EntanglingWebAOE), 5);
 
-class EntanglingWebHints : BossComponent
+class EntanglingWebHints(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _pillars;
+    private IReadOnlyList<Actor> _pillars = module.Enemies(OID.Pillar);
     private List<Actor> _targets = new();
 
     private static readonly float _radius = 5;
-
-    public EntanglingWebHints(BossModule module) : base(module)
-    {
-        _pillars = module.Enemies(OID.Pillar);
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

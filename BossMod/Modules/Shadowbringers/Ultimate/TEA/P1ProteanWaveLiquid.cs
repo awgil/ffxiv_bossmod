@@ -4,16 +4,11 @@ class P1ProteanWaveLiquidVisBoss(BossModule module) : Components.SelfTargetedAOE
 class P1ProteanWaveLiquidVisHelper(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ProteanWaveLiquidVisHelper), new AOEShapeCone(40, 15.Degrees()));
 
 // single protean ("shadow") that fires in the direction the boss is facing
-class P1ProteanWaveLiquidInvisFixed : Components.GenericAOEs
+class P1ProteanWaveLiquidInvisFixed(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ProteanWaveLiquidInvisBoss))
 {
-    private Actor? _source;
+    private Actor? _source = module.Enemies(OID.BossP1).FirstOrDefault();
 
     private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
-
-    public P1ProteanWaveLiquidInvisFixed(BossModule module) : base(module, ActionID.MakeSpell(AID.ProteanWaveLiquidInvisBoss))
-    {
-        _source = module.Enemies(OID.BossP1).FirstOrDefault();
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -23,16 +18,11 @@ class P1ProteanWaveLiquidInvisFixed : Components.GenericAOEs
 }
 
 // proteans baited on 4 closest targets
-class P1ProteanWaveLiquidInvisBaited : Components.GenericBaitAway
+class P1ProteanWaveLiquidInvisBaited(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.ProteanWaveLiquidInvisHelper))
 {
-    private Actor? _source;
+    private Actor? _source = module.Enemies(OID.BossP1).FirstOrDefault();
 
     private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
-
-    public P1ProteanWaveLiquidInvisBaited(BossModule module) : base(module, ActionID.MakeSpell(AID.ProteanWaveLiquidInvisHelper))
-    {
-        _source = module.Enemies(OID.BossP1).FirstOrDefault();
-    }
 
     public override void Update()
     {

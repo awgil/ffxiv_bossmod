@@ -3,19 +3,14 @@
 class P3WormholeLimitCut(BossModule module) : LimitCut(module, 2.7f);
 class P3WormholeSacrament(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SacramentWormhole), new AOEShapeCross(100, 8));
 
-class P3WormholeRepentance : BossComponent
+class P3WormholeRepentance(BossModule module) : BossComponent(module)
 {
     public int NumSoaks { get; private set; }
     private bool _chakramsDone;
-    private LimitCut? _limitCut;
+    private LimitCut? _limitCut = module.FindComponent<LimitCut>();
     private List<WPos> _wormholes = new();
 
     private static readonly float[] _radiuses = { 8, 6, 3 };
-
-    public P3WormholeRepentance(BossModule module) : base(module)
-    {
-        _limitCut = module.FindComponent<LimitCut>();
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

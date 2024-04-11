@@ -70,21 +70,10 @@ class BloodyPuddle(BossModule module) : Components.GenericAOEs(module)
 
 class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Torpedo));
 class RisingSeas(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RisingSeas));
+class HydroPushKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward, stopAtWall: true);
 
-class HydroPushKB : Components.KnockbackFromCastTarget
+class RisingSeasKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.RisingSeas), 20, stopAtWall: true)
 {
-    public HydroPushKB(BossModule module) : base(module, ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward)
-    {
-        StopAtWall = true;
-    }
-}
-
-class RisingSeasKB : Components.KnockbackFromCastTarget
-{
-    public RisingSeasKB(BossModule module) : base(module, ActionID.MakeSpell(AID.RisingSeas), 20)
-    {
-        StopAtWall = true;
-    }
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<BloodyPuddle>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 

@@ -1,19 +1,13 @@
 ﻿namespace BossMod.Endwalker.Alliance.A21Nophica;
 
-class MatronsBreath : BossComponent
+class MatronsBreath(BossModule module) : BossComponent(module)
 {
     public int NumCasts { get; private set; }
-    private IReadOnlyList<Actor> _blueSafe;
-    private IReadOnlyList<Actor> _goldSafe;
+    private IReadOnlyList<Actor> _blueSafe = module.Enemies(OID.BlueSafeZone);
+    private IReadOnlyList<Actor> _goldSafe = module.Enemies(OID.GoldSafeZone);
     private List<Actor> _towers = new();
 
     private static readonly AOEShapeDonut _shape = new(8, 40); // TODO: verify safe zone radius
-
-    public MatronsBreath(BossModule module) : base(module)
-    {
-        _blueSafe = module.Enemies(OID.BlueSafeZone);
-        _goldSafe = module.Enemies(OID.GoldSafeZone);
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

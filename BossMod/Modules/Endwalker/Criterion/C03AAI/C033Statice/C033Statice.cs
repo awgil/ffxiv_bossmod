@@ -4,10 +4,7 @@ class SurpriseBalloon(BossModule module, AID aid) : Components.KnockbackFromCast
 class NSurpriseBalloon(BossModule module) : SurpriseBalloon(module, AID.NPop);
 class SSurpriseBalloon(BossModule module) : SurpriseBalloon(module, AID.SPop);
 
-class BeguilingGlitter : Components.StatusDrivenForcedMarch
-{
-    public BeguilingGlitter(BossModule module) : base(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { ActivationLimit = 8; }
-}
+class BeguilingGlitter(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace, activationLimit: 8);
 
 class FaerieRing(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeDonut(6, 12)); // TODO: verify inner radius
 class NFaerieRing(BossModule module) : FaerieRing(module, AID.NFaerieRing);

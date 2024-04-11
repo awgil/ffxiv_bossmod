@@ -38,16 +38,11 @@ class VisceralWhirl(BossModule module) : Components.GenericAOEs(module)
 
 class MiasmicBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MiasmicBlast), new AOEShapeCross(60, 5));
 
-class VoidBio : Components.GenericAOEs
+class VoidBio(BossModule module) : Components.GenericAOEs(module)
 {
-    private IReadOnlyList<Actor> _bubbles;
+    private IReadOnlyList<Actor> _bubbles = module.Enemies(OID.ToxicBubble);
 
     private static readonly AOEShapeCircle _shape = new(2); // TODO: verify explosion radius
-
-    public VoidBio(BossModule module) : base(module)
-    {
-        _bubbles = module.Enemies(OID.ToxicBubble);
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _bubbles.Where(actor => !actor.IsDead).Select(b => new AOEInstance(_shape, b.Position));
 }

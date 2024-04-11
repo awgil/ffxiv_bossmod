@@ -35,15 +35,10 @@ class SpinBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID
 class BarbarousScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BarbarousScream), new AOEShapeCircle(13));
 class Huff(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Huff));
 
-class Buffet : Components.KnockbackFromCastTarget
+class Buffet(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Buffet), 20, kind: Kind.DirForward, stopAtWall: true)
 {
     private bool targeted;
     private Actor? target;
-
-    public Buffet(BossModule module) : base(module, ActionID.MakeSpell(AID.Buffet), 20, kind: Kind.DirForward)
-    {
-        StopAtWall = true;
-    }
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {

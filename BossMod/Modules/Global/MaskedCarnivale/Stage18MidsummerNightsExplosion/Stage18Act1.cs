@@ -30,13 +30,8 @@ class WildCharge(BossModule module) : Components.BaitAwayChargeCast(module, Acti
     }
 }
 
-class WildChargeKB : Components.KnockbackFromCastTarget // knockback actually delayed by 0.5s to 1s, maybe it depends on the rectangle length of the charge
-{
-    public WildChargeKB(BossModule module) : base(module, ActionID.MakeSpell(AID.WildCharge), 10, kind: Kind.DirForward)
-    {
-        StopAtWall = true;
-    }
-}
+// knockback actually delayed by 0.5s to 1s, maybe it depends on the rectangle length of the charge
+class WildChargeKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WildCharge), 10, kind: Kind.DirForward, stopAtWall: true);
 
 class KegExplosion(BossModule module) : Components.GenericStackSpread(module)
 {

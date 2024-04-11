@@ -19,18 +19,12 @@ class Comet(BossModule module) : Components.Adds(module, (uint)OID.Comet)
 class CometImpact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CometImpact), new AOEShapeCircle(10)); // TODO: verify falloff
 class CometBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CometBurstLong), new AOEShapeCircle(10));
 
-class BeastlyBile : Components.UniformStackSpread
+class BeastlyBile(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4)
 {
     public int NumCasts { get; private set; }
-    private Comet? _comet;
-    private DateTime _activation;
+    private Comet? _comet = module.FindComponent<Comet>();
+    private DateTime _activation = module.WorldState.FutureTime(15); // assuming component is activated after proximity
     private BitMask _forbiddenPlayers;
-
-    public BeastlyBile(BossModule module) : base(module, 6, 0, 4)
-{
-        _comet = module.FindComponent<Comet>();
-        _activation = WorldState.FutureTime(15); // assuming component is activated after proximity
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -65,16 +59,11 @@ class BeastlyBile : Components.UniformStackSpread
     }
 }
 
-class Thunderbolt : Components.GenericBaitAway
+class Thunderbolt(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.ThunderboltAOE))
 {
-    private Comet? _comet;
+    private Comet? _comet = module.FindComponent<Comet>();
 
     private static readonly AOEShapeCone _shape = new(40, 22.5f.Degrees());
-
-    public Thunderbolt(BossModule module) : base(module, ActionID.MakeSpell(AID.ThunderboltAOE))
-    {
-        _comet = module.FindComponent<Comet>();
-    }
 
     public override void Update()
     {

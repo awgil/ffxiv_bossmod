@@ -42,9 +42,8 @@ public enum AID : uint
 
 class Ceras(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Ceras));
 
-class WaveOfTurmoil : Components.KnockbackFromCastTarget
+class WaveOfTurmoil(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WaveOfTurmoil), 20, stopAtWall: true)
 {
-    public WaveOfTurmoil(BossModule module) : base(module, ActionID.MakeSpell(AID.WaveOfTurmoil), 20) { StopAtWall = true; }
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Hydrobomb>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 

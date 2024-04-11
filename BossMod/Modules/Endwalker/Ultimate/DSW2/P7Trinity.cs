@@ -1,16 +1,11 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
 // TODO: improve...
-class P7Trinity : Components.GenericBaitAway
+class P7Trinity(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private Actor? _source;
+    private Actor? _source = module.Enemies(OID.DragonKingThordan).FirstOrDefault();
 
     private static readonly AOEShapeCircle _shape = new(3);
-
-    public P7Trinity(BossModule module) : base(module, centerAtTarget: true)
-    {
-        _source = module.Enemies(OID.DragonKingThordan).FirstOrDefault();
-    }
 
     public override void Update()
     {

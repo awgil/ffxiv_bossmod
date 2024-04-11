@@ -160,13 +160,7 @@ class MiniSupercell(BossModule module) : Components.GenericBaitAway(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
-class MiniSupercellKB : Components.KnockbackFromCastTarget
-{
-    public MiniSupercellKB(BossModule module) : base(module, ActionID.MakeSpell(AID.MiniSupercell2), 50, shape: new AOEShapeRect(45, 3))
-    {
-        StopAtWall = true;
-    }
-}
+class MiniSupercellKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.MiniSupercell2), 50, shape: new AOEShapeRect(45, 3), stopAtWall: true);
 
 class GravitationalForce(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.GravitationalForce2), m => m.Enemies(OID.GravityVoidzone), 0);
 class MistralGaol(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MistralGaol), "Prepare for Quick Time Event (spam buttons when it starts)");

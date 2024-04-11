@@ -173,13 +173,8 @@ class Inhale(BossModule module) : Components.KnockbackFromCastTarget(module, Act
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class HeavingBreath : Components.KnockbackFromCastTarget
+class HeavingBreath(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HeavingBreath), 35, kind: Kind.DirForward, stopAtWall: true)
 {
-    public HeavingBreath(BossModule module) : base(module, ActionID.MakeSpell(AID.HeavingBreath), 35, kind: Kind.DirForward)
-    {
-        StopAtWall = true;
-    }
-
     //TODO: consider testing if path is unsafe in addition to destination
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<ViperPoisonPatterns>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }

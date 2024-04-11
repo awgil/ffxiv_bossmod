@@ -28,13 +28,11 @@ class FizzlingDusterPuff(BossModule module, AID aid) : Components.SelfTargetedAO
 class NFizzlingDusterPuff(BossModule module) : FizzlingDusterPuff(module, AID.NFizzlingDusterPuff);
 class SFizzlingDusterPuff(BossModule module) : FizzlingDusterPuff(module, AID.SFizzlingDusterPuff);
 
-public abstract class C011Silkie : BossModule
+public abstract class C011Silkie(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-335, -155), 20))
 {
     public static readonly AOEShapeCross ShapeBlue = new(60, 5);
     public static readonly AOEShapeDonut ShapeGreen = new(5, 60);
     public static readonly AOEShapeCone ShapeYellow = new(60, 22.5f.Degrees());
-
-    public C011Silkie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-335, -155), 20)) { }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11369, SortOrder = 5)]

@@ -1,15 +1,10 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
 // component tracking [lateral] aureole mechanic
-class Aureole : BossComponent
+class Aureole(BossModule module) : BossComponent(module)
 {
     public bool Done { get; private set; }
-    private AOEShapeCone _aoe = new(40, 75.Degrees());
-
-    public Aureole(BossModule module) : base(module)
-    {
-        _aoe.DirectionOffset = (AID)(Module.PrimaryActor.CastInfo?.Action.ID ?? 0) is AID.LateralAureole1 or AID.LateralAureole2 ? -90.Degrees() : 0.Degrees();
-    }
+    private AOEShapeCone _aoe = new(40, 75.Degrees(), (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) is AID.LateralAureole1 or AID.LateralAureole2 ? -90.Degrees() : 0.Degrees());
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

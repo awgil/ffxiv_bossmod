@@ -38,16 +38,8 @@ public enum AID : uint
 }
 
 class Filoplumes(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Filoplumes), new AOEShapeRect(11.36f, 2));
-
 class Wingbeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wingbeat), new AOEShapeCone(43.36f, 30.Degrees()));
-class WingbeatKB : Components.KnockbackFromCastTarget
-{
-    public WingbeatKB(BossModule module) : base(module, ActionID.MakeSpell(AID.Wingbeat), 20, false, 1, new AOEShapeCone(43.36f, 30.Degrees()))
-    {
-        StopAtWall = true;
-    }
-}
-
+class WingbeatKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Wingbeat), 20, false, 1, new AOEShapeCone(43.36f, 30.Degrees()), stopAtWall: true);
 class FeatherSquall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FeatherSquall2), 6);
 class Pinion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pinion), new AOEShapeRect(40.5f, 1.5f));
 class Sideslip(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Sideslip));

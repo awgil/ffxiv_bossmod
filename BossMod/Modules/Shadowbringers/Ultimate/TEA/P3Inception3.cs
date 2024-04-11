@@ -1,19 +1,13 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P3Inception3Sacrament : Components.GenericAOEs
+// note: boss moves to position around the component activation time
+class P3Inception3Sacrament(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SacramentInception))
 {
     public bool Active => _source != null;
 
-    private Actor? _source;
-    private DateTime _activation;
+    private Actor? _source = ((TEA)module).AlexPrime();
+    private DateTime _activation = module.WorldState.FutureTime(4.1f);
     private static readonly AOEShapeCross _shape = new(100, 8);
-
-    public P3Inception3Sacrament(BossModule module) : base(module, ActionID.MakeSpell(AID.SacramentInception))
-    {
-        // note: boss moves to position around the component activation time
-        _source = ((TEA)module).AlexPrime();
-        _activation = WorldState.FutureTime(4.1f);
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

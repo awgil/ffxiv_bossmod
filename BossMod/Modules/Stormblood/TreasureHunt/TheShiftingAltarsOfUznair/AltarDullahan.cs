@@ -48,13 +48,8 @@ class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, Ac
 class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
 class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
-class StygianReleaseKB : Components.KnockbackFromCastTarget
+class StygianReleaseKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.StygianRelease), 20, stopAtWall: true)
 {
-    public StygianReleaseKB(BossModule module) : base(module, ActionID.MakeSpell(AID.StygianRelease), 20)
-    {
-        StopAtWall = true;
-    }
-
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<TerrorEye>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 

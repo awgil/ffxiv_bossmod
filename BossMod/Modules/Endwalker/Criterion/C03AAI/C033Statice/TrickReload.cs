@@ -32,15 +32,10 @@ class TrickReload(BossModule module) : BossComponent(module)
     }
 }
 
-class Trapshooting : Components.UniformStackSpread
+class Trapshooting(BossModule module) : Components.UniformStackSpread(module, 6, 6, 4, alwaysShowSpreads: true)
 {
     public int NumResolves { get; private set; }
-    private TrickReload? _reload;
-
-    public Trapshooting(BossModule module) : base(module, 6, 6, 4, alwaysShowSpreads: true)
-    {
-        _reload = module.FindComponent<TrickReload>();
-    }
+    private TrickReload? _reload = module.FindComponent<TrickReload>();
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

@@ -1,20 +1,11 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW1;
 
-class ShiningBladeKnockback : Components.KnockbackFromCastTarget
+class ShiningBladeKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.FaithUnmoving), 16)
 {
-    private WDir _dirToAdelphel; // we don't want to be knocked near adelphel
-    private IReadOnlyList<Actor> _tears; // we don't want to be knocked into them
+    private WDir _dirToAdelphel = (module.Enemies(OID.SerAdelphel).FirstOrDefault()?.Position ?? module.Bounds.Center) - module.Bounds.Center; // we don't want to be knocked near adelphel
+    private IReadOnlyList<Actor> _tears = module.Enemies(OID.AetherialTear); // we don't want to be knocked into them
 
     private static readonly float _tearRadius = 9; // TODO: verify
-
-    public ShiningBladeKnockback(BossModule module) : base(module, ActionID.MakeSpell(AID.FaithUnmoving), 16)
-    {
-        var adelphel = module.Enemies(OID.SerAdelphel).FirstOrDefault();
-        if (adelphel != null)
-            _dirToAdelphel = adelphel.Position - Module.Bounds.Center;
-
-        _tears = module.Enemies(OID.AetherialTear);
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

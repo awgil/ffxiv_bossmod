@@ -19,14 +19,9 @@ public enum AID : uint
 class SpikedTail(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpikedTail));
 class SonicStorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SonicStorm), 6);
 
-class Typhoon : Components.Exaflare
+class Typhoon(BossModule module) : Components.Exaflare(module, 3)
 {
-    private IReadOnlyList<Actor> _maelstroms = ActorEnumeration.EmptyList;
-
-    public Typhoon(BossModule module) : base(module, 3)
-    {
-        _maelstroms = module.Enemies(OID.MaelstromVisual);
-    }
+    private IReadOnlyList<Actor> _maelstroms = module.Enemies(OID.MaelstromVisual);
 
     public override void Update()
     {

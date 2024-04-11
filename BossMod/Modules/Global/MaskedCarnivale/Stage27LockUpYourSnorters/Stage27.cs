@@ -20,26 +20,14 @@ public enum AID : uint
 }
 
 class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 8);
+class Snort(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Snort), 15, stopAtWall: true);
 
-class Snort : Components.KnockbackFromCastTarget
-{
-    public Snort(BossModule module) : base(module, ActionID.MakeSpell(AID.Snort), 15)
-    {
-        StopAtWall = true;
-    }
-}
-
-class Fungah : Components.Knockback
+class Fungah(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
     private DateTime _activation;
     private List<Actor> _bombs = new();
     private bool otherpatterns;
     private static readonly AOEShapeCone cone = new(12.5f, 45.Degrees());
-
-    public Fungah(BossModule module) : base(module)
-    {
-        StopAtWall = true;
-    }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

@@ -2,7 +2,7 @@
 
 // note: rows at Z=100, 92, 84; columns at X=88, 96, 104, 112
 // note: assumes standard assignments (BPOG columns, alpha to tri, beta to square)
-class ClassicalConcepts : BossComponent
+class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
 {
     enum Debuff { None, Alpha, Beta }
 
@@ -15,22 +15,14 @@ class ClassicalConcepts : BossComponent
 
     public int NumPlayerTethers { get; private set; }
     public int NumShapeTethers { get; private set; }
-    private IReadOnlyList<Actor> _hexa;
-    private IReadOnlyList<Actor> _tri;
-    private IReadOnlyList<Actor> _sq;
+    private IReadOnlyList<Actor> _hexa = module.Enemies(OID.ConceptOfWater);
+    private IReadOnlyList<Actor> _tri = module.Enemies(OID.ConceptOfFire);
+    private IReadOnlyList<Actor> _sq = module.Enemies(OID.ConceptOfEarth);
     private (WPos hexa, WPos tri, WPos sq)[] _resolvedShapes = new(WPos, WPos, WPos)[4];
     private PlayerState[] _states = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Column = -1, PartnerSlot = -1 });
-    private bool _invert;
+    private bool _invert = invert;
     private bool _showShapes = true;
     private bool _showTethers = true;
-
-    public ClassicalConcepts(BossModule module, bool invert) : base(module)
-    {
-        _hexa = module.Enemies(OID.ConceptOfWater);
-        _tri = module.Enemies(OID.ConceptOfFire);
-        _sq = module.Enemies(OID.ConceptOfEarth);
-        _invert = invert;
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

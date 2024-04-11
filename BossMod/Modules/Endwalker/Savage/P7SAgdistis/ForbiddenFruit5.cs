@@ -1,16 +1,11 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 // TODO: improve!
-class ForbiddenFruit5 : ForbiddenFruitCommon
+class ForbiddenFruit5(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.Burst))
 {
-    private IReadOnlyList<Actor> _towers;
+    private IReadOnlyList<Actor> _towers = module.Enemies(OID.Tower);
 
     private const float _towerRadius = 5;
-
-    public ForbiddenFruit5(BossModule module) : base(module, ActionID.MakeSpell(AID.Burst))
-    {
-        _towers = module.Enemies(OID.Tower);
-    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

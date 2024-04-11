@@ -136,19 +136,13 @@ class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
 
 class IaiGiriBait : Components.GenericBaitAway
 {
-    public class Instance
+    public class Instance(Actor source)
     {
-        public Actor Source;
-        public Actor FakeSource;
+        public Actor Source = source;
+        public Actor FakeSource = new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new());
         public Actor? Target;
         public List<Angle> DirOffsets = new();
         public List<string> Hints = new();
-
-        public Instance(Actor source)
-        {
-            Source = source;
-            FakeSource = new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new());
-        }
     }
 
     public float Distance;

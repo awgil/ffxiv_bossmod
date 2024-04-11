@@ -100,20 +100,14 @@ class P5WrathOfTheHeavensChainLightning(BossModule module) : Components.UniformS
     }
 }
 
-class P5WrathOfTheHeavensTwister : Components.GenericAOEs
+class P5WrathOfTheHeavensTwister(BossModule module) : Components.GenericAOEs(module, default, "GTFO from twister!")
 {
-    private List<WPos> _predicted = new();
-    private IReadOnlyList<Actor> _voidzones;
+    private List<WPos> _predicted = [.. module.Raid.WithoutSlot().Select(a => a.Position)];
+    private IReadOnlyList<Actor> _voidzones = module.Enemies(OID.VoidzoneTwister);
 
     private static readonly AOEShapeCircle _shape = new(2); // TODO: verify radius
 
     public bool Active => _voidzones.Count > 0;
-
-    public P5WrathOfTheHeavensTwister(BossModule module) : base(module, default, "GTFO from twister!")
-    {
-        _predicted.AddRange(Raid.WithoutSlot().Select(a => a.Position));
-        _voidzones = module.Enemies(OID.VoidzoneTwister);
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

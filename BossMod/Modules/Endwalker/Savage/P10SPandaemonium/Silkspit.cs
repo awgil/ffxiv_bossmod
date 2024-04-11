@@ -1,13 +1,8 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class Silkspit : Components.UniformStackSpread
+class Silkspit(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
-    private IReadOnlyList<Actor> _pillars;
-
-    public Silkspit(BossModule module) : base(module, 0, 7)
-    {
-        _pillars = module.Enemies(OID.Pillar);
-    }
+    private IReadOnlyList<Actor> _pillars = module.Enemies(OID.Pillar);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

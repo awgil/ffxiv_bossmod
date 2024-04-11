@@ -49,18 +49,13 @@ class P4FateCalibrationAlphaStillnessMotion(BossModule module) : Components.Stay
     }
 }
 
-class P4FateCalibrationAlphaDebuffs : Components.UniformStackSpread
+class P4FateCalibrationAlphaDebuffs(BossModule module) : Components.UniformStackSpread(module, 4, 30, 3, alwaysShowSpreads: true)
 {
     public enum Debuff { None, Defamation, SharedSentence, AggravatedAssault }
 
     public Debuff[] Debuffs = new Debuff[PartyState.MaxPartySize];
-    private P4FateProjection? _proj;
+    private P4FateProjection? _proj = module.FindComponent<P4FateProjection>();
     private BitMask _avoidMask;
-
-    public P4FateCalibrationAlphaDebuffs(BossModule module) : base(module, 4, 30, 3, alwaysShowSpreads: true)
-    {
-        _proj = module.FindComponent<P4FateProjection>();
-    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

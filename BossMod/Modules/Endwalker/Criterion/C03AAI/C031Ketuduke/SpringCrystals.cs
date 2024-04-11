@@ -1,23 +1,22 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
-class SpringCrystalsRect : Components.GenericAOEs
+class SpringCrystalsRect(BossModule module, bool moveCasters, bool risky, float delay) : Components.GenericAOEs(module)
 {
-    public List<WPos> SafeZoneCenters = new();
+    public List<WPos> SafeZoneCenters = InitialSafeZoneCenters(module.Bounds.Center);
     private List<AOEInstance> _aoes = new();
-    private bool _moveCasters;
-    private bool _risky;
-    private float _delay;
+    private bool _moveCasters = moveCasters;
+    private bool _risky = risky;
+    private float _delay = delay;
 
     private static readonly AOEShapeRect _shape = new(38, 5, 38);
 
-    public SpringCrystalsRect(BossModule module, bool moveCasters, bool risky, float delay) : base(module)
+    private static List<WPos> InitialSafeZoneCenters(WPos origin)
     {
-        _moveCasters = moveCasters;
-        _risky = risky;
-        _delay = delay;
+        List<WPos> res = [];
         for (int z = -15; z <= 15; z += 10)
             for (int x = -15; x <= 15; x += 10)
-                SafeZoneCenters.Add(Module.Bounds.Center + new WDir(x, z));
+                res.Add(origin + new WDir(x, z));
+        return res;
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;

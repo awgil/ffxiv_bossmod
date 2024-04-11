@@ -1,22 +1,17 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
-class FlukeGale : Components.Knockback
+class FlukeGale(BossModule module) : Components.Knockback(module)
 {
     public enum Debuff { None, BubbleWeave, FoamyFetters }
     public enum Resolve { None, Stack, Spread }
 
     public List<Source> Gales = new();
-    private SpringCrystalsRect? _crystals;
+    private SpringCrystalsRect? _crystals = module.FindComponent<SpringCrystalsRect>();
     private Debuff[] _debuffs = new Debuff[PartyState.MaxPartySize];
     private Resolve _resolution;
 
     private static readonly AOEShapeRect _shape = new(20, 10);
     private static readonly AOEShapeRect _safeZone = new(5, 5, 5);
-
-    public FlukeGale(BossModule module) : base(module)
-    {
-        _crystals = module.FindComponent<SpringCrystalsRect>();
-    }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _debuffs[slot] != Debuff.FoamyFetters ? Gales : Enumerable.Empty<Source>();
 

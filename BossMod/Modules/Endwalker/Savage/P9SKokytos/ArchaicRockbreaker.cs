@@ -2,16 +2,10 @@
 
 class ArchaicRockbreakerCenter(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ArchaicRockbreakerCenter), 6);
 
-class ArchaicRockbreakerShockwave : Components.Knockback
+class ArchaicRockbreakerShockwave(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.ArchaicRockbreakerShockwave), true)
 {
-    private Uplift? _uplift;
-    private DateTime _activation;
-
-    public ArchaicRockbreakerShockwave(BossModule module) : base(module, ActionID.MakeSpell(AID.ArchaicRockbreakerShockwave), true)
-    {
-        _uplift = module.FindComponent<Uplift>();
-        _activation = WorldState.FutureTime(6.5f);
-    }
+    private Uplift? _uplift = module.FindComponent<Uplift>();
+    private DateTime _activation = module.WorldState.FutureTime(6.5f);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

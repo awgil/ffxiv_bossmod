@@ -1,18 +1,12 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3Dahu;
 
 // these two abilities are very similar, only differ by activation delay and action id
-class FeralHowlHystericAssault : Components.Knockback
+// TODO: not all the wall is safe...
+class FeralHowlHystericAssault(BossModule module, AID aidCast, AID aidAOE, float delay) : Components.Knockback(module, ActionID.MakeSpell(aidAOE), true, stopAtWall: true)
 {
-    private AID _aidCast;
-    private float _delay;
+    private AID _aidCast = aidCast;
+    private float _delay = delay;
     private Source? _source;
-
-    public FeralHowlHystericAssault(BossModule module, AID aidCast, AID aidAOE, float delay) : base(module, ActionID.MakeSpell(aidAOE), true)
-    {
-        _aidCast = aidCast;
-        _delay = delay;
-        StopAtWall = true; // TODO: not all the wall is safe...
-    }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_source);
 

@@ -178,19 +178,13 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
 }
 
 // TODO: assign spread safespots based on initial missile position
-class Fireworks1Hints : BossComponent
+class Fireworks1Hints(BossModule module) : BossComponent(module)
 {
-    private RingARingOExplosions? _bombs;
-    private Fireworks? _fireworks;
+    private RingARingOExplosions? _bombs = module.FindComponent<RingARingOExplosions>();
+    private Fireworks? _fireworks = module.FindComponent<Fireworks>();
     private BitMask _pattern;
     private List<WPos> _safeSpotsClaw = new();
     private List<WPos> _safeSpotsMissile = new();
-
-    public Fireworks1Hints(BossModule module) : base(module)
-    {
-        _bombs = module.FindComponent<RingARingOExplosions>();
-        _fireworks = module.FindComponent<Fireworks>();
-    }
 
     public override void Update()
     {
@@ -290,19 +284,12 @@ class Fireworks1Hints : BossComponent
 }
 
 // TODO: currently this assumes that DD always go rel-west, supports rel-east
-class Fireworks2Hints : BossComponent
+class Fireworks2Hints(BossModule module) : BossComponent(module)
 {
-    private Fireworks? _fireworks;
-    private Dartboard? _dartboard;
-    private FireSpread? _fireSpread;
+    private Fireworks? _fireworks = module.FindComponent<Fireworks>();
+    private Dartboard? _dartboard = module.FindComponent<Dartboard>();
+    private FireSpread? _fireSpread = module.FindComponent<FireSpread>();
     private Angle? _relNorth;
-
-    public Fireworks2Hints(BossModule module) : base(module)
-    {
-        _fireworks = module.FindComponent<Fireworks>();
-        _dartboard = module.FindComponent<Dartboard>();
-        _fireSpread = module.FindComponent<FireSpread>();
-    }
 
     public override void Update()
     {

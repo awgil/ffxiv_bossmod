@@ -78,18 +78,11 @@ class PalladionArena(BossModule module) : BossComponent(module)
 }
 
 // shockwave is targeted at next jump target; everyone except target and partner should avoid it
-class PalladionShockwave : Components.GenericAOEs
+class PalladionShockwave(BossModule module) : Components.GenericAOEs(module)
 {
-    private Palladion? _palladion;
-    private WPos _origin;
-    private DateTime _activation;
-
-    public PalladionShockwave(BossModule module) : base(module)
-    {
-        _palladion = module.FindComponent<Palladion>();
-        _origin = Module.PrimaryActor.Position; // note: assumed to be activated when cast starts, so boss is in initial jump position; PATE 1E43 happens 1s earlier, but icons only appear right before cast start
-        _activation = Module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default;
-    }
+    private Palladion? _palladion = module.FindComponent<Palladion>();
+    private WPos _origin = module.PrimaryActor.Position;
+    private DateTime _activation = module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -161,16 +154,11 @@ class PalladionStack : Components.UniformStackSpread
 
 class PalladionVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.PalladionAOE), m => m.Enemies(OID.PalladionVoidzone).Where(z => z.EventState != 7), 0.9f);
 
-class PalladionClearCut : Components.GenericAOEs
+class PalladionClearCut(BossModule module) : Components.GenericAOEs(module)
 {
-    private Palladion? _palladion;
+    private Palladion? _palladion = module.FindComponent<Palladion>();
 
     private static readonly AOEShapeCircle _shape = new(4); // note: it's really a 270? degree cone, but we don't really know rotation early enough, and we just shouldn't stay in center anyway
-
-    public PalladionClearCut(BossModule module) : base(module)
-    {
-        _palladion = module.FindComponent<Palladion>();
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

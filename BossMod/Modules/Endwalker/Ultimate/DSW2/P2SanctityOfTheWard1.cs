@@ -9,15 +9,10 @@ class P2SanctityOfTheWard1Gaze : DragonsGaze
 }
 
 // sacred sever - distance-based shared damage on 1/2/1/2 markers
-class P2SanctityOfTheWard1Sever : Components.UniformStackSpread
+class P2SanctityOfTheWard1Sever(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4)
 {
     public int NumCasts { get; private set; }
-    public Actor? Source { get; private set; }
-
-    public P2SanctityOfTheWard1Sever(BossModule module) : base(module, 6, 0, 4)
-    {
-        Source = module.Enemies(OID.SerZephirin).FirstOrDefault();
-    }
+    public Actor? Source { get; private set; } = module.Enemies(OID.SerZephirin).FirstOrDefault();
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -169,21 +164,15 @@ class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(mod
 }
 
 // hints & assignments
-class P2SanctityOfTheWard1Hints : BossComponent
+class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
 {
-    private P2SanctityOfTheWard1Sever? _sever;
-    private P2SanctityOfTheWard1Flares? _flares;
+    private P2SanctityOfTheWard1Sever? _sever = module.FindComponent<P2SanctityOfTheWard1Sever>();
+    private P2SanctityOfTheWard1Flares? _flares = module.FindComponent<P2SanctityOfTheWard1Flares>();
     private bool _inited;
     private Angle _severStartDir;
     private bool _chargeEarly;
     private BitMask _groupEast; // 0 until initialized
     private string _groupSwapHints = "";
-
-    public P2SanctityOfTheWard1Hints(BossModule module) : base(module)
-    {
-        _sever = module.FindComponent<P2SanctityOfTheWard1Sever>();
-        _flares = module.FindComponent<P2SanctityOfTheWard1Flares>();
-    }
 
     public override void Update()
     {

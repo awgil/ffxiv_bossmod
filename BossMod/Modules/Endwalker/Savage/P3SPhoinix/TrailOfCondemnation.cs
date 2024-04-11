@@ -1,19 +1,14 @@
 ﻿namespace BossMod.Endwalker.Savage.P3SPhoinix;
 
 // state related to trail of condemnation mechanic
-class TrailOfCondemnation : BossComponent
+class TrailOfCondemnation(BossModule module) : BossComponent(module)
 {
     public bool Done { get; private set; } = false;
-    private bool _isCenter;
+    private bool _isCenter = module.PrimaryActor.CastInfo?.IsSpell(AID.TrailOfCondemnationCenter) ?? false;
 
     private static readonly float _halfWidth = 7.5f;
     private static readonly float _sidesOffset = 12.5f;
     private static readonly float _aoeRadius = 6;
-
-    public TrailOfCondemnation(BossModule module) : base(module)
-    {
-        _isCenter = Module.PrimaryActor.CastInfo?.IsSpell(AID.TrailOfCondemnationCenter) ?? false;
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

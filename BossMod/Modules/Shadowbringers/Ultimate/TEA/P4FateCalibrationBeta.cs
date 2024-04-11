@@ -1,20 +1,15 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 // TODO: consider drawing tethers & shared sentence?..
-class P4FateCalibrationBetaDebuffs : P4ForcedMarchDebuffs
+class P4FateCalibrationBetaDebuffs(BossModule module) : P4ForcedMarchDebuffs(module)
 {
     private enum Color { Unknown, Light, Dark }
 
-    private P4FateProjection? _proj;
+    private P4FateProjection? _proj = module.FindComponent<P4FateProjection>();
     private Color[] _colors = new Color[PartyState.MaxPartySize];
     private int[] _farTethers = { -1, -1 };
     private int[] _nearTethers = { -1, -1 };
     private int _sharedSentence = -1;
-
-    public P4FateCalibrationBetaDebuffs(BossModule module) : base(module)
-    {
-        _proj = module.FindComponent<P4FateProjection>();
-    }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

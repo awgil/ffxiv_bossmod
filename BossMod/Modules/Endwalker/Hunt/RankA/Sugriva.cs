@@ -47,13 +47,8 @@ class Twister(BossModule module) : Components.KnockbackFromCastTarget(module, Ac
 class Spark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30));
 class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(17));
 
-class Butcher : Components.BaitAwayCast
+class Butcher(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees()), endsOnCastEvent: true)
 {
-    public Butcher(BossModule module) : base(module, ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees()))
-    {
-        EndsOnCastEvent = true;
-    }
-
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (CurrentBaits.Count > 0)

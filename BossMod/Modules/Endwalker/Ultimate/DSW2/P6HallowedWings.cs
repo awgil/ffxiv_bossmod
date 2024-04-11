@@ -46,18 +46,13 @@ class P6CauterizeN : Components.GenericAOEs
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 }
 
-abstract class P6HallowedPlume : Components.GenericBaitAway
+abstract class P6HallowedPlume(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HallowedPlume), centerAtTarget: true)
 {
-    protected P6HallowedWings? _wings;
+    protected P6HallowedWings? _wings = module.FindComponent<P6HallowedWings>();
     protected bool _far;
     private Actor? _caster;
 
     private static readonly AOEShapeCircle _shape = new(10);
-
-    public P6HallowedPlume(BossModule module) : base(module, ActionID.MakeSpell(AID.HallowedPlume), centerAtTarget: true)
-    {
-        _wings = module.FindComponent<P6HallowedWings>();
-    }
 
     public override void Update()
     {
@@ -130,14 +125,9 @@ abstract class P6HallowedPlume : Components.GenericBaitAway
     protected abstract IEnumerable<WPos> SafeSpots(Actor actor);
 }
 
-class P6HallowedPlume1 : P6HallowedPlume
+class P6HallowedPlume1(BossModule module) : P6HallowedPlume(module)
 {
-    private P6CauterizeN? _cauterize;
-
-    public P6HallowedPlume1(BossModule module) : base(module)
-    {
-        _cauterize = module.FindComponent<P6CauterizeN>();
-    }
+    private P6CauterizeN? _cauterize = module.FindComponent<P6CauterizeN>();
 
     protected override IEnumerable<WPos> SafeSpots(Actor actor)
     {
@@ -164,14 +154,9 @@ class P6HallowedPlume1 : P6HallowedPlume
     }
 }
 
-class P6HallowedPlume2 : P6HallowedPlume
+class P6HallowedPlume2(BossModule module) : P6HallowedPlume(module)
 {
-    private P6HotWingTail? _wingTail;
-
-    public P6HallowedPlume2(BossModule module) : base(module)
-    {
-        _wingTail = module.FindComponent<P6HotWingTail>();
-    }
+    private P6HotWingTail? _wingTail = module.FindComponent<P6HotWingTail>();
 
     protected override IEnumerable<WPos> SafeSpots(Actor actor)
     {

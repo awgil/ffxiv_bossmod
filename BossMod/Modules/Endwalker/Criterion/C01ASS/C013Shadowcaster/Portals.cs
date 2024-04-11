@@ -23,19 +23,12 @@ static class Portals
     }
 }
 
-class PortalsAOE : Components.GenericAOEs
+class PortalsAOE(BossModule module, AID aid, OID movedOID, float activationDelay, AOEShape shape) : Components.GenericAOEs(module, ActionID.MakeSpell(aid))
 {
-    private IReadOnlyList<Actor> _movedActors;
-    private float _activationDelay;
-    private AOEShape _shape;
+    private IReadOnlyList<Actor> _movedActors = module.Enemies(movedOID);
+    private float _activationDelay = activationDelay;
+    private AOEShape _shape = shape;
     private List<(WPos pos, Angle rot, DateTime activation)> _origins = new();
-
-    public PortalsAOE(BossModule module, AID aid, OID movedOID, float activationDelay, AOEShape shape) : base(module, ActionID.MakeSpell(aid))
-    {
-        _movedActors = module.Enemies(movedOID);
-        _activationDelay = activationDelay;
-        _shape = shape;
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

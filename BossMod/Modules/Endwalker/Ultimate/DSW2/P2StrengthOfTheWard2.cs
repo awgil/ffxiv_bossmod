@@ -97,17 +97,11 @@ class P2StrengthOfTheWard2SpreadStack : Components.UniformStackSpread
 class P2StrengthOfTheWard2Voidzones(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DimensionalCollapseAOE), 9, "GTFO from voidzone aoe!");
 
 // charges on tethered targets
-class P2StrengthOfTheWard2Charges : Components.CastCounter
+class P2StrengthOfTheWard2Charges(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HolyShieldBash))
 {
-    private List<Actor> _chargeSources = new();
+    private List<Actor> _chargeSources = [.. module.Enemies(OID.SerAdelphel), .. module.Enemies(OID.SerJanlenoux)];
 
     private static readonly float _chargeHalfWidth = 4;
-
-    public P2StrengthOfTheWard2Charges(BossModule module) : base(module, ActionID.MakeSpell(AID.HolyShieldBash))
-    {
-        _chargeSources.AddRange(module.Enemies(OID.SerAdelphel));
-        _chargeSources.AddRange(module.Enemies(OID.SerJanlenoux));
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

@@ -374,14 +374,9 @@ class P5DeltaOpticalLaser(BossModule module) : Components.GenericAOEs(module, Ac
     }
 }
 
-class P5DeltaExplosion : Components.LocationTargetedAOEs
+class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaExplosion), 3)
 {
-    private P5Delta? _delta;
-
-    public P5DeltaExplosion(BossModule module) : base(module, ActionID.MakeSpell(AID.DeltaExplosion), 3)
-    {
-        _delta = module.FindComponent<P5Delta>();
-    }
+    private P5Delta? _delta = module.FindComponent<P5Delta>();
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -394,18 +389,13 @@ class P5DeltaExplosion : Components.LocationTargetedAOEs
     }
 }
 
-class P5DeltaHyperPulse : Components.GenericAOEs
+class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
 {
-    private P5Delta? _delta;
+    private P5Delta? _delta = module.FindComponent<P5Delta>();
     private List<AOEInstance> _aoes = new();
 
     private static readonly AOEShapeRect _shape = new(100, 4);
     private static readonly int _numRepeats = 6;
-
-    public P5DeltaHyperPulse(BossModule module) : base(module)
-    {
-        _delta = module.FindComponent<P5Delta>();
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -457,9 +447,9 @@ class P5DeltaHyperPulse : Components.GenericAOEs
     }
 }
 
-class P5DeltaOversampledWaveCannon : Components.UniformStackSpread
+class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
-    private P5Delta? _delta;
+    private P5Delta? _delta = module.FindComponent<P5Delta>();
     private Actor? _boss;
     private Angle _bossAngle;
     private BitMask _bossIntendedTargets;
@@ -468,11 +458,6 @@ class P5DeltaOversampledWaveCannon : Components.UniformStackSpread
     private BitMask _playerIntendedTargets;
 
     private static readonly AOEShapeRect _shape = new(50, 50);
-
-    public P5DeltaOversampledWaveCannon(BossModule module) : base(module, 0, 7)
-    {
-        _delta = module.FindComponent<P5Delta>();
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

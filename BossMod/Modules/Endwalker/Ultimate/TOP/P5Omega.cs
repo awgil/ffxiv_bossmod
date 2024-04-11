@@ -116,20 +116,15 @@ class P5OmegaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 }
 
 // TODO: assign soakers
-class P5OmegaOversampledWaveCannon : Components.UniformStackSpread
+class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
-    private P5OmegaNearDistantWorld? _ndw;
+    private P5OmegaNearDistantWorld? _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
     private Actor? _boss;
     private Angle _bossAngle;
 
     private static readonly AOEShapeRect _shape = new(50, 50);
 
     public bool IsActive => _boss != null;
-
-    public P5OmegaOversampledWaveCannon(BossModule module) : base(module, 0, 7)
-    {
-        _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
-    }
 
     public override void Update()
     {

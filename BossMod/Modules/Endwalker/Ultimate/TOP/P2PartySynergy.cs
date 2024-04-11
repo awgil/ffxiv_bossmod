@@ -143,19 +143,13 @@ class P2PartySynergyOptimizedFire : Components.UniformStackSpread
     }
 }
 
-class P2PartySynergyOpticalLaser : Components.GenericAOEs
+class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.OpticalLaser))
 {
-    private P2PartySynergy? _synergy;
-    private Actor? _source;
+    private P2PartySynergy? _synergy = module.FindComponent<P2PartySynergy>();
+    private Actor? _source = module.Enemies(OID.OpticalUnit).FirstOrDefault();
     private DateTime _activation;
 
     private static readonly AOEShapeRect _shape = new(100, 8);
-
-    public P2PartySynergyOpticalLaser(BossModule module) : base(module, ActionID.MakeSpell(AID.OpticalLaser))
-    {
-        _synergy = module.FindComponent<P2PartySynergy>();
-        _source = module.Enemies(OID.OpticalUnit).FirstOrDefault();
-    }
 
     public void Show()
     {

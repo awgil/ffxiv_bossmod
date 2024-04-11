@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
-class RokujoRevel : Components.GenericAOEs
+class RokujoRevel(BossModule module) : Components.GenericAOEs(module)
 {
     private int _numBreaths;
-    private List<Actor> _clouds = new();
+    private List<Actor> _clouds = [.. module.Enemies(OID.NRaiun), .. module.Enemies(OID.SRaiun)];
     private List<(Angle dir, DateTime activation)> _pendingLines = new();
     private List<(WPos origin, DateTime activation)> _pendingCircles = new();
 
@@ -13,12 +13,6 @@ class RokujoRevel : Components.GenericAOEs
     private AOEShapeCircle? ShapeCircle => _numBreaths is > 0 and <= 3 ? _shapesCircle[_numBreaths - 1] : null;
 
     public bool Active => _pendingLines.Count + _pendingCircles.Count > 0;
-
-    public RokujoRevel(BossModule module) : base(module)
-    {
-        _clouds.AddRange(module.Enemies(OID.NRaiun));
-        _clouds.AddRange(module.Enemies(OID.SRaiun));
-    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

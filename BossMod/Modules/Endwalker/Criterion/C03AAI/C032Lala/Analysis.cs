@@ -19,17 +19,11 @@ class Analysis(BossModule module) : BossComponent(module)
     }
 }
 
-class AnalysisRadiance : Components.GenericGaze
+class AnalysisRadiance(BossModule module) : Components.GenericGaze(module, default, true)
 {
-    private Analysis? _analysis;
-    private ArcaneArray? _pulse;
-    private List<Actor> _globes = new();
-
-    public AnalysisRadiance(BossModule module) : base(module, default, true)
-    {
-        _analysis = module.FindComponent<Analysis>();
-        _pulse = module.FindComponent<ArcaneArray>();
-    }
+    private Analysis? _analysis = module.FindComponent<Analysis>();
+    private ArcaneArray? _pulse = module.FindComponent<ArcaneArray>();
+    private List<Actor> _globes = [];
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
@@ -57,19 +51,14 @@ class AnalysisRadiance : Components.GenericGaze
     private (Actor? actor, DateTime activation) NextGlobe() => _globes.Select(g => (g, GlobeActivation(g))).MinBy(ga => ga.Item2);
 }
 
-class TargetedLight : Components.GenericGaze
+class TargetedLight(BossModule module) : Components.GenericGaze(module, default, true)
 {
     public bool Active;
-    private Analysis? _analysis;
+    private Analysis? _analysis = module.FindComponent<Analysis>();
     private Angle[] _rotation = new Angle[4];
     private Angle[] _safeDir = new Angle[4];
     private int[] _rotationCount = new int[4];
     private DateTime _activation;
-
-    public TargetedLight(BossModule module) : base(module, default, true)
-    {
-        _analysis = module.FindComponent<Analysis>();
-    }
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {

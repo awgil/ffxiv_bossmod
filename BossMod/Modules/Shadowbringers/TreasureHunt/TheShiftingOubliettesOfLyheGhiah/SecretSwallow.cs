@@ -26,13 +26,8 @@ class Hydrocannon(BossModule module) : Components.LocationTargetedAOEs(module, A
 class Ceras(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Ceras));
 class BodySlam(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam), 10);
 
-class BodySlamKB : Components.KnockbackFromCastTarget
+class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam), 20, shape: new AOEShapeCircle(10), stopAtWall: true)
 {
-    public BodySlamKB(BossModule module) : base(module, ActionID.MakeSpell(AID.BodySlam), 20, shape: new AOEShapeCircle(10))
-    {
-        StopAtWall = true;
-    }
-
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<PrevailingCurrent>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 

@@ -49,13 +49,8 @@ class MagitekRayL(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 class HomingRay(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HomingRayAOE), 6);
 class LaserFocus(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.LaserFocusAOE), 6);
 
-class AethericBoom : Components.KnockbackFromCastTarget
+class AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AethericBoom), 30, stopAtWall: true)
 {
-    public AethericBoom(BossModule module) : base(module, ActionID.MakeSpell(AID.AethericBoom), 30)
-    {
-        StopAtWall = true;
-    }
-
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (Casters.Count > 0)

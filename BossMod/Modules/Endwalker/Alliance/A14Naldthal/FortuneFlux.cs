@@ -121,14 +121,9 @@ class FortuneFluxAOE(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FortuneFluxKnockback : Components.Knockback
+class FortuneFluxKnockback(BossModule module) : Components.Knockback(module)
 {
-    private FortuneFluxOrder? _order;
-
-    public FortuneFluxKnockback(BossModule module) : base(module)
-    {
-        _order = module.FindComponent<FortuneFluxOrder>();
-    }
+    private FortuneFluxOrder? _order = module.FindComponent<FortuneFluxOrder>();
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
