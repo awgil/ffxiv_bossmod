@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.Alliance.A36Eulogia;
+namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
 class EudaimonEorzea() : Components.RaidwideCast(ActionID.MakeSpell(AID.EudaimonEorzea2), "Raidwide x13");
 class TheWhorl() : Components.RaidwideCast(ActionID.MakeSpell(AID.TheWhorl));

@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Alliance.A36Eulogia;
+﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
 class ByregotStrikeJump() : Components.LocationTargetedAOEs(ActionID.MakeSpell(AID.ByregotStrikeJump), 8);
 class ByregotStrikeKnockback() : Components.KnockbackFromCastTarget(ActionID.MakeSpell(AID.ByregotStrikeKnockback), 20);
