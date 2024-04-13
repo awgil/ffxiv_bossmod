@@ -73,7 +73,7 @@ class PalladionArena(BossModule module) : BossComponent(module)
     {
         for (int i = 0; i < 8; ++i)
             Arena.PathLineTo(Module.Bounds.Center + 14 * (i * 45).Degrees().ToDirection());
-        Arena.PathStroke(true, ArenaColor.Border, 2);
+        MiniArena.PathStroke(true, ArenaColor.Border, 2);
     }
 }
 

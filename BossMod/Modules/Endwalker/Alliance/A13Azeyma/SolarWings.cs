@@ -5,7 +5,7 @@ class SolarWingsR(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 
 class SolarFlair(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<WPos> _sunstorms = new();
+    private readonly List<WPos> _sunstorms = [];
     private BitMask _adjusted;
 
     private static readonly float _kickDistance = 18;

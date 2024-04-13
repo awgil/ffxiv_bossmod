@@ -14,9 +14,9 @@ class GreatWhirlwind(BossModule module) : Components.GenericAOEs(module)
         if (index == 0x48)
         {
             if (state == 0x00200010)
-                _aoe = new(circle, new WPos(-0.015f, 759.975f), default, _activation);
+                _aoe = new(circle, new WPos(-0.015f, 759.975f), Activation: _activation);
             if (state == 0x00020001)
-                _aoe = new(circle, new WPos(-0.015f, 739.986f), default, _activation);
+                _aoe = new(circle, new WPos(-0.015f, 739.986f), Activation: _activation);
         }
     }
 

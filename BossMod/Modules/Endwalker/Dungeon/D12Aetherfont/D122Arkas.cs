@@ -44,9 +44,9 @@ class Voidzone(BossModule module) : BossComponent(module)
         if (index == 0x00)
         {
             if (state == 0x00020001)
-                Module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 10);
+                Arena.Bounds = new ArenaBoundsCircle(Arena.Bounds.Center, 10);
             if (state == 0x00080004)
-                Module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 14.5f);
+                Arena.Bounds = new ArenaBoundsCircle(Arena.Bounds.Center, 14.5f);
         }
     }
 }

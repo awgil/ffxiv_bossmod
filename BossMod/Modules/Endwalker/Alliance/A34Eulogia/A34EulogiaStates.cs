@@ -7,11 +7,11 @@ class ArenaChanges(BossModule module) : BossComponent(module)
         if (index == 0x1B)
         {
             if (state == 0x00080004)
-                Module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 35);
+                Module.Arena.Bounds = new ArenaBoundsCircle(Module.Bounds.Center, 35);
             if (state is 0x00020001 or 0x00100001)
-                Module.Arena.Bounds = new ArenaBoundsCircle(new(945, -945), 30);
+                Module.Arena.Bounds = new ArenaBoundsCircle(Module.Bounds.Center, 30);
             if (state == 0x00400020)
-                Module.Arena.Bounds = new ArenaBoundsSquare(new(945, -945), 24);
+                Module.Arena.Bounds = new ArenaBoundsSquare(Module.Bounds.Center, 24);
         }
     }
 }
@@ -35,15 +35,22 @@ class A34EulogiaStates : StateMachineBuilder
             .ActivateOnEnter<HandOfTheDestroyerWrath>()
             .ActivateOnEnter<HandOfTheDestroyerJudgment>()
             .ActivateOnEnter<AsAboveSoBelow>()
+            .ActivateOnEnter<AsAboveSoBelow2>()
+            .ActivateOnEnter<EverFireOnceBurned>()
             .ActivateOnEnter<MatronsBreath>()
             .ActivateOnEnter<SoaringMinuet>()
             .ActivateOnEnter<TorrentialTridents>()
             .ActivateOnEnter<Tridents>()
             .ActivateOnEnter<FirstBlush>()
             .ActivateOnEnter<ThousandfoldThrust>()
+            .ActivateOnEnter<SolarFans>()
             .ActivateOnEnter<RadiantRhythm>()
             .ActivateOnEnter<RadiantFlourish>()
             .ActivateOnEnter<ClimbingShot>()
+            .ActivateOnEnter<ClimbingShotRaidwide>()
+            .ActivateOnEnter<ClimbingShotRaidwide2>()
+            .ActivateOnEnter<ClimbingShotRaidwide3>()
+            .ActivateOnEnter<ClimbingShotRaidwide4>()
             .ActivateOnEnter<Quintessence>();
     }
 }

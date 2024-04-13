@@ -2,16 +2,16 @@ namespace BossMod.Endwalker.Trial.T08Asura;
 
 class SixBladedKhadga(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<ActorCastInfo> _spell = new();
+    private readonly List<ActorCastInfo> _spell = [];
     private DateTime _start;
     private static readonly AOEShapeCone Cone = new(20, 90.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_spell.Count > 0)
-            yield return new(Cone, Module.PrimaryActor.Position, _spell[0].Rotation, _start, ArenaColor.Danger);
+            yield return new(Cone, Module.PrimaryActor.Position, _spell[0].Rotation, _start.AddSeconds(NumCasts * 2), ArenaColor.Danger);
         if (_spell.Count > 1)
-            yield return new(Cone, Module.PrimaryActor.Position, _spell[1].Rotation, _start.AddSeconds(2));
+            yield return new(Cone, Module.PrimaryActor.Position, _spell[1].Rotation, _start.AddSeconds(2 + NumCasts * 2), Risky: !_spell[1].Rotation.AlmostEqual(_spell[0].Rotation + 180.Degrees(), Helpers.RadianConversion));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

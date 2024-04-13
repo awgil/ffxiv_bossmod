@@ -4,6 +4,10 @@ class DownhillP1(BossModule module) : Components.LocationTargetedAOEs(module, Ac
 class SoaringMinuet1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoaringMinuet1), new AOEShapeCone(65, 135.Degrees()));
 class SoaringMinuet2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoaringMinuet2), new AOEShapeCone(65, 135.Degrees()));
 class SuddenDownpour(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SuddenDownpour2));
+class ClimbingShotRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ClimbingShot), "Raidwide + Knockback");
+class ClimbingShotRaidwide2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ClimbingShot2), "Raidwide + Knockback");
+class ClimbingShotRaidwide3(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ClimbingShot3), "Raidwide + Knockback");
+class ClimbingShotRaidwide4(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ClimbingShot4), "Raidwide + Knockback");
 class LoftyPeaks(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LoftyPeaks), "Raidwide x5 coming");
 class TrekShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrekShot), new AOEShapeCone(65, 60.Degrees()));
 class TrekShot2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrekShot2), new AOEShapeCone(65, 60.Degrees()));

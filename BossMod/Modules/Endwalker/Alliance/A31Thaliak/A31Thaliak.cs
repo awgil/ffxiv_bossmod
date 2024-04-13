@@ -3,6 +3,10 @@ namespace BossMod.Endwalker.Alliance.A31Thaliak;
 class Katarraktes(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.KatarraktesAOE), "Raidwide + Bleed");
 class Thlipsis(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ThlipsisStack), 6);
 class Hydroptosis(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HydroptosisSpread), 6);
+class LeftBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftBank), new AOEShapeCone(60, 90.Degrees()));
+class LeftBank2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftBank2), new AOEShapeCone(60, 90.Degrees()));
+class RightBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightBank), new AOEShapeCone(60, 90.Degrees()));
+class RightBank2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightBank2), new AOEShapeCone(60, 90.Degrees()));
 
 class Rhyton(BossModule module) : Components.GenericBaitAway(module)
 {
@@ -29,11 +33,6 @@ class Rhyton(BossModule module) : Components.GenericBaitAway(module)
         }
     }
 }
-
-class LeftBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftBank), new AOEShapeCone(60, 90.Degrees()));
-class LeftBank2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftBank2), new AOEShapeCone(60, 90.Degrees()));
-class RightBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightBank), new AOEShapeCone(60, 90.Degrees()));
-class RightBank2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightBank2), new AOEShapeCone(60, 90.Degrees()));
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11298, SortOrder = 2)]
 public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-945, 945), 24));

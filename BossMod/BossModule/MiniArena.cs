@@ -154,12 +154,12 @@ public class MiniArena
         ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth, MathF.PI / 2 - amax + _cameraAzimuth);
     }
 
-    public void PathStroke(bool closed, uint color, float thickness = 1)
+    public static void PathStroke(bool closed, uint color, float thickness = 1)
     {
         ImGui.GetWindowDrawList().PathStroke(color, closed ? ImDrawFlags.Closed : ImDrawFlags.None, thickness);
     }
 
-    public void PathFillConvex(uint color)
+    public static void PathFillConvex(uint color)
     {
         ImGui.GetWindowDrawList().PathFillConvex(color);
     }
@@ -247,7 +247,7 @@ public class MiniArena
             Actor(a, color, allowDeadAndUntargetable);
     }
 
-    public void End()
+    public static void End()
     {
         ImGui.GetWindowDrawList().PopClipRect();
     }

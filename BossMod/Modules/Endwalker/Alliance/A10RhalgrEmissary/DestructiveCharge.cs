@@ -2,7 +2,7 @@
 
 class DestructiveCharge(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> AOEs = new();
+    public readonly List<AOEInstance> AOEs = [];
 
     private static readonly AOEShapeCone _shape = new(25, 45.Degrees());
 

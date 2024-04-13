@@ -2,7 +2,7 @@
 
 class A22AlthykNymeiaStates : StateMachineBuilder
 {
-    private A22AlthykNymeia _module;
+    private readonly A22AlthykNymeia _module;
 
     public A22AlthykNymeiaStates(A22AlthykNymeia module) : base(module)
     {
@@ -15,9 +15,11 @@ class A22AlthykNymeiaStates : StateMachineBuilder
     private void SinglePhase(uint id)
     {
         ActorCast(id, _module.Nymeia, AID.SpinnersWheel, 10.3f, 4.5f);
-        Dictionary<SpinnersWheelSelect.Branch, (uint seqID, Action<uint> buildState)> dispatch = new();
-        dispatch[SpinnersWheelSelect.Branch.Gaze] = ((id >> 24) + 1, ForkGaze);
-        dispatch[SpinnersWheelSelect.Branch.StayMove] = ((id >> 24) + 2, ForkStayMove);
+        Dictionary<SpinnersWheelSelect.Branch, (uint seqID, Action<uint> buildState)> dispatch = new()
+        {
+            [SpinnersWheelSelect.Branch.Gaze] = ((id >> 24) + 1, ForkGaze),
+            [SpinnersWheelSelect.Branch.StayMove] = ((id >> 24) + 2, ForkStayMove)
+        };
         ComponentConditionFork<SpinnersWheelSelect, SpinnersWheelSelect.Branch>(id + 0x10, 0.9f, comp => comp.SelectedBranch != SpinnersWheelSelect.Branch.None, comp => comp.SelectedBranch, dispatch, "Gaze -or- stay/move")
             .ActivateOnEnter<SpinnersWheelSelect>()
             .DeactivateOnExit<SpinnersWheelSelect>();
