@@ -1,33 +1,12 @@
 ﻿namespace BossMod.Endwalker.Savage.P6SHegemone;
 
-class UnholyDarkness : Components.StackWithCastTargets
-{
-    public UnholyDarkness() : base(ActionID.MakeSpell(AID.UnholyDarknessAOE), 6) { }
-}
-
-class DarkDome : Components.LocationTargetedAOEs
-{
-    public DarkDome() : base(ActionID.MakeSpell(AID.DarkDomeAOE), 5) { }
-}
-
-class DarkAshes : Components.SpreadFromCastTargets
-{
-    public DarkAshes() : base(ActionID.MakeSpell(AID.DarkAshesAOE), 6) { }
-}
-
-class DarkSphere : Components.SpreadFromCastTargets
-{
-    public DarkSphere() : base(ActionID.MakeSpell(AID.DarkSphereAOE), 10) { }
-}
+class UnholyDarkness(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.UnholyDarknessAOE), 6);
+class DarkDome(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DarkDomeAOE), 5);
+class DarkAshes(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkAshesAOE), 6);
+class DarkSphere(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkSphereAOE), 10);
 
 [ConfigDisplay(Order = 0x160, Parent = typeof(EndwalkerConfig))]
-public class P6SConfig : CooldownPlanningConfigNode
-{
-    public P6SConfig() : base(90) { }
-}
+public class P6SConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 881, NameID = 11381)]
-public class P6S : BossModule
-{
-    public P6S(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20)) { }
-}
+public class P6S(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(100, 100), 20));

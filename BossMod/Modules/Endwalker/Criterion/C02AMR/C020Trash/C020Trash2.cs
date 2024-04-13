@@ -9,7 +9,7 @@ public enum OID : uint
     SKotengu = 0x3F9E, // R1.500
     SOnmitsugashira = 0x3F9F, // R1.360, x1
     SYamabiko = 0x3FA3, // R0.800, x6
-};
+}
 
 public enum AID : uint
 {
@@ -39,16 +39,10 @@ public enum AID : uint
     // yamabiko
     NMountainBreeze = 34439, // NYamabiko->self, 6.0s cast, range 40 width 8 rect
     SMountainBreeze = 34442, // SYamabiko->self, 6.0s cast, range 40 width 8 rect
-};
-
-class MountainBreeze : Components.SelfTargetedAOEs
-{
-    public MountainBreeze(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(38, 4, 2)) { }
 }
-class NMountainBreeze : MountainBreeze { public NMountainBreeze() : base(AID.NMountainBreeze) { } }
-class SMountainBreeze : MountainBreeze { public SMountainBreeze() : base(AID.SMountainBreeze) { } }
 
-public abstract class C020Trash2 : BossModule
-{
-    public C020Trash2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(300, 0), 20, 40)) { }
-}
+class MountainBreeze(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(38, 4, 2));
+class NMountainBreeze(BossModule module) : MountainBreeze(module, AID.NMountainBreeze);
+class SMountainBreeze(BossModule module) : MountainBreeze(module, AID.SMountainBreeze);
+
+public abstract class C020Trash2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(300, 0), 20, 40));

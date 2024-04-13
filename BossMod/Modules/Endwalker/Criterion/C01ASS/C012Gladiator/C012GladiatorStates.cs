@@ -172,5 +172,5 @@ class C012GladiatorStates : StateMachineBuilder
     }
 }
 
-class C012NGladiatorStates : C012GladiatorStates { public C012NGladiatorStates(BossModule module) : base(module, false) { } }
-class C012SGladiatorStates : C012GladiatorStates { public C012SGladiatorStates(BossModule module) : base(module, true) { } }
+class C012NGladiatorStates(BossModule module) : C012GladiatorStates(module, false);
+class C012SGladiatorStates(BossModule module) : C012GladiatorStates(module, true);

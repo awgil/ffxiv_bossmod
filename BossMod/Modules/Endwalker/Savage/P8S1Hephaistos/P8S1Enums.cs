@@ -9,7 +9,7 @@ public enum OID : uint
     Suneater = 0x3AD0, // R7.000, x3 (chtonic vent snake)
     Gorgon = 0x3ACC, // R1.200, spawn during fight
     CthonicVent = 0x1EB703, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -99,7 +99,7 @@ public enum AID : uint
     BreathOfTheGorgon = 31024, // Helper->location, no cast, range 6 circle stack
 
     Enrage = 31050, // Boss->self, 5.0s cast, range 60 circle
-};
+}
 
 public enum SID : uint
 {
@@ -109,4 +109,4 @@ public enum SID : uint
     CrownOfTheGorgon = 3352, // none->player, extra=0x0 (petrifying circle gaze)
     BloodOfTheGorgon = 3326, // none->player, extra=0x0 (poison aoe)
     BreathOfTheGorgon = 3327, // none->player, extra=0x0 (poison stack aoe)
-};
+}

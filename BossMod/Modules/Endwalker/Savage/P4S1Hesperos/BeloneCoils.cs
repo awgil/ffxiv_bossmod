@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos;
 
 // state related to belone coils mechanic (role towers)
-class BeloneCoils : BossComponent
+class BeloneCoils(BossModule module) : BossComponent(module)
 {
     public enum Soaker { Unknown, TankOrHealer, DamageDealer }
 
@@ -20,7 +20,7 @@ class BeloneCoils : BossComponent
         };
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (ActiveSoakers == Soaker.Unknown)
             return;
@@ -36,7 +36,7 @@ class BeloneCoils : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (ActiveSoakers == Soaker.Unknown)
             return;
@@ -44,11 +44,11 @@ class BeloneCoils : BossComponent
         bool validSoaker = IsValidSoaker(pc);
         foreach (var tower in _activeTowers)
         {
-            arena.AddCircle(tower.Position, _towerRadius, validSoaker ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(tower.Position, _towerRadius, validSoaker ? ArenaColor.Safe : ArenaColor.Danger);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BeloneCoilsDPS or AID.BeloneCoilsTH)
         {
@@ -57,7 +57,7 @@ class BeloneCoils : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BeloneCoilsDPS or AID.BeloneCoilsTH)
         {

@@ -1,18 +1,16 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P2SearingWind : Components.UniformStackSpread
+class P2SearingWind(BossModule module) : Components.UniformStackSpread(module, 0, 14, alwaysShowSpreads: true, includeDeadTargets: true)
 {
-    public P2SearingWind() : base(0, 14, alwaysShowSpreads: true, includeDeadTargets: true) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.InfernoHowl && module.WorldState.Actors.Find(spell.TargetID) is var target && target != null)
+        if ((AID)spell.Action.ID == AID.InfernoHowl && WorldState.Actors.Find(spell.TargetID) is var target && target != null)
         {
-            AddSpread(target, module.WorldState.CurrentTime.AddSeconds(8));
+            AddSpread(target, WorldState.FutureTime(8));
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SearingWind)
         {
@@ -21,13 +19,13 @@ class P2SearingWind : Components.UniformStackSpread
             {
                 ref var spread = ref Spreads.Ref(index);
                 var status = spread.Target.FindStatus(SID.SearingWind);
-                if (status == null || (status.Value.ExpireAt - module.WorldState.CurrentTime).TotalSeconds < 6)
+                if (status == null || (status.Value.ExpireAt - WorldState.CurrentTime).TotalSeconds < 6)
                 {
                     Spreads.RemoveAt(index);
                 }
                 else
                 {
-                    spread.Activation = module.WorldState.CurrentTime.AddSeconds(6);
+                    spread.Activation = WorldState.FutureTime(6);
                 }
             }
         }

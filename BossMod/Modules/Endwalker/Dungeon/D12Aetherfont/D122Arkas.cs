@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x3EEA, //R=5.1
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -29,39 +29,32 @@ public enum AID : uint
     SpinningClaw = 33362, // Boss->self, 3.5s cast, range 10 circle
     ForkedFissures = 33361, // Helper->location, 1.0s cast, width 4 rect charge
     SpunLightning = 33363, // Helper->self, 3.5s cast, range 30 width 8 rect
-};
+}
 
 public enum IconID : uint
 {
     Tankbuster = 218, // player
     Stackmarker = 161, // 39D7/3DC2
-};
+}
 
-class Voidzone : BossComponent
+class Voidzone(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (index == 0x00)
         {
             if (state == 0x00020001)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 10);
+                Arena.Bounds = new ArenaBoundsCircle(Arena.Bounds.Center, 10);
             if (state == 0x00080004)
-                module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 14.5f);
+                Arena.Bounds = new ArenaBoundsCircle(Arena.Bounds.Center, 14.5f);
         }
     }
 }
 
-class SpunLightning : Components.SelfTargetedAOEs
-{
-    public SpunLightning() : base(ActionID.MakeSpell(AID.SpunLightning), new AOEShapeRect(30, 4)) { }
-}
+class SpunLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpunLightning), new AOEShapeRect(30, 4));
+class LightningClaw(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stackmarker, ActionID.MakeSpell(AID.LightningClaw2), 6, 5.2f, 4);
 
-class LightningClaw : Components.StackWithIcon
-{
-    public LightningClaw() : base((uint)IconID.Stackmarker, ActionID.MakeSpell(AID.LightningClaw2), 6, 5.2f, 4) { }
-}
-
-class ForkedFissures : Components.GenericAOEs
+class ForkedFissures(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly WPos[] patternIndex04Start = [new(419.293f, -445.661f), new(422.919f, -448.675f), new(419.359f, -445.715f), new(419.333f, -437.25f), new(432.791f, -434.82f), new(423.239f, -442.489f), new(426.377f, -437.596f), new(419.335f, -445.663f), new(417.162f, -442.421f), new(427.274f, -448.618f), new(430.839f, -441.877f), new(419.292f, -445.596f), new(427.482f, -448.548f), new(419.101f, -434.242f), new(424.274f, -433.427f), new(419.326f, -445.681f)];
     private static readonly WPos[] patternIndex04End = [new(420.035f, -454.124f), new(427.42f, -448.692f), new(412.039f, -447.562f), new(417.533f, -427.085f), new(433.860f, -427.97f), new(426.993f, -437.034f), new(433.646f, -433.433f), new(411.276f, -434.165f), new(419.394f, -436.118f), new(430.442f, -453.971f), new(439.872f, -438.59f), new(423.667f, -442.039f), new(431.815f, -441.032f), new(425.437f, -432.547f), new(428.824f, -425.528f), new(424.002f, -448.966f)];
@@ -76,9 +69,9 @@ class ForkedFissures : Components.GenericAOEs
     private readonly List<WPos> _patternEnd = [];
     private readonly List<AOEInstance> _aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(16);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(16);
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state is 0x00200010 or 0x00020001)
         {
@@ -104,74 +97,31 @@ class ForkedFissures : Components.GenericAOEs
             }
             for (int i = _patternStart.Count - 1; i >= 0; i--)
             {
-                _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), module.WorldState.CurrentTime.AddSeconds(6)));
+                _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), WorldState.FutureTime(6)));
                 _patternStart.RemoveAt(i);
                 _patternEnd.RemoveAt(i);
             }
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (_aoes.Count > 0 && (AID)spell.Action.ID == AID.ForkedFissures)
             _aoes.RemoveAt(0);
     }
 }
 
-class ElectricEruption : Components.RaidwideCast
-{
-    public ElectricEruption() : base(ActionID.MakeSpell(AID.ElectricEruption)) { }
-}
-
-class Electrify : Components.LocationTargetedAOEs
-{
-    public Electrify() : base(ActionID.MakeSpell(AID.Electrify), 10) { }
-}
-
-class LightningLeap1 : Components.LocationTargetedAOEs
-{
-    public LightningLeap1() : base(ActionID.MakeSpell(AID.LightningLeap1), 10) { }
-}
-
-class LightningLeap2 : Components.LocationTargetedAOEs
-{
-    public LightningLeap2() : base(ActionID.MakeSpell(AID.LightningLeap2), 10) { }
-}
-
-class LightningRampage1 : Components.LocationTargetedAOEs
-{
-    public LightningRampage1() : base(ActionID.MakeSpell(AID.LightningRampage1), 10) { }
-}
-
-class LightningRampage2 : Components.LocationTargetedAOEs
-{
-    public LightningRampage2() : base(ActionID.MakeSpell(AID.LightningRampage2), 10) { }
-}
-
-class RipperClaw : Components.SingleTargetCast
-{
-    public RipperClaw() : base(ActionID.MakeSpell(AID.RipperClaw)) { }
-}
-
-class Shock : Components.LocationTargetedAOEs
-{
-    public Shock() : base(ActionID.MakeSpell(AID.Shock), 6) { }
-}
-
-class SpinningClaw : Components.SelfTargetedAOEs
-{
-    public SpinningClaw() : base(ActionID.MakeSpell(AID.SpinningClaw), new AOEShapeCircle(10)) { }
-}
-
-class BattleCry1 : Components.RaidwideCast
-{
-    public BattleCry1() : base(ActionID.MakeSpell(AID.BattleCry1)) { }
-}
-
-class BattleCry2 : Components.RaidwideCast
-{
-    public BattleCry2() : base(ActionID.MakeSpell(AID.BattleCry2)) { }
-}
+class ElectricEruption(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElectricEruption));
+class Electrify(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Electrify), 10);
+class LightningLeap1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningLeap1), 10);
+class LightningLeap2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningLeap2), 10);
+class LightningRampage1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningRampage1), 10);
+class LightningRampage2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningRampage2), 10);
+class RipperClaw(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.RipperClaw));
+class Shock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Shock), 6);
+class SpinningClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpinningClaw), new AOEShapeCircle(10));
+class BattleCry1(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BattleCry1));
+class BattleCry2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BattleCry2));
 
 class D122ArkasStates : StateMachineBuilder
 {
@@ -197,7 +147,4 @@ class D122ArkasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12337)]
-public class D122Arkas : BossModule
-{
-    public D122Arkas(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(425, -440), 14.5f)) { }
-}
+public class D122Arkas(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(425, -440), 14.5f));

@@ -1,22 +1,20 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex2Garuda;
 
-class EyeOfTheStorm : Components.GenericAOEs
+class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStorm))
 {
     private Actor? _caster;
     private DateTime _nextCastAt;
     private static readonly AOEShapeDonut _shape = new(12, 25); // TODO: verify inner radius
 
-    public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStorm)) { }
+    public bool Active() => _caster?.CastInfo != null || _nextCastAt > WorldState.CurrentTime;
 
-    public bool Active(BossModule module) => _caster?.CastInfo != null || _nextCastAt > module.WorldState.CurrentTime;
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_caster != null)
             yield return new(_shape, _caster.Position, new(), _nextCastAt);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
@@ -25,11 +23,11 @@ class EyeOfTheStorm : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
-            _nextCastAt = module.WorldState.CurrentTime.AddSeconds(4.2f);
+            _nextCastAt = WorldState.FutureTime(4.2f);
         }
     }
 

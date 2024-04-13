@@ -4,7 +4,7 @@ namespace BossMod.StrikingDummy
     public enum OID : uint
     {
         Boss = 0x385,
-    };
+    }
 
     class StrikingDummyStates : StateMachineBuilder
     {
@@ -14,9 +14,6 @@ namespace BossMod.StrikingDummy
         }
     }
 
-    public class StrikingDummy : SimpleBossModule
-    {
-        public StrikingDummy(WorldState ws, Actor primary) : base(ws, primary) { }
-    }
+    public class StrikingDummy(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
 }
 #endif

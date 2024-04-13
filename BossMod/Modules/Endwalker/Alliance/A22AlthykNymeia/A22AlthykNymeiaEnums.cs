@@ -6,7 +6,7 @@ public enum OID : uint
     Althyk = 0x3CDF, // R8.960, x1
     Helper = 0x233C, // R0.500, x17
     HydrostasisQuick = 0x3E70, // R0.500, x1
-};
+}
 
 public enum AID : uint
 {
@@ -36,7 +36,7 @@ public enum AID : uint
     HydrostasisAOE3 = 31293, // Helper->self, 22.0s cast, range 72 circle, knockback 28
     HydrostasisAOE0 = 31294, // Helper->self, 2.0s cast, range 72 circle, knockback 28
     HydrostasisAOEDelayed = 32698, // Helper->self, 11.0s cast, range 72 circle, knockback 28 (happens if althyk is killed before mechanic is resolved)
-};
+}
 
 public enum SID : uint
 {
@@ -48,7 +48,7 @@ public enum SID : uint
     Pyretic = 3522, // none->player, extra=0x0
     FreezingUp = 3523, // none->player, extra=0x0
     Heavy = 2551, // none->player, extra=0x19
-};
+}
 
 public enum IconID : uint
 {
@@ -56,7 +56,7 @@ public enum IconID : uint
     TimeAndTide = 380, // player
     Hydroptosis = 139, // player
     Petrai = 259, // player
-};
+}
 
 public enum TetherID : uint
 {
@@ -65,4 +65,4 @@ public enum TetherID : uint
     SpinnersWheel = 221, // player->Nymeia
     TimeAndTide = 223, // player->Althyk
     HydrostasisQuick = 219, // HydrostasisQuick->Althyk
-};
+}

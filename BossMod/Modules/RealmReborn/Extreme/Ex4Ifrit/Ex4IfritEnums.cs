@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x908, // R0.500, x20
     InfernalNailSmall = 0xD4, // R1.000, spawn during fight
     InfernalNailLarge = 0x91B, // R2.000, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -23,7 +23,7 @@ public enum AID : uint
     RadiantPlumeAOE = 1359, // Helper->location, 3.0s cast, range 8 circle aoe
     CrimsonCyclone = 1532, // Boss->self, 3.0s cast, range 44+R width 18 rect aoe
     InfernalFetters = 1534, // Helper->player, no cast, single-target, visual
-};
+}
 
 public enum SID : uint
 {
@@ -32,4 +32,4 @@ public enum SID : uint
     VulnerabilityUp = 202, // InfernalNailSmall->player, extra=0x1/0x2/...
     Invincibility = 775, // none->Helper/Boss, extra=0x0
     InfernalFetters = 377, // none->player, extra=0x1/0x3/0x5
-};
+}

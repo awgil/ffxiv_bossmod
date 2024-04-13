@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x25FA, //R=2.0
     BossHelper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -17,57 +17,57 @@ public enum AID : uint
     GobswipeConklopsTelegraph = 14568, // BossHelper->self, 1,0s cast, single-target
     GobswipeConklops = 14560, // Boss->self, no cast, range 5-30 donut, knockback 15 away from source
     Discharge = 14561, // Boss->self, no cast, single-target
-};
+}
 
 public enum IconID : uint
 {
     RotateCCW = 168, // Boss
     RotateCW = 167, // Boss
-};
+}
 
-class GobspinSwipe : Components.GenericAOEs
+class GobspinSwipe(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            _aoe = new(new AOEShapeCircle(8), module.PrimaryActor.Position, activation: spell.NPCFinishAt.AddSeconds(4));
+            _aoe = new(new AOEShapeCircle(8), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(4));
         if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            _aoe = new(new AOEShapeDonut(5, 30), module.PrimaryActor.Position, activation: spell.NPCFinishAt.AddSeconds(4));
+            _aoe = new(new AOEShapeDonut(5, 30), Module.PrimaryActor.Position, default, spell.NPCFinishAt.AddSeconds(4));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.GobspinWhooshdrops or AID.GobswipeConklops)
             _aoe = null;
     }
 }
 
-class Knockbacks : Components.Knockback
+class Knockbacks(BossModule module) : Components.Knockback(module)
 {
     private Source? _knockback;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GobspinWhooshdropsTelegraph)
-            _knockback = new(module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeCircle(8));
+            _knockback = new(Module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeCircle(8));
         if ((AID)spell.Action.ID == AID.GobswipeConklopsTelegraph)
-            _knockback = new(module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeDonut(5, 30));
+            _knockback = new(Module.PrimaryActor.Position, 15, spell.NPCFinishAt.AddSeconds(4), new AOEShapeDonut(5, 30));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.GobspinWhooshdrops or AID.GobswipeConklops)
             _knockback = null;
     }
 }
 
-class GobfireShootypops : Components.GenericRotatingAOE
+class GobfireShootypops(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private Angle _increment;
     private Angle _rotation;
@@ -75,7 +75,7 @@ class GobfireShootypops : Components.GenericRotatingAOE
 
     private static readonly AOEShapeRect _shape = new AOEShapeRect(32, 3);
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var increment = (IconID)iconID switch
         {
@@ -86,11 +86,11 @@ class GobfireShootypops : Components.GenericRotatingAOE
         if (increment != default)
         {
             _increment = increment;
-            InitIfReady(module, actor);
+            InitIfReady(actor);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.GobfireShootypopsStart)
         {
@@ -98,16 +98,16 @@ class GobfireShootypops : Components.GenericRotatingAOE
             _activation = spell.NPCFinishAt;
         }
         if (_rotation != default)
-            InitIfReady(module, caster);
+            InitIfReady(caster);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.GobfireShootypopsStart or AID.GobfireShootypops)
-            AdvanceSequence(0, module.WorldState.CurrentTime);
+            AdvanceSequence(0, WorldState.CurrentTime);
     }
 
-    private void InitIfReady(BossModule module, Actor source)
+    private void InitIfReady(Actor source)
     {
         if (_rotation != default && _increment != default)
         {
@@ -118,10 +118,7 @@ class GobfireShootypops : Components.GenericRotatingAOE
     }
 }
 
-class IronKiss : Components.LocationTargetedAOEs
-{
-    public IronKiss() : base(ActionID.MakeSpell(AID.IronKiss), 7) { }
-}
+class IronKiss(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.IronKiss), 7);
 
 class GoblinMercenaryStates : StateMachineBuilder
 {
@@ -132,15 +129,13 @@ class GoblinMercenaryStates : StateMachineBuilder
             .ActivateOnEnter<GobspinSwipe>()
             .ActivateOnEnter<Knockbacks>()
             .ActivateOnEnter<GobfireShootypops>()
-            .Raw.Update = () => module.PrimaryActor.IsDead || !module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor.IsDead || !Module.PrimaryActor.IsTargetable;
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 599, NameID = 7906)]
-public class GoblinMercenary : BossModule
+public class GoblinMercenary(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 0))
 {
-    public GoblinMercenary(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 0)) { }
-
     protected override void UpdateModule()
     {
         if (Enemies(OID.Boss).Any(e => e.Position.AlmostEqual(new(0, -125), 1)))

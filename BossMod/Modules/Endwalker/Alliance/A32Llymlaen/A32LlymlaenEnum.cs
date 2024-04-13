@@ -8,7 +8,7 @@ public enum OID : uint
     Perykos = 0x4026, // R6.300, x1
     SeaFoam = 0x4029, // R1.500, spawn during fight
     Trident = 0x4025, // R3.000, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -79,4 +79,4 @@ public enum AID : uint
     //these only happen if a player uses the blowkiss emote on Llymlaen, stun+heavy dmg, not our fault if people do that
     BlowkissPunishment = 34874, // Llymlaen->player, no cast, single-target, knockback 10 away from source + down for the count
     NavigatorsDagger = 34875, // Llymlaen->player, no cast, single-target
-};
+}

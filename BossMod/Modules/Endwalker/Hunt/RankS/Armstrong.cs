@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35BE, // R7.800, x1
-};
+}
 
 public enum AID : uint
 {
@@ -17,15 +17,15 @@ public enum AID : uint
     CalculatedCombustion = 27476, // Boss->self, 5.0s cast, range 35 circle
     Pummel = 27477, // Boss->player, 5.0s cast, single-target
     SoporificGas = 27478, // Boss->self, 6.0s cast, range 12 circle
-};
+}
 
-class MagitekCompressor : Components.GenericRotatingAOE
+class MagitekCompressor(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private Angle _increment;
 
     private static readonly AOEShapeCross _shape = new(50, 3.5f);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.MagitekCompressorFirst)
         {
@@ -34,7 +34,7 @@ class MagitekCompressor : Components.GenericRotatingAOE
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -49,12 +49,12 @@ class MagitekCompressor : Components.GenericRotatingAOE
             case AID.MagitekCompressorNext:
                 if (Sequences.Count > 0)
                 {
-                    AdvanceSequence(0, module.WorldState.CurrentTime);
+                    AdvanceSequence(0, WorldState.CurrentTime);
                     if (NumCasts == 5)
                     {
                         ref var s = ref Sequences.Ref(0);
                         s.Increment = -s.Increment;
-                        s.NextActivation = module.WorldState.CurrentTime.AddSeconds(3.6f);
+                        s.NextActivation = WorldState.FutureTime(3.6f);
                     }
                 }
                 break;
@@ -62,25 +62,10 @@ class MagitekCompressor : Components.GenericRotatingAOE
     }
 }
 
-class AcceleratedLanding : Components.LocationTargetedAOEs
-{
-    public AcceleratedLanding() : base(ActionID.MakeSpell(AID.AcceleratedLanding), 6) { }
-}
-
-class CalculatedCombustion : Components.RaidwideCast
-{
-    public CalculatedCombustion() : base(ActionID.MakeSpell(AID.CalculatedCombustion)) { }
-}
-
-class Pummel : Components.SingleTargetCast
-{
-    public Pummel() : base(ActionID.MakeSpell(AID.Pummel)) { }
-}
-
-class SoporificGas : Components.SelfTargetedAOEs
-{
-    public SoporificGas() : base(ActionID.MakeSpell(AID.SoporificGas), new AOEShapeCircle(12)) { }
-}
+class AcceleratedLanding(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AcceleratedLanding), 6);
+class CalculatedCombustion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CalculatedCombustion));
+class Pummel(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Pummel));
+class SoporificGas(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoporificGas), new AOEShapeCircle(12));
 
 class ArmstrongStates : StateMachineBuilder
 {
@@ -96,7 +81,4 @@ class ArmstrongStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10619)]
-public class Armstrong : SimpleBossModule
-{
-    public Armstrong(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Armstrong(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

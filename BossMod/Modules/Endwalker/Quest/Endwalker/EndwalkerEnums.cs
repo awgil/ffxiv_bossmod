@@ -7,7 +7,7 @@ public enum OID : uint
     ZenosP1 = 0x3364, // R2.001, x1
     ZenosP2 = 0x3365, // R2.001, x1
     Puddles = 0x1E950D, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -61,7 +61,7 @@ public enum AID : uint
     UnmovingDvenadkatik = 26955, // ZenosP2->self, 5.0s cast, single-target
     UnmovingDvenadkatikVisual = 26956, // Helpers->self, 6.0s cast, range 50 30-degree cone
     TheEdgeUnbound2 = 26957, // ZenosP2->self, 4.0s cast, range 10 circle
-};
+}
 
 public enum SID : uint
 {
@@ -76,4 +76,4 @@ public enum SID : uint
     _Gen_Unk03 = 2850, // none->player, extra=0x0
     SparkOfHope = 2786, // none->player, extra=0x5/0x4/0x3/0x2/0x1
     _Gen_Unk04 = 2881, // none->player, extra=0x0
-};
+}

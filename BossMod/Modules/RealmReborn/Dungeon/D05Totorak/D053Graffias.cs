@@ -7,7 +7,7 @@ public enum OID : uint
     Comesmite = 0x104, // spawn during fight
     GraffiasTail = 0x10A, // spawn during fight
     PollenZone = 0x1E8614, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -18,32 +18,13 @@ public enum AID : uint
     PodBurst = 730, // FleshyPod->self, 3.0s cast, range 7.050 aoe
     TailMolt = 704, // Boss->self, no cast, visual (spawns tail)
     DeadlyThrust = 702, // Boss->self, 2.0s cast, visual (spawns pollen zone)
-};
-
-class Silkscreen : Components.SelfTargetedLegacyRotationAOEs
-{
-    public Silkscreen() : base(ActionID.MakeSpell(AID.Silkscreen), new AOEShapeRect(18, 2)) { }
 }
 
-class StickyWeb : Components.CastHint
-{
-    public StickyWeb() : base(ActionID.MakeSpell(AID.StickyWeb), "Delayed AOE at target") { }
-}
-
-class PodBurst : Components.SelfTargetedAOEs
-{
-    public PodBurst() : base(ActionID.MakeSpell(AID.PodBurst), new AOEShapeCircle(7.050f)) { }
-}
-
-class DeadlyThrust : Components.CastHint
-{
-    public DeadlyThrust() : base(ActionID.MakeSpell(AID.DeadlyThrust), "Persistent voidzone at target") { }
-}
-
-class PollenZone : Components.PersistentVoidzone
-{
-    public PollenZone() : base(10, m => m.Enemies(OID.PollenZone)) { }
-}
+class Silkscreen(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Silkscreen), new AOEShapeRect(18, 2));
+class StickyWeb(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.StickyWeb), "Delayed AOE at target");
+class PodBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PodBurst), new AOEShapeCircle(7.050f));
+class DeadlyThrust(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.DeadlyThrust), "Persistent voidzone at target");
+class PollenZone(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.PollenZone));
 
 class D053GraffiasStates : StateMachineBuilder
 {
@@ -59,10 +40,8 @@ class D053GraffiasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1, NameID = 444)]
-public class D053Graffias : BossModule
+public class D053Graffias(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(215, -145), 20))
 {
-    public D053Graffias(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(215, -145), 20)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x3600, // second phase boss (exists from start, but recreated on checkpoint)
     Akantha = 0x3601, // ?? 'akantha', 12 exist at start
     Helper = 0x233C, // 38 exist at start
-};
+}
 
 public enum AID : uint
 {
@@ -54,7 +54,7 @@ public enum AID : uint
     AkanthaiAct4 = 28342, // Boss->Boss
     AkanthaiFinale = 28343, // Boss->Boss
     FleetingImpulse = 28344, // Boss->Boss
-};
+}
 
 public enum SID : uint
 {

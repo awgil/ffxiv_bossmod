@@ -499,7 +499,7 @@ class AbilityInfo : CommonEnumInfo
             var sb = new StringBuilder("public enum AID : uint\n{\n");
             foreach (var (aid, data) in _data)
                 sb.Append($"    {EnumMemberString(aid, data)}\n");
-            sb.Append("};\n");
+            sb.Append("}\n");
             ImGui.SetClipboardText(sb.ToString());
         }
 

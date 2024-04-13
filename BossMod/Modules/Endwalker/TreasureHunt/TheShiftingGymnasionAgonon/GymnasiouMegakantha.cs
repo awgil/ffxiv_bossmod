@@ -8,7 +8,7 @@ public enum OID : uint
     BossAdd1 = 0x3D35, //R=1.76 
     BossAdd2 = 0x3D36, //R=1.56
     BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
-};
+}
 
 public enum AID : uint
 {
@@ -28,51 +28,28 @@ public enum AID : uint
 
     HeavySmash = 32317, // BossAdd->location, 3,0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
-};
-
-class HeavySmash : Components.LocationTargetedAOEs
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
 }
 
-class SludgeBomb : Components.LocationTargetedAOEs
-{
-    public SludgeBomb() : base(ActionID.MakeSpell(AID.SludgeBomb2), 8) { }
-}
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class SludgeBomb(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SludgeBomb2), 8);
+class RustlingWind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustlingWind), new AOEShapeRect(15, 2));
+class AcidMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AcidMist), new AOEShapeCircle(6));
+class OdiousAir(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OdiousAir), new AOEShapeCone(12, 60.Degrees()));
+class VineWhip(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.VineWhip));
 
-class RustlingWind : Components.SelfTargetedAOEs
-{
-    public RustlingWind() : base(ActionID.MakeSpell(AID.RustlingWind), new AOEShapeRect(15, 2)) { }
-}
-
-class AcidMist : Components.SelfTargetedAOEs
-{
-    public AcidMist() : base(ActionID.MakeSpell(AID.AcidMist), new AOEShapeCircle(6)) { }
-}
-
-class OdiousAir : Components.SelfTargetedAOEs
-{
-    public OdiousAir() : base(ActionID.MakeSpell(AID.OdiousAir), new AOEShapeCone(12, 60.Degrees())) { }
-}
-
-class VineWhip : Components.SingleTargetCast
-{
-    public VineWhip() : base(ActionID.MakeSpell(AID.VineWhip)) { }
-}
-
-class OdiousAtmosphere : Components.GenericAOEs
+class OdiousAtmosphere(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OdiousAtmosphere0)
-            _aoe = new(new AOEShapeCone(40, 90.Degrees()), caster.Position, spell.Rotation, activation: spell.NPCFinishAt);
+            _aoe = new(new AOEShapeCone(40, 90.Degrees()), caster.Position, spell.Rotation, spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -107,10 +84,8 @@ class MegakanthaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12009)]
-public class Megakantha : BossModule
+public class Megakantha(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Megakantha(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
-class EinSof : Components.GenericAOEs
+class EinSof(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.EinSofAOE))
 {
     private List<Actor> _active = new();
 
@@ -8,14 +8,12 @@ class EinSof : Components.GenericAOEs
 
     public bool Active => _active.Count > 0;
 
-    public EinSof() : base(ActionID.MakeSpell(AID.EinSofAOE)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return _active.Select(p => new AOEInstance(_shape, p.Position));
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         switch (state)
         {

@@ -8,7 +8,7 @@ public enum OID : uint
     BallOfFire = 0x30B4, // R1.000, spawn during fight
     BallOfEarth = 0x30B6, // R1.000, spawn during fight
     HiddenTrap = 0x18D6, // R0.500, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -43,16 +43,16 @@ public enum AID : uint
     DevastatingBoltInner = 22470, // Helper->self, 4.0s cast, range 12-17 donut
     RendingBolt = 22475, // Boss->self, 3.0s cast, single-target, visual (electrocution puddles)
     Electrocution = 22476, // Helper->location, 3.0s cast, range 3 circle puddles
-};
+}
 
 public enum SID : uint
 {
     WanderersFate = 2430, // none->player, extra=0x0
     SacrificesFate = 2431, // none->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
     FoeSplitter = 198, // player
     RapidBolts = 160, // player
-};
+}

@@ -6,7 +6,7 @@ public enum OID : uint
     OschonP2 = 0x406F, // R24.990, spawn during fight
     OschonsAvatar = 0x406E, // R8.000, x4
     Helper = 0x233C, // R0.500, x40, 523 type
-};
+}
 
 public enum AID : uint
 {
@@ -83,11 +83,11 @@ public enum AID : uint
 
     WanderingVolley = 35245, // OschonBig->self, 10.0s cast, range 40 width 40 rect, damage fall off raidwide, knockback 12 left/right
     WanderingVolley2 = 35244, // OschonBig->self, 10.0s cast, range 40 width 40 rect, damage fall off raidwide, knockback 12 left/right
-};
+}
 
 public enum IconID : uint
 {
     FlintedFoehnStack = 316, // player
     TankbusterP1 = 344, // player
     TankbusterP2 = 500, // player
-};
+}

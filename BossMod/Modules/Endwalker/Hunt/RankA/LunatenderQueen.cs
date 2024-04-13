@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35DF, // R5.320, x1
-};
+}
 
 public enum AID : uint
 {
@@ -16,47 +16,16 @@ public enum AID : uint
     AvertYourEyesInverted = 27369, // Boss->self, 7.0s cast, range 40 circle
     YouMayApproachInverted = 27370, // Boss->self, 7.0s cast, range 15 circle
     AwayWithYouInverted = 27371, // Boss->self, 7.0s cast, range 6-40 donut
-};
-
-class AvertYourEyes : Components.CastGaze
-{
-    public AvertYourEyes() : base(ActionID.MakeSpell(AID.AvertYourEyes)) { }
 }
 
-class YouMayApproach : Components.SelfTargetedAOEs
-{
-    public YouMayApproach() : base(ActionID.MakeSpell(AID.YouMayApproach), new AOEShapeDonut(6, 40)) { }
-}
-
-class AwayWithYou : Components.SelfTargetedAOEs
-{
-    public AwayWithYou() : base(ActionID.MakeSpell(AID.AwayWithYou), new AOEShapeCircle(15)) { }
-}
-
-class Needles : Components.SelfTargetedAOEs
-{
-    public Needles() : base(ActionID.MakeSpell(AID.Needles), new AOEShapeCircle(6)) { }
-}
-
-class WickedWhim : Components.CastHint
-{
-    public WickedWhim() : base(ActionID.MakeSpell(AID.WickedWhim), "Invert next cast") { }
-}
-
-class AvertYourEyesInverted : Components.CastGaze
-{
-    public AvertYourEyesInverted() : base(ActionID.MakeSpell(AID.AvertYourEyesInverted), true) { }
-}
-
-class YouMayApproachInverted : Components.SelfTargetedAOEs
-{
-    public YouMayApproachInverted() : base(ActionID.MakeSpell(AID.YouMayApproachInverted), new AOEShapeCircle(15)) { }
-}
-
-class AwayWithYouInverted : Components.SelfTargetedAOEs
-{
-    public AwayWithYouInverted() : base(ActionID.MakeSpell(AID.AwayWithYouInverted), new AOEShapeDonut(6, 40)) { }
-}
+class AvertYourEyes(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.AvertYourEyes));
+class YouMayApproach(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.YouMayApproach), new AOEShapeDonut(6, 40));
+class AwayWithYou(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AwayWithYou), new AOEShapeCircle(15));
+class Needles(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Needles), new AOEShapeCircle(6));
+class WickedWhim(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.WickedWhim), "Invert next cast");
+class AvertYourEyesInverted(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.AvertYourEyesInverted), true);
+class YouMayApproachInverted(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.YouMayApproachInverted), new AOEShapeCircle(15));
+class AwayWithYouInverted(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AwayWithYouInverted), new AOEShapeDonut(6, 40));
 
 class LunatenderQueenStates : StateMachineBuilder
 {
@@ -75,7 +44,4 @@ class LunatenderQueenStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10629)]
-public class LunatenderQueen : SimpleBossModule
-{
-    public LunatenderQueen(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class LunatenderQueen(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

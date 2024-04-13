@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P4S2Hesperos;
 
 // state related to act 4 wreath of thorns
-class WreathOfThorns4 : BossComponent
+class WreathOfThorns4(BossModule module) : BossComponent(module)
 {
     public bool ReadyToBreak;
     private IconID[] _playerIcons = new IconID[8];
@@ -12,14 +12,14 @@ class WreathOfThorns4 : BossComponent
 
     private static readonly float _waterExplosionRange = 10;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (_darkOrder == null && _activeTethers == 8)
         {
             // build order for dark explosion; TODO: this is quite hacky right now, and probably should be configurable
             // current logic assumes we break N or NW tether first, and then move clockwise
             _darkOrder = new();
-            var c = module.Bounds.Center;
+            var c = Module.Bounds.Center;
             AddAOETargetToOrder(_darkOrder, p => p.Z < c.Z && p.X <= c.X);
             AddAOETargetToOrder(_darkOrder, p => p.X > c.X && p.Z <= c.Z);
             AddAOETargetToOrder(_darkOrder, p => p.Z > c.Z && p.X >= c.X);
@@ -43,7 +43,7 @@ class WreathOfThorns4 : BossComponent
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (!ReadyToBreak)
             return;
@@ -53,7 +53,7 @@ class WreathOfThorns4 : BossComponent
             if (_playerIcons[slot] == IconID.AkanthaiWater)
             {
                 hints.Add("Break tether!");
-                if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _waterExplosionRange).Any())
+                if (Raid.WithoutSlot().InRadiusExcluding(actor, _waterExplosionRange).Any())
                 {
                     hints.Add("GTFO from others!");
                 }
@@ -81,32 +81,32 @@ class WreathOfThorns4 : BossComponent
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_darkOrder != null && _activeTethers > 0)
         {
             var skip = 4 - Math.Min(_activeTethers, 4);
-            hints.Add($"Dark order: {string.Join(" -> ", _darkOrder.Skip(skip).Select(src => module.WorldState.Actors.Find(src.Tether.Target)?.Name ?? "???"))}");
+            hints.Add($"Dark order: {string.Join(" -> ", _darkOrder.Skip(skip).Select(src => WorldState.Actors.Find(src.Tether.Target)?.Name ?? "???"))}");
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_doneTowers < 4)
             return;
         var nextAOE = NextAOE();
         if (nextAOE != null)
-            arena.ZoneCircle(nextAOE.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
+            Arena.ZoneCircle(nextAOE.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw other players
-        foreach ((int slot, var player) in module.Raid.WithSlot().Exclude(pc))
+        foreach ((int slot, var player) in Raid.WithSlot().Exclude(pc))
         {
             var icon = _playerIcons[slot];
             bool nextBreaking = _doneTowers < 4 ? icon == IconID.AkanthaiWater : (icon == IconID.AkanthaiDark && NextAOE()?.Tether.Target == player.InstanceID);
-            arena.Actor(player, nextBreaking ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+            Arena.Actor(player, nextBreaking ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
         }
 
         // tether
@@ -115,40 +115,40 @@ class WreathOfThorns4 : BossComponent
             return; // pc is not tethered anymore, nothing to draw...
 
         var pcIcon = _playerIcons[pcSlot];
-        arena.AddLine(pc.Position, pcTetherSource.Position, pcIcon == IconID.AkanthaiWater ? 0xffff8000 : 0xffff00ff);
+        Arena.AddLine(pc.Position, pcTetherSource.Position, pcIcon == IconID.AkanthaiWater ? 0xffff8000 : 0xffff00ff);
 
         if (_doneTowers < 4)
         {
             if (pcIcon == IconID.AkanthaiWater)
             {
                 // if player has blue => show AOE radius around him and single safe spot
-                arena.AddCircle(pc.Position, _waterExplosionRange, ArenaColor.Danger);
-                arena.AddCircle(DetermineWaterSafeSpot(module, pcTetherSource), 1, ArenaColor.Safe);
+                Arena.AddCircle(pc.Position, _waterExplosionRange, ArenaColor.Danger);
+                Arena.AddCircle(DetermineWaterSafeSpot(pcTetherSource), 1, ArenaColor.Safe);
             }
             else
             {
                 // if player has dark => show AOE radius around blue players and single tower to soak
-                foreach ((var player, var icon) in module.Raid.Members.Zip(_playerIcons))
+                foreach ((var player, var icon) in Raid.Members.Zip(_playerIcons))
                 {
                     if (icon == IconID.AkanthaiWater && player != null)
                     {
-                        arena.AddCircle(player.Position, _waterExplosionRange, ArenaColor.Danger);
+                        Arena.AddCircle(player.Position, _waterExplosionRange, ArenaColor.Danger);
                     }
                 }
-                var tower = DetermineTowerToSoak(module, pcTetherSource);
+                var tower = DetermineTowerToSoak(pcTetherSource);
                 if (tower != null)
                 {
-                    arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
+                    Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
                 }
             }
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.Helper)
         {
-            var slot = module.Raid.FindSlot(tether.Target);
+            var slot = Raid.FindSlot(tether.Target);
             if (slot >= 0)
             {
                 _playerTetherSource[slot] = source;
@@ -157,11 +157,11 @@ class WreathOfThorns4 : BossComponent
         }
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.Helper)
         {
-            var slot = module.Raid.FindSlot(tether.Target);
+            var slot = Raid.FindSlot(tether.Target);
             if (slot >= 0)
             {
                 _playerTetherSource[slot] = null;
@@ -170,15 +170,15 @@ class WreathOfThorns4 : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AkanthaiExplodeTower)
             ++_doneTowers;
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
-        var slot = module.Raid.FindSlot(actor.InstanceID);
+        var slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0)
             _playerIcons[slot] = (IconID)iconID;
     }
@@ -190,23 +190,23 @@ class WreathOfThorns4 : BossComponent
             order.Add(source);
     }
 
-    private WPos RotateCW(BossModule module, WPos pos, Angle angle, float radius)
+    private WPos RotateCW(WPos pos, Angle angle, float radius)
     {
-        var dir = Angle.FromDirection(pos - module.Bounds.Center) - angle;
-        return module.Bounds.Center + radius * dir.ToDirection();
+        var dir = Angle.FromDirection(pos - Module.Bounds.Center) - angle;
+        return Module.Bounds.Center + radius * dir.ToDirection();
     }
 
-    private WPos DetermineWaterSafeSpot(BossModule module, Actor source)
+    private WPos DetermineWaterSafeSpot(Actor source)
     {
         bool ccw = Service.Config.Get<P4S2Config>().Act4WaterBreakCCW;
         Angle dir = (ccw ? -3 : 3) * 45.Degrees();
-        return RotateCW(module, source.Position, dir, 18);
+        return RotateCW(source.Position, dir, 18);
     }
 
-    private Actor? DetermineTowerToSoak(BossModule module, Actor source)
+    private Actor? DetermineTowerToSoak(Actor source)
     {
         bool ccw = Service.Config.Get<P4S2Config>().Act4DarkSoakCCW;
-        var pos = RotateCW(module, source.Position, (ccw ? -1 : 1) * 45.Degrees(), 18);
+        var pos = RotateCW(source.Position, (ccw ? -1 : 1) * 45.Degrees(), 18);
         return _playerTetherSource.Where(x => x != null && x.Position.InCircle(pos, 4)).FirstOrDefault();
     }
 

@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x374, // x1
     Tonberry = 0x3A3, // spawn during fight
     TonberrySlasher = 0x8D5, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -17,12 +17,12 @@ public enum AID : uint
     ThroatStab = 948, // Tonberry/TonberrySlasher->player, no cast, single-target
     EveryonesGrudge = 947, // Boss->player, 3.0s cast, single-target, buffed by rancor stacks
     RancorRelease = 949, // Tonberry->Boss, 1.0s cast, single-target, gives boss rancor stack on death
-};
+}
 
 public enum SID : uint
 {
     Rancor = 351, // Tonberry->Boss, extra=num stacks
-};
+}
 
 class D153TonberryKingStates : StateMachineBuilder
 {
@@ -33,10 +33,8 @@ class D153TonberryKingStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1547)]
-public class D153TonberryKing : BossModule
+public class D153TonberryKing(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(73, -435), 30))
 {
-    public D153TonberryKing(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(73, -435), 30)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

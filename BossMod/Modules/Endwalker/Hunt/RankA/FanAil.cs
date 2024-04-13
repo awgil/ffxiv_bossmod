@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35C1, // R5.040, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,33 +15,15 @@ public enum AID : uint
     DeathSentence = 27379, // Boss->player, 5.0s cast, single-target
     CycloneWing = 27380, // Boss->self, 5.0s cast, range 35 circle
     AutoAttack = 27381, // Boss->player, no cast, single-target
-};
+}
 
 // TODO: ok, this needs investigation...
-class Divebomb : Components.SelfTargetedLegacyRotationAOEs
-{
-    public Divebomb() : base(ActionID.MakeSpell(AID.Divebomb), new AOEShapeRect(30, 5.5f)) { }
-}
+class Divebomb(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Divebomb), new AOEShapeRect(30, 5.5f));
 
-class LiquidHell : Components.LocationTargetedAOEs
-{
-    public LiquidHell() : base(ActionID.MakeSpell(AID.LiquidHell), 6) { }
-}
-
-class Plummet : Components.SelfTargetedAOEs
-{
-    public Plummet() : base(ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(8, 45.Degrees())) { }
-}
-
-class DeathSentence : Components.SingleTargetCast
-{
-    public DeathSentence() : base(ActionID.MakeSpell(AID.DeathSentence)) { }
-}
-
-class CycloneWing : Components.RaidwideCast
-{
-    public CycloneWing() : base(ActionID.MakeSpell(AID.CycloneWing)) { }
-}
+class LiquidHell(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LiquidHell), 6);
+class Plummet(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plummet), new AOEShapeCone(8, 45.Degrees()));
+class DeathSentence(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DeathSentence));
+class CycloneWing(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CycloneWing));
 
 class FanAilStates : StateMachineBuilder
 {
@@ -57,7 +39,4 @@ class FanAilStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10633)]
-public class FanAil : SimpleBossModule
-{
-    public FanAil(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class FanAil(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

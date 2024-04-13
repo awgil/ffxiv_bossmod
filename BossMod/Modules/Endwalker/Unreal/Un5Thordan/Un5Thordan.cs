@@ -1,79 +1,22 @@
 namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
-class AscalonsMight : Components.Cleave
-{
-    public AscalonsMight() : base(ActionID.MakeSpell(AID.AscalonsMight), new AOEShapeCone(8 + 3.8f, 45.Degrees())) { }
-}
-
-class Meteorain : Components.LocationTargetedAOEs
-{
-    public Meteorain() : base(ActionID.MakeSpell(AID.MeteorainAOE), 6) { }
-}
-
-class AscalonsMercy : Components.SelfTargetedAOEs
-{
-    public AscalonsMercy() : base(ActionID.MakeSpell(AID.AscalonsMercy), new AOEShapeCone(34.8f, 10.Degrees())) { }
-}
-
-class AscalonsMercyHelper : Components.SelfTargetedAOEs
-{
-    public AscalonsMercyHelper() : base(ActionID.MakeSpell(AID.AscalonsMercyAOE), new AOEShapeCone(34.5f, 10.Degrees())) { }
-}
-
-class DragonsRage : Components.StackWithCastTargets
-{
-    public DragonsRage() : base(ActionID.MakeSpell(AID.DragonsRage), 6, 6) { }
-}
-
-class Heavensflame : Components.LocationTargetedAOEs
-{
-    public Heavensflame() : base(ActionID.MakeSpell(AID.HeavensflameAOE), 6) { }
-}
-
-class Conviction : Components.CastTowers
-{
-    public Conviction() : base(ActionID.MakeSpell(AID.ConvictionAOE), 3) { }
-}
-
-class SerZephirin : Components.Adds
-{
-    public SerZephirin() : base((uint)OID.Zephirin) { }
-}
-
-// TODO: show knockback 3 from [-0.8, -16.3]
-class LightOfAscalon : Components.CastCounter
-{
-    public LightOfAscalon() : base(ActionID.MakeSpell(AID.LightOfAscalon)) { }
-}
-
-class UltimateEnd : Components.CastCounter
-{
-    public UltimateEnd() : base(ActionID.MakeSpell(AID.UltimateEndAOE)) { }
-}
-
-class HeavenswardLeap : Components.CastCounter
-{
-    public HeavenswardLeap() : base(ActionID.MakeSpell(AID.HeavenswardLeap)) { }
-}
-
-class PureOfSoul : Components.CastCounter
-{
-    public PureOfSoul() : base(ActionID.MakeSpell(AID.PureOfSoul)) { }
-}
-
-class AbsoluteConviction : Components.CastCounter
-{
-    public AbsoluteConviction() : base(ActionID.MakeSpell(AID.AbsoluteConviction)) { }
-}
+class AscalonsMight(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.AscalonsMight), new AOEShapeCone(8 + 3.8f, 45.Degrees()));
+class Meteorain(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorainAOE), 6);
+class AscalonsMercy(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AscalonsMercy), new AOEShapeCone(34.8f, 10.Degrees()));
+class AscalonsMercyHelper(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AscalonsMercyAOE), new AOEShapeCone(34.5f, 10.Degrees()));
+class DragonsRage(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.DragonsRage), 6, 6);
+class Heavensflame(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavensflameAOE), 6);
+class Conviction(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.ConvictionAOE), 3);
+class BurningChains(BossModule module) : Components.Chains(module, (uint)TetherID.BurningChains, ActionID.MakeSpell(AID.HolyChain));
+class SerZephirin(BossModule module) : Components.Adds(module, (uint)OID.Zephirin);
+class LightOfAscalon(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LightOfAscalon)); // TODO: show knockback 3 from [-0.8, -16.3]
+class UltimateEnd(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.UltimateEndAOE));
+class HeavenswardLeap(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HeavenswardLeap));
+class PureOfSoul(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PureOfSoul));
+class AbsoluteConviction(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AbsoluteConviction));
 
 [ConfigDisplay(Order = 0x350, Parent = typeof(EndwalkerConfig))]
-public class Un5ThordanConfig : CooldownPlanningConfigNode
-{
-    public Un5ThordanConfig() : base(90) { }
-}
+public class Un5ThordanConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 963, NameID = 3632)]
-public class Un5Thordan : BossModule
-{
-    public Un5Thordan(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }
-}
+public class Un5Thordan(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 21));

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
 // component for second lightwave (3 waves, 5 crystals) + hero's glory mechanics
-class Lightwave2 : LightwaveCommon
+class Lightwave2(BossModule module) : LightwaveCommon(module)
 {
     private WPos _safeCrystal;
     private Vector4? _safeCrystalOrigin;
@@ -13,18 +13,18 @@ class Lightwave2 : LightwaveCommon
     private static readonly WPos _crystalBR = new(110, 110);
     private static readonly AOEShapeCone _gloryAOE = new(40, 90.Degrees());
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
-        if (NumCasts == 4 && (module.PrimaryActor.CastInfo?.IsSpell(AID.HerosGlory) ?? false) && module.PrimaryActor.PosRot != _safeCrystalOrigin)
+        if (NumCasts == 4 && (Module.PrimaryActor.CastInfo?.IsSpell(AID.HerosGlory) ?? false) && Module.PrimaryActor.PosRot != _safeCrystalOrigin)
         {
-            _safeCrystalOrigin = module.PrimaryActor.PosRot;
-            _safeCrystal = new[] { _crystalTL, _crystalTR, _crystalBL, _crystalBR }.FirstOrDefault(c => !_gloryAOE.Check(c, module.PrimaryActor));
+            _safeCrystalOrigin = Module.PrimaryActor.PosRot;
+            _safeCrystal = new[] { _crystalTL, _crystalTR, _crystalBL, _crystalBR }.FirstOrDefault(c => !_gloryAOE.Check(c, Module.PrimaryActor));
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if ((module.PrimaryActor.CastInfo?.IsSpell(AID.HerosGlory) ?? false) && _gloryAOE.Check(actor.Position, module.PrimaryActor))
+        if ((Module.PrimaryActor.CastInfo?.IsSpell(AID.HerosGlory) ?? false) && _gloryAOE.Check(actor.Position, Module.PrimaryActor))
             hints.Add("GTFO from glory aoe!");
 
         (bool inWave, bool inSafeCone) = NumCasts < 4
@@ -37,23 +37,23 @@ class Lightwave2 : LightwaveCommon
             hints.Add("Hide behind crystal!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        if (module.PrimaryActor.CastInfo?.IsSpell(AID.HerosGlory) ?? false)
-            _gloryAOE.Draw(arena, module.PrimaryActor);
+        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.HerosGlory) ?? false)
+            _gloryAOE.Draw(Arena, Module.PrimaryActor);
 
         if (NumCasts < 4)
         {
-            WaveAOE.Draw(arena, Wave1Pos(), 0.Degrees());
-            WaveAOE.Draw(arena, Wave2Pos(), 0.Degrees());
-            DrawSafeCone(arena, NextSideCrystal(), _crystalCenter);
+            WaveAOE.Draw(Arena, Wave1Pos(), 0.Degrees());
+            WaveAOE.Draw(Arena, Wave2Pos(), 0.Degrees());
+            DrawSafeCone(NextSideCrystal(), _crystalCenter);
         }
         else
         {
-            WaveAOE.Draw(arena, Wave3Pos(), 0.Degrees());
+            WaveAOE.Draw(Arena, Wave3Pos(), 0.Degrees());
             if (_safeCrystal != new WPos())
             {
-                DrawSafeCone(arena, _crystalCenter, _safeCrystal);
+                DrawSafeCone(_crystalCenter, _safeCrystal);
             }
         }
     }

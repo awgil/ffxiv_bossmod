@@ -1,39 +1,34 @@
 namespace BossMod.Endwalker.Alliance.A31Thaliak;
 
-class Rheognosis : Components.RaidwideCast
-{
-    public Rheognosis() : base(ActionID.MakeSpell(AID.RheognosisKnockback), "Raidwide + Knockback") { }
-}
+class Rheognosis(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RheognosisKnockback), "Raidwide + Knockback");
 
-class RheognosisKnockback : Components.Knockback
+class RheognosisKnockback(BossModule module) : Components.Knockback(module)
 {
     private Source? _knockback;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Rheognosis or AID.RheognosisPetrine)
-            _knockback = new(module.Bounds.Center, 25, module.WorldState.CurrentTime.AddSeconds(20.2f), Direction: spell.Rotation + 180.Degrees(), Kind: Kind.DirForward);
+            _knockback = new(Module.Bounds.Center, 25, WorldState.FutureTime(20.2f), Direction: spell.Rotation + 180.Degrees(), Kind: Kind.DirForward);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RheognosisKnockback)
             _knockback = null;
     }
 }
 
-public class RheognosisCrash : Components.Exaflare
+public class RheognosisCrash(BossModule module) : Components.Exaflare(module, new AOEShapeRect(24.01f, 12)) //actually the rect is only 24, but there seem to be a few thousandth of variation in the location
 {
     private static readonly Angle _rot1 = 90.Degrees();
     private static readonly Angle _rot2 = -90.Degrees();
 
-    public RheognosisCrash() : base(new AOEShapeRect(24.01f, 12)) { } //actually the rect is only 24, but there seem to be a few thousandth of variation in the location
-
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
-        var _activation = module.WorldState.CurrentTime.AddSeconds(0.15f);
+        var _activation = WorldState.FutureTime(0.15f);
         if (state == 0x01000001)
         {
             if (index == 0x00)
@@ -50,13 +45,13 @@ public class RheognosisCrash : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (Lines.Count > 0 && (AID)spell.Action.ID == AID.RheognosisCrashExaflare)
         {
             ++NumCasts;
             int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
-            AdvanceLine(module, Lines[index], caster.Position);
+            AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }

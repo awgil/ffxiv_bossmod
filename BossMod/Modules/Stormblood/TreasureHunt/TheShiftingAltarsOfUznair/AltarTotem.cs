@@ -7,7 +7,7 @@ public enum OID : uint
     BossHelper = 0x233C,
     FireVoidzone = 0x1EA8BB,
     BonusAdd_AltarMatanga = 0x2545, // R3.420
-};
+}
 
 public enum AID : uint
 {
@@ -25,44 +25,25 @@ public enum AID : uint
     RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
     Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-};
+}
 
 public enum IconID : uint
 {
     Baitaway = 23, // player
-};
-
-class FlurryOfRage : Components.SelfTargetedAOEs
-{
-    public FlurryOfRage() : base(ActionID.MakeSpell(AID.FlurryOfRage), new AOEShapeCone(13.06f, 60.Degrees())) { }
 }
 
-class WaveOfMalice : Components.LocationTargetedAOEs
-{
-    public WaveOfMalice() : base(ActionID.MakeSpell(AID.WaveOfMalice), 5) { }
-}
+class FlurryOfRage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlurryOfRage), new AOEShapeCone(13.06f, 60.Degrees()));
+class WaveOfMalice(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WaveOfMalice), 5);
+class WhorlOfFrenzy(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhorlOfFrenzy), new AOEShapeCircle(11.06f));
+class TheWardensVerdict(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheWardensVerdict), new AOEShapeRect(45.06f, 2));
+class FlamesOfFury(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlamesOfFury), 10);
 
-class WhorlOfFrenzy : Components.SelfTargetedAOEs
-{
-    public WhorlOfFrenzy() : base(ActionID.MakeSpell(AID.WhorlOfFrenzy), new AOEShapeCircle(11.06f)) { }
-}
-
-class TheWardensVerdict : Components.SelfTargetedAOEs
-{
-    public TheWardensVerdict() : base(ActionID.MakeSpell(AID.TheWardensVerdict), new AOEShapeRect(45.06f, 2)) { }
-}
-
-class FlamesOfFury : Components.LocationTargetedAOEs
-{
-    public FlamesOfFury() : base(ActionID.MakeSpell(AID.FlamesOfFury), 10) { }
-}
-
-class FlamesOfFuryBait : Components.GenericBaitAway
+class FlamesOfFuryBait(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Baitaway)
         {
@@ -72,7 +53,7 @@ class FlamesOfFuryBait : Components.GenericBaitAway
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FlamesOfFury)
             ++NumCasts;
@@ -84,39 +65,24 @@ class FlamesOfFuryBait : Components.GenericBaitAway
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (target == actor && targeted)
             hints.Add("Bait voidzone away! (3 times)");
     }
 }
 
-class FlamesOfFuryVoidzone : Components.PersistentVoidzone
-{
-    public FlamesOfFuryVoidzone() : base(10, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7)) { }
-}
-
-class RaucousScritch : Components.SelfTargetedAOEs
-{
-    public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
-}
-
-class Hurl : Components.LocationTargetedAOEs
-{
-    public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
-}
-
-class Spin : Components.Cleave
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
-}
+class FlamesOfFuryVoidzone(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7));
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class TotemStates : StateMachineBuilder
 {
@@ -138,10 +104,8 @@ class TotemStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7586)]
-public class Totem : BossModule
+public class Totem(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Totem(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

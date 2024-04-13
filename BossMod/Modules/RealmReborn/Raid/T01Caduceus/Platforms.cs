@@ -1,7 +1,7 @@
 ﻿namespace BossMod.RealmReborn.Raid.T01Caduceus;
 
 // we have 12 hexagonal platforms and 1 octagonal; sorted S to N, then E to W - so entrance platform has index 0, octagonal (NW) platform has index 12
-class Platforms : BossComponent
+class Platforms(BossModule module) : BossComponent(module)
 {
     public const float HexaPlatformSide = 9;
     public const float OctaPlatformLong = 13;
@@ -98,7 +98,7 @@ class Platforms : BossComponent
     public BitMask ActivePlatforms;
     public DateTime ExplosionAt { get; private set; }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         Func<WPos, float> blockedArea = p =>
         {
@@ -111,15 +111,15 @@ class Platforms : BossComponent
         hints.AddForbiddenZone(blockedArea);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (int i in (ActivePlatforms ^ AllPlatforms).SetBits())
-            arena.AddPolygon(PlatformPoly(i), ArenaColor.Border);
+            Arena.AddPolygon(PlatformPoly(i), ArenaColor.Border);
         foreach (int i in ActivePlatforms.SetBits())
-            arena.AddPolygon(PlatformPoly(i), ArenaColor.Enemy);
+            Arena.AddPolygon(PlatformPoly(i), ArenaColor.Enemy);
     }
 
-    public override void OnActorEState(BossModule module, Actor actor, ushort state)
+    public override void OnActorEState(Actor actor, ushort state)
     {
         if (actor.OID == (uint)OID.Platform)
         {
@@ -129,7 +129,7 @@ class Platforms : BossComponent
             bool active = state == 2;
             ActivePlatforms[i] = active;
             if (active)
-                ExplosionAt = module.WorldState.CurrentTime.AddSeconds(6);
+                ExplosionAt = WorldState.FutureTime(6);
         }
     }
 }

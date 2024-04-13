@@ -63,12 +63,12 @@ public enum AID : uint
     Lightwave = 26260, // Boss->self, 4,0s cast, single-target
     Lightwave2 = 26261, // Boss->self, 4,0s cast, single-target
     Lightwave3 = 26259, // Boss->self, 4,0s cast, single-target
-};
+}
 
 public enum IconID : uint
 {
     Echoes = 305, // player, stack 5 times
-};
+}
 
 public enum SID : uint
 {
@@ -77,4 +77,4 @@ public enum SID : uint
     MousasMantle = 2878, // none->Boss, extra=0x0, chakram stance
     MagossMantle = 2877, // none->Boss, extra=0x0, staff stance
     CrystallizeElement = 2056, // EchoOfHydaelyn/Boss->EchoOfHydaelyn/Boss, extra=0x152/0x153
-};
+}

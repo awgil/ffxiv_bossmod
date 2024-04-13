@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x404C, // R9.496, x1
     ThaliakClone = 0x404D, // R9.496, x1
     Helper = 0x233C, // R0.500, x44, 523 type
-};
+}
 
 public enum AID : uint
 {
@@ -45,7 +45,7 @@ public enum AID : uint
     LeftBank2 = 35884, // Thaliak->self, 22.0s cast, range 60 180-degree cone
     RightBank = 35027, // Thaliak->self, 5.0s cast, range 60 180-degree cone
     RightBank2 = 35885, // Thaliak->self, 22.0s cast, range 60 180-degree cone 
-};
+}
 
 public enum SID : uint
 {
@@ -55,7 +55,7 @@ public enum SID : uint
     DownForTheCount = 783, // ThaliakHelper->player, extra=0xEC7
     Inscribed = 3732, // none->player, extra=0x0
     Bind = 2518, // none->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
@@ -64,4 +64,4 @@ public enum IconID : uint
     RhytonBuster = 471, // player
     ClockwiseHieroglyphika = 487, // HieroglyphikaIndicator
     CounterClockwiseHieroglyphika = 490, // HieroglyphikaIndicator
-};
+}

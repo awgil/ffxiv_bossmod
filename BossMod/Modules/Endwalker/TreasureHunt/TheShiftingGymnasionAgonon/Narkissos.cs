@@ -6,7 +6,7 @@ public enum OID : uint
     BossHelper = 0x233C,
     BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
     BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
-};
+}
 
 public enum AID : uint
 {
@@ -23,7 +23,7 @@ public enum AID : uint
     BeguilingGas = 32331, // Boss->self, 5,0s cast, range 40 circle, Temporary Misdirection
     Brainstorm = 32334, // Boss->self, 5,0s cast, range 40 circle, Forced March debuffs
     PutridBreath = 32338, // Boss->self, 4,0s cast, range 25 90-degree cone
-};
+}
 
 public enum SID : uint
 {
@@ -34,35 +34,23 @@ public enum SID : uint
     ForwardMarch = 1958, // Boss->player, extra=0x0
     AboutFace = 1959, // Boss->player, extra=0x0
     LeftFace = 1960, // Boss->player, extra=0x0
-};
-
-class Brainstorm : Components.StatusDrivenForcedMarch
-{
-    public Brainstorm() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
-
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<SapShower>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class FetchingFulgence : Components.CastGaze
+class Brainstorm(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
-    public FetchingFulgence() : base(ActionID.MakeSpell(AID.FetchingFulgence)) { }
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<SapShower>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class Lash : Components.SingleTargetCast
-{
-    public Lash() : base(ActionID.MakeSpell(AID.Lash)) { }
-}
+class FetchingFulgence(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.FetchingFulgence));
+class Lash(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Lash));
+class PotentPerfume(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PotentPerfume), 8);
 
-class PotentPerfume : Components.LocationTargetedAOEs
-{
-    public PotentPerfume() : base(ActionID.MakeSpell(AID.PotentPerfume), 8) { }
-}
-
-class SapShowerTendrilsHint : BossComponent
+class SapShowerTendrilsHint(BossModule module) : BossComponent(module)
 {
     private int NumCasts;
     private bool active;
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SapShower2)
         {
@@ -71,13 +59,13 @@ class SapShowerTendrilsHint : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SapShower2)
             active = false;
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (active)
         {
@@ -91,36 +79,17 @@ class SapShowerTendrilsHint : BossComponent
 
 class SapShower : Components.LocationTargetedAOEs
 {
-    public SapShower() : base(ActionID.MakeSpell(AID.SapShower2), 8)
+    public SapShower(BossModule module) : base(module, ActionID.MakeSpell(AID.SapShower2), 8)
     {
         Color = ArenaColor.Danger;
     }
 }
 
-class ExtensibleTendrils : Components.SelfTargetedAOEs
-{
-    public ExtensibleTendrils() : base(ActionID.MakeSpell(AID.ExtensibleTendrils), new AOEShapeCross(25, 3)) { }
-}
-
-class PutridBreath : Components.SelfTargetedAOEs
-{
-    public PutridBreath() : base(ActionID.MakeSpell(AID.PutridBreath), new AOEShapeCone(25, 45.Degrees())) { }
-}
-
-class RockHard : Components.SpreadFromCastTargets
-{
-    public RockHard() : base(ActionID.MakeSpell(AID.RockHard), 6) { }
-}
-
-class BeguilingGas : Components.CastHint
-{
-    public BeguilingGas() : base(ActionID.MakeSpell(AID.BeguilingGas), "Raidwide + Temporary Misdirection") { }
-}
-
-class HeavySmash : Components.LocationTargetedAOEs
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-}
+class ExtensibleTendrils(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExtensibleTendrils), new AOEShapeCross(25, 3));
+class PutridBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PutridBreath), new AOEShapeCone(25, 45.Degrees()));
+class RockHard(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.RockHard), 6);
+class BeguilingGas(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BeguilingGas), "Raidwide + Temporary Misdirection");
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
 
 class NarkissosStates : StateMachineBuilder
 {
@@ -143,10 +112,8 @@ class NarkissosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12029)]
-public class Narkissos : BossModule
+public class Narkissos(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Narkissos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

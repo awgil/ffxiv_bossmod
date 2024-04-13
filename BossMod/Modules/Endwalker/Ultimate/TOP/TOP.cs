@@ -1,27 +1,12 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class SolarRayM : Components.BaitAwayCast
-{
-    public SolarRayM() : base(ActionID.MakeSpell(AID.SolarRayM), new AOEShapeCircle(5), true) { }
-}
-
-class SolarRayF : Components.BaitAwayCast
-{
-    public SolarRayF() : base(ActionID.MakeSpell(AID.SolarRayF), new AOEShapeCircle(5), true) { }
-}
-
-class P4BlueScreen : Components.CastCounter
-{
-    public P4BlueScreen() : base(ActionID.MakeSpell(AID.BlueScreenAOE)) { }
-}
-
-class P5BlindFaith : Components.CastHint
-{
-    public P5BlindFaith() : base(ActionID.MakeSpell(AID.BlindFaithSuccess), "Intermission") { }
-}
+class SolarRayM(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.SolarRayM), new AOEShapeCircle(5), true);
+class SolarRayF(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.SolarRayF), new AOEShapeCircle(5), true);
+class P4BlueScreen(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.BlueScreenAOE));
+class P5BlindFaith(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BlindFaithSuccess), "Intermission");
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 908)]
-public class TOP : BossModule
+public class TOP(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
     private Actor? _opticalUnit;
     private Actor? _omegaM;
@@ -36,8 +21,6 @@ public class TOP : BossModule
     public Actor? BossP3() => _bossP3;
     public Actor? BossP5() => _bossP5;
     public Actor? BossP6() => _bossP6;
-
-    public TOP(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
 
     protected override void UpdateModule()
     {

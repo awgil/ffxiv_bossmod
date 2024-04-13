@@ -1,20 +1,20 @@
-﻿namespace BossMod.Endwalker.Alliance.A36Eulogia;
+﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class Hydrostasis : Components.Knockback
+class Hydrostasis(BossModule module) : Components.Knockback(module)
 {
     private readonly List<Source> _sources = [];
 
     public bool Active => _sources.Count == 3 || NumCasts > 0;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Active ? _sources : Enumerable.Empty<Source>();
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Active ? _sources : Enumerable.Empty<Source>();
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.HydrostasisAOE1 or AID.HydrostasisAOE2 or AID.HydrostasisAOE3)
             AddSource(caster.Position, spell.NPCFinishAt);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.HydrostasisAOE1 or AID.HydrostasisAOE2 or AID.HydrostasisAOE3)
         {

@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35BF, // R5.400, x1
-};
+}
 
 public enum AID : uint
 {
@@ -13,7 +13,7 @@ public enum AID : uint
     Devour = 27232, // Boss->self, 1.0s cast, range 10 ?-degree cone, kills seduced and deals very small damage otherwise
     BogBomb = 27233, // Boss->location, 4.0s cast, range 6 circle
     BrackishRain = 27234, // Boss->self, 4.0s cast, range 10 90-degree cone
-};
+}
 
 public enum SID : uint
 {
@@ -24,32 +24,30 @@ public enum SID : uint
     RightFace = 1961,
 }
 
-class Soundstorm : Components.StatusDrivenForcedMarch
+class Soundstorm(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
-    public Soundstorm() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => MiniLight.Shape.Check(pos, Module.PrimaryActor);
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => MiniLight.Shape.Check(pos, module.PrimaryActor);
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (module.PrimaryActor.CastInfo?.IsSpell(AID.Soundstorm) ?? false)
+        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.Soundstorm) ?? false)
             hints.Add("Apply march debuffs");
     }
 }
 
-class MiniLight : Components.GenericAOEs
+class MiniLight(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
 
     public static readonly AOEShapeCircle Shape = new(18);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(Shape, module.PrimaryActor.Position, default, _activation);
+            yield return new(Shape, Module.PrimaryActor.Position, default, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var activation = (AID)spell.Action.ID switch
         {
@@ -61,27 +59,16 @@ class MiniLight : Components.GenericAOEs
             _activation = activation;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.MiniLight)
             _activation = default;
     }
 }
 
-class Devour : Components.CastHint
-{
-    public Devour() : base(ActionID.MakeSpell(AID.Devour), "Harmless unless you got minimized by the previous mechanic") { }
-}
-
-class BogBomb : Components.LocationTargetedAOEs
-{
-    public BogBomb() : base(ActionID.MakeSpell(AID.BogBomb), 6) { }
-}
-
-class BrackishRain : Components.SelfTargetedAOEs
-{
-    public BrackishRain() : base(ActionID.MakeSpell(AID.BrackishRain), new AOEShapeCone(10, 45.Degrees())) { }
-}
+class Devour(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Devour), "Harmless unless you got minimized by the previous mechanic");
+class BogBomb(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BogBomb), 6);
+class BrackishRain(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrackishRain), new AOEShapeCone(10, 45.Degrees()));
 
 class YilanStates : StateMachineBuilder
 {
@@ -97,7 +84,4 @@ class YilanStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10625)]
-public class Yilan : SimpleBossModule
-{
-    public Yilan(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Yilan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

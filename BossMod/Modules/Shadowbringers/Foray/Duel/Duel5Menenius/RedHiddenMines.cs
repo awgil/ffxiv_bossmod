@@ -1,18 +1,18 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
-class RedHiddenMines : Components.GenericAOEs
+class RedHiddenMines(BossModule module) : Components.GenericAOEs(module)
 {
     private List<AOEInstance> _mines = new();
     private static readonly AOEShapeCircle _shapeTrigger = new(3.6f);
     private static readonly AOEShapeCircle _shapeExplosion = new(8f);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _mines;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _mines;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ActivateRedMine)
         {
-            _mines.Add(new(_shapeTrigger, caster.Position, color: ArenaColor.Trap));
+            _mines.Add(new(_shapeTrigger, caster.Position, Color: ArenaColor.Trap));
         }
         if ((AID)spell.Action.ID is AID.DetonateRedMine)
         {
@@ -20,14 +20,14 @@ class RedHiddenMines : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.IndiscriminateDetonation)
         {
             List<AOEInstance> _detonatingMines = new();
             for (int i = 0; i < _mines.Count; i++)
             {
-                _detonatingMines.Add(new(_shapeExplosion, _mines[i].Origin, color: ArenaColor.AOE));
+                _detonatingMines.Add(new(_shapeExplosion, _mines[i].Origin, Color: ArenaColor.AOE));
             }
             _mines = _detonatingMines;
         }

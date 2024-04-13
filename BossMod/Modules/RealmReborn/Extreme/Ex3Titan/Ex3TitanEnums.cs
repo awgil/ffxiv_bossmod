@@ -10,7 +10,7 @@ public enum OID : uint
     GraniteGaoler = 0x8F2, // R1.900, spawn during fight
     TitansHeart = 0x5E5, // R5.250, Part type, spawn during fight
     GaolerVoidzone = 0x1E8F8F, // R0.500, EventObj type, spawn during fight (voidzone left by killed gaolers)
-};
+}
 
 public enum AID : uint
 {
@@ -37,15 +37,15 @@ public enum AID : uint
     AutoAttackGaoler = 1651, // GraniteGaoler->player, no cast, single-target
     LandslideGaoler = 1475, // GraniteGaoler->self, 2.2s cast, range 35+R width 6 rect aoe, knockback 15
     TumultGaoler = 1476, // GraniteGaoler->self, no cast, raidwide
-};
+}
 
 public enum SID : uint
 {
     PhysicalVulnerabilityUp = 126, // Boss->player, extra=0x1/0x2/0x3/0x4/0x5/0x6/0x7
     Fetters = 292, // none->player, extra=0x0
-};
+}
 
 public enum TetherID : uint
 {
     Gaol = 7, // player->player
-};
+}

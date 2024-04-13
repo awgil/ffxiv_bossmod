@@ -7,7 +7,7 @@ public enum OID : uint
     GreenBavarois = 0x41F, // spawn during fight
     PurpleBavarois = 0x421, // spawn during fight
     BlueBavarois = 0x422, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -18,38 +18,35 @@ public enum AID : uint
     Aero = 1397, // GreenBavarois->player, 1.0s cast, single-target
     Thunder = 1396, // PurpleBavarois->player, 1.0s cast, single-target
     Water = 971, // BlueBavarois->player, 1.0s cast, single-target
-};
+}
 
 public enum IconID : uint
 {
     AmorphicFlail = 1, // player
-};
-
-class Fire : Components.SingleTargetCast
-{
-    public Fire() : base(ActionID.MakeSpell(AID.Fire), "Single-target damage") { }
 }
 
+class Fire(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Fire), "Single-target damage");
+
 // TODO: verify implementation; find a condition for kite end
-class AmorphicFlail : BossComponent
+class AmorphicFlail(BossModule module) : BossComponent(module)
 {
     private Actor? _kiter;
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (actor == _kiter)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.PrimaryActor.Position, 8));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 8));
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.AmorphicFlail)
             _kiter = actor;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.AmorphicFlail)
+        if (caster == Module.PrimaryActor && (AID)spell.Action.ID == AID.AmorphicFlail)
             _kiter = null;
     }
 }
@@ -65,7 +62,4 @@ class D152GiantBavaroisStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1549)]
-public class D152GiantBavarois : BossModule
-{
-    public D152GiantBavarois(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(43, -232), 20)) { }
-}
+public class D152GiantBavarois(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(43, -232), 20));

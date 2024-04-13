@@ -1,42 +1,27 @@
 ﻿namespace BossMod.Components;
 
 // generic component for cleaving autoattacks; shows shape outline and warns when anyone other than main target is inside
-public class Cleave : CastCounter
+// enemy OID == 0 means 'primary actor'
+public class Cleave(BossModule module, ActionID aid, AOEShape shape, uint enemyOID = 0, bool activeForUntargetable = false, bool originAtTarget = false, bool activeWhileCasting = true) : CastCounter(module, aid)
 {
-    public AOEShape Shape { get; private init; }
-    public uint EnemyOID { get; private init; }
-    public bool ActiveForUntargetable { get; private init; }
-    public bool ActiveWhileCasting { get; private init; }
-    public bool OriginAtTarget { get; private init; }
+    public AOEShape Shape { get; init; } = shape;
+    public bool ActiveForUntargetable { get; init; } = activeForUntargetable;
+    public bool ActiveWhileCasting { get; init; } = activeWhileCasting;
+    public bool OriginAtTarget { get; init; } = originAtTarget;
     public DateTime NextExpected;
-    private IReadOnlyList<Actor> _enemies = ActorEnumeration.EmptyList;
+    private readonly IReadOnlyList<Actor> _enemies = module.Enemies(enemyOID != 0 ? enemyOID : module.PrimaryActor.OID);
 
-    // enemy OID == 0 means 'primary actor'
-    public Cleave(ActionID aid, AOEShape shape, uint enemyOID = 0, bool activeForUntargetable = false, bool originAtTarget = false, bool activeWhileCasting = true) : base(aid)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        Shape = shape;
-        EnemyOID = enemyOID;
-        ActiveForUntargetable = activeForUntargetable;
-        ActiveWhileCasting = activeWhileCasting;
-        OriginAtTarget = originAtTarget;
-    }
-
-    public override void Init(BossModule module)
-    {
-        _enemies = module.Enemies(EnemyOID != 0 ? EnemyOID : module.PrimaryActor.OID);
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-    {
-        if (OriginsAndTargets(module).Any(e => e.target != actor && Shape.Check(actor.Position, e.origin.Position, e.angle)))
+        if (OriginsAndTargets().Any(e => e.target != actor && Shape.Check(actor.Position, e.origin.Position, e.angle)))
         {
             hints.Add("GTFO from cleave!");
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var (origin, target, angle) in OriginsAndTargets(module))
+        foreach (var (origin, target, angle) in OriginsAndTargets())
         {
             if (actor != target)
             {
@@ -45,15 +30,15 @@ public class Cleave : CastCounter
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var e in OriginsAndTargets(module))
+        foreach (var e in OriginsAndTargets())
         {
-            Shape.Outline(arena, e.origin.Position, e.angle);
+            Shape.Outline(Arena, e.origin.Position, e.angle);
         }
     }
 
-    private IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets(BossModule module)
+    private IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
     {
         foreach (var enemy in _enemies)
         {
@@ -66,7 +51,7 @@ public class Cleave : CastCounter
             if (!ActiveWhileCasting && enemy.CastInfo != null)
                 continue;
 
-            var target = module.WorldState.Actors.Find(enemy.TargetID);
+            var target = WorldState.Actors.Find(enemy.TargetID);
             if (target != null)
             {
                 yield return (OriginAtTarget ? target : enemy, target, Angle.FromDirection(target.Position - enemy.Position));

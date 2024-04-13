@@ -14,7 +14,7 @@ public enum OID : uint
     Monolith2 = 0x1E8707, // x1, EventObj type
     Monolith3 = 0x1E8708, // x1, EventObj type
     Monolith4 = 0x1E8709, // x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -30,61 +30,41 @@ public enum AID : uint
     EyeOfTheStorm = 1387, // EyeOfTheStorm->self, 3.0s cast, range 12-25 donut
     Featherlance = 1388, // RazorPlume->self, no cast, range 8 circle, suicide attack if not killed in ~25s
     ThermalTumult = 1389, // SatinPlume->self, no cast, range 6 circle, suicide attack (applies sleep) if not killed in ~25s
-};
+}
 
 public enum TetherID : uint
 {
     Rehabilitation = 4, // Chirada/Suparna->Boss, green (heal)
     DamageUp = 11, // Chirada/Suparna->Boss, red (damage up)
-};
+}
 
 // disallow clipping monoliths
-class Friction : BossComponent
+class Friction(BossModule module) : BossComponent(module)
 {
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
-            foreach (var m in ((T06GarudaH)module).ActiveMonoliths)
+        if (Module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
+            foreach (var m in ((T06GarudaH)Module).ActiveMonoliths)
                 hints.AddForbiddenZone(ShapeDistance.Circle(m.Position, 5));
     }
 }
 
-class Downburst : Components.Cleave
+class Downburst(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 60.Degrees()));
+class Slipstream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees()));
+
+class MistralShriek(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MistralShriek), 24.7f, true)
 {
-    public Downburst() : base(ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 60.Degrees())) { }
+    public override IEnumerable<Actor> BlockerActors() => ((T06GarudaH)Module).ActiveMonoliths;
 }
 
-class Slipstream : Components.SelfTargetedAOEs
+class MistralSong(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MistralSong), 31.7f, true)
 {
-    public Slipstream() : base(ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees())) { }
+    public override IEnumerable<Actor> BlockerActors() => ((T06GarudaH)Module).ActiveMonoliths;
 }
 
-class MistralShriek : Components.CastLineOfSightAOE
-{
-    public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), 24.7f, true) { }
-    public override IEnumerable<Actor> BlockerActors(BossModule module) => ((T06GarudaH)module).ActiveMonoliths;
-}
-
-class MistralSong : Components.CastLineOfSightAOE
-{
-    public MistralSong() : base(ActionID.MakeSpell(AID.MistralSong), 31.7f, true) { }
-    public override IEnumerable<Actor> BlockerActors(BossModule module) => ((T06GarudaH)module).ActiveMonoliths;
-}
-
-class AerialBlast : Components.RaidwideCast
-{
-    public AerialBlast() : base(ActionID.MakeSpell(AID.AerialBlast)) { }
-}
-
-class GreatWhirlwind : Components.LocationTargetedAOEs
-{
-    public GreatWhirlwind() : base(ActionID.MakeSpell(AID.GreatWhirlwind), 8) { }
-}
-
-class EyeOfTheStorm : Components.SelfTargetedAOEs
-{
-    public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStorm), new AOEShapeDonut(12, 25)) { }
-}
+class AerialBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AerialBlast));
+class GreatWhirlwind(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GreatWhirlwind), 8);
+class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStorm), new AOEShapeDonut(12, 25));
 
 class T06GarudaHStates : StateMachineBuilder
 {

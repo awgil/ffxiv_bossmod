@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x32
     RottenMandragora = 0x2E30, // R1.050, spawn during fight
     Pheromones = 0x2E31, // R1.500, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -29,20 +29,17 @@ public enum AID : uint
     PlayfulBreeze = 20525, // Boss->self, 4.0s cast, single-target, visual (raidwide)
     PlayfulBreezeAOE = 20526, // Helper->self, 4.0s cast, range 60 circle raidwide
     Budbutt = 20527, // Boss->player, 4.0s cast, single-target, tankbuster
-};
+}
 
 public enum SID : uint
 {
     TenderAnaphylaxis = 2301, // Helper->player, extra=0x0
     JealousAnaphylaxis = 2302, // Helper->player, extra=0x0
-};
-
-class Pheromones : Components.PersistentVoidzone
-{
-    public Pheromones() : base(4, m => m.Enemies(OID.Pheromones)) { }
 }
 
-class DeadLeaves : Components.GenericAOEs
+class Pheromones(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Pheromones));
+
+class DeadLeaves(BossModule module) : Components.GenericAOEs(module, default, "Go to different color!")
 {
     private BitMask _tenderStatuses;
     private BitMask _jealousStatuses;
@@ -51,9 +48,7 @@ class DeadLeaves : Components.GenericAOEs
 
     private static readonly AOEShapeCone _shape = new(30, 45.Degrees());
 
-    public DeadLeaves() : base(new(), "Go to different color!") { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_tenderStatuses[slot])
             foreach (var c in _tenderCasters)
@@ -63,38 +58,38 @@ class DeadLeaves : Components.GenericAOEs
                 yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.TenderAnaphylaxis:
-                _tenderStatuses.Set(module.Raid.FindSlot(actor.InstanceID));
+                _tenderStatuses.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.JealousAnaphylaxis:
-                _jealousStatuses.Set(module.Raid.FindSlot(actor.InstanceID));
+                _jealousStatuses.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.TenderAnaphylaxis:
-                _tenderStatuses.Clear(module.Raid.FindSlot(actor.InstanceID));
+                _tenderStatuses.Clear(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.JealousAnaphylaxis:
-                _jealousStatuses.Clear(module.Raid.FindSlot(actor.InstanceID));
+                _jealousStatuses.Clear(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         CastersForAction(spell.Action)?.Add(caster);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         CastersForAction(spell.Action)?.Remove(caster);
     }
@@ -107,30 +102,11 @@ class DeadLeaves : Components.GenericAOEs
     };
 }
 
-class AnaphylacticShock : Components.SelfTargetedAOEs
-{
-    public AnaphylacticShock() : base(ActionID.MakeSpell(AID.AnaphylacticShock), new AOEShapeRect(30, 1)) { }
-}
-
-class SplashBomb : Components.SelfTargetedAOEs
-{
-    public SplashBomb() : base(ActionID.MakeSpell(AID.SplashBombAOE), new AOEShapeCircle(6)) { }
-}
-
-class SplashGrenade : Components.StackWithCastTargets
-{
-    public SplashGrenade() : base(ActionID.MakeSpell(AID.SplashGrenadeAOE), 6) { }
-}
-
-class PlayfulBreeze : Components.RaidwideCast
-{
-    public PlayfulBreeze() : base(ActionID.MakeSpell(AID.PlayfulBreeze)) { }
-}
-
-class Budbutt : Components.SingleTargetCast
-{
-    public Budbutt() : base(ActionID.MakeSpell(AID.Budbutt)) { }
-}
+class AnaphylacticShock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AnaphylacticShock), new AOEShapeRect(30, 1));
+class SplashBomb(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SplashBombAOE), new AOEShapeCircle(6));
+class SplashGrenade(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SplashGrenadeAOE), 6);
+class PlayfulBreeze(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PlayfulBreeze));
+class Budbutt(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Budbutt));
 
 class CE13KillItWithFireStates : StateMachineBuilder
 {
@@ -148,7 +124,4 @@ class CE13KillItWithFireStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 1)] // bnpcname=9391
-public class CE13KillItWithFire : BossModule
-{
-    public CE13KillItWithFire(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-90, 700), 25)) { }
-}
+public class CE13KillItWithFire(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-90, 700), 25));

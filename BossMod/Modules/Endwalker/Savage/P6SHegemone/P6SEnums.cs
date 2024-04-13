@@ -8,7 +8,7 @@ public enum OID : uint
     Parasitos = 0x3AEB, // x8 (transmission)
     //_Gen_Parasitos = 0x3A38, // x8
     //_Gen_Parasitos = 0x3A39, // x4
-};
+}
 
 public enum AID : uint
 {
@@ -82,7 +82,7 @@ public enum AID : uint
     DarkSphereAOE = 30864, // Helper->players, 6.0s cast, range 10 circle aoe (spread)
 
     Enrage = 30867, // Boss->self, 10.0s cast
-};
+}
 
 public enum SID : uint
 {
@@ -93,7 +93,7 @@ public enum SID : uint
     Glossomorph = 3400, // none->player, extra=0x0, snake infection
     OutOfControlWing = 3362, // none->player, extra=0x0
     OutOfControlSnake = 3316, // none->player, extra=0x0
-};
+}
 
 public enum TetherID : uint
 {
@@ -101,7 +101,7 @@ public enum TetherID : uint
     TransmissionSnake = 208, // player->Boss
     TransmissionWing = 209, // player->Boss
     PolyExchange = 207, // PolySquare->PolySquare
-};
+}
 
 public enum IconID : uint
 {
@@ -123,4 +123,4 @@ public enum IconID : uint
     DarkAshes = 101, // player
     UnholyDarkness = 318, // player
     DarkSphere = 328, // player
-};
+}

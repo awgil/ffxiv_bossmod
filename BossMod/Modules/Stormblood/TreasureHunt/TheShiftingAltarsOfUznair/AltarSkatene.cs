@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2535, //R=4.48
     BossAdd = 0x255E, //R=0.9
     BossHelper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -15,27 +15,12 @@ public enum AID : uint
     Tornado = 13309, // Boss->location, 3,0s cast, range 6 circle
     VoidCall = 13312, // Boss->self, 3,5s cast, single-target
     Chirp = 13310, // Boss->self, 3,5s cast, range 8+R circle
-};
-
-class Chirp : Components.SelfTargetedAOEs
-{
-    public Chirp() : base(ActionID.MakeSpell(AID.Chirp), new AOEShapeCircle(12.48f)) { }
 }
 
-class Tornado : Components.LocationTargetedAOEs
-{
-    public Tornado() : base(ActionID.MakeSpell(AID.Tornado), 6) { }
-}
-
-class VoidCall : Components.CastHint
-{
-    public VoidCall() : base(ActionID.MakeSpell(AID.VoidCall), "Calls adds") { }
-}
-
-class RecklessAbandon : Components.SingleTargetDelayableCast
-{
-    public RecklessAbandon() : base(ActionID.MakeSpell(AID.RecklessAbandon)) { }
-}
+class Chirp(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Chirp), new AOEShapeCircle(12.48f));
+class Tornado(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Tornado), 6);
+class VoidCall(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidCall), "Calls adds");
+class RecklessAbandon(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.RecklessAbandon));
 
 class SkateneStates : StateMachineBuilder
 {
@@ -51,10 +36,8 @@ class SkateneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7587)]
-public class Skatene : BossModule
+public class Skatene(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Skatene(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

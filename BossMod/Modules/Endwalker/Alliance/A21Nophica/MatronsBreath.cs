@@ -1,46 +1,31 @@
 ﻿namespace BossMod.Endwalker.Alliance.A21Nophica;
 
-class MatronsBreath : BossComponent
+class MatronsBreath(BossModule module) : Components.GenericAOEs(module)
 {
-    public int NumCasts { get; private set; }
-    private IReadOnlyList<Actor> _blueSafe = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _goldSafe = ActorEnumeration.EmptyList;
-    private List<Actor> _towers = new();
+    private readonly List<(Actor actor, DateTime activation)> _flowers = [];
 
-    private static readonly AOEShapeDonut _shape = new(8, 40); // TODO: verify safe zone radius
+    private static readonly AOEShapeDonut _shape = new(8, 50);
 
-    public override void Init(BossModule module)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        _blueSafe = module.Enemies(OID.BlueSafeZone);
-        _goldSafe = module.Enemies(OID.GoldSafeZone);
+        var _blueFlowers = Module.Enemies(OID.BlueSafeZone).FirstOrDefault();
+        var _goldFlowers = Module.Enemies(OID.GoldSafeZone).FirstOrDefault();
+        if (_flowers.Count > 0)
+            yield return new(_shape, _flowers[0].actor.OID == (uint)OID.BlueFlowers ? _blueFlowers!.Position : _goldFlowers!.Position, default, _flowers[0].activation);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void OnActorCreated(Actor actor)
     {
-        if (_shape.Check(actor.Position, NextSafeZone))
-            hints.Add("Go to correct safe zone!");
+        if ((OID)actor.OID is OID.BlueFlowers or OID.GoldFlowers)
+            _flowers.Add((actor, WorldState.FutureTime(11.1f)));
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        _shape.Draw(arena, NextSafeZone);
-    }
-
-    public override void OnActorCreated(BossModule module, Actor actor)
-    {
-        if ((OID)actor.OID is OID.BlueTower or OID.GoldTower)
-            _towers.Add(actor);
-    }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID.Blueblossoms or AID.Giltblossoms)
+        if (_flowers.Count > 0 && (AID)spell.Action.ID is AID.Blueblossoms or AID.Giltblossoms)
         {
             ++NumCasts;
-            if (_towers.Count > 0)
-                _towers.RemoveAt(0);
+            _flowers.RemoveAt(0);
         }
     }
-
-    private Actor? NextSafeZone => _towers.Count == 0 ? null : (OID)_towers[0].OID == OID.BlueTower ? _blueSafe.FirstOrDefault() : _goldSafe.FirstOrDefault();
 }

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
-class EngravementOfSoulsTethers : Components.GenericBaitAway
+class EngravementOfSoulsTethers(BossModule module) : Components.GenericBaitAway(module)
 {
     public enum TetherType { None, Light, Dark }
 
@@ -15,26 +15,26 @@ class EngravementOfSoulsTethers : Components.GenericBaitAway
 
     private static readonly AOEShapeRect _shape = new(60, 3);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (States[slot].TooClose)
             hints.Add("Stretch the tether!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         foreach (var b in CurrentBaits)
-            arena.Actor(b.Source, ArenaColor.Object, true);
+            Arena.Actor(b.Source, ArenaColor.Object, true);
 
         // TODO: consider drawing safespot based on configured strategy and mechanic order
         if (NumCasts == 0 && States[pcSlot] is var state && state.Source != null)
-            arena.AddLine(state.Source.Position, pc.Position, state.TooClose ? ArenaColor.Danger : ArenaColor.Safe);
+            Arena.AddLine(state.Source.Position, pc.Position, state.TooClose ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         var (type, tooClose) = (TetherID)tether.ID switch
         {
@@ -44,20 +44,20 @@ class EngravementOfSoulsTethers : Components.GenericBaitAway
             TetherID.DarkFar => (TetherType.Dark, false),
             _ => (TetherType.None, false)
         };
-        if (type != TetherType.None && module.Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+        if (type != TetherType.None && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
         {
             if (States[slot].Source == null)
             {
                 States[slot] = new() { Source = source, Tether = type, TooClose = tooClose };
-                CurrentBaits.Add(new(source, module.Raid[slot]!, _shape));
+                CurrentBaits.Add(new(source, Raid[slot]!, _shape));
             }
             else if (States[slot].Source != source)
             {
-                module.ReportError(this, $"Multiple tethers on same player");
+                ReportError($"Multiple tethers on same player");
             }
             else if (States[slot].Tether != type)
             {
-                module.ReportError(this, $"Tether type changed");
+                ReportError($"Tether type changed");
             }
             else
             {
@@ -66,7 +66,7 @@ class EngravementOfSoulsTethers : Components.GenericBaitAway
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.SearingRadiance or AID.Shadowsear)
         {
@@ -77,66 +77,66 @@ class EngravementOfSoulsTethers : Components.GenericBaitAway
 }
 
 // towers can not be soaked by same colored tilt
-class EngravementOfSoulsTowers : Components.GenericTowers
+class EngravementOfSoulsTowers(BossModule module) : Components.GenericTowers(module)
 {
     public bool CastsStarted { get; private set; }
     private BitMask _globallyForbidden; // these players can't close any of the towers due to vulns
     private BitMask _lightForbidden; // these players can't close light towers due to light debuff
     private BitMask _darkForbidden; // these players can't close light towers due to light debuff
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.UmbralTilt: // light guy can't close light tower
-                _lightForbidden.Set(module.Raid.FindSlot(actor.InstanceID));
+                _lightForbidden.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.AstralTilt: // dark guy can't close dark tower
-                _darkForbidden.Set(module.Raid.FindSlot(actor.InstanceID));
+                _darkForbidden.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.UmbralbrightSoul: // dropping a tower causes vuln
             case SID.AstralbrightSoul:
             case SID.HeavensflameSoul: // dropping a spread causes vuln
-                _globallyForbidden.Set(module.Raid.FindSlot(actor.InstanceID));
+                _globallyForbidden.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.UmbralTilt: // light guy can't close light tower
-                _lightForbidden.Clear(module.Raid.FindSlot(actor.InstanceID));
+                _lightForbidden.Clear(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.AstralTilt: // dark guy can't close dark tower
-                _darkForbidden.Clear(module.Raid.FindSlot(actor.InstanceID));
+                _darkForbidden.Clear(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.UmbralAdvance:
-                AddTower(module, spell.LocXZ, true, true);
+                AddTower(spell.LocXZ, true, true);
                 break;
             case AID.AstralAdvance:
-                AddTower(module, spell.LocXZ, false, true);
+                AddTower(spell.LocXZ, false, true);
                 break;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.UmbralGlow:
-                AddTower(module, caster.Position, true, false);
+                AddTower(caster.Position, true, false);
                 break;
             case AID.AstralGlow:
-                AddTower(module, caster.Position, false, false);
+                AddTower(caster.Position, false, false);
                 break;
             case AID.UmbralAdvance:
             case AID.AstralAdvance:
@@ -146,7 +146,7 @@ class EngravementOfSoulsTowers : Components.GenericTowers
         }
     }
 
-    private void AddTower(BossModule module, WPos pos, bool isLight, bool realCast)
+    private void AddTower(WPos pos, bool isLight, bool realCast)
     {
         if (realCast != CastsStarted)
         {
@@ -157,7 +157,7 @@ class EngravementOfSoulsTowers : Components.GenericTowers
             }
             else
             {
-                module.ReportError(this, "Unexpected predicted tower when real casts are in progress");
+                ReportError("Unexpected predicted tower when real casts are in progress");
                 return;
             }
         }

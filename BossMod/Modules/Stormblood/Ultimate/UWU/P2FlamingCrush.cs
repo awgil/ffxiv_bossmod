@@ -1,12 +1,10 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class FlamingCrush : Components.UniformStackSpread
+class FlamingCrush(BossModule module) : Components.UniformStackSpread(module, 4, 0, 6)
 {
     protected BitMask Avoid;
 
-    public FlamingCrush() : base(4, 0, 6) { }
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.FlamingCrush)
         {
@@ -14,7 +12,7 @@ class FlamingCrush : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.FlamingCrush)
         {
@@ -26,22 +24,22 @@ class FlamingCrush : Components.UniformStackSpread
 // during P2, everyone except searing wind targets (typically two healers) should stack
 class P2FlamingCrush : FlamingCrush
 {
-    public override void Init(BossModule module)
+    public P2FlamingCrush(BossModule module) : base(module)
     {
         if (module.FindComponent<P2SearingWind>() is var searingWind && searingWind != null)
             foreach (var sw in searingWind.Spreads)
-                Avoid.Set(module.Raid.FindSlot(sw.Target.InstanceID));
+                Avoid.Set(Raid.FindSlot(sw.Target.InstanceID));
     }
 }
 
 // during P4 (annihilation), everyone should stack (except maybe ranged/caster that will handle mesohigh)
-class P4FlamingCrush : FlamingCrush { }
+class P4FlamingCrush(BossModule module) : FlamingCrush(module) { }
 
 // during P5 (suppression), everyone except mesohigh handler (typically tank) should stack
 class P5FlamingCrush : FlamingCrush
 {
-    public override void Init(BossModule module)
+    public P5FlamingCrush(BossModule module) : base(module)
     {
-        Avoid = module.Raid.WithSlot(true).WhereActor(p => p.FindStatus(SID.ThermalLow) != null && p.Role != Role.Healer).Mask();
+        Avoid = Raid.WithSlot(true).WhereActor(p => p.FindStatus(SID.ThermalLow) != null && p.Role != Role.Healer).Mask();
     }
 }

@@ -9,7 +9,7 @@ public enum OID : uint
     Tower = 0x1EB17E, // R0.500, EventObj type, spawn during fight
     FallingTower = 0x1EB17D, // R0.500, EventObj type, spawn during fight, rotation at spawn determines fall direction?..
     Hammer = 0x1EB17F, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -39,54 +39,32 @@ public enum AID : uint
 
     HammerRound = 23824, // Boss->self, 5.0s cast, single-target, visual
     Hammerfall = 23825, // Helper->self, 8.0s cast, range 37 circle aoe
-};
-
-class TectonicEruption : Components.LocationTargetedAOEs
-{
-    public TectonicEruption() : base(ActionID.MakeSpell(AID.TectonicEruption), 6) { }
 }
 
-class RockCutter : Components.SingleTargetDelayableCast
-{
-    public RockCutter() : base(ActionID.MakeSpell(AID.RockCutter)) { }
-}
-
-class AncientQuake : Components.RaidwideCast
-{
-    public AncientQuake() : base(ActionID.MakeSpell(AID.AncientQuake)) { }
-}
-
-class Roxxor : Components.SpreadFromCastTargets
-{
-    public Roxxor() : base(ActionID.MakeSpell(AID.Roxxor), 6) { }
-}
-
-class ControlTowerAppear : Components.SelfTargetedAOEs
-{
-    public ControlTowerAppear() : base(ActionID.MakeSpell(AID.ControlTowerAppear), new AOEShapeCircle(6)) { }
-}
+class TectonicEruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TectonicEruption), 6);
+class RockCutter(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.RockCutter));
+class AncientQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AncientQuake));
+class Roxxor(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Roxxor), 6);
+class ControlTowerAppear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ControlTowerAppear), new AOEShapeCircle(6));
 
 // note: we could predict aoes way in advance, when FallingTower actors are created - they immediately have correct rotation
 // if previous cast was TowerRound, delay is ~24.4s; otherwise if previous cast was ControlTower, delay is ~9.6s; otherwise it is ~13s
 // however, just watching casts normally gives more than enough time to avoid aoes and does not interfere with mechanics that resolve earlier
-class Towerfall : Components.SelfTargetedAOEs
-{
-    public Towerfall() : base(ActionID.MakeSpell(AID.Towerfall), new AOEShapeRect(40, 5)) { }
-}
+class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Towerfall), new AOEShapeRect(40, 5));
 
-class ExtremeEdge : Components.GenericAOEs
+class ExtremeEdge(BossModule module) : Components.GenericAOEs(module)
 {
     private List<(Actor caster, float offset)> _casters = new();
 
     private static readonly AOEShapeRect _shape = new(60, 18);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in _casters)
             yield return new(_shape, c.caster.Position + c.offset * c.caster.CastInfo!.Rotation.ToDirection().OrthoL(), c.caster.CastInfo.Rotation, c.caster.CastInfo.NPCFinishAt);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var offset = (AID)spell.Action.ID switch
         {
@@ -98,18 +76,16 @@ class ExtremeEdge : Components.GenericAOEs
             _casters.Add((caster, offset));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ExtremeEdgeL or AID.ExtremeEdgeR)
             _casters.RemoveAll(c => c.caster == caster);
     }
 }
 
-class IntractableLand : Components.Exaflare
+class IntractableLand(BossModule module) : Components.Exaflare(module, 8)
 {
-    public IntractableLand() : base(8) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.IntractableLandFirst)
         {
@@ -117,7 +93,7 @@ class IntractableLand : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.IntractableLandFirst or AID.IntractableLandRest)
         {
@@ -125,31 +101,31 @@ class IntractableLand : Components.Exaflare
             int index = Lines.FindIndex(item => item.Next.AlmostEqual(pos, 1));
             if (index == -1)
             {
-                module.ReportError(this, $"Failed to find entry for {caster.InstanceID:X}");
+                ReportError($"Failed to find entry for {caster.InstanceID:X}");
                 return;
             }
 
-            AdvanceLine(module, Lines[index], pos);
+            AdvanceLine(Lines[index], pos);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }
     }
 }
 
-class Hammerfall : Components.GenericAOEs
+class Hammerfall(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeCircle _shape = new(37);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(2);
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Hammer)
-            _aoes.Add(new(_shape, actor.Position, activation: module.WorldState.CurrentTime.AddSeconds(12.6f)));
+            _aoes.Add(new(_shape, actor.Position, default, WorldState.FutureTime(12.6f)));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Hammerfall && _aoes.Count > 0)
             _aoes.RemoveAt(0);
@@ -174,7 +150,4 @@ class CE44FamiliarFaceStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 29)] // bnpcname=9693
-public class CE44FamiliarFace : BossModule
-{
-    public CE44FamiliarFace(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(330, 390), 30)) { }
-}
+public class CE44FamiliarFace(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(330, 390), 30));

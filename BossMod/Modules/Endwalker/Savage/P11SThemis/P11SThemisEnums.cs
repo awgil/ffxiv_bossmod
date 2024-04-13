@@ -11,7 +11,7 @@ public enum OID : uint
     SphereLight = 0x3EF7, // R1.000, x2
     SphereDark = 0x3EF8, // R1.000, x2
     ArcaneCylinder = 0x3EF9, // R1.000, x3
-};
+}
 
 public enum AID : uint
 {
@@ -110,7 +110,7 @@ public enum AID : uint
     MassiveExplosion = 33320, // Helper->self, no cast, range 50 circle unsoaked tower
 
     UltimateVerdict = 33324, // Boss->self, 10.0s cast, range 50 circle enrage
-};
+}
 
 public enum IconID : uint
 {
@@ -119,7 +119,7 @@ public enum IconID : uint
     RotateCW = 156, // ArcaneCylinder
     RotateCCW = 157, // ArcaneCylinder
     BlindingLight = 466, // player
-};
+}
 
 public enum TetherID : uint
 {
@@ -131,4 +131,4 @@ public enum TetherID : uint
     DarkLightGood = 240, // player->player (dist < ~7)
     DarkLightBad = 241, // player->player (dist > ~7)
     //_Gen_Tether_245 = 245, // player->player - happens when one of the tethered player dies?
-};
+}

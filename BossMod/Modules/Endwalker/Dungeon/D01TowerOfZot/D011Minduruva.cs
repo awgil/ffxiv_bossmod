@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x33EE, // R=2.04
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -28,7 +28,7 @@ public enum AID : uint
     ManusyaThunder = 25247, // Boss->player, no cast, single-target
     TransmuteBlizzardIII = 25371, // Boss->self, 2,7s cast, single-target
     TransmuteThunderIII = 25372, // Boss->self, 2,7s cast, single-target
-};
+}
 
 public enum SID : uint
 {
@@ -40,30 +40,27 @@ public enum SID : uint
     IceAlchemy = 2752, // Boss->Boss, extra=0x0
     ToxicAlchemy = 2754, // Boss->Boss, extra=0x0
     FireAlchemy = 2751, // Boss->Boss, extra=0x0
-};
-
-class ManusyaBio : Components.SingleTargetCast
-{
-    public ManusyaBio() : base(ActionID.MakeSpell(AID.ManusyaBio), "Tankbuster + cleansable poison") { }
 }
 
-class Poison : BossComponent
+class ManusyaBio(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ManusyaBio), "Tankbuster + cleansable poison");
+
+class Poison(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> _poisoned = [];
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Poison)
             _poisoned.Add(actor);
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Poison)
             _poisoned.Remove(actor);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_poisoned.Contains(actor) && !(actor.Role == Role.Healer || actor.Class == Class.BRD)) //theoretically only the tank can ge poisoned, this is just in here incase of bad tanks
             hints.Add("You were poisoned! Get cleansed fast.");
@@ -74,9 +71,9 @@ class Poison : BossComponent
                 hints.Add($"Cleanse {c.Name} (Poison)");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         foreach (var c in _poisoned)
         {
             if (_poisoned.Count > 0 && actor.Role == Role.Healer)
@@ -87,17 +84,18 @@ class Poison : BossComponent
     }
 }
 
-class Dhrupad : BossComponent
+class Dhrupad(BossModule module) : BossComponent(module)
 {
     private int NumCasts;
     private bool active;
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Dhrupad)
             active = true;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ManusyaFire1 or AID.ManusyaBlizzard or AID.ManusyaThunder)
         {
@@ -109,32 +107,18 @@ class Dhrupad : BossComponent
             }
         }
     }
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (active)
             hints.Add("3 single target hits + DoTs");
     }
 }
 
-class ManusyaThunderIII : Components.SelfTargetedAOEs
-{
-    public ManusyaThunderIII() : base(ActionID.MakeSpell(AID.ManusyaThunderIII2), new AOEShapeCircle(3)) { }
-}
-
-class ManusyaBioIII : Components.SelfTargetedAOEs
-{
-    public ManusyaBioIII() : base(ActionID.MakeSpell(AID.ManusyaBioIII2), new AOEShapeCone(40.5f, 90.Degrees())) { }
-}
-
-class ManusyaBlizzardIII : Components.SelfTargetedAOEs
-{
-    public ManusyaBlizzardIII() : base(ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(40.5f, 10.Degrees())) { }
-}
-
-class ManusyaFireIII : Components.SelfTargetedAOEs
-{
-    public ManusyaFireIII() : base(ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(5, 60)) { }
-}
+class ManusyaThunderIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ManusyaThunderIII2), new AOEShapeCircle(3));
+class ManusyaBioIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ManusyaBioIII2), new AOEShapeCone(40.5f, 90.Degrees()));
+class ManusyaBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(40.5f, 10.Degrees()));
+class ManusyaFireIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ManusyaFireIII2), new AOEShapeDonut(5, 60));
 
 class D011MinduruvaStates : StateMachineBuilder
 {
@@ -152,7 +136,4 @@ class D011MinduruvaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10256)]
-public class D011Minduruva : BossModule
-{
-    public D011Minduruva(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(68, -124), 19.5f)) { }
-}
+public class D011Minduruva(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(68, -124), 19.5f));

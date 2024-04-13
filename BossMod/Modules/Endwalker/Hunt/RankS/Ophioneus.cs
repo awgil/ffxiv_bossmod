@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35DC, // R5.875, x1
-};
+}
 
 public enum AID : uint
 {
@@ -17,28 +17,21 @@ public enum AID : uint
     LeapingPyricCircleAOE = 27346, // Boss->self, 1.0s cast, range 5-40 donut
     LeapingPyricBurstAOE = 27347, // Boss->self, 1.0s cast, range 40 circle with ? falloff
     Scratch = 27348, // Boss->player, 5.0s cast, single-target
-};
-
-class RightMaw : Components.SelfTargetedAOEs
-{
-    public RightMaw() : base(ActionID.MakeSpell(AID.RightMaw), new AOEShapeCone(30, 90.Degrees())) { }
 }
 
-class LeftMaw : Components.SelfTargetedAOEs
-{
-    public LeftMaw() : base(ActionID.MakeSpell(AID.LeftMaw), new AOEShapeCone(30, 90.Degrees())) { }
-}
+class RightMaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightMaw), new AOEShapeCone(30, 90.Degrees()));
+class LeftMaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftMaw), new AOEShapeCone(30, 90.Degrees()));
 
-class PyricCircleBurst : Components.GenericAOEs
+class PyricCircleBurst(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
     private static readonly AOEShapeCircle _shapeCircle = new(10); // TODO: verify falloff
     private static readonly AOEShapeDonut _shapeDonut = new(5, 40);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -59,17 +52,14 @@ class PyricCircleBurst : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.PyricCircle or AID.PyricBurst or AID.LeapingPyricCircleAOE or AID.LeapingPyricBurstAOE)
             _aoe = null;
     }
 }
 
-class Scratch : Components.SingleTargetCast
-{
-    public Scratch() : base(ActionID.MakeSpell(AID.Scratch)) { }
-}
+class Scratch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Scratch));
 
 class OphioneusStates : StateMachineBuilder
 {
@@ -84,7 +74,4 @@ class OphioneusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10621)]
-public class Ophioneus : SimpleBossModule
-{
-    public Ophioneus(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Ophioneus(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

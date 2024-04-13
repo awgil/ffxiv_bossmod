@@ -4,7 +4,7 @@ public enum OID : uint
 {
     NBoss = 0x3AD7, // R2.500, x1
     SBoss = 0x3AE0, // R2.500, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,28 +15,19 @@ public enum AID : uint
     SBlightedGloom = 31102, // Boss->self, 4.0s cast, range 10 circle aoe
     SKingsWill = 31104, // Boss->self, 2.5s cast, single-target damage up
     SInfernalPain = 31105, // Boss->self, 5.0s cast, raidwide
-};
-
-class BlightedGloom : Components.SelfTargetedAOEs
-{
-    public BlightedGloom(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(10)) { }
 }
-class NBlightedGloom : BlightedGloom { public NBlightedGloom() : base(AID.NBlightedGloom) { } }
-class SBlightedGloom : BlightedGloom { public SBlightedGloom() : base(AID.SBlightedGloom) { } }
 
-class KingsWill : Components.CastHint
-{
-    public KingsWill(AID aid) : base(ActionID.MakeSpell(aid), "Damage increase buff") { }
-}
-class NKingsWill : KingsWill { public NKingsWill() : base(AID.NKingsWill) { } }
-class SKingsWill : KingsWill { public SKingsWill() : base(AID.SKingsWill) { } }
+class BlightedGloom(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(10));
+class NBlightedGloom(BossModule module) : BlightedGloom(module, AID.NBlightedGloom);
+class SBlightedGloom(BossModule module) : BlightedGloom(module, AID.SBlightedGloom);
 
-class InfernalPain : Components.RaidwideCast
-{
-    public InfernalPain(AID aid) : base(ActionID.MakeSpell(aid)) { }
-}
-class NInfernalPain : InfernalPain { public NInfernalPain() : base(AID.NInfernalPain) { } }
-class SInfernalPain : InfernalPain { public SInfernalPain() : base(AID.SInfernalPain) { } }
+class KingsWill(BossModule module, AID aid) : Components.CastHint(module, ActionID.MakeSpell(aid), "Damage increase buff");
+class NKingsWill(BossModule module) : KingsWill(module, AID.NKingsWill);
+class SKingsWill(BossModule module) : KingsWill(module, AID.SKingsWill);
+
+class InfernalPain(BossModule module, AID aid) : Components.RaidwideCast(module, ActionID.MakeSpell(aid));
+class NInfernalPain(BossModule module) : InfernalPain(module, AID.NInfernalPain);
+class SInfernalPain(BossModule module) : InfernalPain(module, AID.SInfernalPain);
 
 class C010DullahanStates : StateMachineBuilder
 {
@@ -51,11 +42,11 @@ class C010DullahanStates : StateMachineBuilder
             .ActivateOnEnter<SInfernalPain>(savage);
     }
 }
-class C010NDullahanStates : C010DullahanStates { public C010NDullahanStates(BossModule module) : base(module, false) { } }
-class C010SDullahanStates : C010DullahanStates { public C010SDullahanStates(BossModule module) : base(module, true) { } }
+class C010NDullahanStates(BossModule module) : C010DullahanStates(module, false);
+class C010SDullahanStates(BossModule module) : C010DullahanStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11506, SortOrder = 7)]
-public class C010NDullahan : SimpleBossModule { public C010NDullahan(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C010NDullahan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11506, SortOrder = 7)]
-public class C010SDullahan : SimpleBossModule { public C010SDullahan(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C010SDullahan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

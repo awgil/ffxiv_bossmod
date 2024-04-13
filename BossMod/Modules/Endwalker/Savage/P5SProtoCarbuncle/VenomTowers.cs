@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
-class VenomTowers : BossComponent
+class VenomTowers(BossModule module) : BossComponent(module)
 {
     private List<WDir> _activeTowerOffsets = new();
 
@@ -10,16 +10,16 @@ class VenomTowers : BossComponent
 
     public bool Active => _activeTowerOffsets.Count > 0;
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var t in _activeTowerOffsets)
         {
-            var origin = module.Bounds.Center + t;
-            arena.AddCircle(origin, _radius, module.Raid.WithoutSlot().InRadius(origin, _radius).Any() ? ArenaColor.Safe : ArenaColor.Danger);
+            var origin = Module.Bounds.Center + t;
+            Arena.AddCircle(origin, _radius, Raid.WithoutSlot().InRadius(origin, _radius).Any() ? ArenaColor.Safe : ArenaColor.Danger);
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         WDir offset = index switch
         {

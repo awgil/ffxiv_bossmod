@@ -2,7 +2,7 @@
 
 // state related to act 1 wreath of thorns
 // note: there should be two tethered helpers for aoes on activation
-class WreathOfThorns1 : BossComponent
+class WreathOfThorns1(BossModule module) : BossComponent(module)
 {
     public enum State { FirstAOEs, Towers, LastAOEs, Done }
 
@@ -13,7 +13,7 @@ class WreathOfThorns1 : BossComponent
     private IEnumerable<Actor> _towers => _relevantHelpers.Skip(2).Take(8);
     private IEnumerable<Actor> _lastAOEs => _relevantHelpers.Skip(10);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         switch (CurState)
         {
@@ -30,7 +30,7 @@ class WreathOfThorns1 : BossComponent
                     {
                         hints.Add("Soak the tower!");
                     }
-                    else if (module.Raid.WithoutSlot().Exclude(actor).InRadius(soakedTower.Position, P4S2.WreathTowerRadius).Any())
+                    else if (Raid.WithoutSlot().Exclude(actor).InRadius(soakedTower.Position, P4S2.WreathTowerRadius).Any())
                     {
                         hints.Add("Multiple soakers for the tower!");
                     }
@@ -45,31 +45,31 @@ class WreathOfThorns1 : BossComponent
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (CurState == State.FirstAOEs || CurState == State.LastAOEs)
             foreach (var aoe in CurState == State.FirstAOEs ? _firstAOEs : _lastAOEs)
-                arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
+                Arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (CurState == State.Towers)
         {
             foreach (var tower in _towers)
-                arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
-            foreach (var player in module.Raid.WithoutSlot())
-                arena.Actor(player, ArenaColor.PlayerGeneric);
+                Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
+            foreach (var player in Raid.WithoutSlot())
+                Arena.Actor(player, ArenaColor.PlayerGeneric);
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.Helper && tether.ID == (uint)TetherID.WreathOfThorns)
             _relevantHelpers.Add(source);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (CurState == State.FirstAOEs && (AID)spell.Action.ID == AID.AkanthaiExplodeAOE)
             CurState = State.Towers;

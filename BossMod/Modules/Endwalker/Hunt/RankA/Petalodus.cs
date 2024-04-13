@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35FB, // R5.400, x1
-};
+}
 
 public enum AID : uint
 {
@@ -16,25 +16,10 @@ public enum AID : uint
     AncientBlizzard = 27069, // Boss->self, 4.0s cast, range 40 45-degree cone
 }
 
-class MarineMayhem : Components.CastInterruptHint
-{
-    public MarineMayhem() : base(ActionID.MakeSpell(AID.MarineMayhem), hintExtra: "Raidwide x3") { }
-}
-
-class Waterga : Components.SpreadFromCastTargets
-{
-    public Waterga() : base(ActionID.MakeSpell(AID.Waterga), 6) { }
-}
-
-class TidalGuillotine : Components.SelfTargetedAOEs
-{
-    public TidalGuillotine() : base(ActionID.MakeSpell(AID.TidalGuillotine), new AOEShapeCircle(13)) { }
-}
-
-class AncientBlizzard : Components.SelfTargetedAOEs
-{
-    public AncientBlizzard() : base(ActionID.MakeSpell(AID.AncientBlizzard), new AOEShapeCone(40, 22.5f.Degrees())) { }
-}
+class MarineMayhem(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.MarineMayhem), hintExtra: "Raidwide x3");
+class Waterga(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Waterga), 6);
+class TidalGuillotine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TidalGuillotine), new AOEShapeCircle(13));
+class AncientBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientBlizzard), new AOEShapeCone(40, 22.5f.Degrees()));
 
 class PetalodusStates : StateMachineBuilder
 {
@@ -49,7 +34,4 @@ class PetalodusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10632)]
-public class Petalodus : SimpleBossModule
-{
-    public Petalodus(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Petalodus(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

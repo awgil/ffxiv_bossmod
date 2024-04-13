@@ -2,18 +2,18 @@
 
 class P7ExaflaresEdge : Components.Exaflare
 {
-    public P7ExaflaresEdge() : base(6)
+    public P7ExaflaresEdge(BossModule module) : base(module, 6)
     {
         ImminentColor = ArenaColor.AOE;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var p in SafeSpots(module))
-            arena.AddCircle(p, 1, ArenaColor.Safe);
+        foreach (var p in SafeSpots())
+            Arena.AddCircle(p, 1, ArenaColor.Safe);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ExaflaresEdgeFirst)
         {
@@ -24,19 +24,19 @@ class P7ExaflaresEdge : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ExaflaresEdgeFirst or AID.ExaflaresEdgeRest)
         {
             foreach (var l in Lines.Where(l => l.Next.AlmostEqual(caster.Position, 1)))
             {
-                AdvanceLine(module, l, caster.Position);
+                AdvanceLine(l, caster.Position);
             }
             ++NumCasts;
         }
     }
 
-    private IEnumerable<WPos> SafeSpots(BossModule module)
+    private IEnumerable<WPos> SafeSpots()
     {
         if (NumCasts > 0 || Lines.Count < 9)
             yield break;

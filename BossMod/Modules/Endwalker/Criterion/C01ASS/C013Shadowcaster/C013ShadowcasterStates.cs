@@ -164,6 +164,5 @@ class C013ShadowcasterStates : StateMachineBuilder
             .DeactivateOnExit<CrypticFlames>();
     }
 }
-
-class C013NShadowcasterStates : C013ShadowcasterStates { public C013NShadowcasterStates(BossModule module) : base(module, false) { } }
-class C013SShadowcasterStates : C013ShadowcasterStates { public C013SShadowcasterStates(BossModule module) : base(module, true) { } }
+class C013NShadowcasterStates(BossModule module) : C013ShadowcasterStates(module, false);
+class C013SShadowcasterStates(BossModule module) : C013ShadowcasterStates(module, true);

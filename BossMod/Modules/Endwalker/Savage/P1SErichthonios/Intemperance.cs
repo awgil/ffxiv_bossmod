@@ -8,7 +8,7 @@
 // E/W positions: symmetrical = move to center for second explosion, then return; asymmetrical = move to S for second explosion, then return
 // normal corners: symmetrical = move to S for second explosion, then return; asymmetrical = move to center for second explosion, then return
 // designated corner: symmetrical = same as normal corner; asymmetrical = move to N or S for second explosion, move to N for last explosion
-class Intemperance : BossComponent
+class Intemperance(BossModule module) : BossComponent(module)
 {
     public enum State { Unknown, TopToBottom, BottomToTop }
     public enum Pattern { Unknown, Symmetrical, Asymmetrical }
@@ -46,7 +46,7 @@ class Intemperance : BossComponent
     };
     private static readonly WDir[] _offsets = { new(-1, -1), new(0, -1), new(1, -1), new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(0, 0) };
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (_patternModified)
         {
@@ -55,7 +55,7 @@ class Intemperance : BossComponent
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_delimiterCenters.Any(c => _delimiterAOE.Check(actor.Position, c.Item1, c.Item2)))
         {
@@ -63,47 +63,50 @@ class Intemperance : BossComponent
         }
         else
         {
-            int actorCell = PositionFromCoords(module, actor.Position);
+            int actorCell = PositionFromCoords(actor.Position);
             if (_playerAssignment != null)
             {
-                int expectedCell = NumExplosions == 1 ? Position2(module, _playerAssignment[slot]) : Position3(module, _playerAssignment[slot]);
+                int expectedCell = NumExplosions == 1 ? Position2(_playerAssignment[slot]) : Position3(_playerAssignment[slot]);
                 if (actorCell != expectedCell)
                 {
                     hints.Add("Go to assigned cell!");
                 }
             }
-            else if (module.Raid.WithoutSlot().Exclude(actor).Any(other => PositionFromCoords(module, other.Position) == actorCell))
+            else if (Raid.WithoutSlot().Exclude(actor).Any(other => PositionFromCoords(other.Position) == actorCell))
             {
                 hints.Add("Stand in own cell!");
             }
         }
+    }
 
-        if (movementHints != null && _playerAssignment != null)
-            foreach (var (from, to, color) in EnumMovementHints(module, actor.Position, _playerAssignment[slot]))
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (_playerAssignment != null)
+            foreach (var (from, to, color) in EnumMovementHints(actor.Position, _playerAssignment[slot]))
                 movementHints.Add(from, to, color);
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add($"Order: {_curState}, pattern: {_pattern}.");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var c in _delimiterCenters)
-            _delimiterAOE.Draw(arena, c.Item1, c.Item2);
+            _delimiterAOE.Draw(Arena, c.Item1, c.Item2);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_playerAssignment != null)
-            foreach (var (from, to, color) in EnumMovementHints(module, pc.Position, _playerAssignment[pcSlot]))
-                arena.AddLine(from, to, color);
+            foreach (var (from, to, color) in EnumMovementHints(pc.Position, _playerAssignment[pcSlot]))
+                Arena.AddLine(from, to, color);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (caster != module.PrimaryActor)
+        if (caster != Module.PrimaryActor)
             return;
         var state = (AID)spell.Action.ID switch
         {
@@ -115,7 +118,7 @@ class Intemperance : BossComponent
             _curState = state;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.PainfulFlux) // this is convenient to rely on, since exactly 1 cast happens right after every explosion
         {
@@ -124,22 +127,22 @@ class Intemperance : BossComponent
                 // on first explosion, assign players to cubes
                 _playerAssignment = new int[PartyState.MaxPartySize];
                 int occupiedMask = 0;
-                foreach (var (slot, player) in module.Raid.WithSlot(true))
+                foreach (var (slot, player) in Raid.WithSlot(true))
                 {
-                    var pos = _playerAssignment[slot] = PositionFromCoords(module, player.Position);
+                    var pos = _playerAssignment[slot] = PositionFromCoords(player.Position);
                     occupiedMask |= 1 << pos;
                 }
 
                 if (occupiedMask != 0xFF)
                 {
-                    module.ReportError(this, "Failed to determine player assignments");
+                    ReportError("Failed to determine player assignments");
                     _playerAssignment = null;
                 }
             }
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         // we get the following env-control messages:
         // 1. ~2.8s after 26142 cast, we get 25 EnvControl messages with directorID 800375A0
@@ -167,9 +170,9 @@ class Intemperance : BossComponent
         }
     }
 
-    private int PositionFromCoords(BossModule module, WPos coords)
+    private int PositionFromCoords(WPos coords)
     {
-        return (coords - module.Bounds.Center) switch
+        return (coords - Module.Bounds.Center) switch
         {
             { X: < -7, Z: < -7 } => 0,
             { X: > +7, Z: < -7 } => 2,
@@ -183,17 +186,17 @@ class Intemperance : BossComponent
         };
     }
 
-    private int SwapCorner(BossModule module)
+    private int SwapCorner()
     {
         return 2 * (int)Service.Config.Get<P1SConfig>().IntemperanceAsymmetricalSwapCorner;
     }
 
-    private WPos PosCenter(BossModule module, int pos)
+    private WPos PosCenter(int pos)
     {
-        return module.Bounds.Center + 14 * _offsets[pos];
+        return Module.Bounds.Center + 14 * _offsets[pos];
     }
 
-    private int Position2(BossModule module, int pos1)
+    private int Position2(int pos1)
     {
         if (_pattern == Pattern.Symmetrical)
         {
@@ -206,7 +209,7 @@ class Intemperance : BossComponent
             };
         }
 
-        if (pos1 == SwapCorner(module))
+        if (pos1 == SwapCorner())
             return _curState == State.TopToBottom ? 5 : 1; // swap-corner goes N or S
 
         return pos1 switch
@@ -218,12 +221,12 @@ class Intemperance : BossComponent
         };
     }
 
-    private int Position3(BossModule module, int pos1)
+    private int Position3(int pos1)
     {
         if (_pattern == Pattern.Symmetrical)
             return pos1; // everyone returns to initial spot
 
-        int swapCorner = SwapCorner(module);
+        int swapCorner = SwapCorner();
         if (pos1 == swapCorner)
             return 1; // swap-corner goes N
         else if (pos1 == 1)
@@ -232,17 +235,17 @@ class Intemperance : BossComponent
             return pos1; // others return to initial spot
     }
 
-    private IEnumerable<(WPos, WPos, uint)> EnumMovementHints(BossModule module, WPos startingPosition, int assignment)
+    private IEnumerable<(WPos, WPos, uint)> EnumMovementHints(WPos startingPosition, int assignment)
     {
         switch (NumExplosions)
         {
             case 1:
-                var mid = PosCenter(module, Position2(module, assignment));
-                yield return (mid, PosCenter(module, Position3(module, assignment)), ArenaColor.Danger);
+                var mid = PosCenter(Position2(assignment));
+                yield return (mid, PosCenter(Position3(assignment)), ArenaColor.Danger);
                 yield return (startingPosition, mid, ArenaColor.Safe);
                 break;
             case 2:
-                yield return (startingPosition, PosCenter(module, Position3(module, assignment)), ArenaColor.Safe);
+                yield return (startingPosition, PosCenter(Position3(assignment)), ArenaColor.Safe);
                 break;
         }
     }

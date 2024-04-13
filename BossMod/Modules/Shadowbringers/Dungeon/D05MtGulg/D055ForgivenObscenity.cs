@@ -34,77 +34,76 @@ public enum AID : uint
     SacramentSforzando = 15634, // Boss->self, 4,0s cast, single-target
     SacramentSforzando2 = 15635, // 233C->player, no cast, single-target
     SanctifiedStaccato = 15654, // 233C->self, no cast, range 3 circle, sort of a voidzone around the light orbs, only triggers if you get too close
-};
+}
 
-class Orbs : Components.GenericAOEs
+class Orbs(BossModule module) : Components.GenericAOEs(module, default, "GTFO from voidzone!")
 {
     private readonly List<Actor> _orbs = [];
     private static readonly AOEShapeCircle circle = new(3);
-    public Orbs() : base(new(), "GTFO from voidzone!") { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var p in _orbs)
             yield return new(circle, p.Position);
     }
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Orbs)
             _orbs.Add(actor);
     }
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008)
             _orbs.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 4));
     }
 }
 
-class GoldChaser : Components.GenericAOEs
+class GoldChaser(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private readonly List<Actor> _casters = [];
     private static readonly AOEShapeRect rect = new(100, 2.5f, 100);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-227.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-232.5f, 251.5f), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-247.5f, 251.5f), 1))))
         {
             if (_casters.Count > 2)
             {
                 if (NumCasts == 0)
-                    yield return new(rect, _casters[0].Position, activation: _activation.AddSeconds(7.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[0].Position, default, _activation.AddSeconds(7.1f), ArenaColor.Danger);
                 if (NumCasts is 0 or 1)
-                    yield return new(rect, _casters[1].Position, activation: _activation.AddSeconds(7.6f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[1].Position, default, _activation.AddSeconds(7.6f), ArenaColor.Danger);
             }
             if (_casters.Count > 4)
             {
                 if (NumCasts is 0 or 1)
                 {
-                    yield return new(rect, _casters[2].Position, activation: _activation.AddSeconds(8.1f));
-                    yield return new(rect, _casters[3].Position, activation: _activation.AddSeconds(8.6f));
+                    yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
+                    yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.6f));
                 }
             }
             if (_casters.Count > 4)
             {
                 if (NumCasts == 2)
-                    yield return new(rect, _casters[2].Position, activation: _activation.AddSeconds(8.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f), ArenaColor.Danger);
                 if (NumCasts is 2 or 3)
-                    yield return new(rect, _casters[3].Position, activation: _activation.AddSeconds(8.6f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.6f), ArenaColor.Danger);
             }
             if (_casters.Count == 6)
             {
                 if (NumCasts is 2 or 3)
                 {
-                    yield return new(rect, _casters[4].Position, activation: _activation.AddSeconds(9.1f));
-                    yield return new(rect, _casters[5].Position, activation: _activation.AddSeconds(11.1f));
+                    yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(9.1f));
+                    yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
                 }
             }
             if (_casters.Count == 6)
             {
                 if (NumCasts == 4)
-                    yield return new(rect, _casters[4].Position, activation: _activation.AddSeconds(9.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(9.1f), ArenaColor.Danger);
                 if (NumCasts is 4 or 5)
-                    yield return new(rect, _casters[5].Position, activation: _activation.AddSeconds(11.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f), ArenaColor.Danger);
             }
         }
         if (_casters.Count > 1 && ((_casters[0].Position.AlmostEqual(new(-242.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-237.5f, 253), 1)) || (_casters[0].Position.AlmostEqual(new(-252.5f, 253), 1) && _casters[1].Position.AlmostEqual(new(-227.5f, 253), 1))))
@@ -112,44 +111,44 @@ class GoldChaser : Components.GenericAOEs
             if (_casters.Count > 2)
             {
                 if (NumCasts == 0)
-                    yield return new(rect, _casters[0].Position, activation: _activation.AddSeconds(7.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[0].Position, default, _activation.AddSeconds(7.1f), ArenaColor.Danger);
                 if (NumCasts is 0 or 1)
-                    yield return new(rect, _casters[1].Position, activation: _activation.AddSeconds(7.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[1].Position, default, _activation.AddSeconds(7.1f), ArenaColor.Danger);
             }
             if (_casters.Count > 4)
             {
                 if (NumCasts is 0 or 1)
                 {
-                    yield return new(rect, _casters[2].Position, activation: _activation.AddSeconds(8.1f));
-                    yield return new(rect, _casters[3].Position, activation: _activation.AddSeconds(8.1f));
+                    yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f));
+                    yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.1f));
                 }
             }
             if (_casters.Count > 4)
             {
                 if (NumCasts == 2)
-                    yield return new(rect, _casters[2].Position, activation: _activation.AddSeconds(8.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[2].Position, default, _activation.AddSeconds(8.1f), ArenaColor.Danger);
                 if (NumCasts is 2 or 3)
-                    yield return new(rect, _casters[3].Position, activation: _activation.AddSeconds(8.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[3].Position, default, _activation.AddSeconds(8.1f), ArenaColor.Danger);
             }
             if (_casters.Count == 6)
             {
                 if (NumCasts is 2 or 3)
                 {
-                    yield return new(rect, _casters[4].Position, activation: _activation.AddSeconds(11.1f));
-                    yield return new(rect, _casters[5].Position, activation: _activation.AddSeconds(11.1f));
+                    yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(11.1f));
+                    yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f));
                 }
             }
             if (_casters.Count == 6)
             {
                 if (NumCasts == 4)
-                    yield return new(rect, _casters[4].Position, activation: _activation.AddSeconds(11.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[4].Position, default, _activation.AddSeconds(11.1f), ArenaColor.Danger);
                 if (NumCasts is 4 or 5)
-                    yield return new(rect, _casters[5].Position, activation: _activation.AddSeconds(11.1f), color: ArenaColor.Danger);
+                    yield return new(rect, _casters[5].Position, default, _activation.AddSeconds(11.1f), ArenaColor.Danger);
             }
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Rings)
         {
@@ -157,10 +156,10 @@ class GoldChaser : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Ringsmith)
-            _activation = module.WorldState.CurrentTime;
+            _activation = WorldState.CurrentTime;
         if ((AID)spell.Action.ID == AID.VenaAmoris)
         {
             ++NumCasts;
@@ -173,76 +172,38 @@ class GoldChaser : Components.GenericAOEs
     }
 }
 
-class SacramentSforzando : Components.SingleTargetCastDelay
-{
-    public SacramentSforzando() : base(ActionID.MakeSpell(AID.SacramentSforzando), ActionID.MakeSpell(AID.SacramentSforzando2), 0.8f) { }
-}
+class SacramentSforzando(BossModule module) : Components.SingleTargetCastDelay(module, ActionID.MakeSpell(AID.SacramentSforzando), ActionID.MakeSpell(AID.SacramentSforzando2), 0.8f);
+class OrisonFortissimo(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.OrisonFortissimo), ActionID.MakeSpell(AID.OrisonFortissimo2), 0.8f);
+class DivineDiminuendo(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo), new AOEShapeCircle(8));
+class DivineDiminuendo1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo1), new AOEShapeCircle(8));
+class DivineDiminuendo2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo2), new AOEShapeDonut(10, 16));
+class DivineDiminuendo3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo3), new AOEShapeDonut(18, 32));
+class DivineDiminuendo4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo4), new AOEShapeCircle(8));
+class ConvictionMarcato(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato), new AOEShapeRect(40, 2.5f));
+class ConvictionMarcato2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f));
+class ConvictionMarcato3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f));
 
-class OrisonFortissimo : Components.RaidwideCastDelay
-{
-    public OrisonFortissimo() : base(ActionID.MakeSpell(AID.OrisonFortissimo), ActionID.MakeSpell(AID.OrisonFortissimo2), 0.8f) { }
-}
-
-class DivineDiminuendo : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo() : base(ActionID.MakeSpell(AID.DivineDiminuendo), new AOEShapeCircle(8)) { }
-}
-
-class DivineDiminuendo1 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo1() : base(ActionID.MakeSpell(AID.DivineDiminuendo1), new AOEShapeCircle(8)) { }
-}
-
-class DivineDiminuendo2 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo2() : base(ActionID.MakeSpell(AID.DivineDiminuendo2), new AOEShapeDonut(10, 16)) { }
-}
-
-class DivineDiminuendo3 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo3() : base(ActionID.MakeSpell(AID.DivineDiminuendo3), new AOEShapeDonut(18, 32)) { }
-}
-
-class DivineDiminuendo4 : Components.SelfTargetedAOEs
-{
-    public DivineDiminuendo4() : base(ActionID.MakeSpell(AID.DivineDiminuendo4), new AOEShapeCircle(8)) { }
-}
-
-class ConvictionMarcato : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato() : base(ActionID.MakeSpell(AID.ConvictionMarcato), new AOEShapeRect(40, 2.5f)) { }
-}
-
-class ConvictionMarcato2 : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato2() : base(ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f)) { }
-}
-
-class ConvictionMarcato3 : Components.SelfTargetedAOEs
-{
-    public ConvictionMarcato3() : base(ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f)) { }
-}
-
-class Voidzone : BossComponent
+class Voidzone(BossModule module) : BossComponent(module)
 {
     private bool active;
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00040008)
         {
-            module.Arena.Bounds = new ArenaBoundsRect(new(-240, 237), 15, 20);
+            Module.Arena.Bounds = new ArenaBoundsRect(Module.Bounds.Center, 15, 20);
             active = false;
         }
         if (state == 0x00010002)
         {
             active = true;
-            module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15);
+            Module.Arena.Bounds = new ArenaBoundsCircle(Module.Bounds.Center, 15);
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (active)
             hints.PlannedActions.Add((ActionID.MakeSpell(WAR.AID.Sprint), actor, 1, false));
     }
@@ -270,9 +231,8 @@ class D055ForgivenObscenityStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
-public class D055ForgivenObscenity : BossModule
+public class D055ForgivenObscenity(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-240, 237), 15, 20))
 {
-    public D055ForgivenObscenity(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-240, 237), 15, 20)) { }
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);

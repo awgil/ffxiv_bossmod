@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
-class RokujoRevel : Components.GenericAOEs
+class RokujoRevel(BossModule module) : Components.GenericAOEs(module)
 {
     private int _numBreaths;
-    private List<Actor> _clouds = new();
+    private List<Actor> _clouds = [.. module.Enemies(OID.NRaiun), .. module.Enemies(OID.SRaiun)];
     private List<(Angle dir, DateTime activation)> _pendingLines = new();
     private List<(WPos origin, DateTime activation)> _pendingCircles = new();
 
@@ -14,10 +14,10 @@ class RokujoRevel : Components.GenericAOEs
 
     public bool Active => _pendingLines.Count + _pendingCircles.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_pendingLines.Count > 1)
-            yield return new(_shapeLine, module.Bounds.Center, _pendingLines[1].dir, _pendingLines[1].activation, risky: false);
+            yield return new(_shapeLine, Module.Bounds.Center, _pendingLines[1].dir, _pendingLines[1].activation, Risky: false);
         if (_pendingCircles.Count > 0 && ShapeCircle is var shapeCircle && shapeCircle != null)
         {
             var firstFutureActivation = _pendingCircles[0].activation.AddSeconds(1);
@@ -26,7 +26,7 @@ class RokujoRevel : Components.GenericAOEs
             {
                 var lastFutureActivation = _pendingCircles[firstFutureIndex].activation.AddSeconds(1.5f);
                 foreach (var p in _pendingCircles.Skip(firstFutureIndex).TakeWhile(p => p.activation <= lastFutureActivation))
-                    yield return new(shapeCircle, p.origin, default, p.activation, risky: false);
+                    yield return new(shapeCircle, p.origin, default, p.activation, Risky: false);
             }
             else
             {
@@ -36,16 +36,10 @@ class RokujoRevel : Components.GenericAOEs
                 yield return new(shapeCircle, p.origin, default, p.activation, ArenaColor.Danger);
         }
         if (_pendingLines.Count > 0)
-            yield return new(_shapeLine, module.Bounds.Center, _pendingLines[0].dir, _pendingLines[0].activation, ArenaColor.Danger);
+            yield return new(_shapeLine, Module.Bounds.Center, _pendingLines[0].dir, _pendingLines[0].activation, ArenaColor.Danger);
     }
 
-    public override void Init(BossModule module)
-    {
-        _clouds.AddRange(module.Enemies(OID.NRaiun));
-        _clouds.AddRange(module.Enemies(OID.SRaiun));
-    }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -64,18 +58,18 @@ class RokujoRevel : Components.GenericAOEs
                 var index = _pendingCircles.FindIndex(p => p.origin.AlmostEqual(caster.Position, 1));
                 if (index < 0)
                 {
-                    module.ReportError(this, $"Failed to predict levin from {caster.InstanceID:X}");
+                    ReportError($"Failed to predict levin from {caster.InstanceID:X}");
                     _pendingCircles.Add((caster.Position, spell.NPCFinishAt));
                 }
                 else if (Math.Abs((_pendingCircles[index].activation - spell.NPCFinishAt).TotalSeconds) > 1)
                 {
-                    module.ReportError(this, $"Mispredicted levin from {caster.InstanceID:X} by {(_pendingCircles[index].activation - spell.NPCFinishAt).TotalSeconds}");
+                    ReportError($"Mispredicted levin from {caster.InstanceID:X} by {(_pendingCircles[index].activation - spell.NPCFinishAt).TotalSeconds}");
                 }
                 break;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

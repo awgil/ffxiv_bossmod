@@ -1,12 +1,12 @@
-namespace BossMod.Endwalker.Alliance.A36Eulogia;
+namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class FirstBlush : Components.GenericAOEs
+class FirstBlush(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(WPos position, Angle rotation, DateTime activation, uint AID)> _castersunsorted = [];
     private List<(WPos position, Angle rotation, DateTime activation)> _casters = [];
     private static readonly AOEShapeRect _shape = new(120, 12.5f);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
             yield return new(_shape, _casters[0].position, _casters[0].rotation, _casters[0].activation, ArenaColor.Danger);
@@ -14,7 +14,7 @@ class FirstBlush : Components.GenericAOEs
             yield return new(_shape, _casters[1].position, _casters[1].rotation, _casters[1].activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FirstBlush1 or AID.FirstBlush2 or AID.FirstBlush3 or AID.FirstBlush4)
         {
@@ -23,7 +23,7 @@ class FirstBlush : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (_casters.Count > 0 && (AID)spell.Action.ID is AID.FirstBlush1 or AID.FirstBlush2 or AID.FirstBlush3 or AID.FirstBlush4)
         {

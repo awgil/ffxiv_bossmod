@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x3671, // R7.500, x1
-};
+}
 
 public enum AID : uint
 {
@@ -13,52 +13,41 @@ public enum AID : uint
     Snowball = 27710, // Boss->location, 3.0s cast, range 8 circle
     Canopy = 27711, // Boss->players, no cast, range 12 120-degree cone cleave
     BackhandBlow = 27712, // Boss->self, 3.0s cast, range 12 120-degree cone
-};
+}
 
-class LeafstormRimestorm : Components.GenericAOEs
+class LeafstormRimestorm(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _rimestormExpected;
     private static readonly AOEShapeCircle _leafstorm = new(10);
     private static readonly AOEShapeCone _rimestorm = new(40, 90.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (module.PrimaryActor.CastInfo?.IsSpell(AID.Leafstorm) ?? false)
-            yield return new(_leafstorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
+        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.Leafstorm) ?? false)
+            yield return new(_leafstorm, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
 
-        if (module.PrimaryActor.CastInfo?.IsSpell(AID.Rimestorm) ?? false)
-            yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
+        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.Rimestorm) ?? false)
+            yield return new(_rimestorm, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
         else if (_rimestormExpected != default)
-            yield return new(_rimestorm, module.PrimaryActor.Position, module.PrimaryActor.CastInfo?.Rotation ?? module.PrimaryActor.Rotation, _rimestormExpected);
+            yield return new(_rimestorm, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo?.Rotation ?? Module.PrimaryActor.Rotation, _rimestormExpected);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.Leafstorm)
-            _rimestormExpected = module.WorldState.CurrentTime.AddSeconds(9.6f);
+        if (caster == Module.PrimaryActor && (AID)spell.Action.ID == AID.Leafstorm)
+            _rimestormExpected = WorldState.FutureTime(9.6f);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (caster == module.PrimaryActor && (AID)spell.Action.ID == AID.Rimestorm)
+        if (caster == Module.PrimaryActor && (AID)spell.Action.ID == AID.Rimestorm)
             _rimestormExpected = new();
     }
 }
 
-class Snowball : Components.LocationTargetedAOEs
-{
-    public Snowball() : base(ActionID.MakeSpell(AID.Snowball), 8) { }
-}
-
-class Canopy : Components.Cleave
-{
-    public Canopy() : base(ActionID.MakeSpell(AID.Canopy), new AOEShapeCone(12, 60.Degrees()), activeWhileCasting: false) { }
-}
-
-class BackhandBlow : Components.SelfTargetedAOEs
-{
-    public BackhandBlow() : base(ActionID.MakeSpell(AID.BackhandBlow), new AOEShapeCone(12, 60.Degrees())) { }
-}
+class Snowball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Snowball), 8);
+class Canopy(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Canopy), new AOEShapeCone(12, 60.Degrees()), activeWhileCasting: false);
+class BackhandBlow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BackhandBlow), new AOEShapeCone(12, 60.Degrees()));
 
 class AegeirosStates : StateMachineBuilder
 {
@@ -73,7 +62,4 @@ class AegeirosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10628)]
-public class Aegeiros : SimpleBossModule
-{
-    public Aegeiros(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Aegeiros(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

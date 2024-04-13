@@ -1,18 +1,18 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S2;
 
-class EgoDeath : BossComponent
+class EgoDeath(BossModule module) : BossComponent(module)
 {
     public BitMask InEventMask;
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.InEvent)
-            InEventMask.Set(module.Raid.FindSlot(actor.InstanceID));
+            InEventMask.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.InEvent)
-            InEventMask.Clear(module.Raid.FindSlot(actor.InstanceID));
+            InEventMask.Clear(Raid.FindSlot(actor.InstanceID));
     }
 }

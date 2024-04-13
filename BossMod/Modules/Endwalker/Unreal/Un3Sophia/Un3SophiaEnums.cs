@@ -12,7 +12,7 @@ public enum OID : uint
     Helper2 = 0x3E7B, // R0.500, x17, and more spawn during fight
     ArenaTilt = 0x1EA12C, // R2.000, x1, EventObj type
     RingOfPain = 0x1EA199, // R0.500, EventObj type, spawn during fight, voidzone
-};
+}
 
 public enum AID : uint
 {
@@ -65,10 +65,10 @@ public enum AID : uint
     ScalesOfWisdomRaidwide = 32198, // Helper2->self, no cast, range 80+R circle, raidwide
 
     Enrage = 32197, // Boss->self, no cast, range 45+R circle
-};
+}
 
 public enum IconID : uint
 {
     Pairs1 = 77, // player (dunno whether white or black)
     Pairs2 = 78, // player (dunno whether white or black)
-};
+}

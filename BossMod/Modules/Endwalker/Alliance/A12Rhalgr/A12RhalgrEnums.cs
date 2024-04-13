@@ -7,7 +7,7 @@ public enum OID : uint
     FistOfJudgment = 0x38D8, // R3.600, x1, blue portal
     LightningOrb = 0x38D9, // R2.000, spawn during fight
     Helper = 0x233C, // R0.500, x19
-};
+}
 
 public enum AID : uint
 {
@@ -48,4 +48,4 @@ public enum AID : uint
 
     BronzeWork = 28843, // Boss->self, 6.5s cast, visual (two sets of cones)
     BronzeLightning = 28857, // Helper->self, 7.0s cast, range 50 45-degree cone, 4 casts then 4 more casts
-};
+}

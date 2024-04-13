@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x38FA, // R5.997, x1
     Helper = 0x233C, // R0.500, x30
-};
+}
 
 public enum AID : uint
 {
@@ -21,4 +21,4 @@ public enum AID : uint
     LightningBoltAOE = 28898, // Helper->location, 3.0s cast, range 6 circle puddle
     BoltsFromTheBlue = 28899, // Boss->self, 5.0s cast, single-target, visual (raidwide)
     BoltsFromTheBlueAOE = 28900, // Helper->self, no cast, range 25 circle, raidwide
-};
+}

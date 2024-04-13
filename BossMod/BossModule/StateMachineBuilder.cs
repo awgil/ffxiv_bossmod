@@ -37,8 +37,8 @@ public class StateMachineBuilder
         }
 
         // note: usually components are deactivated automatically on phase change - manual deactivate is needed only for components that opt out of this (useful for components that need to maintain state across multiple phases)
-        public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.ActivateComponent<C>, condition);
-        public Phase DeactivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.DeactivateComponent<C>, condition); // TODO: reconsider...
+        public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent => OnEnter(_module.ActivateComponent<C>, condition);
+        public Phase DeactivateOnEnter<C>(bool condition = true) where C : BossComponent => OnEnter(_module.DeactivateComponent<C>, condition); // TODO: reconsider...
         public Phase DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(_module.DeactivateComponent<C>, condition);
     }
 
@@ -68,7 +68,7 @@ public class StateMachineBuilder
             return this;
         }
 
-        public State ActivateOnEnter<C>(bool condition = true) where C : BossComponent, new() => OnEnter(_module.ActivateComponent<C>, condition);
+        public State ActivateOnEnter<C>(bool condition = true) where C : BossComponent => OnEnter(_module.ActivateComponent<C>, condition);
         public State DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(_module.DeactivateComponent<C>, condition);
         public State ExecOnEnter<C>(Action<C> fn, bool condition = true) where C : BossComponent => OnEnter(() => { var c = _module.FindComponent<C>(); if (c != null) fn(c); }, condition);
         public State ExecOnExit<C>(Action<C> fn, bool condition = true) where C : BossComponent => OnExit(() => { var c = _module.FindComponent<C>(); if (c != null) fn(c); }, condition);
@@ -120,24 +120,18 @@ public class StateMachineBuilder
         return new(phase, Module);
     }
 
-    // create a phase triggered by primary actor's hp reaching specific threshold
-    public Phase HPPercentPhase(uint seqID, Action<uint> buildState, string name, float hpThreshold, float dur = -1)
-    {
-        var phase = SimplePhase(seqID, buildState, name, dur);
-        phase.Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur < Module.PrimaryActor.HP.Max * hpThreshold;
-        return phase;
-    }
-
     // create a phase for typical single-phase fight (triggered by primary actor dying)
     public Phase DeathPhase(uint seqID, Action<uint> buildState)
     {
-        return HPPercentPhase(seqID, buildState, "Boss death", 0, -1);
+        var phase = SimplePhase(seqID, buildState, "Boss death");
+        phase.Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.PrimaryActor.HP.Cur == 0;
+        return phase;
     }
 
     // create a single-state phase; useful for modules with trivial state machines
-    public Phase TrivialPhase(float enrage = 10000)
+    public Phase TrivialPhase(uint seqID = 0, float enrage = 10000)
     {
-        return DeathPhase(0, id => { SimpleState(id, enrage, "Enrage"); });
+        return DeathPhase(seqID, id => { SimpleState(id, enrage, "Enrage"); });
     }
 
     // create a simple state without any actions

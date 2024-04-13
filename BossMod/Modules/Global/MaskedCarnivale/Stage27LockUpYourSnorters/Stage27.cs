@@ -6,7 +6,7 @@ public enum OID : uint
     Bomb = 0x2CF9, //R=0.8
     MagitekExplosive = 0x2CEC, //R=0.8
     Helper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -17,54 +17,39 @@ public enum AID : uint
     Fungahhh = 19257, // Boss->self, no cast, range 8+R 90-degree cone, knockback 15 away from source
     Snort = 19266, // Boss->self, 10,0s cast, range 60+R circle, knockback 15 away from source
     MassiveExplosion = 19261, // 2CEC->self, no cast, range 60 circle, wipe, failed to destroy Magitek Explosive in time
-};
-
-class Fireball : Components.LocationTargetedAOEs
-{
-    public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 8) { }
 }
 
-class Snort : Components.KnockbackFromCastTarget
-{
-    public Snort() : base(ActionID.MakeSpell(AID.Snort), 15)
-    {
-        StopAtWall = true;
-    }
-}
+class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 8);
+class Snort(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Snort), 15, stopAtWall: true);
 
-class Fungah : Components.Knockback
+class Fungah(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
     private DateTime _activation;
     private List<Actor> _bombs = new();
     private bool otherpatterns;
     private static readonly AOEShapeCone cone = new(12.5f, 45.Degrees());
 
-    public Fungah()
-    {
-        StopAtWall = true;
-    }
-
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if ((_bombs.Count > 0 && _activation != default) || otherpatterns)
-            yield return new(module.PrimaryActor.Position, 15, _activation, cone, Direction: Angle.FromDirection(actor.Position - module.PrimaryActor.Position));
+            yield return new(Module.PrimaryActor.Position, 15, _activation, cone, Direction: Angle.FromDirection(actor.Position - Module.PrimaryActor.Position));
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Bomb)
             _bombs.Add(actor);
         if (_bombs.Count == 8)
-            _activation = module.WorldState.CurrentTime.AddSeconds(5);
-        if (module.Enemies(OID.MagitekExplosive).FirstOrDefault() != null)
-            if (module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(96, 94), 3) || module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(92, 100), 3) || module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(96, 106), 3) || module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(108, 100), 3))
+            _activation = WorldState.FutureTime(5);
+        if (Module.Enemies(OID.MagitekExplosive).FirstOrDefault() != null)
+            if (Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(96, 94), 3) || Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(92, 100), 3) || Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(96, 106), 3) || Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(108, 100), 3))
             {
-                _activation = module.WorldState.CurrentTime.AddSeconds(5.3f);
+                _activation = WorldState.FutureTime(5.3f);
                 otherpatterns = true;
             }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_bombs.Count > 0 && (AID)spell.Action.ID == AID.Explosion)
             _bombs.Clear();
@@ -75,10 +60,10 @@ class Fungah : Components.Knockback
         }
     }
 
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<Explosion>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Explosion>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class Explosion : Components.GenericAOEs
+class Explosion(BossModule module) : Components.GenericAOEs(module)
 {
     private List<Actor> _bombs = new();
     private List<Actor> _casters = new();
@@ -86,17 +71,17 @@ class Explosion : Components.GenericAOEs
     private DateTime _activation;
     private DateTime _snortingeffectends;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0 && _snortingeffectends == default)
             foreach (var c in _casters)
-                yield return new(circle, c.Position, activation: _activation);
-        if (_casters.Count > 0 && _snortingeffectends > module.WorldState.CurrentTime)
+                yield return new(circle, c.Position, default, _activation);
+        if (_casters.Count > 0 && _snortingeffectends > WorldState.CurrentTime)
             foreach (var c in _casters)
-                yield return new(circle, c.Position + Math.Min(15, module.Bounds.IntersectRay(c.Position, (c.Position - module.PrimaryActor.Position).Normalized()) - c.HitboxRadius / 2) * (c.Position - module.PrimaryActor.Position).Normalized(), activation: _activation);
+                yield return new(circle, c.Position + Math.Min(15, Module.Bounds.IntersectRay(c.Position, (c.Position - Module.PrimaryActor.Position).Normalized()) - c.HitboxRadius / 2) * (c.Position - Module.PrimaryActor.Position).Normalized(), default, _activation);
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (_bombs.Count > 0)
         {
@@ -104,20 +89,20 @@ class Explosion : Components.GenericAOEs
             if (glowingBomb != null)
             {
                 _casters = _bombs;
-                _activation = module.WorldState.CurrentTime.AddSeconds(6);
+                _activation = WorldState.FutureTime(6);
             }
         }
-        if (_snortingeffectends < module.WorldState.CurrentTime)
+        if (_snortingeffectends < WorldState.CurrentTime)
             _snortingeffectends = default;
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Bomb)
             _bombs.Add(actor);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_casters.Count > 0 && _bombs.Count > 0 && (AID)spell.Action.ID == AID.Explosion)
         {
@@ -126,41 +111,41 @@ class Explosion : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Snort)
             _snortingeffectends = spell.NPCFinishAt.AddSeconds(2.5f);
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"{module.PrimaryActor.Name} will spawn Bombs and Magitek Explosives throughout the fight.\nUse Snort to push away Bombs from Magitek Explosives and bait Fireballs\naway from the MEs. Meanwhile destroy the MEs asap because they will blow\nup on their own after about 35s. If any ME detonates you will be wiped.\nThe MEs are weak against water abilities and strong against fire attacks.");
+        hints.Add($"{Module.PrimaryActor.Name} will spawn Bombs and Magitek Explosives throughout the fight.\nUse Snort to push away Bombs from Magitek Explosives and bait Fireballs\naway from the MEs. Meanwhile destroy the MEs asap because they will blow\nup on their own after about 35s. If any ME detonates you will be wiped.\nThe MEs are weak against water abilities and strong against fire attacks.");
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
     private DateTime _activation;
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!module.Enemies(OID.MagitekExplosive).All(e => e.IsDead))
-            hints.Add($"A {module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Name} spawned, destroy it asap.");
+        if (!Module.Enemies(OID.MagitekExplosive).All(e => e.IsDead))
+            hints.Add($"A {Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Name} spawned, destroy it asap.");
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (module.Enemies(OID.MagitekExplosive).Any(e => e.IsTargetable))
-            hints.Add($"Explosion in ca.: {Math.Max(35 - (module.WorldState.CurrentTime - _activation).TotalSeconds, 0.0f):f1}s");
+        if (Module.Enemies(OID.MagitekExplosive).Any(e => e.IsTargetable))
+            hints.Add($"Explosion in ca.: {Math.Max(35 - (WorldState.CurrentTime - _activation).TotalSeconds, 0.0f):f1}s");
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.MagitekExplosive)
-            _activation = module.WorldState.CurrentTime;
-
+            _activation = WorldState.CurrentTime;
     }
 }
 

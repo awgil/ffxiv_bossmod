@@ -53,7 +53,7 @@ class IconInfo : CommonEnumInfo
             var sb = new StringBuilder("public enum IconID : uint\n{\n");
             foreach (var (iid, data) in _data)
                 sb.Append($"    {EnumMemberString(iid, data)}\n");
-            sb.Append("};\n");
+            sb.Append("}\n");
             ImGui.SetClipboardText(sb.ToString());
         }
 

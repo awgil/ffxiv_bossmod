@@ -7,7 +7,7 @@ public enum OID : uint
     GaleSphere = 0x3F59, // R1.000, x16
     GolbezsShadow = 0x3F5A, // R7.500, x4
     Helper = 0x233C, // R0.500, x25
-};
+}
 
 public enum AID : uint
 {
@@ -86,17 +86,17 @@ public enum AID : uint
     VoidBlizzard = 33890, // Helper->players, 6.0s cast, range 6 circle 4-man stack
     VoidAero = 33884, // Helper->players, 6.0s cast, range 3 circle 2-man stack
     VoidTornado = 33885, // Helper->players, 6.0s cast, range 6 circle 4-man stack
-};
+}
 
 public enum SID : uint
 {
     FlamesOfEventide = 3573, // Boss->player, extra=0x1/0x2
-};
+}
 
 public enum TetherID : uint
 {
     Cauterize = 17, // ShadowDragon->player
-};
+}
 
 public enum IconID : uint
 {
@@ -109,4 +109,4 @@ public enum IconID : uint
     AbyssalQuasar = 347, // player
     VoidBlizzard = 318, // player - also VoidTornado
     VoidAero = 451, // player
-};
+}

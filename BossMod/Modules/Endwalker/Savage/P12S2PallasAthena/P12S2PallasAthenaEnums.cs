@@ -9,7 +9,7 @@ public enum OID : uint
     ConceptOfWater = 0x3F38, // R1.000, spawn during fight (hexagon)
     ConceptOfEarth = 0x3F39, // R1.000, spawn during fight (square)
     ForbiddenFactor = 0x3F3A, // R1.000, spawn during fight (pangenesis slime)
-};
+}
 
 public enum AID : uint
 {
@@ -82,7 +82,7 @@ public enum AID : uint
     ExFactor = 33601, // Helper->players, no cast, range 60 circle, wipe if not enough slimes were spawned
 
     Ignorabimus = 33609, // Boss->self, 15.0s cast, range 100 circle, enrage
-};
+}
 
 public enum SID : uint
 {
@@ -103,7 +103,7 @@ public enum SID : uint
     //_Gen_MissingLink = 3587, // none->player, extra=0x0
     //_Gen_ShackledTogether = 3588, // none->player, extra=0x0
     //_Gen_EntropyResistance = 3617, // none->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
@@ -117,7 +117,7 @@ public enum IconID : uint
     CaloricTheory1InitialFire = 303, // player
     CaloricTheory2InitialWind = 469, // player
     CaloricTheory2InitialFire = 470, // player
-};
+}
 
 public enum TetherID : uint
 {
@@ -126,4 +126,4 @@ public enum TetherID : uint
     ClassicalConceptsShapes = 1, // ConceptOfEarth/ConceptOfFire/Hemitheos->player/ConceptOfWater
     BiochemicalFactor = 213, // player->player
     FactorIn = 84, // ForbiddenFactor->player
-};
+}

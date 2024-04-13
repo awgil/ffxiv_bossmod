@@ -1,36 +1,36 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
-class BalefulBlade : BossComponent
+class BalefulBlade(BossModule module) : BossComponent(module)
 {
     private bool _phantomEdge;
 
     private static readonly AOEShapeCone _shapeFront = new(DRS1.BarricadeRadius, 22.5f.Degrees());
     private static readonly AOEShapeDonutSector _shapeBehind = new(DRS1.BarricadeRadius, 30, 22.5f.Degrees());
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        hints.Add(_phantomEdge ? "Stay in front of barricade!" : "Hide behind barricade!", !IsSafe(module, actor));
+        hints.Add(_phantomEdge ? "Stay in front of barricade!" : "Hide behind barricade!", !IsSafe(actor));
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         AOEShape shape = _phantomEdge ? _shapeFront : _shapeBehind;
         for (int i = 0; i < 4; ++i)
         {
             var center = (45 + i * 90).Degrees();
-            shape.Draw(arena, module.Bounds.Center, center, ArenaColor.SafeFromAOE);
+            shape.Draw(Arena, Module.Bounds.Center, center, ArenaColor.SafeFromAOE);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BalefulBlade2)
             _phantomEdge = true;
     }
 
-    public bool IsSafe(BossModule module, Actor actor)
+    public bool IsSafe(Actor actor)
     {
-        var offset = actor.Position - module.Bounds.Center;
+        var offset = actor.Position - Module.Bounds.Center;
         var angle = Angle.FromDirection(offset).Rad; // 4 barricades to check, at +-45 and +-135
         angle = Math.Abs(angle); // fold around z axis, leaving two barricades to check - at 45 and 135
         angle = Math.Abs(angle - 90.Degrees().Rad); // rotate and fold again, leaving one barricade at 45 +- 22.5

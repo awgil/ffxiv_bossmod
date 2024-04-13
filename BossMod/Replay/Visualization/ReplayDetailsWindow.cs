@@ -57,7 +57,7 @@ class ReplayDetailsWindow : UIWindow
         if (_mgr.ActiveModule != null)
         {
             var drawTimerPre = DateTime.Now;
-            _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, null, true, true);
+            _mgr.ActiveModule.Draw(_azimuth / 180 * MathF.PI, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
 
             var compList = string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name));
@@ -275,7 +275,7 @@ class ReplayDetailsWindow : UIWindow
         if (_mgr.ActiveModule == null)
             return;
 
-        DrawEnemyTable(_mgr.ActiveModule.PrimaryActor.OID, new Actor[] { _mgr.ActiveModule.PrimaryActor });
+        DrawEnemyTable(_mgr.ActiveModule.PrimaryActor.OID, _mgr.ActiveModule.RelevantEnemies.GetValueOrDefault(_mgr.ActiveModule.PrimaryActor.OID) ?? [_mgr.ActiveModule.PrimaryActor]);
         foreach ((var oid, var list) in _mgr.ActiveModule.RelevantEnemies)
         {
             if (oid != _mgr.ActiveModule.PrimaryActor.OID)

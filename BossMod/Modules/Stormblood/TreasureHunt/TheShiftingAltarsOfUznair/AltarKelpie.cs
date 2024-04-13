@@ -12,7 +12,7 @@ public enum OID : uint
     AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-};
+}
 
 public enum AID : uint
 {
@@ -35,112 +35,56 @@ public enum AID : uint
     Pollen = 6452, // AltarQueen->self, 3,5s cast, range 6+R circle
     HeirloomScream = 6451, // AltarTomato->self, 3,5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-};
-
-class Innocence : Components.LocationTargetedAOEs
-{
-    public Innocence() : base(ActionID.MakeSpell(AID.Innocence), 5) { }
 }
 
-class HydroPush : Components.SelfTargetedAOEs
-{
-    public HydroPush() : base(ActionID.MakeSpell(AID.HydroPush), new AOEShapeRect(49.4f, 22, 5)) { }
-}
+class Innocence(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Innocence), 5);
+class HydroPush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HydroPush), new AOEShapeRect(49.4f, 22, 5));
 
-class BloodyPuddle : Components.GenericAOEs
+class BloodyPuddle(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCircle circle = new(11.2f);
     private readonly List<Actor> _spheres = [];
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var s in _spheres)
-            yield return new(circle, s.Position, activation: _activation);
+            yield return new(circle, s.Position, default, _activation);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Hydrosphere)
         {
             _spheres.Add(actor);
-            _activation = module.WorldState.CurrentTime.AddSeconds(8.6f);
+            _activation = WorldState.FutureTime(8.6f);
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.BloodyPuddle)
             _spheres.Clear();
     }
 }
 
-class Torpedo : Components.SingleTargetDelayableCast
+class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Torpedo));
+class RisingSeas(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RisingSeas));
+class HydroPushKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward, stopAtWall: true);
+
+class RisingSeasKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.RisingSeas), 20, stopAtWall: true)
 {
-    public Torpedo() : base(ActionID.MakeSpell(AID.Torpedo)) { }
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<BloodyPuddle>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class RisingSeas : Components.RaidwideCast
-{
-    public RisingSeas() : base(ActionID.MakeSpell(AID.RisingSeas)) { }
-}
-
-class HydroPushKB : Components.KnockbackFromCastTarget
-{
-    public HydroPushKB() : base(ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward)
-    {
-        StopAtWall = true;
-    }
-}
-
-class RisingSeasKB : Components.KnockbackFromCastTarget
-{
-    public RisingSeasKB() : base(ActionID.MakeSpell(AID.RisingSeas), 20)
-    {
-        StopAtWall = true;
-    }
-    public override bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => module.FindComponent<BloodyPuddle>()?.ActiveAOEs(module, slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
-}
-
-class RaucousScritch : Components.SelfTargetedAOEs
-{
-    public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
-}
-
-class Hurl : Components.LocationTargetedAOEs
-{
-    public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
-}
-
-class Spin : Components.Cleave
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
-}
-
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
-}
-
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
-}
-
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
-}
-
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
-}
-
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
-}
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
 class KelpieStates : StateMachineBuilder
 {
@@ -167,10 +111,8 @@ class KelpieStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7589)]
-public class Kelpie : BossModule
+public class Kelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Kelpie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

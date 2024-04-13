@@ -65,7 +65,7 @@ public enum AID : uint
     Scattering = 35993, // Helper->self, 3,0s cast, range 20 width 6 rect
     OrderedChaos = 36002, // Boss->self, no cast, single-target
     OrderedChaos2 = 36003, // Helper->player, 5,0s cast, range 5 circle
-};
+}
 
 public enum IconID : uint
 {
@@ -77,4 +77,4 @@ public enum IconID : uint
     Khadga5 = 458, // Helper, icon 5
     Khadga6 = 459, // Helper, icon 6
     Spreadmarker = 139, // player
-};
+}

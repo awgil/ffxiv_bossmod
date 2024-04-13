@@ -17,7 +17,7 @@ public enum OID : uint
     Monolith3 = 0x1E8708, // R2.000, x1, EventObj type
     Monolith4 = 0x1E8709, // R2.000, x1, EventObj type
     SpinyShield = 0x1E8F68, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -40,9 +40,9 @@ public enum AID : uint
     Gigastorm = 1555, // SpinyPlume->self, 3.0s cast, range 6+R circle aoe on death; after cast end shield spawns and stays active for ~10s
     Cyclone = 1556, // SpinyPlume->player, no cast, single-target, applies thermal low
     SuperCyclone = 1557, // SpinyPlume->location, no cast, deadly raidwide if thermal low reaches 3 stacks
-};
+}
 
 public enum SID : uint
 {
     ThermalLow = 379, // SpinyPlume->player, extra=0x1/0x2/0x3
-};
+}

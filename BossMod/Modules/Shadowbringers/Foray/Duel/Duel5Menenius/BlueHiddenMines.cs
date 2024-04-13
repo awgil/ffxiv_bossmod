@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
-internal class BlueHiddenMines : Components.GenericTowers
+class BlueHiddenMines(BossModule module) : Components.GenericTowers(module)
 {
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ActivateBlueMine)
         {
@@ -14,7 +14,7 @@ internal class BlueHiddenMines : Components.GenericTowers
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Towers.Count > 0)
         {

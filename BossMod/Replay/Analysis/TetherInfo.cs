@@ -56,7 +56,7 @@ class TetherInfo : CommonEnumInfo
             var sb = new StringBuilder("public enum TetherID : uint\n{\n");
             foreach (var (tid, data) in _data)
                 sb.Append($"    {EnumMemberString(tid, data)}\n");
-            sb.Append("};\n");
+            sb.Append("}\n");
             ImGui.SetClipboardText(sb.ToString());
         }
 

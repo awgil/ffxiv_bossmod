@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
-class GunberdShot : BossComponent
+class GunberdShot(BossModule module) : BossComponent(module)
 {
     private Actor? _gunberdCaster;
 
@@ -9,7 +9,7 @@ class GunberdShot : BossComponent
 
     public bool Gunberding { get; private set; }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (Gunberding)
         {
@@ -27,7 +27,7 @@ class GunberdShot : BossComponent
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -45,7 +45,7 @@ class GunberdShot : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -60,12 +60,12 @@ class GunberdShot : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Gunberding && windslicerLoaded)
         {
             var adjPos = Components.Knockback.AwayFromSource(pc.Position, _gunberdCaster, 10);
-            Components.Knockback.DrawKnockback(pc, adjPos, arena);
+            Components.Knockback.DrawKnockback(pc, adjPos, Arena);
         }
     }
 }

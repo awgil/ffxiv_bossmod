@@ -1,23 +1,21 @@
 ﻿namespace BossMod.Endwalker.Savage.P6SHegemone;
 
-class Agonies : Components.UniformStackSpread
+class Agonies(BossModule module) : Components.UniformStackSpread(module, 6, 15, 3)
 {
-    public Agonies() : base(6, 15, 3) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.AgoniesDarkburst1:
             case AID.AgoniesDarkburst2:
             case AID.AgoniesDarkburst3:
-                if (module.WorldState.Actors.Find(spell.TargetID) is var spreadTarget && spreadTarget != null)
+                if (WorldState.Actors.Find(spell.TargetID) is var spreadTarget && spreadTarget != null)
                     AddSpread(spreadTarget);
                 break;
             case AID.AgoniesUnholyDarkness1:
             case AID.AgoniesUnholyDarkness2:
             case AID.AgoniesUnholyDarkness3:
-                if (module.WorldState.Actors.Find(spell.TargetID) is var stackTarget && stackTarget != null)
+                if (WorldState.Actors.Find(spell.TargetID) is var stackTarget && stackTarget != null)
                     AddStack(stackTarget);
                 break;
             case AID.AgoniesDarkPerimeter1:
@@ -27,7 +25,7 @@ class Agonies : Components.UniformStackSpread
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {

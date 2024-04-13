@@ -8,7 +8,7 @@ public enum OID : uint
     UltimaIfrit = 0x38FF, // x1
     GraniteGaol = 0x38FE, // spawn during fight
     Helper = 0x233C, // x15
-};
+}
 
 public enum AID : uint
 {
@@ -42,72 +42,31 @@ public enum AID : uint
     TransitionFinish1 = 28994, // Boss->self, no cast, single-target, visual (lose buff)
     TransitionFinish2 = 28993, // Boss->self, no cast, single-target, visual (lose buff)
     TransitionFinish3 = 28995, // Boss->self, no cast, single-target, visual (lose buff)
-};
+}
 
 public enum SID : uint
 {
     Invincibility = 325, // none->Boss, extra=0x0
     VortexBarrier = 3012, // Boss->Boss, extra=0x0
-};
-
-class EarthenFury : Components.RaidwideCast
-{
-    public EarthenFury() : base(ActionID.MakeSpell(AID.EarthenFuryAOE)) { }
 }
 
-class Geocrush : Components.SelfTargetedAOEs
-{
-    public Geocrush() : base(ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(25)) { } // TODO: verify falloff...
-}
+class EarthenFury(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EarthenFuryAOE));
+class Geocrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(25)); // TODO: verify falloff...
+class Landslide1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Landslide1), new AOEShapeRect(40, 3));
+class Landslide2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Landslide2), new AOEShapeRect(40, 3));
+class WeightOfTheLand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLand), new AOEShapeCircle(6));
+class AerialBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AerialBlastAOE));
+class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStormAOE), new AOEShapeDonut(12.5f, 25));
+class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(23));
+class Hellfire(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HellfireAOE));
+class RadiantPlume(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlumeAOE), new AOEShapeCircle(8));
 
-class Landslide1 : Components.SelfTargetedAOEs
+class VulcanBurst(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.VulcanBurst), 15)
 {
-    public Landslide1() : base(ActionID.MakeSpell(AID.Landslide1), new AOEShapeRect(40, 3)) { }
-}
-
-class Landslide2 : Components.SelfTargetedAOEs
-{
-    public Landslide2() : base(ActionID.MakeSpell(AID.Landslide2), new AOEShapeRect(40, 3)) { }
-}
-
-class WeightOfTheLand : Components.SelfTargetedAOEs
-{
-    public WeightOfTheLand() : base(ActionID.MakeSpell(AID.WeightOfTheLand), new AOEShapeCircle(6)) { }
-}
-
-class AerialBlast : Components.RaidwideCast
-{
-    public AerialBlast() : base(ActionID.MakeSpell(AID.AerialBlastAOE)) { }
-}
-
-class EyeOfTheStorm : Components.SelfTargetedAOEs
-{
-    public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStormAOE), new AOEShapeDonut(12.5f, 25)) { }
-}
-
-class MistralShriek : Components.SelfTargetedAOEs
-{
-    public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(23)) { }
-}
-
-class Hellfire : Components.RaidwideCast
-{
-    public Hellfire() : base(ActionID.MakeSpell(AID.HellfireAOE)) { }
-}
-
-class RadiantPlume : Components.SelfTargetedAOEs
-{
-    public RadiantPlume() : base(ActionID.MakeSpell(AID.RadiantPlumeAOE), new AOEShapeCircle(8)) { }
-}
-
-class VulcanBurst : Components.KnockbackFromCastTarget
-{
-    public VulcanBurst() : base(ActionID.MakeSpell(AID.VulcanBurst), 15) { }
-
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(module.Bounds.Center, module.Bounds.HalfSize - Distance), Casters[0].CastInfo!.NPCFinishAt);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Bounds.Center, Module.Bounds.HalfSize - Distance), Casters[0].CastInfo!.NPCFinishAt);
     }
 }
 
@@ -131,10 +90,8 @@ class T04PortaDecumana1States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 1)]
-public class T04PortaDecumana1 : BossModule
+public class T04PortaDecumana1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-772, -600), 20))
 {
-    public T04PortaDecumana1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-772, -600), 20)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

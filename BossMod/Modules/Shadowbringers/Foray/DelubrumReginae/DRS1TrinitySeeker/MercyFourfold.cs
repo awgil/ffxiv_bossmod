@@ -1,15 +1,13 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
-class MercyFourfold : Components.GenericAOEs
+class MercyFourfold(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MercyFourfoldAOE))
 {
     public readonly List<AOEInstance> AOEs = new();
     private readonly List<AOEInstance?> _safezones = new();
     private static readonly AOEShapeCone _shapeAOE = new(50, 90.Degrees());
     private static readonly AOEShapeCone _shapeSafe = new(50, 45.Degrees());
 
-    public MercyFourfold() : base(ActionID.MakeSpell(AID.MercyFourfoldAOE)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (AOEs.Count > 0)
             yield return AOEs[0];
@@ -17,7 +15,7 @@ class MercyFourfold : Components.GenericAOEs
             yield return _safezones[0]!.Value;
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID != SID.Mercy)
             return;
@@ -45,12 +43,12 @@ class MercyFourfold : Components.GenericAOEs
         }
 
         var activationDelay = 15 - 1.3f * AOEs.Count;
-        AOEs.Add(new(_shapeAOE, actor.Position, dir, module.WorldState.CurrentTime.AddSeconds(activationDelay)));
+        AOEs.Add(new(_shapeAOE, actor.Position, dir, WorldState.FutureTime(activationDelay)));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
         {
             if (AOEs.Count > 0)

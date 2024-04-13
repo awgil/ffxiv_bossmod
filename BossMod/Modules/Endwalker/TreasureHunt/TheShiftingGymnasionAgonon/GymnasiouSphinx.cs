@@ -13,7 +13,7 @@ public enum OID : uint
     GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
     BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
-};
+}
 
 public enum AID : uint
 {
@@ -37,77 +37,22 @@ public enum AID : uint
     TearyTwirl = 32301, // GymnasticOnion->self, 3,5s cast, range 7 circle
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
     HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
-};
-
-class Scratch : Components.SingleTargetCast
-{
-    public Scratch() : base(ActionID.MakeSpell(AID.Scratch)) { }
 }
 
-class Explosion : Components.SelfTargetedAOEs
-{
-    public Explosion() : base(ActionID.MakeSpell(AID.Explosion), new AOEShapeDonut(3, 12)) { }
-}
-
-class FrigidPulse : Components.SelfTargetedAOEs
-{
-    public FrigidPulse() : base(ActionID.MakeSpell(AID.FrigidPulse), new AOEShapeDonut(12, 60)) { }
-}
-
-class FervidPulse : Components.SelfTargetedAOEs
-{
-    public FervidPulse() : base(ActionID.MakeSpell(AID.FervidPulse), new AOEShapeCross(50, 7)) { }
-}
-
-class MoltingPlumage : Components.RaidwideCast
-{
-    public MoltingPlumage() : base(ActionID.MakeSpell(AID.MoltingPlumage)) { }
-}
-
-class AlpineDraft : Components.SelfTargetedAOEs
-{
-    public AlpineDraft() : base(ActionID.MakeSpell(AID.AlpineDraft), new AOEShapeRect(45, 2.5f)) { }
-}
-
-class FeatherRain : Components.SpreadFromCastTargets
-{
-    public FeatherRain() : base(ActionID.MakeSpell(AID.FeatherRain), 6) { }
-}
-
-class AeroII : Components.LocationTargetedAOEs
-{
-    public AeroII() : base(ActionID.MakeSpell(AID.AeroII2), 4) { }
-}
-
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7)) { }
-}
-
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7)) { }
-}
-
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7)) { }
-}
-
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7)) { }
-}
-
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7)) { }
-}
-
-class HeavySmash : Components.LocationTargetedAOEs
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-}
+class Scratch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Scratch));
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeDonut(3, 12));
+class FrigidPulse(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrigidPulse), new AOEShapeDonut(12, 60));
+class FervidPulse(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FervidPulse), new AOEShapeCross(50, 7));
+class MoltingPlumage(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MoltingPlumage));
+class AlpineDraft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AlpineDraft), new AOEShapeRect(45, 2.5f));
+class FeatherRain(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FeatherRain), 6);
+class AeroII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AeroII2), 4);
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
 
 class SphinxStates : StateMachineBuilder
 {
@@ -133,10 +78,8 @@ class SphinxStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12016)]
-public class Sphinx : BossModule
+public class Sphinx(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Sphinx(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

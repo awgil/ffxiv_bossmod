@@ -15,7 +15,7 @@ public enum OID : uint
     SuperchainSpread = 0x3F33, // R0.600, spawn during fight
     SuperchainPairs = 0x3F34, // R0.600, spawn during fight
     PalladionVoidzone = 0x1E8FEA, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -94,7 +94,7 @@ public enum AID : uint
     TheosUltimaEnrage = 34134, // Boss->self, 7.0s cast, range 60 circle, enrage
     TransitionVisual = 33611, // Helper->self, 5.0s cast, range 10 width 40 rect, ??? (is interrupted 2s after start)
     TransitionStun = 33612, // Helper->location, no cast, range 60 circle (attract 60 + apply down for the count)
-};
+}
 
 public enum SID : uint
 {
@@ -111,7 +111,7 @@ public enum SID : uint
     //_Gen_ = 2056, // none->SuperchainOrigin, extra=0x247
     //_Gen_Concussion = 2944, // Boss->player, extra=0x0
     //_Gen_EnchainedSoul = 3585, // none->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
@@ -136,7 +136,7 @@ public enum IconID : uint
     Palladion6 = 438, // player
     Palladion7 = 439, // player
     Palladion8 = 440, // player
-};
+}
 
 public enum TetherID : uint
 {
@@ -149,4 +149,4 @@ public enum TetherID : uint
     SuperchainSpread = 230, // SuperchainSpread->SuperchainOrigin
     SuperchainPairs = 231, // SuperchainPairs->SuperchainOrigin
     UnnaturalEnchainment = 232, // Wing->Boss (destroyed platform)
-};
+}

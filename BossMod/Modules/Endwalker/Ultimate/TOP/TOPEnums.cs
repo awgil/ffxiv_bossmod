@@ -32,7 +32,7 @@ public enum OID : uint
 
     //_Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x1, EventObj type
     //_Gen_Exit = 0x1E850B, // R0.500, x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -239,7 +239,7 @@ public enum AID : uint
     CosmoMeteorVisualEnd = 31665, // BossP6->self, no cast, single-target, visual (?)
     MagicNumber = 31670, // BossP6->self, 5.0s cast, range 100 circle, raidwide requiring LB
     RunMi = 31648, // BossP6->self, 16.0s cast, range 100 circle, enrage
-};
+}
 
 public enum SID : uint
 {
@@ -280,7 +280,7 @@ public enum SID : uint
     HelloNearWorld = 3442, // none->player, extra=0x0
     HelloDistantWorld = 3443, // none->player, extra=0x0
     QuickeningDynamis = 3444, // Helper->player, extra=0x1/0x2/0x3
-};
+}
 
 public enum IconID : uint
 {
@@ -295,7 +295,7 @@ public enum IconID : uint
     RotateCW = 156, // LeftArmUnit/RightArmUnit
     RotateCCW = 157, // LeftArmUnit/RightArmUnit
     SigmaWaveCannon = 244, // player
-};
+}
 
 public enum TetherID : uint
 {
@@ -307,4 +307,4 @@ public enum TetherID : uint
     HWLocalTether = 224, // player->player - tether broken by moving close
     HWRemoteTether = 225, // player->player - tether broken by moving away
     SigmaHyperPulse = 17, // RightArmUnit->player
-};
+}

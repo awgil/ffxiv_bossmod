@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35C0, // R7.200, x1
-};
+}
 
 public enum AID : uint
 {
@@ -14,32 +14,13 @@ public enum AID : uint
     SonicHowl = 27272, // Boss->self, 5.0s cast, range 30 circle
     SteelFang = 27273, // Boss->player, 5.0s cast, single-target
     FangedLunge = 27274, // Boss->player, no cast, single-target
-};
-
-class EnergyWave : Components.SelfTargetedAOEs
-{
-    public EnergyWave() : base(ActionID.MakeSpell(AID.EnergyWave), new AOEShapeRect(40, 7)) { }
 }
 
-class TailSwipe : Components.SelfTargetedAOEs
-{
-    public TailSwipe() : base(ActionID.MakeSpell(AID.TailSwipe), new AOEShapeCone(25, 45.Degrees())) { }
-}
-
-class HeavyStomp : Components.SelfTargetedAOEs
-{
-    public HeavyStomp() : base(ActionID.MakeSpell(AID.HeavyStomp), new AOEShapeCircle(17)) { }
-}
-
-class SonicHowl : Components.RaidwideCast
-{
-    public SonicHowl() : base(ActionID.MakeSpell(AID.SonicHowl)) { }
-}
-
-class SteelFang : Components.SingleTargetCast
-{
-    public SteelFang() : base(ActionID.MakeSpell(AID.SteelFang)) { }
-}
+class EnergyWave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EnergyWave), new AOEShapeRect(40, 7));
+class TailSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSwipe), new AOEShapeCone(25, 45.Degrees()));
+class HeavyStomp(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavyStomp), new AOEShapeCircle(17));
+class SonicHowl(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SonicHowl));
+class SteelFang(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SteelFang));
 
 class ArchEtaStates : StateMachineBuilder
 {
@@ -55,7 +36,4 @@ class ArchEtaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10634)]
-public class ArchEta : SimpleBossModule
-{
-    public ArchEta(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class ArchEta(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

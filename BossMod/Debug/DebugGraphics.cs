@@ -14,6 +14,7 @@ class DebugGraphics
 
     private bool _showGraphicsLeafCharactersOnly = true;
     private Dictionary<IntPtr, WatchedRenderObject> _watchedRenderObjects = new();
+    private bool _overlayCircle = false;
     private Vector2 _overlayCenter = new(100, 100);
     private Vector2 _overlayStep = new(2, 2);
     private Vector2 _overlayMaxOffset = new(20, 20);
@@ -279,6 +280,7 @@ class DebugGraphics
         if (Camera.Instance == null || Service.ClientState.LocalPlayer == null)
             return;
 
+        ImGui.Checkbox("Circle", ref _overlayCircle);
         ImGui.DragFloat2("Center", ref _overlayCenter);
         ImGui.DragFloat2("Step", ref _overlayStep);
         ImGui.DragFloat2("Max offset", ref _overlayMaxOffset);
@@ -286,15 +288,31 @@ class DebugGraphics
         int mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
         int mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
         float y = Service.ClientState.LocalPlayer.Position.Y;
-        for (int ix = -mx; ix <= mx; ++ix)
+        if (_overlayCircle)
         {
-            var x = _overlayCenter.X + ix * _overlayStep.X;
-            Camera.Instance.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), ArenaColor.PC);
+            var center = new Vector3(_overlayCenter.X, y, _overlayCenter.Y);
+            for (int ir = 0; ir <= mx; ++ir)
+            {
+                Camera.Instance.DrawWorldCircle(center, ir * _overlayStep.X, ArenaColor.PC);
+            }
+            for (int ia = 0; ia < 8; ++ia)
+            {
+                var offset = ((ia * 22.5f.Degrees()).ToDirection() * _overlayMaxOffset.X).ToVec3();
+                Camera.Instance.DrawWorldLine(center - offset, center + offset, ArenaColor.PC);
+            }
         }
-        for (int iz = -mz; iz <= mz; ++iz)
+        else
         {
-            var z = _overlayCenter.Y + iz * _overlayStep.Y;
-            Camera.Instance.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
+            for (int ix = -mx; ix <= mx; ++ix)
+            {
+                var x = _overlayCenter.X + ix * _overlayStep.X;
+                Camera.Instance.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), ArenaColor.PC);
+            }
+            for (int iz = -mz; iz <= mz; ++iz)
+            {
+                var z = _overlayCenter.Y + iz * _overlayStep.Y;
+                Camera.Instance.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
+            }
         }
     }
 

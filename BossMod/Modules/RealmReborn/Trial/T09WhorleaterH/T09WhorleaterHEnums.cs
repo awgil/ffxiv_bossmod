@@ -14,7 +14,7 @@ public enum OID : uint
     Leviathan_Unk2 = 0xACD, // R0.500, x4
     ElementalConverter = 0xB84, // R0.500, x1
     SpinningDiveHelper = 0xA87, // R4.500, 523 type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -44,11 +44,11 @@ public enum AID : uint
     TidalWave = 1872, // Boss->self, no cast, range 60+R circle
     Dreadstorm = 1865, // Wavetooth Sahagin --> location, 3.0s cast, range 50, 6 circle
     Ruin = 2214, // Sahagin-->player --> 1.0s cast time
-};
+}
 
 public enum SID : uint
 {
     VeilOfTheWhorl = 478, // Boss->A88/Boss/A87, extra=0x64
     MantleOfTheWhorl = 477, // Tail->Tail, extra=0x64
     Invincibility = 775, // none->A88/Boss/Tail/A87, extra=0x0
-};
+}

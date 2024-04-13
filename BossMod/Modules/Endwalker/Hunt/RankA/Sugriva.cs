@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35FC, // R6.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -20,93 +20,74 @@ public enum AID : uint
     ApplyPrey = 27229, // Boss->player, 0.5s cast, single-target
 }
 
-class Twister : Components.KnockbackFromCastTarget
+class Twister(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Twister), 20, shape: new AOEShapeCircle(8))
 {
-    public Twister() : base(ActionID.MakeSpell(AID.Twister), 20, shape: new AOEShapeCircle(8)) { }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (Casters.Count > 0)
             hints.Add("Stack and knockback");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return Casters.FirstOrDefault()?.CastInfo?.TargetID == player.InstanceID ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         var caster = Casters.FirstOrDefault();
-        var target = caster != null ? module.WorldState.Actors.Find(caster.CastInfo!.TargetID) : null;
+        var target = caster != null ? WorldState.Actors.Find(caster.CastInfo!.TargetID) : null;
         if (target != null)
-            Shape!.Outline(arena, target);
+            Shape!.Outline(Arena, target);
     }
 }
 
-class Spark : Components.SelfTargetedAOEs
-{
-    public Spark() : base(ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30)) { }
-}
+class Spark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30));
+class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(17));
 
-class ScytheTail : Components.SelfTargetedAOEs
+class Butcher(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees()), endsOnCastEvent: true)
 {
-    public ScytheTail() : base(ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(17)) { }
-}
-
-class Butcher : Components.BaitAwayCast
-{
-    public Butcher() : base(ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees()))
-    {
-        EndsOnCastEvent = true;
-    }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (CurrentBaits.Count > 0)
             hints.Add("Tankbuster cleave");
     }
 }
 
-class Rip : Components.SelfTargetedAOEs
-{
-    public Rip() : base(ActionID.MakeSpell(AID.Rip), new AOEShapeCone(8, 60.Degrees())) { }
-}
+class Rip(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Rip), new AOEShapeCone(8, 60.Degrees()));
 
 // TODO: generalize to baited aoe
-class RockThrow : Components.GenericAOEs
+class RockThrow(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.RockThrowRest))
 {
     private Actor? _target;
     private static readonly AOEShapeCircle _shape = new(6);
 
-    public RockThrow() : base(ActionID.MakeSpell(AID.RockThrowRest)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (Active(module))
-            yield return new(_shape, module.PrimaryActor.CastInfo!.LocXZ, default, module.PrimaryActor.CastInfo.NPCFinishAt);
+        if (Active())
+            yield return new(_shape, Module.PrimaryActor.CastInfo!.LocXZ, default, Module.PrimaryActor.CastInfo.NPCFinishAt);
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return player == _target ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_target != null)
-            arena.AddCircle(_target.Position, _shape.Radius, ArenaColor.Danger);
+            Arena.AddCircle(_target.Position, _shape.Radius, ArenaColor.Danger);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.ApplyPrey:
                 NumCasts = 0;
-                _target = module.WorldState.Actors.Find(spell.TargetID);
+                _target = WorldState.Actors.Find(spell.TargetID);
                 if (_target?.Type == ActorType.Chocobo) //Player Chocobos are immune against prey, so mechanic doesn't happen if a chocobo gets selected
                     _target = null;
                 break;
@@ -117,13 +98,10 @@ class RockThrow : Components.GenericAOEs
         }
     }
 
-    private bool Active(BossModule module) => (module.PrimaryActor.CastInfo?.IsSpell() ?? false) && (AID)module.PrimaryActor.CastInfo!.Action.ID is AID.RockThrowFirst or AID.RockThrowRest;
+    private bool Active() => (Module.PrimaryActor.CastInfo?.IsSpell() ?? false) && (AID)Module.PrimaryActor.CastInfo!.Action.ID is AID.RockThrowFirst or AID.RockThrowRest;
 }
 
-class Crosswind : Components.RaidwideCast
-{
-    public Crosswind() : base(ActionID.MakeSpell(AID.Crosswind)) { }
-}
+class Crosswind(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Crosswind));
 
 class SugrivaStates : StateMachineBuilder
 {
@@ -141,7 +119,4 @@ class SugrivaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10626)]
-public class Sugriva : SimpleBossModule
-{
-    public Sugriva(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Sugriva(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

@@ -2,24 +2,24 @@
 
 class A22AlthykNymeiaStates : StateMachineBuilder
 {
-    private A22AlthykNymeia _module;
-
-    private bool IsDead(Actor? actor) => actor == null || actor.IsDestroyed || actor.IsDead;
+    private readonly A22AlthykNymeia _module;
 
     public A22AlthykNymeiaStates(A22AlthykNymeia module) : base(module)
     {
         _module = module;
         SimplePhase(0, SinglePhase, "Single phase")
             .ActivateOnEnter<Axioma>()
-            .Raw.Update = () => IsDead(_module.Althyk()) && IsDead(_module.Nymeia());
+            .Raw.Update = () => (_module.Althyk()?.IsDeadOrDestroyed ?? true) && (_module.Nymeia()?.IsDeadOrDestroyed ?? true);
     }
 
     private void SinglePhase(uint id)
     {
         ActorCast(id, _module.Nymeia, AID.SpinnersWheel, 10.3f, 4.5f);
-        Dictionary<SpinnersWheelSelect.Branch, (uint seqID, Action<uint> buildState)> dispatch = new();
-        dispatch[SpinnersWheelSelect.Branch.Gaze] = ((id >> 24) + 1, ForkGaze);
-        dispatch[SpinnersWheelSelect.Branch.StayMove] = ((id >> 24) + 2, ForkStayMove);
+        Dictionary<SpinnersWheelSelect.Branch, (uint seqID, Action<uint> buildState)> dispatch = new()
+        {
+            [SpinnersWheelSelect.Branch.Gaze] = ((id >> 24) + 1, ForkGaze),
+            [SpinnersWheelSelect.Branch.StayMove] = ((id >> 24) + 2, ForkStayMove)
+        };
         ComponentConditionFork<SpinnersWheelSelect, SpinnersWheelSelect.Branch>(id + 0x10, 0.9f, comp => comp.SelectedBranch != SpinnersWheelSelect.Branch.None, comp => comp.SelectedBranch, dispatch, "Gaze -or- stay/move")
             .ActivateOnEnter<SpinnersWheelSelect>()
             .DeactivateOnExit<SpinnersWheelSelect>();

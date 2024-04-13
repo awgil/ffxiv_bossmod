@@ -15,6 +15,7 @@ public static class ModuleRegistry
         public Type? TetherIDType;
         public Type? IconIDType;
         public uint PrimaryActorOID;
+        public Func<WorldState, Actor, BossModule> ModuleFactory;
 
         public BossModuleInfo.Maturity Maturity;
         public string Contributors = "";
@@ -160,6 +161,7 @@ public static class ModuleRegistry
         {
             ModuleType = moduleType;
             StatesType = statesType;
+            ModuleFactory = New<BossModule>.ConstructorDerived<WorldState, Actor>(moduleType);
         }
     }
 
@@ -183,15 +185,15 @@ public static class ModuleRegistry
 
     public static Info? FindByOID(uint oid) => _modules.GetValueOrDefault(oid);
 
-    public static BossModule? CreateModule(Type? type, WorldState ws, Actor primary)
+    public static BossModule? CreateModule(Info? info, WorldState ws, Actor primary)
     {
-        return type != null ? (BossModule?)Activator.CreateInstance(type, ws, primary) : null;
+        return info != null ? info.ModuleFactory(ws, primary) : null;
     }
 
     public static BossModule? CreateModuleForActor(WorldState ws, Actor primary, BossModuleInfo.Maturity minMaturity)
     {
         var info = primary.Type is ActorType.Enemy or ActorType.EventObj ? FindByOID(primary.OID) : null;
-        return info?.Maturity >= minMaturity ? CreateModule(info.ModuleType, ws, primary) : null;
+        return info?.Maturity >= minMaturity ? CreateModule(info, ws, primary) : null;
     }
 
     // TODO: this is a hack...
@@ -199,13 +201,13 @@ public static class ModuleRegistry
     {
         foreach (var i in _modules.Values)
             if (i.ConfigType == cfg)
-                return CreateModule(i.ModuleType, new(TimeSpan.TicksPerSecond, "fake"), new(0, i.PrimaryActorOID, -1, "", 0, ActorType.None, Class.None, 0, new()));
+                return CreateModule(i, new(TimeSpan.TicksPerSecond, "fake"), new(0, i.PrimaryActorOID, -1, "", 0, ActorType.None, Class.None, 0, new()));
         return null;
     }
 
     // TODO: this is a hack...
     public static BossModule? CreateModuleForTimeline(uint oid)
     {
-        return CreateModule(FindByOID(oid)?.ModuleType, new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, "", 0, ActorType.None, Class.None, 0, new()));
+        return CreateModule(FindByOID(oid), new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, "", 0, ActorType.None, Class.None, 0, new()));
     }
 }

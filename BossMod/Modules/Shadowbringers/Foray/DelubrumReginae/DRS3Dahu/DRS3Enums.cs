@@ -6,7 +6,7 @@ public enum OID : uint
     Marchosias = 0x30A9, // R2.500, spawn during fight
     CrownedMarchosias = 0x30AA, // R2.500, spawn during fight
     Helper = 0x233C, // R0.500, x20
-};
+}
 
 public enum AID : uint
 {
@@ -31,7 +31,7 @@ public enum AID : uint
     HystericAssault = 22392, // Boss->self, 5.0s cast, single-target, visual (knockback)
     HystericAssaultAOE = 23363, // Helper->self, no cast, range 50 circle, raidwide knockback 30
     Burn = 21603, // Helper->players, no cast, range 45 circle with ? falloff
-};
+}
 
 public enum IconID : uint
 {
@@ -42,4 +42,4 @@ public enum IconID : uint
     FirebreatheCW = 167, // Boss
     FirebreatheCCW = 168, // Boss
     Burn = 87, // player
-};
+}

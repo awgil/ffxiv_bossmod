@@ -456,7 +456,7 @@ public class ReplayParserLog : ReplayParser
                 OID = uint.Parse(parts[1], NumberStyles.HexNumber),
                 SpawnIndex = spawnIndex,
                 Name = parts[2],
-                Type = Enum.Parse<ActorType>(parts[3]),
+                Type = parts[3] == "Unknown" ? ActorType.Part : Enum.Parse<ActorType>(parts[3]),
                 Class = cls,
                 PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad),
                 HitboxRadius = radius,

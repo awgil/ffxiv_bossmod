@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x360A, // R6.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -17,9 +17,9 @@ public enum AID : uint
     QuintupleSneeze35 = 27693, // Boss->self, 0.5s cast, range 40 45-degree cone
     Uppercut = 27314, // Boss->self, 3.0s cast, range 15 120-degree cone
     RottenSpores = 27313, // Boss->location, 3.0s cast, range 6 circle
-};
+}
 
-class QuintupleSneeze : Components.GenericAOEs
+class QuintupleSneeze(BossModule module) : Components.GenericAOEs(module)
 {
     private Angle _referenceAngle;
     private readonly List<Angle> _pendingOffsets = [];
@@ -27,18 +27,18 @@ class QuintupleSneeze : Components.GenericAOEs
 
     private static readonly AOEShapeCone _shape = new(40, 45.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_nextSneeze != default)
         {
             if (_pendingOffsets.Count > 1)
-                yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[1], _nextSneeze.AddSeconds(2.2f));
+                yield return new(_shape, Module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[1], _nextSneeze.AddSeconds(2.2f));
             if (_pendingOffsets.Count > 0)
-                yield return new(_shape, module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[0], _nextSneeze, ArenaColor.Danger);
+                yield return new(_shape, Module.PrimaryActor.Position, _referenceAngle + _pendingOffsets[0], _nextSneeze, ArenaColor.Danger);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -59,25 +59,18 @@ class QuintupleSneeze : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (_pendingOffsets.Count > 0 && (AID)spell.Action.ID is AID.QuintupleSneeze1 or AID.QuintupleSneeze24 or AID.QuintupleSneeze35)
         {
             _pendingOffsets.RemoveAt(0);
-            _nextSneeze = module.WorldState.CurrentTime.AddSeconds(2.2f);
+            _nextSneeze = WorldState.FutureTime(2.2f);
         }
     }
 }
 
-class Uppercut : Components.SelfTargetedAOEs
-{
-    public Uppercut() : base(ActionID.MakeSpell(AID.Uppercut), new AOEShapeCone(15, 60.Degrees())) { }
-}
-
-class RottenSpores : Components.LocationTargetedAOEs
-{
-    public RottenSpores() : base(ActionID.MakeSpell(AID.RottenSpores), 6) { }
-}
+class Uppercut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Uppercut), new AOEShapeCone(15, 60.Degrees()));
+class RottenSpores(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RottenSpores), 6);
 
 class BurfurlurStates : StateMachineBuilder
 {
@@ -91,7 +84,4 @@ class BurfurlurStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10617)]
-public class Burfurlur : SimpleBossModule
-{
-    public Burfurlur(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Burfurlur(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

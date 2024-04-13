@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x26F4, // R=4.0
     Cyclops = 0x26F3, //R=3.2
     Helper = 0x233C, //R=0.5
-};
+}
 
 public enum AID : uint
 {
@@ -20,74 +20,43 @@ public enum AID : uint
     ZoomIn = 14873, // 26F4->player, 4,0s cast, width 8 rect unavoidable charge, knockback dist 20
     TenTonzeWave = 14876, // 26F4->self, 4,0s cast, range 40+R 60-degree cone
     TenTonzeWave2 = 15268, // 233C->self, 4,6s cast, range 10-20 donut
-};
-
-class OneOneOneOneTonzeSwing : Components.RaidwideCast
-{
-    public OneOneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Use Diamondback!") { }
 }
 
-class TenTonzeSlash : Components.SelfTargetedAOEs
-{
-    public TenTonzeSlash() : base(ActionID.MakeSpell(AID.TenTonzeSlash), new AOEShapeCone(44, 30.Degrees())) { }
-}
+class OneOneOneOneTonzeSwing(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Use Diamondback!");
+class TenTonzeSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TenTonzeSlash), new AOEShapeCone(44, 30.Degrees()));
+class OneOneOneTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OneOneOneTonzeSwing), new AOEShapeCircle(12));
+class CryOfRage(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CryOfRage));
+class TenTonzeWave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TenTonzeWave), new AOEShapeCone(44, 30.Degrees()));
+class TenTonzeWave2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TenTonzeWave2), new AOEShapeDonut(10, 20));
+class OneOneOneTonzeSwingKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.OneOneOneTonzeSwing), 20, shape: new AOEShapeCircle(12)); // actual knockback happens ~1.45s after snapshot
+class ZoomIn(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.ZoomIn), 4);
 
-class OneOneOneTonzeSwing : Components.SelfTargetedAOEs
-{
-    public OneOneOneTonzeSwing() : base(ActionID.MakeSpell(AID.OneOneOneTonzeSwing), new AOEShapeCircle(12)) { }
-}
-
-class CryOfRage : Components.CastGaze
-{
-    public CryOfRage() : base(ActionID.MakeSpell(AID.CryOfRage)) { }
-}
-
-class TenTonzeWave : Components.SelfTargetedAOEs
-{
-    public TenTonzeWave() : base(ActionID.MakeSpell(AID.TenTonzeWave), new AOEShapeCone(44, 30.Degrees())) { }
-}
-
-class TenTonzeWave2 : Components.SelfTargetedAOEs
-{
-    public TenTonzeWave2() : base(ActionID.MakeSpell(AID.TenTonzeWave2), new AOEShapeDonut(10, 20)) { }
-}
-
-class OneOneOneTonzeSwingKB : Components.KnockbackFromCastTarget //actual knockback happens ~1.45s after snapshot
-{
-    public OneOneOneTonzeSwingKB() : base(ActionID.MakeSpell(AID.OneOneOneTonzeSwing), 20, shape: new AOEShapeCircle(12)) { }
-}
-
-class ZoomIn : Components.BaitAwayChargeCast
-{
-    public ZoomIn() : base(ActionID.MakeSpell(AID.ZoomIn), 4) { }
-}
-
-class ZoomInKB : Components.Knockback //actual knockback happens ~0.7s after snapshot
+class ZoomInKB(BossModule module) : Components.Knockback(module) // actual knockback happens ~0.7s after snapshot
 {
     private DateTime _activation;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(module.PrimaryActor.Position, 20, _activation);
+            yield return new(Module.PrimaryActor.Position, 20, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ZoomIn)
             _activation = spell.NPCFinishAt;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ZoomIn)
             _activation = default;
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Tikbalang will spawn a cyclops a few seconds into the fight. Make sure\nto kill it before it reaches you. After that you can just slowly take down the\nboss. Use Diamondback to survive the 1111 Tonze Swing. Alternatively\nyou can try the Final Sting combo when he drops to about 75% health.\n(Off-guard->Bristle->Moonflute->Final Sting)");
     }

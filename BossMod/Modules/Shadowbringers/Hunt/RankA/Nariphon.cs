@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.Nariphon;
 public enum OID : uint
 {
     Boss = 0x2890, // R=6.0
-};
+}
 
 public enum AID : uint
 {
@@ -12,30 +12,27 @@ public enum AID : uint
     AllergenInjection = 16972, // 2890->player, 5,0s cast, range 6 circle
     RootsOfAtopy = 16971, // 2890->player, 5,0s cast, range 6 circle
     OdiousMiasma = 16970, // 2890->self, 3,0s cast, range 12 120-degree cone
-};
+}
 
 public enum SID : uint
 {
     PiercingResistanceDownII = 1435, // Boss->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
     Baitaway = 140, // player
     Stackmarker = 62, // player
-};
-
-class OdiousMiasma : Components.SelfTargetedAOEs
-{
-    public OdiousMiasma() : base(ActionID.MakeSpell(AID.OdiousMiasma), new AOEShapeCone(12, 60.Degrees())) { }
 }
 
-class AllergenInjection : Components.GenericBaitAway
+class OdiousMiasma(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OdiousMiasma), new AOEShapeCone(12, 60.Degrees()));
+
+class AllergenInjection(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Baitaway)
         {
@@ -45,7 +42,7 @@ class AllergenInjection : Components.GenericBaitAway
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AllergenInjection)
         {
@@ -54,36 +51,36 @@ class AllergenInjection : Components.GenericBaitAway
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (target == actor && targeted)
             hints.Add("Bait away!");
     }
 }
 
-class RootsOfAtopy : Components.GenericStackSpread
+class RootsOfAtopy(BossModule module) : Components.GenericStackSpread(module)
 {
     private BitMask _forbidden;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RootsOfAtopy)
-            Stacks.Add(new(module.WorldState.Actors.Find(spell.TargetID)!, 6, activation: spell.NPCFinishAt, forbiddenPlayers: _forbidden));
+            Stacks.Add(new(WorldState.Actors.Find(spell.TargetID)!, 6, activation: spell.NPCFinishAt, forbiddenPlayers: _forbidden));
     }
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.PiercingResistanceDownII)
-            _forbidden.Set(module.Raid.FindSlot(actor.InstanceID));
+            _forbidden.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.PiercingResistanceDownII)
-            _forbidden.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _forbidden.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.RootsOfAtopy)
             Stacks.RemoveAt(0);

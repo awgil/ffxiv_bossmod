@@ -7,7 +7,7 @@ public enum OID : uint
     AddSignifer = 0x38CC, // x2, and more spawn during fight
     AddLaquearius = 0x38CB, // x2, and more spawn during fight
     AddMagitekColossus = 0x394C, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -17,22 +17,11 @@ public enum AID : uint
     HighPoweredMagitekRay = 28773, // Boss->self, 5.0s cast, range 60 width 4 rect aoe
     RequestAssistance = 28774, // Boss->self, 4.0s cast, single-target, summon adds
     MagitekCannon = 28775, // Boss->location, 3.0s cast, range 6 circle aoe
-};
-
-class IncendiarySupport : Components.CastHint
-{
-    public IncendiarySupport() : base(ActionID.MakeSpell(AID.IncendiarySupport), "Raidwide x3") { }
 }
 
-class HighPoweredMagitekRay : Components.SelfTargetedAOEs
-{
-    public HighPoweredMagitekRay() : base(ActionID.MakeSpell(AID.HighPoweredMagitekRay), new AOEShapeRect(50, 2)) { }
-}
-
-class MagitekCannon : Components.LocationTargetedAOEs
-{
-    public MagitekCannon() : base(ActionID.MakeSpell(AID.MagitekCannon), 6) { }
-}
+class IncendiarySupport(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.IncendiarySupport), "Raidwide x3");
+class HighPoweredMagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HighPoweredMagitekRay), new AOEShapeRect(50, 2));
+class MagitekCannon(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekCannon), 6);
 
 class D131BlackEftStates : StateMachineBuilder
 {
@@ -51,7 +40,4 @@ class D131BlackEftStates : StateMachineBuilder
 // second wave = 2x colossus
 // third wave = 2x colossus + 2x signifier + 2x laquearius
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 15, NameID = 557)]
-public class D131BlackEft : BossModule
-{
-    public D131BlackEft(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(10, -40), 20)) { }
-}
+public class D131BlackEft(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(10, -40), 20));

@@ -18,22 +18,11 @@ public enum AID : uint
     SanctifiedAero = 16813, // 28F1->self, 5,0s cast, range 40 width 8 rect
     PunitiveLight = 16815, // Boss->self, 5,0s cast, range 20 circle
     Sanctification = 16814, // Boss->self, 5,0s cast, range 12 90-degree cone
-};
-
-class SanctifiedAero : Components.SelfTargetedAOEs
-{
-    public SanctifiedAero() : base(ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4)) { }
 }
 
-class PunitiveLight : Components.CastInterruptHint
-{ //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
-    public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true) { }
-}
-
-class Sanctification : Components.SelfTargetedAOEs
-{
-    public Sanctification() : base(ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees())) { }
-}
+class SanctifiedAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4));
+class PunitiveLight(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true);
+class Sanctification(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees()));
 
 class D050ForgivenPrejudiceStates : StateMachineBuilder
 {
@@ -48,20 +37,31 @@ class D050ForgivenPrejudiceStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8269)]
+
 public class D050ForgivenPrejudice : SimpleBossModule
 {
-    public D050ForgivenPrejudice(WorldState ws, Actor primary) : base(ws, primary) { }
+    public readonly IReadOnlyList<Actor> ForgivenPrejudice;
+    public readonly IReadOnlyList<Actor> ForgivenExtortion;
+    public readonly IReadOnlyList<Actor> ForgivenConformity;
+    public readonly IReadOnlyList<Actor> ForgivenVenery;
+    public readonly IReadOnlyList<Actor> ForgivenApathy;
+
+    public D050ForgivenPrejudice(WorldState ws, Actor primary) : base(ws, primary) 
+    {
+        ForgivenPrejudice = Enemies(OID.Boss);
+        ForgivenExtortion = Enemies(OID.ForgivenExtortion);
+        ForgivenConformity = Enemies(OID.ForgivenConformity);
+        ForgivenVenery = Enemies(OID.ForgivenVenery);
+        ForgivenApathy = Enemies(OID.ForgivenApathy);
+    }
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        foreach (var s in Enemies(OID.Boss))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenExtortion))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenConformity))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.ForgivenVenery))
-            Arena.Actor(s, ArenaColor.Enemy);
-
+        Arena.Actors(ForgivenPrejudice, ArenaColor.Enemy);
+        Arena.Actors(ForgivenConformity, ArenaColor.Enemy);
+        Arena.Actors(ForgivenExtortion, ArenaColor.Enemy);
+        Arena.Actors(ForgivenVenery, ArenaColor.Enemy);        
     }
-    protected override bool CheckPull() { return (!Enemies(OID.ForgivenApathy).Any(e => e.InCombat) || !Enemies(OID.ForgivenApathy).Any(e => e.IsTargetable)) && PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.ForgivenExtortion).Any(e => e.InCombat) || Enemies(OID.ForgivenConformity).Any(e => e.InCombat) || Enemies(OID.ForgivenVenery).Any(e => e.InCombat); }
+
+    protected override bool CheckPull() { return (!ForgivenApathy.Any(e => e.InCombat) || !ForgivenApathy.Any(e => e.IsTargetable)) && PrimaryActor.IsTargetable && PrimaryActor.InCombat || ForgivenExtortion.Any(e => e.InCombat) || ForgivenPrejudice.Any(e => e.InCombat) || ForgivenVenery.Any(e => e.InCombat); }
 }

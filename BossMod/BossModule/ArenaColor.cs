@@ -9,7 +9,7 @@ public static class ArenaColor
     public const uint SafeFromAOE = 0x80008000;
     public const uint Danger = 0xff00ffff;
     public const uint Safe = 0xff00ff00;
-    public const uint Trap = 0x80000080;
+    public const uint Trap = 0x80000080; // TODO: reconsider?
     public const uint PC = 0xff00ff00;
     public const uint Enemy = 0xff0000ff;
     public const uint Object = 0xff0080ff;

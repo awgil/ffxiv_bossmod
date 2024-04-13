@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
 [ConfigDisplay(Order = 0x201, Parent = typeof(EndwalkerConfig))]
-public class DSW2Config : CooldownPlanningConfigNode
+public class DSW2Config() : CooldownPlanningConfigNode(90)
 {
     [PropertyDisplay("P2 Sanctity of the Ward (charges): group assignments")]
-    [GroupDetails(new string[] { "West/Across", "East/Behind" })]
-    [GroupPreset("Default light parties", new[] { 0, 1, 0, 1, 0, 1, 0, 1 })]
-    [GroupPreset("Inverted light parties", new[] { 1, 0, 1, 0, 1, 0, 1, 0 })]
+    [GroupDetails(["West/Across", "East/Behind"])]
+    [GroupPreset("Default light parties", [0, 1, 0, 1, 0, 1, 0, 1])]
+    [GroupPreset("Inverted light parties", [1, 0, 1, 0, 1, 0, 1, 0])]
     public GroupAssignmentLightParties P2SanctityGroups = GroupAssignmentLightParties.DefaultLightParties();
 
     [PropertyDisplay("P2 Sanctity of the Ward (charges): groups relative to DRK (across/behind) rather than absolute (west/east)")]
@@ -16,9 +16,9 @@ public class DSW2Config : CooldownPlanningConfigNode
     public Role P2SanctitySwapRole;
 
     [PropertyDisplay("P2 Sanctity of the Ward (meteors): pair assignments")]
-    [GroupDetails(new string[] { "North", "East", "South", "West" })]
-    [GroupPreset("MT/R1 N, OT/R2 S, H1/M1 E, H2/M2 W", new[] { 0, 2, 1, 3, 1, 3, 0, 2 })]
-    [GroupPreset("MT/R1 N, OT/R2 S, H1/M1 W, H2/M2 E", new[] { 0, 2, 3, 1, 3, 1, 0, 2 })]
+    [GroupDetails(["North", "East", "South", "West"])]
+    [GroupPreset("MT/R1 N, OT/R2 S, H1/M1 E, H2/M2 W", [0, 2, 1, 3, 1, 3, 0, 2])]
+    [GroupPreset("MT/R1 N, OT/R2 S, H1/M1 W, H2/M2 E", [0, 2, 3, 1, 3, 1, 0, 2])]
     public GroupAssignmentDDSupportPairs P2Sanctity2Pairs = GroupAssignmentDDSupportPairs.DefaultOneMeleePerPair();
 
     public enum P2PreyCardinals
@@ -108,9 +108,9 @@ public class DSW2Config : CooldownPlanningConfigNode
     public bool P3DiveFromGraceLookWest = false;
 
     [PropertyDisplay("P3 enumeration towers: assignments")]
-    [GroupDetails(new string[] { "NW Flex", "NE Flex", "SE Flex", "SW Flex", "NW Stay", "NE Stay", "SE Stay", "SW Stay" })]
-    [GroupPreset("LPDU", new[] { 1, 3, 6, 0, 2, 4, 5, 7 })]
-    [GroupPreset("LPDU but CCW", new[] { 0, 2, 5, 7, 1, 3, 4, 6 })]
+    [GroupDetails(["NW Flex", "NE Flex", "SE Flex", "SW Flex", "NW Stay", "NE Stay", "SE Stay", "SW Stay"])]
+    [GroupPreset("LPDU", [1, 3, 6, 0, 2, 4, 5, 7])]
+    [GroupPreset("LPDU but CCW", [0, 2, 5, 7, 1, 3, 4, 6])]
     public GroupAssignmentUnique P3DarkdragonDiveCounterGroups = GroupAssignmentUnique.Default();
 
     [PropertyDisplay("P3 enumeration towers: prefer flexing to CCW tower (rather than to CW)")]
@@ -130,6 +130,4 @@ public class DSW2Config : CooldownPlanningConfigNode
 
     [PropertyDisplay("P6 Mortal Vow pass order")]
     public P6MortalVow P6MortalVowOrder = P6MortalVow.None;
-
-    public DSW2Config() : base(90) { }
 }

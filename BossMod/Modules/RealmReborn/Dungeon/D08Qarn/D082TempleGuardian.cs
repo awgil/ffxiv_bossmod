@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x6DB, // x1
     GolemSoulstone = 0x7FA, // x1, Part type, and more spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -14,22 +14,11 @@ public enum AID : uint
     Rockslide = 1419, // Boss->self, 2.5s cast, range 16.2 width 8 rect aoe
     StoneSkull = 1416, // Boss->player, no cast, random single-target
     Obliterate = 680, // Boss->self, 2.0s cast, range 6? ??? aoe
-};
-
-class BoulderClap : Components.SelfTargetedLegacyRotationAOEs
-{
-    public BoulderClap() : base(ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14.2f, 60.Degrees())) { }
 }
 
-class TrueGrit : Components.SelfTargetedLegacyRotationAOEs
-{
-    public TrueGrit() : base(ActionID.MakeSpell(AID.TrueGrit), new AOEShapeCone(14.2f, 60.Degrees())) { }
-}
-
-class Rockslide : Components.SelfTargetedLegacyRotationAOEs
-{
-    public Rockslide() : base(ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(16.2f, 4)) { }
-}
+class BoulderClap(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14.2f, 60.Degrees()));
+class TrueGrit(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.TrueGrit), new AOEShapeCone(14.2f, 60.Degrees()));
+class Rockslide(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(16.2f, 4));
 
 class D082TempleGuardianStates : StateMachineBuilder
 {
@@ -43,10 +32,8 @@ class D082TempleGuardianStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1569)]
-public class D082TempleGuardian : BossModule
+public class D082TempleGuardian(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(50, -10), 15))
 {
-    public D082TempleGuardian(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(50, -10), 15)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

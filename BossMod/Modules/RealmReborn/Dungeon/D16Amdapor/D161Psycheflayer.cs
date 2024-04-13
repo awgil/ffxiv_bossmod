@@ -7,7 +7,7 @@ public enum OID : uint
     StoneMarionette = 0x5D2, // x1
     MarbleMarionette = 0x5D3, // x1
     MegalithMarionette = 0x5D4, // x1
-};
+}
 
 public enum AID : uint
 {
@@ -25,47 +25,16 @@ public enum AID : uint
     Rockslide = 1086, // StoneMarionette->self, 2.5s cast, range 11+R width 8 rect
     Obliterate = 1088, // MarbleMarionette->self, 3.0s cast, raidwide
     Plaincracker = 1087, // MegalithMarionette->self, 7.0s cast, range 25+R circle
-};
-
-class VoidFireCleave : Components.Cleave
-{
-    public VoidFireCleave() : base(ActionID.MakeSpell(AID.VoidFireCleave), new AOEShapeCircle(5), originAtTarget: true) { }
 }
 
-class VoidFireAOE : Components.LocationTargetedAOEs
-{
-    public VoidFireAOE() : base(ActionID.MakeSpell(AID.VoidFireAOE), 5) { }
-}
-
-class VoidThunder : Components.SingleTargetCast
-{
-    public VoidThunder() : base(ActionID.MakeSpell(AID.VoidThunder), "Interruptible tankbuster") { }
-}
-
-class MindMelt : Components.RaidwideCast
-{
-    public MindMelt() : base(ActionID.MakeSpell(AID.MindMelt), "Interruptible raidwide") { }
-}
-
-class Canker : Components.CastHint
-{
-    public Canker() : base(ActionID.MakeSpell(AID.Canker), "Interruptible debuff") { }
-}
-
-class Rockslide : Components.SelfTargetedAOEs
-{
-    public Rockslide() : base(ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(12.76f, 4)) { }
-}
-
-class Obliterate : Components.RaidwideCast
-{
-    public Obliterate() : base(ActionID.MakeSpell(AID.Obliterate)) { }
-}
-
-class Plaincracker : Components.SelfTargetedAOEs
-{
-    public Plaincracker() : base(ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(30.5f)) { }
-}
+class VoidFireCleave(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.VoidFireCleave), new AOEShapeCircle(5), originAtTarget: true);
+class VoidFireAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireAOE), 5);
+class VoidThunder(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.VoidThunder), "Interruptible tankbuster");
+class MindMelt(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MindMelt), "Interruptible raidwide");
+class Canker(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Canker), "Interruptible debuff");
+class Rockslide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(12.76f, 4));
+class Obliterate(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Obliterate));
+class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(30.5f));
 
 class D161PsycheflayerStates : StateMachineBuilder
 {

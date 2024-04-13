@@ -18,7 +18,7 @@ public enum OID : uint
 
     Helper = 0x233C, // R0.500, 523 type, spawn during fight
     Twister = 0x40CE, // R1.500, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -56,22 +56,17 @@ public enum AID : uint
     NCrossAttack = 35771, // NMonk->player, 5.0s cast, single-target tankbuster
     SHydroshot = 35793, // SMonk->player, 5.0s cast, single-target
     SCrossAttack = 35919, // SMonk->player, 5.0s cast, single-target tankbuster
-};
+}
 
-class Twister : Components.Adds
+class Twister(BossModule module) : Components.Adds(module, (uint)OID.Twister)
 {
-    public Twister() : base((uint)OID.Twister) { }
+    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
-
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var twister in Actors)
-            arena.ZoneCircle(twister.Position, 6, ArenaColor.AOE);
+            Arena.ZoneCircle(twister.Position, 6, ArenaColor.AOE);
     }
 }
 
-public abstract class C030Trash1 : BossModule
-{
-    public C030Trash1(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(0, 100), 20, 30)) { }
-}
+public abstract class C030Trash1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(0, 100), 20, 30));

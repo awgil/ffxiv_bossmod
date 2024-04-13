@@ -14,32 +14,13 @@ public enum AID : uint
     GiganticBlast = 28761, // Helper->self, 6.0s cast, range 8 aoe
     GrandSlam = 28764, // Boss->player, 5.0s cast, tankbuster
     ColossalSlam = 28763, // Boss->self, 4.0s cast, range 40 60-degree cone aoe
-};
-
-class GiganticSwing : Components.SelfTargetedAOEs
-{
-    public GiganticSwing() : base(ActionID.MakeSpell(AID.GiganticSwing), new AOEShapeDonut(4, 40)) { }
 }
 
-class GiganticSmash : Components.LocationTargetedAOEs
-{
-    public GiganticSmash() : base(ActionID.MakeSpell(AID.GiganticSmash), 10) { }
-}
-
-class GiganticBlast : Components.SelfTargetedAOEs
-{
-    public GiganticBlast() : base(ActionID.MakeSpell(AID.GiganticBlast), new AOEShapeCircle(8)) { }
-}
-
-class GrandSlam : Components.SingleTargetCast
-{
-    public GrandSlam() : base(ActionID.MakeSpell(AID.GrandSlam)) { }
-}
-
-class ColossalSlam : Components.SelfTargetedLegacyRotationAOEs
-{
-    public ColossalSlam() : base(ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(40, 30.Degrees())) { }
-}
+class GiganticSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GiganticSwing), new AOEShapeDonut(4, 40));
+class GiganticSmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GiganticSmash), 10);
+class GiganticBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GiganticBlast), new AOEShapeCircle(8));
+class GrandSlam(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.GrandSlam));
+class ColossalSlam(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.ColossalSlam), new AOEShapeCone(40, 30.Degrees()));
 
 class D033GygesStates : StateMachineBuilder
 {
@@ -55,7 +36,4 @@ class D033GygesStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 3, NameID = 101)]
-public class D033Gyges : BossModule
-{
-    public D033Gyges(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-100.42f, 6.67f), 20)) { }
-}
+public class D033Gyges(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-100.42f, 6.67f), 20));

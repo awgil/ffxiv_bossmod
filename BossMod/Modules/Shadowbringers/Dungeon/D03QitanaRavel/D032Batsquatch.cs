@@ -17,42 +17,15 @@ public enum AID : uint
     FallingRock2 = 15509, // 233C->self, 2,0s cast, range 2 circle
     FallingBoulder = 15511, // 233C->self, 2,0s cast, range 4 circle
     Towerfall = 15512, // 233C->self, 3,0s cast, range 15 30-degree cone
-};
-
-class Towerfall : Components.SelfTargetedAOEs
-{
-    public Towerfall() : base(ActionID.MakeSpell(AID.Towerfall), new AOEShapeCone(15, 15.Degrees())) { }
 }
 
-class Soundwave : Components.RaidwideCast
-{
-    public Soundwave() : base(ActionID.MakeSpell(AID.Soundwave), "Raidwide + towers fall") { }
-}
-
-class Subsonics : Components.RaidwideCast
-{
-    public Subsonics() : base(ActionID.MakeSpell(AID.Subsonics), "Raidwide x11") { }
-}
-
-class RipperFang : Components.SingleTargetDelayableCast
-{
-    public RipperFang() : base(ActionID.MakeSpell(AID.RipperFang)) { }
-}
-
-class FallingBoulder : Components.SelfTargetedAOEs
-{
-    public FallingBoulder() : base(ActionID.MakeSpell(AID.FallingBoulder), new AOEShapeCircle(4)) { }
-}
-
-class FallingRock : Components.SelfTargetedAOEs
-{
-    public FallingRock() : base(ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3)) { }
-}
-
-class FallingRock2 : Components.SelfTargetedAOEs
-{
-    public FallingRock2() : base(ActionID.MakeSpell(AID.FallingRock2), new AOEShapeCircle(2)) { }
-}
+class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Towerfall), new AOEShapeCone(15, 15.Degrees()));
+class Soundwave(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Soundwave), "Raidwide + towers fall");
+class Subsonics(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Subsonics), "Raidwide x11");
+class RipperFang(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.RipperFang));
+class FallingBoulder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingBoulder), new AOEShapeCircle(4));
+class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3));
+class FallingRock2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock2), new AOEShapeCircle(2));
 
 class D032BatsquatchStates : StateMachineBuilder
 {
@@ -70,7 +43,4 @@ class D032BatsquatchStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8232)]
-public class D032Batsquatch : BossModule
-{
-    public D032Batsquatch(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(62, -35), 15)) { }
-}
+public class D032Batsquatch(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(62, -35), 15));

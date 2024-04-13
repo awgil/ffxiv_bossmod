@@ -13,7 +13,7 @@ public enum OID : uint
     BlazingOrb = 0x30E3, // R1.500, spawn during fight (gives +1 temperature)
     RoaringOrb = 0x30E4, // R1.500, spawn during fight (gives +2 temperature)
     AvowedAvatar = 0x30E5, // R3.400, x11
-};
+}
 
 public enum AID : uint
 {
@@ -106,7 +106,7 @@ public enum AID : uint
     EnrageSecondary = 23355, // Helper->self, 12.6s cast, range 85 circle, enrage hitting second half of raid
     EnrageRepeat = 22869, // Boss->self, no cast, range 85 circle, enrage repeat in 3s
     EnrageRepeatSecondary = 23356, // Helper->self, 0.6s cast, range 85 circle, secondary enrage repeat in 3s
-};
+}
 
 public enum SID : uint
 {
@@ -132,4 +132,4 @@ public enum SID : uint
     HotBlade2 = 2298, // none->Boss/AvowedAvatar, extra=0x0
     ColdBlade1 = 2299, // none->AvowedAvatar, extra=0x0
     ColdBlade2 = 2300, // none->AvowedAvatar, extra=0x0
-};
+}

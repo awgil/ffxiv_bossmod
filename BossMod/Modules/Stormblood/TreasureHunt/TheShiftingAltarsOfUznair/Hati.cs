@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x2538, //R=5.4
     BossAdd = 0x2569, //R=3.0
     BossHelper = 0x233C,
-};
+}
 
 public enum AID : uint
 {
@@ -17,32 +17,13 @@ public enum AID : uint
     Netherwind = 13741, // BossAdd->self, 3,0s cast, range 15+R width 4 rect
     BrainFreeze = 13361, // Boss->self, 4,0s cast, range 10+R circle, turns player into Imp
     PolarRoar = 13360, // Boss->self, 3,0s cast, range 9-40 donut
-};
-
-class PolarRoar : Components.SelfTargetedAOEs
-{
-    public PolarRoar() : base(ActionID.MakeSpell(AID.PolarRoar), new AOEShapeDonut(9, 40)) { }
 }
 
-class Hellstorm : Components.LocationTargetedAOEs
-{
-    public Hellstorm() : base(ActionID.MakeSpell(AID.Hellstorm2), 10) { }
-}
-
-class Netherwind : Components.SelfTargetedAOEs
-{
-    public Netherwind() : base(ActionID.MakeSpell(AID.Netherwind), new AOEShapeRect(18, 2)) { }
-}
-
-class GlassyNova : Components.SelfTargetedAOEs
-{
-    public GlassyNova() : base(ActionID.MakeSpell(AID.GlassyNova), new AOEShapeRect(45.4f, 4)) { }
-}
-
-class BrainFreeze : Components.SelfTargetedAOEs
-{
-    public BrainFreeze() : base(ActionID.MakeSpell(AID.BrainFreeze), new AOEShapeCircle(15.4f)) { }
-}
+class PolarRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PolarRoar), new AOEShapeDonut(9, 40));
+class Hellstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hellstorm2), 10);
+class Netherwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Netherwind), new AOEShapeRect(18, 2));
+class GlassyNova(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GlassyNova), new AOEShapeRect(45.4f, 4));
+class BrainFreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrainFreeze), new AOEShapeCircle(15.4f));
 
 class HatiStates : StateMachineBuilder
 {
@@ -59,10 +40,8 @@ class HatiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7590)]
-public class Hati : BossModule
+public class Hati(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Hati(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

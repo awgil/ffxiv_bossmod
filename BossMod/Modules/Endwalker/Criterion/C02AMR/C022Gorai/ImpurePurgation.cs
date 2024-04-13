@@ -1,10 +1,8 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
 
-class ImpurePurgationBait : Components.BaitAwayEveryone
+class ImpurePurgationBait(BossModule module) : Components.BaitAwayEveryone(module, module.PrimaryActor, new AOEShapeCone(60, 22.5f.Degrees()))
 {
-    public ImpurePurgationBait() : base(new AOEShapeCone(60, 22.5f.Degrees())) { }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NImpurePurgationBait or AID.SImpurePurgationBait)
         {
@@ -14,9 +12,6 @@ class ImpurePurgationBait : Components.BaitAwayEveryone
     }
 }
 
-class ImpurePurgationAOE : Components.SelfTargetedAOEs
-{
-    public ImpurePurgationAOE(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(60, 22.5f.Degrees())) { }
-}
-class NImpurePurgationAOE : ImpurePurgationAOE { public NImpurePurgationAOE() : base(AID.NImpurePurgationAOE) { } }
-class SImpurePurgationAOE : ImpurePurgationAOE { public SImpurePurgationAOE() : base(AID.SImpurePurgationAOE) { } }
+class ImpurePurgationAOE(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(60, 22.5f.Degrees()));
+class NImpurePurgationAOE(BossModule module) : ImpurePurgationAOE(module, AID.NImpurePurgationAOE);
+class SImpurePurgationAOE(BossModule module) : ImpurePurgationAOE(module, AID.SImpurePurgationAOE);

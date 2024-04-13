@@ -1,16 +1,16 @@
 ﻿namespace BossMod.Endwalker.Alliance.A24Menphina;
 
-class LunarKiss : Components.GenericBaitAway
+class LunarKiss(BossModule module) : Components.GenericBaitAway(module)
 {
     private static readonly AOEShapeRect _shape = new(60, 3);
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.LunarKiss)
-            CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
+            CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.LunarKissAOE)
         {

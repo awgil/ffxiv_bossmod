@@ -11,7 +11,7 @@ public enum OID : uint
     AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     BonusAdd_AltarMatanga = 0x2545, // R3.420
-};
+}
 
 public enum AID : uint
 {
@@ -35,77 +35,22 @@ public enum AID : uint
     Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 120-degree cone
     RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
     Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
-};
-
-class RustingClaw : Components.SelfTargetedAOEs
-{
-    public RustingClaw() : base(ActionID.MakeSpell(AID.RustingClaw), new AOEShapeCone(12.6f, 60.Degrees())) { }
 }
 
-class TailDrive : Components.SelfTargetedAOEs
-{
-    public TailDrive() : base(ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(34.6f, 60.Degrees())) { }
-}
-
-class TheSpin : Components.SelfTargetedAOEs
-{
-    public TheSpin() : base(ActionID.MakeSpell(AID.TheSpin), new AOEShapeCircle(15)) { }
-}
-
-class WordsOfWoe : Components.SelfTargetedAOEs
-{
-    public WordsOfWoe() : base(ActionID.MakeSpell(AID.WordsOfWoe), new AOEShapeRect(49.6f, 3)) { }
-}
-
-class VengefulSoul : Components.LocationTargetedAOEs
-{
-    public VengefulSoul() : base(ActionID.MakeSpell(AID.VengefulSoul), 6) { }
-}
-
-class EyeOfTheFire : Components.CastGaze
-{
-    public EyeOfTheFire() : base(ActionID.MakeSpell(AID.EyeOfTheFire)) { }
-}
-
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
-}
-
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
-}
-
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
-}
-
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
-}
-
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
-}
-
-class RaucousScritch : Components.SelfTargetedAOEs
-{
-    public RaucousScritch() : base(ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees())) { }
-}
-
-class Hurl : Components.LocationTargetedAOEs
-{
-    public Hurl() : base(ActionID.MakeSpell(AID.Hurl), 6) { }
-}
-
-class Spin : Components.Cleave
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga) { }
-}
+class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustingClaw), new AOEShapeCone(12.6f, 60.Degrees()));
+class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailDrive), new AOEShapeCone(34.6f, 60.Degrees()));
+class TheSpin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheSpin), new AOEShapeCircle(15));
+class WordsOfWoe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WordsOfWoe), new AOEShapeRect(49.6f, 3));
+class VengefulSoul(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VengefulSoul), 6);
+class EyeOfTheFire(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EyeOfTheFire));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
 
 class BeastStates : StateMachineBuilder
 {
@@ -131,10 +76,8 @@ class BeastStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7588)]
-public class Beast : BossModule
+public class Beast(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Beast(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

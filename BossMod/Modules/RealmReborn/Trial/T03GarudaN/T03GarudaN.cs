@@ -7,7 +7,7 @@ public enum OID : uint
     EyeOfTheStormHelper = 0x622, // x1
     RazorPlumeP1 = 0xEE, // spawn during fight
     RazorPlumeP2 = 0x2B0, // spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -22,59 +22,42 @@ public enum AID : uint
     MistralSongP2 = 660, // Boss->self, 4.0s cast, range 30+1.7 ?-degree cone aoe
     MistralShriek = 661, // Boss->self, 4.0s cast, range 23+1.7 circle aoe
     Featherlance = 665, // RazorPlumeP1/RazorPlumeP2->self, no cast, range 8 circle, suicide attack if not killed in ~25s
-};
+}
 
 // disallow clipping monoliths
-class Friction : BossComponent
+class Friction(BossModule module) : BossComponent(module)
 {
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
-            foreach (var m in module.Enemies(OID.Monolith))
+        if (Module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
+            foreach (var m in Module.Enemies(OID.Monolith))
                 hints.AddForbiddenZone(ShapeDistance.Circle(m.Position, 5));
     }
 }
 
-class Downburst : Components.Cleave
-{
-    public Downburst() : base(ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 60.Degrees())) { }
-}
+class Downburst(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 60.Degrees()));
+class Slipstream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees()));
 
-class Slipstream : Components.SelfTargetedAOEs
+class MistralSongP1(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MistralSongP1), 31.7f, true)
 {
-    public Slipstream() : base(ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees())) { }
-}
-
-class MistralSongP1 : Components.CastLineOfSightAOE
-{
-    public MistralSongP1() : base(ActionID.MakeSpell(AID.MistralSongP1), 31.7f, true) { }
-    public override IEnumerable<Actor> BlockerActors(BossModule module) => module.Enemies(OID.Monolith);
+    public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Monolith);
 }
 
 // actual casts happen every ~6s after aerial blast cast
-class EyeOfTheStorm : Components.GenericAOEs
+class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.AerialBlast))
 {
     private AOEShapeDonut _shape = new(12, 25);
 
-    public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.AerialBlast)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (NumCasts > 0)
-            foreach (var c in module.Enemies(OID.EyeOfTheStormHelper))
+            foreach (var c in Module.Enemies(OID.EyeOfTheStormHelper))
                 yield return new(_shape, c.Position);
     }
 }
 
-class MistralSongP2 : Components.SelfTargetedAOEs
-{
-    public MistralSongP2() : base(ActionID.MakeSpell(AID.MistralSongP2), new AOEShapeCone(31.7f, 60.Degrees())) { }
-}
-
-class MistralShriek : Components.SelfTargetedAOEs
-{
-    public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(24.7f)) { }
-}
+class MistralSongP2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralSongP2), new AOEShapeCone(31.7f, 60.Degrees()));
+class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(24.7f));
 
 class T03GarudaNStates : StateMachineBuilder
 {

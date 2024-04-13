@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankS.Tarchia;
 public enum OID : uint
 {
     Boss = 0x2873, // R=9.86
-};
+}
 
 public enum AID : uint
 {
@@ -17,61 +17,34 @@ public enum AID : uint
     Trounce = 18027, // Boss->self, 4,0s cast, range 40 60-degree cone
     MetamorphicBlast = 18031, // Boss->self, 4,0s cast, range 40 circle
     Groundstorm = 18023, // Boss->self, 5,0s cast, range 5-40 donut
-};
-
-class WildHorn : Components.SelfTargetedAOEs
-{
-    public WildHorn() : base(ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(17, 60.Degrees())) { }
 }
 
-class Trounce : Components.SelfTargetedAOEs
-{
-    public Trounce() : base(ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(40, 30.Degrees())) { }
-}
+class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(17, 60.Degrees()));
+class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(40, 30.Degrees()));
+class Groundstorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Groundstorm), new AOEShapeDonut(5, 40));
+class MightySpin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MightySpin), new AOEShapeCircle(14));
+class ForestFire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForestFire), new AOEShapeCircle(15));
+class BafflementBulb(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BafflementBulb), "Pull + Temporary Misdirection -> Donut -> Out");
+class MetamorphicBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MetamorphicBlast));
 
-class Groundstorm : Components.SelfTargetedAOEs
-{
-    public Groundstorm() : base(ActionID.MakeSpell(AID.Groundstorm), new AOEShapeDonut(5, 40)) { }
-}
-
-class MightySpin : Components.SelfTargetedAOEs
-{
-    public MightySpin() : base(ActionID.MakeSpell(AID.MightySpin), new AOEShapeCircle(14)) { }
-}
-
-class ForestFire : Components.SelfTargetedAOEs
-{
-    public ForestFire() : base(ActionID.MakeSpell(AID.ForestFire), new AOEShapeCircle(15)) { }
-}
-
-class BafflementBulb : Components.CastHint
-{
-    public BafflementBulb() : base(ActionID.MakeSpell(AID.BafflementBulb), "Pull + Temporary Misdirection -> Donut -> Out") { }
-}
-
-class MetamorphicBlast : Components.RaidwideCast
-{
-    public MetamorphicBlast() : base(ActionID.MakeSpell(AID.MetamorphicBlast)) { }
-}
-
-class MightySpin2 : Components.GenericAOEs
+class MightySpin2(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeCircle circle = new(14);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default || NumCasts == 0)
-            yield return new(circle, module.PrimaryActor.Position, activation: _activation);
+            yield return new(circle, Module.PrimaryActor.Position, default, _activation);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Groundstorm)
             _activation = spell.NPCFinishAt.AddSeconds(4);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.MightySpin2 or AID.Trounce or AID.AutoAttack or AID.MightySpin or AID.WildHorn or AID.Groundstorm or AID.BafflementBulb or AID.MetamorphicBlast or AID.Groundstorm) //everything but Mightyspin2 is a failsafe incase player joins fight/starts replay record late and Numcasts is 0 because of it
             ++NumCasts;

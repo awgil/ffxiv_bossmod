@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-abstract class P4ForcedMarchDebuffs : BossComponent
+abstract class P4ForcedMarchDebuffs(BossModule module) : BossComponent(module)
 {
     public enum Debuff { None, LightBeacon, LightFollow, DarkBeacon, DarkFollow }
 
@@ -13,7 +13,7 @@ abstract class P4ForcedMarchDebuffs : BossComponent
     private static readonly float _minLightDistance = 22; // TODO: verify
     private static readonly float _maxDarkDistance = 5; // TODO: verify
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Done || Debuffs[slot] == Debuff.None)
             return;
@@ -27,19 +27,23 @@ abstract class P4ForcedMarchDebuffs : BossComponent
             case Debuff.DarkFollow:
                 if (DarkBeacon != null)
                 {
-                    if (!module.Bounds.Contains(Components.Knockback.AwayFromSource(actor.Position, DarkBeacon.Position, _forcedMarchDistance)))
+                    if (!Module.Bounds.Contains(Components.Knockback.AwayFromSource(actor.Position, DarkBeacon.Position, _forcedMarchDistance)))
                         hints.Add("Aim away from wall!");
                     if ((actor.Position - DarkBeacon.Position).LengthSq() > _maxDarkDistance * _maxDarkDistance)
                         hints.Add("Move closer to dark beacon!");
                 }
                 break;
         }
-
-        if (movementHints != null)
-            movementHints.Add(actor.Position, module.Bounds.Center + SafeSpotDirection(slot), ArenaColor.Safe);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (Done || Debuffs[slot] == Debuff.None)
+            return;
+        movementHints.Add(actor.Position, Module.Bounds.Center + SafeSpotDirection(slot), ArenaColor.Safe);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Done || Debuffs[pcSlot] == Debuff.None)
             return;
@@ -50,19 +54,19 @@ abstract class P4ForcedMarchDebuffs : BossComponent
                 if (LightBeacon != null)
                 {
                     var pos = (pc.Position - LightBeacon.Position).LengthSq() <= _forcedMarchDistance * _forcedMarchDistance ? LightBeacon.Position : pc.Position + _forcedMarchDistance * (LightBeacon.Position - pc.Position).Normalized();
-                    Components.Knockback.DrawKnockback(pc, pos, arena);
+                    Components.Knockback.DrawKnockback(pc, pos, Arena);
                 }
                 break;
             case Debuff.DarkFollow:
                 if (DarkBeacon != null)
                 {
                     var pos = Components.Knockback.AwayFromSource(pc.Position, DarkBeacon.Position, _forcedMarchDistance);
-                    Components.Knockback.DrawKnockback(pc, pos, arena);
+                    Components.Knockback.DrawKnockback(pc, pos, Arena);
                 }
                 break;
         }
 
-        arena.AddCircle(module.Bounds.Center + SafeSpotDirection(pcSlot), 1, ArenaColor.Safe);
+        Arena.AddCircle(Module.Bounds.Center + SafeSpotDirection(pcSlot), 1, ArenaColor.Safe);
     }
 
     protected abstract WDir SafeSpotDirection(int slot);

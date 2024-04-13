@@ -1,6 +1,6 @@
 namespace BossMod.Endwalker.Trial.T08Asura;
 
-class ManyFaces : Components.GenericAOEs
+class ManyFaces(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCone cone = new(20, 90.Degrees());
     private DateTime _activation;
@@ -9,15 +9,15 @@ class ManyFaces : Components.GenericAOEs
     private Angle _rotationWrath;
     private Angle _rotationDelight;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (delight)
-            yield return new(cone, module.Bounds.Center, _rotationDelight, activation: _activation);
+            yield return new(cone, Module.Bounds.Center, _rotationDelight, _activation);
         if (wrath)
-            yield return new(cone, module.Bounds.Center, _rotationWrath, activation: _activation);
+            yield return new(cone, Module.Bounds.Center, _rotationWrath, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.TheFaceOfWrathA or AID.TheFaceOfWrathB)
             delight = true;
@@ -35,7 +35,7 @@ class ManyFaces : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.TheFaceOfDelightSnapshot or AID.TheFaceOfWrathSnapshot)
         {

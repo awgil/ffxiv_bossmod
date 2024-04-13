@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x361B, // R6.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -20,13 +20,13 @@ public enum AID : uint
     OctupleSlammerRestR = 27500, // Boss->self, 1.0s cast, range 30 180-degree cone
     WildCharge = 27511, // Boss->players, no cast, width 8 rect charge
     BoneShaker = 27512, // Boss->self, 4.0s cast, range 30 circle
-};
+}
 
-class Slammer : Components.GenericRotatingAOE
+class Slammer(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -48,20 +48,17 @@ class Slammer : Components.GenericRotatingAOE
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (Sequences.Count > 0 && caster == module.PrimaryActor && (AID)spell.Action.ID is AID.LeftHammerSlammer or AID.RightHammerSlammer or AID.LeftHammerSecond or AID.RightHammerSecond
+        if (Sequences.Count > 0 && caster == Module.PrimaryActor && (AID)spell.Action.ID is AID.LeftHammerSlammer or AID.RightHammerSlammer or AID.LeftHammerSecond or AID.RightHammerSecond
             or AID.OctupleSlammerLCW or AID.OctupleSlammerRCW or AID.OctupleSlammerRestL or AID.OctupleSlammerRestR or AID.OctupleSlammerLCCW or AID.OctupleSlammerRCCW)
         {
-            AdvanceSequence(0, module.WorldState.CurrentTime);
+            AdvanceSequence(0, WorldState.CurrentTime);
         }
     }
 }
 
-class BoneShaker : Components.RaidwideCast
-{
-    public BoneShaker() : base(ActionID.MakeSpell(AID.BoneShaker)) { }
-}
+class BoneShaker(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BoneShaker));
 
 class GurangatchStates : StateMachineBuilder
 {
@@ -74,7 +71,4 @@ class GurangatchStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10631)]
-public class Gurangatch : SimpleBossModule
-{
-    public Gurangatch(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Gurangatch(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

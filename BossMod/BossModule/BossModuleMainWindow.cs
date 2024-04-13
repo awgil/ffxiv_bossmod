@@ -57,9 +57,9 @@ public class BossModuleMainWindow : UIWindow
         {
             try
             {
-                BossComponent.MovementHints? movementHints = _mgr.WindowConfig.ShowWorldArrows ? new() : null;
-                _mgr.ActiveModule.Draw(_mgr.WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints, !_mgr.WindowConfig.HintsInSeparateWindow, true);
-                DrawMovementHints(movementHints, _mgr.WorldState.Party.Player()?.PosRot.Y ?? 0);
+                _mgr.ActiveModule.Draw(_mgr.WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, !_mgr.WindowConfig.HintsInSeparateWindow, true);
+                if (_mgr.WindowConfig.ShowWorldArrows && _mgr.WorldState.Party[PartyState.PlayerSlot] is var pc && pc != null)
+                    DrawMovementHints(_mgr.ActiveModule.CalculateMovementHintsForRaidMember(PartyState.PlayerSlot, pc), pc.PosRot.Y);
             }
             catch (Exception ex)
             {

@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x360B, // R6.000, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,7 +15,7 @@ public enum AID : uint
     PrincessCacophony = 27322, // Boss->location, 5.0s cast, range 12 circle
     Banish = 27323, // Boss->player, 5.0s cast, single-target
     RemoveWhimsy = 27634, // Boss->self, no cast, single-target, removes whimsy debuffs
-};
+}
 
 public enum SID : uint
 {
@@ -25,37 +25,37 @@ public enum SID : uint
     ForwardWhimsy = 2958,
 }
 
-class PrincessThrenody : Components.GenericAOEs
+class PrincessThrenody(BossModule module) : Components.GenericAOEs(module)
 {
     private Angle _direction;
     private DateTime _activation;
 
     private static readonly AOEShapeCone _shape = new(40, 60.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(_shape, module.PrimaryActor.Position, _direction, _activation);
+            yield return new(_shape, Module.PrimaryActor.Position, _direction, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.PrincessThrenodyPrepare)
         {
-            _direction = spell.Rotation + ThrenodyDirection(module);
+            _direction = spell.Rotation + ThrenodyDirection();
             _activation = spell.NPCFinishAt.AddSeconds(2); //saw delays of upto ~0.3s higher because delay between Prepare and Resolve can vary
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.PrincessThrenodyResolve)
             _activation = default;
     }
 
-    private Angle ThrenodyDirection(BossModule module)
+    private Angle ThrenodyDirection()
     {
-        foreach (var s in module.PrimaryActor.Statuses)
+        foreach (var s in Module.PrimaryActor.Statuses)
         {
             switch ((SID)s.ID)
             {
@@ -65,30 +65,15 @@ class PrincessThrenody : Components.GenericAOEs
                 case SID.ForwardWhimsy: return 0.Degrees();
             }
         }
-        module.ReportError(this, "Failed to find whimsy status");
+        ReportError("Failed to find whimsy status");
         return default;
     }
 }
 
-class WhimsyAlaMode : Components.CastHint
-{
-    public WhimsyAlaMode() : base(ActionID.MakeSpell(AID.WhimsyAlaMode), "Select direction") { }
-}
-
-class AmorphicFlail : Components.SelfTargetedAOEs
-{
-    public AmorphicFlail() : base(ActionID.MakeSpell(AID.AmorphicFlail), new AOEShapeCircle(9)) { }
-}
-
-class PrincessCacophony : Components.LocationTargetedAOEs
-{
-    public PrincessCacophony() : base(ActionID.MakeSpell(AID.PrincessCacophony), 12) { }
-}
-
-class Banish : Components.SingleTargetCast
-{
-    public Banish() : base(ActionID.MakeSpell(AID.Banish)) { }
-}
+class WhimsyAlaMode(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.WhimsyAlaMode), "Select direction");
+class AmorphicFlail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AmorphicFlail), new AOEShapeCircle(9));
+class PrincessCacophony(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PrincessCacophony), 12);
+class Banish(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Banish));
 
 class MoussePrincessStates : StateMachineBuilder
 {
@@ -104,7 +89,4 @@ class MoussePrincessStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10630)]
-public class MoussePrincess : SimpleBossModule
-{
-    public MoussePrincess(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class MoussePrincess(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

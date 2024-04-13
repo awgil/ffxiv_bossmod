@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x42
     IllusoryHephaistosMovable = 0x3AE6, // R5.760, x4
     IllusoryHephaistosLanes = 0x3AE7, // R5.760, x8
-};
+}
 
 public enum AID : uint
 {
@@ -65,7 +65,7 @@ public enum AID : uint
     OrogenicAnnihilation = 31194, // Helper->self, no cast, raidwide from unsoaked tower
 
     Enrage = 31204, // Boss->self, 16.0s cast
-};
+}
 
 public enum SID : uint
 {
@@ -93,4 +93,4 @@ public enum SID : uint
     Supersplice = 3347, // none->player, extra=0x0 (HC 3-person stack)
     Everburn = 3406, // Helper->player, extra=0x0 (damage up after resurrection)
     InEvent = 2999, // none->player, extra=0x0
-};
+}

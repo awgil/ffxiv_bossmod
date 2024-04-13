@@ -11,7 +11,7 @@ public abstract class ArenaBounds
     // fields below are used for clipping
     public float MaxApproxError { get; private set; }
 
-    private Clip2D _clipper = new();
+    private readonly Clip2D _clipper = new();
     public IEnumerable<WPos> ClipPoly => _clipper.ClipPoly;
     public List<(WPos, WPos, WPos)> ClipAndTriangulate(ClipperLib.PolyTree poly) => _clipper.ClipAndTriangulate(poly);
     public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> poly) => _clipper.ClipAndTriangulate(poly);
@@ -49,7 +49,7 @@ public abstract class ArenaBounds
     {
         // TODO: think of a better way to do that (analytical clipping?)
         if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle.Rad <= 0)
-            return new();
+            return [];
 
         bool fullCircle = halfAngle.Rad >= MathF.PI;
         bool donut = innerRadius > 0;
@@ -71,13 +71,13 @@ public abstract class ArenaBounds
     public List<(WPos, WPos, WPos)> ClipAndTriangulateDonut(WPos center, float innerRadius, float outerRadius)
     {
         if (innerRadius >= outerRadius || innerRadius < 0)
-            return new();
+            return [];
         return ClipAndTriangulate(CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError));
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateTri(WPos a, WPos b, WPos c)
     {
-        return ClipAndTriangulate(new[] { a, b, c });
+        return ClipAndTriangulate([a, b, c]);
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateIsoscelesTri(WPos apex, WDir height, WDir halfBase)
@@ -97,7 +97,7 @@ public abstract class ArenaBounds
         var side = halfWidth * direction.OrthoR();
         var front = origin + lenFront * direction;
         var back = origin - lenBack * direction;
-        return ClipAndTriangulate(new[] { front + side, front - side, back - side, back + side });
+        return ClipAndTriangulate([front + side, front - side, back - side, back + side]);
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
@@ -109,7 +109,35 @@ public abstract class ArenaBounds
     {
         var dir = (end - start).Normalized();
         var side = halfWidth * dir.OrthoR();
-        return ClipAndTriangulate(new[] { start + side, start - side, end - side, end + side });
+        return ClipAndTriangulate([start + side, start - side, end - side, end + side]);
+    }
+
+    public static float Area(List<WPos> points)
+    {
+        float a = 0;
+        int len = points.Count;
+
+        for (int i = 0; i < len; i++)
+        {
+            int j = (i + 1) % len;
+            a += points[i].X * points[j].Z - points[j].X * points[i].Z;
+        }
+
+        return a / 2;
+    }
+
+    public static bool IsInside(WPos point, List<WPos> edge)
+    {
+        var d = (edge[1].X - edge[0].X) * (point.Z - edge[0].Z) - (edge[1].Z - edge[0].Z) * (point.X - edge[0].X);
+        return d >= 0;
+    }
+
+    public static WPos IntersectLineSegment(WPos p1, WPos p2, WPos p3, WPos p4)
+    {
+        var d = (p4.Z - p3.Z) * (p1.X - p3.X) + (-p4.X + p3.X) * (p1.Z - p3.Z);
+        var n = (p4.Z - p3.Z) * (p2.X - p1.X) + (-p4.X + p3.X) * (p2.Z - p1.Z);
+        var u = d / n;
+        return new WPos(p1.X + u * (p2.X - p1.X), p1.Z + u * (p2.Z - p1.Z));
     }
 }
 
@@ -207,65 +235,223 @@ public class ArenaBoundsRect : ArenaBounds
     }
 }
 
-// TODO: revise and reconsider, not convinced it needs to be here, and it's not well implemented
-public class ArenaBoundsTri : ArenaBounds
+//should work for any non self-intersecting polygon with a list of points, ClampToBounds does not deliver accurate results for positions outside of bounds yet
+public class ArenaBoundsPolygon : ArenaBounds
 {
-    private static readonly float sqrt3 = MathF.Sqrt(3);
+    public float HalfWidth { get; private set; }
+    public float HalfHeight { get; private set; }
+    public readonly List<WPos> Points;
 
-    public ArenaBoundsTri(WPos center, float sideLength) : base(center, sideLength * sqrt3 / 3) { } // HalfSize is the radius of the circumscribed circle
+    public ArenaBoundsPolygon(List<WPos> points) : base(CalculateHalfSizeAndCenter(points).Item3, MathF.Max(CalculateHalfSizeAndCenter(points).Item1, CalculateHalfSizeAndCenter(points).Item2))
+    {
+        Points = points;
+        (HalfWidth, HalfHeight, Center) = CalculateHalfSizeAndCenter(points);
+    }
+
+    private static (float, float, WPos) CalculateHalfSizeAndCenter(List<WPos> points)
+    {
+        float minX = float.MaxValue;
+        float maxX = float.MinValue;
+        float minY = float.MaxValue;
+        float maxY = float.MinValue;
+
+        foreach (var point in points)
+        {
+            minX = MathF.Min(minX, point.X);
+            maxX = MathF.Max(maxX, point.X);
+            minY = MathF.Min(minY, point.Z);
+            maxY = MathF.Max(maxY, point.Z);
+        }
+
+        float halfWidth = (maxX - minX) / 2;
+        float halfHeight = (maxY - minY) / 2;
+        WPos center = new((minX + maxX) / 2, (minY + maxY) / 2);
+
+        return (halfWidth, halfHeight, center);
+    }
 
     public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
     {
-        // Calculate the vertices of the equilateral triangle
-        var height = HalfSize * sqrt3; // Height of the equilateral triangle
-        var halfSide = HalfSize;
-        yield return Center + new WDir(-halfSide, height / 3);
-        yield return Center + new WDir(halfSide, height / 3);
-        yield return Center + new WDir(0, -2 * height / 3);
+        var clippedPolygon = new List<WPos>(Points);
+
+        for (int i = 0; i < 4; i++)
+        {
+            var edge = new List<WPos> { Center + new WDir(HalfSize + offset, -HalfSize - offset), Center + new WDir(HalfSize + offset, HalfSize + offset), Center + new WDir(-HalfSize - offset, HalfSize + offset), Center + new WDir(-HalfSize - offset, -HalfSize - offset) };
+            var input = clippedPolygon;
+            clippedPolygon = [];
+
+            for (int j = 0; j < input.Count; j++)
+            {
+                var v1 = input[j];
+                var v2 = input[(j + 1) % input.Count];
+
+                if (IsInside(v1, edge))
+                    clippedPolygon.Add(v1);
+                if (!IsInside(v1, edge) && IsInside(v2, edge))
+                {
+                    var intersection = IntersectLineSegment(v1, v2, edge[0], edge[1]);
+                    clippedPolygon.Add(intersection);
+                }
+            }
+
+            if (!IsInside(input[^1], edge) && IsInside(input[0], edge))
+            {
+                var intersection = IntersectLineSegment(input[^1], input[0], edge[0], edge[1]);
+                clippedPolygon.Add(intersection);
+            }
+        }
+
+        return clippedPolygon;
     }
 
-    public override Pathfinding.Map BuildMap(float resolution = 0.5f)
+    public override bool Contains(WPos position)
     {
-        // BuildMap implementation for equilateral triangle
-        // This is a simplified example and would need to be adapted based on specific pathfinding requirements
-        throw new NotImplementedException();
+        bool inside = false;
+        int j = Points.Count - 1;
+        float area = Area(Points);
+
+        if (area > 0)
+        {
+            for (int i = 0; i < Points.Count; i++)
+            {
+                if (Points[i].Z > position.Z)
+                {
+                    if (Points[j].Z <= position.Z && position.X <= (Points[j].X - Points[i].X) * (position.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
+                        inside = !inside;
+                }
+                else if (Points[j].Z > position.Z && position.X <= (Points[j].X - Points[i].X) * (position.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
+                    inside = !inside;
+                j = i;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < Points.Count; i++)
+            {
+                if (Points[i].Z < position.Z)
+                {
+                    if (Points[j].Z >= position.Z && position.X <= (Points[j].X - Points[i].X) * (position.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
+                        inside = !inside;
+                }
+                else if (Points[j].Z < position.Z && position.X <= (Points[j].X - Points[i].X) * (position.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
+                    inside = !inside;
+                j = i;
+            }
+        }
+
+        return inside;
     }
 
-    public override bool Contains(WPos p)
+    public override Pathfinding.Map BuildMap(float resolution)
     {
-        var a = Center + new WDir(-HalfSize, HalfSize * sqrt3 / 3);
-        var b = Center + new WDir(HalfSize, HalfSize * sqrt3 / 3);
-        var c = Center + new WDir(0, -2 * HalfSize * sqrt3 / 3);
+        float minX = float.MaxValue;
+        float maxX = float.MinValue;
+        float minY = float.MaxValue;
+        float maxY = float.MinValue;
 
-        bool b1 = Sign(p, a, b) < 0;
-        bool b2 = Sign(p, b, c) < 0;
-        bool b3 = Sign(p, c, a) < 0;
+        foreach (var point in Points)
+        {
+            minX = MathF.Min(minX, point.X);
+            maxX = MathF.Max(maxX, point.X);
+            minY = MathF.Min(minY, point.Z);
+            maxY = MathF.Max(maxY, point.Z);
+        }
 
-        return (b1 == b2) && (b2 == b3);
-    }
+        var center = new WPos((minX + maxX) / 2, (minY + maxY) / 2);
+        var map = new Pathfinding.Map(resolution, center, (maxX - minX) / 2, (maxY - minY) / 2);
 
-    private float Sign(WPos p1, WPos p2, WPos p3)
-    {
-        return (p1.X - p3.X) * (p2.Z - p3.Z) - (p2.X - p3.X) * (p1.Z - p3.Z);
+        float shape(WPos p)
+        {
+            bool inside = false;
+            int j = Points.Count - 1;
+            float area = Area(Points);
+
+            if (area > 0)
+            {
+                for (int i = 0; i < Points.Count; i++)
+                {
+                    if (Points[i].Z > p.Z)
+                    {
+                        if (Points[j].Z <= p.Z && p.X <= (Points[j].X - Points[i].X) * (p.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
+                            inside = !inside;
+                    }
+                    else if (Points[j].Z > p.Z && p.X <= (Points[j].X - Points[i].X) * (p.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
+                        inside = !inside;
+                    j = i;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Points.Count; i++)
+                {
+                    if (Points[i].Z < p.Z)
+                    {
+                        if (Points[j].Z >= p.Z && p.X <= (Points[j].X - Points[i].X) * (p.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
+                            inside = !inside;
+                    }
+                    else if (Points[j].Z < p.Z && p.X <= (Points[j].X - Points[i].X) * (p.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
+                        inside = !inside;
+                    j = i;
+                }
+            }
+
+            return inside ? float.PositiveInfinity : 0;
+        }
+        map.BlockPixelsInside(shape, 0, 0);
+        return map;
     }
 
     public override float IntersectRay(WPos origin, WDir dir)
     {
-        // Define triangle vertices
-        var a = Center + new WDir(-HalfSize, HalfSize * sqrt3 / 3);
-        var b = Center + new WDir(HalfSize, HalfSize * sqrt3 / 3);
-        var c = Center + new WDir(0, -2 * HalfSize * sqrt3 / 3);
-
-        // Ray-triangle intersection algorithm goes here
-        // This is a complex topic and requires a bit of math
-        // Placeholder for the actual intersection calculation
-        return float.NaN; // Return NaN to indicate that this method needs proper implementation
+        float minDistance = float.MaxValue;
+        for (int i = 0; i < Points.Count; i++)
+        {
+            int j = (i + 1) % Points.Count;
+            WPos p0 = Points[i];
+            WPos p1 = Points[j];
+            float distance = Intersect.RaySegment(origin, dir, p0, p1);
+            if (distance < minDistance)
+                minDistance = distance;
+        }
+        return minDistance;
     }
 
     public override WDir ClampToBounds(WDir offset, float scale = 1)
     {
-        // Clamping within a triangle is highly context-dependent
-        // This method needs a detailed implementation based on specific requirements
-        return new WDir(0, 0); // Placeholder to indicate that clamping logic is needed
+        WDir clampedOffset = offset;
+
+        int windingNumber = 0;
+
+        for (int i = 0; i < Points.Count; i++)
+        {
+            int j = (i + 1) % Points.Count;
+            WPos p1 = Points[i];
+            WPos p2 = Points[j];
+
+            if (p1.Z <= Center.Z)
+            {
+                if (p2.Z > Center.Z)
+                {
+                    float x = (Center.Z - p1.Z) / (p2.Z - p1.Z);
+                    if (Center.X < p1.X + x * (p2.X - p1.X))
+                        windingNumber++;
+                }
+            }
+            else
+            {
+                if (p2.Z <= Center.Z)
+                {
+                    float x = (Center.Z - p1.Z) / (p2.Z - p1.Z);
+                    if (Center.X >= p1.X + x * (p2.X - p1.X))
+                        windingNumber--;
+                }
+            }
+        }
+
+        float scaledHalfSize = HalfSize * scale;
+        if (clampedOffset.LengthSq() > scaledHalfSize * scaledHalfSize)
+            clampedOffset *= scaledHalfSize / clampedOffset.Length();
+
+        return clampedOffset;
     }
 }

@@ -9,7 +9,7 @@ public enum OID : uint
     AzureStar = 0x38C3, // x2, and more spawn for short time during fight
     DarkStar = 0x38C4, // x1
     Helper = 0x233C, // x16, and more spawn for short time during fight
-};
+}
 
 public enum AID : uint
 {
@@ -81,7 +81,7 @@ public enum AID : uint
 
     Enrage = 28721, // Boss->self, 5s cast, visual
     EnrageAOE = 28722, // Helper->self, 5s cast
-};
+}
 
 public enum SID : uint
 {

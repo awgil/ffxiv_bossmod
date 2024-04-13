@@ -40,7 +40,7 @@ public enum OID : uint
 
     //_Gen_Actor1EA1A1 = 0x1EA1A1, // R0.500-2.000, x8, EventObj type
     //_Gen_Actor1E8536 = 0x1E8536, // R0.500-2.000, x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -210,7 +210,7 @@ public enum AID : uint
     IrresistibleGrace = 18580, // PerfectAlexander->players, 5.0s cast, range 6 circle stack
     TemporalInterference = 18582, // PerfectAlexander->self, 5.0s cast, single-target, visual (enrage sequence start)
     TemporalPrison = 18583, // PerfectAlexander->self, 42.0s cast, range 100 circle, enrage
-};
+}
 
 public enum SID : uint
 {

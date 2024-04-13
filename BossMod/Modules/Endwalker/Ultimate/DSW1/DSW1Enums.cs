@@ -13,7 +13,7 @@ public enum OID : uint
     //_Gen_Haurchefant = 0x333D, // R0.500, x1
     //_Gen_Actorfd8a1 = 0xFD8A1, // R0.500-1.000, x1, EventNpc type
     //_Gen_Actor1eb681 = 0x1EB681, // R0.500, x0, EventObj type, and more spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -59,7 +59,7 @@ public enum AID : uint
     Shockwave = 25315, // SpearOfTheFury->self, no cast, raidwide, 7 casts every ~1.1s
     Brightwing = 25369, // Helper->self, no cast, range 18 ?-degree cone, baited on 2 closest targets
     Skyblind = 25370, // Helper->location, 2.5s cast, range 3 puddle
-};
+}
 
 public enum SID : uint
 {

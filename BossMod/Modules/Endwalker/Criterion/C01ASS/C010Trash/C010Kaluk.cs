@@ -4,7 +4,7 @@ public enum OID : uint
 {
     NBoss = 0x3AD6, // R2.800, x1
     SBoss = 0x3ADF, // R2.800, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,28 +15,19 @@ public enum AID : uint
     SRightSweep = 31099, // SBoss->self, 4.0s cast, range 30 210-degree cone aoe
     SLeftSweep = 31100, // SBoss->self, 4.0s cast, range 30 210-degree cone aoe
     SCreepingIvy = 31101, // SBoss->self, 3.0s cast, range 10 90-degree cone aoe
-};
-
-class RightSweep : Components.SelfTargetedAOEs
-{
-    public RightSweep(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(30, 105.Degrees())) { }
 }
-class NRightSweep : RightSweep { public NRightSweep() : base(AID.NRightSweep) { } }
-class SRightSweep : RightSweep { public SRightSweep() : base(AID.SRightSweep) { } }
 
-class LeftSweep : Components.SelfTargetedAOEs
-{
-    public LeftSweep(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(30, 105.Degrees())) { }
-}
-class NLeftSweep : LeftSweep { public NLeftSweep() : base(AID.NLeftSweep) { } }
-class SLeftSweep : LeftSweep { public SLeftSweep() : base(AID.SLeftSweep) { } }
+class RightSweep(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(30, 105.Degrees()));
+class NRightSweep(BossModule module) : RightSweep(module, AID.NRightSweep);
+class SRightSweep(BossModule module) : RightSweep(module, AID.SRightSweep);
 
-class CreepingIvy : Components.SelfTargetedAOEs
-{
-    public CreepingIvy(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(10, 45.Degrees())) { }
-}
-class NCreepingIvy : CreepingIvy { public NCreepingIvy() : base(AID.NCreepingIvy) { } }
-class SCreepingIvy : CreepingIvy { public SCreepingIvy() : base(AID.SCreepingIvy) { } }
+class LeftSweep(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(30, 105.Degrees()));
+class NLeftSweep(BossModule module) : LeftSweep(module, AID.NLeftSweep);
+class SLeftSweep(BossModule module) : LeftSweep(module, AID.SLeftSweep);
+
+class CreepingIvy(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(10, 45.Degrees()));
+class NCreepingIvy(BossModule module) : CreepingIvy(module, AID.NCreepingIvy);
+class SCreepingIvy(BossModule module) : CreepingIvy(module, AID.SCreepingIvy);
 
 class C010KalukStates : StateMachineBuilder
 {
@@ -51,11 +42,11 @@ class C010KalukStates : StateMachineBuilder
             .ActivateOnEnter<SCreepingIvy>(savage);
     }
 }
-class C010NKalukStates : C010KalukStates { public C010NKalukStates(BossModule module) : base(module, false) { } }
-class C010SKalukStates : C010KalukStates { public C010SKalukStates(BossModule module) : base(module, true) { } }
+class C010NKalukStates(BossModule module) : C010KalukStates(module, false);
+class C010SKalukStates(BossModule module) : C010KalukStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11510, SortOrder = 2)]
-public class C010NKaluk : SimpleBossModule { public C010NKaluk(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C010NKaluk(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11510, SortOrder = 2)]
-public class C010SKaluk : SimpleBossModule { public C010SKaluk(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C010SKaluk(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

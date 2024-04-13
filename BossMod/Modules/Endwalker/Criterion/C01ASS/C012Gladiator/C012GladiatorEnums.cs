@@ -13,7 +13,7 @@ public enum OID : uint
     SRegret = 0x3A13, // R1.000, spawn during fight
 
     Helper = 0x233C, // R0.500, x18
-};
+}
 
 public enum AID : uint
 {
@@ -104,7 +104,7 @@ public enum AID : uint
 
     Enrage = 30329, // NBoss->self, 10.0s cast, enrage
     Enrage2 = 31282, // NBoss->self, no cast, range 60 circle ???
-};
+}
 
 public enum SID : uint
 {
@@ -119,4 +119,4 @@ public enum SID : uint
     SecondInLine = 3005, // none->player, extra=0x0
     ScreamOfTheFallen = 3291, // none->player, extra=0x0
     ChainsOfResentment = 3294, // none->player, extra=0x0
-};
+}

@@ -7,7 +7,7 @@ public enum OID : uint
     FlailLR = 0x3523, // "anchor" weapon, purely visual
     FlailI = 0x3524, // "ball" weapon, also used for knockbacks
     FlailO = 0x3525, // "chakram" weapon
-};
+}
 
 public enum AID : uint
 {
@@ -61,7 +61,7 @@ public enum AID : uint
     GaolerFlailO2 = 28077, // Helper->self, second hit, donut
     InevitableFlame = 28353, // Helper->self, no cast, after SoT resolve to red - hit others standing in fire
     InevitableLight = 28354, // Helper->self, no cast, after SoT resolve to red - hit others standing in blue
-};
+}
 
 public enum SID : uint
 {

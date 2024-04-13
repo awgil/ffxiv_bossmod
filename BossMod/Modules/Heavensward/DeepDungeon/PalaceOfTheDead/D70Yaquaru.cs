@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x1815, // R5.750, x1
     Voidzone = 0x1E9998, // R0.500, EventObj type, spawn during fight
     Helper = 0x233C, // R0.500, x12, 523 type
-};
+}
 
 public enum AID : uint
 {
@@ -14,77 +14,72 @@ public enum AID : uint
     Drench = 7093, // Boss->self, no cast, range 10+R 90-degree cone, 5.1s after pull, 7.1s after every 2nd Electrogenesis, 7.3s after every FangsEnd
     Electrogenesis = 7094, // Boss->location, 3.0s cast, range 8 circle
     FangsEnd = 7092, // Boss->player, no cast, single-target
-};
-
-class Douse : Components.PersistentVoidzoneAtCastTarget
-{
-    public Douse() : base(8, ActionID.MakeSpell(AID.Douse), m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7), 0.8f) { }
 }
 
-class DouseHaste : BossComponent
+class Douse(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, ActionID.MakeSpell(AID.Douse), m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7), 0.8f);
+
+class DouseHaste(BossModule module) : BossComponent(module)
 {
     private bool BossInVoidzone;
-    public override void Update(BossModule module)
+
+    public override void Update()
     {
-        if (module.FindComponent<Douse>()?.ActiveAOEs(module, 0, module.PrimaryActor).Any(z => z.Shape.Check(module.PrimaryActor.Position, z.Origin, z.Rotation)) ?? false)
+        if (Module.FindComponent<Douse>()?.ActiveAOEs(0, Module.PrimaryActor).Any(z => z.Shape.Check(Module.PrimaryActor.Position, z.Origin, z.Rotation)) ?? false)
             BossInVoidzone = true;
         else
             BossInVoidzone = false;
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (BossInVoidzone && module.PrimaryActor.TargetID == actor.InstanceID)
+        if (BossInVoidzone && Module.PrimaryActor.TargetID == actor.InstanceID)
             hints.Add("Pull the boss out of the water puddle!");
-        if (BossInVoidzone && module.PrimaryActor.TargetID != actor.InstanceID && actor.Role == Role.Tank)
+        if (BossInVoidzone && Module.PrimaryActor.TargetID != actor.InstanceID && actor.Role == Role.Tank)
             hints.Add("Consider provoking and pulling the boss out of the water puddle.");
     }
 }
 
-class Drench : Components.GenericAOEs
+class Drench(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeCone cone = new(15.75f, 45.Degrees());
     private bool Pulled;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (!Pulled)
         {
-            _activation = module.WorldState.CurrentTime.AddSeconds(5.1f);
+            _activation = WorldState.FutureTime(5.1f);
             Pulled = true;
         }
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(cone, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
+            yield return new(cone, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Electrogenesis) // boss can move after cast started, so we can't use aoe instance, since that would cause outdated position data to be used
         {
             ++NumCasts;
             if (NumCasts % 2 == 0)
-                _activation = module.WorldState.CurrentTime.AddSeconds(7.3f);
+                _activation = WorldState.FutureTime(7.3f);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Drench)
             _activation = default;
         if ((AID)spell.Action.ID == AID.FangsEnd)
-            _activation = module.WorldState.CurrentTime.AddSeconds(7.1f);
+            _activation = WorldState.FutureTime(7.1f);
     }
 }
 
-class Electrogenesis : Components.LocationTargetedAOEs
-{
-    public Electrogenesis() : base(ActionID.MakeSpell(AID.Electrogenesis), 8, "Get out of the AOE") { }
-}
+class Electrogenesis(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Electrogenesis), 8, "Get out of the AOE");
 
 class D70TaquaruStates : StateMachineBuilder
 {
@@ -99,7 +94,4 @@ class D70TaquaruStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 205, NameID = 5321)]
-public class D70Taquaru : BossModule
-{
-    public D70Taquaru(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -220), 25)) { }
-}
+public class D70Taquaru(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-300, -220), 25));

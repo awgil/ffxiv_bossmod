@@ -11,7 +11,7 @@ public enum OID : uint
     MagitekBit = 0x3861, // spawn mid fight
     Helper = 0x3867, // x19
     AetheroplasmHelper = 0x3868, // x3
-};
+}
 
 public enum AID : uint
 {
@@ -45,7 +45,7 @@ public enum AID : uint
 
     AssaultCannon = 28421, // MagitekBit->self, 2.5s cast, range 45 half-width 1 rect
     Detonation = 28410, // Helper->self, no cast, range 40 aoe with ? falloff (TODO: don't know how to detect in advance...)
-};
+}
 
 public enum SID : uint
 {

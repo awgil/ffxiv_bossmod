@@ -161,5 +161,5 @@ class C021ShishioStates : StateMachineBuilder
     }
 }
 
-class C021NShishioStates : C021ShishioStates { public C021NShishioStates(BossModule module) : base(module, false) { } }
-class C021SShishioStates : C021ShishioStates { public C021SShishioStates(BossModule module) : base(module, true) { } }
+class C021NShishioStates(BossModule module) : C021ShishioStates(module, false);
+class C021SShishioStates(BossModule module) : C021ShishioStates(module, true);

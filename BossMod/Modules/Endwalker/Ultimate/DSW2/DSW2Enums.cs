@@ -67,7 +67,7 @@ public enum OID : uint
     VoidzoneAhkMorn = 0x1EB683, // R0.500, EventObj type, spawn during p6
 
     DragonKingThordan = 0x3148, // R8.000, x1 - p7
-};
+}
 
 public enum AID : uint
 {
@@ -319,7 +319,7 @@ public enum AID : uint
     MornAfahsEdgeVisual = 28207, // DragonKingThordan->self, no cast, single-target, visual (subsequent)
     MornAfahsEdgeRest = 28208, // Helper->self, no cast, range 4 circle tower
     MornAfahsEdgeFail = 28209, // Helper->self, no cast, range 60 circle unsoaked tower
-};
+}
 
 public enum SID : uint
 {

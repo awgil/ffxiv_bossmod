@@ -7,7 +7,7 @@ public enum OID : uint
     BossAdd = 0x3D2C, //R=4.2
     BossHelper = 0x233C,
     BonusAdd_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
-};
+}
 
 public enum AID : uint
 {
@@ -21,34 +21,23 @@ public enum AID : uint
     RockThrow = 32217, // BossAdds->location, 3,0s cast, range 6 circle
     SweepingGouge = 32211, // Boss->player, 5,0s cast, single-target
     HeavySmash = 32317, // BossAdd_Lyssa -> location 3,0s cast, range 6 circle
-};
+}
 
 public enum IconID : uint
 {
     Thundercall = 111, // Thundercall marker
-};
-
-class Spark : Components.SelfTargetedAOEs
-{
-    public Spark() : base(ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30)) { }
 }
 
-class SweepingGouge : Components.SingleTargetCast
-{
-    public SweepingGouge() : base(ActionID.MakeSpell(AID.SweepingGouge)) { }
-}
+class Spark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30));
+class SweepingGouge(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SweepingGouge));
+class Thundercall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Thundercall), 3);
 
-class Thundercall : Components.LocationTargetedAOEs
-{
-    public Thundercall() : base(ActionID.MakeSpell(AID.Thundercall), 3) { }
-}
-
-class Thundercall2 : Components.GenericBaitAway
+class Thundercall2(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Thundercall)
         {
@@ -58,7 +47,7 @@ class Thundercall2 : Components.GenericBaitAway
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Thundercall)
         {
@@ -67,40 +56,25 @@ class Thundercall2 : Components.GenericBaitAway
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (target == actor && targeted)
             hints.Add("Bait levinorb away!");
     }
 }
 
-class RockThrow : Components.LocationTargetedAOEs
-{
-    public RockThrow() : base(ActionID.MakeSpell(AID.RockThrow), 6) { }
-}
-
-class LightningBolt2 : Components.LocationTargetedAOEs
-{
-    public LightningBolt2() : base(ActionID.MakeSpell(AID.LightningBolt2), 6) { }
-}
-
-class ThunderIV : Components.SelfTargetedAOEs
-{
-    public ThunderIV() : base(ActionID.MakeSpell(AID.ThunderIV), new AOEShapeCircle(18)) { }
-}
-
-class HeavySmash : Components.LocationTargetedAOEs
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-}
+class RockThrow(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RockThrow), 6);
+class LightningBolt2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt2), 6);
+class ThunderIV(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThunderIV), new AOEShapeCircle(18));
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
 
 class PithekosStates : StateMachineBuilder
 {
@@ -120,10 +94,8 @@ class PithekosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12001)]
-public class Pithekos : BossModule
+public class Pithekos(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Pithekos(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

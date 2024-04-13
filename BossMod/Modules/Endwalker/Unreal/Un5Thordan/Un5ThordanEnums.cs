@@ -43,7 +43,7 @@ public enum OID : uint
     //_Gen_Actor1e9e3b = 0x1E9E3B, // R2.000, x1, EventObj type
     //_Gen_Actor1e9b99 = 0x1E9B99, // R2.000, x1, EventObj type
     //_Gen_Actor1e8536 = 0x1E8536, // R2.000, x1, EventObj type
-};
+}
 
 public enum AID : uint
 {
@@ -117,14 +117,14 @@ public enum AID : uint
     AbsoluteConviction = 35300, // Helper->self, no cast, range 80+R circle, raidwide
 
     Enrage = 35269, // Boss->self, 10.0s cast, range 80+R circle, enrage
-};
+}
 
 public enum SID : uint
 {
     DamageUp = 290,
     SwordOfTheHeavens = 944,
     ShieldOfTheHeavens = 945
-};
+}
 
 public enum IconID : uint
 {
@@ -135,11 +135,11 @@ public enum IconID : uint
     HiemalStorm = 29, // player
     TargetedComet = 11, // player
     HolyShieldBash = 16, // player
-};
+}
 
 public enum TetherID : uint
 {
     ThordanInvul = 1,
     SpiralPierce = 5,
     BurningChains = 9
-};
+}

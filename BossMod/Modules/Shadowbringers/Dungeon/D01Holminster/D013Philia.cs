@@ -6,7 +6,7 @@ public enum OID : uint
     IronChain = 0x2895, // R1.000, spawn during fight
     SludgeVoidzone = 0x1EABFA,
     Helper = 0x233C, // x3
-};
+}
 
 public enum AID : uint
 {
@@ -35,7 +35,7 @@ public enum AID : uint
     FierceBeating6 = 15838, // Helper->self, no cast, range 4 circle
     CatONineTails = 15840, // 278C->self, no cast, single-target
     CatONineTails2 = 15841, // Helper->self, 2,0s cast, range 25 120-degree cone
-};
+}
 
 public enum IconID : uint
 {
@@ -44,38 +44,27 @@ public enum IconID : uint
     ChainTarget = 92, // player
     Spread = 139, // player
     RotateCW = 167, // Boss
-};
+}
 
 public enum SID : uint
 {
     Fetters = 1849, // none->player, extra=0xEC4
     DownForTheCount = 783, // none->player, extra=0xEC7
     Sludge = 287, // none->player, extra=0x0
-};
-
-class SludgeVoidzone : Components.PersistentVoidzone
-{
-    public SludgeVoidzone() : base(9.8f, m => m.Enemies(OID.SludgeVoidzone).Where(z => z.EventState != 7)) { }
 }
 
-class ScavengersDaughter : Components.RaidwideCast
-{
-    public ScavengersDaughter() : base(ActionID.MakeSpell(AID.ScavengersDaughter)) { }
-}
+class SludgeVoidzone(BossModule module) : Components.PersistentVoidzone(module, 9.8f, m => m.Enemies(OID.SludgeVoidzone).Where(z => z.EventState != 7));
+class ScavengersDaughter(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ScavengersDaughter));
+class HeadCrusher(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HeadCrusher));
 
-class HeadCrusher : Components.SingleTargetCast
-{
-    public HeadCrusher() : base(ActionID.MakeSpell(AID.HeadCrusher)) { }
-}
-
-class Chains : BossComponent
+class Chains(BossModule module) : BossComponent(module)
 {
     private bool chained;
     private bool chainsactive;
     private Actor? chaintarget;
     private bool casting;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         var fetters = chaintarget?.FindStatus(SID.Fetters) != null;
         if (fetters)
@@ -90,7 +79,7 @@ class Chains : BossComponent
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (chaintarget != null && !chainsactive)
             hints.Add($"{chaintarget.Name} is about to be chained!");
@@ -98,7 +87,7 @@ class Chains : BossComponent
             hints.Add($"Destroy chains on {chaintarget.Name}!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (chained && actor != chaintarget)
             foreach (var e in hints.PotentialTargets)
@@ -110,7 +99,7 @@ class Chains : BossComponent
                 };
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.ChainTarget)
         {
@@ -119,26 +108,26 @@ class Chains : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ChainDown)
             casting = false;
     }
 }
 
-class Aethersup : Components.GenericAOEs
+class Aethersup(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private Angle _rotation;
     private static readonly AOEShapeCone cone = new(24, 60.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(cone, module.PrimaryActor.Position, _rotation, _activation, risky: module.Enemies(OID.IronChain).All(x => x.IsDead));
+            yield return new(cone, Module.PrimaryActor.Position, _rotation, _activation, Risky: Module.Enemies(OID.IronChain).All(x => x.IsDead));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Aethersup)
         {
@@ -148,7 +137,7 @@ class Aethersup : Components.GenericAOEs
     }
 
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -164,23 +153,23 @@ class Aethersup : Components.GenericAOEs
     }
 }
 
-class PendulumFlare : Components.GenericBaitAway
+class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool targeted;
     private Actor? target;
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.SpreadFlare)
         {
-            CurrentBaits.Add(new(module.PrimaryActor, actor, new AOEShapeCircle(20)));
+            CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeCircle(20)));
             targeted = true;
             target = actor;
             CenterAtTarget = true;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.PendulumAOE1)
         {
@@ -189,101 +178,86 @@ class PendulumFlare : Components.GenericBaitAway
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Rect(module.Bounds.Center, target.Position, 18));
+            hints.AddForbiddenZone(ShapeDistance.Rect(Module.Bounds.Center, target.Position, 18));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (target == actor && targeted)
             hints.Add("Bait away!");
     }
 }
 
-class PendulumAOE : Components.LocationTargetedAOEs
-{
-    public PendulumAOE() : base(ActionID.MakeSpell(AID.PendulumAOE3), 15) { }
-}
-
-class LeftKnout : Components.SelfTargetedAOEs
-{
-    public LeftKnout() : base(ActionID.MakeSpell(AID.LeftKnout), new AOEShapeCone(24, 105.Degrees())) { }
-}
-
-class RightKnout : Components.SelfTargetedAOEs
-{
-    public RightKnout() : base(ActionID.MakeSpell(AID.RightKnout), new AOEShapeCone(24, 105.Degrees())) { }
-}
-
-class Taphephobia : Components.SpreadFromCastTargets
-{
-    public Taphephobia() : base(ActionID.MakeSpell(AID.Taphephobia2), 6) { }
-}
+class PendulumAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PendulumAOE3), 15);
+class LeftKnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftKnout), new AOEShapeCone(24, 105.Degrees()));
+class RightKnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightKnout), new AOEShapeCone(24, 105.Degrees()));
+class Taphephobia(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Taphephobia2), 6);
 
 // TODO: create and use generic 'line stack' component
-class IntoTheLight : Components.GenericBaitAway
+class IntoTheLight(BossModule module) : Components.GenericBaitAway(module)
 {
     private Actor? target;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.IntoTheLight)
         {
-            target = module.WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(module.PrimaryActor, target!, new AOEShapeRect(50, 4)));
+            target = WorldState.Actors.Find(spell.MainTargetID);
+            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(50, 4)));
         }
         if ((AID)spell.Action.ID == AID.IntoTheLight2)
             CurrentBaits.Clear();
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (CurrentBaits.Count > 0 && actor != target)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 50, 0, 4));
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (CurrentBaits.Count > 0)
         {
-            if (!actor.Position.InRect(module.PrimaryActor.Position, (target!.Position - module.PrimaryActor.Position).Normalized(), 50, 0, 4))
+            if (!actor.Position.InRect(Module.PrimaryActor.Position, (target!.Position - Module.PrimaryActor.Position).Normalized(), 50, 0, 4))
                 hints.Add("Stack!");
             else
                 hints.Add("Stack!", false);
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var bait in CurrentBaits)
-            bait.Shape.Draw(arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
+            bait.Shape.Draw(Arena, BaitOrigin(bait), bait.Rotation, ArenaColor.SafeFromAOE);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena) { }
+    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
-class CatONineTails : Components.GenericRotatingAOE
+class CatONineTails(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private static readonly AOEShapeCone _shape = new(25, 60.Degrees());
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FierceBeating1)
-            Sequences.Add(new(_shape, module.Bounds.Center, spell.Rotation + 180.Degrees(), -45.Degrees(), spell.NPCFinishAt, 2, 8));
+            Sequences.Add(new(_shape, Module.Bounds.Center, spell.Rotation + 180.Degrees(), -45.Degrees(), spell.NPCFinishAt, 2, 8));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.CatONineTails2 && Sequences.Count > 0)
-            AdvanceSequence(0, module.WorldState.CurrentTime);
+            AdvanceSequence(0, WorldState.CurrentTime);
     }
 }
 
-class FierceBeating : Components.Exaflare
+class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
 {
     private readonly List<WPos> _casters = [];
     private int linesstartedcounttotal;
@@ -291,30 +265,20 @@ class FierceBeating : Components.Exaflare
     private int linesstartedcount2;
     private static readonly AOEShapeCircle circle = new(4);
     private DateTime _activation;
-    private const float RadianConversion = 45 * (MathF.PI / 180);
 
-    public FierceBeating() : base(4) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var (c, t, r) in FutureAOEs(module.WorldState.CurrentTime))
-            yield return new(Shape, c, activation: t, color: FutureColor);
+        foreach (var (c, t, r) in FutureAOEs())
+            yield return new(Shape, c, r, t, FutureColor);
         foreach (var (c, t, r) in ImminentAOEs())
-            yield return new(Shape, c, activation: t, color: ImminentColor);
+            yield return new(Shape, c, r, t, ImminentColor);
         if (Lines.Count > 0 && linesstartedcount1 < 8)
-            yield return new(circle, CalculateCirclePosition(linesstartedcount1, module.Bounds.Center, _casters[0]), activation: _activation.AddSeconds(linesstartedcount1 * 3.7f));
+            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount1 * 45, Module.Bounds.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
         if (Lines.Count > 1 && linesstartedcount2 < 8)
-            yield return new(circle, CalculateCirclePosition(linesstartedcount2, module.Bounds.Center, _casters[1]), activation: _activation.AddSeconds(linesstartedcount2 * 3.7f));
+            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount2 * 45, Module.Bounds.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
     }
 
-    private static WPos CalculateCirclePosition(int count, WPos origin, WPos caster)
-    {
-        float x = MathF.Cos(count * RadianConversion) * (caster.X - origin.X) - MathF.Sin(count * RadianConversion) * (caster.Z - origin.Z);
-        float z = MathF.Sin(count * RadianConversion) * (caster.X - origin.X) + MathF.Cos(count * RadianConversion) * (caster.Z - origin.Z);
-        return new WPos(origin.X + x, origin.Z + z);
-    }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (linesstartedcount1 != 0 && Lines.Count == 0)
         {
@@ -325,7 +289,7 @@ class FierceBeating : Components.Exaflare
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FierceBeating4)
         {
@@ -341,11 +305,11 @@ class FierceBeating : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.FierceBeating6)
         {
-            Lines.Add(new() { Next = caster.Position, Advance = 2.5f * caster.Rotation.ToDirection(), NextExplosion = module.WorldState.CurrentTime.AddSeconds(1), TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });
+            Lines.Add(new() { Next = caster.Position, Advance = 2.5f * caster.Rotation.ToDirection(), NextExplosion = WorldState.FutureTime(1), TimeToMove = 1, ExplosionsLeft = 7, MaxShownExplosions = 3 });
             ++linesstartedcounttotal;
             if (linesstartedcounttotal % 2 != 0)
                 ++linesstartedcount1;
@@ -357,14 +321,14 @@ class FierceBeating : Components.Exaflare
             if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
             {
                 int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
-                AdvanceLine(module, Lines[index], caster.Position);
+                AdvanceLine(Lines[index], caster.Position);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
             }
             if ((AID)spell.Action.ID == AID.FierceBeating5)
             {
                 int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
-                AdvanceLine(module, Lines[index], spell.TargetXZ);
+                AdvanceLine(Lines[index], spell.TargetXZ);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
             }
@@ -394,7 +358,4 @@ class D013PhiliaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8301)]
-public class D013Philia : BossModule
-{
-    public D013Philia(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(134, -465), 19.5f)) { }
-}
+public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(134, -465), 19.5f));

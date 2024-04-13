@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class Phase2ArenaUpdate : BossComponent
+class Phase2ArenaUpdate(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00200010 && index == 0x42)
-            module.Arena.Bounds = new ArenaBoundsSquare(new(0, 750), 20);
+            Module.Arena.Bounds = new ArenaBoundsSquare(Module.Bounds.Center, 20);
     }
 }
 
@@ -22,6 +22,10 @@ class A33OschonStates : StateMachineBuilder
             .ActivateOnEnter<SuddenDownpour>()
             .ActivateOnEnter<DownhillP1>()
             .ActivateOnEnter<ClimbingShot>()
+            .ActivateOnEnter<ClimbingShotRaidwide>()
+            .ActivateOnEnter<ClimbingShotRaidwide2>()
+            .ActivateOnEnter<ClimbingShotRaidwide3>()
+            .ActivateOnEnter<ClimbingShotRaidwide4>()
             .ActivateOnEnter<SoaringMinuet1>()
             .ActivateOnEnter<SoaringMinuet2>()
             .ActivateOnEnter<FlintedFoehnP1>()

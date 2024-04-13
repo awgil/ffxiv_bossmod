@@ -11,7 +11,7 @@ public enum OID : uint
     DriveCylinder = 0x1B2, // R0.500, x1
     TerminalEnd = 0x1E86FA,
     TerminalStart = 0x1E86F9,
-};
+}
 
 public enum AID : uint
 {
@@ -25,30 +25,22 @@ public enum AID : uint
     GravityThrust = 1236, // SpinnerRook->player, 1.5s cast, single-target damage (avoidable by moving to the back)
     Pox = 1237, // SpinnerRook->player, 3.0s cast, single-target debuff (avoidable by moving to the back)
     EmergencyOverride = 1258, // DriveCylinder->self, no cast, soft enrage raidwide
-};
-
-class Rotoswipe : Components.Cleave
-{
-    public Rotoswipe() : base(ActionID.MakeSpell(AID.Rotoswipe), new AOEShapeCone(11, 60.Degrees()), (uint)OID.ClockworkDreadnaught) { } // TODO: verify angle
 }
 
-class GravityThrustPox : Components.GenericAOEs
+class Rotoswipe(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Rotoswipe), new AOEShapeCone(11, 60.Degrees()), (uint)OID.ClockworkDreadnaught); // TODO: verify angle
+
+class GravityThrustPox(BossModule module) : Components.GenericAOEs(module, default, "Move behind rook!")
 {
     private static readonly AOEShape _shape = new AOEShapeRect(50, 50);
 
-    public GravityThrustPox() : base(new(), "Move behind rook!") { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var c in ((T04Gauntlet)module).Rooks.Where(a => a.CastInfo?.TargetID == actor.InstanceID))
+        foreach (var c in ((T04Gauntlet)Module).Rooks.Where(a => a.CastInfo?.TargetID == actor.InstanceID))
             yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
     }
 }
 
-class EmergencyOverride : Components.CastCounter
-{
-    public EmergencyOverride() : base(ActionID.MakeSpell(AID.EmergencyOverride)) { }
-}
+class EmergencyOverride(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.EmergencyOverride));
 
 class T04GauntletStates : StateMachineBuilder
 {

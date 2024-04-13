@@ -27,7 +27,7 @@ public enum OID : uint
     SouthernCrossVoidzone = 0x1EA2A6, // R0.500, EventObj type, spawn during fight
     FireTower = 0x1EA2A7, // R0.500, EventObj type, spawn during fight
     IceTower = 0x1EA2A8, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -78,7 +78,7 @@ public enum AID : uint
     NorthStarWrong = 34179, // Helper->self, no cast, range 2 circle (oneshot if fire tower is soaked by wrong debuff)
     Enrage = 34177, // BossP2->self, 10.0s cast, single-target, visual (enrage)
     EnrageAOE = 34176, // Helper->location, no cast, range 12 circle, enrage
-};
+}
 
 public enum IconID : uint
 {
@@ -86,11 +86,11 @@ public enum IconID : uint
     DemonicDive = 62, // player
     CoolFlame = 23, // player
     WaveCannon = 14, // player
-};
+}
 
 public enum TetherID : uint
 {
     InfiniteAnguish = 1, // player->player (tether stretched too far, > ~12)
     InfiniteFire = 5, // player->player
     InfiniteIce = 8, // player->player
-};
+}

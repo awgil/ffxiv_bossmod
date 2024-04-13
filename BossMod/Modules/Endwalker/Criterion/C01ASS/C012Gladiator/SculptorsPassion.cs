@@ -1,19 +1,17 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator;
 
-class SculptorsPassion : Components.GenericWildCharge
+class SculptorsPassion(BossModule module, AID aid) : Components.GenericWildCharge(module, 4, ActionID.MakeSpell(aid))
 {
-    public SculptorsPassion(AID aid) : base(4, ActionID.MakeSpell(aid)) { }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.SculptorsPassionTargetSelection)
         {
-            Source = module.PrimaryActor;
-            foreach (var (slot, player) in module.Raid.WithSlot(true))
+            Source = Module.PrimaryActor;
+            foreach (var (slot, player) in Raid.WithSlot(true))
                 PlayerRoles[slot] = player.InstanceID == spell.MainTargetID ? PlayerRole.Target : player.Role == Role.Tank ? PlayerRole.Share : PlayerRole.ShareNotFirst;
         }
     }
 }
-class NSculptorsPassion : SculptorsPassion { public NSculptorsPassion() : base(AID.NSculptorsPassion) { } }
-class SSculptorsPassion : SculptorsPassion { public SSculptorsPassion() : base(AID.SSculptorsPassion) { } }
+class NSculptorsPassion(BossModule module) : SculptorsPassion(module, AID.NSculptorsPassion);
+class SSculptorsPassion(BossModule module) : SculptorsPassion(module, AID.SSculptorsPassion);

@@ -8,7 +8,7 @@ public enum OID : uint
     AttackNode = 0x889, // spawn during fight
     DefenseNode = 0x88A, // spawn during fight
     GravityField = 0x1E8728, // EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -22,32 +22,13 @@ public enum AID : uint
     ChainLightningAOE = 1449, // Helper->player, no cast, single-target, ???
     NodeRetrieval = 1228, // Boss->PatrolNode/AttackNode/DefenseNode, no cast, single-target, happens if add is not killed in ~27s and gives boss damage up
     Object199 = 1229, // Boss->self, no cast, enrage
-};
-
-class HighVoltage : Components.CastHint
-{
-    public HighVoltage() : base(ActionID.MakeSpell(AID.HighVoltage), "Interruptible") { }
 }
 
-class RepellingCannons : Components.SelfTargetedAOEs
-{
-    public RepellingCannons() : base(ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(8.3f)) { }
-}
-
-class PiercingLaser : Components.SelfTargetedAOEs
-{
-    public PiercingLaser() : base(ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 3)) { }
-}
-
-class DirtyCannons : Components.SelfTargetedAOEs
-{
-    public DirtyCannons() : base(ActionID.MakeSpell(AID.DirtyCannons), new AOEShapeCircle(5.15f)) { }
-}
-
-class GravityField : Components.PersistentVoidzoneAtCastTarget
-{
-    public GravityField() : base(6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 1) { }
-}
+class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interruptible");
+class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(8.3f));
+class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 3));
+class DirtyCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DirtyCannons), new AOEShapeCircle(5.15f));
+class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 1);
 
 // TODO: chain lightning?..
 
@@ -57,7 +38,7 @@ class T01ADSStates : StateMachineBuilder
     {
         // adds spawn: at ~40.3, ~80.3, ~120.3, ~160.3, ~200.3 (2x)
         // enrage: first cast at ~245.2, then repeat every 5s
-        TrivialPhase(245)
+        TrivialPhase(0, 245)
             .ActivateOnEnter<HighVoltage>()
             .ActivateOnEnter<RepellingCannons>()
             .ActivateOnEnter<PiercingLaser>()
@@ -67,10 +48,8 @@ class T01ADSStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1459, SortOrder = 1)]
-public class T01ADS : BossModule
+public class T01ADS(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-3, 27), 7, 28))
 {
-    public T01ADS(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(-3, 27), 7, 28)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

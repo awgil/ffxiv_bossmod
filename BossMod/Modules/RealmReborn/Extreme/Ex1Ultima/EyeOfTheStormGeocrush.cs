@@ -1,7 +1,7 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
 // note that it could be a GenericAOEs, but we customize everything anyway...
-class EyeOfTheStormGeocrush : BossComponent
+class EyeOfTheStormGeocrush(BossModule module) : BossComponent(module)
 {
     private Actor? _eotsCaster;
     private Actor? _geocrushCaster;
@@ -10,7 +10,7 @@ class EyeOfTheStormGeocrush : BossComponent
     private static readonly AOEShapeDonut _aoeEOTS = new(12, 25);
     private static readonly AOEShapeCircle _aoeGeocrush = new(18); // TODO: check falloff
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_eotsCaster != null)
             hints.Add("Stand near inner edge", _aoeEOTS.Check(actor.Position, _eotsCaster));
@@ -18,7 +18,7 @@ class EyeOfTheStormGeocrush : BossComponent
             hints.Add("Go to edge!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_eotsCaster != null)
         {
@@ -33,15 +33,15 @@ class EyeOfTheStormGeocrush : BossComponent
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_eotsCaster != null)
-            _aoeEOTS.Draw(arena, _eotsCaster);
+            _aoeEOTS.Draw(Arena, _eotsCaster);
         else if (_geocrushCaster != null)
-            _aoeGeocrush.Draw(arena, _geocrushCaster);
+            _aoeGeocrush.Draw(Arena, _geocrushCaster);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -54,7 +54,7 @@ class EyeOfTheStormGeocrush : BossComponent
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {

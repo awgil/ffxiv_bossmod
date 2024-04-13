@@ -6,7 +6,7 @@ public enum OID : uint
     Lioness = 0x38DB, // R5.600, x1
     Lions = 0x38DC, // R0.500, x1
     Helper = 0x233C, // R0.500, x2
-};
+}
 
 public enum AID : uint
 {
@@ -26,10 +26,10 @@ public enum AID : uint
     RoaringBlazeSolo = 29375, // Lioness/Lion->self, 4.0s cast, range 50 180-degree cone
     TrialByFire = 29376, // Lion->self, 4.0s cast, range 14 circle
     SpinningSlash = 29377, // Lioness->self, 4.0s cast, range 6-30 donut
-};
+}
 
 public enum IconID : uint
 {
     Order1 = 332, // Lion/Lioness
     Order2 = 333, // Lion/Lioness
-};
+}

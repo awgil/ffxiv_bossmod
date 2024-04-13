@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x25D5, //R=2.5
     Beetle = 0x25D6, //R=0.6
-};
+}
 
 public enum AID : uint
 {
@@ -14,34 +14,25 @@ public enum AID : uint
     MagitekField = 14369, // 25D5->self, 5,0s cast, single-target
     Spoil = 14362, // 25D6->self, no cast, range 6+R circle
     MagitekRay = 14368, // 25D5->location, 3,0s cast, range 6 circle
-};
-
-class GrandStrike : Components.SelfTargetedAOEs
-{
-    public GrandStrike() : base(ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2)) { }
 }
 
-class MagitekRay : Components.LocationTargetedAOEs
-{
-    public MagitekRay() : base(ActionID.MakeSpell(AID.MagitekRay), 6) { }
-}
+class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2));
 
-class MagitekField : Components.CastHint
-{
-    public MagitekField() : base(ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses") { }
-}
+class MagitekRay(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRay), 6);
 
-class Hints : BossComponent
+class MagitekField(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses");
+
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Kreios is weak to lightning spells.\nDuring the fight he will spawn 6 beetles.\nIf available use the Ram's Voice + Ultravibration combo for the instant kill.");
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Kreios is weak against lightning spells and can be frozen.");
     }

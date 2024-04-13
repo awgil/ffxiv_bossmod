@@ -4,37 +4,25 @@ class MistralSong : Components.GenericLineOfSightAOE
 {
     private WPos _predictedPosition;
 
-    public MistralSong(WPos predictedPosition) : base(ActionID.MakeSpell(AID.MistralSong), 31.7f, true)
+    public MistralSong(BossModule module, WPos predictedPosition) : base(module, ActionID.MakeSpell(AID.MistralSong), 31.7f, true)
     {
         _predictedPosition = predictedPosition;
+        Modify(_predictedPosition, ActiveBlockers());
     }
 
-    public override void Init(BossModule module)
-    {
-        Modify(_predictedPosition, ActiveBlockers(module));
-    }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Modify(caster.Position, ActiveBlockers(module));
+            Modify(caster.Position, ActiveBlockers());
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Modify(null, ActiveBlockers(module));
+            Modify(null, ActiveBlockers());
     }
 
-    private IEnumerable<(WPos, float)> ActiveBlockers(BossModule module) => module.Enemies(OID.Monolith).Where(a => !a.IsDead).Select(a => (a.Position, a.HitboxRadius - 0.5f));
+    private IEnumerable<(WPos, float)> ActiveBlockers() => Module.Enemies(OID.Monolith).Where(a => !a.IsDead).Select(a => (a.Position, a.HitboxRadius - 0.5f));
 }
-
-class MistralSong1 : MistralSong
-{
-    public MistralSong1() : base(new(0, -13)) { }
-}
-
-class MistralSong2 : MistralSong
-{
-    public MistralSong2() : base(new(13, 0)) { }
-}
+class MistralSong1(BossModule module) : MistralSong(module, new(0, -13));
+class MistralSong2(BossModule module) : MistralSong(module, new(13, 0));

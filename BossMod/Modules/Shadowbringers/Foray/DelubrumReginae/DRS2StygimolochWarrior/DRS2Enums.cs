@@ -9,7 +9,7 @@ public enum OID : uint
     TrapToad = 0x1EB0E4, // R0.500, EventObj type, spawn during fight
     TrapIce = 0x1EB0E5, // R0.500, EventObj type, spawn during fight
     TrapMini = 0x1EB0E6, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -53,7 +53,7 @@ public enum AID : uint
     SunsIre = 22394, // Boss->self, 12.0s cast, single-target, visual (enrage)
     SunsIreAOE = 22446, // Helper->self, no cast, range 50 circle, enrage
     SunsIreRepeat = 22395, // Boss->self, no cast, single-target, enrage repeat every 2s
-};
+}
 
 public enum SID : uint
 {
@@ -67,9 +67,9 @@ public enum SID : uint
 public enum IconID : uint
 {
     FlailingStrike = 4, // player
-};
+}
 
 public enum TetherID : uint
 {
     FlailingStrike = 17, // Boss->player
-};
+}

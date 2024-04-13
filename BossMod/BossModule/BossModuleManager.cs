@@ -72,10 +72,12 @@ public class BossModuleManager : IDisposable
             var m = _loadedModules[i];
             m.StateMachine.PrepullTimer = WorldState.Client.CountdownRemaining ?? 10000;
             bool wasActive = m.StateMachine.ActiveState != null;
+            bool allowUpdate = wasActive || !_loadedModules.Any(other => other.StateMachine.ActiveState != null && other.GetType() == m.GetType()); // hack: forbid activating multiple modules of the same type
             bool isActive;
             try
             {
-                m.Update();
+                if (allowUpdate)
+                    m.Update();
                 isActive = m.StateMachine.ActiveState != null;
             }
             catch (Exception ex)

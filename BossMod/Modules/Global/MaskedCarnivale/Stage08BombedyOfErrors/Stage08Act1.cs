@@ -5,64 +5,65 @@ public enum OID : uint
     Boss = 0x2708, //R=0.6
     Bomb = 0x2709, //R=1.2
     Snoll = 0x270A, //R=0.9
-};
+}
 
 public enum AID : uint
 {
     SelfDestruct = 14687, // 2708->self, no cast, range 10 circle
     HypothermalCombustion = 14689, // 270A->self, no cast, range 6 circle
     SelfDestruct2 = 14688, // 2709->self, no cast, range 6 circle
-};
+}
 
-class Selfdetonations : BossComponent
+class Selfdetonations(BossModule module) : BossComponent(module)
 {
     private static readonly string hint = "In bomb explosion radius!";
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (!module.PrimaryActor.IsDead)
+        if (!Module.PrimaryActor.IsDead)
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(module.PrimaryActor.Position, 10, 0xFF000000, 2);
-            arena.AddCircle(module.PrimaryActor.Position, 10, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(Module.PrimaryActor.Position, 10, 0xFF000000, 2);
+            Arena.AddCircle(Module.PrimaryActor.Position, 10, ArenaColor.Danger);
         }
-        foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Bomb).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 6, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 6, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 6, ArenaColor.Danger);
         }
-        foreach (var p in module.Enemies(OID.Snoll).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Snoll).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 6, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 6, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 6, ArenaColor.Danger);
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (!module.PrimaryActor.IsDead && actor.Position.InCircle(module.PrimaryActor.Position, 10))
+        if (!Module.PrimaryActor.IsDead && actor.Position.InCircle(Module.PrimaryActor.Position, 10))
             hints.Add(hint);
-        foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Bomb).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 6))
                 hints.Add(hint);
-        foreach (var p in module.Enemies(OID.Snoll).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Snoll).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 6))
                 hints.Add(hint);
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("For this stage the spell Flying Sardine to interrupt the Progenitrix in Act 2\nis highly recommended. Hit the Cherry Bomb from a safe distance\nwith anything but fire damage to set of a chain reaction to win this act.");
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Hit the Cherry Bomb from a safe distance to win this act.");
     }

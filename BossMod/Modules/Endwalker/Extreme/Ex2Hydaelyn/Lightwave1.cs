@@ -2,19 +2,19 @@
 
 // component for first lightwave (2 waves, 4 crystals) mechanic
 // first we wait until we find two helpers with Z=70 - these are our lightwaves
-class Lightwave1 : LightwaveCommon
+class Lightwave1(BossModule module) : LightwaveCommon(module)
 {
     private WPos _safeCrystal;
     private WPos _firstHitCrystal;
     private WPos _secondHitCrystal;
     private WPos _thirdHitCrystal;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         // try to find two helpers with Z=70 before first cast
         if (Waves.Count == 0)
         {
-            foreach (var wave in module.Enemies(OID.Helper).Where(a => a.Position.Z < 71))
+            foreach (var wave in Module.Enemies(OID.Helper).Where(a => a.Position.Z < 71))
             {
                 Waves.Add(wave);
             }
@@ -30,7 +30,7 @@ class Lightwave1 : LightwaveCommon
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Waves.Count == 0)
             return;
@@ -49,26 +49,26 @@ class Lightwave1 : LightwaveCommon
             hints.Add("Hide behind crystal!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Waves.Count == 0)
             return;
 
         foreach (var wave in Waves)
-            WaveAOE.Draw(arena, wave);
+            WaveAOE.Draw(Arena, wave);
 
         switch (NumCasts)
         {
             case 0:
-                DrawSafeCone(arena, _firstHitCrystal, _safeCrystal);
+                DrawSafeCone(_firstHitCrystal, _safeCrystal);
                 break;
             case 1:
-                DrawSafeCone(arena, _secondHitCrystal, _safeCrystal);
+                DrawSafeCone(_secondHitCrystal, _safeCrystal);
                 break;
             case 2:
-                DrawSafeCone(arena, _thirdHitCrystal, _safeCrystal);
-                DrawSafeCone(arena, _thirdHitCrystal, _firstHitCrystal);
-                DrawSafeCone(arena, _thirdHitCrystal, _secondHitCrystal);
+                DrawSafeCone(_thirdHitCrystal, _safeCrystal);
+                DrawSafeCone(_thirdHitCrystal, _firstHitCrystal);
+                DrawSafeCone(_thirdHitCrystal, _secondHitCrystal);
                 break;
         }
     }

@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x48
     GlacialSpearSmall = 0x3DAE, // R3.500, x3 spawn during fight
     GlacialSpearLarge = 0x3DAF, // R4.000, x1 spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -73,7 +73,7 @@ public enum AID : uint
     TetrapagosThrust = 32089, // Boss->self, 13.0s cast, single-target, visual (tetrapagos + thousandfold thrust)
     Chalaza = 32101, // Boss->self, 3.0s cast, single-target, visual (stack + spread)
     IceRondel = 32103, // Helper->players, 6.0s cast, range 6 circle stack
-};
+}
 
 public enum IconID : uint
 {
@@ -86,4 +86,4 @@ public enum IconID : uint
     IceRondel = 318, // player
     Cheimon1 = 156, // GlacialSpearLarge
     Cheimon2 = 157, // GlacialSpearLarge
-};
+}

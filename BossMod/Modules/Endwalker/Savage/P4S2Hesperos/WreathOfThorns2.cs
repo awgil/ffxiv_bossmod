@@ -3,7 +3,7 @@
 // state related to act 2 wreath of thorns
 // note: there should be four tethered helpers on activation
 // note: we assume that (1) dark targets soak all towers, (2) first fire to be broken is tank-healer pair (since their debuff is slightly shorter)
-class WreathOfThorns2 : BossComponent
+class WreathOfThorns2(BossModule module) : BossComponent(module)
 {
     public enum State { DarkDesign, FirstSet, SecondSet, Done }
 
@@ -20,7 +20,7 @@ class WreathOfThorns2 : BossComponent
 
     private static readonly float _fireExplosionRadius = 6;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         bool isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
         if (CurState == State.DarkDesign)
@@ -70,25 +70,25 @@ class WreathOfThorns2 : BossComponent
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (CurState == State.Done)
             return;
 
         foreach (var aoe in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsAOE))
-            arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
+            Arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw players
-        foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-            arena.Actor(player, ArenaColor.PlayerGeneric);
+        foreach (var player in Raid.WithoutSlot().Exclude(pc))
+            Arena.Actor(player, ArenaColor.PlayerGeneric);
 
         // draw pc's tether
         var pcPartner = pc.Tether.Target != 0
-            ? module.WorldState.Actors.Find(pc.Tether.Target)
-            : module.Raid.WithoutSlot().FirstOrDefault(p => p.Tether.Target == pc.InstanceID);
+            ? WorldState.Actors.Find(pc.Tether.Target)
+            : Raid.WithoutSlot().FirstOrDefault(p => p.Tether.Target == pc.InstanceID);
         if (pcPartner != null)
         {
             var tetherColor = _playerIcons[pcSlot] switch {
@@ -96,14 +96,14 @@ class WreathOfThorns2 : BossComponent
                 IconID.AkanthaiWind => 0xff00ff00,
                 _ => 0xffff00ff
             };
-            arena.AddLine(pc.Position, pcPartner.Position, tetherColor);
+            Arena.AddLine(pc.Position, pcPartner.Position, tetherColor);
         }
 
         // draw towers for designated tower soakers
         bool isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
         if (isTowerSoaker && CurState != State.Done)
             foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
-                arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ?  ArenaColor.Danger : ArenaColor.Safe);
+                Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ?  ArenaColor.Danger : ArenaColor.Safe);
 
         // draw circles around next imminent fire explosion
         if (CurState != State.DarkDesign)
@@ -111,13 +111,13 @@ class WreathOfThorns2 : BossComponent
             var curFirePair = (_fireTH.Item1 != null && _fireTH.Item1.Tether.ID != 0) ? _fireTH : ((_fireDD.Item1 != null && _fireDD.Item1.Tether.ID != 0) ? _fireDD : (null, null));
             if (curFirePair.Item1 != null)
             {
-                arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? ArenaColor.Danger : ArenaColor.Safe);
-                arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? ArenaColor.Danger : ArenaColor.Safe);
+                Arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? ArenaColor.Danger : ArenaColor.Safe);
+                Arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? ArenaColor.Danger : ArenaColor.Safe);
             }
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.Helper && tether.ID == (uint)TetherID.WreathOfThorns)
         {
@@ -125,11 +125,11 @@ class WreathOfThorns2 : BossComponent
         }
         else if (source.Type == ActorType.Player)
         {
-            PlayerTetherOrIconAssigned(module, module.Raid.FindSlot(source.InstanceID), source);
+            PlayerTetherOrIconAssigned(Raid.FindSlot(source.InstanceID), source);
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (CurState == State.DarkDesign && (AID)spell.Action.ID == AID.DarkDesign)
             CurState = State.FirstSet;
@@ -139,22 +139,22 @@ class WreathOfThorns2 : BossComponent
             CurState = State.Done;
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
-        var slot = module.Raid.FindSlot(actor.InstanceID);
+        var slot = Raid.FindSlot(actor.InstanceID);
         if (slot == -1)
             return;
 
         _playerIcons[slot] = (IconID)iconID;
-        PlayerTetherOrIconAssigned(module, slot, actor);
+        PlayerTetherOrIconAssigned(slot, actor);
     }
 
-    private void PlayerTetherOrIconAssigned(BossModule module, int slot, Actor actor)
+    private void PlayerTetherOrIconAssigned(int slot, Actor actor)
     {
         if (slot == -1 || _playerIcons[slot] == IconID.None || actor.Tether.Target == 0)
             return; // icon or tether not assigned yet
 
-        var tetherTarget = module.WorldState.Actors.Find(actor.Tether.Target);
+        var tetherTarget = WorldState.Actors.Find(actor.Tether.Target);
         if (tetherTarget == null)
             return; // weird
 

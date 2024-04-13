@@ -3,7 +3,7 @@ namespace BossMod.Shadowbringers.Hunt.RankA.Huracan;
 public enum OID : uint
 {
     Boss = 0x28B5, // R=4.9
-};
+}
 
 public enum AID : uint
 {
@@ -15,19 +15,12 @@ public enum AID : uint
     DawnsEdge = 17495, // Boss->self, 3,5s cast, range 15 width 10 rect
     SpringBreeze = 17496, // Boss->self, 3,5s cast, range 80 width 10 rect
     AutumnWreath = 17498, // Boss->self, 4,0s cast, range 10-20 donut
-};
-
-class SpringBreeze : Components.SelfTargetedAOEs
-{
-    public SpringBreeze() : base(ActionID.MakeSpell(AID.SpringBreeze), new AOEShapeRect(40, 5, 40)) { }
 }
 
-class SummerHeat : Components.RaidwideCast
-{
-    public SummerHeat() : base(ActionID.MakeSpell(AID.SummerHeat)) { }
-}
+class SpringBreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpringBreeze), new AOEShapeRect(40, 5, 40));
+class SummerHeat(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SummerHeat));
 
-class Combos : Components.GenericAOEs
+class Combos(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeDonut donut = new(10, 20);
     private static readonly AOEShapeCircle circle = new(6);
@@ -37,21 +30,21 @@ class Combos : Components.GenericAOEs
     private Angle _rotation;
     private AOEShape? _shape;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default && _shape != null)
         {
             if (NumCasts == 0)
             {
-                yield return new(_shape, module.PrimaryActor.Position, _rotation, _activation, ArenaColor.Danger);
-                yield return new(rect2, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation.AddSeconds(3.1f), risky: false);
+                yield return new(_shape, Module.PrimaryActor.Position, _rotation, _activation, ArenaColor.Danger);
+                yield return new(rect2, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation.AddSeconds(3.1f), Risky: false);
             }
             if (NumCasts == 1)
-                yield return new(rect2, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation.AddSeconds(3.1f), ArenaColor.Danger);
+                yield return new(rect2, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation.AddSeconds(3.1f), ArenaColor.Danger);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.AutumnWreath)
         {
@@ -73,13 +66,13 @@ class Combos : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.AutumnWreath or AID.DawnsEdge or AID.WinterRain)
             ++NumCasts;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Windburst)
         {

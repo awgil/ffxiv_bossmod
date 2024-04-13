@@ -1,40 +1,25 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash2;
 
-class Issen : Components.SingleTargetCast
-{
-    public Issen(AID aid) : base(ActionID.MakeSpell(aid)) { }
-}
-class NIssen : Issen { public NIssen() : base(AID.NIssen) { } }
-class SIssen : Issen { public SIssen() : base(AID.SIssen) { } }
+class Issen(BossModule module, AID aid) : Components.SingleTargetCast(module, ActionID.MakeSpell(aid));
+class NIssen(BossModule module) : Issen(module, AID.NIssen);
+class SIssen(BossModule module) : Issen(module, AID.SIssen);
 
-class Huton : Components.SingleTargetCast
-{
-    public Huton(AID aid) : base(ActionID.MakeSpell(aid), "Cast speed buff") { }
-}
-class NHuton : Huton { public NHuton() : base(AID.NHuton) { } }
-class SHuton : Huton { public SHuton() : base(AID.SHuton) { } }
+class Huton(BossModule module, AID aid) : Components.SingleTargetCast(module, ActionID.MakeSpell(aid), "Cast speed buff");
+class NHuton(BossModule module) : Huton(module, AID.NHuton);
+class SHuton(BossModule module) : Huton(module, AID.SHuton);
 
-class JujiShuriken : Components.SelfTargetedAOEs
-{
-    public JujiShuriken(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(40, 1.5f)) { }
-}
-class NJujiShuriken : JujiShuriken { public NJujiShuriken() : base(AID.NJujiShuriken) { } }
-class SJujiShuriken : JujiShuriken { public SJujiShuriken() : base(AID.SJujiShuriken) { } }
+class JujiShuriken(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(40, 1.5f));
+class NJujiShuriken(BossModule module) : JujiShuriken(module, AID.NJujiShuriken);
+class SJujiShuriken(BossModule module) : JujiShuriken(module, AID.SJujiShuriken);
 
-class JujiShurikenFast : Components.SelfTargetedAOEs
-{
-    public JujiShurikenFast(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(40, 1.5f)) { }
-}
-class NJujiShurikenFast : JujiShurikenFast { public NJujiShurikenFast() : base(AID.NJujiShurikenFast) { } }
-class SJujiShurikenFast : JujiShurikenFast { public SJujiShurikenFast() : base(AID.SJujiShurikenFast) { } }
+class JujiShurikenFast(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(40, 1.5f));
+class NJujiShurikenFast(BossModule module) : JujiShurikenFast(module, AID.NJujiShurikenFast);
+class SJujiShurikenFast(BossModule module) : JujiShurikenFast(module, AID.SJujiShurikenFast);
 
 class C020OnmitsugashiraStates : StateMachineBuilder
 {
-    private bool _savage;
-
     public C020OnmitsugashiraStates(BossModule module, bool savage) : base(module)
     {
-        _savage = savage;
         TrivialPhase()
             .ActivateOnEnter<NIssen>(!savage)
             .ActivateOnEnter<NHuton>(!savage)
@@ -49,11 +34,11 @@ class C020OnmitsugashiraStates : StateMachineBuilder
             .ActivateOnEnter<SMountainBreeze>(savage);
     }
 }
-class C020NOnmitsugashiraStates : C020OnmitsugashiraStates { public C020NOnmitsugashiraStates(BossModule module) : base(module, false) { } }
-class C020SOnmitsugashiraStates : C020OnmitsugashiraStates { public C020SOnmitsugashiraStates(BossModule module) : base(module, true) { } }
+class C020NOnmitsugashiraStates(BossModule module) : C020OnmitsugashiraStates(module, false);
+class C020SOnmitsugashiraStates(BossModule module) : C020OnmitsugashiraStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NOnmitsugashira, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12424, SortOrder = 5)]
-public class C020NOnmitsugashira : C020Trash2 { public C020NOnmitsugashira(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C020NOnmitsugashira(WorldState ws, Actor primary) : C020Trash2(ws, primary);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SOnmitsugashira, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12424, SortOrder = 5)]
-public class C020SOnmitsugashira : C020Trash2 { public C020SOnmitsugashira(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C020SOnmitsugashira(WorldState ws, Actor primary) : C020Trash2(ws, primary);

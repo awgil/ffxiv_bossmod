@@ -1,15 +1,13 @@
-namespace BossMod.Endwalker.Alliance.A36Eulogia;
+namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class TorrentialTridents : Components.RaidwideCastDelay
-{
-    public TorrentialTridents() : base(ActionID.MakeSpell(AID.TorrentialTridents), ActionID.MakeSpell(AID.Landing), 0.9f, "Raidwide x6") { }
-}
+class TorrentialTridents(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.TorrentialTridents), ActionID.MakeSpell(AID.Landing), 0.9f, "Raidwide x6");
 
-class Tridents : Components.GenericAOEs
+class Tridents(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeCircle _shape = new(18);
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_aoes.Count > 0)
             yield return new(_aoes[0].Shape, _aoes[0].Origin, _aoes[0].Rotation, _aoes[0].Activation, ArenaColor.Danger);
@@ -18,13 +16,13 @@ class Tridents : Components.GenericAOEs
                 yield return new(_aoes[i].Shape, _aoes[i].Origin, _aoes[i].Rotation, _aoes[i].Activation);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Landing)
-            _aoes.Add(new(_shape, caster.Position, activation: module.WorldState.CurrentTime.AddSeconds(13.1f)));
+            _aoes.Add(new(_shape, caster.Position, default, WorldState.FutureTime(13.1f)));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.LightningBolt && _aoes.Count > 0)
             _aoes.RemoveAt(0);

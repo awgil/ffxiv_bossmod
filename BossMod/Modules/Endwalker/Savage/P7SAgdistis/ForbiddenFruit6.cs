@@ -1,8 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
-class ForbiddenFruit6 : ForbiddenFruitCommon
+class ForbiddenFruit6(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.StaticMoon))
 {
-    public ForbiddenFruit6() : base(ActionID.MakeSpell(AID.StaticMoon)) { }
-
-    protected override DateTime? PredictUntetheredCastStart(BossModule module, Actor fruit) => module.WorldState.CurrentTime.AddSeconds(14.1);
+    protected override DateTime? PredictUntetheredCastStart(Actor fruit) => WorldState.FutureTime(14.1f);
 }

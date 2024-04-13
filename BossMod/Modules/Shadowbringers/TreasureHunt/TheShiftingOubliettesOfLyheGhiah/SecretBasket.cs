@@ -10,7 +10,7 @@ public enum OID : uint
     SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-};
+}
 
 public enum AID : uint
 {
@@ -35,42 +35,35 @@ public enum AID : uint
     PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
     PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-};
-
-class Earthquake : Components.RaidwideCast
-{
-    public Earthquake() : base(ActionID.MakeSpell(AID.Earthquake)) { }
 }
+
+class Earthquake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Earthquake));
 
 class HeavyStrike1 : Components.SelfTargetedAOEs
 {
-    public HeavyStrike1() : base(ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(0.5f, 6.5f, 135.Degrees()))
+    public HeavyStrike1(BossModule module) : base(module, ActionID.MakeSpell(AID.HeavyStrike1), new AOEShapeDonutSector(0.5f, 6.5f, 135.Degrees()))
     {
         Color = ArenaColor.Danger;
     }
 }
 
-class HeavyStrike2 : Components.SelfTargetedAOEs
+class HeavyStrike2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavyStrike2), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees()))
 {
-    public HeavyStrike2() : base(ActionID.MakeSpell(AID.HeavyStrike2), new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees())) { }
-
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastFinished(module, caster, spell);
+        base.OnCastFinished(caster, spell);
         if ((AID)spell.Action.ID == AID.HeavyStrike1)
             Color = ArenaColor.Danger;
         else
             Color = ArenaColor.AOE;
     }
-
 }
 
-class HeavyStrike3 : Components.SelfTargetedAOEs
+class HeavyStrike3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavyStrike3), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees()))
 {
-    public HeavyStrike3() : base(ActionID.MakeSpell(AID.HeavyStrike3), new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees())) { }
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastFinished(module, caster, spell);
+        base.OnCastFinished(caster, spell);
         if ((AID)spell.Action.ID == AID.HeavyStrike2)
             Color = ArenaColor.Danger;
         else
@@ -78,50 +71,15 @@ class HeavyStrike3 : Components.SelfTargetedAOEs
     }
 }
 
-class PollenCorona : Components.SelfTargetedAOEs
-{
-    public PollenCorona() : base(ActionID.MakeSpell(AID.PollenCorona), new AOEShapeCircle(8)) { }
-}
-
-class StraightPunch : Components.SingleTargetCast
-{
-    public StraightPunch() : base(ActionID.MakeSpell(AID.StraightPunch)) { }
-}
-
-class Leafcutter : Components.SelfTargetedAOEs
-{
-    public Leafcutter() : base(ActionID.MakeSpell(AID.Leafcutter), new AOEShapeRect(15, 2)) { }
-}
-
-class EarthCrusher : Components.SelfTargetedAOEs
-{
-    public EarthCrusher() : base(ActionID.MakeSpell(AID.EarthCrusher2), new AOEShapeDonut(10, 20)) { }
-}
-
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
-}
-
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
-}
-
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
-}
-
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
-}
-
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
-}
+class PollenCorona(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PollenCorona), new AOEShapeCircle(8));
+class StraightPunch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.StraightPunch));
+class Leafcutter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Leafcutter), new AOEShapeRect(15, 2));
+class EarthCrusher(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EarthCrusher2), new AOEShapeDonut(10, 20));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 
 class BasketStates : StateMachineBuilder
 {
@@ -146,10 +104,8 @@ class BasketStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9784)]
-public class Basket : BossModule
+public class Basket(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public Basket(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

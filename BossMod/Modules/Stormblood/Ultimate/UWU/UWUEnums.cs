@@ -27,7 +27,7 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x14
     ArenaFeatures = 0x1EA1A1, // R2.000, x8, EventObj type
     BeyondLimits = 0x1EA989, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -142,7 +142,7 @@ public enum AID : uint
     EnrageSequenceStart = 11148, // UltimaWeapon->self, no cast, single-target, visual
     EnrageSelectVictim = 11154, // Helper->player, no cast, single-target
     Sabik = 11155, // UltimaWeapon->self, no cast, range 50 circle ? (related to enrage)
-};
+}
 
 public enum SID : uint
 {
@@ -162,13 +162,13 @@ public enum SID : uint
     //BeyondLimits = 1530, // none->player, extra=0x0
     //Woken = 1591, // none->Lahabrea, extra=0x0
     //Doom = 210, // Lahabrea->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
     MistralSong = 16, // player
     FlamingCrush = 117, // player
-};
+}
 
 public enum TetherID : uint
 {
@@ -176,4 +176,4 @@ public enum TetherID : uint
     //_Gen_Tether_17 = 17, // SpinyPlume->player
     //_Gen_Tether_9 = 9, // player->player
     //_Gen_Tether_1 = 1, // player->UltimaWeapon
-};
+}

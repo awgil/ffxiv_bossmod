@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x3D1B, // R5.950, x1
     AllaganCrystal = 0x3D1C, // R1.500, x4
     Helper = 0x233C, // R0.500, x12, 523 type
-};
+}
 
 public enum AID : uint
 {
@@ -22,115 +22,101 @@ public enum AID : uint
     ShatterCone = 31440, // 3D1C->self, 2.5s cast, range 18+R 150-degree cone
     SteelClaw = 31445, // 3D1B->player, 5.0s cast, single-target
     Teleport = 31446, // 3D1B->location, no cast, single-target, boss teleports mid
-};
+}
 
 public enum IconID : uint
 {
     tankbuster = 198, // player
-};
+}
 
 public enum TetherID : uint
 {
     FerocityTetherGood = 1, // Boss->player
     FerocityTetherStretch = 57, // Boss->player
-};
-
-class SteelClaw : Components.SingleTargetDelayableCast
-{
-    public SteelClaw() : base(ActionID.MakeSpell(AID.SteelClaw)) { }
 }
 
-class FerocityGood : Components.BaitAwayTethers  //TODO: consider generalizing stretched tethers?
+class SteelClaw(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.SteelClaw));
+
+class FerocityGood(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherGood) // TODO: consider generalizing stretched tethers?
 {
     private ulong target;
 
-    public FerocityGood() : base(new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherGood) { }
-
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        base.OnTethered(module, source, tether);
+        base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.FerocityTetherGood)
             target = tether.Target;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (DrawTethers && target == pc.InstanceID && CurrentBaits.Count > 0)
         {
             foreach (var b in ActiveBaits)
             {
-                if (arena.Config.ShowOutlinesAndShadows)
-                    arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-                arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Safe);
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
+                Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Safe);
             }
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.Add("Tether is stretched!", false);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.PrimaryActor.Position, 15));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
     }
 }
 
-class FerocityBad : Components.BaitAwayTethers
+class FerocityBad(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherStretch)
 {
     private ulong target;
 
-    public FerocityBad() : base(new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherStretch) { }
-
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        base.OnTethered(module, source, tether);
+        base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.FerocityTetherStretch)
             target = tether.Target;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (DrawTethers && target == pc.InstanceID && CurrentBaits.Count > 0)
         {
             foreach (var b in ActiveBaits)
             {
-                if (arena.Config.ShowOutlinesAndShadows)
-                    arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
-                arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
+                Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
             }
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
             hints.Add("Stretch tether further!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.Circle(module.PrimaryActor.Position, 15));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 15));
     }
 }
 
-class PreternaturalTurnCircle : Components.SelfTargetedAOEs
-{
-    public PreternaturalTurnCircle() : base(ActionID.MakeSpell(AID.PreternaturalTurnCircle), new AOEShapeCircle(15)) { }
-}
+class PreternaturalTurnCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PreternaturalTurnCircle), new AOEShapeCircle(15));
+class PreternaturalTurnDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PreternaturalTurnDonut), new AOEShapeDonut(6, 30));
 
-class PreternaturalTurnDonut : Components.SelfTargetedAOEs
-{
-    public PreternaturalTurnDonut() : base(ActionID.MakeSpell(AID.PreternaturalTurnDonut), new AOEShapeDonut(6, 30)) { }
-}
-
-class Shatter : Components.GenericAOEs
+class Shatter(BossModule module) : Components.GenericAOEs(module)
 {
     private bool FerocityCasted;
     private readonly List<Actor> _crystals = [];
@@ -139,29 +125,29 @@ class Shatter : Components.GenericAOEs
     private static readonly AOEShapeCone cone = new(23.95f, 75.Degrees());
     private static readonly AOEShapeCircle circle = new(8);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(4);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(4);
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var s in _crystals)
-            arena.Actor(s, ArenaColor.Object, true);
+            Arena.Actor(s, ArenaColor.Object, true);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Impact)
             _crystals.Add(caster);
         if ((AID)spell.Action.ID == AID.Ferocity)
             FerocityCasted = true;
         if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnDonut)
-            foreach (var c in module.Enemies(OID.AllaganCrystal))
-                _aoes.Add(new(circle, c.Position, activation: spell.NPCFinishAt.AddSeconds(0.5f)));
+            foreach (var c in Module.Enemies(OID.AllaganCrystal))
+                _aoes.Add(new(circle, c.Position, default, spell.NPCFinishAt.AddSeconds(0.5f)));
         if (!FerocityCasted && (AID)spell.Action.ID == AID.PreternaturalTurnCircle)
-            foreach (var c in module.Enemies(OID.AllaganCrystal))
+            foreach (var c in Module.Enemies(OID.AllaganCrystal))
                 _aoes.Add(new(cone, c.Position, c.Rotation, spell.NPCFinishAt.AddSeconds(0.5f)));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ShatterCircle or AID.ShatterCone)
         {
@@ -173,20 +159,9 @@ class Shatter : Components.GenericAOEs
     }
 }
 
-class Roar : Components.RaidwideCast
-{
-    public Roar() : base(ActionID.MakeSpell(AID.Roar)) { }
-}
-
-class FallingRock : Components.SelfTargetedAOEs
-{
-    public FallingRock() : base(ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3)) { }
-}
-
-class Impact : Components.SelfTargetedAOEs
-{
-    public Impact() : base(ActionID.MakeSpell(AID.Impact), new AOEShapeCircle(5)) { }
-}
+class Roar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Roar));
+class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3));
+class Impact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Impact), new AOEShapeCircle(5));
 
 class DD70AeturnaStates : StateMachineBuilder
 {
@@ -206,7 +181,4 @@ class DD70AeturnaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 903, NameID = 12246)]
-public class DD70Aeturna : BossModule
-{
-    public DD70Aeturna(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-300, -300), 20)) { }
-}
+public class DD70Aeturna(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-300, -300), 20));

@@ -169,5 +169,5 @@ class C023MokoStates : StateMachineBuilder
     }
 }
 
-class C023NMokoStates : C023MokoStates { public C023NMokoStates(BossModule module) : base(module, false) { } }
-class C023SMokoStates : C023MokoStates { public C023SMokoStates(BossModule module) : base(module, true) { } }
+class C023NMokoStates(BossModule module) : C023MokoStates(module, false);
+class C023SMokoStates(BossModule module) : C023MokoStates(module, true);

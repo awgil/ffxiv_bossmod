@@ -1,22 +1,8 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5Phantom;
 
-class MaledictionOfAgony : Components.CastCounter
-{
-    public MaledictionOfAgony() : base(ActionID.MakeSpell(AID.MaledictionOfAgonyAOE)) { }
-}
-
-class BloodyWraith : Components.Adds
-{
-    public BloodyWraith() : base((uint)OID.BloodyWraith) { }
-}
-
-class MistyWraith : Components.Adds
-{
-    public MistyWraith() : base((uint)OID.MistyWraith) { }
-}
+class MaledictionOfAgony(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MaledictionOfAgonyAOE));
+class BloodyWraith(BossModule module) : Components.Adds(module, (uint)OID.BloodyWraith);
+class MistyWraith(BossModule module) : Components.Adds(module, (uint)OID.MistyWraith);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9755)]
-public class DRS5 : BossModule
-{
-    public DRS5(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(202, -370), 24)) { }
-}
+public class DRS5(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(202, -370), 24));

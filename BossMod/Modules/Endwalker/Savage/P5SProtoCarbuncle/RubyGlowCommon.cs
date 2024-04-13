@@ -5,7 +5,7 @@
 // 0 1
 // 2 3
 // for diagonal, quadrant for coordinate is whatever cell is fully contained (so e.g. for DiagNW quadrant is either 1 or 2)
-abstract class RubyGlowCommon : Components.GenericAOEs
+abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = default) : Components.GenericAOEs(module, watchedAction)
 {
     public enum ArenaState { Normal, Cells, DiagNW, DiagNE } // DiagNW == NW to SE, etc
 
@@ -19,11 +19,9 @@ abstract class RubyGlowCommon : Components.GenericAOEs
     public static readonly AOEShape ShapeHalf = new AOEShapeRect(45, 45);
     public static readonly AOEShape ShapePoison = new AOEShapeCircle(13);
 
-    public RubyGlowCommon(ActionID watchedAction = new()) : base(watchedAction) { }
-
-    public int QuadrantForPosition(BossModule module, WPos pos)
+    public int QuadrantForPosition(WPos pos)
     {
-        var offset = pos - module.Bounds.Center;
+        var offset = pos - Module.Bounds.Center;
         return State switch
         {
             ArenaState.Cells => (offset.X < 0 ? 0 : 1) | (offset.Z < 0 ? 0 : 2),
@@ -34,16 +32,16 @@ abstract class RubyGlowCommon : Components.GenericAOEs
     }
 
     public WDir QuadrantDir(int q) => new WDir((q & 1) != 0 ? +1 : -1, (q & 2) != 0 ? +1 : -1); // both coords are +-1
-    public WPos QuadrantCenter(BossModule module, int q) => module.Bounds.Center + module.Bounds.HalfSize * 0.5f * QuadrantDir(q);
+    public WPos QuadrantCenter(int q) => Module.Bounds.Center + Module.Bounds.HalfSize * 0.5f * QuadrantDir(q);
 
-    public Waymark WaymarkForQuadrant(BossModule module, int q)
+    public Waymark WaymarkForQuadrant(int q)
     {
-        var c = QuadrantCenter(module, q);
+        var c = QuadrantCenter(q);
         Waymark w = Waymark.Count;
         float wd = float.MaxValue;
         for (int i = 0; i < (int)Waymark.Count; i++)
         {
-            var pos = module.WorldState.Waymarks[(Waymark)i];
+            var pos = WorldState.Waymarks[(Waymark)i];
             var dist = pos != null ? (new WPos(pos.Value.XZ()) - c).LengthSq() : float.MaxValue;
             if (dist < wd)
             {
@@ -54,30 +52,30 @@ abstract class RubyGlowCommon : Components.GenericAOEs
         return w;
     }
 
-    public IEnumerable<AOEInstance> ActivePoisonAOEs(BossModule module)
+    public IEnumerable<AOEInstance> ActivePoisonAOEs()
     {
         // TODO: correct explosion time
         return PoisonStones.Select(o => new AOEInstance(ShapePoison, o.Position));
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         switch (State)
         {
             case ArenaState.Cells:
-                arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, 0), module.Bounds.Center + new WDir(module.Bounds.HalfSize, 0), ArenaColor.Border);
-                arena.AddLine(module.Bounds.Center - new WDir(0, module.Bounds.HalfSize), module.Bounds.Center + new WDir(0, module.Bounds.HalfSize), ArenaColor.Border);
+                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.HalfSize, 0), Module.Bounds.Center + new WDir(Module.Bounds.HalfSize, 0), ArenaColor.Border);
+                Arena.AddLine(Module.Bounds.Center - new WDir(0, Module.Bounds.HalfSize), Module.Bounds.Center + new WDir(0, Module.Bounds.HalfSize), ArenaColor.Border);
                 break;
             case ArenaState.DiagNW:
-                arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, module.Bounds.HalfSize), module.Bounds.Center + new WDir(module.Bounds.HalfSize, module.Bounds.HalfSize), ArenaColor.Border);
+                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.HalfSize, Module.Bounds.HalfSize), Module.Bounds.Center + new WDir(Module.Bounds.HalfSize, Module.Bounds.HalfSize), ArenaColor.Border);
                 break;
             case ArenaState.DiagNE:
-                arena.AddLine(module.Bounds.Center - new WDir(module.Bounds.HalfSize, -module.Bounds.HalfSize), module.Bounds.Center + new WDir(module.Bounds.HalfSize, -module.Bounds.HalfSize), ArenaColor.Border);
+                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.HalfSize, -Module.Bounds.HalfSize), Module.Bounds.Center + new WDir(Module.Bounds.HalfSize, -Module.Bounds.HalfSize), ArenaColor.Border);
                 break;
         }
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.TopazStoneAny)
             return;
@@ -103,7 +101,7 @@ abstract class RubyGlowCommon : Components.GenericAOEs
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         var astate = index switch
         {
@@ -119,12 +117,12 @@ abstract class RubyGlowCommon : Components.GenericAOEs
         {
             case 0x00020001:
                 if (State != ArenaState.Normal)
-                    module.ReportError(this, $"Active state {State} while state {astate} is activated");
+                    ReportError($"Active state {State} while state {astate} is activated");
                 State = astate;
                 break;
             case 0x00080004:
                 if (State != astate)
-                    module.ReportError(this, $"Active state {State} while state {astate} is deactivated");
+                    ReportError($"Active state {State} while state {astate} is deactivated");
                 State = ArenaState.Normal;
                 break;
             // 0x00100020 - happens ~1s after activation
@@ -134,51 +132,43 @@ abstract class RubyGlowCommon : Components.GenericAOEs
 
 // common features for ruby glow 4 & 6 (ones that feature recoloring)
 // this includes venom pools and raging claw/searing ray aoes
-abstract class RubyGlowRecolor : RubyGlowCommon
+// note: we show circles around healers until cast happens
+abstract class RubyGlowRecolor(BossModule module, int expectedMagicStones) : RubyGlowCommon(module, ActionID.MakeSpell(AID.VenomPoolRecolorAOE))
 {
     public enum RecolorState { BeforeStones, BeforeRecolor, Done }
 
     public RecolorState CurRecolorState { get; private set; }
     public int AOEQuadrant { get; private set; }
-    private int _expectedMagicStones;
+    private int _expectedMagicStones = expectedMagicStones;
 
     private const float _recolorRadius = 5;
 
-    // note: we show circles around healers until cast happens
-    public RubyGlowRecolor(int expectedMagicStones) : base(ActionID.MakeSpell(AID.VenomPoolRecolorAOE))
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        _expectedMagicStones = expectedMagicStones;
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-    {
-        base.AddHints(module, slot, actor, hints, movementHints);
-        if (VenomPoolActive && module.Raid.WithoutSlot().Where(a => a.Role == Role.Healer).InRadius(actor.Position, _recolorRadius).Count() != 1)
+        base.AddHints(slot, actor, hints);
+        if (VenomPoolActive && Raid.WithoutSlot().Where(a => a.Role == Role.Healer).InRadius(actor.Position, _recolorRadius).Count() != 1)
             hints.Add("Stack with healer!");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return VenomPoolActive && player.Role == Role.Healer ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => VenomPoolActive && player.Role == Role.Healer ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         if (CurRecolorState == RecolorState.BeforeRecolor)
             foreach (var o in MagicStones)
-                if (QuadrantForPosition(module, o.Position) != AOEQuadrant)
-                    arena.Actor(o, ArenaColor.Vulnerable, true);
+                if (QuadrantForPosition(o.Position) != AOEQuadrant)
+                    Arena.Actor(o, ArenaColor.Vulnerable, true);
 
         if (VenomPoolActive)
-            foreach (var a in module.Raid.WithoutSlot().Where(a => a.Role == Role.Healer))
-                arena.AddCircle(a.Position, _recolorRadius, ArenaColor.Safe);
+            foreach (var a in Raid.WithoutSlot().Where(a => a.Role == Role.Healer))
+                Arena.AddCircle(a.Position, _recolorRadius, ArenaColor.Safe);
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
-        base.OnActorEAnim(module, actor, state);
+        base.OnActorEAnim(actor, state);
         switch (CurRecolorState)
         {
             case RecolorState.BeforeStones:
@@ -186,7 +176,7 @@ abstract class RubyGlowRecolor : RubyGlowCommon
                 {
                     int[] counts = new int[4];
                     foreach (var o in MagicStones)
-                        ++counts[QuadrantForPosition(module, o.Position)];
+                        ++counts[QuadrantForPosition(o.Position)];
                     AOEQuadrant = Array.IndexOf(counts, 3);
                     CurRecolorState = RecolorState.BeforeRecolor;
                 }

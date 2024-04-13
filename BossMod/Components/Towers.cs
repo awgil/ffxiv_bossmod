@@ -1,23 +1,14 @@
 ﻿namespace BossMod.Components;
 
-public class GenericTowers : CastCounter
+public class GenericTowers(BossModule module, ActionID aid = default) : CastCounter(module, aid)
 {
-    public struct Tower
+    public struct Tower(WPos position, float radius, int minSoakers = 1, int maxSoakers = 1, BitMask forbiddenSoakers = default)
     {
-        public WPos Position;
-        public float Radius;
-        public int MinSoakers;
-        public int MaxSoakers;
-        public BitMask ForbiddenSoakers;
-
-        public Tower(WPos position, float radius, int minSoakers = 1, int maxSoakers = 1, BitMask forbiddenSoakers = default)
-        {
-            Position = position;
-            Radius = radius;
-            MinSoakers = minSoakers;
-            MaxSoakers = maxSoakers;
-            ForbiddenSoakers = forbiddenSoakers;
-        }
+        public WPos Position = position;
+        public float Radius = radius;
+        public int MinSoakers = minSoakers;
+        public int MaxSoakers = maxSoakers;
+        public BitMask ForbiddenSoakers = forbiddenSoakers;
 
         public bool IsInside(WPos pos) => pos.InCircle(Position, Radius);
         public bool IsInside(Actor actor) => IsInside(actor.Position);
@@ -35,9 +26,7 @@ public class GenericTowers : CastCounter
         arena.AddCircle(pos, radius, safe ? ArenaColor.Safe : ArenaColor.Danger, 2);
     }
 
-    public GenericTowers(ActionID aid = default) : base(aid) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Towers.Any(t => t.ForbiddenSoakers[slot] && t.IsInside(actor)))
         {
@@ -45,52 +34,45 @@ public class GenericTowers : CastCounter
         }
         else if (Towers.FindIndex(t => !t.ForbiddenSoakers[slot] && t.IsInside(actor)) is var soakedIndex && soakedIndex >= 0) // note: this assumes towers don't overlap
         {
-            var count = Towers[soakedIndex].NumInside(module);
+            var count = Towers[soakedIndex].NumInside(Module);
             if (count < Towers[soakedIndex].MinSoakers)
                 hints.Add("Too few soakers in the tower!");
             else if (count > Towers[soakedIndex].MaxSoakers)
                 hints.Add("Too many soakers in the tower!");
         }
-        else if (Towers.Any(t => !t.ForbiddenSoakers[slot] && !t.CorrectAmountInside(module)))
+        else if (Towers.Any(t => !t.ForbiddenSoakers[slot] && !t.CorrectAmountInside(Module)))
         {
             hints.Add("Soak the tower!");
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var t in Towers)
-            DrawTower(arena, t.Position, t.Radius, !t.ForbiddenSoakers[pcSlot]);
+            DrawTower(Arena, t.Position, t.Radius, !t.ForbiddenSoakers[pcSlot]);
     }
 }
 
-public class CastTowers : GenericTowers
+public class CastTowers(BossModule module, ActionID aid, float radius, int minSoakers = 1, int maxSoakers = 1) : GenericTowers(module, aid)
 {
-    public float Radius;
-    public int MinSoakers;
-    public int MaxSoakers;
+    public float Radius = radius;
+    public int MinSoakers = minSoakers;
+    public int MaxSoakers = maxSoakers;
 
-    public CastTowers(ActionID aid, float radius, int minSoakers = 1, int maxSoakers = 1) : base(aid)
-    {
-        Radius = radius;
-        MinSoakers = minSoakers;
-        MaxSoakers = maxSoakers;
-    }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Towers.Add(new(DeterminePosition(module, caster, spell), Radius, MinSoakers, MaxSoakers));
+            Towers.Add(new(DeterminePosition(caster, spell), Radius, MinSoakers, MaxSoakers));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
-            var pos = DeterminePosition(module, caster, spell);
+            var pos = DeterminePosition(caster, spell);
             Towers.RemoveAll(t => t.Position.AlmostEqual(pos, 1));
         }
     }
 
-    private WPos DeterminePosition(BossModule module, Actor caster, ActorCastInfo spell) => spell.TargetID == caster.InstanceID ? caster.Position : module.WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
+    private WPos DeterminePosition(Actor caster, ActorCastInfo spell) => spell.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
 }

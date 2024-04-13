@@ -23,7 +23,7 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x20, 523 type
     ConeSlice = 0x40C6, // R1.000, x6
     Dart = 0x1EB931, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -101,7 +101,7 @@ public enum AID : uint
     SFireSpreadRest = 35323, // Helper->self, no cast, range 12 width 5 rect (x11, advance by 10 degrees every time)
     Enrage = 35875, // *Boss->self, 10.0s cast, range 60 circle, enrage
     EnrageAOE = 35876, // *Boss->self, no cast, range 60 circle, enrage repeat (every 3s after enrage)
-};
+}
 
 public enum SID : uint
 {
@@ -112,7 +112,7 @@ public enum SID : uint
     RightFace = 3541, // none->player, extra=0x0
     ForcedMarch = 1257, // none->player, extra=0x2/0x1/0x4/0x8
     BurningChains = 769, // none->player, extra=0x0
-};
+}
 
 public enum IconID : uint
 {
@@ -128,11 +128,11 @@ public enum IconID : uint
     ShockingAbandon = 218, // player
     RotateCW = 156, // *BallOfFire
     RotateCCW = 157, // *BallOfFire
-};
+}
 
 public enum TetherID : uint
 {
     BombsLink = 54, // *Bomb->*Bomb
     Follow = 17, // *SurprisingMissile/*SurprisingClaw->player
     BurningChains = 9, // player->player
-};
+}

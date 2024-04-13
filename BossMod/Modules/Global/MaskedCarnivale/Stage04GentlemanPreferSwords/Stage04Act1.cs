@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x25C8, //R=1.65
     Bat = 0x25D2, //R=0.4
-};
+}
 
 public enum AID : uint
 {
@@ -12,19 +12,19 @@ public enum AID : uint
     AutoAttack2 = 6499, // 25D2->player, no cast, single-target
     BloodDrain = 14360, // 25D2->player, no cast, single-target
     SanguineBite = 14361, // 25C8->self, no cast, range 3+R width 2 rect
-};
+}
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Trivial act. Enemies here are weak to lightning and fire.\nIn Act 2 the Ram's Voice and Ultravibration combo can be useful.\nFlying Sardine for interrupts can be beneficial.");
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Bats are weak to lightning.\nThe wolf is weak to fire.");
     }

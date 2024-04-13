@@ -20,7 +20,7 @@ public enum OID : uint
     KnockbackHelper = 0x40B2, // R0.500, spawn during fight
     BubbleStrewer = 0x1EB936, // R0.500, EventObj type, spawn during fight
     BubbleBlower = 0x1EB937, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -101,7 +101,7 @@ public enum AID : uint
     SBigBurst = 35555, // Helper->self, no cast, range 60 circle tower fail
 
     Enrage = 35542, // *Boss->self, 10.0s cast, single-target, enrage
-};
+}
 
 public enum SID : uint
 {
@@ -110,10 +110,10 @@ public enum SID : uint
     HydrobulletTarget = 3748, // none->player, extra=0x0
     HydrofallTarget = 3747, // none->player, extra=0x0
     Bubble = 3745, // none->*SpringCrystal1/*Zaratan, extra=0xC8
-};
+}
 
 public enum IconID : uint
 {
     Order1 = 336, // KnockbackHelper
     Order2 = 337, // KnockbackHelper
-};
+}

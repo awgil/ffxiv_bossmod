@@ -12,7 +12,7 @@ public enum OID : uint
     MiasmaHighRect = 0x1EB0E0, // R0.500, EventObj type, spawn during fight
     MiasmaHighCircle = 0x1EB0E1, // R0.500, EventObj type, spawn during fight
     MiasmaHighDonut = 0x1EB0E2, // R0.500, EventObj type, spawn during fight
-};
+}
 
 public enum AID : uint
 {
@@ -31,4 +31,4 @@ public enum AID : uint
     Transference = 22445, // Boss->location, no cast, single-target, teleport
     Summon = 22464, // Boss->self, 3.0s cast, single-target, visual (go untargetable and spawn adds)
     MaledictionOfRuin = 22465, // Boss->self, 43.0s cast, single-target
-};
+}

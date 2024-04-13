@@ -6,7 +6,7 @@ public enum OID : uint
     Helper = 0x233C, // R0.500
     VermillionFlame = 0x2E8F, //R1.2
     RavenousGaleVoidzone = 0x1E8910 //R0.5
-};
+}
 
 public enum AID : uint
 {
@@ -33,15 +33,15 @@ public enum AID : uint
     SplittingRage = 20814, // Boss->self, 3,0s cast, range 50 circle
     SkyrendingStrike = 20804, //enrage, 35s cast time
     SkyrendingStrike2 = 20805, //enrage, 0 cast time, repeat incase player survived 1st enrage
-};
+}
 
 public enum TetherID : uint
 {
     fireorbs = 5, // Boss->player
-};
+}
 
 public enum SID : uint
 {
     Enaero = 206, // Boss->Boss, extra=0x64
     TemporaryMisdirection = 1422, // Boss->player, extra=0x2D0
-};
+}

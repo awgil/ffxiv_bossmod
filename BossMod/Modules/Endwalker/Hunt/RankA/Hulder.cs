@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x35DD, // R5.400, x1
-};
+}
 
 public enum AID : uint
 {
@@ -15,30 +15,11 @@ public enum AID : uint
     StormOfColor = 27078, // Boss->player, 4.0s cast, single-target
 }
 
-class LayOfMislaidMemory : Components.SelfTargetedAOEs
-{
-    public LayOfMislaidMemory() : base(ActionID.MakeSpell(AID.LayOfMislaidMemory), new AOEShapeCone(30, 60.Degrees())) { }
-}
-
-class TempestuousWrath : Components.ChargeAOEs
-{
-    public TempestuousWrath() : base(ActionID.MakeSpell(AID.TempestuousWrath), 4) { }
-}
-
-class RottingElegy : Components.SelfTargetedAOEs
-{
-    public RottingElegy() : base(ActionID.MakeSpell(AID.RottingElegy), new AOEShapeDonut(5, 50)) { }
-}
-
-class OdeToLostLove : Components.RaidwideCast
-{
-    public OdeToLostLove() : base(ActionID.MakeSpell(AID.OdeToLostLove)) { }
-}
-
-class StormOfColor : Components.SingleTargetCast
-{
-    public StormOfColor() : base(ActionID.MakeSpell(AID.StormOfColor)) { }
-}
+class LayOfMislaidMemory(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LayOfMislaidMemory), new AOEShapeCone(30, 60.Degrees()));
+class TempestuousWrath(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.TempestuousWrath), 4);
+class RottingElegy(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RottingElegy), new AOEShapeDonut(5, 50));
+class OdeToLostLove(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OdeToLostLove));
+class StormOfColor(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.StormOfColor));
 
 class HulderStates : StateMachineBuilder
 {
@@ -54,7 +35,4 @@ class HulderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10624)]
-public class Hulder : SimpleBossModule
-{
-    public Hulder(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Hulder(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

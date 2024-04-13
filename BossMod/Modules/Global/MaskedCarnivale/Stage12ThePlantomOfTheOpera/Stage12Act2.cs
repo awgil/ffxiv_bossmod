@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x271B, //R=6.96
     Roselet = 0x271C, //R=0.8
-};
+}
 
 public enum AID : uint
 {
@@ -13,31 +13,16 @@ public enum AID : uint
     Seedvolley = 14750, // 271C->player, no cast, single-target
     Trounce = 14754, // 271B->self, 4,5s cast, range 40+R 60-degree cone
     InflammableFumes = 14753, // 271B->self, 15,0s cast, range 50 circle
-};
-
-class WildHorn : Components.SelfTargetedAOEs
-{
-    public WildHorn() : base(ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(16.96f, 60.Degrees())) { }
 }
 
-class Trounce : Components.SelfTargetedAOEs
-{
-    public Trounce() : base(ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(46.96f, 30.Degrees())) { }
-}
+class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(16.96f, 60.Degrees()));
+class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(46.96f, 30.Degrees()));
+class SporeSac(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SporeSac), "Calls Roselets. Prepare Ice Spikes if available.");
+class InflammableFumes(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.InflammableFumes), "Stun Boss with Bomb Toss. High damage but suriveable.");
 
-class SporeSac : Components.CastHint
+class Hints(BossModule module) : BossComponent(module)
 {
-    public SporeSac() : base(ActionID.MakeSpell(AID.SporeSac), "Calls Roselets. Prepare Ice Spikes if available.") { }
-}
-
-class InflammableFumes : Components.CastHint
-{
-    public InflammableFumes() : base(ActionID.MakeSpell(AID.InflammableFumes), "Stun Boss with Bomb Toss. High damage but suriveable.") { }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Use Bomb Toss to stun Hydnora when he casts Inflammable Fumes.\nUse Ice Spikes to instantly kill roselets once they become aggressive.\nHydnora is weak against water and strong against earth spells.");
     }

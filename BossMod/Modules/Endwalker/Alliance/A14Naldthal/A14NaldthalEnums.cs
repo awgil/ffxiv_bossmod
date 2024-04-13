@@ -7,7 +7,7 @@ public enum OID : uint
     SoulVesselFake = 0x3907, // untargetable/tethered placeholders that spawn during fight
     SoulVesselReal = 0x38A1, // adds that spawn during fight
     Helper = 0x233C, // x31
-};
+}
 
 // nald = orange, thal = blue
 public enum AID : uint
@@ -102,7 +102,7 @@ public enum AID : uint
     TippedScales = 29576, // Boss->self, no cast, visual
     TippedScalesAOE = 29561, // Helper->self, 34.0s cast, raidwide (on success)
     TippedScalesEnrage = 29562, // Helper->self, 34.0s cast, wipe (on failure)
-};
+}
 
 public enum SID : uint
 {
