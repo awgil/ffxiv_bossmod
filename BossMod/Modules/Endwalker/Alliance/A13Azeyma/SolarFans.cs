@@ -68,7 +68,7 @@ class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SolarFansAOE)
-            _aoes.Add(new(circle, spell.LocXZ, Activation: WorldState.FutureTime(16.6f)));
+            _aoes.Add(new(circle, spell.LocXZ, default, WorldState.FutureTime(16.6f)));
         if ((AID)spell.Action.ID == AID.RadiantFlourish)
         {
             _aoes.Clear();
@@ -83,8 +83,8 @@ class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
             if (++teleportcounter > 8)
             {
                 teleportcounter = 0;
-                _aoes.Add(new(circle, Helpers.RotateAroundOrigin(90, Module.Bounds.Center, _aoes[0].Origin), Activation: _aoes[0].Activation.AddSeconds(1.4f)));
-                _aoes.Add(new(circle, Helpers.RotateAroundOrigin(90, Module.Bounds.Center, _aoes[1].Origin), Activation: _aoes[1].Activation.AddSeconds(1.4f)));
+                _aoes.Add(new(circle, Helpers.RotateAroundOrigin(90, Module.Bounds.Center, _aoes[0].Origin), default, _aoes[0].Activation.AddSeconds(1.4f)));
+                _aoes.Add(new(circle, Helpers.RotateAroundOrigin(90, Module.Bounds.Center, _aoes[1].Origin), default, _aoes[1].Activation.AddSeconds(1.4f)));
                 _aoes.RemoveAt(0);
                 _aoes.RemoveAt(0);
             }

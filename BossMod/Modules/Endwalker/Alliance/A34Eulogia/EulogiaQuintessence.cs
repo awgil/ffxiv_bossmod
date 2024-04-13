@@ -69,7 +69,7 @@ class Quintessence(BossModule module) : Components.GenericAOEs(module)
         // 3rd form: 0x53, 0x54, 0x55, 0x57, 0x56, 0x51, 0x50
         // but since we don't need a direction for donuts, we dont need to check it
         if ((AID)spell.Action.ID is AID.FirstFormDonut or AID.SecondFormDonut or AID.ThirdFormDonut)
-            _aoes.Add(new(donut, position, Activation: _activation));
+            _aoes.Add(new(donut, position, default, _activation));
         if ((AID)spell.Action.ID is AID.SecondFormRight or AID.ThirdFormRight)
         {
             if (_index == 0x52)

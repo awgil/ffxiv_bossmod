@@ -23,19 +23,19 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module)
         {
             if (currentIndex == 0x17)
                 foreach (var r in StartingCoords)
-                    _aoes.Add(new(rect, Helpers.RotateAroundOrigin(0, origin, r), Activation: _activation));
+                    _aoes.Add(new(rect, Helpers.RotateAroundOrigin(0, origin, r), default, _activation));
             if (currentIndex == 0x4A)
                 foreach (var r in StartingCoords)
-                    _aoes.Add(new(rect, Helpers.RotateAroundOrigin(-90, origin, r), Activation: _activation));
+                    _aoes.Add(new(rect, Helpers.RotateAroundOrigin(-90, origin, r), default, _activation));
         }
         if (iconID == (uint)IconID.CounterClockwiseHieroglyphika)
         {
             if (currentIndex == 0x4A)
                 foreach (var r in StartingCoords)
-                    _aoes.Add(new(rect, Helpers.RotateAroundOrigin(90, origin, r), Activation: _activation));
+                    _aoes.Add(new(rect, Helpers.RotateAroundOrigin(90, origin, r), default, _activation));
             if (currentIndex == 0x17)
                 foreach (var r in StartingCoords)
-                    _aoes.Add(new(rect, Helpers.RotateAroundOrigin(180, origin, r), Activation: _activation));
+                    _aoes.Add(new(rect, Helpers.RotateAroundOrigin(180, origin, r), default, _activation));
         }
     }
 

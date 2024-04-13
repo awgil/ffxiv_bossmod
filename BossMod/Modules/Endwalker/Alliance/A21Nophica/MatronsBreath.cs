@@ -11,7 +11,7 @@ class MatronsBreath(BossModule module) : Components.GenericAOEs(module)
         var _blueFlowers = Module.Enemies(OID.BlueSafeZone).FirstOrDefault();
         var _goldFlowers = Module.Enemies(OID.GoldSafeZone).FirstOrDefault();
         if (_flowers.Count > 0)
-            yield return new(_shape, _flowers[0].actor.OID == (uint)OID.BlueFlowers ? _blueFlowers!.Position : _goldFlowers!.Position, Activation: _flowers[0].activation);
+            yield return new(_shape, _flowers[0].actor.OID == (uint)OID.BlueFlowers ? _blueFlowers!.Position : _goldFlowers!.Position, default, _flowers[0].activation);
     }
 
     public override void OnActorCreated(Actor actor)

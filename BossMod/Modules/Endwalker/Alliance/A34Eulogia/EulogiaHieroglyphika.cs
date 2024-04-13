@@ -17,7 +17,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module)
                 _aoes.Add(new(rect, Helpers.RotateAroundOrigin(0, origin, r), 180.Degrees(), _activation));
         if (iconID == (uint)IconID.CounterClockwiseHieroglyphika)
             foreach (var r in StartingCoords)
-                _aoes.Add(new(rect, Helpers.RotateAroundOrigin(180, origin, r), Activation: _activation));
+                _aoes.Add(new(rect, Helpers.RotateAroundOrigin(180, origin, r), default, _activation));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
