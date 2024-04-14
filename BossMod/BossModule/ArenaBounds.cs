@@ -273,32 +273,28 @@ public class ArenaBoundsPolygon : ArenaBounds
     public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
     {
         var clippedPolygon = new List<WPos>(Points);
+        var edge = new List<WPos> { Center + new WDir(HalfSize + offset, -HalfSize - offset), Center + new WDir(HalfSize + offset, HalfSize + offset), Center + new WDir(-HalfSize - offset, HalfSize + offset), Center + new WDir(-HalfSize - offset, -HalfSize - offset) };
+        var input = clippedPolygon;
+        clippedPolygon = [];
 
-        for (int i = 0; i < 4; i++)
+        for (int j = 0; j < input.Count; j++)
         {
-            var edge = new List<WPos> { Center + new WDir(HalfSize + offset, -HalfSize - offset), Center + new WDir(HalfSize + offset, HalfSize + offset), Center + new WDir(-HalfSize - offset, HalfSize + offset), Center + new WDir(-HalfSize - offset, -HalfSize - offset) };
-            var input = clippedPolygon;
-            clippedPolygon = [];
+            var v1 = input[j];
+            var v2 = input[(j + 1) % input.Count];
 
-            for (int j = 0; j < input.Count; j++)
+            if (IsInside(v1, edge))
+                clippedPolygon.Add(v1);
+            if (!IsInside(v1, edge) && IsInside(v2, edge))
             {
-                var v1 = input[j];
-                var v2 = input[(j + 1) % input.Count];
-
-                if (IsInside(v1, edge))
-                    clippedPolygon.Add(v1);
-                if (!IsInside(v1, edge) && IsInside(v2, edge))
-                {
-                    var intersection = IntersectLineSegment(v1, v2, edge[0], edge[1]);
-                    clippedPolygon.Add(intersection);
-                }
-            }
-
-            if (!IsInside(input[^1], edge) && IsInside(input[0], edge))
-            {
-                var intersection = IntersectLineSegment(input[^1], input[0], edge[0], edge[1]);
+                var intersection = IntersectLineSegment(v1, v2, edge[0], edge[1]);
                 clippedPolygon.Add(intersection);
             }
+        }
+
+        if (!IsInside(input[^1], edge) && IsInside(input[0], edge))
+        {
+            var intersection = IntersectLineSegment(input[^1], input[0], edge[0], edge[1]);
+            clippedPolygon.Add(intersection);
         }
 
         return clippedPolygon;
