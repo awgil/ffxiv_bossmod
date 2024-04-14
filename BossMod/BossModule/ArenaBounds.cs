@@ -235,7 +235,7 @@ public class ArenaBoundsRect : ArenaBounds
     }
 }
 
-//should work for any non self-intersecting polygon with a list of points, ClampToBounds does not deliver accurate results for positions outside of bounds yet
+//should work for any non self-intersecting polygon with a list of points
 public class ArenaBoundsPolygon : ArenaBounds
 {
     public float HalfWidth { get; private set; }
@@ -362,40 +362,7 @@ public class ArenaBoundsPolygon : ArenaBounds
 
         float shape(WPos p)
         {
-            bool inside = false;
-            int j = Points.Count - 1;
-            float area = Area(Points);
-
-            if (area > 0)
-            {
-                for (int i = 0; i < Points.Count; i++)
-                {
-                    if (Points[i].Z > p.Z)
-                    {
-                        if (Points[j].Z <= p.Z && p.X <= (Points[j].X - Points[i].X) * (p.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
-                            inside = !inside;
-                    }
-                    else if (Points[j].Z > p.Z && p.X <= (Points[j].X - Points[i].X) * (p.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
-                        inside = !inside;
-                    j = i;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < Points.Count; i++)
-                {
-                    if (Points[i].Z < p.Z)
-                    {
-                        if (Points[j].Z >= p.Z && p.X <= (Points[j].X - Points[i].X) * (p.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
-                            inside = !inside;
-                    }
-                    else if (Points[j].Z < p.Z && p.X <= (Points[j].X - Points[i].X) * (p.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
-                        inside = !inside;
-                    j = i;
-                }
-            }
-
-            return inside ? float.PositiveInfinity : 0;
+            return Contains(p)? float.PositiveInfinity : 0;
         }
         map.BlockPixelsInside(shape, 0, 0);
         return map;
@@ -419,38 +386,24 @@ public class ArenaBoundsPolygon : ArenaBounds
     public override WDir ClampToBounds(WDir offset, float scale = 1)
     {
         WDir clampedOffset = offset;
-
-        int windingNumber = 0;
-
+        float distance = (Center - (Center + offset)).Length();
+        float minDistance = float.MaxValue;
+        WPos closestPoint = new(0, 0);
         for (int i = 0; i < Points.Count; i++)
         {
             int j = (i + 1) % Points.Count;
-            WPos p1 = Points[i];
-            WPos p2 = Points[j];
-
-            if (p1.Z <= Center.Z)
+            WPos p0 = Points[i];
+            WPos p1 = Points[j];
+            WPos point = Center + offset * Intersect.RaySegment(Center, offset, p0, p1);
+            float d = (point - Center).Length();
+            if (d < minDistance)
             {
-                if (p2.Z > Center.Z)
-                {
-                    float x = (Center.Z - p1.Z) / (p2.Z - p1.Z);
-                    if (Center.X < p1.X + x * (p2.X - p1.X))
-                        windingNumber++;
-                }
-            }
-            else
-            {
-                if (p2.Z <= Center.Z)
-                {
-                    float x = (Center.Z - p1.Z) / (p2.Z - p1.Z);
-                    if (Center.X >= p1.X + x * (p2.X - p1.X))
-                        windingNumber--;
-                }
+                minDistance = d;
+                closestPoint = point;
             }
         }
-
-        float scaledHalfSize = HalfSize * scale;
-        if (clampedOffset.LengthSq() > scaledHalfSize * scaledHalfSize)
-            clampedOffset *= scaledHalfSize / clampedOffset.Length();
+        if (distance > minDistance * scale)
+            clampedOffset = (closestPoint - Center).Normalized() * minDistance * scale;
 
         return clampedOffset;
     }
