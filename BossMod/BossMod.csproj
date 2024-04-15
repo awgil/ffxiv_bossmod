@@ -49,6 +49,10 @@
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.12" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+    <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
     <Reference Include="FFXIVClientStructs">
       <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
       <Private>false</Private>
