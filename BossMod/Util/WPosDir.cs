@@ -25,9 +25,9 @@ public struct WDir
     public static float Dot(WDir a, WDir b) => a.X * b.X + a.Z * b.Z;
     public readonly float Dot(WDir a) => X * a.X + Z * a.Z;
     public readonly float LengthSq() => X * X + Z * Z;
-    public float Length() => MathF.Sqrt(LengthSq());
+    public readonly float Length() => MathF.Sqrt(LengthSq());
     public static WDir Normalize(WDir a) => a / a.Length();
-    public WDir Normalized() => this / Length();
+    public readonly WDir Normalized() => this / Length();
     public static bool AlmostZero(WDir a, float eps) => Math.Abs(a.X) <= eps && Math.Abs(a.Z) <= eps;
     public readonly bool AlmostZero(float eps) => AlmostZero(this, eps);
     public static bool AlmostEqual(WDir a, WDir b, float eps) => AlmostZero(a - b, eps);
@@ -35,9 +35,29 @@ public struct WDir
 
     public static bool operator ==(WDir l, WDir r) => l.X == r.X && l.Z == r.Z;
     public static bool operator !=(WDir l, WDir r) => l.X != r.X || l.Z != r.Z;
-    public override readonly bool Equals(object? obj) => obj is WDir && this == (WDir)obj;
+    public override readonly bool Equals(object? obj) => obj is WDir dir && this == dir;
     public override readonly int GetHashCode() => (X, Z).GetHashCode();
     public override readonly string ToString() => $"({X:f3}, {Z:f3})";
+}
+
+public static class Extensions
+{
+    public static float Cross(this WDir a, WDir b)
+    {
+        return a.X * b.Z - a.Z * b.X;
+    }
+
+    public static float AngleBetween(this WDir v1, WDir v2)
+    {
+        var dot = v1.Dot(v2);
+        var det = v1.X * v2.Z - v1.Z * v2.X;
+        return MathF.Atan2(det, dot);
+    }
+
+    public static float Normalized(this float value)
+    {
+        return value / MathF.Sqrt(value * value);
+    }
 }
 
 // 2d vector that represents world-space position on XZ plane
@@ -50,6 +70,10 @@ public struct WPos
     public WPos(Vector2 v) { X = v.X; Z = v.Y; }
     public readonly Vector2 ToVec2() => new(X, Z);
 
+    public static WPos operator *(WPos a, float b) => new (a.X * b, a.Z * b);
+    public static WPos operator +(WPos a, float b) => new(a.X + b, a.Z + b);
+    public static WPos operator /(WPos a, int b) => new (a.X / b, a.Z / b);
+    public static WPos operator +(WPos a, WPos b) => new(a.X + b.X, a.Z + b.Z);
     public static WPos operator +(WPos a, WDir b) => new(a.X + b.X, a.Z + b.Z);
     public static WPos operator +(WDir a, WPos b) => new(a.X + b.X, a.Z + b.Z);
     public static WPos operator -(WPos a, WDir b) => new(a.X - b.X, a.Z - b.Z);
@@ -135,14 +159,27 @@ public struct WPos
         return InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
     }
 
+    //should work for any non-self intersecting polygon
     public readonly bool InPolygon(IEnumerable<WPos> vertices)
     {
-        int i, j;
-        bool c = false;
-        WPos[] verticesArray = vertices.ToArray();
-        for (i = 0, j = verticesArray.Length - 1; i < verticesArray.Length; j = i++)
-            if (((verticesArray[i].Z > Z)!= (verticesArray[j].Z > Z)) && (X < (verticesArray[j].X - verticesArray[i].X) * (Z - verticesArray[i].Z) / (verticesArray[j].Z - verticesArray[i].Z) + verticesArray[i].X))
-                c =!c;
-        return c;
+        float windingNumber = 0;
+        var verticesList = vertices.ToList();
+        for (int i = 0; i < verticesList.Count; i++)
+        {
+            int j = (i + 1) % verticesList.Count;
+            var vi = verticesList[i];
+            var vj = verticesList[j];
+            var di = this - vi;
+            var dj = this - vj;
+            var cross = di.Cross(dj);
+            if (vi.Z <= Z)
+            {
+                if (vj.Z > Z && cross > 0)
+                    ++windingNumber;
+            }
+            else if (vj.Z <= Z && cross < 0)
+                --windingNumber;
+        }
+        return windingNumber!= 0;
     }
 }

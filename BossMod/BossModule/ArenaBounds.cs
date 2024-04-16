@@ -3,16 +3,17 @@
 // note: if arena bounds are changed, new instance is recreated
 // max approx error can change without recreating the instance
 // you can use hash-code to cache clipping results - it will change whenever anything in the instance changes
-public abstract class ArenaBounds
+public abstract class ArenaBounds(WPos center, float halfSize)
 {
-    public WPos Center { get; init; }
-    public float HalfSize { get; init; } // largest horizontal/vertical dimension: radius for circle, max of width/height for rect
+    public WPos Center { get; init; } = center;
+    public float HalfSize { get; init; } = halfSize; // largest horizontal/vertical dimension: radius for circle, max of width/height for rect
 
     // fields below are used for clipping
     public float MaxApproxError { get; private set; }
 
     private readonly Clip2D _clipper = new();
     public IEnumerable<WPos> ClipPoly => _clipper.ClipPoly;
+
     public List<(WPos, WPos, WPos)> ClipAndTriangulate(ClipperLib.PolyTree poly) => _clipper.ClipAndTriangulate(poly);
     public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> poly) => _clipper.ClipAndTriangulate(poly);
 
@@ -29,12 +30,6 @@ public abstract class ArenaBounds
                 _clipper.ClipPoly = BuildClipPoly();
             }
         }
-    }
-
-    protected ArenaBounds(WPos center, float halfSize)
-    {
-        Center = center;
-        HalfSize = halfSize;
     }
 
     public abstract IEnumerable<WPos> BuildClipPoly(float offset = 0); // positive offset increases area, negative decreases
@@ -112,39 +107,41 @@ public abstract class ArenaBounds
         return ClipAndTriangulate([start + side, start - side, end - side, end + side]);
     }
 
-    public static float Area(List<WPos> points)
+    public static (float, float, WPos) CalculateHalfSizeAndCenter(List<WPos> points)
     {
-        float a = 0;
-        int len = points.Count;
+        float minX = float.MaxValue;
+        float maxX = float.MinValue;
+        float minZ = float.MaxValue;
+        float maxZ = float.MinValue;
 
-        for (int i = 0; i < len; i++)
+        for (int i = 0; i < points.Count; i += 2)
         {
-            int j = (i + 1) % len;
-            a += points[i].X * points[j].Z - points[j].X * points[i].Z;
+            WPos p = points[i];
+            if (p.X < minX) minX = p.X;
+            if (p.X > maxX) maxX = p.X;
+            if (p.Z < minZ) minZ = p.Z;
+            if (p.Z > maxZ) maxZ = p.Z;
+
+            if (i + 1 < points.Count)
+            {
+                p = points[i + 1];
+                if (p.X < minX) minX = p.X;
+                if (p.X > maxX) maxX = p.X;
+                if (p.Z < minZ) minZ = p.Z;
+                if (p.Z > maxZ) maxZ = p.Z;
+            }
         }
 
-        return a / 2;
-    }
+        float halfWidth = (maxX - minX) / 2;
+        float halfHeight = (maxZ - minZ) / 2;
+        WPos center = new((minX + maxX) / 2, (minZ + maxZ) / 2);
 
-    public static bool IsInside(WPos point, List<WPos> edge)
-    {
-        var d = (edge[1].X - edge[0].X) * (point.Z - edge[0].Z) - (edge[1].Z - edge[0].Z) * (point.X - edge[0].X);
-        return d >= 0;
-    }
-
-    public static WPos IntersectLineSegment(WPos p1, WPos p2, WPos p3, WPos p4)
-    {
-        var d = (p4.Z - p3.Z) * (p1.X - p3.X) + (-p4.X + p3.X) * (p1.Z - p3.Z);
-        var n = (p4.Z - p3.Z) * (p2.X - p1.X) + (-p4.X + p3.X) * (p2.Z - p1.Z);
-        var u = d / n;
-        return new WPos(p1.X + u * (p2.X - p1.X), p1.Z + u * (p2.Z - p1.Z));
+        return (halfWidth, halfHeight, center);
     }
 }
 
-public class ArenaBoundsCircle : ArenaBounds
+public class ArenaBoundsCircle(WPos center, float radius) : ArenaBounds(center, radius)
 {
-    public ArenaBoundsCircle(WPos center, float radius) : base(center, radius) { }
-
     public override IEnumerable<WPos> BuildClipPoly(float offset) => CurveApprox.Circle(Center, HalfSize + offset, MaxApproxError);
 
     public override Pathfinding.Map BuildMap(float resolution)
@@ -166,10 +163,8 @@ public class ArenaBoundsCircle : ArenaBounds
     }
 }
 
-public class ArenaBoundsSquare : ArenaBounds
+public class ArenaBoundsSquare(WPos center, float halfWidth) : ArenaBounds(center, halfWidth)
 {
-    public ArenaBoundsSquare(WPos center, float halfWidth) : base(center, halfWidth) { }
-
     public override IEnumerable<WPos> BuildClipPoly(float offset)
     {
         var s = HalfSize + offset;
@@ -194,18 +189,11 @@ public class ArenaBoundsSquare : ArenaBounds
     }
 }
 
-public class ArenaBoundsRect : ArenaBounds
+public class ArenaBoundsRect(WPos center, float halfWidth, float halfHeight, Angle rotation = new()) : ArenaBounds(center, MathF.Max(halfWidth, halfHeight))
 {
-    public float HalfWidth { get; init; } // along X if rotation is 0
-    public float HalfHeight { get; init; } // along Z if rotation is 0
-    public Angle Rotation { get; init; }
-
-    public ArenaBoundsRect(WPos center, float halfWidth, float halfHeight, Angle rotation = new()) : base(center, MathF.Max(halfWidth, halfHeight))
-    {
-        HalfWidth = halfWidth;
-        HalfHeight = halfHeight;
-        Rotation = rotation;
-    }
+    public float HalfWidth { get; init; } = halfWidth;
+    public float HalfHeight { get; init; } = halfHeight;
+    public Angle Rotation { get; init; } = rotation;
 
     public override IEnumerable<WPos> BuildClipPoly(float offset)
     {
@@ -248,119 +236,14 @@ public class ArenaBoundsPolygon : ArenaBounds
         (HalfWidth, HalfHeight, Center) = CalculateHalfSizeAndCenter(points);
     }
 
-    private static (float, float, WPos) CalculateHalfSizeAndCenter(List<WPos> points)
-    {
-        float minX = float.MaxValue;
-        float maxX = float.MinValue;
-        float minY = float.MaxValue;
-        float maxY = float.MinValue;
+    public override IEnumerable<WPos> BuildClipPoly(float offset) => Points;
 
-        foreach (var point in points)
-        {
-            minX = MathF.Min(minX, point.X);
-            maxX = MathF.Max(maxX, point.X);
-            minY = MathF.Min(minY, point.Z);
-            maxY = MathF.Max(maxY, point.Z);
-        }
-
-        float halfWidth = (maxX - minX) / 2;
-        float halfHeight = (maxY - minY) / 2;
-        WPos center = new((minX + maxX) / 2, (minY + maxY) / 2);
-
-        return (halfWidth, halfHeight, center);
-    }
-
-    public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
-    {
-        var clippedPolygon = new List<WPos>(Points);
-        var edge = new List<WPos> { Center + new WDir(HalfSize + offset, -HalfSize - offset), Center + new WDir(HalfSize + offset, HalfSize + offset), Center + new WDir(-HalfSize - offset, HalfSize + offset), Center + new WDir(-HalfSize - offset, -HalfSize - offset) };
-        var input = clippedPolygon;
-        clippedPolygon = [];
-
-        for (int j = 0; j < input.Count; j++)
-        {
-            var v1 = input[j];
-            var v2 = input[(j + 1) % input.Count];
-
-            if (IsInside(v1, edge))
-                clippedPolygon.Add(v1);
-            if (!IsInside(v1, edge) && IsInside(v2, edge))
-            {
-                var intersection = IntersectLineSegment(v1, v2, edge[0], edge[1]);
-                clippedPolygon.Add(intersection);
-            }
-        }
-
-        if (!IsInside(input[^1], edge) && IsInside(input[0], edge))
-        {
-            var intersection = IntersectLineSegment(input[^1], input[0], edge[0], edge[1]);
-            clippedPolygon.Add(intersection);
-        }
-
-        return clippedPolygon;
-    }
-
-    public override bool Contains(WPos position)
-    {
-        bool inside = false;
-        int j = Points.Count - 1;
-        float area = Area(Points);
-
-        if (area > 0)
-        {
-            for (int i = 0; i < Points.Count; i++)
-            {
-                if (Points[i].Z > position.Z)
-                {
-                    if (Points[j].Z <= position.Z && position.X <= (Points[j].X - Points[i].X) * (position.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
-                        inside = !inside;
-                }
-                else if (Points[j].Z > position.Z && position.X <= (Points[j].X - Points[i].X) * (position.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
-                    inside = !inside;
-                j = i;
-            }
-        }
-        else
-        {
-            for (int i = 0; i < Points.Count; i++)
-            {
-                if (Points[i].Z < position.Z)
-                {
-                    if (Points[j].Z >= position.Z && position.X <= (Points[j].X - Points[i].X) * (position.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
-                        inside = !inside;
-                }
-                else if (Points[j].Z < position.Z && position.X <= (Points[j].X - Points[i].X) * (position.Z - Points[i].Z) / (Points[j].Z - Points[i].Z) + Points[i].X)
-                    inside = !inside;
-                j = i;
-            }
-        }
-
-        return inside;
-    }
+    public override bool Contains(WPos position) => position.InPolygon(Points);
 
     public override Pathfinding.Map BuildMap(float resolution)
     {
-        float minX = float.MaxValue;
-        float maxX = float.MinValue;
-        float minY = float.MaxValue;
-        float maxY = float.MinValue;
-
-        foreach (var point in Points)
-        {
-            minX = MathF.Min(minX, point.X);
-            maxX = MathF.Max(maxX, point.X);
-            minY = MathF.Min(minY, point.Z);
-            maxY = MathF.Max(maxY, point.Z);
-        }
-
-        var center = new WPos((minX + maxX) / 2, (minY + maxY) / 2);
-        var map = new Pathfinding.Map(resolution, center, (maxX - minX) / 2, (maxY - minY) / 2);
-
-        float shape(WPos p)
-        {
-            return Contains(p)? float.PositiveInfinity : 0;
-        }
-        map.BlockPixelsInside(shape, 0, 0);
+        var map = new Pathfinding.Map(resolution, CalculateHalfSizeAndCenter(Points).Item3, CalculateHalfSizeAndCenter(Points).Item1, CalculateHalfSizeAndCenter(Points).Item2);
+        map.BlockPixelsInside(ShapeDistance.InvertedPolygon(Points), 0, 0);
         return map;
     }
 
@@ -379,28 +262,26 @@ public class ArenaBoundsPolygon : ArenaBounds
         return minDistance;
     }
 
-    public override WDir ClampToBounds(WDir offset, float scale = 1)
+    public override WDir ClampToBounds(WDir offset, float scale)
     {
-        WDir clampedOffset = offset;
-        float distance = (Center - (Center + offset)).Length();
         float minDistance = float.MaxValue;
-        WPos closestPoint = new(0, 0);
+        WPos closestPoint = default;
+
         for (int i = 0; i < Points.Count; i++)
         {
             int j = (i + 1) % Points.Count;
             WPos p0 = Points[i];
             WPos p1 = Points[j];
-            WPos point = Center + offset * Intersect.RaySegment(Center, offset, p0, p1);
-            float d = (point - Center).Length();
-            if (d < minDistance)
+            WPos pointOnSegment = Intersect.ClosestPointOnSegment(p0, p1, Center + offset);
+            float distance = (pointOnSegment - (Center + offset)).Length();
+
+            if (distance < minDistance)
             {
-                minDistance = d;
-                closestPoint = point;
+                minDistance = distance;
+                closestPoint = pointOnSegment;
             }
         }
-        if (distance > minDistance * scale)
-            clampedOffset = (closestPoint - Center).Normalized() * minDistance * scale;
 
-        return clampedOffset;
+        return closestPoint - Center;
     }
 }

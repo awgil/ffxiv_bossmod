@@ -7,7 +7,7 @@ class Voidzone(BossModule module) : BossComponent(module)
         if (index == 0x1C)
         {
             if (state == 0x00020001)
-                Arena.Bounds = new ArenaBoundsPolygon(Helpers.CalculateEquilateralTriangleVertices(new(-750, -756.25f), 11));
+                Arena.Bounds = new ArenaBoundsPolygon(Helpers.CalculateEquilateralTriangleVertices(new(-750, -756.25f), 12));
             if (state == 0x00080004)
                 Arena.Bounds = new ArenaBoundsCircle(new(-750, -750), 30);
         }

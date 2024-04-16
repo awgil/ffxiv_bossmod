@@ -37,8 +37,13 @@ public class A30Trash2Pack1States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", PrimaryActorOID = (uint)OID.AngelosPack1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481, SortOrder = 5)]
-public class A30Trash2Pack1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(800, 770), 15, 25))
+public class A30Trash2Pack1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsPolygon(arenacoords))
 {
+    private static readonly List<WPos> arenacoords = [new(794.8f, 762.7f), new(794.8f, 763.6f), new(792.9f, 764), new(793.2f, 770.5f), new(793.5f, 770.8f), new(793.5f, 772.3f),
+    new(793.2f, 772.6f), new(783.4f, 772.6f), new(783.4f, 777), new(788.4f, 775.8f), new(790, 775.9f), new(790.3f, 776.2f), new(790.3f, 778.8f), new(789.6f, 779.1f),
+    new(783.1f, 778.9f), new(783.3f, 786.2f), new(788.4f, 785.4f), new(790.4f, 785.9f), new(790.4f, 788.6f), new(783, 788.7f), new(783.2f, 795.8f), new(818.1f, 796.3f),
+    new(818.2f, 787.6f), new(812.5f, 788.6f), new(809.8f, 788.7f), new(809.9f, 785.4f), new(817.4f, 785.8f), new(817.5f, 778.4f), new(812.6f, 779.1f), new(810.3f, 779.1f),
+    new(809.4f, 779f), new(809.6f, 776.2f), new(819, 776), new(819, 772.6f), new(806.6f, 772.5f), new(806.5f, 772.2f), new(806.7f, 764), new(805.5f, 763.5f), new(805.3f, 762.2f)];
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

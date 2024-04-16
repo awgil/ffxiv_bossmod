@@ -19,7 +19,7 @@ class RhalgrBeaconShock(BossModule module) : Components.GenericAOEs(module, Acti
 
 // TODO: this is a knockback 50, ignores immunities - but need to clamp to correct fingers
 // there are two possible source locations ([-10.12, 268.50] and [-24.12, 266.50]), two potential fingers for each - one of them is sometimes covered by lightning aoes
-class RhalgrBeaconKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.RhalgrsBeaconKnockback), 50, true)
+class RhalgrBeaconKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.RhalgrsBeaconKnockback), 50, true, stopAfterWall: true)
 {
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

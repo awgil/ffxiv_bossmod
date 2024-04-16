@@ -190,4 +190,22 @@ public static class ShapeDistance
         var vertices = new List<WPos> { p1, p2, p3 };
         return ConvexPolygon(vertices, cw);
     }
+
+//should work with any non-self intersecting polygon
+    public static Func<WPos, float> Polygon(IEnumerable<WPos> vertices)
+    {
+        return p =>
+        {
+            if (p.InPolygon(vertices))
+                return 0;
+            else
+                return float.MaxValue;
+        };
+    }
+
+    public static Func<WPos, float> InvertedPolygon(IEnumerable<WPos> vertices)
+    {
+        var polygon = Polygon(vertices);
+        return p => polygon(p) == 0 ? float.MaxValue : -polygon(p);
+    }
 }

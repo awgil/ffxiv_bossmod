@@ -3,7 +3,7 @@
 namespace BossMod.Components;
 
 // generic knockback/attract component; it's a cast counter for convenience
-public abstract class Knockback(BossModule module, ActionID aid = new(), bool ignoreImmunes = false, int maxCasts = int.MaxValue, bool stopAtWall = false) : CastCounter(module, aid)
+public abstract class Knockback(BossModule module, ActionID aid = new(), bool ignoreImmunes = false, int maxCasts = int.MaxValue, bool stopAtWall = false, bool stopAfterWall = false) : CastCounter(module, aid)
 {
     public enum Kind
     {
@@ -31,11 +31,12 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
         public DateTime JobBuffExpire; // 0 if not active
         public DateTime DutyBuffExpire; // 0 if not active
 
-        public bool ImmuneAt(DateTime time) => RoleBuffExpire > time || JobBuffExpire > time || DutyBuffExpire > time;
+        public readonly bool ImmuneAt(DateTime time) => RoleBuffExpire > time || JobBuffExpire > time || DutyBuffExpire > time;
     }
 
     public bool IgnoreImmunes { get; init; } = ignoreImmunes;
     public bool StopAtWall = stopAtWall; // use if wall is solid rather than deadly
+    public bool StopAfterWall = stopAfterWall; // use if the wall is a polygon where you need to check for intersections
     public int MaxCasts = maxCasts; // use to limit number of drawn knockbacks
     protected PlayerImmuneState[] PlayerImmunes = new PlayerImmuneState[PartyState.MaxAllianceSize];
 
@@ -158,7 +159,8 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
 
             if (StopAtWall)
                 distance = Math.Min(distance, Module.Bounds.IntersectRay(from, dir) - actor.HitboxRadius);
-
+            if (StopAfterWall)
+                distance = Math.Min(distance, Module.Bounds.IntersectRay(from, dir) + 0.001f);
             var to = from + distance * dir;
             yield return (from, to);
             from = to;
@@ -171,8 +173,8 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
 
 // generic 'knockback from/attract to cast target' component
 // TODO: knockback is really applied when effectresult arrives rather than when actioneffect arrives, this is important for ai hints (they can reposition too early otherwise)
-public class KnockbackFromCastTarget(BossModule module, ActionID aid, float distance, bool ignoreImmunes = false, int maxCasts = int.MaxValue, AOEShape? shape = null, Kind kind = Kind.AwayFromOrigin, float minDistance = 0, bool minDistanceBetweenHitboxes = false, bool stopAtWall = false)
-    : Knockback(module, aid, ignoreImmunes, maxCasts, stopAtWall)
+public class KnockbackFromCastTarget(BossModule module, ActionID aid, float distance, bool ignoreImmunes = false, int maxCasts = int.MaxValue, AOEShape? shape = null, Kind kind = Kind.AwayFromOrigin, float minDistance = 0, bool minDistanceBetweenHitboxes = false, bool stopAtWall = false, bool stopAfterWall = false)
+    : Knockback(module, aid, ignoreImmunes, maxCasts, stopAtWall, stopAfterWall)
 {
     public float Distance = distance;
     public AOEShape? Shape = shape;

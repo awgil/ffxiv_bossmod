@@ -89,7 +89,7 @@ class Quintessence(BossModule module) : Components.GenericAOEs(module)
                 _aoes.Add(new(cone, position, _rot3, _activation));
             if (_index is 0x52 or 0x51)
                 _aoes.Add(new(cone, position, -_rot3, _activation));
-            if (_index == 0x53)
+            if (_index is 0x53 or 0x54)
                 _aoes.Add(new(cone, position, _rot2, _activation));
         }
     }
