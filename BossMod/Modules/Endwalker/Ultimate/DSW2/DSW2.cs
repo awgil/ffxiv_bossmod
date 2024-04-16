@@ -19,8 +19,8 @@ class P7AlternativeEnd(BossModule module) : Components.CastCounter(module, Actio
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788)]
 public class DSW2(WorldState ws, Actor primary) : BossModule(ws, primary, BoundsCircle)
 {
-    public static ArenaBoundsCircle BoundsCircle = new ArenaBoundsCircle(new (100, 100), 21); // p2, intermission
-    public static ArenaBoundsSquare BoundsSquare = new ArenaBoundsSquare(new (100, 100), 21); // p3, p4
+    public static readonly ArenaBoundsCircle BoundsCircle = new ArenaBoundsCircle(new(100, 100), 21); // p2, intermission
+    public static readonly ArenaBoundsSquare BoundsSquare = new ArenaBoundsSquare(new(100, 100), 21); // p3, p4
 
     private Actor? _arenaFeatures;
     private Actor? _bossP3;

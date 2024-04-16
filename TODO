@@ -16,7 +16,6 @@ network rework:
 - utility to inject custom ipcs to the stream for debugging?
 
 general:
-- verify use of bitmasks in properties (eg in record structs)
 - knockback/forced movement projected actor - along line rather than from center
 - autoreplay improvements - react to module manager transitions?
 - better timing tracking for: statuses, gauges, cooldowns, cast times, anim lock, ...
