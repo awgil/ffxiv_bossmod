@@ -15,8 +15,8 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
 
     public int NumCasts { get; private set; }
     private int _numTethers;
-    private List<WPos> _meteors = new();
-    private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+    private readonly List<WPos> _meteors = [];
+    private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
 
     private static readonly float _radius = 2;
     private static readonly int _ownThickness = 2;
@@ -66,7 +66,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
                     Arena.PathArcTo(target.Position, 2, (rot + 90.Degrees()).Rad, (rot - 90.Degrees()).Rad);
                     Arena.PathLineTo(source.Position - norm);
                     Arena.PathLineTo(source.Position + norm);
-                    Arena.PathStroke(true, _playerStates[slot].NonClipping ? ArenaColor.Safe : ArenaColor.Danger, thickness);
+                    MiniArena.PathStroke(true, _playerStates[slot].NonClipping ? ArenaColor.Safe : ArenaColor.Danger, thickness);
                     Arena.AddLine(source.Position, target.Position, _playerStates[slot].Stretched ? ArenaColor.Safe : ArenaColor.Danger, thickness);
                 }
             }
@@ -114,7 +114,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         _ => null
     };
 
-    private IEnumerable<WPos> BuildShadowPolygon(WPos source, WPos meteor)
+    private static IEnumerable<WPos> BuildShadowPolygon(WPos source, WPos meteor)
     {
         var toMeteor = meteor - source;
         var dirToMeteor = Angle.FromDirection(toMeteor);
@@ -128,7 +128,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         yield return source + 100 * (dirToMeteor - halfAngle).ToDirection();
     }
 
-    private bool IsClipped(WPos source, WPos target, WPos position) => position.InCircle(target, _radius) || position.InRect(source, target - source, _radius);
+    private static bool IsClipped(WPos source, WPos target, WPos position) => position.InCircle(target, _radius) || position.InRect(source, target - source, _radius);
 
     private bool IsClippedByOthers(Actor player)
     {

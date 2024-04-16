@@ -5,7 +5,7 @@ class Phase2ArenaUpdate(BossModule module) : BossComponent(module)
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00200010 && index == 0x42)
-            Module.Arena.Bounds = new ArenaBoundsSquare(new(0, 750), 20);
+            Module.Arena.Bounds = new ArenaBoundsSquare(Module.Bounds.Center, 20);
     }
 }
 
@@ -22,6 +22,10 @@ class A33OschonStates : StateMachineBuilder
             .ActivateOnEnter<SuddenDownpour>()
             .ActivateOnEnter<DownhillP1>()
             .ActivateOnEnter<ClimbingShot>()
+            .ActivateOnEnter<ClimbingShotRaidwide>()
+            .ActivateOnEnter<ClimbingShotRaidwide2>()
+            .ActivateOnEnter<ClimbingShotRaidwide3>()
+            .ActivateOnEnter<ClimbingShotRaidwide4>()
             .ActivateOnEnter<SoaringMinuet1>()
             .ActivateOnEnter<SoaringMinuet2>()
             .ActivateOnEnter<FlintedFoehnP1>()
@@ -29,7 +33,7 @@ class A33OschonStates : StateMachineBuilder
             .ActivateOnEnter<SwingingDraw>()
             .ActivateOnEnter<LoftyPeaks>()
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
-        SimplePhase(1, id => { SimpleState(id, 20000, "Enrage"); }, "P2")
+        SimplePhase(1, id => { SimpleState(id, 10000, "Enrage"); }, "P2")
             .ActivateOnEnter<Phase2ArenaUpdate>()
             .ActivateOnEnter<PitonPull>()
             .ActivateOnEnter<Altitude>()

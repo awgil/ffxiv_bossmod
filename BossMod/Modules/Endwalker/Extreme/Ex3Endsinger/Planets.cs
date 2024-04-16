@@ -4,8 +4,8 @@
 class Planets(BossModule module) : BossComponent(module)
 {
     private Actor? _head;
-    private List<WPos> _planetsFiery = new();
-    private List<WPos> _planetsAzure = new();
+    private readonly List<WPos> _planetsFiery = [];
+    private readonly List<WPos> _planetsAzure = [];
 
     private static readonly AOEShapeCone _aoeHead = new(20, 90.Degrees());
     private static readonly AOEShapeCircle _aoePlanet = new(30);

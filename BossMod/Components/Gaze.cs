@@ -68,7 +68,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
             {
                 var (min, max) = Inverted ? (45, 315) : (-45, 45);
                 Arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward + min.Degrees()).Rad, (pc.Rotation + eye.Forward + max.Degrees()).Rad);
-                Arena.PathStroke(false, ArenaColor.Enemy);
+                MiniArena.PathStroke(false, ArenaColor.Enemy);
             }
         }
     }

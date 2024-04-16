@@ -32,13 +32,13 @@ class Voidzone(BossModule module) : BossComponent(module)
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x00)
-            Module.Arena.Bounds = new ArenaBoundsRect(new(0, 60), 19.5f, 20);
+            Arena.Bounds = new ArenaBoundsRect(Arena.Bounds.Center, 19.5f, 20);
     }
 }
 
 class Landslip(BossModule module) : Components.Knockback(module)
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
     private DateTime _activation;
     private static readonly AOEShapeRect rect = new(40, 5);
 
@@ -80,7 +80,7 @@ class PoundSand(BossModule module) : Components.LocationTargetedAOEs(module, Act
 
 class AntlionMarch(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos source, AOEShape shape, Angle direction)> _casters = new();
+    private readonly List<(WPos source, AOEShape shape, Angle direction)> _casters = [];
     private DateTime _activation;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -111,7 +111,7 @@ class AntlionMarch(BossModule module) : Components.GenericAOEs(module)
 
 class Towerfall(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos source, AOEShape shape, Angle direction, DateTime activation)> _casters = new();
+    private readonly List<(WPos source, AOEShape shape, Angle direction, DateTime activation)> _casters = [];
     private static readonly AOEShapeRect rect = new(40, 5);
     private static readonly Angle _rot1 = 89.999f.Degrees();
     private static readonly Angle _rot2 = -90.004f.Degrees();

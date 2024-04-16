@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class AsAboveSoBelow(BossModule module) : Components.Exaflare(module, 6)
+class EverFireOnceBurned(BossModule module) : Components.Exaflare(module, 6)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

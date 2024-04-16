@@ -7,9 +7,9 @@ class Lightwave2(BossModule module) : LightwaveCommon(module)
     private Vector4? _safeCrystalOrigin;
 
     private static readonly WPos _crystalCenter = new(100, 101);
-    private static readonly WPos _crystalTL = new( 90,  92);
-    private static readonly WPos _crystalTR = new(110,  92);
-    private static readonly WPos _crystalBL = new( 90, 110);
+    private static readonly WPos _crystalTL = new(90, 92);
+    private static readonly WPos _crystalTR = new(110, 92);
+    private static readonly WPos _crystalBL = new(90, 110);
     private static readonly WPos _crystalBR = new(110, 110);
     private static readonly AOEShapeCone _gloryAOE = new(40, 90.Degrees());
 

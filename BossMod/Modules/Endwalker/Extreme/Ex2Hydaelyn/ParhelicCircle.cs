@@ -2,7 +2,7 @@
 
 class ParhelicCircle(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Incandescence))
 {
-    private List<WPos> _positions = new();
+    private readonly List<WPos> _positions = [];
 
     private static readonly float _triRadius = 8;
     private static readonly float _hexRadius = 17;

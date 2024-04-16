@@ -2,7 +2,7 @@
 
 class RedHiddenMines(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _mines = new();
+    private List<AOEInstance> _mines = [];
     private static readonly AOEShapeCircle _shapeTrigger = new(3.6f);
     private static readonly AOEShapeCircle _shapeExplosion = new(8f);
 

@@ -46,7 +46,7 @@ class SurgingWavesArenaChange(BossModule module) : BossComponent(module)
             Arena.PathLineTo(new(c * 19, -929));
             Arena.PathLineTo(new(c * -19, -929));
             Arena.PathLineTo(new(c * -19, -910));
-            Arena.PathStroke(false, ArenaColor.Border, 2);
+            MiniArena.PathStroke(false, ArenaColor.Border, 2);
             if (Module.FindComponent<Shockwave>()!.Sources(pcSlot, pc).Any())
                 Arena.ZoneCone(new(-6 * c, -900), 0, 6, c * -90.Degrees(), 22.5f.Degrees(), ArenaColor.SafeFromAOE);
         }

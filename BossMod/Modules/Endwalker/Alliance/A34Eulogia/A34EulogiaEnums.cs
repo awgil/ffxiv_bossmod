@@ -36,32 +36,34 @@ public enum AID : uint
     QuintessenceVisual5 = 35357, // Avatar->self, 0.5s cast, single-target
     FirstFormRight = 35338, // Eulogia->self, 7.0s cast, single-target
     FirstFormLeft = 35341, // Eulogia->self, 7.0s cast, single-target
-    FirstFormAOE = 35344, // Eulogia->self, 7.0s cast, single-target
+    FirstFormDonut = 35344, // Eulogia->self, 7.0s cast, single-target
     SecondFormRight = 35339, // Eulogia->self, 7.0s cast, single-target
     SecondFormLeft = 35342, // Eulogia->self, 7.0s cast, single-target
-    SecondFormAOE = 35345, // Eulogia->self, 7.0s cast, single-target
+    SecondFormDonut = 35345, // Eulogia->self, 7.0s cast, single-target
     ThirdFormRight = 35340, // Eulogia->self, 7.0s cast, single-target
     ThirdFormLeft = 35343, // Eulogia->self, 7.0s cast, single-target
-    ThirdFormAOE = 35346, // Eulogia->self, 7.0s cast, single-target
+    ThirdFormDonut = 35346, // Eulogia->self, 7.0s cast, single-target
     QuintessenceSetup = 35350, // Eulogia->self, 4.0s cast, single-target
     Quintessence1stSpot = 35351, // Eulogia->location, no cast, single-target, teleport to 1st spot
     Quintessence2ndSpot = 35352, // Eulogia->location, no cast, single-target, teleport to 2st spot
     Quintessence3rdSpot = 35353, // Eulogia->location, no cast, single-target, teleport to 3rd spot
     QuintessenceFirstRight = 35354, // Helper->self, 4.8s cast, range 50 180-degree cone
     QuintessenceFirstLeft = 35355, // Helper->self, 4.8s cast, range 50 180-degree cone
-    QuintessenceFirstAOE = 35356, // Helper->self, 4.8s cast, range 8-50 donut
+    QuintessenceFirstDonut = 35356, // Helper->self, 4.8s cast, range 8-50 donut
     QuintessenceSecondRight = 36069, // Helper->self, 8.3s cast, range 50 180-degree cone
     QuintessenceSecondLeft = 36070, // Helper->self, 8.3s cast, range 50 180-degree cone
-    QuintessenceSecondAOE = 36071, // Helper->self, 8.3s cast, range 8-50 donut
+    QuintessenceSecondDonut = 36071, // Helper->self, 8.3s cast, range 8-50 donut
     QuintessenceThirdRight = 36072, // Helper->self, 11.9s cast, range 50 180-degree cone
     QuintessenceThirdLeft = 36073, // Helper->self, 11.9s cast, range 50 180-degree cone
-    QuintessenceThirdAOE = 36074, // Helper->self, 11.9s cast, range 8-50 donut
+    QuintessenceThirdDonut = 36074, // Helper->self, 11.9s cast, range 8-50 donut
 
     SunbeamSelf = 35328, // Eulogia->self, 5.0s cast, single-target, visual
     SunbeamTankBuster = 35329, // Helper->players, 5.0s cast, range 6 circle, tankbusters
 
     DawnOfTime = 35331, // Eulogia->self, 5.0s cast, range 70 circle
-    TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle, raidwide
+    TheWhorl = 35375, // Eulogia->self, 7.0s cast, range 40 circle
+    AsAboveSoBelow = 35419, // Eulogia->self, 5.0s cast, range 40 circle
+    AsAboveSoBelow2 = 35420, // Eulogia->self, 5.0s cast, range 40 circle
 
     LovesLight = 35376, // Eulogia->self, 4.0s cast, single-target
     FullBright = 35377, // Eulogia->self, 3.0s cast, single-target
@@ -113,10 +115,7 @@ public enum AID : uint
     ThousandfoldThrustAOEFirst = 35417, // Helper->self, 6.3s cast, range 60 180-degree cone
     ThousandfoldThrustAOERest = 35418, // Helper->self, no cast, range 60 180-degree cone
 
-    AsAboveSoBelow = 35419, // Eulogia->self, 5.0s cast, range 40 circle
-    AsAboveSoBelowAlt = 35420, // Eulogia->self, 5.0s cast, range 40 circle
-
-    ClimbingShotVisual = 36106, // Eulogia->self, 8.0s cast, range 40 circle, visual
+    ClimbingShotVisual = 36106, // Eulogia->self, 8.0s cast, range 40 circle, visual, it seems like any combination of visual + actual knockback/raidwide can happen, ~0.2s delay
     ClimbingShotVisual2 = 36107, // Eulogia->self, 8.0s cast, range 40 circle, visual
     ClimbingShot1 = 35431, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source
     ClimbingShot2 = 35429, // Eulogia->self, no cast, range 40 circle, knockback 20, away from source

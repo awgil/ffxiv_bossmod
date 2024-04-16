@@ -6,10 +6,10 @@ class Paradeigma(BossModule module) : BossComponent(module)
     public enum FlowDirection { None, CW, CCW }
 
     private FlowDirection _flow;
-    private List<WDir> _birds = new();
-    private List<WDir> _behemoths = new();
-    private List<(WDir, Angle)> _snakes = new();
-    private List<WDir> _fireLine = new();
+    private readonly List<WDir> _birds = [];
+    private readonly List<WDir> _behemoths = [];
+    private readonly List<(WDir, Angle)> _snakes = [];
+    private readonly List<WDir> _fireLine = [];
 
     private static readonly float _birdBehemothOffset = 10.5f;
     private static readonly float _snakeNearOffset = 5.5f;

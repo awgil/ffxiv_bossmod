@@ -42,7 +42,7 @@ class Voidzone(BossModule module) : BossComponent(module)
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x0A)
-            Module.Arena.Bounds = new ArenaBoundsCircle(new(0, -422), 20);
+            Arena.Bounds = new ArenaBoundsCircle(Arena.Bounds.Center, 20);
     }
 }
 
@@ -52,7 +52,7 @@ class Contrapasso(BossModule module) : Components.RaidwideCast(module, ActionID.
 
 class DuplicitousBattery(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos source, DateTime activation)> _casters = new();
+    private readonly List<(WPos source, DateTime activation)> _casters = [];
     private static readonly AOEShapeCircle circle = new(5);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)

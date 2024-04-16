@@ -19,7 +19,7 @@ class OrdealOfPurgation(BossModule module) : Components.GenericAOEs(module)
     private int _midIncrement; // inner with this index is incremented by one (rotated CCW) when passing middle ring
     private int _midDecrement; // inner with this index is decremented by one (rotated CW) when passing middle ring
     private int _rotationOuter;
-    private Symbol[] _symbols = new Symbol[8];
+    private readonly Symbol[] _symbols = new Symbol[8];
     private DateTime _activation;
 
     private static readonly AOEShapeCone _shapeTri = new(60, 30.Degrees());
@@ -116,9 +116,9 @@ class OrdealOfPurgation(BossModule module) : Components.GenericAOEs(module)
     }
 
     // 0 is N, then increases in CCW order
-    private int NormalizeDirectionIndex(int index) => index & 7;
-    private int AngleToDirectionIndex(Angle rotation) => NormalizeDirectionIndex((int)(Math.Round(rotation.Deg / 45) + 4));
-    private Angle DirectionIndexToAngle(int index) => (index - 4) * 45.Degrees();
+    private static int NormalizeDirectionIndex(int index) => index & 7;
+    private static int AngleToDirectionIndex(Angle rotation) => NormalizeDirectionIndex((int)(Math.Round(rotation.Deg / 45) + 4));
+    private static Angle DirectionIndexToAngle(int index) => (index - 4) * 45.Degrees();
 
     private int TransformByMiddle(int index)
     {

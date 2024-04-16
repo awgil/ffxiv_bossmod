@@ -20,17 +20,17 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Act
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public Func<BossModule, IEnumerable<Actor>> Sources { get; init; } = sources;
     public float CastEventToSpawn { get; init; } = castEventToSpawn;
-    private List<(WPos pos, DateTime time)> _predictedByEvent = new();
-    private List<(Actor caster, DateTime time)> _predictedByCast = new();
+    private readonly List<(WPos pos, DateTime time)> _predictedByEvent = [];
+    private readonly List<(Actor caster, DateTime time)> _predictedByCast = [];
 
     public bool HaveCasters => _predictedByCast.Count > 0;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var p in _predictedByEvent)
-            yield return new(Shape, p.pos, Activation: p.time);
+            yield return new(Shape, p.pos, default, p.time);
         foreach (var p in _predictedByCast)
-            yield return new(Shape, WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, Activation: p.time);
+            yield return new(Shape, WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, default, p.time);
         foreach (var z in Sources(Module))
             yield return new(Shape, z.Position);
     }
@@ -88,11 +88,11 @@ public class PersistentInvertibleVoidzone(BossModule module, float radius, Func<
         if (shapes.Count == 0)
             return;
 
-        Func<WPos, float> distance = p =>
+        float distance(WPos p)
         {
             float dist = shapes.Select(s => s(p)).Min();
             return Inverted ? -dist : dist;
-        };
+        }
         hints.AddForbiddenZone(distance, InvertResolveAt);
     }
 

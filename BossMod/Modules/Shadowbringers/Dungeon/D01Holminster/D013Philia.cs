@@ -265,7 +265,6 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
     private int linesstartedcount2;
     private static readonly AOEShapeCircle circle = new(4);
     private DateTime _activation;
-    private const float RadianConversion = 45 * (MathF.PI / 180);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -274,16 +273,9 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
         foreach (var (c, t, r) in ImminentAOEs())
             yield return new(Shape, c, r, t, ImminentColor);
         if (Lines.Count > 0 && linesstartedcount1 < 8)
-            yield return new(circle, CalculateCirclePosition(linesstartedcount1, Module.Bounds.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
+            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount1 * 45, Module.Bounds.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
         if (Lines.Count > 1 && linesstartedcount2 < 8)
-            yield return new(circle, CalculateCirclePosition(linesstartedcount2, Module.Bounds.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
-    }
-
-    private static WPos CalculateCirclePosition(int count, WPos origin, WPos caster)
-    {
-        float x = MathF.Cos(count * RadianConversion) * (caster.X - origin.X) - MathF.Sin(count * RadianConversion) * (caster.Z - origin.Z);
-        float z = MathF.Sin(count * RadianConversion) * (caster.X - origin.X) + MathF.Cos(count * RadianConversion) * (caster.Z - origin.Z);
-        return new WPos(origin.X + x, origin.Z + z);
+            yield return new(circle, Helpers.RotateAroundOrigin(linesstartedcount2 * 45, Module.Bounds.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
     }
 
     public override void Update()

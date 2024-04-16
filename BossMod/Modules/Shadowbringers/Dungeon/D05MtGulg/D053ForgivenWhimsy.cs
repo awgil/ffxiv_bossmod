@@ -61,60 +61,33 @@ class JudgmentDay(BossModule module) : Components.GenericTowers(module)
 
 class Exegesis(BossModule module) : Components.GenericAOEs(module)
 {
-    private DateTime _activation;
-    public enum Patterns { None, Diagonal, Cross, EastWest, NorthSouth }
-    public Patterns Pattern { get; private set; }
+    private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeRect rect = new(5, 5, 5);
+    private static readonly AOEShapeCross cross = new(15, 5);
+    private static readonly WPos[] diagonalPositions = [new(-240, -50), new(-250, -40), new(-230, -40), new(-250, -60),  new(-230, -60)];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (Pattern == Patterns.Diagonal)
-        {
-            yield return new(rect, new(-240, -50), default, _activation);
-            yield return new(rect, new(-250, -40), default, _activation);
-            yield return new(rect, new(-230, -40), default, _activation);
-            yield return new(rect, new(-250, -60), default, _activation);
-            yield return new(rect, new(-230, -60), default, _activation);
-        }
-        if (Pattern == Patterns.EastWest)
-        {
-            yield return new(rect, new(-250, -50), default, _activation);
-            yield return new(rect, new(-230, -50), default, _activation);
-        }
-        if (Pattern == Patterns.NorthSouth)
-        {
-            yield return new(rect, new(-240, -60), default, _activation);
-            yield return new(rect, new(-240, -40), default, _activation);
-        }
-        if (Pattern == Patterns.Cross)
-        {
-            yield return new(rect, new(-230, -50), default, _activation);
-            yield return new(rect, new(-240, -60), default, _activation);
-            yield return new(rect, new(-240, -40), default, _activation);
-            yield return new(rect, new(-250, -50), default, _activation);
-            yield return new(rect, new(-240, -50), default, _activation);
-        }
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        var _activation = spell.NPCFinishAt.AddSeconds(0.4f);
         switch ((AID)spell.Action.ID)
         {
-            case AID.ExegesisA:
-                Pattern = Patterns.Diagonal;
-                _activation = spell.NPCFinishAt;
+            case AID.ExegesisA: //diagonal
+                foreach (var p in diagonalPositions)
+                    _aoes.Add(new(rect, p, default, _activation));
                 break;
-            case AID.ExegesisB:
-                Pattern = Patterns.EastWest;
-                _activation = spell.NPCFinishAt;
+            case AID.ExegesisB: //east+west
+                _aoes.Add(new(rect, new(-250, -50), default, _activation));
+                _aoes.Add(new(rect, new(-230, -50), default, _activation));
                 break;
-            case AID.ExegesisC:
-                Pattern = Patterns.NorthSouth;
-                _activation = spell.NPCFinishAt;
+            case AID.ExegesisC: //north+south
+                _aoes.Add(new(rect, new(-240, -60), default, _activation));
+                _aoes.Add(new(rect, new(-240, -40), default, _activation));
                 break;
-            case AID.ExegesisD:
-                Pattern = Patterns.Cross;
-                _activation = spell.NPCFinishAt;
+            case AID.ExegesisD: //cross
+                _aoes.Add(new(cross, new(-240, -50), default, _activation));
                 break;
         }
     }
@@ -122,7 +95,7 @@ class Exegesis(BossModule module) : Components.GenericAOEs(module)
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Exegesis)
-            Pattern = Patterns.None;
+            _aoes.Clear();
     }
 }
 

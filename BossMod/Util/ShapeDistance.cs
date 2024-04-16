@@ -102,19 +102,8 @@ public static class ShapeDistance
 
     public static Func<WPos, float> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
-        // dir points outside far side
-        var normal = dir.OrthoL(); // points outside left side
-        return p =>
-        {
-            var offset = p - origin;
-            var distParr = offset.Dot(dir);
-            var distOrtho = offset.Dot(normal);
-            var distFront = distParr - lenFront;
-            var distBack = -distParr - lenBack;
-            var distLeft = distOrtho - halfWidth;
-            var distRight = -distOrtho - halfWidth;
-            return -Math.Max(Math.Max(distFront, distBack), Math.Max(distLeft, distRight));
-        };
+        var rect = Rect(origin, dir, lenFront, lenBack, halfWidth);
+        return p => -rect(p);
     }
     public static Func<WPos, float> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
     public static Func<WPos, float> InvertedRect(WPos from, WPos to, float halfWidth)
@@ -150,7 +139,7 @@ public static class ShapeDistance
     // positive offset increases area
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
     {
-        List<(WPos point, WDir normal)> edges = new();
+        List<(WPos point, WDir normal)> edges = [];
         Action<WPos, WPos> addEdge = (p1, p2) =>
         {
             if (p1 != p2)
@@ -174,5 +163,49 @@ public static class ShapeDistance
         addEdge(prev, first);
 
         return p => edges.Max(e => e.normal.Dot(p - e.point)) - offset;
+    }
+
+    public static Func<WPos, float> InvertedConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
+    {
+        var convexpolygon = ConvexPolygon(vertices, cw, offset);
+        return p => -convexpolygon(p);
+    }
+
+    public static Func<WPos, float> Triangle(WPos p1, WPos p2, WPos p3, bool cw, float offset = 0)
+    {
+        var vertices = new List<WPos> { p1, p2, p3 };
+        return ConvexPolygon(vertices, cw, offset);
+    }
+
+    public static Func<WPos, float> InvertedTriangle(WPos p1, WPos p2, WPos p3, bool cw, float offset = 0)
+    {
+        var vertices = new List<WPos> { p1, p2, p3 };
+        var convexpolygon = ConvexPolygon(vertices, cw, offset);
+        return p => -convexpolygon(p);
+    }
+
+    public static Func<WPos, float> EquilateralTriangle(WPos origin, Angle rotation, float sideLength, bool cw)
+    {
+        var (p1, p2, p3) = Helpers.CalculateEquilateralTriangleVertices(origin, rotation, sideLength);
+        var vertices = new List<WPos> { p1, p2, p3 };
+        return ConvexPolygon(vertices, cw);
+    }
+
+//should work with any non-self intersecting polygon
+    public static Func<WPos, float> Polygon(IEnumerable<WPos> vertices)
+    {
+        return p =>
+        {
+            if (p.InPolygon(vertices))
+                return 0;
+            else
+                return float.MaxValue;
+        };
+    }
+
+    public static Func<WPos, float> InvertedPolygon(IEnumerable<WPos> vertices)
+    {
+        var polygon = Polygon(vertices);
+        return p => polygon(p) == 0 ? float.MaxValue : -polygon(p);
     }
 }

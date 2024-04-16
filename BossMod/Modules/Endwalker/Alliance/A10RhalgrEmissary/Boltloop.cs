@@ -2,9 +2,9 @@
 
 class Boltloop(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
-    private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30) };
+    private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Skip(NumCasts).Take(2);
 

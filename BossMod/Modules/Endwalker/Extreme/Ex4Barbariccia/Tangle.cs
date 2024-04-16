@@ -4,7 +4,7 @@
 class Tangle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Tangle), new AOEShapeCircle(6))
 {
     public int NumTethers { get; private set; }
-    private Actor?[] _tethers = new Actor?[PartyState.MaxPartySize];
+    private readonly Actor?[] _tethers = new Actor?[PartyState.MaxPartySize];
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

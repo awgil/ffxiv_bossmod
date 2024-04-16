@@ -7,13 +7,10 @@ class DireStraits(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count == 2)
-        {
+        if (_aoes.Count > 0)
             yield return new(_aoes[0].Shape, _aoes[0].Origin, _aoes[0].Rotation, _aoes[0].Activation, ArenaColor.Danger);
+        if (_aoes.Count > 1)
             yield return new(_aoes[1].Shape, _aoes[1].Origin, _aoes[1].Rotation, _aoes[1].Activation, Risky: false);
-        }
-        if (_aoes.Count == 1)
-            yield return new(_aoes[0].Shape, _aoes[0].Origin, _aoes[0].Rotation, _aoes[0].Activation, ArenaColor.Danger);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

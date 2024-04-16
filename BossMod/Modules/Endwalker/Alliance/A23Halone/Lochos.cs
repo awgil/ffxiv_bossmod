@@ -2,8 +2,8 @@
 
 class Lochos(BossModule module, float activationDelay) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
-    private float _activationDelay = activationDelay;
+    private readonly List<AOEInstance> _aoes = [];
+    private readonly float _activationDelay = activationDelay;
 
     private static readonly AOEShapeRect _shape = new(60, 15);
 

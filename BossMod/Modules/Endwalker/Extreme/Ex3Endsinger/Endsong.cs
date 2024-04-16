@@ -2,7 +2,7 @@
 
 class Endsong(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _active = new();
+    private readonly List<Actor> _active = [];
 
     private static readonly AOEShapeCircle _aoe = new(15);
 

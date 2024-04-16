@@ -18,16 +18,16 @@ class ParhelicCircle(BossModule module) : Components.GenericAOEs(module)
             if (hex != null && tri != null)
             {
                 var c = Module.Bounds.Center;
-                yield return new(_circle, c, Activation: _activation);
-                yield return new(_circle, c + _triRadius * (tri.Rotation + 60.Degrees()).ToDirection(), Activation: _activation);
-                yield return new(_circle, c + _triRadius * (tri.Rotation + 180.Degrees()).ToDirection(), Activation: _activation);
-                yield return new(_circle, c + _triRadius * (tri.Rotation - 60.Degrees()).ToDirection(), Activation: _activation);
-                yield return new(_circle, c + _hexRadius * hex.Rotation.ToDirection(), Activation: _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation + 60.Degrees()).ToDirection(), Activation: _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation + 120.Degrees()).ToDirection(), Activation: _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation + 180.Degrees()).ToDirection(), Activation: _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation - 120.Degrees()).ToDirection(), Activation: _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation - 60.Degrees()).ToDirection(), Activation: _activation);
+                yield return new(_circle, c, default, _activation);
+                yield return new(_circle, c + _triRadius * (tri.Rotation + 60.Degrees()).ToDirection(), default, _activation);
+                yield return new(_circle, c + _triRadius * (tri.Rotation + 180.Degrees()).ToDirection(), default, _activation);
+                yield return new(_circle, c + _triRadius * (tri.Rotation - 60.Degrees()).ToDirection(), default, _activation);
+                yield return new(_circle, c + _hexRadius * hex.Rotation.ToDirection(), default, _activation);
+                yield return new(_circle, c + _hexRadius * (hex.Rotation + 60.Degrees()).ToDirection(), default, _activation);
+                yield return new(_circle, c + _hexRadius * (hex.Rotation + 120.Degrees()).ToDirection(), default, _activation);
+                yield return new(_circle, c + _hexRadius * (hex.Rotation + 180.Degrees()).ToDirection(), default, _activation);
+                yield return new(_circle, c + _hexRadius * (hex.Rotation - 120.Degrees()).ToDirection(), default, _activation);
+                yield return new(_circle, c + _hexRadius * (hex.Rotation - 60.Degrees()).ToDirection(), default, _activation);
             }
         }
     }

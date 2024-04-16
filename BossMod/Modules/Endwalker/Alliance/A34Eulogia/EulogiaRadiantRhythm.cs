@@ -1,5 +1,7 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
+class SolarFans(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.SolarFansAOE), 5);
+
 class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCircle circle = new(27);

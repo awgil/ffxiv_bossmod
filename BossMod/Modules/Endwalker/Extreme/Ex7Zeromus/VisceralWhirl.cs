@@ -3,7 +3,7 @@
 // note: apparently there's a slight overlap between aoes in the center, which looks ugly, but at least that's the truth...
 class VisceralWhirl(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shapeNormal = new(29, 14);
     private static readonly AOEShapeRect _shapeOffset = new(60, 14);

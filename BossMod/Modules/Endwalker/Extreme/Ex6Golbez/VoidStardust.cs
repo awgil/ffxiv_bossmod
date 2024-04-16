@@ -2,7 +2,7 @@
 
 class VoidStardust(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos pos, DateTime activation)> _aoes = new();
+    private readonly List<(WPos pos, DateTime activation)> _aoes = [];
 
     private static readonly AOEShapeCircle _shape = new(6);
 

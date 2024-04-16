@@ -2,8 +2,8 @@
 
 abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, AID aidRest) : Components.Exaflare(module, shape)
 {
-    private AID _aidStart = aidFirst;
-    private AID _aidRest = aidRest;
+    private readonly AID _aidStart = aidFirst;
+    private readonly AID _aidRest = aidRest;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -39,7 +39,7 @@ abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, 
 
     // The Gigatempest caster's heading is only used for rotating the AOE shape.
     // The exaflare direction must be derived from the caster's location.
-    private WDir? GetExaDirection(Actor caster)
+    private static WDir? GetExaDirection(Actor caster)
     {
         Angle? forwardAngle = null;
         if (caster.Position.Z == 536)

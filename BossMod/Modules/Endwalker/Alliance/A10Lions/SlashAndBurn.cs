@@ -2,7 +2,7 @@
 
 class SlashAndBurn(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shapeOut = new(14);
     private static readonly AOEShapeDonut _shapeIn = new(6, 30);

@@ -48,4 +48,39 @@ public static class Intersect
         var w = hDir.OrthoL() * halfWidth;
         return RayQuad(rayOrigin, rayDir, rectCenter + h + w, rectCenter + h - w, rectCenter - h - w, rectCenter - h + w);
     }
+
+    public static WPos ClosestPointOnSegment(WPos a, WPos b, WPos p)
+    {
+        WDir ab = b - a;
+        float t = WDir.Dot(p - a, ab) / ab.LengthSq();
+        if (t < 0)
+            return a;
+        if (t > 1)
+            return b;
+        return a + t * ab;
+    }
+
+    public static WPos LineSegment(WPos a, WPos b, WPos p, WPos q)
+    {
+        WDir ab = b - a;
+        WDir pq = q - p;
+        WDir ap = p - a;
+        float dot1 = WDir.Dot(ab, pq);
+        float dot2 = WDir.Dot(ab, ap);
+        float dot3 = WDir.Dot(pq, ap);
+        if (dot1 == 0)
+            return default;
+        float t = (dot2 - dot3) / dot1;
+        if (t < 0 || t > 1)
+            return default;
+        return a + t * ab;
+    }
+
+    public static WPos IntersectLineSegment(WPos p1, WPos p2, WPos p3, WPos p4)
+    {
+        var d = (p4.Z - p3.Z) * (p1.X - p3.X) + (-p4.X + p3.X) * (p1.Z - p3.Z);
+        var n = (p4.Z - p3.Z) * (p2.X - p1.X) + (-p4.X + p3.X) * (p2.Z - p1.Z);
+        var u = d / n;
+        return new WPos(p1.X + u * (p2.X - p1.X), p1.Z + u * (p2.Z - p1.Z));
+    }
 }

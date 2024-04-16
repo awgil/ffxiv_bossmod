@@ -6,7 +6,8 @@ class A23HaloneStates : StateMachineBuilder
     {
         SimplePhase(0, Phase1, "Before adds")
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur < 1 || !Module.PrimaryActor.IsTargetable;
-        DeathPhase(1, Phase2);
+        DeathPhase(1, Phase2)
+            .ActivateOnEnter<Octagons>();
     }
 
     private void Phase1(uint id)

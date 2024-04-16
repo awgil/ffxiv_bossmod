@@ -2,7 +2,7 @@
 
 class Parhelion(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _completedParhelions = new();
+    private readonly List<Actor> _completedParhelions = [];
     private bool _subparhelions;
 
     private static readonly AOEShapeRect _beacon = new(45, 3);

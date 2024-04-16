@@ -3,7 +3,7 @@
 // common base for lightwaves components
 class LightwaveCommon(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LightOfTheCrystal))
 {
-    protected List<Actor> Waves = new();
+    protected readonly List<Actor> Waves = [];
     protected static readonly AOEShapeRect WaveAOE = new(50, 8); // note that actual length is 15, but we want to show aoe for full path
 
     private static readonly float _losRadius = 1;
@@ -17,7 +17,7 @@ class LightwaveCommon(BossModule module) : Components.CastCounter(module, Action
         }
     }
 
-    protected bool InSafeCone(WPos origin, WPos blocking, WPos position)
+    protected static bool InSafeCone(WPos origin, WPos blocking, WPos position)
     {
         var toBlock = blocking - origin;
         var toCheck = position - origin;

@@ -109,7 +109,7 @@ class FortuneFluxOrder(BossModule module) : BossComponent(module)
 
 class FortuneFluxAOE(BossModule module) : Components.GenericAOEs(module)
 {
-    private FortuneFluxOrder? _order = module.FindComponent<FortuneFluxOrder>();
+    private readonly FortuneFluxOrder? _order = module.FindComponent<FortuneFluxOrder>();
 
     private static readonly AOEShapeCircle _shape = new(20);
 
@@ -123,7 +123,7 @@ class FortuneFluxAOE(BossModule module) : Components.GenericAOEs(module)
 
 class FortuneFluxKnockback(BossModule module) : Components.Knockback(module)
 {
-    private FortuneFluxOrder? _order = module.FindComponent<FortuneFluxOrder>();
+    private readonly FortuneFluxOrder? _order = module.FindComponent<FortuneFluxOrder>();
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

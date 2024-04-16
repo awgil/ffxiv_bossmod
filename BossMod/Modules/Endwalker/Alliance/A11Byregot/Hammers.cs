@@ -4,8 +4,8 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
 {
     public bool Active { get; private set; }
     public bool MovementPending { get; private set; }
-    private int[] _lineOffset = new int[5];
-    private int[] _lineMovement = new int[5];
+    private readonly int[] _lineOffset = new int[5];
+    private readonly int[] _lineMovement = new int[5];
 
     private static readonly AOEShapeRect _shape = new(5, 5, 5);
 
@@ -93,4 +93,4 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
 }
 
 class HammersLevinforge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Levinforge), new AOEShapeRect(50, 5));
-class HammersSpire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15));
+class HammersSpire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15, 2));

@@ -2,7 +2,7 @@
 
 class HeatAboveFlamesBelow(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> _aoes = new();
+    public readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shapeOut = new(8);
     private static readonly AOEShapeDonut _shapeIn = new(8, 30);

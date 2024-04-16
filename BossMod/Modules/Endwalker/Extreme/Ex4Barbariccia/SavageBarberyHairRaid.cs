@@ -2,7 +2,7 @@
 
 class SavageBarbery(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(Actor Caster, AOEShape Shape)> _casts = new();
+    private readonly List<(Actor Caster, AOEShape Shape)> _casts = [];
     public int NumActiveCasts => _casts.Count;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -32,7 +32,7 @@ class SavageBarbery(BossModule module) : Components.GenericAOEs(module)
 
 class HairRaid(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(Actor Caster, AOEShape Shape)> _casts = new();
+    private readonly List<(Actor Caster, AOEShape Shape)> _casts = [];
     public int NumActiveCasts => _casts.Count;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
