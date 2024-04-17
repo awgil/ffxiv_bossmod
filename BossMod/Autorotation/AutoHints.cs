@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Fate;
+
+namespace BossMod;
 
 // utility that determines ai hints automatically based on actor casts
 // this is used e.g. in outdoor or on trash, where we have no active bossmodules
@@ -22,9 +24,14 @@ public class AutoHints : IDisposable
         _ws.Actors.CastFinished -= OnCastFinished;
     }
 
-    public void CalculateAIHints(AIHints hints, WPos playerPos)
+    public unsafe void CalculateAIHints(AIHints hints, WPos playerPos)
     {
-        hints.Bounds = new ArenaBoundsSquare(playerPos, 30);
+        var fate = FateManager.Instance()->CurrentFate;
+        if (fate != null)
+            hints.Bounds = new ArenaBoundsCircle(new(fate->Location.X, fate->Location.Z), fate->Radius);
+        else
+            hints.Bounds = new ArenaBoundsSquare(playerPos, 30);
+
         foreach (var aoe in _activeAOEs.Values)
         {
             var target = aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ;
