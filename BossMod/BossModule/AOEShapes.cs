@@ -206,8 +206,7 @@ public class AOEShapeEquilateralTriangle(float sideLength, Angle directionOffset
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE)
     {
         var (p1, p2, p3) = Helpers.CalculateEquilateralTriangleVertices(origin, rotation + DirectionOffset, SideLength);
-        var clippedVertices = arena.Bounds.ClipAndTriangulate([p1, p2, p3]);
-        arena.Zone(clippedVertices, color);
+        arena.AddTriangleFilled(p1, p2, p3, color);
     }
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
     {

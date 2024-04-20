@@ -72,7 +72,7 @@ class Quintessence(BossModule module) : Components.GenericAOEs(module)
             _aoes.Add(new(donut, position, default, _activation));
         if ((AID)spell.Action.ID is AID.SecondFormRight or AID.ThirdFormRight)
         {
-            if (_index == 0x52) //replay for proof of index 51 still missing
+            if (_index is 0x52 or 0x51) //replay for proof of index 51 still missing
                 _aoes.Add(new(cone, position, _rot3, _activation));
             if (_index is 0x57 or 0x50)
                 _aoes.Add(new(cone, position, _rot2, _activation));

@@ -60,7 +60,7 @@ class Thundercall2(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 17.5f));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -94,7 +94,7 @@ class PithekosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12001)]
-public class Pithekos(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
+public class Pithekos(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

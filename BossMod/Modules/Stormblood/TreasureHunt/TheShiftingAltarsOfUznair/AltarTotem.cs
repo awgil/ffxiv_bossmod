@@ -69,7 +69,7 @@ class FlamesOfFuryBait(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 17.5f));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -104,7 +104,7 @@ class TotemStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7586)]
-public class Totem(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
+public class Totem(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
