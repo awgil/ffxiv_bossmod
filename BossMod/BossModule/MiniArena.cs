@@ -7,11 +7,10 @@ namespace BossMod;
 //                       rotation 0 corresponds to South, and increases counterclockwise (so East is +pi/2, North is pi, West is -pi/2)
 // - camera azimuth 0 correpsonds to camera looking North and increases counterclockwise
 // - screen coordinates - X points left to right, Y points top to bottom
-public class MiniArena
+public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
 {
-    public BossModuleConfig Config { get; init; }
-    public ArenaBounds Bounds;
-
+    public BossModuleConfig Config { get; init; } = config;
+    public ArenaBounds Bounds = bounds;
     public float ScreenHalfSize => 150 * Config.ArenaScale;
     public float ScreenMarginSize => 20 * Config.ArenaScale;
 
@@ -20,12 +19,6 @@ public class MiniArena
     private float _cameraAzimuth;
     private float _cameraSinAzimuth = 0;
     private float _cameraCosAzimuth = 1;
-
-    public MiniArena(BossModuleConfig config, ArenaBounds bounds)
-    {
-        Config = config;
-        Bounds = bounds;
-    }
 
     // prepare for drawing - set up internal state, clip rect etc.
     public void Begin(float cameraAzimuthRadians)
@@ -50,9 +43,17 @@ public class MiniArena
         ImGui.GetWindowDrawList().PushClipRect(Vector2.Max(cursor, wmin), Vector2.Min(cursor + fullSize, wmax));
         if (Config.OpaqueArenaBackground)
         {
-            foreach (var p in Bounds.ClipPoly)
-                PathLineTo(p);
+            if (Bounds is ArenaBoundsPolygon or ArenaBoundsDonut or ArenaBoundsUnion) //only use the more expensive fill algorithm if needed, draw time is 0.05 to 0.1ms higher
+            {
+                var clipPoly = Bounds.BuildClipPoly();
+                var triangles = Bounds.ClipAndTriangulate(clipPoly);
+                Zone(triangles, ArenaColor.Background);
+            }
+            else
+                foreach (var p in Bounds.ClipPoly)
+                    PathLineTo(p);
             PathFillConvex(ArenaColor.Background);
+
         }
     }
 
@@ -201,9 +202,61 @@ public class MiniArena
     // draw arena border
     public void Border(uint color)
     {
-        foreach (var p in Bounds.ClipPoly)
-            PathLineTo(p);
+        if (Bounds is ArenaBoundsUnion union)
+        {
+            var polygons = union.BuildClipPoly().ToList();
+            var groupedPolygons = GroupPolygons(polygons);
+            foreach (var polygon in groupedPolygons)
+                DrawPolygon(polygon, color);
+        }
+        else if (Bounds is ArenaBoundsDonut donut)
+        {
+            AddCircle(Bounds.Center, donut.OuterRadius, color, 2);
+            AddCircle(Bounds.Center, donut.InnerRadius, color, 2);
+        }
+        else
+        {
+            foreach (var p in Bounds.ClipPoly)
+                PathLineTo(p);
+            PathStroke(true, color, 2);
+        }
+    }
+
+    private void DrawPolygon(IEnumerable<WPos> vertices, uint color)
+    {
+        var lastPoint = vertices.First();
+        PathLineTo(lastPoint);
+
+        foreach (var point in vertices.Skip(1))
+        {
+            PathLineTo(point);
+            lastPoint = point;
+        }
         PathStroke(true, color, 2);
+    }
+
+    private static IEnumerable<IEnumerable<WPos>> GroupPolygons(IEnumerable<WPos> vertices)
+    {
+        List<WPos> currentPolygon = [];
+        WPos? firstPoint = null;
+
+        foreach (var vertex in vertices)
+        {
+            if (vertex == firstPoint && currentPolygon.Count > 0)
+            {
+                yield return currentPolygon;
+                currentPolygon = [];
+                firstPoint = null;
+            }
+            else
+            {
+                if (firstPoint == null)
+                    firstPoint = vertex;
+                currentPolygon.Add(vertex);
+            }
+        }
+        if (currentPolygon.Count > 0)
+            yield return currentPolygon;
     }
 
     public void CardinalNames()

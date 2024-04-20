@@ -44,7 +44,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
         {
             // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
             var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
-            Func<WPos, float> invertedDistanceToSafe = p =>
+            float invertedDistanceToSafe(WPos p)
             {
                 var off = p - Origin.Value;
                 var distOrigin = off.Length();
@@ -58,7 +58,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
                     distanceToSafe = Math.Min(distanceToSafe, distCone);
                 }
                 return -distanceToSafe;
-            };
+            }
             hints.AddForbiddenZone(invertedDistanceToSafe, NextExplosion);
         }
         if (BlockersImpassable)
@@ -83,7 +83,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
 // simple line-of-sight aoe that happens at the end of the cast
 public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
 {
-    private readonly List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
     public Actor? ActiveCaster => _casters.MinBy(c => c.CastInfo!.NPCFinishAt);
 
     public CastLineOfSightAOE(BossModule module, ActionID aid, float maxRange, bool blockersImpassable) : base(module, aid, maxRange, blockersImpassable)

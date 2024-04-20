@@ -19,7 +19,7 @@ public class Clip2D
         set => _clipPoly = value.Select(ConvertPoint).ToList();
     }
 
-    public Clip2D(bool strictlySimple = true)
+    public Clip2D(bool strictlySimple = false)
     {
         _clipper = new(strictlySimple ? Clipper.ioStrictlySimple : 0);
     }
