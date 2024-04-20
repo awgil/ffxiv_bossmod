@@ -2,9 +2,9 @@
 
 class P4UltimateAnnihilation(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _orbs = module.Enemies(OID.Aetheroplasm);
+    private readonly IReadOnlyList<Actor> _orbs = module.Enemies(OID.Aetheroplasm);
 
-    private static readonly float _radius = 6;
+    private const float _radius = 6;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

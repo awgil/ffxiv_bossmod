@@ -2,7 +2,7 @@
 
 static class Portals
 {
-    private static readonly float _portalLength = 10;
+    private const float _portalLength = 10;
 
     // returns null if this is not arrow appear eanim
     public static WPos? DestinationForEAnim(Actor actor, uint state)
@@ -25,10 +25,10 @@ static class Portals
 
 class PortalsAOE(BossModule module, AID aid, OID movedOID, float activationDelay, AOEShape shape) : Components.GenericAOEs(module, ActionID.MakeSpell(aid))
 {
-    private IReadOnlyList<Actor> _movedActors = module.Enemies(movedOID);
-    private float _activationDelay = activationDelay;
-    private AOEShape _shape = shape;
-    private List<(WPos pos, Angle rot, DateTime activation)> _origins = new();
+    private readonly IReadOnlyList<Actor> _movedActors = module.Enemies(movedOID);
+    private readonly float _activationDelay = activationDelay;
+    private readonly AOEShape _shape = shape;
+    private readonly List<(WPos pos, Angle rot, DateTime activation)> _origins = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -56,8 +56,8 @@ class SPortalsMirror(BossModule module) : PortalsAOE(module, AID.SBlazingBenific
 class PortalsWave(BossModule module) : BossComponent(module)
 {
     public bool Done { get; private set; }
-    private List<(WPos n, WPos s)> _portals = new();
-    private int[] _playerPortals = new int[PartyState.MaxPartySize]; // 0 = unassigned, otherwise 'z direction sign' (-1 if own portal points N, +1 for S)
+    private readonly List<(WPos n, WPos s)> _portals = [];
+    private readonly int[] _playerPortals = new int[PartyState.MaxPartySize]; // 0 = unassigned, otherwise 'z direction sign' (-1 if own portal points N, +1 for S)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

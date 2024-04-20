@@ -4,8 +4,8 @@ class ArchaicRockbreakerCenter(BossModule module) : Components.LocationTargetedA
 
 class ArchaicRockbreakerShockwave(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.ArchaicRockbreakerShockwave), true)
 {
-    private Uplift? _uplift = module.FindComponent<Uplift>();
-    private DateTime _activation = module.WorldState.FutureTime(6.5f);
+    private readonly Uplift? _uplift = module.FindComponent<Uplift>();
+    private readonly DateTime _activation = module.WorldState.FutureTime(6.5f);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -14,7 +14,7 @@ class ArchaicRockbreakerShockwave(BossModule module) : Components.Knockback(modu
         {
             var offset = actor.Position - Module.Bounds.Center;
             var dot = Math.Abs(_uplift.WallDirection.Value.ToDirection().Dot(offset.Normalized()));
-            bool againstWall = dot > 0.9238795f || dot < 0.3826834f;
+            bool againstWall = dot is > 0.9238795f or < 0.3826834f;
             if (againstWall)
                 distance = Module.Bounds.HalfSize - offset.Length() - 0.5f;
         }
@@ -41,7 +41,7 @@ class ArchaicRockbreakerLine(BossModule module) : Components.LocationTargetedAOE
 
 class ArchaicRockbreakerCombination(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shapeOut = new(12);
     private static readonly AOEShapeDonut _shapeIn = new(8, 20);

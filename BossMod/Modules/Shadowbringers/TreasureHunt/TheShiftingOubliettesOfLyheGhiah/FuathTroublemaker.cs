@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x302F, //R=3.25
     BossAdd = 0x3019, //R=1.8
     BossHelper = 0x233C,
-    BonusAdd_FuathTrickster = 0x3033, // R0.750
+    BonusAddFuathTrickster = 0x3033, // R0.750
 }
 
 public enum AID : uint
@@ -37,7 +37,7 @@ class FuathTroublemakerStates : StateMachineBuilder
             .ActivateOnEnter<Spittle>()
             .ActivateOnEnter<Hydrocannon>()
             .ActivateOnEnter<FrigidNeedle>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_FuathTrickster).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAddFuathTrickster).All(e => e.IsDead);
     }
 }
 
@@ -49,7 +49,7 @@ public class FuathTroublemaker(WorldState ws, Actor primary) : BossModule(ws, pr
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_FuathTrickster))
+        foreach (var s in Enemies(OID.BonusAddFuathTrickster))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -60,7 +60,7 @@ public class FuathTroublemaker(WorldState ws, Actor primary) : BossModule(ws, pr
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_FuathTrickster => 3,
+                OID.BonusAddFuathTrickster => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

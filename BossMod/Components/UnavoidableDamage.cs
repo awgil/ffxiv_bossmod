@@ -83,7 +83,7 @@ public class SingleTargetInstant(BossModule module, ActionID aid, float delay, s
 {
     public float Delay = delay; // delay from visual cast end to cast event
     public string Hint = hint;
-    public readonly List<(int slot, DateTime activation)> Targets = new();
+    public readonly List<(int slot, DateTime activation)> Targets = [];
 
     public override void AddGlobalHints(GlobalHints hints)
     {

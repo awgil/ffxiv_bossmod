@@ -4,7 +4,7 @@ class FlareTowers(BossModule module) : Components.CastTowers(module, ActionID.Ma
 
 class FlareScald(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shape = new(5);
 

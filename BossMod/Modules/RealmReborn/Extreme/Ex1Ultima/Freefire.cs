@@ -2,7 +2,7 @@
 
 class Freefire(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Freefire))
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
     private DateTime _resolve;
     public bool Active => _casters.Count > 0;
 

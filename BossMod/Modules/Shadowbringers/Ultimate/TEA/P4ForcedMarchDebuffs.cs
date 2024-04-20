@@ -9,9 +9,9 @@ abstract class P4ForcedMarchDebuffs(BossModule module) : BossComponent(module)
     protected Actor? LightBeacon;
     protected Actor? DarkBeacon;
 
-    private static readonly float _forcedMarchDistance = 20; // TODO: verify
-    private static readonly float _minLightDistance = 22; // TODO: verify
-    private static readonly float _maxDarkDistance = 5; // TODO: verify
+    private const float _forcedMarchDistance = 20; // TODO: verify
+    private const float _minLightDistance = 22; // TODO: verify
+    private const float _maxDarkDistance = 5; // TODO: verify
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

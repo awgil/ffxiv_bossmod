@@ -4,7 +4,7 @@ class SwordShieldOfTheHeavens(BossModule module) : BossComponent(module)
 {
     public enum Buff { None, Shield, Sword }
 
-    private List<(Actor actor, Buff buff)> _adds = new();
+    private readonly List<(Actor actor, Buff buff)> _adds = [];
 
     public bool Active => _adds.Any(a => AddActive(a.actor));
 

@@ -33,7 +33,7 @@ class RonkanAbyss(BossModule module) : Components.LocationTargetedAOEs(module, A
 
 class WrathOfTheRonka(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
     private static readonly AOEShapeRect RectShort = new(12, 4);
     private static readonly AOEShapeRect RectMedium = new(22, 4);
     private static readonly AOEShapeRect RectLong = new(35, 4);

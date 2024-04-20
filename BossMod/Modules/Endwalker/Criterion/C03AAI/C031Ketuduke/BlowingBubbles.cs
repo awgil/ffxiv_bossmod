@@ -2,7 +2,7 @@
 
 class BlowingBubbles(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _actors = new();
+    private readonly List<Actor> _actors = [];
 
     private static readonly AOEShapeCircle _shape = new(5);
 

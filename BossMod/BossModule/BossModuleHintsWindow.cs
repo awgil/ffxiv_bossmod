@@ -4,7 +4,7 @@ namespace BossMod;
 
 public class BossModuleHintsWindow : UIWindow
 {
-    private BossModuleManager _mgr;
+    private readonly BossModuleManager _mgr;
 
     public BossModuleHintsWindow(BossModuleManager mgr) : base("Boss module hints", false, new(400, 100))
     {

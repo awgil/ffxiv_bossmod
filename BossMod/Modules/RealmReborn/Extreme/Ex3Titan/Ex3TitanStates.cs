@@ -2,7 +2,7 @@
 
 class Ex3TitanStates : StateMachineBuilder
 {
-    Ex3Titan _module;
+    readonly Ex3Titan _module;
 
     public Ex3TitanStates(Ex3Titan module) : base(module)
     {

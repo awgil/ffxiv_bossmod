@@ -395,7 +395,7 @@ public enum ActorControlCategory : ushort
     GainEffect = 20, // note: this packet only causes log message and hit vfx to appear, it does not actually update statuses
     LoseEffect = 21,
     UpdateEffect = 22,
-    HoT_DoT = 23, // dissector calls it HPFloatingText
+    HotDot = 23, // dissector calls it HPFloatingText
     UpdateRestedExp = 24, // from dissector
     Flee = 27, // from dissector
     UnkVisControl = 30, // visibility control ??? (ActorControl, params=delay-after-spawn, visible, id, 0)

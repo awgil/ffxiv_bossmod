@@ -4,32 +4,20 @@ using ImGuiNET;
 
 namespace BossMod;
 
-class MainDebugWindow : UIWindow
+class MainDebugWindow(WorldState ws, Autorotation autorot) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
-    private WorldState _ws;
-    private Autorotation _autorot;
-    private DebugObjects _debugObjects = new();
-    private DebugParty _debugParty = new();
-    private DebugGraphics _debugGraphics = new();
-    private DebugAction _debugAction;
-    private DebugHate _debugHate = new();
-    private DebugInput _debugInput;
-    private DebugAutorotation _debugAutorot;
-    private DebugClassDefinitions _debugClassDefinitions;
-    private DebugAddon _debugAddon = new();
-    private DebugTiming _debugTiming = new();
-    private DebugCollision _debugCollision = new();
-    private DebugVfx _debugVfx = new();
-
-    public MainDebugWindow(WorldState ws, Autorotation autorot) : base("Boss mod debug UI", false, new(300, 200))
-    {
-        _ws = ws;
-        _autorot = autorot;
-        _debugAction = new(ws);
-        _debugInput = new(autorot);
-        _debugAutorot = new(autorot);
-        _debugClassDefinitions = new(ws);
-    }
+    private readonly DebugObjects _debugObjects = new();
+    private readonly DebugParty _debugParty = new();
+    private readonly DebugGraphics _debugGraphics = new();
+    private readonly DebugAction _debugAction = new(ws);
+    private readonly DebugHate _debugHate = new();
+    private readonly DebugInput _debugInput = new(autorot);
+    private readonly DebugAutorotation _debugAutorot = new(autorot);
+    private readonly DebugClassDefinitions _debugClassDefinitions = new(ws);
+    private readonly DebugAddon _debugAddon = new();
+    private readonly DebugTiming _debugTiming = new();
+    private readonly DebugCollision _debugCollision = new();
+    private readonly DebugVfx _debugVfx = new();
 
     protected override void Dispose(bool disposing)
     {
@@ -38,12 +26,13 @@ class MainDebugWindow : UIWindow
         _debugAddon.Dispose();
         _debugCollision.Dispose();
         _debugVfx.Dispose();
+        base.Dispose(disposing);
     }
 
     public unsafe override void Draw()
     {
         var player = Service.ClientState.LocalPlayer;
-        ImGui.TextUnformatted($"Current zone: {_ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={Service.ClientState.LocalContentId:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
+        ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={Service.ClientState.LocalContentId:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
         ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
         ImGui.TextUnformatted($"Player mode: {Utils.CharacterInternal(player)->Mode}");
 
@@ -103,7 +92,7 @@ class MainDebugWindow : UIWindow
         }
         if (ImGui.CollapsingHeader("Action manager ex"))
         {
-            _debugAction.DrawActionManagerEx();
+            _debugAction.DrawActionManagerExtensions();
         }
         if (ImGui.CollapsingHeader("Actions"))
         {
@@ -161,7 +150,7 @@ class MainDebugWindow : UIWindow
 
     private void DrawStatuses()
     {
-        foreach (var elem in _ws.Actors)
+        foreach (var elem in ws.Actors)
         {
             var obj = (elem.InstanceID >> 32) == 0 ? Service.ObjectTable.SearchById((uint)elem.InstanceID) : null;
             if (ImGui.TreeNode(Utils.ObjectString(obj!)))
@@ -191,19 +180,26 @@ class MainDebugWindow : UIWindow
         ImGui.TableSetupColumn("Position");
         ImGui.TableSetupColumn("Rotation");
         ImGui.TableHeadersRow();
-        foreach (var elem in _ws.Actors)
+        foreach (var elem in ws.Actors)
         {
             if (elem.CastInfo == null || elem.Type != ActorType.Enemy)
                 continue;
 
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(elem.InstanceID));
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.ObjectString(elem.CastInfo.TargetID));
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(elem.CastInfo.Action.ToString());
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo, _ws.CurrentTime));
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(Utils.Vec3String(elem.CastInfo.Location));
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(elem.Position.ToString());
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(elem.CastInfo.Rotation.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(Utils.ObjectString(elem.InstanceID));
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(Utils.ObjectString(elem.CastInfo.TargetID));
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(elem.CastInfo.Action.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo, ws.CurrentTime));
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(Utils.Vec3String(elem.CastInfo.Location));
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(elem.Position.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(elem.CastInfo.Rotation.ToString());
         }
         ImGui.EndTable();
     }
@@ -259,8 +255,10 @@ class MainDebugWindow : UIWindow
         for (int i = 0; i < 74; ++i)
         {
             ImGui.TableNextRow();
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(i.ToString());
-            ImGui.TableNextColumn(); ImGui.TextUnformatted(uiState->PlayerState.Attributes[i].ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(i.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(uiState->PlayerState.Attributes[i].ToString());
         }
         ImGui.EndTable();
     }

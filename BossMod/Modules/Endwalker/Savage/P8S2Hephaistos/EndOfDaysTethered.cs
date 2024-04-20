@@ -2,7 +2,7 @@
 
 class EndOfDaysTethered(BossModule module) : BossComponent(module)
 {
-    private List<(Actor source, Actor target)> _tethers = new(); // enemy -> player
+    private readonly List<(Actor source, Actor target)> _tethers = []; // enemy -> player
 
     private static readonly AOEShapeRect _shape = new(60, 5);
 

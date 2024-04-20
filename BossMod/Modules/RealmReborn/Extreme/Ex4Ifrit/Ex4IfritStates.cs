@@ -8,7 +8,7 @@
 // TODO: biggest improvement to do would be to specify incinerate timings (these seem to be pretty consistent, at least with decent dps) and replace hardcoded cooldowns with planned
 class Ex4IfritStates : StateMachineBuilder
 {
-    Ex4Ifrit _module;
+    readonly Ex4Ifrit _module;
 
     public Ex4IfritStates(Ex4Ifrit module) : base(module)
     {

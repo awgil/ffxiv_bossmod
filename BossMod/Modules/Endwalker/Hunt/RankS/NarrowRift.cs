@@ -33,7 +33,7 @@ public enum SID : uint
     ForcedMarch = 1257, // Boss->player, extra=1 (forward) / 2 (backward) / 4 (left) / 8 (right)
 }
 
-class EmptyPromise (BossModule module): Components.GenericAOEs(module)
+class EmptyPromise(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEShape> _pendingShapes = [];
 
@@ -43,7 +43,7 @@ class EmptyPromise (BossModule module): Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_pendingShapes.Count > 0)
-            yield return new(_pendingShapes.First(), Module.PrimaryActor.Position, new(), Module.PrimaryActor.CastInfo?.NPCFinishAt ?? WorldState.CurrentTime); // TODO: activation
+            yield return new(_pendingShapes[0], Module.PrimaryActor.Position, new(), Module.PrimaryActor.CastInfo?.NPCFinishAt ?? WorldState.CurrentTime); // TODO: activation
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -66,7 +66,7 @@ class EmptyPromise (BossModule module): Components.GenericAOEs(module)
                 _pendingShapes.Add(_shapeDonut);
                 _pendingShapes.Add(_shapeCircle);
                 break;
-        };
+        }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

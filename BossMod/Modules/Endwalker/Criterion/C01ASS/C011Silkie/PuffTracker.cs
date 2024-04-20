@@ -2,9 +2,9 @@
 
 class PuffTracker(BossModule module) : BossComponent(module)
 {
-    public List<Actor> BracingPuffs = new();
-    public List<Actor> ChillingPuffs = new();
-    public List<Actor> FizzlingPuffs = new();
+    public List<Actor> BracingPuffs = [];
+    public List<Actor> ChillingPuffs = [];
+    public List<Actor> FizzlingPuffs = [];
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

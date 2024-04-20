@@ -4,12 +4,12 @@ namespace BossMod;
 
 public class CooldownPlanEditorWindow : UIWindow
 {
-    private Action _onModified;
-    private Timeline _timeline = new();
-    private ColumnStateMachineBranch _colStates;
-    private CooldownPlannerColumns _planner;
-    private int _selectedPhase = 0;
-    private bool _modified = false;
+    private readonly Action _onModified;
+    private readonly Timeline _timeline = new();
+    private readonly ColumnStateMachineBranch _colStates;
+    private readonly CooldownPlannerColumns _planner;
+    private int _selectedPhase;
+    private bool _modified;
 
     public CooldownPlanEditorWindow(CooldownPlan plan, StateMachine sm, ModuleRegistry.Info? moduleInfo, Action onModified) : base("Cooldown planner", true, new(600, 600))
     {

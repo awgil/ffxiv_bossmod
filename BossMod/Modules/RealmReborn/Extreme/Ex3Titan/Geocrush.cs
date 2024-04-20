@@ -2,8 +2,8 @@
 
 class Geocrush(BossModule module, float radius) : Components.CastCounter(module, ActionID.MakeSpell(AID.Geocrush))
 {
-    private float _radius = radius;
-    private static readonly float _ringWidth = 2;
+    private readonly float _radius = radius;
+    private const float _ringWidth = 2;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

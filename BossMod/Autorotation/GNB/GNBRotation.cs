@@ -4,7 +4,7 @@ namespace BossMod.GNB;
 public static class Rotation
 {
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public int Ammo; // 0 to 100
         public int GunComboStep; // 0 to 2
@@ -23,8 +23,6 @@ public static class Rotation
         public AID BestContinuation => ReadyToRip ? AID.JugularRip : ReadyToTear ? AID.AbdomenTear : ReadyToGouge ? AID.EyeGouge : ReadyToBlast ? AID.Hypervelocity : AID.Continuation;
         public AID BestGnash => GunComboStep == 1 ? AID.SavageClaw : GunComboStep == 2 ? AID.WickedTalon : AID.GnashingFang;
         public AID ComboLastMove => (AID)ComboLastAction;
-
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
@@ -354,7 +352,7 @@ public static class Rotation
         }
         else
         {
-            GNBConfig gnbConfig = Service.Config.Get<GNBConfig>();
+            var gnbConfig = Service.Config.Get<GNBConfig>();
             bool isEarlyNoMercy = gnbConfig.EarlyNoMercy;
 
             bool isGnashingFangReady = state.CD(CDGroup.GnashingFang) < 2.5 && state.Unlocked(AID.GnashingFang);
@@ -382,7 +380,6 @@ public static class Rotation
         }
     }
 
-
     public static bool ShouldUseGnash(State state, Strategy strategy) => strategy.GnashUse switch
     {
         Strategy.OffensiveAbilityUse.Delay => false,
@@ -409,10 +406,10 @@ public static class Rotation
         }
         else
         {
-            GNBConfig gnbConfig = Service.Config.Get<GNBConfig>();
-            bool isEarlyNoMercy = gnbConfig.EarlyNoMercy;
+            //var gnbConfig = Service.Config.Get<GNBConfig>();
+            //bool isEarlyNoMercy = gnbConfig.EarlyNoMercy;
 
-            bool shouldUseEarlyNoMercy = state.TargetingEnemy && state.CD(CDGroup.NoMercy) < state.AnimationLock && ((!isEarlyNoMercy && state.ComboLastMove == AID.BrutalShell) || (isEarlyNoMercy && state.ComboLastMove == AID.KeenEdge)) && strategy.CombatTimer < 10 && state.Ammo == 0 && state.Unlocked(AID.Bloodfest);
+            //bool shouldUseEarlyNoMercy = state.TargetingEnemy && state.CD(CDGroup.NoMercy) < state.AnimationLock && ((!isEarlyNoMercy && state.ComboLastMove == AID.BrutalShell) || (isEarlyNoMercy && state.ComboLastMove == AID.KeenEdge)) && strategy.CombatTimer < 10 && state.Ammo == 0 && state.Unlocked(AID.Bloodfest);
             bool inNoMercy = state.NoMercyLeft > state.AnimationLock && state.Unlocked(AID.Bloodfest);
             return inNoMercy && state.Ammo == 0;
         }
@@ -512,7 +509,7 @@ public static class Rotation
     public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
     {
         // prepull
-        if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
+        if (strategy.CombatTimer is > -100 and < -0.7f)
             return AID.None;
 
         if (strategy.GaugeStrategy == Strategy.GaugeUse.ComboFitBeforeDowntime && (state.GCD + 2.5f * GetSTComboLength(state.ComboLastMove) <= strategy.FightEndIn) && state.NoMercyLeft < state.AnimationLock)
@@ -564,7 +561,7 @@ public static class Rotation
 
     public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
     {
-        bool hasContinuation = state.ReadyToBlast || state.ReadyToGouge || state.ReadyToRip || state.ReadyToTear;
+        //bool hasContinuation = state.ReadyToBlast || state.ReadyToGouge || state.ReadyToRip || state.ReadyToTear;
         if (strategy.SpecialActionUse == Strategy.SpecialAction.LB3)
             return ActionID.MakeSpell(AID.GunmetalSoul);
 

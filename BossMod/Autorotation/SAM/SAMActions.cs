@@ -7,12 +7,12 @@ class Actions : CommonActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private SAMConfig _config;
-    private Rotation.State _state;
-    private Rotation.Strategy _strategy;
+    private readonly SAMConfig _config;
+    private readonly Rotation.State _state;
+    private readonly Rotation.Strategy _strategy;
 
     private DateTime _lastTsubame;
-    private float _tsubameCooldown = 0;
+    private float _tsubameCooldown;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
@@ -62,9 +62,10 @@ class Actions : CommonActions
             _config.FullRotation ? AutoActionAOE : AutoActionNone;
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         _config.Modified -= OnConfigModified;
+        base.Dispose(disposing);
     }
 
     protected override NextAction CalculateAutomaticGCD()
@@ -139,26 +140,8 @@ class Actions : CommonActions
     }
 
     private int NumAOETargets() => Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-
-    private int NumGurenTargets(Actor? enemy) =>
-        enemy == null
-            ? 0
-            : Autorot.Hints.NumPriorityTargetsInAOERect(
-                Player.Position,
-                (enemy.Position - Player.Position).Normalized(),
-                10,
-                4
-            );
-
-    private int NumConeTargets(Actor? enemy) =>
-        enemy == null
-            ? 0
-            : Autorot.Hints.NumPriorityTargetsInAOECone(
-                Player.Position,
-                8,
-                (enemy.Position - Player.Position).Normalized(),
-                60.Degrees()
-            );
+    private int NumGurenTargets(Actor? enemy) => enemy == null ? 0 : Autorot.Hints.NumPriorityTargetsInAOERect(Player.Position, (enemy.Position - Player.Position).Normalized(), 10, 4);
+    private int NumConeTargets(Actor? enemy) => enemy == null ? 0 : Autorot.Hints.NumPriorityTargetsInAOECone(Player.Position, 8, (enemy.Position - Player.Position).Normalized(), 60.Degrees());
 
     private void UpdatePlayerState()
     {

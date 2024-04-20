@@ -14,7 +14,7 @@ class Miasma(BossModule module) : Components.GenericAOEs(module)
     }
 
     public int NumLanesFinished { get; private set; }
-    private LaneState[,] _laneStates = new LaneState[4, 2];
+    private readonly LaneState[,] _laneStates = new LaneState[4, 2];
     private Order _order;
 
     private static readonly AOEShapeRect _shapeRect = new(50, 6);

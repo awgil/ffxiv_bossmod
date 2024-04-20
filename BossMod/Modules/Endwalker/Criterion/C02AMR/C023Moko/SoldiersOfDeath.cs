@@ -2,12 +2,12 @@
 
 class IronRainStorm(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> AOEs = new();
-    private IaiGiriBait? _bait = module.FindComponent<IaiGiriBait>();
+    public List<AOEInstance> AOEs = [];
+    private readonly IaiGiriBait? _bait = module.FindComponent<IaiGiriBait>();
 
     private static readonly AOEShapeCircle _shapeRain = new(10);
     private static readonly AOEShapeCircle _shapeStorm = new(20);
-    private static readonly WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+    private static readonly WDir[] _safespotDirections = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 

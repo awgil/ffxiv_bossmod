@@ -10,12 +10,12 @@ public enum OID : uint
     GymnasticEggplant = 0x3D50, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
+    BonusAddLyssa = 0x3D4E, //R=3.75, bonus loot adds
 }
 
 public enum AID : uint
 {
-    AutoAttack = 870, // Boss/BossAdd/BonusAdd_Lyssa->player->player, no cast, single-target
+    AutoAttack = 870, // Boss/BossAdd/BonusAddLyssa->player->player, no cast, single-target
     AbsoluteZero = 32208, // Boss->self, 4,0s cast, range 45 90-degree cone
     BlizzardIII = 32209, // Boss->location, 3,0s cast, range 6 circle
     FrumiousJaws = 32206, // Boss->player, 5,0s cast, single-target
@@ -59,7 +59,7 @@ class TigrisStates : StateMachineBuilder
             .ActivateOnEnter<PungentPirouette>()
             .ActivateOnEnter<Pollen>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead);
     }
 }
 

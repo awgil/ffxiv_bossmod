@@ -2,7 +2,7 @@
 
 class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.EarthShakerAOE))
 {
-    private List<Bait> _futureBaits = new();
+    private List<Bait> _futureBaits = [];
 
     private static readonly AOEShapeCone _shape = new(60, 45.Degrees());
 
@@ -28,8 +28,8 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, Acti
 
 class P3EarthShakerVoidzone(BossModule module) : Components.GenericAOEs(module, default, "GTFO from voidzone!")
 {
-    private IReadOnlyList<Actor> _voidzones = module.Enemies(OID.VoidzoneEarthShaker);
-    private List<AOEInstance> _predicted = new();
+    private readonly IReadOnlyList<Actor> _voidzones = module.Enemies(OID.VoidzoneEarthShaker);
+    private readonly List<AOEInstance> _predicted = [];
     private BitMask _targets;
 
     private static readonly AOEShapeCircle _shape = new(5); // TODO: verify radius

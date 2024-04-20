@@ -25,7 +25,7 @@ class AetherialSurge(BossModule module) : Components.SelfTargetedAOEs(module, Ac
 // note: actor 'dies' immediately after casting
 class SeaOfPitch(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SeaOfPitch))
 {
-    private AOEShape _shape = new AOEShapeCircle(4);
+    private readonly AOEShape _shape = new AOEShapeCircle(4);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

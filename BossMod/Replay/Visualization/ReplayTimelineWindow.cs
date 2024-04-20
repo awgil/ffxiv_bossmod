@@ -4,17 +4,17 @@ namespace BossMod.ReplayVisualization;
 
 class ReplayTimelineWindow : UIWindow
 {
-    private Replay _replay;
-    private Replay.Encounter _encounter;
-    private StateMachineTree _stateTree;
-    private List<int> _phaseBranches;
-    private Timeline _timeline = new();
-    private ColumnEnemiesCastEvents _colCastEvents;
-    private ColumnStateMachineBranch _colStates;
-    private ColumnEnemiesDetails _colEnemies;
-    private ColumnPlayersDetails _colPlayers;
-    private UISimpleWindow? _config;
-    private UITree _configTree = new();
+    private readonly Replay _replay;
+    private readonly Replay.Encounter _encounter;
+    private readonly StateMachineTree _stateTree;
+    private readonly List<int> _phaseBranches;
+    private readonly Timeline _timeline = new();
+    private readonly ColumnEnemiesCastEvents _colCastEvents;
+    private readonly ColumnStateMachineBranch _colStates;
+    private readonly ColumnEnemiesDetails _colEnemies;
+    private readonly ColumnPlayersDetails _colPlayers;
+    private readonly UISimpleWindow? _config;
+    private readonly UITree _configTree = new();
 
     public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1200, 1000))
     {
@@ -39,6 +39,7 @@ class ReplayTimelineWindow : UIWindow
     protected override void Dispose(bool disposing)
     {
         _config?.Dispose();
+        base.Dispose(disposing);
     }
 
     public override void PreOpenCheck() => RespectCloseHotkey = !_colPlayers.AnyPlanModified;
@@ -61,7 +62,7 @@ class ReplayTimelineWindow : UIWindow
     private void DrawConfig()
     {
         UICombo.Enum("State text", ref _colStates.TextDisplay);
-        foreach (var n in _configTree.Node("Enemy casts columns"))
+        foreach (var _ in _configTree.Node("Enemy casts columns"))
             _colCastEvents.DrawConfig(_configTree);
         foreach (var n in _configTree.Node("Enemy details"))
             _colEnemies.DrawConfig(_configTree);
@@ -72,11 +73,8 @@ class ReplayTimelineWindow : UIWindow
     private (StateMachineTree, List<int>) BuildStateData(Replay.Encounter enc)
     {
         // build state tree with expected timings
-        var m = ModuleRegistry.CreateModuleForTimeline(enc.OID);
-        if (m == null)
-            throw new Exception($"Encounter module not available");
-
-        Dictionary<uint, (StateMachine.State state, StateMachine.State? pred)> stateLookup = new();
+        var m = ModuleRegistry.CreateModuleForTimeline(enc.OID) ?? throw new ArgumentException($"Encounter module not available");
+        Dictionary<uint, (StateMachine.State state, StateMachine.State? pred)> stateLookup = [];
         foreach (var p in m.StateMachine.Phases)
             GatherStates(stateLookup, p.InitialState, null);
 

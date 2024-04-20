@@ -2,14 +2,14 @@
 
 class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<Actor> Casters = new();
+    public List<Actor> Casters = [];
     private Actor? _nael;
     private Actor? _twin;
     private Actor? _baha;
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
     private int _diveOrder; // 0 if not yet known, +1 if CCW, -1 if CW
     private WPos _initialSafespot;
-    private int[] _baitOrder = new int[PartyState.MaxPartySize];
+    private readonly int[] _baitOrder = new int[PartyState.MaxPartySize];
     public int NumBaitsAssigned = 1; // reserve for lunar dive
 
     private static readonly AOEShapeRect _shapeNaelTwin = new(60, 4);

@@ -4,7 +4,7 @@ class SolarFans(BossModule module) : Components.ChargeAOEs(module, ActionID.Make
 
 class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.RadiantFlight))
 {
-    private IReadOnlyList<Actor> _flames = module.Enemies(OID.WardensFlame);
+    private readonly IReadOnlyList<Actor> _flames = module.Enemies(OID.WardensFlame);
 
     private static readonly AOEShapeDonutSector _shape = new(20, 30, 45.Degrees());
 

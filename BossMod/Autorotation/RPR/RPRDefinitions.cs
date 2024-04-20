@@ -7,7 +7,7 @@ public enum AID : uint
 
     // single target GCDs
     Slice = 24373,
-    WaxingSlice = 24374, 
+    WaxingSlice = 24374,
     InfernalSlice = 24375,
     ShadowofDeath = 24378,
     SoulSlice = 24380,
@@ -19,9 +19,9 @@ public enum AID : uint
     CrossReaping = 24396,
 
     // aoe GCDs
-    SpinningScythe = 24376, 
-    NightmareScythe = 24377, 
-    WhorlofDeath = 24379, 
+    SpinningScythe = 24376,
+    NightmareScythe = 24377,
+    WhorlofDeath = 24379,
     Guillotine = 24384,
     GrimReaping = 24397,
     HarvestMoon = 24388,
@@ -42,7 +42,7 @@ public enum AID : uint
     // defensive CDs
     ArcaneCrest = 24404,
     SecondWind = 7541,
-    Bloodbath = 7542, 
+    Bloodbath = 7542,
     Feint = 7549,
     ArmsLength = 7548,
 
@@ -51,7 +51,7 @@ public enum AID : uint
     SoulSow = 24387,
     Communio = 24398,
     TrueNorth = 7546,
-    LegSweep = 7863, 
+    LegSweep = 7863,
 
     //LB3
 }
@@ -60,35 +60,35 @@ public enum TraitID : uint
 {
     None = 0,
     SoulGauge = 379,
-    DeathScytheMastery1 = 380, 
+    DeathScytheMastery1 = 380,
     EnhancedAvatar = 381,
-    Hellsgate = 382, 
+    Hellsgate = 382,
     TemperedSoul = 383,
-    ShroudGauge = 384,  
-    EnhancedArcaneCrest = 385, 
-    DeathScytheMastery2 = 523, 
-    EnhancedShroud = 386, 
+    ShroudGauge = 384,
+    EnhancedArcaneCrest = 385,
+    DeathScytheMastery2 = 523,
+    EnhancedShroud = 386,
     EnhancedArcaneCircle = 387,
 }
 
 public enum CDGroup : int
 {
-    BloodStalk = 0, 
-    GrimSwathe = 0, 
-    Gluttony = 9, 
-    Enshroud = 2, 
-    ArcaneCircle = 14, 
-    ArcaneCrest = 5, 
+    BloodStalk = 0,
+    GrimSwathe = 0,
+    Gluttony = 9,
+    Enshroud = 2,
+    ArcaneCircle = 14,
+    ArcaneCrest = 5,
     UnveiledGibbet = 0,
     UnveiledGallows = 0,
     LemuresSlice = 0,
     LemuresScythe = 0,
     SoulSlice = 4,
     SoulScythe = 4,
-    LegSweep = 41, 
-    TrueNorth = 45, 
-    Bloodbath = 46, 
-    Feint = 47, 
+    LegSweep = 41,
+    TrueNorth = 45,
+    Bloodbath = 46,
+    Feint = 47,
     ArmsLength = 48,
     SecondWind = 49,
 }
@@ -111,14 +111,14 @@ public enum SID : uint
     CircleofSacrifice = 2600,
     BloodsownCircle = 2972,
     TrueNorth = 1250,
-    Bloodbath = 84, 
-    Feint = 1195, 
-    Stun = 2, 
+    Bloodbath = 84,
+    Feint = 1195,
+    Stun = 2,
 }
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 69609, 69614 };
+    public static readonly uint[] UnlockQuests = [69609, 69614];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -145,7 +145,7 @@ public static class Definitions
             AID.Guillotine => level >= 70,
             AID.PlentifulHarvest => level >= 88,
             AID.SoulSow => level >= 82,
-            AID.Communio => level >= 90 ,
+            AID.Communio => level >= 90,
             AID.ArcaneCrest => level >= 40,
             AID.BloodStalk => level >= 50,
             AID.GrimSwathe => level >= 55,
@@ -182,45 +182,46 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
-        SupportedActions.GCD(AID.Slice, 3);
-        SupportedActions.GCD(AID.WaxingSlice, 3);
-        SupportedActions.GCD(AID.InfernalSlice, 3);
-        SupportedActions.GCD(AID.SpinningScythe, 5);
-        SupportedActions.GCD(AID.NightmareScythe, 5);
-        SupportedActions.GCD(AID.ShadowofDeath, 3);
-        SupportedActions.GCD(AID.VoidReaping, 3);
-        SupportedActions.GCD(AID.CrossReaping, 3);
-        SupportedActions.GCD(AID.GrimReaping, 8);
-        SupportedActions.GCD(AID.WhorlofDeath, 5);
-        SupportedActions.GCD(AID.Harpe, 25);
-        SupportedActions.GCD(AID.SoulSow, 0);
-        SupportedActions.GCDWithCharges(AID.SoulSlice, 3, CDGroup.SoulSlice, 30.0f, 2);
-        SupportedActions.GCDWithCharges(AID.SoulScythe, 5, CDGroup.SoulScythe, 30.0f, 2);
-        SupportedActions.GCD(AID.Gibbet, 3);
-        SupportedActions.GCD(AID.Gallows, 3);
-        SupportedActions.GCD(AID.Guillotine, 8);
-        SupportedActions.GCD(AID.PlentifulHarvest, 15);
-        SupportedActions.GCD(AID.HarvestMoon, 25);
-        SupportedActions.GCDCast(AID.Communio, 25, 1.3f);
-        SupportedActions.OGCD(AID.ArcaneCrest, 0, CDGroup.ArcaneCrest, 30.0f).EffectDuration = 5;
-        SupportedActions.OGCD(AID.BloodStalk, 3, CDGroup.BloodStalk, 1.0f);
-        SupportedActions.OGCD(AID.UnveiledGallows, 3, CDGroup.UnveiledGallows, 1.0f);
-        SupportedActions.OGCD(AID.UnveiledGibbet, 3, CDGroup.UnveiledGibbet, 1.0f);
-        SupportedActions.OGCD(AID.GrimSwathe, 8, CDGroup.GrimSwathe, 1.0f);
-        SupportedActions.OGCD(AID.ArcaneCircle, 0, CDGroup.ArcaneCircle, 120.0f).EffectDuration = 20;
-        SupportedActions.OGCD(AID.Gluttony, 25, CDGroup.Gluttony, 60.0f);
-        SupportedActions.OGCD(AID.Enshroud, 0, CDGroup.Enshroud, 15.0f);
-        SupportedActions.OGCD(AID.LemuresSlice, 3, CDGroup.LemuresSlice, 1.0f);
-        SupportedActions.OGCD(AID.LemuresScythe, 5, CDGroup.LemuresScythe, 1.0f);
-        SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
-        SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f).EffectDuration = 20;
-        SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2).EffectDuration = 10;
-        SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+        res.GCD(AID.Slice, 3);
+        res.GCD(AID.WaxingSlice, 3);
+        res.GCD(AID.InfernalSlice, 3);
+        res.GCD(AID.SpinningScythe, 5);
+        res.GCD(AID.NightmareScythe, 5);
+        res.GCD(AID.ShadowofDeath, 3);
+        res.GCD(AID.VoidReaping, 3);
+        res.GCD(AID.CrossReaping, 3);
+        res.GCD(AID.GrimReaping, 8);
+        res.GCD(AID.WhorlofDeath, 5);
+        res.GCD(AID.Harpe, 25);
+        res.GCD(AID.SoulSow, 0);
+        res.GCDWithCharges(AID.SoulSlice, 3, CDGroup.SoulSlice, 30.0f, 2);
+        res.GCDWithCharges(AID.SoulScythe, 5, CDGroup.SoulScythe, 30.0f, 2);
+        res.GCD(AID.Gibbet, 3);
+        res.GCD(AID.Gallows, 3);
+        res.GCD(AID.Guillotine, 8);
+        res.GCD(AID.PlentifulHarvest, 15);
+        res.GCD(AID.HarvestMoon, 25);
+        res.GCDCast(AID.Communio, 25, 1.3f);
+        res.OGCD(AID.ArcaneCrest, 0, CDGroup.ArcaneCrest, 30.0f).EffectDuration = 5;
+        res.OGCD(AID.BloodStalk, 3, CDGroup.BloodStalk, 1.0f);
+        res.OGCD(AID.UnveiledGallows, 3, CDGroup.UnveiledGallows, 1.0f);
+        res.OGCD(AID.UnveiledGibbet, 3, CDGroup.UnveiledGibbet, 1.0f);
+        res.OGCD(AID.GrimSwathe, 8, CDGroup.GrimSwathe, 1.0f);
+        res.OGCD(AID.ArcaneCircle, 0, CDGroup.ArcaneCircle, 120.0f).EffectDuration = 20;
+        res.OGCD(AID.Gluttony, 25, CDGroup.Gluttony, 60.0f);
+        res.OGCD(AID.Enshroud, 0, CDGroup.Enshroud, 15.0f);
+        res.OGCD(AID.LemuresSlice, 3, CDGroup.LemuresSlice, 1.0f);
+        res.OGCD(AID.LemuresScythe, 5, CDGroup.LemuresScythe, 1.0f);
+        res.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
+        res.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f).EffectDuration = 20;
+        res.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2).EffectDuration = 10;
+        res.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
+        return res;
     }
 }

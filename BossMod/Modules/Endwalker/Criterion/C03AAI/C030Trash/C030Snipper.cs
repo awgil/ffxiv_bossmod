@@ -8,7 +8,7 @@ class SWater(BossModule module) : Water(module, AID.SWater);
 
 class BubbleShowerCrabDribble(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shape1 = new(9, 45.Degrees());
     private static readonly AOEShapeCone _shape2 = new(6, 60.Degrees());
@@ -36,7 +36,7 @@ class BubbleShowerCrabDribble(BossModule module) : Components.GenericAOEs(module
 
 class C030SnipperStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030SnipperStates(BossModule module, bool savage) : base(module)
     {

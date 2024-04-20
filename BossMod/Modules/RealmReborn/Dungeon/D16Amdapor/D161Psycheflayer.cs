@@ -54,12 +54,10 @@ class D161PsycheflayerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1689)]
-public class D161Psycheflayer : BossModule
+public class D161Psycheflayer(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-29, 0), 40))
 {
     private Actor? _bossP2;
     public Actor MainBoss() => _bossP2 ?? PrimaryActor;
-
-    public D161Psycheflayer(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-29, 0), 40)) { }
 
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

@@ -3,20 +3,20 @@
 // different encounter mechanics can be split into independent components
 // individual components should be activated and deactivated when needed (typically by state machine transitions)
 // components can also have sub-components; typically these are created immediately by constructor
-public class BossComponent
+public class BossComponent(BossModule module)
 {
-    public readonly BossModule Module;
+    public readonly BossModule Module = module;
 
     // list of actor-specific hints (string + whether this is a "risk" type of hint)
     public class TextHints : List<(string, bool)>
     {
-        public void Add(string text, bool isRisk = true) => base.Add((text, isRisk));
+        public void Add(string text, bool isRisk = true) => Add((text, isRisk));
     }
 
     // list of actor-specific "movement hints" (arrow start/end pos + color)
     public class MovementHints : List<(WPos, WPos, uint)>
     {
-        public void Add(WPos from, WPos to, uint color) => base.Add((from, to, color));
+        public void Add(WPos from, WPos to, uint color) => Add((from, to, color));
     }
 
     // list of global hints
@@ -33,8 +33,6 @@ public class BossComponent
     }
 
     public bool KeepOnPhaseChange; // by default, all components are deactivated on phase change automatically (since phase change can happen at any time) - setting this to true prevents this
-
-    public BossComponent(BossModule module) => Module = module;
 
     public virtual void Update() { } // called every frame - it is a good place to update any cached values
     public virtual void AddHints(int slot, Actor actor, TextHints hints) { } // gather any relevant pieces of advice for specified raid member

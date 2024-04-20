@@ -7,9 +7,9 @@
 class Aetheroplasm(BossModule module) : BossComponent(module)
 {
     private BitMask _kiters;
-    private HashSet<ulong> _explodedOrbs = new();
+    private readonly HashSet<ulong> _explodedOrbs = [];
 
-    private static readonly float _explosionRadius = 6;
+    private const float _explosionRadius = 6;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

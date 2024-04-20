@@ -63,9 +63,9 @@ class P5Hatch(BossModule module) : BossComponent(module)
 
 class P5AI(BossModule module) : BossComponent(module)
 {
-    private DeathSentence? _deathSentence = module.FindComponent<DeathSentence>();
-    private P5LiquidHell? _liquidHell = module.FindComponent<P5LiquidHell>();
-    private P5Hatch? _hatch = module.FindComponent<P5Hatch>();
+    private readonly DeathSentence? _deathSentence = module.FindComponent<DeathSentence>();
+    private readonly P5LiquidHell? _liquidHell = module.FindComponent<P5LiquidHell>();
+    private readonly P5Hatch? _hatch = module.FindComponent<P5Hatch>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-public class ReplayManager : IDisposable
+public sealed class ReplayManager(string fileDialogStartPath) : IDisposable
 {
-    private class ReplayEntry : IDisposable
+    private sealed class ReplayEntry : IDisposable
     {
         public string Path;
         public float Progress;
@@ -45,18 +45,11 @@ public class ReplayManager : IDisposable
         }
     }
 
-    private class AnalysisEntry : IDisposable
+    private sealed record class AnalysisEntry(string Identifier, List<ReplayEntry> Replays) : IDisposable
     {
-        public string Identifier;
-        public List<ReplayEntry> Replays = new();
         public ReplayAnalysis.AnalysisManager? Analysis;
         public UISimpleWindow? Window;
         public bool Disposed;
-
-        public AnalysisEntry(string identifier)
-        {
-            Identifier = identifier;
-        }
 
         public void Dispose()
         {
@@ -73,17 +66,11 @@ public class ReplayManager : IDisposable
         }
     }
 
-    private List<ReplayEntry> _replayEntries = new();
-    private List<AnalysisEntry> _analysisEntries = new();
+    private readonly List<ReplayEntry> _replayEntries = [];
+    private readonly List<AnalysisEntry> _analysisEntries = [];
     private int _nextAnalysisId;
     private string _path = "";
     private FileDialog? _fileDialog;
-    private string _fileDialogStartPath;
-
-    public ReplayManager(string startPath)
-    {
-        _fileDialogStartPath = startPath;
-    }
 
     public void Dispose()
     {
@@ -132,7 +119,7 @@ public class ReplayManager : IDisposable
             if (_fileDialog.GetIsOk())
             {
                 _path = _fileDialog.GetResults().FirstOrDefault() ?? "";
-                _fileDialogStartPath = _fileDialog.GetCurrentPath();
+                fileDialogStartPath = _fileDialog.GetCurrentPath();
             }
             _fileDialog.Hide();
             _fileDialog = null;
@@ -210,9 +197,7 @@ public class ReplayManager : IDisposable
             ImGui.SameLine();
             if (ImGui.Button("Analyze selected"))
             {
-                var analysis = new AnalysisEntry((++_nextAnalysisId).ToString());
-                analysis.Replays = _replayEntries.Where(e => e.Selected).ToList();
-                _analysisEntries.Add(analysis);
+                _analysisEntries.Add(new((++_nextAnalysisId).ToString(), [.. _replayEntries.Where(e => e.Selected)]));
             }
             ImGui.SameLine();
             if (ImGui.Button("Unload selected"))
@@ -239,7 +224,7 @@ public class ReplayManager : IDisposable
         ImGui.SameLine();
         if (ImGui.Button("..."))
         {
-            _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", _fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
+            _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
             _fileDialog.Show();
         }
         ImGui.SameLine();
@@ -255,10 +240,9 @@ public class ReplayManager : IDisposable
         {
             if (ImGui.Button("Analyze all"))
             {
-                var analysis = new AnalysisEntry(_path);
-                analysis.Replays.AddRange(LoadAll(_path));
-                if (analysis.Replays.Count > 0)
-                    _analysisEntries.Add(analysis);
+                var replays = LoadAll(_path);
+                if (replays.Count > 0)
+                    _analysisEntries.Add(new(_path, replays));
             }
         }
         ImGui.SameLine();
@@ -298,7 +282,7 @@ public class ReplayManager : IDisposable
         catch (Exception e)
         {
             Service.Log($"Failed to read {path}: {e}");
-            return new();
+            return [];
         }
     }
 
@@ -308,7 +292,7 @@ public class ReplayManager : IDisposable
             return;
 
         var player = new ReplayPlayer(r);
-        player.WorldState.Frame.Timestamp = r.Ops.First().Timestamp; // so that we get correct name etc.
+        player.WorldState.Frame.Timestamp = r.Ops[0].Timestamp; // so that we get correct name etc.
         using var relogger = new ReplayRecorder(player.WorldState, format, false, new FileInfo(r.Path).Directory!, format.ToString());
         player.AdvanceTo(DateTime.MaxValue, () => { });
     }

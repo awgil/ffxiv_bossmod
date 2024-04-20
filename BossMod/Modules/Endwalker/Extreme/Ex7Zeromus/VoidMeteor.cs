@@ -15,13 +15,13 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
 
     public int NumCasts { get; private set; }
     private int _numTethers;
-    private List<WPos> _meteors = new();
-    private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+    private readonly List<WPos> _meteors = [];
+    private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
 
-    private static readonly float _radius = 2;
-    private static readonly int _ownThickness = 2;
-    private static readonly int _otherThickness = 1;
-    private static readonly bool _drawShadows = true;
+    private const float _radius = 2;
+    private const int _ownThickness = 2;
+    private const int _otherThickness = 1;
+    private const bool _drawShadows = true;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

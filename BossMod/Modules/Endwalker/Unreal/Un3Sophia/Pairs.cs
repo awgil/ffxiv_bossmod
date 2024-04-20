@@ -7,7 +7,7 @@ class Pairs(BossModule module) : BossComponent(module)
     private BitMask _players2;
     private DateTime _activation;
 
-    private static readonly float _radius = 4; // TODO: verify
+    private const float _radius = 4; // TODO: verify
 
     public bool Active => (_players1 | _players2).Any();
 
@@ -22,7 +22,7 @@ class Pairs(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        bool atRisk = _players1[slot] ? AtRisk(actor, _players1, _players2) : _players2[slot] ? AtRisk(actor, _players2, _players1) : false;
+        bool atRisk = _players1[slot] ? AtRisk(actor, _players1, _players2) : _players2[slot] && AtRisk(actor, _players2, _players1);
         if (atRisk)
             hints.Add("Stack with opposite color!");
     }

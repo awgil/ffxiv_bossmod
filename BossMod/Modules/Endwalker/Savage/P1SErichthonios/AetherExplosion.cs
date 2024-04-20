@@ -5,10 +5,10 @@ class AetherExplosion(BossModule module) : BossComponent(module)
 {
     private enum Cell { None, Red, Blue }
 
-    private Actor? _memberWithSOT = null; // if not null, then every update exploding cells are recalculated based on this raid member's position
+    private Actor? _memberWithSOT; // if not null, then every update exploding cells are recalculated based on this raid member's position
     private Cell _explodingCells = Cell.None;
 
-    private static readonly uint _colorSOTActor = 0xff8080ff;
+    private const uint _colorSOTActor = 0xff8080ff;
 
     public bool SOTActive => _memberWithSOT != null;
 
@@ -99,7 +99,7 @@ class AetherExplosion(BossModule module) : BossComponent(module)
         var phi = Angle.FromDirection(offsetFromCenter) + 180.Degrees();
         int coneIndex = (int)(4 * phi.Rad / MathF.PI); // phi / (pi/4); range [0, 8]
         bool oddCone = (coneIndex & 1) != 0;
-        bool outerCone =  offsetFromCenter.LengthSq() > P1S.InnerCircleRadius * P1S.InnerCircleRadius;
+        bool outerCone = offsetFromCenter.LengthSq() > P1S.InnerCircleRadius * P1S.InnerCircleRadius;
         return (oddCone == outerCone) ? Cell.Blue : Cell.Red; // outer odd = inner even = blue
     }
 }

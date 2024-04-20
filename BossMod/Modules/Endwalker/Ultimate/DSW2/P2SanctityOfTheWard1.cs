@@ -48,22 +48,17 @@ class P2SanctityOfTheWard1Sever(BossModule module) : Components.UniformStackSpre
 // shining blade (charges that leave orbs) + flares (their explosions)
 class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BrightFlare), "GTFO from charges and spheres!")
 {
-    public class ChargeInfo
+    public class ChargeInfo(Actor source)
     {
-        public Actor Source;
-        public List<AOEInstance> ChargeAOEs = new();
-        public List<WPos> Spheres = new();
-
-        public ChargeInfo(Actor source)
-        {
-            Source = source;
-        }
+        public Actor Source = source;
+        public List<AOEInstance> ChargeAOEs = [];
+        public List<WPos> Spheres = [];
     }
 
-    public List<ChargeInfo> Charges = new();
+    public List<ChargeInfo> Charges = [];
     public Angle ChargeAngle { get; private set; } // 0 if charges are not active or on failure, <0 if CW, >0 if CCW
 
-    private static readonly float _chargeHalfWidth = 3;
+    private const float _chargeHalfWidth = 3;
     private static readonly AOEShapeCircle _brightflareShape = new(9);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -137,13 +132,13 @@ class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(mod
         var firstPointDir = actor.Rotation;
         var angleBetweenPoints = (cw ? -1 : 1) * 112.5f.Degrees();
 
-        Func<Angle, WPos> posAt = dir => Module.Bounds.Center + 21 * dir.ToDirection();
+        WPos posAt(Angle dir) => Module.Bounds.Center + 21 * dir.ToDirection();
         var p0 = actor.Position;
         var p1 = posAt(firstPointDir);
         var p2 = posAt(firstPointDir + angleBetweenPoints);
         var p3 = posAt(firstPointDir + angleBetweenPoints * 2);
 
-        Func<WPos, WPos, AOEInstance> chargeAOE = (from, to) => new(new AOEShapeRect((to - from).Length(), _chargeHalfWidth), from, Angle.FromDirection(to - from));
+        AOEInstance chargeAOE(WPos from, WPos to) => new(new AOEShapeRect((to - from).Length(), _chargeHalfWidth), from, Angle.FromDirection(to - from));
         res.ChargeAOEs.Add(chargeAOE(p0, p1));
         res.ChargeAOEs.Add(chargeAOE(p1, p2));
         res.ChargeAOEs.Add(chargeAOE(p2, p3));
@@ -166,8 +161,8 @@ class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(mod
 // hints & assignments
 class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
 {
-    private P2SanctityOfTheWard1Sever? _sever = module.FindComponent<P2SanctityOfTheWard1Sever>();
-    private P2SanctityOfTheWard1Flares? _flares = module.FindComponent<P2SanctityOfTheWard1Flares>();
+    private readonly P2SanctityOfTheWard1Sever? _sever = module.FindComponent<P2SanctityOfTheWard1Sever>();
+    private readonly P2SanctityOfTheWard1Flares? _flares = module.FindComponent<P2SanctityOfTheWard1Flares>();
     private bool _inited;
     private Angle _severStartDir;
     private bool _chargeEarly;

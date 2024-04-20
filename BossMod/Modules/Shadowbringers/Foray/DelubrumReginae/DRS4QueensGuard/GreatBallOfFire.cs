@@ -2,9 +2,9 @@
 
 class GreatBallOfFire(BossModule module) : Components.GenericAOEs(module)
 {
-    private IReadOnlyList<Actor> _smallFlames = module.Enemies(OID.RagingFlame);
-    private IReadOnlyList<Actor> _bigFlames = module.Enemies(OID.ImmolatingFlame);
-    private DateTime _activation = module.WorldState.FutureTime(6.6f);
+    private readonly IReadOnlyList<Actor> _smallFlames = module.Enemies(OID.RagingFlame);
+    private readonly IReadOnlyList<Actor> _bigFlames = module.Enemies(OID.ImmolatingFlame);
+    private readonly DateTime _activation = module.WorldState.FutureTime(6.6f);
 
     private static readonly AOEShapeCircle _shapeSmall = new(10);
     private static readonly AOEShapeCircle _shapeBig = new(18);

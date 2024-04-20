@@ -2,11 +2,11 @@
 
 class AddPhaseArena(BossModule module) : BossComponent(module)
 {
-    private float _innerRingRadius = 14.5f;
-    private float _outerRingRadius = 27.5f;
-    private float _ringHalfWidth = 2.5f;
-    private float _alcoveDepth = 1;
-    private float _alcoveWidth = 2;
+    private readonly float _innerRingRadius = 14.5f;
+    private readonly float _outerRingRadius = 27.5f;
+    private readonly float _ringHalfWidth = 2.5f;
+    private readonly float _alcoveDepth = 1;
+    private readonly float _alcoveWidth = 2;
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {

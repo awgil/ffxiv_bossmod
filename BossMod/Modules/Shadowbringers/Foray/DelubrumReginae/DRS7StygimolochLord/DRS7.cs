@@ -12,9 +12,9 @@ class Electrocution(BossModule module) : Components.LocationTargetedAOEs(module,
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9759)]
 public class DRS7 : BossModule
 {
-    private IReadOnlyList<Actor> _monks;
-    private IReadOnlyList<Actor> _ballsEarth;
-    private IReadOnlyList<Actor> _ballsFire;
+    private readonly IReadOnlyList<Actor> _monks;
+    private readonly IReadOnlyList<Actor> _ballsEarth;
+    private readonly IReadOnlyList<Actor> _ballsFire;
 
     public DRS7(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-416, -184), 35))
     {

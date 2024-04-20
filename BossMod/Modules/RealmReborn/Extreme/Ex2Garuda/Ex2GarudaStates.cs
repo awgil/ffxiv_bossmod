@@ -2,7 +2,7 @@
 
 class Ex2GarudaStates : StateMachineBuilder
 {
-    private Ex2Garuda _module;
+    private readonly Ex2Garuda _module;
 
     public Ex2GarudaStates(Ex2Garuda module) : base(module)
     {

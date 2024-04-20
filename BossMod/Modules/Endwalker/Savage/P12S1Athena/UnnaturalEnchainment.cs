@@ -3,7 +3,7 @@
 // TODO: consider using envcontrols instead
 class UnnaturalEnchainment(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Sample))
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape = new(5, 10, 5);
 

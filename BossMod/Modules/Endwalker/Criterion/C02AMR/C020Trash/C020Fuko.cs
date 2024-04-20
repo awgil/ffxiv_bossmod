@@ -18,7 +18,7 @@ class SCrosswind(BossModule module) : Crosswind(module, AID.SCrosswind);
 
 class C020FukoStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C020FukoStates(BossModule module, bool savage) : base(module)
     {

@@ -4,7 +4,7 @@
 class DragonsGaze(BossModule module, OID bossOID) : Components.GenericGaze(module, ActionID.MakeSpell(AID.DragonsGazeAOE))
 {
     public bool EnableHints;
-    private OID _bossOID = bossOID;
+    private readonly OID _bossOID = bossOID;
     private Actor? _boss;
     private WPos _eyePosition;
 
@@ -15,8 +15,8 @@ class DragonsGaze(BossModule module, OID bossOID) : Components.GenericGaze(modul
         // TODO: activation time
         if (_boss != null && NumCasts == 0)
         {
-            yield return new(_eyePosition, risky: EnableHints);
-            yield return new(_boss.Position, risky: EnableHints);
+            yield return new(_eyePosition, Risky: EnableHints);
+            yield return new(_boss.Position, Risky: EnableHints);
         }
     }
 

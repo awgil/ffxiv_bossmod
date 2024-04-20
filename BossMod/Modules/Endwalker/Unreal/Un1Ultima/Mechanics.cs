@@ -4,12 +4,12 @@
 // TODO: consider splitting into multiple components, at least for mechanics that start in later phases...
 class Mechanics(BossModule module) : BossComponent(module)
 {
-    private int[] _tankStacks = new int[PartyState.MaxPartySize];
+    private readonly int[] _tankStacks = new int[PartyState.MaxPartySize];
 
-    private HashSet<ulong> _orbsSharedExploded = new();
+    private readonly HashSet<ulong> _orbsSharedExploded = [];
     // TODO: think how to associate kiters with orbs
-    private HashSet<ulong> _orbsKitedExploded = new();
-    private List<ulong> _orbKiters = new();
+    private readonly HashSet<ulong> _orbsKitedExploded = [];
+    private readonly List<ulong> _orbKiters = [];
 
     private Angle? _magitekOffset;
 
@@ -19,8 +19,8 @@ class Mechanics(BossModule module) : BossComponent(module)
     private static readonly AOEShapeRect _aoeMagitekRay = new(40, 3);
     //private static readonly float _homingLasersRange = 4;
     //private static readonly float _ceruleumVentRange = 8;
-    private static readonly float _orbSharedRange = 8;
-    private static readonly float _orbFixateRange = 6;
+    private const float _orbSharedRange = 8;
+    private const float _orbFixateRange = 6;
 
     public override void Update()
     {

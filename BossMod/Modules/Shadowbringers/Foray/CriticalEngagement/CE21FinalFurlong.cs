@@ -41,7 +41,7 @@ public enum TetherID : uint
 
 class GraspingRancor : Components.LocationTargetedAOEs
 {
-    private IReadOnlyList<Actor> _hands;
+    private readonly IReadOnlyList<Actor> _hands;
 
     public GraspingRancor(BossModule module) : base(module, ActionID.MakeSpell(AID.PurifyingLight), 12)
     {

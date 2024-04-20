@@ -30,7 +30,7 @@ class RamsKeeperVoidzone(BossModule module) : Components.PersistentVoidzone(modu
 
 class ChaoticChorus(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ChaoticChorus))
 {
-    private AOEShape _shape = new AOEShapeCircle(6);
+    private readonly AOEShape _shape = new AOEShapeCircle(6);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

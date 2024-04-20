@@ -3,7 +3,7 @@
 class Quote(BossModule module) : BossComponent(module)
 {
     public Actor? Source;
-    public List<AID> PendingMechanics = new();
+    public List<AID> PendingMechanics = [];
     public DateTime NextActivation;
 
     public override void AddGlobalHints(GlobalHints hints)
@@ -52,7 +52,7 @@ class Quote(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (PendingMechanics.Count > 0 && (AID)spell.Action.ID == PendingMechanics.First())
+        if (PendingMechanics.Count > 0 && (AID)spell.Action.ID == PendingMechanics[0])
         {
             PendingMechanics.RemoveAt(0);
             NextActivation = WorldState.FutureTime(3.1f);
@@ -62,7 +62,7 @@ class Quote(BossModule module) : BossComponent(module)
 
 class QuoteIronChariotLunarDynamo(BossModule module) : Components.GenericAOEs(module)
 {
-    private Quote? _quote = module.FindComponent<Quote>();
+    private readonly Quote? _quote = module.FindComponent<Quote>();
 
     private static readonly AOEShapeCircle _shapeChariot = new(8.55f);
     private static readonly AOEShapeDonut _shapeDynamo = new(6, 22); // TODO: verify inner radius
@@ -82,7 +82,7 @@ class QuoteIronChariotLunarDynamo(BossModule module) : Components.GenericAOEs(mo
 
 class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(module, 4, 0, 8)
 {
-    private Quote? _quote = module.FindComponent<Quote>();
+    private readonly Quote? _quote = module.FindComponent<Quote>();
 
     public override void Update()
     {
@@ -97,7 +97,7 @@ class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(mod
 
 class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 0, 3, alwaysShowSpreads: true)
 {
-    private Quote? _quote = module.FindComponent<Quote>();
+    private readonly Quote? _quote = module.FindComponent<Quote>();
 
     public override void Update()
     {
@@ -112,7 +112,7 @@ class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 
 
 class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true)
 {
-    private Quote? _quote = module.FindComponent<Quote>();
+    private readonly Quote? _quote = module.FindComponent<Quote>();
 
     public override void Update()
     {
@@ -127,7 +127,7 @@ class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(modul
 
 class QuoteDalamudDive(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DalamudDive), true, true)
 {
-    private Quote? _quote = module.FindComponent<Quote>();
+    private readonly Quote? _quote = module.FindComponent<Quote>();
 
     private static readonly AOEShapeCircle _shape = new(5);
 

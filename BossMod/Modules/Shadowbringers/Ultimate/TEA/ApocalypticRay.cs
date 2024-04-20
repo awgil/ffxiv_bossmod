@@ -3,11 +3,11 @@
 class ApocalypticRay(BossModule module, bool faceCenter) : Components.GenericAOEs(module)
 {
     public Actor? Source { get; private set; }
-    private bool _faceCenter = faceCenter;
+    private readonly bool _faceCenter = faceCenter;
     private Angle _rotation;
     private DateTime _activation;
 
-    private AOEShapeCone _shape = new(25.5f, 45.Degrees()); // TODO: verify angle
+    private readonly AOEShapeCone _shape = new(25.5f, 45.Degrees()); // TODO: verify angle
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

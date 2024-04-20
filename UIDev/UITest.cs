@@ -26,7 +26,7 @@ class UITest
             //Width = 1200,
             //Height = 800,
             Fullscreen = true,
-            TransparentColor = new float[] { 0, 0, 0 },
+            TransparentColor = [0, 0, 0],
         });
 
         // the background color of your window - typically don't change this for fullscreen overlays

@@ -23,8 +23,8 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
     public bool AlwaysShowSpreads = alwaysShowSpreads; // if false, we only shown own spread radius for spread targets - this reduces visual clutter
     public bool RaidwideOnResolve = raidwideOnResolve; // if true, assume even if mechanic is correctly resolved everyone will still take damage
     public bool IncludeDeadTargets = includeDeadTargets; // if false, stacks & spreads with dead targets are ignored
-    public List<Stack> Stacks = new();
-    public List<Spread> Spreads = new();
+    public List<Stack> Stacks = [];
+    public List<Spread> Spreads = [];
 
     public bool Active => Stacks.Count + Spreads.Count > 0;
     public IEnumerable<Stack> ActiveStacks => IncludeDeadTargets ? Stacks : Stacks.Where(s => !s.Target.IsDead);

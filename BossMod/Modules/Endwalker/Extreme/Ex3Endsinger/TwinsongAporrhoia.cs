@@ -7,7 +7,7 @@ class TwinsongAporrhoia(BossModule module) : BossComponent(module)
     private int _castsDone;
     private bool _ringsAssigned;
     private Angle _centerStartingRotation;
-    private (Actor? Actor, int Rings)[] _heads = new (Actor?, int)[(int)HeadID.Count];
+    private readonly (Actor? Actor, int Rings)[] _heads = new (Actor?, int)[(int)HeadID.Count];
 
     private static readonly AOEShapeCone _aoeCenter = new(20, 90.Degrees());
     private static readonly AOEShapeCircle _aoeDanger = new(15);

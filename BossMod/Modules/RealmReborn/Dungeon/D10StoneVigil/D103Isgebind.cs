@@ -25,7 +25,7 @@ class Cauterize(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(m
 
 class Touchdown(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Touchdown))
 {
-    private AOEShapeCircle _shape = new(5);
+    private readonly AOEShapeCircle _shape = new(5);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

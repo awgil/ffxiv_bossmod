@@ -1,11 +1,11 @@
 ﻿namespace BossMod;
 
 // TODO: this should probably store available-at per player per cooldown group...
-public class RaidCooldowns : IDisposable
+public sealed class RaidCooldowns : IDisposable
 {
-    private WorldState _ws;
-    private List<(int Slot, ActionID Action, DateTime AvailableAt)> _damageCooldowns = new(); // TODO: this should be improved - determine available cooldowns by class?..
-    private DateTime[] _interruptCooldowns = new DateTime[PartyState.MaxPartySize];
+    private readonly WorldState _ws;
+    private readonly List<(int Slot, ActionID Action, DateTime AvailableAt)> _damageCooldowns = []; // TODO: this should be improved - determine available cooldowns by class?..
+    private readonly DateTime[] _interruptCooldowns = new DateTime[PartyState.MaxPartySize];
 
     public RaidCooldowns(WorldState ws)
     {
@@ -71,7 +71,7 @@ public class RaidCooldowns : IDisposable
     private bool UpdateDamageCooldown(ulong casterID, ActionID action, float duration, float cooldown)
     {
         int slot = _ws.Party.FindSlot(casterID);
-        if (slot < 0 || slot >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
+        if (slot is < 0 or >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
             return false;
 
         var availableAt = _ws.CurrentTime.AddSeconds(cooldown);
@@ -91,7 +91,7 @@ public class RaidCooldowns : IDisposable
     private bool UpdateInterruptCooldown(ulong casterID, ActionID action, float cooldown)
     {
         int slot = _ws.Party.FindSlot(casterID);
-        if (slot < 0 || slot >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
+        if (slot is < 0 or >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
             return false;
         _interruptCooldowns[slot] = _ws.CurrentTime.AddSeconds(cooldown);
         Service.Log($"[RaidCooldowns] Updating interrupt cooldown: {action} by {_ws.Party[slot]?.Name} will next be available in {cooldown:f1}s");

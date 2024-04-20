@@ -7,19 +7,19 @@ class WreathOfThorns3(BossModule module) : BossComponent(module)
     public enum State { RangedTowers, Knockback, MeleeTowers, Done }
 
     public State CurState { get; private set; } = State.RangedTowers;
-    public int NumJumps { get; private set; } = 0;
-    public int NumCones { get; private set; } = 0;
-    private AOEShapeCone _coneAOE = new(50, 45.Degrees()); // not sure about half-width...
-    private List<Actor> _relevantHelpers = new(); // 4 towers -> knockback -> 4 towers
-    private Actor? _jumpTarget = null; // either predicted (if jump is imminent) or last actual (if cones are imminent)
+    public int NumJumps { get; private set; }
+    public int NumCones { get; private set; }
+    private readonly AOEShapeCone _coneAOE = new(50, 45.Degrees()); // not sure about half-width...
+    private readonly List<Actor> _relevantHelpers = []; // 4 towers -> knockback -> 4 towers
+    private Actor? _jumpTarget; // either predicted (if jump is imminent) or last actual (if cones are imminent)
     private BitMask _coneTargets;
     private BitMask _playersInAOE;
 
-    private IEnumerable<Actor> _rangedTowers => _relevantHelpers.Take(4);
-    private IEnumerable<Actor> _knockbackThorn => _relevantHelpers.Skip(4).Take(1);
-    private IEnumerable<Actor> _meleeTowers => _relevantHelpers.Skip(5);
+    private IEnumerable<Actor> RangedTowers => _relevantHelpers.Take(4);
+    //private IEnumerable<Actor> _knockbackThorn => _relevantHelpers.Skip(4).Take(1);
+    private IEnumerable<Actor> MeleeTowers => _relevantHelpers.Skip(5);
 
-    private static readonly float _jumpAOERadius = 10;
+    private const float _jumpAOERadius = 10;
 
     public override void Update()
     {
@@ -48,10 +48,8 @@ class WreathOfThorns3(BossModule module) : BossComponent(module)
         if (CurState != State.Done)
         {
             // TODO: consider raid comps with 3+ melee or ranged...
-            bool shouldSoakTower = CurState == State.RangedTowers
-                ? (actor.Role == Role.Ranged || actor.Role == Role.Healer)
-                : (actor.Role == Role.Melee || actor.Role == Role.Tank);
-            var soakedTower = (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers).InRadius(actor.Position, P4S2.WreathTowerRadius).FirstOrDefault();
+            bool shouldSoakTower = CurState == State.RangedTowers ? actor.Role is Role.Ranged or Role.Healer : actor.Role is Role.Melee or Role.Tank;
+            var soakedTower = (CurState == State.RangedTowers ? RangedTowers : MeleeTowers).InRadius(actor.Position, P4S2.WreathTowerRadius).FirstOrDefault();
             if (shouldSoakTower)
             {
                 hints.Add("Soak the tower!", soakedTower == null);
@@ -94,7 +92,7 @@ class WreathOfThorns3(BossModule module) : BossComponent(module)
 
         if (CurState != State.Done)
         {
-            foreach (var tower in (CurState == State.RangedTowers ? _rangedTowers : _meleeTowers))
+            foreach (var tower in (CurState == State.RangedTowers ? RangedTowers : MeleeTowers))
                 Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
         }
 

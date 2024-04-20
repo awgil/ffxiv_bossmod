@@ -2,7 +2,7 @@
 
 class MoogleGoRound(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
     private static readonly AOEShape _shape = new AOEShapeCircle(20);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)

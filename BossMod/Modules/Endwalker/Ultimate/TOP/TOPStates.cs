@@ -2,7 +2,7 @@
 
 class TOPStates : StateMachineBuilder
 {
-    private TOP _module;
+    private readonly TOP _module;
 
     private bool IsEffectivelyDead(Actor? actor) => actor != null && !actor.IsTargetable && actor.HP.Cur <= 1;
 

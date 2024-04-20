@@ -40,7 +40,7 @@ class P4WaveCannonStack : BossComponent
 {
     public bool Imminent;
     private BitMask _targets;
-    private int[] _playerGroups = Utils.MakeArray(PartyState.MaxPartySize, -1);
+    private readonly int[] _playerGroups = Utils.MakeArray(PartyState.MaxPartySize, -1);
     private BitMask _westStack;
 
     private static readonly AOEShapeRect _shape = new(100, 3);

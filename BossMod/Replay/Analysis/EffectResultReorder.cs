@@ -2,13 +2,13 @@
 
 class EffectResultReorder
 {
-    private List<(Replay r, Replay.Participant p, Replay.Action prev, Replay.Action next, bool prevHeal, bool nextHeal)> _reordered = new();
+    private readonly List<(Replay r, Replay.Participant p, Replay.Action prev, Replay.Action next, bool prevHeal, bool nextHeal)> _reordered = [];
 
     public EffectResultReorder(List<Replay> replays)
     {
         foreach (var r in replays)
         {
-            Dictionary<ulong, (Replay.Action, DateTime, bool)> _lastConfirms = new();
+            Dictionary<ulong, (Replay.Action, DateTime, bool)> _lastConfirms = [];
             foreach (var a in r.Actions)
             {
                 foreach (var t in a.Targets)

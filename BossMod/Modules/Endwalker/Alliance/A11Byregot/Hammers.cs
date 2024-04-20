@@ -4,8 +4,8 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
 {
     public bool Active { get; private set; }
     public bool MovementPending { get; private set; }
-    private int[] _lineOffset = new int[5];
-    private int[] _lineMovement = new int[5];
+    private readonly int[] _lineOffset = new int[5];
+    private readonly int[] _lineMovement = new int[5];
 
     private static readonly AOEShapeRect _shape = new(5, 5, 5);
 
@@ -32,12 +32,12 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
             return;
 
         Arena.AddLine(Module.Bounds.Center + new WDir(-15, -25), Module.Bounds.Center + new WDir(-15, +25), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir( -5, -25), Module.Bounds.Center + new WDir( -5, +25), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir( +5, -25), Module.Bounds.Center + new WDir( +5, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(-05, -25), Module.Bounds.Center + new WDir(-05, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(+05, -25), Module.Bounds.Center + new WDir(+05, +25), ArenaColor.Border);
         Arena.AddLine(Module.Bounds.Center + new WDir(+15, -25), Module.Bounds.Center + new WDir(+15, +25), ArenaColor.Border);
         Arena.AddLine(Module.Bounds.Center + new WDir(-25, -15), Module.Bounds.Center + new WDir(+25, -15), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(-25,  -5), Module.Bounds.Center + new WDir(+25,  -5), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(-25,  +5), Module.Bounds.Center + new WDir(+25,  +5), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(-25, -05), Module.Bounds.Center + new WDir(+25, -05), ArenaColor.Border);
+        Arena.AddLine(Module.Bounds.Center + new WDir(-25, +05), Module.Bounds.Center + new WDir(+25, +05), ArenaColor.Border);
         Arena.AddLine(Module.Bounds.Center + new WDir(-25, +15), Module.Bounds.Center + new WDir(+25, +15), ArenaColor.Border);
     }
 
@@ -54,9 +54,9 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
             int i = index - 7;
             (_lineOffset[i], _lineMovement[i]) = state switch
             {
-                0x00020001 => ( 0, +1),
+                0x00020001 => (00, +1),
                 0x08000400 => (-1, +1),
-                0x00800040 => ( 0, -1),
+                0x00800040 => (00, -1),
                 0x80004000 => (+1, -1),
                 _ => (_lineOffset[i], 0),
             };

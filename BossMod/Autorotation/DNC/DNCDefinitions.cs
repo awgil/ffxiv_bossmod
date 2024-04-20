@@ -124,7 +124,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 68790 };
+    public static readonly uint[] UnlockQuests = [68790];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -196,54 +196,54 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionDex);
-        SupportedActions.GCD(AID.Cascade, 25);
-        SupportedActions.GCD(AID.Fountain, 25);
-        SupportedActions.OGCD(AID.LegGraze, 25, CDGroup.LegGraze, 30.0f);
-        SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
-        SupportedActions.OGCD(AID.FootGraze, 25, CDGroup.FootGraze, 30.0f);
-        SupportedActions.GCD(AID.Pirouette, 0);
-        SupportedActions.GCD(AID.Jete, 0);
-        SupportedActions.GCD(AID.Entrechat, 0);
-        SupportedActions.GCD(AID.Emboite, 0);
-        SupportedActions.GCD(AID.SingleStandardFinish, 0);
-        SupportedActions.OGCD(AID.StandardStep, 0, CDGroup.StandardStep, 30.0f).EffectDuration = 15;
-        SupportedActions.GCD(AID.Windmill, 0);
-        SupportedActions.GCD(AID.StandardFinish, 0);
-        SupportedActions.GCD(AID.DoubleStandardFinish, 0);
-        SupportedActions.GCD(AID.ReverseCascade, 25);
-        SupportedActions.OGCD(AID.Peloton, 0, CDGroup.Peloton, 5.0f).EffectDuration = 30;
-        SupportedActions.OGCD(AID.HeadGraze, 25, CDGroup.HeadGraze, 30.0f);
-        SupportedActions.GCD(AID.Bladeshower, 0);
-        SupportedActions.OGCD(AID.FanDance, 25, CDGroup.FanDance, 1.0f);
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.GCD(AID.RisingWindmill, 0);
-        SupportedActions.GCD(AID.Fountainfall, 25);
-        SupportedActions.GCD(AID.Bloodshower, 0);
-        SupportedActions.OGCD(AID.FanDanceII, 0, CDGroup.FanDanceII, 1.0f);
-        SupportedActions.OGCDWithCharges(AID.EnAvant, 0, CDGroup.EnAvant, 30.0f, 3);
-        SupportedActions.OGCD(AID.CuringWaltz, 0, CDGroup.CuringWaltz, 60.0f);
-        SupportedActions.OGCD(AID.ShieldSamba, 0, CDGroup.ShieldSamba, 120.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.Ending, 0, CDGroup.Ending, 1.0f);
-        SupportedActions.OGCD(AID.ClosedPosition, 30, CDGroup.Ending, 30.0f);
-        SupportedActions.OGCD(AID.Devilment, 0, CDGroup.Devilment, 120.0f);
-        SupportedActions.OGCD(AID.FanDanceIII, 25, CDGroup.FanDanceIII, 1.0f);
-        SupportedActions.OGCD(AID.TechnicalStep, 0, CDGroup.TechnicalStep, 120.0f);
-        SupportedActions.GCD(AID.TripleTechnicalFinish, 0);
-        SupportedActions.GCD(AID.DoubleTechnicalFinish, 0);
-        SupportedActions.GCD(AID.QuadrupleTechnicalFinish, 0);
-        SupportedActions.GCD(AID.TechnicalFinish, 0);
-        SupportedActions.GCD(AID.SingleTechnicalFinish, 0);
-        SupportedActions.OGCD(AID.Flourish, 0, CDGroup.Flourish, 60.0f).EffectDuration = 30;
-        SupportedActions.GCD(AID.SaberDance, 25);
-        SupportedActions.OGCD(AID.ImprovisedFinish, 0, CDGroup.ImprovisedFinish, 1.5f).EffectDuration = 60;
-        SupportedActions.OGCD(AID.Improvisation, 0, CDGroup.Improvisation, 120.0f);
-        SupportedActions.GCD(AID.Tillana, 0);
-        SupportedActions.OGCD(AID.FanDanceIV, 15, CDGroup.FanDanceIV, 1.0f);
-        SupportedActions.GCD(AID.StarfallDance, 25);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionDex);
+        res.GCD(AID.Cascade, 25);
+        res.GCD(AID.Fountain, 25);
+        res.OGCD(AID.LegGraze, 25, CDGroup.LegGraze, 30.0f);
+        res.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
+        res.OGCD(AID.FootGraze, 25, CDGroup.FootGraze, 30.0f);
+        res.GCD(AID.Pirouette, 0);
+        res.GCD(AID.Jete, 0);
+        res.GCD(AID.Entrechat, 0);
+        res.GCD(AID.Emboite, 0);
+        res.GCD(AID.SingleStandardFinish, 0);
+        res.OGCD(AID.StandardStep, 0, CDGroup.StandardStep, 30.0f).EffectDuration = 15;
+        res.GCD(AID.Windmill, 0);
+        res.GCD(AID.StandardFinish, 0);
+        res.GCD(AID.DoubleStandardFinish, 0);
+        res.GCD(AID.ReverseCascade, 25);
+        res.OGCD(AID.Peloton, 0, CDGroup.Peloton, 5.0f).EffectDuration = 30;
+        res.OGCD(AID.HeadGraze, 25, CDGroup.HeadGraze, 30.0f);
+        res.GCD(AID.Bladeshower, 0);
+        res.OGCD(AID.FanDance, 25, CDGroup.FanDance, 1.0f);
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.GCD(AID.RisingWindmill, 0);
+        res.GCD(AID.Fountainfall, 25);
+        res.GCD(AID.Bloodshower, 0);
+        res.OGCD(AID.FanDanceII, 0, CDGroup.FanDanceII, 1.0f);
+        res.OGCDWithCharges(AID.EnAvant, 0, CDGroup.EnAvant, 30.0f, 3);
+        res.OGCD(AID.CuringWaltz, 0, CDGroup.CuringWaltz, 60.0f);
+        res.OGCD(AID.ShieldSamba, 0, CDGroup.ShieldSamba, 120.0f).EffectDuration = 15;
+        res.OGCD(AID.Ending, 0, CDGroup.Ending, 1.0f);
+        res.OGCD(AID.ClosedPosition, 30, CDGroup.Ending, 30.0f);
+        res.OGCD(AID.Devilment, 0, CDGroup.Devilment, 120.0f);
+        res.OGCD(AID.FanDanceIII, 25, CDGroup.FanDanceIII, 1.0f);
+        res.OGCD(AID.TechnicalStep, 0, CDGroup.TechnicalStep, 120.0f);
+        res.GCD(AID.TripleTechnicalFinish, 0);
+        res.GCD(AID.DoubleTechnicalFinish, 0);
+        res.GCD(AID.QuadrupleTechnicalFinish, 0);
+        res.GCD(AID.TechnicalFinish, 0);
+        res.GCD(AID.SingleTechnicalFinish, 0);
+        res.OGCD(AID.Flourish, 0, CDGroup.Flourish, 60.0f).EffectDuration = 30;
+        res.GCD(AID.SaberDance, 25);
+        res.OGCD(AID.ImprovisedFinish, 0, CDGroup.ImprovisedFinish, 1.5f).EffectDuration = 60;
+        res.OGCD(AID.Improvisation, 0, CDGroup.Improvisation, 120.0f);
+        res.GCD(AID.Tillana, 0);
+        res.OGCD(AID.FanDanceIV, 15, CDGroup.FanDanceIV, 1.0f);
+        res.GCD(AID.StarfallDance, 25);
+        return res;
     }
 }

@@ -3,8 +3,8 @@
 class CrypticFlames(BossModule module) : BossComponent(module)
 {
     public bool ReadyToBreak { get; private set; }
-    private int[] _playerOrder = new int[4];
-    private List<(Actor laser, int order)> _lasers = new();
+    private readonly int[] _playerOrder = new int[4];
+    private readonly List<(Actor laser, int order)> _lasers = [];
     private int _numBrokenLasers;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

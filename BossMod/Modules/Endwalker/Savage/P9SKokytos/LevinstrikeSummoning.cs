@@ -4,7 +4,7 @@
 // TODO: or is it a spread?.. one thing i like about bait-away better here is that it better distinguishes bait vs avoid
 class LevinstrikeSummoningIcemeld(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private List<Actor> _pendingBaiters = new(); // we only want to show max 1 baiter at a time
+    private readonly List<Actor> _pendingBaiters = []; // we only want to show max 1 baiter at a time
 
     private static readonly AOEShapeCircle _shape = new(20);
 
@@ -38,7 +38,7 @@ class LevinstrikeSummoningIcemeld(BossModule module) : Components.GenericBaitAwa
 // TODO: or is it a spread?.. one thing i like about bait-away better here is that it better distinguishes bait vs avoid
 class LevinstrikeSummoningFiremeld(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.Firemeld), centerAtTarget: true)
 {
-    private Actor?[] _baitOrder = { null, null, null, null };
+    private readonly Actor?[] _baitOrder = [null, null, null, null];
 
     private static readonly AOEShapeCircle _shape = new(6);
 
@@ -81,8 +81,8 @@ class LevinstrikeSummoningFiremeld(BossModule module) : Components.GenericBaitAw
 class LevinstrikeSummoningShock(BossModule module) : Components.GenericAOEs(module)
 {
     public int NumTowers { get; private set; } // NumCasts counts explosions
-    private WPos[] _explodeOrder = { default, default, default, default };
-    private Actor?[] _soakerOrder = { null, null, null, null };
+    private readonly WPos[] _explodeOrder = [default, default, default, default];
+    private readonly Actor?[] _soakerOrder = [null, null, null, null];
     private DateTime _firstExplosion;
 
     private static readonly AOEShapeCircle _shape = new(6);

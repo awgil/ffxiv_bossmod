@@ -5,29 +5,19 @@ namespace BossMod.Components;
 // generic gaze/weakpoint component, allows customized 'eye' position
 public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool inverted = false) : CastCounter(module, aid)
 {
-    public struct Eye
-    {
-        public WPos Position;
-        public DateTime Activation;
-        public Angle Forward; // if non-zero, treat specified side as 'forward' for hit calculations
-        public bool Risky;
-
-        public Eye(WPos position, DateTime activation = new(), Angle forward = new(), bool risky = true)
-        {
-            Position = position;
-            Activation = activation;
-            Forward = forward;
-            Risky = risky;
-        }
-    }
+    public record struct Eye(
+        WPos Position,
+        DateTime Activation = new(),
+        Angle Forward = new(), // if non-zero, treat specified side as 'forward' for hit calculations
+        bool Risky = true);
 
     public bool Inverted = inverted; // if inverted, player should face eyes instead of averting
 
-    private static readonly float _eyeOuterH = 10;
-    private static readonly float _eyeOuterV = 6;
-    private static readonly float _eyeInnerR = 4;
-    private static readonly float _eyeOuterR = (_eyeOuterH * _eyeOuterH + _eyeOuterV * _eyeOuterV) / (2 * _eyeOuterV);
-    private static readonly float _eyeOffsetV = _eyeOuterR - _eyeOuterV;
+    private const float _eyeOuterH = 10;
+    private const float _eyeOuterV = 6;
+    private const float _eyeInnerR = 4;
+    private const float _eyeOuterR = (_eyeOuterH * _eyeOuterH + _eyeOuterV * _eyeOuterV) / (2 * _eyeOuterV);
+    private const float _eyeOffsetV = _eyeOuterR - _eyeOuterV;
     private static readonly float _eyeHalfAngle = MathF.Asin(_eyeOuterH / _eyeOuterR);
 
     public abstract IEnumerable<Eye> ActiveEyes(int slot, Actor actor);
@@ -73,10 +63,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
         }
     }
 
-    private bool HitByEye(Actor actor, Eye eye)
-    {
-        return (actor.Rotation + eye.Forward).ToDirection().Dot((eye.Position - actor.Position).Normalized()) >= 0.707107f; // 45-degree
-    }
+    private bool HitByEye(Actor actor, Eye eye) => (actor.Rotation + eye.Forward).ToDirection().Dot((eye.Position - actor.Position).Normalized()) >= 0.707107f; // 45-degree
 
     private Vector2 IndicatorScreenPos(WPos eye)
     {
@@ -95,7 +82,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
 // gaze that happens on cast end
 public class CastGaze(BossModule module, ActionID aid, bool inverted = false) : GenericGaze(module, aid, inverted)
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor) => _casters.Select(c => new Eye(c.Position, c.CastInfo!.NPCFinishAt));
 
@@ -117,15 +104,14 @@ public class CastWeakpoint(BossModule module, ActionID aid, AOEShape shape, uint
 {
     public AOEShape Shape = shape;
     public readonly uint[] Statuses = [statusForward, statusLeft, statusBackward, statusRight]; // 4 elements: fwd, left, back, right
-    private List<Actor> _casters = new();
-    private Dictionary<ulong, Angle> _playerWeakpoints = new();
+    private readonly List<Actor> _casters = [];
+    private readonly Dictionary<ulong, Angle> _playerWeakpoints = [];
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
         // if there are multiple casters, take one that finishes first
         var caster = _casters.Where(a => Shape.Check(actor.Position, a.Position, a.CastInfo!.Rotation)).MinBy(a => a.CastInfo!.NPCFinishAt);
-        Angle angle;
-        if (caster != null && _playerWeakpoints.TryGetValue(actor.InstanceID, out angle))
+        if (caster != null && _playerWeakpoints.TryGetValue(actor.InstanceID, out var angle))
             yield return new(caster.Position, caster.CastInfo!.NPCFinishAt, angle);
     }
 

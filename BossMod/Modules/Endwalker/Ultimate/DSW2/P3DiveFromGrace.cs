@@ -2,7 +2,7 @@
 
 class P3Geirskogul(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geirskogul), new AOEShapeRect(62, 4))
 {
-    private List<Actor> _predicted = new();
+    private readonly List<Actor> _predicted = [];
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -32,7 +32,7 @@ class P3Geirskogul(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 
 class P3GnashAndLash(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _aoeGnash = new(8);
     private static readonly AOEShapeDonut _aoeLash = new(8, 40);
@@ -83,19 +83,19 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, ActionI
         //public WPos SafeSpot;
         //public bool IsBaitingJump;
 
-        public bool CanBait(int order, int spot) => JumpOrder == order && (AssignedSpot == 0 || AssignedSpot == spot);
+        public readonly bool CanBait(int order, int spot) => JumpOrder == order && (AssignedSpot == 0 || AssignedSpot == spot);
     }
 
     public int NumJumps { get; private set; }
-    private DSW2Config _config = Service.Config.Get<DSW2Config>();
+    private readonly DSW2Config _config = Service.Config.Get<DSW2Config>();
     private bool _haveDirections;
-    private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
-    private BitMask[] _orderPlayers = new BitMask[3]; // [0] = players with order 1, etc.
+    private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+    private readonly BitMask[] _orderPlayers = new BitMask[3]; // [0] = players with order 1, etc.
     private BitMask _ordersWithArrows; // bit 1 = order 1, etc.
-    private List<Tower> _predictedTowers = new();
+    private readonly List<Tower> _predictedTowers = [];
 
-    private static readonly float _towerOffset = 14;
-    private static readonly float _spotOffset = 7f;
+    private const float _towerOffset = 14;
+    private const float _spotOffset = 7f;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

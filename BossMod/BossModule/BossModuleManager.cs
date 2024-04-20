@@ -7,10 +7,10 @@ public class BossModuleManager : IDisposable
     public RaidCooldowns RaidCooldowns { get; init; }
     public BossModuleConfig WindowConfig { get; init; }
 
-    private bool _running = false;
-    private bool _activeModuleOverridden = false;
+    private bool _running;
+    private bool _activeModuleOverridden;
 
-    private List<BossModule> _loadedModules = new();
+    private readonly List<BossModule> _loadedModules = [];
     public IReadOnlyList<BossModule> LoadedModules => _loadedModules;
 
     // drawn module among loaded modules; this can be changed explicitly if needed
@@ -21,7 +21,8 @@ public class BossModuleManager : IDisposable
     public BossModule? ActiveModule
     {
         get => _activeModule;
-        set {
+        set
+        {
             Service.Log($"[BMM] Active module override: from {_activeModule?.GetType().FullName ?? "<n/a>"} (manual-override={_activeModuleOverridden}) to {value?.GetType().FullName ?? "<n/a>"}");
             _activeModule = value;
             _activeModuleOverridden = true;
@@ -184,10 +185,7 @@ public class BossModuleManager : IDisposable
         return 1;
     }
 
-    private BossModule CreateDemoModule()
-    {
-        return new DemoModule(WorldState, new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new()));
-    }
+    private DemoModule CreateDemoModule() => new(WorldState, new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new()));
 
     private void ActorAdded(Actor actor)
     {

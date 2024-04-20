@@ -81,8 +81,8 @@ class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var magicreflect = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.RepellingSpray) != null).FirstOrDefault();
-        var physicalreflect = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.IceSpikes) != null).FirstOrDefault();
+        var magicreflect = Module.Enemies(OID.Boss).FirstOrDefault(x => x.FindStatus(SID.RepellingSpray) != null);
+        var physicalreflect = Module.Enemies(OID.Boss).FirstOrDefault(x => x.FindStatus(SID.IceSpikes) != null);
         if (magicreflect != null)
             hints.Add($"{Module.PrimaryActor.Name} will reflect all magic damage!");
         if (physicalreflect != null)

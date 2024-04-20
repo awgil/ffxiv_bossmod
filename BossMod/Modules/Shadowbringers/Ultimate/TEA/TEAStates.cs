@@ -2,7 +2,7 @@
 
 class TEAStates : StateMachineBuilder
 {
-    private TEA _module;
+    private readonly TEA _module;
 
     public TEAStates(TEA module) : base(module)
     {

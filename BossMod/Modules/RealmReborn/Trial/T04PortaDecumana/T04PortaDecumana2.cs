@@ -69,7 +69,7 @@ class AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(modul
 
 class Aetheroplasm(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _orbs = module.Enemies(OID.Aetheroplasm);
+    private readonly IReadOnlyList<Actor> _orbs = module.Enemies(OID.Aetheroplasm);
 
     public IEnumerable<Actor> ActiveOrbs => _orbs.Where(orb => !orb.IsDead);
 

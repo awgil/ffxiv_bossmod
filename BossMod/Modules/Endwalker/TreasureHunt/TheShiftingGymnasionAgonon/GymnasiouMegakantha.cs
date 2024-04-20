@@ -3,16 +3,16 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.GymnasiouMegaka
 public enum OID : uint
 {
     Boss = 0x3D33, //R=6
-    BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
+    BonusAddLyssa = 0x3D4E, //R=3.75, bonus loot adds
     BossHelper = 0x233C,
     BossAdd1 = 0x3D35, //R=1.76 
     BossAdd2 = 0x3D36, //R=1.56
-    BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
+    BonusAddLampas = 0x3D4D, //R=2.001, bonus loot adds
 }
 
 public enum AID : uint
 {
-    AutoAttack = 870, // BonusAdd_Lyssa->player, no cast, single-target
+    AutoAttack = 870, // BonusAddLyssa->player, no cast, single-target
     AutoAttack2 = 872, // Boss/BossAdd2/BossAdd1->player, no cast, single-target
     OdiousAtmosphereComboStart = 32199, // Boss->self, no cast, single-target
     OdiousAtmosphere0 = 32241, // Boss->self, 4,0s cast, single-target
@@ -79,7 +79,7 @@ class MegakanthaStates : StateMachineBuilder
             .ActivateOnEnter<OdiousAtmosphere>()
             .ActivateOnEnter<AcidMist>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd1).All(e => e.IsDead) && module.Enemies(OID.BossAdd2).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd1).All(e => e.IsDead) && module.Enemies(OID.BossAdd2).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAddLampas).All(e => e.IsDead);
     }
 }
 
@@ -93,9 +93,9 @@ public class Megakantha(WorldState ws, Actor primary) : BossModule(ws, primary, 
             Arena.Actor(s, ArenaColor.Object);
         foreach (var s in Enemies(OID.BossAdd2))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+        foreach (var s in Enemies(OID.BonusAddLyssa))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdds_Lampas))
+        foreach (var s in Enemies(OID.BonusAddLampas))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -106,8 +106,8 @@ public class Megakantha(WorldState ws, Actor primary) : BossModule(ws, primary, 
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdds_Lampas => 4,
-                OID.BonusAdds_Lyssa => 3,
+                OID.BonusAddLampas => 4,
+                OID.BonusAddLyssa => 3,
                 OID.BossAdd1 or OID.BossAdd2 => 2,
                 OID.Boss => 1,
                 _ => 0

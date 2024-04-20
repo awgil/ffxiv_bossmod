@@ -8,9 +8,9 @@ class ScreamOfTheFallen(BossModule module) : Components.UniformStackSpread(modul
 {
     public int NumCasts { get; private set; }
     private BitMask _second;
-    private List<Actor> _towers = new();
+    private readonly List<Actor> _towers = [];
 
-    private static readonly float _towerRadius = 3;
+    private const float _towerRadius = 3;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

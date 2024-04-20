@@ -4,14 +4,14 @@
 // normally you'd predict them at the end (or slightly before the end) of some cast, or on component creation
 public class GenericTwister(BossModule module, float radius, uint oid, ActionID aid = default) : GenericAOEs(module, aid, "GTFO from twister!")
 {
-    private AOEShapeCircle _shape = new(radius);
-    private uint _twisterOID = oid;
+    private readonly AOEShapeCircle _shape = new(radius);
+    private readonly uint _twisterOID = oid;
     protected IReadOnlyList<Actor> Twisters = module.Enemies(oid);
     protected DateTime PredictedActivation;
-    protected List<WPos> PredictedPositions = new();
+    protected List<WPos> PredictedPositions = [];
 
     public IEnumerable<Actor> ActiveTwisters => Twisters.Where(v => v.EventState != 7);
-    public bool Active => ActiveTwisters.Count() > 0;
+    public bool Active => ActiveTwisters.Any();
 
     public void AddPredicted(float activationDelay)
     {
@@ -47,8 +47,8 @@ public class ImmediateTwister : GenericTwister
 // twister that activates on cast end, or slightly before
 public class CastTwister(BossModule module, float radius, uint oid, ActionID aid, float activationDelay, float predictBeforeCastEnd = 0) : GenericTwister(module, radius, oid, aid)
 {
-    private float _activationDelay = activationDelay; // from cast-end to twister spawn
-    private float _predictBeforeCastEnd = predictBeforeCastEnd;
+    private readonly float _activationDelay = activationDelay; // from cast-end to twister spawn
+    private readonly float _predictBeforeCastEnd = predictBeforeCastEnd;
     private DateTime _predictStart = DateTime.MaxValue;
 
     public override void Update()

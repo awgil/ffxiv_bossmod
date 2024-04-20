@@ -10,7 +10,7 @@ using System.Text;
 
 namespace BossMod;
 
-public class ModuleViewer : IDisposable
+public sealed class ModuleViewer : IDisposable
 {
     private record struct ModuleInfo(ModuleRegistry.Info Info, string Name, int SortOrder);
     private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, IDalamudTextureWrap? Icon = null);
@@ -19,11 +19,11 @@ public class ModuleViewer : IDisposable
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
 
-    private (string name, IDalamudTextureWrap? icon)[] _expansions;
-    private (string name, IDalamudTextureWrap? icon)[] _categories;
-    private IDalamudTextureWrap? _iconFATE;
-    private IDalamudTextureWrap? _iconHunt;
-    private List<ModuleGroup>[,] _groups;
+    private readonly (string name, IDalamudTextureWrap? icon)[] _expansions;
+    private readonly (string name, IDalamudTextureWrap? icon)[] _categories;
+    private readonly IDalamudTextureWrap? _iconFATE;
+    private readonly IDalamudTextureWrap? _iconHunt;
+    private readonly List<ModuleGroup>[,] _groups;
     private Vector2 _iconSize = new(30, 30);
 
     public ModuleViewer()
@@ -69,7 +69,7 @@ public class ModuleViewer : IDisposable
         _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
         for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
             for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
-                _groups[i, j] = new();
+                _groups[i, j] = [];
 
         foreach (var info in ModuleRegistry.RegisteredModules.Values)
         {
@@ -79,7 +79,7 @@ public class ModuleViewer : IDisposable
             if (groupIndex < 0)
             {
                 groupIndex = groups.Count;
-                groups.Add(new(groupInfo, new()));
+                groups.Add(new(groupInfo, []));
             }
             else if (groups[groupIndex].Info != groupInfo)
             {
@@ -115,13 +115,13 @@ public class ModuleViewer : IDisposable
         _iconHunt?.Dispose();
     }
 
-    public void Draw(UITree _tree)
+    public void Draw(UITree tree)
     {
         using (var group = ImRaii.Group())
             DrawFilters();
         ImGui.SameLine();
         using (var group = ImRaii.Group())
-            DrawModules(_tree);
+            DrawModules(tree);
     }
 
     private void DrawFilters()
@@ -205,13 +205,13 @@ public class ModuleViewer : IDisposable
                     UIMisc.Image(group.Info.Icon ?? _categories[j].icon, new(36));
                     ImGui.TableNextColumn();
 
-                    foreach (var _ in _tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
+                    foreach (var ng in _tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
                     {
                         foreach (var mod in group.Modules)
                         {
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
                                 if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}"))
-                                    new BossModuleConfigWindow(mod.Info, new(TimeSpan.TicksPerSecond, "fake"));
+                                    _ = new BossModuleConfigWindow(mod.Info, new(TimeSpan.TicksPerSecond, "fake"));
                             ImGui.SameLine();
                             UIMisc.HelpMarker(() => ModuleHelpText(mod));
                             ImGui.SameLine();
@@ -260,7 +260,7 @@ public class ModuleViewer : IDisposable
             case BossModuleInfo.GroupType.MaskedCarnivale:
                 groupId |= module.GroupID;
                 var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID);
-                var mcSort = uint.Parse((mcRow?.ShortCode ?? "").Substring(3)); // 'aozNNN'
+                var mcSort = uint.Parse((mcRow?.ShortCode ?? "").AsSpan(3), CultureInfo.InvariantCulture); // 'aozNNN'
                 var mcName = $"Stage {mcSort}: {FixCase(mcRow?.Name)}";
                 return (new(mcName, groupId, mcSort), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.RemovedUnreal:
@@ -294,9 +294,9 @@ public class ModuleViewer : IDisposable
     private string ModuleHelpText(ModuleInfo info)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"Cooldown planning: {(info.Info.CooldownPlanningSupported ? "supported!" : "not supported")}");
+        sb.AppendLine(CultureInfo.CurrentCulture, $"Cooldown planning: {(info.Info.CooldownPlanningSupported ? "supported!" : "not supported")}");
         if (info.Info.Contributors.Length > 0)
-            sb.AppendLine($"Contributors: {info.Info.Contributors}");
+            sb.AppendLine(CultureInfo.CurrentCulture, $"Contributors: {info.Info.Contributors}");
         return sb.ToString();
     }
 }

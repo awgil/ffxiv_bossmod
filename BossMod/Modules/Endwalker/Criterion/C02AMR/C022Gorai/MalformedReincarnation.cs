@@ -11,7 +11,7 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
     private BitMatrix _playerBlue; // [i] = blue debuffs for slot i; 0 = bait, 1/2/3 = soaks
     private bool _baitsDone;
 
-    private static readonly float TowerRadius = 4;
+    private const float TowerRadius = 4;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

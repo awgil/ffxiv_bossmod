@@ -138,7 +138,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 66633, 66634, 66637, 66638, 67208, 67209, 67210, 67211, 67212, 68463 };
+    public static readonly uint[] UnlockQuests = [66633, 66634, 66637, 66638, 67208, 67209, 67210, 67211, 67212, 68463];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -218,52 +218,53 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionMnd);
-        SupportedActions.GCDCast(AID.Ruin1, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Broil1, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Broil2, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Broil3, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Broil4, 25, 1.5f);
-        SupportedActions.GCD(AID.Bio1, 25);
-        SupportedActions.GCD(AID.Bio2, 25);
-        SupportedActions.GCD(AID.Biolysis, 25);
-        SupportedActions.GCD(AID.Ruin2, 25);
-        SupportedActions.GCD(AID.ArtOfWar1, 0);
-        SupportedActions.GCD(AID.ArtOfWar2, 0);
-        SupportedActions.GCDCast(AID.Physick, 30, 1.5f);
-        SupportedActions.GCDCast(AID.Adloquium, 30, 2.0f);
-        SupportedActions.GCDCast(AID.Succor, 0, 2.0f);
-        SupportedActions.GCDCast(AID.SummonEos, 0, 1.5f);
-        SupportedActions.GCDCast(AID.SummonSelene, 0, 1.5f);
-        SupportedActions.OGCD(AID.EnergyDrain, 25, CDGroup.EnergyDrain, 1.0f);
-        SupportedActions.OGCD(AID.WhisperingDawn, 0, CDGroup.WhisperingDawn, 60.0f);
-        SupportedActions.OGCD(AID.Lustrate, 30, CDGroup.Lustrate, 1.0f);
-        SupportedActions.OGCD(AID.SacredSoil, 30, CDGroup.SacredSoil, 30.0f);
-        SupportedActions.OGCD(AID.Indomitability, 0, CDGroup.Indomitability, 30.0f);
-        SupportedActions.OGCD(AID.DeploymentTactics, 30, CDGroup.DeploymentTactics, 120.0f);
-        SupportedActions.OGCD(AID.EmergencyTactics, 0, CDGroup.EmergencyTactics, 15.0f);
-        SupportedActions.OGCD(AID.Excogitation, 30, CDGroup.Excogitation, 45.0f);
-        SupportedActions.OGCD(AID.Aetherpact, 30, CDGroup.Aetherpact, 3.0f);
-        SupportedActions.OGCD(AID.DissolveUnion, 0, CDGroup.DissolveUnion, 1.0f);
-        SupportedActions.OGCD(AID.FeyBlessing, 0, CDGroup.FeyBlessing, 60.0f);
-        SupportedActions.OGCDWithCharges(AID.Consolation, 0, CDGroup.Consolation, 30.0f, 2);
-        SupportedActions.OGCD(AID.LucidDreaming, 0, CDGroup.LucidDreaming, 60.0f);
-        SupportedActions.OGCD(AID.Swiftcast, 0, CDGroup.Swiftcast, 60.0f);
-        SupportedActions.OGCD(AID.FeyIllumination, 0, CDGroup.FeyIllumination, 120.0f);
-        SupportedActions.OGCD(AID.Surecast, 0, CDGroup.Surecast, 120.0f);
-        SupportedActions.OGCD(AID.Aetherflow, 0, CDGroup.Aetherflow, 60.0f);
-        SupportedActions.OGCD(AID.Dissipation, 0, CDGroup.Dissipation, 180.0f);
-        SupportedActions.OGCD(AID.ChainStratagem, 25, CDGroup.ChainStratagem, 120.0f);
-        SupportedActions.OGCD(AID.Recitation, 0, CDGroup.Recitation, 90.0f);
-        SupportedActions.OGCD(AID.SummonSeraph, 0, CDGroup.SummonSeraph, 120.0f);
-        SupportedActions.OGCD(AID.Protraction, 30, CDGroup.Protraction, 60.0f);
-        SupportedActions.OGCD(AID.Expedient, 0, CDGroup.Expedient, 120.0f);
-        SupportedActions.GCDCast(AID.Resurrection, 30, 8.0f);
-        SupportedActions.GCDCast(AID.Repose, 30, 2.5f);
-        SupportedActions.GCDCast(AID.Esuna, 30, 1.0f);
-        SupportedActions.OGCD(AID.Rescue, 30, CDGroup.Rescue, 120.0f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionMnd);
+        res.GCDCast(AID.Ruin1, 25, 1.5f);
+        res.GCDCast(AID.Broil1, 25, 1.5f);
+        res.GCDCast(AID.Broil2, 25, 1.5f);
+        res.GCDCast(AID.Broil3, 25, 1.5f);
+        res.GCDCast(AID.Broil4, 25, 1.5f);
+        res.GCD(AID.Bio1, 25);
+        res.GCD(AID.Bio2, 25);
+        res.GCD(AID.Biolysis, 25);
+        res.GCD(AID.Ruin2, 25);
+        res.GCD(AID.ArtOfWar1, 0);
+        res.GCD(AID.ArtOfWar2, 0);
+        res.GCDCast(AID.Physick, 30, 1.5f);
+        res.GCDCast(AID.Adloquium, 30, 2.0f);
+        res.GCDCast(AID.Succor, 0, 2.0f);
+        res.GCDCast(AID.SummonEos, 0, 1.5f);
+        res.GCDCast(AID.SummonSelene, 0, 1.5f);
+        res.OGCD(AID.EnergyDrain, 25, CDGroup.EnergyDrain, 1.0f);
+        res.OGCD(AID.WhisperingDawn, 0, CDGroup.WhisperingDawn, 60.0f);
+        res.OGCD(AID.Lustrate, 30, CDGroup.Lustrate, 1.0f);
+        res.OGCD(AID.SacredSoil, 30, CDGroup.SacredSoil, 30.0f);
+        res.OGCD(AID.Indomitability, 0, CDGroup.Indomitability, 30.0f);
+        res.OGCD(AID.DeploymentTactics, 30, CDGroup.DeploymentTactics, 120.0f);
+        res.OGCD(AID.EmergencyTactics, 0, CDGroup.EmergencyTactics, 15.0f);
+        res.OGCD(AID.Excogitation, 30, CDGroup.Excogitation, 45.0f);
+        res.OGCD(AID.Aetherpact, 30, CDGroup.Aetherpact, 3.0f);
+        res.OGCD(AID.DissolveUnion, 0, CDGroup.DissolveUnion, 1.0f);
+        res.OGCD(AID.FeyBlessing, 0, CDGroup.FeyBlessing, 60.0f);
+        res.OGCDWithCharges(AID.Consolation, 0, CDGroup.Consolation, 30.0f, 2);
+        res.OGCD(AID.LucidDreaming, 0, CDGroup.LucidDreaming, 60.0f);
+        res.OGCD(AID.Swiftcast, 0, CDGroup.Swiftcast, 60.0f);
+        res.OGCD(AID.FeyIllumination, 0, CDGroup.FeyIllumination, 120.0f);
+        res.OGCD(AID.Surecast, 0, CDGroup.Surecast, 120.0f);
+        res.OGCD(AID.Aetherflow, 0, CDGroup.Aetherflow, 60.0f);
+        res.OGCD(AID.Dissipation, 0, CDGroup.Dissipation, 180.0f);
+        res.OGCD(AID.ChainStratagem, 25, CDGroup.ChainStratagem, 120.0f);
+        res.OGCD(AID.Recitation, 0, CDGroup.Recitation, 90.0f);
+        res.OGCD(AID.SummonSeraph, 0, CDGroup.SummonSeraph, 120.0f);
+        res.OGCD(AID.Protraction, 30, CDGroup.Protraction, 60.0f);
+        res.OGCD(AID.Expedient, 0, CDGroup.Expedient, 120.0f);
+        res.GCDCast(AID.Resurrection, 30, 8.0f);
+        res.GCDCast(AID.Repose, 30, 2.5f);
+        res.GCDCast(AID.Esuna, 30, 1.0f);
+        res.OGCD(AID.Rescue, 30, CDGroup.Rescue, 120.0f);
+        return res;
     }
 }

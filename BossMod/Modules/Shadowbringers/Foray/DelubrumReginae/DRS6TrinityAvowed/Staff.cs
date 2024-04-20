@@ -2,9 +2,9 @@
 
 class FreedomOfBozja : TemperatureAOE
 {
-    private List<(Actor orb, int temperature)> _orbs = new();
-    private DateTime _activation;
-    private bool _risky;
+    private readonly List<(Actor orb, int temperature)> _orbs = [];
+    private readonly DateTime _activation;
+    private readonly bool _risky;
 
     private static readonly AOEShapeCircle _shape = new(22);
 
@@ -49,7 +49,7 @@ class FreedomOfBozja1(BossModule module) : FreedomOfBozja(module, false);
 
 class QuickMarchStaff1(BossModule module) : QuickMarch(module)
 {
-    private FreedomOfBozja1? _freedom = module.FindComponent<FreedomOfBozja1>();
+    private readonly FreedomOfBozja1? _freedom = module.FindComponent<FreedomOfBozja1>();
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_freedom?.ActorUnsafeAt(actor, pos) ?? false);
 }

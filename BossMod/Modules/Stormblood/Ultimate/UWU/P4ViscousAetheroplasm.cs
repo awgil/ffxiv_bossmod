@@ -40,7 +40,7 @@ class P4ViscousAetheroplasmResolve(BossModule module) : Components.UniformStackS
 class P5ViscousAetheroplasmTriple(BossModule module) : Components.UniformStackSpread(module, 4, 0, 8)
 {
     public int NumCasts { get; private set; }
-    private List<(Actor target, DateTime resolve)> _aetheroplasms = new();
+    private readonly List<(Actor target, DateTime resolve)> _aetheroplasms = [];
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

@@ -4,10 +4,10 @@ class EntanglingWebAOE(BossModule module) : Components.LocationTargetedAOEs(modu
 
 class EntanglingWebHints(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _pillars = module.Enemies(OID.Pillar);
-    private List<Actor> _targets = new();
+    private readonly IReadOnlyList<Actor> _pillars = module.Enemies(OID.Pillar);
+    private readonly List<Actor> _targets = [];
 
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

@@ -44,7 +44,7 @@ class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, Acti
 
 class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrimsonCyclone))
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
 
     private static readonly AOEShape _shape = new AOEShapeRect(43, 6);
 
@@ -84,7 +84,7 @@ class T05IfritHStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 59, NameID = 1185)]
 public class T05IfritH : BossModule
 {
-    private IReadOnlyList<Actor> _nails;
+    private readonly IReadOnlyList<Actor> _nails;
     public IEnumerable<Actor> ActiveNails => _nails.Where(n => n.IsTargetable && !n.IsDead);
 
     public T05IfritH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))

@@ -7,13 +7,13 @@ class P2Nisi : BossComponent
     public int ShowPassHint; // show hints for Nth pass
     public int NumActiveNisi { get; private set; }
     private int _numNisiApplications;
-    private int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
-    private Nisi[] _current = new Nisi[PartyState.MaxPartySize];
-    private Nisi[] _judgments = new Nisi[PartyState.MaxPartySize];
+    private readonly int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
+    private readonly Nisi[] _current = new Nisi[PartyState.MaxPartySize];
+    private readonly Nisi[] _judgments = new Nisi[PartyState.MaxPartySize];
 
     public P2Nisi(BossModule module) : base(module)
     {
-        int[] firstMembersOfGroup = { -1, -1, -1, -1 };
+        int[] firstMembersOfGroup = [-1, -1, -1, -1];
         foreach (var p in Service.Config.Get<TEAConfig>().P2NisiPairs.Resolve(Raid))
         {
             ref var partner = ref firstMembersOfGroup[p.group];

@@ -36,14 +36,11 @@ public static class Serialization
     public static uint? DeserializeHex(this JsonSerializer ser, JToken? from)
     {
         var str = from?.Value<string>();
-        return (str != null && str.StartsWith("0x")) ? uint.Parse(str.Substring(2), NumberStyles.HexNumber) : null;
+        return (str != null && str.StartsWith("0x", StringComparison.Ordinal)) ? uint.Parse(str.AsSpan(2), NumberStyles.HexNumber) : null;
     }
 
     public static uint? DeserializeEnum(this JsonSerializer ser, JToken? from, Type? enumType)
-    {
-        object? val;
-        return (enumType != null && Enum.TryParse(enumType, from?.Value<string>(), out val) && val != null) ? (uint)val : null;
-    }
+        => (enumType != null && Enum.TryParse(enumType, from?.Value<string>(), out var val) && val != null) ? (uint)val : null;
 
     public static ActionID? DeserializeActionID(this JsonSerializer ser, JToken? from, Type? aidType)
     {

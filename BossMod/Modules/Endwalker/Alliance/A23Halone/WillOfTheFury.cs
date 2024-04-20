@@ -4,7 +4,7 @@ class WillOfTheFury(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
-    private static readonly float _impactRadiusIncrement = 6;
+    private const float _impactRadiusIncrement = 6;
 
     public bool Active => _aoe != null;
 

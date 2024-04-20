@@ -14,9 +14,11 @@ class P8S1States : StateMachineBuilder
         VolcanicTorchesSunforge(id + 0x10000, 3.2f);
         Flameviper(id + 0x20000, 2);
 
-        Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new();
-        fork[AID.ReforgedReflectionCentaur] = (1, ForkCentaur);
-        fork[AID.ReforgedReflectionSnake] = (2, ForkSnake);
+        Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new()
+        {
+            [AID.ReforgedReflectionCentaur] = (1, ForkCentaur),
+            [AID.ReforgedReflectionSnake] = (2, ForkSnake)
+        };
         CastStartFork(id + 0x30000, fork, 9.4f, "Centaur -or- Snake");
     }
 

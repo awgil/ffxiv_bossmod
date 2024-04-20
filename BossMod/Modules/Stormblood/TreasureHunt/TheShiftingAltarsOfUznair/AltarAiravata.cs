@@ -3,8 +3,8 @@ namespace BossMod.Stormblood.TreasureHunt.ShiftingAltarsOfUznair.AltarAiravata;
 public enum OID : uint
 {
     Boss = 0x2543, //R=4.75
-    BonusAdd_AltarMatanga = 0x2545, // R3.420
-    BonusAdd_GoldWhisker = 0x2544, // R0.540
+    BonusAddAltarMatanga = 0x2545, // R3.420
+    BonusAddGoldWhisker = 0x2544, // R0.540
     BossHelper = 0x233C,
 }
 
@@ -18,10 +18,10 @@ public enum AID : uint
     SpinBoss = 13373, // Boss->self, 4,0s cast, range 30 120-degree cone
     BarbarousScream = 13375, // Boss->self, 3,5s cast, range 14 circle
 
-    unknown = 9636, // BonusAdd_AltarMatanga->self, no cast, single-target
-    Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
+    unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
+    Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
@@ -49,10 +49,7 @@ class Buffet(BossModule module) : Components.KnockbackFromCastTarget(module, Act
         }
     }
 
-    public override IEnumerable<Source> Sources(int slot, Actor actor)
-    {
-        return target == actor ? base.Sources(slot, actor) : Enumerable.Empty<Source>();
-    }
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => target == actor ? base.Sources(slot, actor) : [];
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
@@ -106,7 +103,7 @@ class Buffet2(BossModule module) : Components.BaitAwayCast(module, ActionID.Make
 
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class AiravataStates : StateMachineBuilder
 {
@@ -122,7 +119,7 @@ class AiravataStates : StateMachineBuilder
             .ActivateOnEnter<Hurl>()
             .ActivateOnEnter<RaucousScritch>()
             .ActivateOnEnter<Spin>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAddGoldWhisker).All(e => e.IsDead) && module.Enemies(OID.BonusAddAltarMatanga).All(e => e.IsDead);
     }
 }
 
@@ -132,9 +129,9 @@ public class Airavata(WorldState ws, Actor primary) : BossModule(ws, primary, ne
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.BonusAdd_GoldWhisker))
+        foreach (var s in Enemies(OID.BonusAddGoldWhisker))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
+        foreach (var s in Enemies(OID.BonusAddAltarMatanga))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -145,8 +142,8 @@ public class Airavata(WorldState ws, Actor primary) : BossModule(ws, primary, ne
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_GoldWhisker => 3,
-                OID.BonusAdd_AltarMatanga => 2,
+                OID.BonusAddGoldWhisker => 3,
+                OID.BonusAddAltarMatanga => 2,
                 OID.Boss => 1,
                 _ => 0
             };

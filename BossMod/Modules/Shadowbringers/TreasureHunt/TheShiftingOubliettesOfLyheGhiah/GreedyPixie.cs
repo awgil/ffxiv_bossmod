@@ -12,8 +12,8 @@ public enum OID : uint
     SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
-    BonusAdd_FuathTrickster = 0x3033, // R0.750
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
+    BonusAddFuathTrickster = 0x3033, // R0.750
 }
 
 public enum AID : uint
@@ -76,7 +76,7 @@ class GreedyPixieStates : StateMachineBuilder
             .ActivateOnEnter<Spin>()
             .ActivateOnEnter<Mash>()
             .ActivateOnEnter<Scoop>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.SecretEgg).All(e => e.IsDead) && module.Enemies(OID.SecretQueen).All(e => e.IsDead) && module.Enemies(OID.SecretOnion).All(e => e.IsDead) && module.Enemies(OID.SecretGarlic).All(e => e.IsDead) && module.Enemies(OID.SecretTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_FuathTrickster).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.SecretEgg).All(e => e.IsDead) && module.Enemies(OID.SecretQueen).All(e => e.IsDead) && module.Enemies(OID.SecretOnion).All(e => e.IsDead) && module.Enemies(OID.SecretGarlic).All(e => e.IsDead) && module.Enemies(OID.SecretTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead) && module.Enemies(OID.BonusAddFuathTrickster).All(e => e.IsDead);
     }
 }
 
@@ -98,9 +98,9 @@ public class GreedyPixie(WorldState ws, Actor primary) : BossModule(ws, primary,
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.SecretOnion))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_FuathTrickster))
+        foreach (var s in Enemies(OID.BonusAddFuathTrickster))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -114,8 +114,8 @@ public class GreedyPixie(WorldState ws, Actor primary) : BossModule(ws, primary,
                 OID.SecretOnion => 7,
                 OID.SecretEgg => 6,
                 OID.SecretGarlic => 5,
-                OID.SecretTomato or OID.BonusAdd_FuathTrickster => 4,
-                OID.SecretQueen or OID.BonusAdd_TheKeeperOfTheKeys => 3,
+                OID.SecretTomato or OID.BonusAddFuathTrickster => 4,
+                OID.SecretQueen or OID.BonusAddKeeperOfKeys => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

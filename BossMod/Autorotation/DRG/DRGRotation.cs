@@ -4,7 +4,7 @@ namespace BossMod.DRG;
 public static class Rotation
 {
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public int FirstmindFocusCount; // 2 max
         public int EyeCount; // 2 max
@@ -33,8 +33,6 @@ public static class Rotation
         public SID ExpectedChaoticSpring => Unlocked(AID.ChaoticSpring) ? SID.ChaoticSpring : SID.ChaosThrust;
 
         public AID ComboLastMove => (AID)ComboLastAction;
-
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
@@ -176,8 +174,7 @@ public static class Rotation
         {
             // for aoe rotation, just use LS on last unlocked combo action
             return state.Unlocked(AID.CoerthanTorment) ? state.ComboLastMove == AID.SonicThrust
-                : state.Unlocked(AID.SonicThrust) ? state.ComboLastMove is AID.DoomSpike or AID.DraconianFury
-                : true;
+                : !state.Unlocked(AID.SonicThrust) || state.ComboLastMove is AID.DoomSpike or AID.DraconianFury;
         }
 
         if (state.Unlocked(AID.FullThrust) && state.Unlocked(TraitID.EnhancedLifeSurge) && state.LanceChargeLeft > state.GCD)
@@ -298,14 +295,14 @@ public static class Rotation
         }
         if (state.EyeCount != 2 && state.CD(CDGroup.LanceCharge) < 40)
         {
-                return true;
+            return true;
         }
         if (state.EyeCount == 0)
         {
             return true;
         }
         return true;
-    }   
+    }
 
     public static bool ShouldUseWyrmWindThrust(State state, Strategy strategy)
     {
@@ -318,11 +315,11 @@ public static class Rotation
             return false;
         return false;
     }
-    
+
     public static AID GetNextBestGCD(State state, Strategy strategy)
     {
         // prepull
-        if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
+        if (strategy.CombatTimer is > -100 and < -0.7f)
             return AID.None;
 
         if (strategy.UseAOERotation)
@@ -354,7 +351,6 @@ public static class Rotation
     {
         bool canJump = strategy.PositionLockIn > state.AnimationLock;
         bool wantSpineShatter = state.Unlocked(AID.SpineshatterDive) && state.TargetingEnemy && UseSpineShatterDive(state, strategy);
-
 
         if (state.PowerSurgeLeft > state.GCD)
         {

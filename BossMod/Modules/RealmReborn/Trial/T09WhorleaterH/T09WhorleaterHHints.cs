@@ -4,7 +4,7 @@ class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var converter = Module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
+        var converter = Module.Enemies(OID.Converter).FirstOrDefault(x => x.IsTargetable);
         if (converter != null)
             hints.Add($"Activate the {converter.Name} or wipe!");
         if (Module.Enemies(OID.DangerousSahagins).Any(x => x.IsTargetable && !x.IsDead))
@@ -15,7 +15,7 @@ class Hints(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var tail = Module.Enemies(OID.Tail).Where(x => x.IsTargetable && x.FindStatus(SID.Invincibility) == null && x.FindStatus(SID.MantleOfTheWhorl) != null).FirstOrDefault();
+        var tail = Module.Enemies(OID.Tail).FirstOrDefault(x => x.IsTargetable && x.FindStatus(SID.Invincibility) == null && x.FindStatus(SID.MantleOfTheWhorl) != null);
         var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
         if (tail != null)
         {
@@ -29,7 +29,7 @@ class Hints(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var converter = Module.Enemies(OID.Converter).FirstOrDefault();
-        var convertertargetable = Module.Enemies(OID.Converter).Where(x => x.IsTargetable).FirstOrDefault();
+        var convertertargetable = Module.Enemies(OID.Converter).FirstOrDefault(x => x.IsTargetable);
         if (converter != null && convertertargetable != null)
             Arena.AddCircle(converter.Position, 1.4f, ArenaColor.Safe);
     }

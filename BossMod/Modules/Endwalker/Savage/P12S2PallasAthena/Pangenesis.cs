@@ -16,8 +16,8 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
         public bool SoakedPrimary; // true if last soaked tower was 'primary' (central/southern)
     }
 
-    private PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
-    private List<Color> _towerColors = new(); // parallel to Towers
+    private readonly PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
+    private readonly List<Color> _towerColors = []; // parallel to Towers
     private Color _firstLeftTower;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -124,7 +124,7 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
 
 class FactorIn(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FactorIn), centerAtTarget: true)
 {
-    private List<(Actor source, Actor target)> _slimes = new();
+    private readonly List<(Actor source, Actor target)> _slimes = [];
 
     private static readonly AOEShapeCircle _shape = new(20);
 

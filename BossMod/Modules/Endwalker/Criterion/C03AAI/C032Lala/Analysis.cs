@@ -21,9 +21,9 @@ class Analysis(BossModule module) : BossComponent(module)
 
 class AnalysisRadiance(BossModule module) : Components.GenericGaze(module, default, true)
 {
-    private Analysis? _analysis = module.FindComponent<Analysis>();
-    private ArcaneArray? _pulse = module.FindComponent<ArcaneArray>();
-    private List<Actor> _globes = [];
+    private readonly Analysis? _analysis = module.FindComponent<Analysis>();
+    private readonly ArcaneArray? _pulse = module.FindComponent<ArcaneArray>();
+    private readonly List<Actor> _globes = [];
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
@@ -54,10 +54,10 @@ class AnalysisRadiance(BossModule module) : Components.GenericGaze(module, defau
 class TargetedLight(BossModule module) : Components.GenericGaze(module, default, true)
 {
     public bool Active;
-    private Analysis? _analysis = module.FindComponent<Analysis>();
-    private Angle[] _rotation = new Angle[4];
-    private Angle[] _safeDir = new Angle[4];
-    private int[] _rotationCount = new int[4];
+    private readonly Analysis? _analysis = module.FindComponent<Analysis>();
+    private readonly Angle[] _rotation = new Angle[4];
+    private readonly Angle[] _safeDir = new Angle[4];
+    private readonly int[] _rotationCount = new int[4];
     private DateTime _activation;
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)

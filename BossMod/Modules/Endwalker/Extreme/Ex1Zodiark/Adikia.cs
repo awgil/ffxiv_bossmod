@@ -3,7 +3,7 @@
 // state related to adikia mechanic
 class Adikia(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
 
     private static readonly AOEShapeCircle _shape = new(21);
 

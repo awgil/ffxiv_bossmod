@@ -4,12 +4,12 @@
 // note that forbidden targets are selected either from bloodrake tethers (first instance of mechanic) or from tower types (second instance of mechanic)
 class DirectorsBelone(BossModule module) : BossComponent(module)
 {
-    private bool _assigned = false;
+    private bool _assigned;
     private BitMask _debuffForbidden;
     private BitMask _debuffTargets;
     private BitMask _debuffImmune;
 
-    private static readonly float _debuffPassRange = 3; // not sure about this...
+    private const float _debuffPassRange = 3; // not sure about this...
 
     public override void Update()
     {

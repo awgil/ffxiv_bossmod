@@ -3,71 +3,59 @@
 // information relevant for AI decision making process for a specific player
 public class AIHints
 {
-    public class Enemy
+    public class Enemy(Actor actor, bool shouldBeTanked)
     {
         // TODO: split 'pointless to attack' (eg invulnerable, but fine to hit by aoes) vs 'actually bad to hit' (eg can lead to wipe)
         public const int PriorityForbidAI = -1; // ai is forbidden from attacking this enemy, but player explicitly targeting it is not (e.g. out of combat enemies that we might not want to pull)
         public const int PriorityForbidFully = -2; // attacking this enemy is forbidden both by ai or player (e.g. invulnerable, or attacking/killing might lead to a wipe)
 
-        public Actor Actor;
-        public int Priority; // <0 means damaging is actually forbidden, 0 is default
+        public Actor Actor = actor;
+        public int Priority = actor.InCombat ? 0 : PriorityForbidAI; // <0 means damaging is actually forbidden, 0 is default
         //public float TimeToKill;
-        public float AttackStrength; // target's predicted HP percent is decreased by this amount (0.05 by default)
-        public WPos DesiredPosition; // tank AI will try to move enemy to this position
-        public Angle DesiredRotation; // tank AI will try to rotate enemy to this angle
-        public float TankDistance; // enemy will start moving if distance between hitboxes is bigger than this
-        public bool ShouldBeTanked; // tank AI will try to tank this enemy
+        public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
+        public WPos DesiredPosition = actor.Position; // tank AI will try to move enemy to this position
+        public Angle DesiredRotation = actor.Rotation; // tank AI will try to rotate enemy to this angle
+        public float TankDistance = 2; // enemy will start moving if distance between hitboxes is bigger than this
+        public bool ShouldBeTanked = shouldBeTanked; // tank AI will try to tank this enemy
         public bool PreferProvoking; // tank AI will provoke enemy if not targeted
         public bool ForbidDOTs; // if true, dots on target are forbidden
         public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
         public bool ShouldBeStunned; // if set, AI will stun if possible
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
-        //public bool PointlessToAttack; // if set, we prefer waiting and doing nothing rather than attacking the enemy (e.g. temporarily invincible)
-
-        public Enemy(Actor actor, bool shouldBeTanked)
-        {
-            Actor = actor;
-            Priority = actor.InCombat ? 0 : PriorityForbidAI;
-            AttackStrength = 0.05f;
-            ShouldBeTanked = shouldBeTanked;
-            DesiredPosition = actor.Position;
-            DesiredRotation = actor.Rotation;
-            TankDistance = 2;
-        }
     }
 
-    public static ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
 
     public ArenaBounds Bounds = DefaultBounds;
 
     // list of potential targets
-    public List<Enemy> PotentialTargets = new();
-    public int HighestPotentialTargetPriority = 0;
+    public List<Enemy> PotentialTargets = [];
+    public int HighestPotentialTargetPriority;
 
     // forced target
     public Actor? ForcedTarget;
 
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
-    public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = new();
+    public List<(Func<WPos, float> shapeDistance, DateTime activation)> ForbiddenZones = [];
 
     // positioning: position hint - if set, player will move closer to this position, assuming it is safe and in target's range, without losing uptime
     //public WPos? RecommendedPosition = null;
 
     // orientation restrictions (e.g. for gaze attacks): a list of forbidden orientation ranges, now or in near future
     // AI will rotate to face allowed orientation at last possible moment, potentially losing uptime
-    public List<(Angle center, Angle halfWidth, DateTime activation)> ForbiddenDirections = new();
+    public List<(Angle center, Angle halfWidth, DateTime activation)> ForbiddenDirections = [];
 
     // predicted incoming damage (raidwides, tankbusters, etc.)
     // AI will attempt to shield & mitigate
-    public List<(BitMask players, DateTime activation)> PredictedDamage = new();
+    public List<(BitMask players, DateTime activation)> PredictedDamage = [];
 
     // planned actions
     // autorotation will execute them in window-end order, if possible
-    public List<(ActionID action, Actor target, float windowEnd, bool lowPriority)> PlannedActions = new();
+    public List<(ActionID action, Actor target, float windowEnd, bool lowPriority)> PlannedActions = [];
 
     // buffs to be canceled asap
-    public List<(uint statusId, ulong sourceId)> StatusesToCancel = new();
+    public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
 
     // clear all stored data
     public void Clear()

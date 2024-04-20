@@ -5,7 +5,7 @@ class HeavensWrathAOE(BossModule module) : Components.SelfTargetedAOEs(module, A
 // TODO: generalize
 class HeavensWrathKnockback(BossModule module) : Components.Knockback(module)
 {
-    private List<Source> _sources = new();
+    private readonly List<Source> _sources = [];
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _sources;

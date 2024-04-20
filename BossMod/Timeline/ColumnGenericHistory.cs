@@ -6,44 +6,33 @@ namespace BossMod;
 // entry is attached to a node (this is important if timings are adjusted for any reason)
 public class ColumnGenericHistory : Timeline.Column
 {
-    public class Entry
+    public class Entry(Entry.Type type, StateMachineTree.Node attachNode, float delay, float duration, string name, uint color, float widthRel = 1.0f)
     {
         public enum Type { Dot, Line, Range }
 
-        public Type EntryType;
-        public StateMachineTree.Node AttachNode;
-        public float Delay; // from node's predecessor time
-        public float Duration; // used for hover tests to display tooltip
-        public string Name;
-        public uint Color;
-        public float WidthRel;
-        public List<string> TooltipExtra = new();
+        public Type EntryType = type;
+        public StateMachineTree.Node AttachNode = attachNode;
+        public float Delay = delay; // from node's predecessor time
+        public float Duration = duration; // used for hover tests to display tooltip
+        public string Name = name;
+        public uint Color = color;
+        public float WidthRel = widthRel;
+        public List<string> TooltipExtra = [];
 
         public float TimeSincePhaseStart() => (AttachNode.Predecessor?.Time ?? 0) + Delay;
         public float TimeSinceGlobalStart(StateMachineTree tree) => tree.Phases[AttachNode.PhaseID].StartTime + TimeSincePhaseStart();
-
-        public Entry(Type type, StateMachineTree.Node attachNode, float delay, float duration, string name, uint color, float widthRel = 1.0f)
-        {
-            EntryType = type;
-            AttachNode = attachNode;
-            Delay = delay;
-            Duration = duration;
-            Name = name;
-            Color = color;
-            WidthRel = widthRel;
-        }
     }
 
     public const float DefaultWidth = 10;
 
-    public List<Entry> Entries = new();
+    public List<Entry> Entries = [];
     public StateMachineTree Tree { get; private init; }
     public List<int> PhaseBranches { get; private init; }
 
-    private float _trackHalfWidth = 5;
-    private float _eventRadius = 4;
+    private readonly float _trackHalfWidth = 5;
+    private readonly float _eventRadius = 4;
 
-    private uint _colBackground = 0x40404040;
+    private readonly uint _colBackground = 0x40404040;
 
     public ColumnGenericHistory(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name = "")
         : base(timeline)
@@ -137,9 +126,7 @@ public class ColumnGenericHistory : Timeline.Column
 
     private List<string> EntryTooltip(Entry e)
     {
-        List<string> res = new();
-        res.Add($"{e.TimeSinceGlobalStart(Tree):f3}: {e.Name}");
-        res.AddRange(e.TooltipExtra);
+        List<string> res = [$"{e.TimeSinceGlobalStart(Tree):f3}: {e.Name}", .. e.TooltipExtra];
         return res;
     }
 }

@@ -9,7 +9,7 @@ class NearFarSight : BossComponent
     private BitMask _targets;
     private BitMask _inAOE;
 
-    private static readonly float _aoeRadius = 5;
+    private const float _aoeRadius = 5;
 
     public NearFarSight(BossModule module) : base(module)
     {

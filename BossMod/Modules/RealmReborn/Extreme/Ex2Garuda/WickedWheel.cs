@@ -3,7 +3,7 @@
 class WickedWheel(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.WickedWheel))
 {
     private DateTime _expectedNext = module.WorldState.FutureTime(25);
-    private static readonly float _radius = 8.7f;
+    private const float _radius = 8.7f;
 
     public override void AddGlobalHints(GlobalHints hints)
     {

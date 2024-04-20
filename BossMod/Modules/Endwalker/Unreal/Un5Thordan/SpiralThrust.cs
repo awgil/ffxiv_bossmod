@@ -3,7 +3,7 @@
 abstract class SpiralThrust(BossModule module, float predictionDelay) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SpiralThrust))
 {
     private float _predictionDelay = predictionDelay;
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape = new(54.2f, 6);
 

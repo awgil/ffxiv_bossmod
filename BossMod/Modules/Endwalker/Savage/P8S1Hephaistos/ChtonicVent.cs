@@ -3,7 +3,7 @@
 class CthonicVent(BossModule module) : Components.GenericAOEs(module)
 {
     public int NumTotalCasts { get; private set; }
-    private List<WPos> _centers = new();
+    private readonly List<WPos> _centers = [];
     private static readonly AOEShapeCircle _shape = new(23);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)

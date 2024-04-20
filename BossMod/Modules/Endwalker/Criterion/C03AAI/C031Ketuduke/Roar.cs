@@ -4,7 +4,7 @@ class Roar(BossModule module) : Components.GenericBaitAway(module)
 {
     public bool Active;
     private BitMask _playerBubbles;
-    private List<(Actor actor, bool bubble)> _snakes = new();
+    private readonly List<(Actor actor, bool bubble)> _snakes = [];
     private bool _highlightSnakes;
 
     private static readonly AOEShapeCone _shape = new(60, 90.Degrees());

@@ -3,11 +3,11 @@
 // state related to shift mechanics
 class Shift(BossModule module) : BossComponent(module)
 {
-    private AOEShapeCone _swordAOE = new(50, 60.Degrees());
+    private readonly AOEShapeCone _swordAOE = new(50, 60.Degrees());
     private Actor? _swordCaster;
     private Actor? _cloakCaster;
 
-    private static readonly float _knockbackRange = 30;
+    private const float _knockbackRange = 30;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

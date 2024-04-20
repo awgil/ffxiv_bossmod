@@ -80,7 +80,7 @@ class Entrapment : Components.CastCounter
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"Matching patterns: {(_possiblePatterns.Any() ? string.Join(", ", _possiblePatterns.SetBits()): "none")}");
+        hints.Add($"Matching patterns: {(_possiblePatterns.Any() ? string.Join(", ", _possiblePatterns.SetBits()) : "none")}");
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

@@ -4,7 +4,7 @@ class VenomousMass(BossModule module) : Components.CastCounter(module, ActionID.
 {
     private Actor? _target;
 
-    private static readonly float _radius = 6;
+    private const float _radius = 6;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

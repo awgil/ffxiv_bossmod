@@ -3,8 +3,8 @@
 // TODO: show reflect hints, show stay under dome hints
 class MaelstromsBolt(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MaelstromsBoltAOE))
 {
-    private IReadOnlyList<Actor> _ballLightnings = module.Enemies(OID.BallLightning);
-    private IReadOnlyList<Actor> _domes = module.Enemies(OID.ProtectiveDome);
+    private readonly IReadOnlyList<Actor> _ballLightnings = module.Enemies(OID.BallLightning);
+    private readonly IReadOnlyList<Actor> _domes = module.Enemies(OID.ProtectiveDome);
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

@@ -22,7 +22,7 @@ public static class UICombo
                 if (ImGui.Selectable(EnumString((Enum)opt), opt.Equals(v)))
                 {
                     v = (T)opt;
-                    res =  true;
+                    res = true;
                 }
             }
             ImGui.EndCombo();

@@ -6,11 +6,11 @@
 class AethericBoom(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.AethericBoom), "Knockback + orbs")
 {
     private bool _waitingForOrbs;
-    private List<Actor> _activeOrbs = new();
-    private List<Actor> _orbsToPop = new();
+    private readonly List<Actor> _activeOrbs = [];
+    private readonly List<Actor> _orbsToPop = [];
     public bool OrbsActive => _waitingForOrbs || _orbsToPop.Count > 0;
 
-    private static readonly float _explosionRadius = 8;
+    private const float _explosionRadius = 8;
 
     public override void Update()
     {

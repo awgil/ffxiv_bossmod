@@ -2,7 +2,7 @@
 
 class RightArmComet(BossModule module, AID aid, float distance) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(aid), distance, shape: new AOEShapeCircle(_radius))
 {
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

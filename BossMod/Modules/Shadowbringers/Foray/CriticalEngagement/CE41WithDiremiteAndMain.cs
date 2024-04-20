@@ -165,8 +165,8 @@ class CE41WithDiremiteAndMainStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 21)] // bnpcname=9969
 public class CE41WithDiremiteAndMain : BossModule
 {
-    private IReadOnlyList<Actor> _dimCrystals;
-    private IReadOnlyList<Actor> _corruptedCrystals;
+    private readonly IReadOnlyList<Actor> _dimCrystals;
+    private readonly IReadOnlyList<Actor> _corruptedCrystals;
 
     public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-220, 530), 30))
     {

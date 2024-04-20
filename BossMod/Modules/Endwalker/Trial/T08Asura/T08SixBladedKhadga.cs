@@ -2,7 +2,7 @@ namespace BossMod.Endwalker.Trial.T08Asura;
 
 class SixBladedKhadga(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<ActorCastInfo> _spell = new();
+    private readonly List<ActorCastInfo> _spell = [];
     private DateTime _start;
     private static readonly AOEShapeCone Cone = new(20, 90.Degrees());
 

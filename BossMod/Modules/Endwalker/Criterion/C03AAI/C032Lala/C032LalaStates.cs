@@ -2,7 +2,7 @@
 
 class C032LalaStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C032LalaStates(BossModule module, bool savage) : base(module)
     {

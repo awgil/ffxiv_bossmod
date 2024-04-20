@@ -41,8 +41,8 @@ class ArtificialPlasma(BossModule module) : Components.RaidwideCast(module, Acti
 
 class Roundhouse(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Roundhouse))
 {
-    private List<Actor> _castersRoundhouse = new();
-    private List<Actor> _castersDischarge = new();
+    private readonly List<Actor> _castersRoundhouse = [];
+    private readonly List<Actor> _castersDischarge = [];
 
     private static readonly AOEShape _shapeRoundhouse = new AOEShapeCircle(10);
     private static readonly AOEShape _shapeDischarge = new AOEShapeCircle(8);
@@ -77,9 +77,9 @@ class Roundhouse(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
 // a 'set' is always considered finished when 6th discharge finishes
 class InfiniteReach(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.InfiniteReachDischarge))
 {
-    private List<Actor?> _castersRect = new();
-    private List<Actor?> _castersDischarge = new();
-    private List<Actor?> _castersSalamander = new();
+    private readonly List<Actor?> _castersRect = [];
+    private readonly List<Actor?> _castersDischarge = [];
+    private readonly List<Actor?> _castersSalamander = [];
 
     private static readonly AOEShapeRect _shapeRect = new(40, 2);
     private static readonly AOEShapeCircle _shapeDischarge = new(8);
@@ -135,8 +135,8 @@ class InfiniteReach(BossModule module) : Components.GenericAOEs(module, ActionID
 
 class StunningSweep(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.StunningSweep))
 {
-    private List<Actor> _castersSweepDischarge = new();
-    private List<Actor> _castersThermobaric = new();
+    private readonly List<Actor> _castersSweepDischarge = [];
+    private readonly List<Actor> _castersThermobaric = [];
 
     private static readonly AOEShape _shapeSweepDischarge = new AOEShapeCircle(8);
     private static readonly AOEShape _shapeThermobaric = new AOEShapeCircle(13); // TODO: verify falloff
@@ -169,8 +169,8 @@ class StunningSweep(BossModule module) : Components.GenericAOEs(module, ActionID
 
 class AngrySalamander(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.AngrySalamander))
 {
-    private List<Actor> _castersSalamander = new();
-    private List<Actor> _castersThermobaric = new();
+    private readonly List<Actor> _castersSalamander = [];
+    private readonly List<Actor> _castersThermobaric = [];
 
     private static readonly AOEShape _shapeSalamander = new AOEShapeCross(20, 2);
     private static readonly AOEShape _shapeThermobaric = new AOEShapeCircle(13); // TODO: verify falloff

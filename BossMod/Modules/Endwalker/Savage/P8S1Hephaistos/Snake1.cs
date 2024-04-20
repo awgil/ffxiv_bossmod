@@ -10,7 +10,7 @@ class Snake1(BossModule module) : PetrifactionCommon(module)
         public int AssignedSnake; // -1 if not assigned, otherwise index of assigned snake
     }
 
-    private PlayerState[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Order = -1, AssignedSnake = -1 });
+    private readonly PlayerState[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Order = -1, AssignedSnake = -1 });
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -96,7 +96,7 @@ class Snake1(BossModule module) : PetrifactionCommon(module)
 
     private void InitAssignments(int order)
     {
-        int[] assignedSlots = { -1, -1, -1, -1 };
+        int[] assignedSlots = [-1, -1, -1, -1];
         foreach (var a in Service.Config.Get<P8S1Config>().Snake1Assignments.Resolve(Raid))
             if (_players[a.slot].Order == order)
                 assignedSlots[a.group] = a.slot;

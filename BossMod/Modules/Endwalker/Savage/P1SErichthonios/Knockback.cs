@@ -4,15 +4,15 @@
 // TODO: i'm not quite happy with implementation, consider revising...
 class Knockback : BossComponent
 {
-    public bool AOEDone { get; private set; } = false;
-    private bool _isFlare = false; // true -> purge aka flare (stay away from MT), false -> grace aka holy (stack to MT)
-    private Actor? _knockbackTarget = null;
-    private WPos _knockbackPos = new();
+    public bool AOEDone { get; private set; }
+    private readonly bool _isFlare; // true -> purge aka flare (stay away from MT), false -> grace aka holy (stack to MT)
+    private readonly Actor? _knockbackTarget;
+    private WPos _knockbackPos;
 
-    private static readonly float _kbDistance = 15;
-    private static readonly float _flareRange = 24; // max range is 50, but it has distance falloff - linear up to ~24, then constant ~3k
-    private static readonly float _holyRange = 6;
-    private static readonly uint _colorAOETarget = 0xff8080ff;
+    private const float _kbDistance = 15;
+    private const float _flareRange = 24; // max range is 50, but it has distance falloff - linear up to ~24, then constant ~3k
+    private const float _holyRange = 6;
+    private const uint _colorAOETarget = 0xff8080ff;
 
     public Knockback(BossModule module) : base(module)
     {
@@ -136,5 +136,5 @@ class Knockback : BossComponent
     }
 
     // we assume that if boss target is the same as knockback target, it's a tank using invul, and so raid shouldn't stack
-    private bool RaidShouldStack(Actor bossTarget) =>  !_isFlare && _knockbackTarget != bossTarget;
+    private bool RaidShouldStack(Actor bossTarget) => !_isFlare && _knockbackTarget != bossTarget;
 }

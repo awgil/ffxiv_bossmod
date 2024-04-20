@@ -5,7 +5,7 @@ class LimitCut(BossModule module, float alphaDelay) : Components.GenericBaitAway
     private enum State { Teleport, Alpha, Blasty }
 
     public int[] PlayerOrder = new int[PartyState.MaxPartySize];
-    private float _alphaDelay = alphaDelay;
+    private readonly float _alphaDelay = alphaDelay;
     private State _nextState;
     private Actor? _chaser;
     private WPos _prevPos;
@@ -52,7 +52,7 @@ class LimitCut(BossModule module, float alphaDelay) : Components.GenericBaitAway
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {
-        if (iconID >= 79 && iconID <= 86)
+        if (iconID is >= 79 and <= 86)
         {
             int slot = Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)

@@ -5,7 +5,7 @@ public class TankbusterTether(BossModule module, ActionID aid, uint tetherID, fl
 {
     public uint TID { get; init; } = tetherID;
     public float Radius { get; init; } = radius;
-    private List<(Actor Player, Actor Enemy)> _tethers = new();
+    private readonly List<(Actor Player, Actor Enemy)> _tethers = [];
     private BitMask _tetheredPlayers;
     private BitMask _inAnyAOE; // players hit by aoe, excluding selves
 

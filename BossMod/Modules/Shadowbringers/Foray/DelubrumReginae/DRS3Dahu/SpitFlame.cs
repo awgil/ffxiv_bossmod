@@ -2,8 +2,8 @@
 
 class SpitFlame(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true, raidwideOnResolve: false)
 {
-    private Actor?[] _targets = { null, null, null, null };
-    private IReadOnlyList<Actor> _adds = module.Enemies(OID.Marchosias);
+    private readonly Actor?[] _targets = [null, null, null, null];
+    private readonly IReadOnlyList<Actor> _adds = module.Enemies(OID.Marchosias);
 
     public override void Update()
     {

@@ -88,7 +88,7 @@ class P2PartySynergy(BossModule module) : CommonAssignments(module)
 
 class P2PartySynergyDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 
@@ -145,8 +145,8 @@ class P2PartySynergyOptimizedFire : Components.UniformStackSpread
 
 class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.OpticalLaser))
 {
-    private P2PartySynergy? _synergy = module.FindComponent<P2PartySynergy>();
-    private Actor? _source = module.Enemies(OID.OpticalUnit).FirstOrDefault();
+    private readonly P2PartySynergy? _synergy = module.FindComponent<P2PartySynergy>();
+    private readonly Actor? _source = module.Enemies(OID.OpticalUnit).FirstOrDefault();
     private DateTime _activation;
 
     private static readonly AOEShapeRect _shape = new(100, 8);
@@ -203,9 +203,9 @@ class P2PartySynergyDischarger(BossModule module) : Components.Knockback(module,
 
 class P2PartySynergyEfficientBladework : Components.GenericAOEs
 {
-    private P2PartySynergy? _synergy;
+    private readonly P2PartySynergy? _synergy;
     private DateTime _activation;
-    private List<Actor> _sources = new();
+    private readonly List<Actor> _sources = [];
     private int _firstStackSlot = -1;
     private BitMask _firstGroup;
     private string _swaps = "";
@@ -276,7 +276,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
                 if (s1.Group == s2.Group)
                 {
                     // ok, we need adjusts - assume whoever is more S adjusts - that is higher order in G1 or G2 with mid glitch, or lower order in G2 with remote glitch
-                    var adjustOrder = s1.Group == 2 && _synergy.ActiveGlitch == P2PartySynergy.Glitch.Remote ? Math.Min(s1.Order, s2.Order): Math.Max(s1.Order, s2.Order);
+                    var adjustOrder = s1.Group == 2 && _synergy.ActiveGlitch == P2PartySynergy.Glitch.Remote ? Math.Min(s1.Order, s2.Order) : Math.Max(s1.Order, s2.Order);
                     for (int s = 0; s < _synergy.PlayerStates.Length; ++s)
                     {
                         if (_synergy.PlayerStates[s].Order == adjustOrder)
@@ -309,7 +309,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
 
 class P2PartySynergySpotlight(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, 4)
 {
-    private List<Actor> _stackTargets = new(); // don't show anything until knockbacks are done, to reduce visual clutter
+    private readonly List<Actor> _stackTargets = []; // don't show anything until knockbacks are done, to reduce visual clutter
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {

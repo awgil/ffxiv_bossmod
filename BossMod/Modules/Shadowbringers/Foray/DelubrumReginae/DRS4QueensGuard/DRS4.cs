@@ -16,9 +16,9 @@ class Fracture(BossModule module) : Components.CastCounter(module, ActionID.Make
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Knight, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9838)]
 public class DRS4 : BossModule
 {
-    private IReadOnlyList<Actor> _warrior;
-    private IReadOnlyList<Actor> _soldier;
-    private IReadOnlyList<Actor> _gunner;
+    private readonly IReadOnlyList<Actor> _warrior;
+    private readonly IReadOnlyList<Actor> _soldier;
+    private readonly IReadOnlyList<Actor> _gunner;
 
     public Actor? Knight() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
     public Actor? Warrior() => _warrior.FirstOrDefault();

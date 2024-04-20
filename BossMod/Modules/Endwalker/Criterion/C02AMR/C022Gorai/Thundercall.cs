@@ -2,10 +2,10 @@
 
 class Thundercall(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _orbs = new();
+    private readonly List<Actor> _orbs = [];
     private Actor? _safeOrb;
     private Actor? _miniTarget;
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shapeSmall = new(8);
     private static readonly AOEShapeCircle _shapeLarge = new(18);

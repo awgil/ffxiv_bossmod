@@ -10,8 +10,8 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
         public int Order;
     }
 
-    private TOPConfig _config = Service.Config.Get<TOPConfig>();
-    private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
     private bool _haveSafeSpots;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -65,7 +65,7 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
         foreach (var a in _config.P3IntermissionAssignments.Resolve(Raid))
             slotsInPriorityOrder[a.group] = a.slot;
 
-        int[] assignedRoles = { 0, 0, 0 };
+        int[] assignedRoles = [0, 0, 0];
         foreach (var s in slotsInPriorityOrder.Where(s => s >= 0))
             _playerStates[s].Order = ++assignedRoles[(int)_playerStates[s].Role];
     }
@@ -101,7 +101,7 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
 
 class P3WaveRepeater(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
-    private static readonly AOEShape[] _shapes = { new AOEShapeCircle(6), new AOEShapeDonut(6, 12), new AOEShapeDonut(12, 18), new AOEShapeDonut(18, 24) };
+    private static readonly AOEShape[] _shapes = [new AOEShapeCircle(6), new AOEShapeDonut(6, 12), new AOEShapeDonut(12, 18), new AOEShapeDonut(18, 24)];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -128,7 +128,7 @@ class P3IntermissionVoidzone(BossModule module) : Components.PersistentVoidzone(
 
 class P3ColossalBlow(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
 
     private static readonly AOEShapeCircle _shape = new(11);
 

@@ -2,7 +2,7 @@
 
 class C031KetudukeStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C031KetudukeStates(BossModule module, bool savage) : base(module)
     {

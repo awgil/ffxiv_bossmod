@@ -53,7 +53,7 @@ class FeveredFlagellation(BossModule module) : Components.GenericBaitAway(module
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         var icon = (IconID)iconID;
-        if (icon >= IconID.Icon1 && icon <= IconID.Icon4)
+        if (icon is >= IconID.Icon1 and <= IconID.Icon4)
             CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeRect(0, 2)));
     }
 }

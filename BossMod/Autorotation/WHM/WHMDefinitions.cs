@@ -125,7 +125,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 65977, 66615, 66616, 66617, 66619, 66620, 67256, 67257, 67258, 67259, 67261, 67954 };
+    public static readonly uint[] UnlockQuests = [65977, 66615, 66616, 66617, 66619, 66620, 67256, 67257, 67258, 67259, 67261, 67954];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -197,48 +197,49 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionMnd);
-        SupportedActions.GCDCast(AID.Stone1, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Stone2, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Stone3, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Stone4, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Glare1, 25, 1.5f);
-        SupportedActions.GCDCast(AID.Glare3, 25, 1.5f);
-        SupportedActions.GCD(AID.Aero1, 25);
-        SupportedActions.GCD(AID.Aero2, 25);
-        SupportedActions.GCD(AID.Dia, 25);
-        SupportedActions.GCD(AID.AfflatusMisery, 25);
-        SupportedActions.GCDCast(AID.Holy1, 0, 2.5f);
-        SupportedActions.GCDCast(AID.Holy3, 0, 2.5f);
-        SupportedActions.GCDCast(AID.Cure1, 30, 1.5f);
-        SupportedActions.GCDCast(AID.Cure2, 30, 2.0f);
-        SupportedActions.GCD(AID.Regen, 30);
-        SupportedActions.GCD(AID.AfflatusSolace, 30);
-        SupportedActions.GCDCast(AID.Medica1, 0, 2.0f);
-        SupportedActions.GCDCast(AID.Medica2, 0, 2.0f);
-        SupportedActions.GCDCast(AID.Cure3, 30, 2.0f);
-        SupportedActions.GCD(AID.AfflatusRapture, 0);
-        SupportedActions.OGCD(AID.Assize, 0, CDGroup.Assize, 45.0f);
-        SupportedActions.OGCD(AID.Asylum, 30, CDGroup.Asylum, 90.0f);
-        SupportedActions.OGCDWithCharges(AID.DivineBenison, 30, CDGroup.DivineBenison, 30.0f, 2);
-        SupportedActions.OGCD(AID.Tetragrammaton, 30, CDGroup.Tetragrammaton, 60.0f);
-        SupportedActions.OGCD(AID.Benediction, 30, CDGroup.Benediction, 180.0f);
-        SupportedActions.OGCD(AID.LiturgyOfTheBell, 30, CDGroup.LiturgyOfTheBell, 180.0f);
-        SupportedActions.OGCD(AID.LiturgyOfTheBellEnd, 0, CDGroup.LiturgyOfTheBellEnd, 1.0f);
-        SupportedActions.OGCD(AID.Swiftcast, 0, CDGroup.Swiftcast, 60.0f);
-        SupportedActions.OGCD(AID.LucidDreaming, 0, CDGroup.LucidDreaming, 60.0f);
-        SupportedActions.OGCD(AID.PresenceOfMind, 0, CDGroup.PresenceOfMind, 120.0f);
-        SupportedActions.OGCDWithCharges(AID.ThinAir, 0, CDGroup.ThinAir, 60.0f, 2);
-        SupportedActions.OGCD(AID.PlenaryIndulgence, 0, CDGroup.PlenaryIndulgence, 60.0f);
-        SupportedActions.OGCD(AID.Temperance, 0, CDGroup.Temperance, 120.0f);
-        SupportedActions.OGCD(AID.Aquaveil, 30, CDGroup.Aquaveil, 60.0f);
-        SupportedActions.OGCD(AID.Surecast, 0, CDGroup.Surecast, 120.0f);
-        SupportedActions.GCDCast(AID.Raise, 30, 8.0f);
-        SupportedActions.GCDCast(AID.Repose, 30, 2.5f);
-        SupportedActions.GCDCast(AID.Esuna, 30, 1.0f);
-        SupportedActions.OGCD(AID.Rescue, 30, CDGroup.Rescue, 120.0f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionMnd);
+        res.GCDCast(AID.Stone1, 25, 1.5f);
+        res.GCDCast(AID.Stone2, 25, 1.5f);
+        res.GCDCast(AID.Stone3, 25, 1.5f);
+        res.GCDCast(AID.Stone4, 25, 1.5f);
+        res.GCDCast(AID.Glare1, 25, 1.5f);
+        res.GCDCast(AID.Glare3, 25, 1.5f);
+        res.GCD(AID.Aero1, 25);
+        res.GCD(AID.Aero2, 25);
+        res.GCD(AID.Dia, 25);
+        res.GCD(AID.AfflatusMisery, 25);
+        res.GCDCast(AID.Holy1, 0, 2.5f);
+        res.GCDCast(AID.Holy3, 0, 2.5f);
+        res.GCDCast(AID.Cure1, 30, 1.5f);
+        res.GCDCast(AID.Cure2, 30, 2.0f);
+        res.GCD(AID.Regen, 30);
+        res.GCD(AID.AfflatusSolace, 30);
+        res.GCDCast(AID.Medica1, 0, 2.0f);
+        res.GCDCast(AID.Medica2, 0, 2.0f);
+        res.GCDCast(AID.Cure3, 30, 2.0f);
+        res.GCD(AID.AfflatusRapture, 0);
+        res.OGCD(AID.Assize, 0, CDGroup.Assize, 45.0f);
+        res.OGCD(AID.Asylum, 30, CDGroup.Asylum, 90.0f);
+        res.OGCDWithCharges(AID.DivineBenison, 30, CDGroup.DivineBenison, 30.0f, 2);
+        res.OGCD(AID.Tetragrammaton, 30, CDGroup.Tetragrammaton, 60.0f);
+        res.OGCD(AID.Benediction, 30, CDGroup.Benediction, 180.0f);
+        res.OGCD(AID.LiturgyOfTheBell, 30, CDGroup.LiturgyOfTheBell, 180.0f);
+        res.OGCD(AID.LiturgyOfTheBellEnd, 0, CDGroup.LiturgyOfTheBellEnd, 1.0f);
+        res.OGCD(AID.Swiftcast, 0, CDGroup.Swiftcast, 60.0f);
+        res.OGCD(AID.LucidDreaming, 0, CDGroup.LucidDreaming, 60.0f);
+        res.OGCD(AID.PresenceOfMind, 0, CDGroup.PresenceOfMind, 120.0f);
+        res.OGCDWithCharges(AID.ThinAir, 0, CDGroup.ThinAir, 60.0f, 2);
+        res.OGCD(AID.PlenaryIndulgence, 0, CDGroup.PlenaryIndulgence, 60.0f);
+        res.OGCD(AID.Temperance, 0, CDGroup.Temperance, 120.0f);
+        res.OGCD(AID.Aquaveil, 30, CDGroup.Aquaveil, 60.0f);
+        res.OGCD(AID.Surecast, 0, CDGroup.Surecast, 120.0f);
+        res.GCDCast(AID.Raise, 30, 8.0f);
+        res.GCDCast(AID.Repose, 30, 2.5f);
+        res.GCDCast(AID.Esuna, 30, 1.0f);
+        res.OGCD(AID.Rescue, 30, CDGroup.Rescue, 120.0f);
+        return res;
     }
 }

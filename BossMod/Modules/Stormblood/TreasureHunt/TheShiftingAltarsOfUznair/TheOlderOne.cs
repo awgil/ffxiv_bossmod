@@ -8,19 +8,19 @@ public enum OID : uint
     BossAdd3 = 0x2573, //R=1.72, untargetable
     BossAdd4 = 0x2574, //R=1.72, untargetable
     BossHelper = 0x233C,
-    BonusAdd_GoldWhisker = 0x2544, // R0.540
+    BonusAddGoldWhisker = 0x2544, // R0.540
     AltarQueen = 0x254A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
     AltarGarlic = 0x2548, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
     AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-    BonusAdd_AltarMatanga = 0x2545, // R3.420
+    BonusAddAltarMatanga = 0x2545, // R3.420
 }
 
 public enum AID : uint
 {
-    AutoAttack = 870, // BonusAdd_GoldWhisker->player, no cast, single-target
-    AutoAttack2 = 872, // BonusAdd_AltarMatanga,Mandragoras->player, no cast, single-target
+    AutoAttack = 870, // BonusAddGoldWhisker->player, no cast, single-target
+    AutoAttack2 = 872, // BonusAddAltarMatanga,Mandragoras->player, no cast, single-target
     AutoAttack3 = 13478, // Boss->player, no cast, single-target
     MysticFlash = 13385, // Boss->player, 3,0s cast, single-target
     MysticLight = 13386, // Boss->self, 3,0s cast, range 40+R 60-degree cone
@@ -35,10 +35,10 @@ public enum AID : uint
     TearyTwirl = 6448, // AltarOnion->self, 3,5s cast, range 6+R circle
     Pollen = 6452, // AltarQueen->self, 3,5s cast, range 6+R circle
     HeirloomScream = 6451, // AltarTomato->self, 3,5s cast, range 6+R circle
-    unknown = 9636, // BonusAdd_AltarMatanga->self, no cast, single-target
-    Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
+    unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
+    Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
 }
 
@@ -55,7 +55,7 @@ class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, 
 class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class TheOlderOneStates : StateMachineBuilder
 {
@@ -76,7 +76,7 @@ class TheOlderOneStates : StateMachineBuilder
             .ActivateOnEnter<Hurl>()
             .ActivateOnEnter<RaucousScritch>()
             .ActivateOnEnter<Spin>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_GoldWhisker).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAddAltarMatanga).All(e => e.IsDead) && module.Enemies(OID.BonusAddGoldWhisker).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead);
     }
 }
 
@@ -96,9 +96,9 @@ public class TheOlderOne(WorldState ws, Actor primary) : BossModule(ws, primary,
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.AltarOnion))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_GoldWhisker))
+        foreach (var s in Enemies(OID.BonusAddGoldWhisker))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
+        foreach (var s in Enemies(OID.BonusAddAltarMatanga))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -113,7 +113,7 @@ public class TheOlderOne(WorldState ws, Actor primary) : BossModule(ws, primary,
                 OID.AltarEgg => 5,
                 OID.AltarGarlic => 4,
                 OID.AltarTomato => 3,
-                OID.AltarQueen or OID.BonusAdd_GoldWhisker or OID.BonusAdd_AltarMatanga => 2,
+                OID.AltarQueen or OID.BonusAddGoldWhisker or OID.BonusAddAltarMatanga => 2,
                 OID.Boss => 1,
                 _ => 0
             };

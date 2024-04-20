@@ -3,12 +3,12 @@
 // state related to trail of condemnation mechanic
 class TrailOfCondemnation(BossModule module) : BossComponent(module)
 {
-    public bool Done { get; private set; } = false;
-    private bool _isCenter = module.PrimaryActor.CastInfo?.IsSpell(AID.TrailOfCondemnationCenter) ?? false;
+    public bool Done { get; private set; }
+    private readonly bool _isCenter = module.PrimaryActor.CastInfo?.IsSpell(AID.TrailOfCondemnationCenter) ?? false;
 
-    private static readonly float _halfWidth = 7.5f;
-    private static readonly float _sidesOffset = 12.5f;
-    private static readonly float _aoeRadius = 6;
+    private const float _halfWidth = 7.5f;
+    private const float _sidesOffset = 12.5f;
+    private const float _aoeRadius = 6;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

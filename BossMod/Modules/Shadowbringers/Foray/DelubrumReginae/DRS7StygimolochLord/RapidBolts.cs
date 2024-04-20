@@ -12,7 +12,7 @@ class RapidBoltsBait(BossModule module) : Components.UniformStackSpread(module, 
 
 class RapidBoltsAOE(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos pos, int numCasts)> _puddles = new();
+    private readonly List<(WPos pos, int numCasts)> _puddles = [];
     private static readonly AOEShapeCircle _shape = new(5);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)

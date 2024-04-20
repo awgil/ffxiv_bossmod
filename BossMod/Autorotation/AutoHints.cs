@@ -2,12 +2,12 @@
 
 // utility that determines ai hints automatically based on actor casts
 // this is used e.g. in outdoor or on trash, where we have no active bossmodules
-public class AutoHints : IDisposable
+public sealed class AutoHints : IDisposable
 {
-    static readonly float RaidwideSize = 30;
+    private const float RaidwideSize = 30;
 
-    private WorldState _ws;
-    private Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = new();
+    private readonly WorldState _ws;
+    private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
 
     public AutoHints(WorldState ws)
     {
@@ -73,10 +73,7 @@ public class AutoHints : IDisposable
         _activeAOEs[actor.InstanceID] = (actor, target, shape, data.CastType == 8);
     }
 
-    private void OnCastFinished(Actor actor)
-    {
-        _activeAOEs.Remove(actor.InstanceID);
-    }
+    private void OnCastFinished(Actor actor) => _activeAOEs.Remove(actor.InstanceID);
 
     private Angle DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
     {
@@ -87,15 +84,14 @@ public class AutoHints : IDisposable
             return 180.Degrees();
         }
         var path = omen.Path.ToString();
-        var pos = path.IndexOf("fan");
+        var pos = path.IndexOf("fan", StringComparison.Ordinal);
         if (pos < 0 || pos + 6 > path.Length)
         {
             Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
             return 180.Degrees();
         }
 
-        int angle;
-        if (!int.TryParse(path.Substring(pos + 3, 3), out angle))
+        if (!int.TryParse(path.AsSpan(pos + 3, 3), out var angle))
         {
             Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
             return 180.Degrees();

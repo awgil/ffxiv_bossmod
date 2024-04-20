@@ -22,7 +22,7 @@ class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 // arena has multiple weirdly-shaped puddles, so just prefer standing in large safe zone
 class AIPosition(BossModule module) : BossComponent(module)
 {
-    private WPos[] _centers = { new(-395, -130), new(-402, -114) };
+    private readonly WPos[] _centers = [new(-395, -130), new(-402, -114)];
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

@@ -4,9 +4,9 @@
 // this helper relies on waymarks 1-4, and assumes they don't change during fight - this is of course quite an assumption, but whatever...
 class BrightenedFire(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.BrightenedFireAOE))
 {
-    private int[] _playerOrder = new int[8]; // 0 if unknown, 1-8 otherwise
+    private readonly int[] _playerOrder = new int[8]; // 0 if unknown, 1-8 otherwise
 
-    private static readonly float _aoeRange = 7;
+    private const float _aoeRange = 7;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -47,7 +47,7 @@ class BrightenedFire(BossModule module) : Components.CastCounter(module, ActionI
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {
-        if (iconID >= 268 && iconID <= 275)
+        if (iconID is >= 268 and <= 275)
         {
             int slot = Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)

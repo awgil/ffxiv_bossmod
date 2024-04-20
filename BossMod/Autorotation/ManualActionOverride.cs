@@ -9,26 +9,16 @@
 // - unlike native action queue, ours supports multiple pending entries
 // - our queue distinguishes GCD and oGCD actions; since oGCDs can be delayed, effective 'expiration' time for oGCDs is much larger than native 0.5s
 // - trying to queue an oGCD action while it is already queued (double tapping) activates 'emergency mode': all preceeding queued actions are removed and this action is returned even if it would delay GCD
-class ManualActionOverride
+class ManualActionOverride(WorldState ws)
 {
-    public class Entry
+    public class Entry(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
     {
-        public ActionID Action;
-        public Actor? Target;
-        public Vector3 TargetPos;
-        public ActionDefinition Definition;
-        public Func<Actor?, bool>? Condition;
-        public DateTime ExpireAt;
-
-        public Entry(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
-        {
-            Action = action;
-            Target = target;
-            TargetPos = targetPos;
-            Definition = definition;
-            Condition = condition;
-            ExpireAt = expireAt;
-        }
+        public ActionID Action = action;
+        public Actor? Target = target;
+        public Vector3 TargetPos = targetPos;
+        public ActionDefinition Definition = definition;
+        public Func<Actor?, bool>? Condition = condition;
+        public DateTime ExpireAt = expireAt;
 
         public bool Allowed(Actor player)
         {
@@ -46,18 +36,12 @@ class ManualActionOverride
         public bool Expired(DateTime now) => ExpireAt < now || (Target?.IsDestroyed ?? false);
     }
 
-    private WorldState _ws; // used to read current time and cooldowns
-    private List<Entry> _queue = new();
-    private bool _emergencyMode = false;
-
-    public ManualActionOverride(WorldState ws)
-    {
-        _ws = ws;
-    }
+    private readonly List<Entry> _queue = [];
+    private bool _emergencyMode;
 
     public void RemoveExpired()
     {
-        if (_emergencyMode && _queue[0].Expired(_ws.CurrentTime))
+        if (_emergencyMode && _queue[0].Expired(ws.CurrentTime))
         {
             Service.Log($"[MAO] Emergency {_queue[0].Action} expired");
             _emergencyMode = false;
@@ -69,12 +53,12 @@ class ManualActionOverride
     {
         bool isGCD = def.CooldownGroup == CommonDefinitions.GCDGroup;
         float expire = isGCD ? 1.0f : 3.0f;
-        if (_ws.Client.Cooldowns[def.CooldownGroup].Remaining - expire > def.CooldownAtFirstCharge)
+        if (ws.Client.Cooldowns[def.CooldownGroup].Remaining - expire > def.CooldownAtFirstCharge)
         {
             return;
         }
 
-        var expireAt = _ws.CurrentTime.AddSeconds(expire);
+        var expireAt = ws.CurrentTime.AddSeconds(expire);
         var index = _queue.FindIndex(e => e.Definition.CooldownGroup == def.CooldownGroup);
         if (index < 0)
         {
@@ -124,7 +108,7 @@ class ManualActionOverride
 
     public Entry? PeekGCD()
     {
-        var player = _ws.Party.Player();
+        var player = ws.Party.Player();
         if (_emergencyMode || player == null)
             return null;
         var e = _queue.Find(e => e.Definition.CooldownGroup == CommonDefinitions.GCDGroup);
@@ -134,21 +118,21 @@ class ManualActionOverride
     // deadline is typically gcd minus anim-lock-delay
     public Entry? PeekOGCD(float effAnimLock, float animLockDelay, float deadline)
     {
-        var player = _ws.Party.Player();
+        var player = ws.Party.Player();
         return !_emergencyMode && player != null ? _queue.Find(e => CheckOGCD(e, player, effAnimLock, animLockDelay, deadline)) : null;
     }
 
     private bool CheckOGCD(Entry e, Actor player, float effAnimLock, float animLockDelay, float deadline)
     {
         return e.Definition.CooldownGroup != CommonDefinitions.GCDGroup
-            && _ws.Client.Cooldowns[e.Definition.CooldownGroup].Remaining - effAnimLock <= e.Definition.CooldownAtFirstCharge
+            && ws.Client.Cooldowns[e.Definition.CooldownGroup].Remaining - effAnimLock <= e.Definition.CooldownAtFirstCharge
             && effAnimLock + e.Definition.AnimationLock + animLockDelay <= deadline
             && e.Allowed(player);
     }
 
     private bool CheckExpired(Entry e)
     {
-        if (e.Expired(_ws.CurrentTime))
+        if (e.Expired(ws.CurrentTime))
         {
             Service.Log($"[MAO] Action {e.Action} @ {e.Target} expired");
             return true;

@@ -11,7 +11,7 @@ public class WorldState
     public FrameState Frame;
     public ushort CurrentZone { get; private set; }
     public ushort CurrentCFCID { get; private set; }
-    public Dictionary<string, string> RSVEntries { get; init; } = new();
+    public Dictionary<string, string> RSVEntries { get; init; } = [];
     public WaymarkState Waymarks { get; init; } = new();
     public ActorState Actors { get; init; } = new();
     public PartyState Party { get; init; }

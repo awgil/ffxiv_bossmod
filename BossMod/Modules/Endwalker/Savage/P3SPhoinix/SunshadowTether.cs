@@ -3,10 +3,10 @@
 // state related to sunshadow tethers during fountain of fire mechanics
 class SunshadowTether(BossModule module) : BossComponent(module)
 {
-    private HashSet<ulong> _chargedSunshadows = new();
+    private readonly HashSet<ulong> _chargedSunshadows = [];
     private BitMask _playersInAOE;
 
-    private static readonly float _chargeHalfWidth = 3;
+    private const float _chargeHalfWidth = 3;
 
     public int NumCharges => _chargedSunshadows.Count;
 

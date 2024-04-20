@@ -5,7 +5,7 @@ class P3TemporalStasis(BossModule module) : Components.GenericBaitAway(module, A
     public enum Mechanic { None, AvoidDamage, StayClose, StayFar }
 
     public bool Frozen { get; private set; }
-    private Mechanic[] _playerMechanics = new Mechanic[PartyState.MaxPartySize];
+    private readonly Mechanic[] _playerMechanics = new Mechanic[PartyState.MaxPartySize];
 
     private static readonly AOEShapeCone _shapeBJ = new(100, 45.Degrees()); // TODO: verify angle
     private static readonly AOEShapeCone _shapeCC = new(30, 45.Degrees()); // TODO: verify angle

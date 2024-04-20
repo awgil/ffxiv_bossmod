@@ -7,13 +7,13 @@ namespace UIDev;
 
 class UITestWindow : UIWindow
 {
-    private SimpleImGuiScene _scene;
-    private List<Type> _testTypes;
-    private ReplayManager _replayManager = new(".");
+    private readonly SimpleImGuiScene _scene;
+    private readonly List<Type> _testTypes;
+    private readonly ReplayManager _replayManager = new(".");
     private string _configPath;
 
     // don't allow closing window by esc while there are any config modifications
-    private bool _configModified
+    private bool ConfigModified
     {
         get => !RespectCloseHotkey;
         set => RespectCloseHotkey = !value;
@@ -27,12 +27,13 @@ class UITestWindow : UIWindow
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(new(configPath));
-        Service.Config.Modified += () => _configModified = true;
+        Service.Config.Modified += () => ConfigModified = true;
     }
 
     protected override void Dispose(bool disposing)
     {
         _replayManager.Dispose();
+        base.Dispose(disposing);
     }
 
     public override void OnClose()
@@ -47,13 +48,13 @@ class UITestWindow : UIWindow
         if (ImGui.Button("Reload"))
         {
             Service.Config.LoadFromFile(new(_configPath));
-            _configModified = false;
+            ConfigModified = false;
         }
         ImGui.SameLine();
-        if (ImGui.Button(_configModified ? "Save (modified)" : "Save (no changes)"))
+        if (ImGui.Button(ConfigModified ? "Save (modified)" : "Save (no changes)"))
         {
             Service.Config.SaveToFile(new(_configPath));
-            _configModified = false;
+            ConfigModified = false;
         }
 
         ImGui.Separator();

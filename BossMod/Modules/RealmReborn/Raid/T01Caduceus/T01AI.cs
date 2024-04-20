@@ -2,10 +2,10 @@
 
 class T01AI(BossModule module) : BossComponent(module)
 {
-    private Platforms? _platforms = module.FindComponent<Platforms>();
-    private HoodSwing? _hoodSwing = module.FindComponent<HoodSwing>();
-    private CloneMerge? _clone = module.FindComponent<CloneMerge>();
-    private IReadOnlyList<Actor> _slimes = module.Enemies(OID.DarkMatterSlime);
+    private readonly Platforms? _platforms = module.FindComponent<Platforms>();
+    private readonly HoodSwing? _hoodSwing = module.FindComponent<HoodSwing>();
+    private readonly CloneMerge? _clone = module.FindComponent<CloneMerge>();
+    private readonly IReadOnlyList<Actor> _slimes = module.Enemies(OID.DarkMatterSlime);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -126,7 +126,7 @@ class T01AI(BossModule module) : BossComponent(module)
     private void SetPreferredPlatform(AIHints hints, int platform)
     {
         //Func<WPos, float> nonAllowedPlatforms = p => -allowedPlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) - 1; // inverse union of allowed, slightly reduced to avoid standing on borders
-        Func<WPos, float> invAllowed = p => -Platforms.PlatformShapes[platform](p) - 1; // inverted and slightly reduced to avoid standing on borders
+        float invAllowed(WPos p) => -Platforms.PlatformShapes[platform](p) - 1; // inverted and slightly reduced to avoid standing on borders
         hints.AddForbiddenZone(invAllowed, DateTime.MaxValue);
     }
 }

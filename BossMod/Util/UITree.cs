@@ -4,19 +4,7 @@ namespace BossMod;
 
 public class UITree
 {
-    public struct NodeProperties
-    {
-        public string Text;
-        public bool Leaf;
-        public uint Color;
-
-        public NodeProperties(string text, bool leaf = false, uint color = 0xffffffff)
-        {
-            Text = text;
-            Leaf = leaf;
-            Color = color;
-        }
-    }
+    public record struct NodeProperties(string Text, bool Leaf = false, uint Color = 0xffffffff);
 
     private uint _selectedID;
 

@@ -2,7 +2,7 @@
 
 class P3Daat(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.DaatRandom))
 {
-    private static readonly float radius = 5;
+    private const float radius = 5;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

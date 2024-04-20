@@ -3,10 +3,10 @@
 // common base for lightwaves components
 class LightwaveCommon(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LightOfTheCrystal))
 {
-    protected List<Actor> Waves = new();
+    protected List<Actor> Waves = [];
     protected static readonly AOEShapeRect WaveAOE = new(50, 8); // note that actual length is 15, but we want to show aoe for full path
 
-    private static readonly float _losRadius = 1;
+    private const float _losRadius = 1;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

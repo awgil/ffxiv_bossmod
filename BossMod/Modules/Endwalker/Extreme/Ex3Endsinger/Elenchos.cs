@@ -3,7 +3,7 @@
 class Elenchos(BossModule module) : BossComponent(module)
 {
     private Actor? _center;
-    private List<Actor> _sides = new();
+    private readonly List<Actor> _sides = [];
 
     private static readonly AOEShapeRect _aoeCenter = new(40, 7);
     private static readonly AOEShapeRect _aoeSides = new(40, 6.5f, 40);

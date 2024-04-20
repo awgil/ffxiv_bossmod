@@ -126,7 +126,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 65604, 65612, 66621, 66622, 66623, 66624, 66626, 67250, 67251, 67252, 67254, 68430 };
+    public static readonly uint[] UnlockQuests = [65604, 65612, 66621, 66622, 66623, 66624, 66626, 67250, 67251, 67252, 67254, 68430];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -195,45 +195,46 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionDex);
-        SupportedActions.GCD(AID.HeavyShot, 25);
-        SupportedActions.GCD(AID.BurstShot, 25);
-        SupportedActions.GCD(AID.StraightShot, 25);
-        SupportedActions.GCD(AID.RefulgentArrow, 25);
-        SupportedActions.GCD(AID.VenomousBite, 25);
-        SupportedActions.GCD(AID.CausticBite, 25);
-        SupportedActions.GCD(AID.Windbite, 25);
-        SupportedActions.GCD(AID.Stormbite, 25);
-        SupportedActions.GCD(AID.IronJaws, 25);
-        SupportedActions.GCD(AID.ApexArrow, 25);
-        SupportedActions.GCD(AID.BlastArrow, 25);
-        SupportedActions.GCD(AID.QuickNock, 12);
-        SupportedActions.GCD(AID.Ladonsbite, 12);
-        SupportedActions.GCD(AID.Shadowbite, 25);
-        SupportedActions.OGCDWithCharges(AID.Bloodletter, 25, CDGroup.Bloodletter, 15.0f, 3);
-        SupportedActions.OGCDWithCharges(AID.RainOfDeath, 25, CDGroup.Bloodletter, 15.0f, 3);
-        SupportedActions.OGCD(AID.PitchPerfect, 25, CDGroup.PitchPerfect, 1.0f);
-        SupportedActions.OGCD(AID.EmpyrealArrow, 25, CDGroup.EmpyrealArrow, 15.0f);
-        SupportedActions.OGCD(AID.Sidewinder, 25, CDGroup.Sidewinder, 60.0f);
-        SupportedActions.OGCD(AID.RagingStrikes, 0, CDGroup.RagingStrikes, 120.0f).EffectDuration = 20;
-        SupportedActions.OGCD(AID.Barrage, 0, CDGroup.Barrage, 120.0f);
-        SupportedActions.OGCD(AID.MagesBallad, 25, CDGroup.MagesBallad, 120.0f).EffectDuration = 45;
-        SupportedActions.OGCD(AID.ArmysPaeon, 25, CDGroup.ArmysPaeon, 120.0f).EffectDuration = 45;
-        SupportedActions.OGCD(AID.WanderersMinuet, 25, CDGroup.WanderersMinuet, 120.0f).EffectDuration = 45;
-        SupportedActions.OGCD(AID.BattleVoice, 0, CDGroup.BattleVoice, 120.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.RadiantFinale, 0, CDGroup.RadiantFinale, 110.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
-        SupportedActions.OGCD(AID.Troubadour, 0, CDGroup.Troubadour, 90.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.NaturesMinne, 30, CDGroup.NaturesMinne, 120.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.OGCD(AID.Peloton, 0, CDGroup.Peloton, 5.0f).EffectDuration = 30;
-        SupportedActions.OGCD(AID.LegGraze, 25, CDGroup.LegGraze, 30.0f);
-        SupportedActions.OGCD(AID.FootGraze, 25, CDGroup.FootGraze, 30.0f);
-        SupportedActions.OGCD(AID.HeadGraze, 25, CDGroup.HeadGraze, 30.0f);
-        SupportedActions.OGCD(AID.RepellingShot, 15, CDGroup.RepellingShot, 30.0f, 0.800f);
-        SupportedActions.OGCD(AID.WardensPaean, 30, CDGroup.WardensPaean, 45.0f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionDex);
+        res.GCD(AID.HeavyShot, 25);
+        res.GCD(AID.BurstShot, 25);
+        res.GCD(AID.StraightShot, 25);
+        res.GCD(AID.RefulgentArrow, 25);
+        res.GCD(AID.VenomousBite, 25);
+        res.GCD(AID.CausticBite, 25);
+        res.GCD(AID.Windbite, 25);
+        res.GCD(AID.Stormbite, 25);
+        res.GCD(AID.IronJaws, 25);
+        res.GCD(AID.ApexArrow, 25);
+        res.GCD(AID.BlastArrow, 25);
+        res.GCD(AID.QuickNock, 12);
+        res.GCD(AID.Ladonsbite, 12);
+        res.GCD(AID.Shadowbite, 25);
+        res.OGCDWithCharges(AID.Bloodletter, 25, CDGroup.Bloodletter, 15.0f, 3);
+        res.OGCDWithCharges(AID.RainOfDeath, 25, CDGroup.Bloodletter, 15.0f, 3);
+        res.OGCD(AID.PitchPerfect, 25, CDGroup.PitchPerfect, 1.0f);
+        res.OGCD(AID.EmpyrealArrow, 25, CDGroup.EmpyrealArrow, 15.0f);
+        res.OGCD(AID.Sidewinder, 25, CDGroup.Sidewinder, 60.0f);
+        res.OGCD(AID.RagingStrikes, 0, CDGroup.RagingStrikes, 120.0f).EffectDuration = 20;
+        res.OGCD(AID.Barrage, 0, CDGroup.Barrage, 120.0f);
+        res.OGCD(AID.MagesBallad, 25, CDGroup.MagesBallad, 120.0f).EffectDuration = 45;
+        res.OGCD(AID.ArmysPaeon, 25, CDGroup.ArmysPaeon, 120.0f).EffectDuration = 45;
+        res.OGCD(AID.WanderersMinuet, 25, CDGroup.WanderersMinuet, 120.0f).EffectDuration = 45;
+        res.OGCD(AID.BattleVoice, 0, CDGroup.BattleVoice, 120.0f).EffectDuration = 15;
+        res.OGCD(AID.RadiantFinale, 0, CDGroup.RadiantFinale, 110.0f).EffectDuration = 15;
+        res.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
+        res.OGCD(AID.Troubadour, 0, CDGroup.Troubadour, 90.0f).EffectDuration = 15;
+        res.OGCD(AID.NaturesMinne, 30, CDGroup.NaturesMinne, 120.0f).EffectDuration = 15;
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.OGCD(AID.Peloton, 0, CDGroup.Peloton, 5.0f).EffectDuration = 30;
+        res.OGCD(AID.LegGraze, 25, CDGroup.LegGraze, 30.0f);
+        res.OGCD(AID.FootGraze, 25, CDGroup.FootGraze, 30.0f);
+        res.OGCD(AID.HeadGraze, 25, CDGroup.HeadGraze, 30.0f);
+        res.OGCD(AID.RepellingShot, 15, CDGroup.RepellingShot, 30.0f, 0.800f);
+        res.OGCD(AID.WardensPaean, 30, CDGroup.WardensPaean, 45.0f);
+        return res;
     }
 }

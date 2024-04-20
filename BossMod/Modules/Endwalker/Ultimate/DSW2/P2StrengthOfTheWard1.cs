@@ -18,7 +18,7 @@ class P2StrengthOfTheWard1LightningStorm : Components.UniformStackSpread
 // charges
 class P2StrengthOfTheWard1SpiralThrust(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SpiralThrust), "GTFO from charge aoe!")
 {
-    private List<Actor> _knights = new();
+    private readonly List<Actor> _knights = [];
 
     private static readonly AOEShapeRect _shape = new(52, 8);
 

@@ -27,21 +27,15 @@ namespace BossMod;
 // 1. we use cooldowns as reported by ActionManager API rather than parse network messages. This (1) allows us to not rely on randomized opcodes, (2) allows us not to handle things like CD resets on wipes, actor resets on zone changes, etc.
 // 2. we convert large negative status durations to their expected values
 // 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
-class Autorotation : IDisposable
+sealed class Autorotation : IDisposable
 {
-    private AutorotationConfig _config;
-    private BossModuleManager _bossmods;
-    private AutoHints _autoHints;
-    private UISimpleWindow _ui;
-    private CommonActions? _classActions;
+    public AutorotationConfig Config { get; } = Service.Config.Get<AutorotationConfig>();
+    public BossModuleManager Bossmods { get; init; }
+    public WorldState WorldState => Bossmods.WorldState;
+    private readonly AutoHints _autoHints;
+    private readonly UISimpleWindow _ui;
 
-    private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
-    private Hook<UseActionDelegate> _useActionHook;
-
-    public AutorotationConfig Config => _config;
-    public BossModuleManager Bossmods => _bossmods;
-    public WorldState WorldState => _bossmods.WorldState;
-    public CommonActions? ClassActions => _classActions;
+    public CommonActions? ClassActions { get; private set; }
 
     public Actor? PrimaryTarget; // this is usually a normal (hard) target, but AI can override; typically used for damage abilities
     public Actor? SecondaryTarget; // this is usually a mouseover, but AI can override; typically used for heal and utility abilities
@@ -51,10 +45,12 @@ class Autorotation : IDisposable
 
     private static ActionID IDSprintGeneral = new(ActionType.General, 4);
 
+    private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
+    private readonly Hook<UseActionDelegate> _useActionHook;
+
     public unsafe Autorotation(BossModuleManager bossmods)
     {
-        _config = Service.Config.Get<AutorotationConfig>();
-        _bossmods = bossmods;
+        Bossmods = bossmods;
         _autoHints = new(bossmods.WorldState);
         _ui = new("Autorotation", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
 
@@ -72,7 +68,7 @@ class Autorotation : IDisposable
 
         _ui.Dispose();
         _useActionHook.Dispose();
-        _classActions?.Dispose();
+        ClassActions?.Dispose();
         _autoHints.Dispose();
     }
 
@@ -103,7 +99,7 @@ class Autorotation : IDisposable
         }
 
         Type? classType = null;
-        if (_config.Enabled && player != null)
+        if (Config.Enabled && player != null)
         {
             classType = player.Class switch
             {
@@ -124,27 +120,27 @@ class Autorotation : IDisposable
             };
         }
 
-        if (_classActions?.GetType() != classType || _classActions?.Player != player)
+        if (ClassActions?.GetType() != classType || ClassActions?.Player != player)
         {
-            _classActions?.Dispose();
-            _classActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
+            ClassActions?.Dispose();
+            ClassActions = classType != null ? (CommonActions?)Activator.CreateInstance(classType, this, player) : null;
         }
 
-        _classActions?.Update();
-        var nextAction = _classActions?.CalculateNextAction() ?? default;
+        ClassActions?.Update();
+        var nextAction = ClassActions?.CalculateNextAction() ?? default;
         if (nextAction.Target != null && Hints.ForbiddenTargets.FirstOrDefault(e => e.Actor == nextAction.Target)?.Priority == AIHints.Enemy.PriorityForbidFully)
             nextAction = default;
         ActionManagerEx.Instance!.AutoQueue = nextAction; // TODO: this delays action for 1 frame after downtime, reconsider...
 
-        _classActions?.FillStatusesToCancel(Hints.StatusesToCancel);
+        ClassActions?.FillStatusesToCancel(Hints.StatusesToCancel);
         foreach (var s in Hints.StatusesToCancel)
             ActionManagerEx.Instance!.CancelStatus(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId);
 
-        _ui.IsOpen = _classActions != null && _config.ShowUI;
+        _ui.IsOpen = ClassActions != null && Config.ShowUI;
 
-        if (_config.ShowPositionals && PrimaryTarget != null && _classActions != null && _classActions.AutoAction != CommonActions.AutoActionNone && !PrimaryTarget.Omnidirectional)
+        if (Config.ShowPositionals && PrimaryTarget != null && ClassActions != null && ClassActions.AutoAction != CommonActions.AutoActionNone && !PrimaryTarget.Omnidirectional)
         {
-            var strategy = _classActions.GetStrategy();
+            var strategy = ClassActions.GetStrategy();
             var color = PositionalColor(strategy);
             switch (strategy.NextPositional)
             {
@@ -161,13 +157,13 @@ class Autorotation : IDisposable
 
     private void DrawOverlay()
     {
-        if (_classActions == null)
+        if (ClassActions == null)
             return;
         var next = ActionManagerEx.Instance!.AutoQueue;
-        var state = _classActions.GetState();
-        var strategy = _classActions.GetStrategy();
-        ImGui.TextUnformatted($"[{_classActions.AutoAction}] Next: {next.Action} ({next.Source})");
-        if (_classActions.AutoAction != CommonActions.AutoActionNone && strategy.NextPositional != Positional.Any)
+        var state = ClassActions.GetState();
+        var strategy = ClassActions.GetStrategy();
+        ImGui.TextUnformatted($"[{ClassActions.AutoAction}] Next: {next.Action} ({next.Source})");
+        if (ClassActions.AutoAction != CommonActions.AutoActionNone && strategy.NextPositional != Positional.Any)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, PositionalColor(strategy));
             ImGui.TextUnformatted(strategy.NextPositional.ToString());
@@ -182,13 +178,13 @@ class Autorotation : IDisposable
 
     private void OnActionRequested(ClientActionRequest request)
     {
-        _classActions?.NotifyActionExecuted(request);
+        ClassActions?.NotifyActionExecuted(request);
     }
 
     private void OnCastEvent(Actor actor, ActorCastEvent cast)
     {
         if (cast.SourceSequence != 0 && actor == WorldState.Party.Player())
-            _classActions?.NotifyActionSucceeded(cast);
+            ClassActions?.NotifyActionSucceeded(cast);
     }
 
     private uint PositionalColor(CommonRotation.Strategy strategy)
@@ -207,7 +203,7 @@ class Autorotation : IDisposable
         // right when GCD ends, it is called internally by queue mechanism with aid=adjusted-id, a5=1, a4=a6=a7==0, returns True
         // itemLocation==0 for spells, 65535 for item used from hotbar, some value (bagID<<8 | slotID) for item used from inventory; it is the same as a4 in UseActionLocation
         //Service.Log($"UA: {new ActionID(actionType, actionID)} @ {targetID:X}: {itemLocation} {callType} {comboRouteID}");
-        if (callType != 0 || _classActions == null)
+        if (callType != 0 || ClassActions == null)
         {
             // pass to hooked function transparently
             return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
@@ -216,9 +212,9 @@ class Autorotation : IDisposable
         var action = new ActionID(actionType, actionID);
         if (action == IDSprintGeneral)
             action = CommonDefinitions.IDSprint;
-        bool nullTarget = targetID == 0 || targetID == Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId;
+        bool nullTarget = targetID is 0 or Dalamud.Game.ClientState.Objects.Types.GameObject.InvalidGameObjectId;
         var target = nullTarget ? null : WorldState.Actors.Find(targetID);
-        if (target == null && !nullTarget || !_classActions.HandleUserActionRequest(action, target))
+        if (target == null && !nullTarget || !ClassActions.HandleUserActionRequest(action, target))
         {
             // unknown target (e.g. quest object) or unsupported action - pass to hooked function
             return _useActionHook.Original(self, actionType, actionID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);

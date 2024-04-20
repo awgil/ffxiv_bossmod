@@ -6,7 +6,7 @@ class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, Acti
     private DateTime _baitDetectDeadline;
     public BitMask Baiters;
 
-    public static readonly float Radius = 8;
+    public const float Radius = 8;
 
     public override void Update()
     {

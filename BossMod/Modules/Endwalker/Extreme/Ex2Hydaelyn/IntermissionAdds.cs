@@ -3,7 +3,7 @@
 // component for intermission adds (crystals & echoes)
 class IntermissionAdds(BossModule module) : BossComponent(module)
 {
-    private HashSet<ulong> _activeCrystals = new();
+    private readonly HashSet<ulong> _activeCrystals = [];
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

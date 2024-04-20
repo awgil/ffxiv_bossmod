@@ -6,13 +6,13 @@ public enum OID : uint
     BossAdd = 0x3013, //R=1.12
     Bubble = 0x3012, //R=1.3, untargetable 
     BossHelper = 0x233C,
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
 }
 
 public enum AID : uint
 {
     AutoAttack = 23186, // Boss/3013->player, no cast, single-target
-    AutoAttack2 = 872, // BonusAdd_TheKeeperOfTheKeys->player, no cast, single-target
+    AutoAttack2 = 872, // BonusAddKeeperOfKeys->player, no cast, single-target
     Hydrowhirl = 21658, // Boss->self, 3,0s cast, range 8 circle
     Hypnowave = 21659, // Boss->self, 3,0s cast, range 30 120-degree cone, causes sleep
     Hydrotaph = 21661, // Boss->self, 4,0s cast, single-target
@@ -52,7 +52,7 @@ class UndineStates : StateMachineBuilder
             .ActivateOnEnter<Spin>()
             .ActivateOnEnter<Mash>()
             .ActivateOnEnter<Scoop>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead);
     }
 }
 
@@ -64,7 +64,7 @@ public class Undine(WorldState ws, Actor primary) : BossModule(ws, primary, new 
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -75,7 +75,7 @@ public class Undine(WorldState ws, Actor primary) : BossModule(ws, primary, new 
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_TheKeeperOfTheKeys => 3,
+                OID.BonusAddKeeperOfKeys => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

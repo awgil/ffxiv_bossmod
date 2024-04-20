@@ -10,7 +10,7 @@ class HydrofallHydrobullet(BossModule module) : Components.UniformStackSpread(mo
     }
 
     public int ActiveMechanic { get; private set; } = -1;
-    public List<Mechanic> Mechanics = new();
+    public List<Mechanic> Mechanics = [];
 
     public void Activate(int index)
     {

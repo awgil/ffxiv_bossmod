@@ -2,8 +2,8 @@
 
 class RingARingOExplosions(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<Actor> ActiveBombs = new();
-    private List<Actor> _bombs = new();
+    public List<Actor> ActiveBombs = [];
+    private readonly List<Actor> _bombs = [];
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(12);

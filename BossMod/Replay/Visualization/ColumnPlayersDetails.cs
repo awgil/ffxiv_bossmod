@@ -4,11 +4,11 @@ namespace BossMod.ReplayVisualization;
 
 public class ColumnPlayersDetails : Timeline.ColumnGroup
 {
-    private StateMachineTree _tree;
-    private List<int> _phaseBranches;
-    private Replay _replay;
-    private Replay.Encounter _encounter;
-    private ColumnPlayerDetails?[] _columns;
+    private readonly StateMachineTree _tree;
+    private readonly List<int> _phaseBranches;
+    private readonly Replay _replay;
+    private readonly Replay.Encounter _encounter;
+    private readonly ColumnPlayerDetails?[] _columns;
 
     public bool AnyPlanModified => _columns.Any(c => c?.PlanModified ?? false);
 
@@ -22,7 +22,7 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
         _columns = new ColumnPlayerDetails[enc.PartyMembers.Count];
         foreach (var i in showPlayers.SetBits())
         {
-            var (p, c, l) = enc.PartyMembers[i];
+            var (p, c, _) = enc.PartyMembers[i];
             _columns[i] = Add(new ColumnPlayerDetails(Timeline, _tree, _phaseBranches, _replay, _encounter, p, c));
         }
     }

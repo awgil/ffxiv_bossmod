@@ -3,7 +3,7 @@
 // state related to cinderwing
 class Cinderwing : BossComponent
 {
-    private AOEShapeCone _aoe = new(60, 90.Degrees());
+    private readonly AOEShapeCone _aoe = new(60, 90.Degrees());
 
     public Cinderwing(BossModule module) : base(module)
     {

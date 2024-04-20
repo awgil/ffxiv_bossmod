@@ -2,7 +2,7 @@
 
 class HerosSundering : BossComponent
 {
-    private Actor? _target;
+    private readonly Actor? _target;
     private BitMask _otherHit;
 
     private static readonly AOEShapeCone _aoeShape = new(40, 45.Degrees());

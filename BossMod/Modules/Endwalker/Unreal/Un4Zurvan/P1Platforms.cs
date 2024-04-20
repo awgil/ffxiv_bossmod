@@ -2,7 +2,7 @@
 
 class P1Platforms(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> ForbiddenPlatforms = new();
+    public List<AOEInstance> ForbiddenPlatforms = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ForbiddenPlatforms;
 

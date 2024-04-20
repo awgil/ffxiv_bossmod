@@ -6,10 +6,10 @@
 // so we show range helper for dead birds
 class BirdDistance(BossModule module, OID watchedBirdsID) : BossComponent(module)
 {
-    private OID _watchedBirdsID = watchedBirdsID;
+    private readonly OID _watchedBirdsID = watchedBirdsID;
     private BitMask _birdsAtRisk;
 
-    private static readonly float _radius = 13;
+    private const float _radius = 13;
 
     public override void Update()
     {

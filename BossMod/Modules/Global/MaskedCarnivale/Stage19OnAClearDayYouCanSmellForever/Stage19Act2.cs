@@ -70,7 +70,7 @@ class ExplosiveDehiscence(BossModule module) : Components.CastGaze(module, Actio
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(slot, actor);
+        return _blinded[slot] ? [] : base.ActiveEyes(slot, actor);
     }
 }
 

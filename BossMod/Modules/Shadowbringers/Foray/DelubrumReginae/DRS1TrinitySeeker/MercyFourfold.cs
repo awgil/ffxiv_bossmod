@@ -2,8 +2,8 @@
 
 class MercyFourfold(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MercyFourfoldAOE))
 {
-    public readonly List<AOEInstance> AOEs = new();
-    private readonly List<AOEInstance?> _safezones = new();
+    public readonly List<AOEInstance> AOEs = [];
+    private readonly List<AOEInstance?> _safezones = [];
     private static readonly AOEShapeCone _shapeAOE = new(50, 90.Degrees());
     private static readonly AOEShapeCone _shapeSafe = new(50, 45.Degrees());
 
@@ -35,7 +35,7 @@ class MercyFourfold(BossModule module) : Components.GenericAOEs(module, ActionID
         if (AOEs.Count > 0)
         {
             // see whether there is a safezone for two contiguous aoes
-            var mid = dir.ToDirection() + AOEs.Last().Rotation.ToDirection(); // length should be either ~sqrt(2) or ~0
+            var mid = dir.ToDirection() + AOEs[^1].Rotation.ToDirection(); // length should be either ~sqrt(2) or ~0
             if (mid.LengthSq() > 1)
                 _safezones.Add(new(_shapeSafe, actor.Position, Angle.FromDirection(-mid), new(), ArenaColor.SafeFromAOE, false));
             else

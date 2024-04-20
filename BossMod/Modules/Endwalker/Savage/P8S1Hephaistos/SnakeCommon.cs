@@ -17,7 +17,7 @@ abstract class PetrifactionCommon(BossModule module) : Components.GenericGaze(mo
     public int NumBloodCasts { get; private set; }
     public int NumCrownCasts { get; private set; }
     public int NumBreathCasts { get; private set; }
-    protected List<(Actor caster, DateTime activation, int priority)> ActiveGorgons = new();
+    protected List<(Actor caster, DateTime activation, int priority)> ActiveGorgons = [];
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {

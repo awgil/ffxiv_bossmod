@@ -73,7 +73,7 @@ class GobfireShootypops(BossModule module) : Components.GenericRotatingAOE(modul
     private Angle _rotation;
     private DateTime _activation;
 
-    private static readonly AOEShapeRect _shape = new AOEShapeRect(32, 3);
+    private static readonly AOEShapeRect _shape = new(32, 3);
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {

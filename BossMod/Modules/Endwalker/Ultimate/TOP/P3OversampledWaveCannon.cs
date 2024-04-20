@@ -4,10 +4,10 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
 {
     private Actor? _boss;
     private Angle _bossAngle;
-    private Angle[] _playerAngles = new Angle[PartyState.MaxPartySize];
-    private int[] _playerOrder = new int[PartyState.MaxPartySize];
+    private readonly Angle[] _playerAngles = new Angle[PartyState.MaxPartySize];
+    private readonly int[] _playerOrder = new int[PartyState.MaxPartySize];
     private int _numPlayerAngles;
-    private List<int> _monitorOrder = new();
+    private readonly List<int> _monitorOrder = [];
 
     private static readonly AOEShapeRect _shape = new(50, 50);
 

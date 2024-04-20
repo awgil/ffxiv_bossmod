@@ -2,7 +2,7 @@
 
 class PomStone(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(Actor caster, AOEShape shape)> _casters = new();
+    private readonly List<(Actor caster, AOEShape shape)> _casters = [];
     private static readonly AOEShapeCircle _shapeIn = new(10);
     private static readonly AOEShapeDonut _shapeMid = new(10, 20);
     private static readonly AOEShapeDonut _shapeOut = new(20, 30);

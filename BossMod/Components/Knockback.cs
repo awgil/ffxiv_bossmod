@@ -31,7 +31,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
         public DateTime JobBuffExpire; // 0 if not active
         public DateTime DutyBuffExpire; // 0 if not active
 
-        public bool ImmuneAt(DateTime time) => RoleBuffExpire > time || JobBuffExpire > time || DutyBuffExpire > time;
+        public readonly bool ImmuneAt(DateTime time) => RoleBuffExpire > time || JobBuffExpire > time || DutyBuffExpire > time;
     }
 
     public bool IgnoreImmunes { get; init; } = ignoreImmunes;
@@ -60,7 +60,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     public abstract IEnumerable<Source> Sources(int slot, Actor actor);
 
     // called to determine whether we need to show hint
-    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => StopAtWall ? false : !Module.Bounds.Contains(pos);
+    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !StopAtWall && !Module.Bounds.Contains(pos);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -138,7 +138,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
             if (s.Shape != null && !s.Shape.Check(from, s.Origin, s.Direction))
                 continue; // this source won't affect player due to being out of aoe
 
-            WDir dir = s.Kind switch
+            var dir = s.Kind switch
             {
                 Kind.AwayFromOrigin => from != s.Origin ? (from - s.Origin).Normalized() : default,
                 Kind.TowardsOrigin => from != s.Origin ? (s.Origin - from).Normalized() : default,
@@ -179,7 +179,7 @@ public class KnockbackFromCastTarget(BossModule module, ActionID aid, float dist
     public Kind KnockbackKind = kind;
     public float MinDistance = minDistance;
     public bool MinDistanceBetweenHitboxes = minDistanceBetweenHitboxes;
-    public readonly List<Actor> Casters = new();
+    public readonly List<Actor> Casters = [];
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

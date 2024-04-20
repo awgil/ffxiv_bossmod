@@ -2,10 +2,10 @@
 
 class SpinyShield(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _shield = module.Enemies(OID.SpinyShield);
+    private readonly IReadOnlyList<Actor> _shield = module.Enemies(OID.SpinyShield);
     public Actor? ActiveShield => _shield.FirstOrDefault(a => a.EventState != 7);
 
-    private static readonly float _radius = 6; // TODO: verify
+    private const float _radius = 6; // TODO: verify
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

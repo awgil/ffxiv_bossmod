@@ -11,52 +11,17 @@ abstract class CommonActions : IDisposable
 
     public enum ActionSource { Automatic, Planned, Manual, Emergency }
 
-    public struct NextAction
+    public record struct NextAction(ActionID Action, Actor? Target, Vector3 TargetPos, ActionSource Source);
+    public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);
+
+    public class SupportedAction(ActionDefinition definition, bool isGT)
     {
-        public ActionID Action;
-        public Actor? Target;
-        public Vector3 TargetPos;
-        public ActionSource Source;
-
-        public NextAction(ActionID action, Actor? target, Vector3 targetPos, ActionSource source)
-        {
-            Action = action;
-            Target = target;
-            TargetPos = targetPos;
-            Source = source;
-        }
-    }
-
-    public struct Targeting
-    {
-        public AIHints.Enemy? Target;
-        public float PreferredRange;
-        public Positional PreferredPosition;
-        public bool PreferTanking;
-
-        public Targeting(AIHints.Enemy target, float range = 3, Positional pos = Positional.Any, bool preferTanking = false)
-        {
-            Target = target;
-            PreferredRange = range;
-            PreferredPosition = pos;
-            PreferTanking = preferTanking;
-        }
-    }
-
-    public class SupportedAction
-    {
-        public ActionDefinition Definition;
-        public bool IsGT;
+        public ActionDefinition Definition = definition;
+        public bool IsGT = isGT;
         public Func<Actor?, bool>? Condition;
         public int PlaceholderForAuto; // if set, attempting to execute this action would instead initiate auto-strategy
         public Func<ActionID>? TransformAction;
         public Func<Actor?, Actor?>? TransformTarget;
-
-        public SupportedAction(ActionDefinition definition, bool isGT)
-        {
-            Definition = definition;
-            IsGT = isGT;
-        }
 
         public bool Allowed(Actor player, Actor target)
         {
@@ -72,15 +37,15 @@ abstract class CommonActions : IDisposable
     }
 
     public Actor Player { get; init; }
-    public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = new();
+    public Dictionary<ActionID, SupportedAction> SupportedActions { get; init; } = [];
     public int AutoAction { get; private set; }
     public float MaxCastTime { get; private set; }
     protected Autorotation Autorot;
     private DateTime _playerCombatStart;
     private DateTime _autoActionExpire;
     private bool _forceExpireAtCountdownCancel;
-    private QuestLockCheck _lock;
-    private ManualActionOverride _mq;
+    private readonly QuestLockCheck _lock;
+    private readonly ManualActionOverride _mq;
 
     public SupportedAction SupportedSpell<AID>(AID aid) where AID : Enum => SupportedActions[ActionID.MakeSpell(aid)];
 
@@ -97,6 +62,14 @@ abstract class CommonActions : IDisposable
         _lock = new(unlockData);
         _mq = new(autorot.WorldState);
     }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing) { }
 
     // this is called after worldstate update
     public void Update()
@@ -139,15 +112,9 @@ abstract class CommonActions : IDisposable
             QueueAIActions();
     }
 
-    public unsafe bool HaveItemInInventory(uint id)
-    {
-        return FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(id % 1000000, id >= 1000000, false, false) > 0;
-    }
+    public unsafe bool HaveItemInInventory(uint id) => FFXIVGame.InventoryManager.Instance()->GetInventoryItemCount(id % 1000000, id >= 1000000, false, false) > 0;
 
-    public float StatusDuration(DateTime expireAt)
-    {
-        return Math.Max((float)(expireAt - Autorot.WorldState.CurrentTime).TotalSeconds, 0.0f);
-    }
+    public float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - Autorot.WorldState.CurrentTime).TotalSeconds, 0.0f);
 
     // this also checks pending statuses
     // note that we check pending statuses first - otherwise we get the same problem with double refresh if we try to refresh early (we find old status even though we have pending one)
@@ -159,34 +126,29 @@ abstract class CommonActions : IDisposable
         if (pending != null)
             return (pendingDuration, pending.Value);
         var status = actor.FindStatus(sid, sourceID);
-        if (status != null)
-            return (StatusDuration(status.Value.ExpireAt), status.Value.Extra & 0xFF);
-        return (0, 0);
+        return status != null ? (StatusDuration(status.Value.ExpireAt), status.Value.Extra & 0xFF) : (0, 0);
     }
     public (float Left, int Stacks) StatusDetails<SID>(Actor? actor, SID sid, ulong sourceID, float pendingDuration = 1000) where SID : Enum => StatusDetails(actor, (uint)(object)sid, sourceID, pendingDuration);
 
     // check whether specified status is a damage buff
-    public bool IsDamageBuff(uint statusID)
+    // see https://i.redd.it/xrtgpras94881.png
+    // TODO: AST card buffs?, enemy debuffs?, single-target buffs (DRG dragon sight, DNC devilment)
+    public bool IsDamageBuff(uint statusID) => statusID switch
     {
-        // see https://i.redd.it/xrtgpras94881.png
-        // TODO: AST card buffs?, enemy debuffs?, single-target buffs (DRG dragon sight, DNC devilment)
-        return statusID switch
-        {
-            49 => true, // medicated
-            141 => true, // BRD battle voice
-            //638 => true, // NIN trick attack - note that this is a debuff on enemy
-            786 => true, // DRG battle litany
-            1185 => true, // MNK brotherhood
-            //1221 => true, // SCH chain stratagem - note that this is a debuff on enemy
-            1297 => true, // RDM embolden
-            1822 => true, // DNC technical finish
-            1878 => true, // AST divination
-            2599 => true, // RPR arcane circle
-            2703 => true, // SMN searing light
-            2964 => true, // BRD radiant finale
-            _ => false
-        };
-    }
+        49 => true, // medicated
+        141 => true, // BRD battle voice
+        //638 => true, // NIN trick attack - note that this is a debuff on enemy
+        786 => true, // DRG battle litany
+        1185 => true, // MNK brotherhood
+        //1221 => true, // SCH chain stratagem - note that this is a debuff on enemy
+        1297 => true, // RDM embolden
+        1822 => true, // DNC technical finish
+        1878 => true, // AST divination
+        2599 => true, // RPR arcane circle
+        2703 => true, // SMN searing light
+        2964 => true, // BRD radiant finale
+        _ => false
+    };
 
     public void UpdateAutoAction(int autoAction, float maxCastTime, bool isUserRequested)
     {
@@ -298,6 +260,7 @@ abstract class CommonActions : IDisposable
         if (cpActionLow.action)
             return new(cpActionLow.action, cpActionLow.target, new(), ActionSource.Planned);
 
+        // no ogcds, execute gcd instead
         return nextGCD;
     }
 
@@ -315,7 +278,6 @@ abstract class CommonActions : IDisposable
         OnActionSucceeded(ev);
     }
 
-    public abstract void Dispose();
     public abstract CommonRotation.PlayerState GetState();
     public abstract CommonRotation.Strategy GetStrategy();
     public virtual Targeting SelectBetterTarget(AIHints.Enemy initial) => new(initial);
@@ -418,30 +380,15 @@ abstract class CommonActions : IDisposable
 
     // smart targeting utility: return target (if friendly) or mouseover (if friendly) or null (otherwise)
     protected Actor? SmartTargetFriendly(Actor? primaryTarget)
-    {
-        if (primaryTarget?.Type is ActorType.Player or ActorType.Chocobo)
-            return primaryTarget;
-
-        if (Autorot.SecondaryTarget?.Type is ActorType.Player or ActorType.Chocobo)
-            return Autorot.SecondaryTarget;
-
-        return null;
-    }
+        => primaryTarget?.Type is ActorType.Player or ActorType.Chocobo ? primaryTarget : Autorot.SecondaryTarget?.Type is ActorType.Player or ActorType.Chocobo ? Autorot.SecondaryTarget : null;
 
     // smart targeting utility: return mouseover (if hostile and allowed) or target (otherwise)
     protected Actor? SmartTargetHostile(Actor? primaryTarget)
-    {
-        if (Autorot.SecondaryTarget?.Type == ActorType.Enemy && !Autorot.SecondaryTarget.IsAlly)
-            return Autorot.SecondaryTarget;
-
-        return primaryTarget;
-    }
+        => Autorot.SecondaryTarget?.Type == ActorType.Enemy && !Autorot.SecondaryTarget.IsAlly ? Autorot.SecondaryTarget : primaryTarget;
 
     // smart targeting utility: return target (if friendly) or mouseover (if friendly) or other tank (if available) or null (otherwise)
     protected Actor? SmartTargetCoTank(Actor? primaryTarget)
-    {
-        return SmartTargetFriendly(primaryTarget) ?? Autorot.WorldState.Party.WithoutSlot().Exclude(Player).FirstOrDefault(a => a.Role == Role.Tank);
-    }
+        => SmartTargetFriendly(primaryTarget) ?? Autorot.WorldState.Party.WithoutSlot().Exclude(Player).FirstOrDefault(a => a.Role == Role.Tank);
 
     protected void Log(string message)
     {
@@ -460,21 +407,19 @@ abstract class CommonActions : IDisposable
             && definition.Allowed(Player, target);
     }
 
-    private float CombatTimer()
-    {
-        if (_playerCombatStart != default)
-            return (float)(Autorot.WorldState.CurrentTime - _playerCombatStart).TotalSeconds;
-        return -Math.Max(0.001f, Autorot.WorldState.Client.CountdownRemaining ?? float.MaxValue);
-    }
+    private float CombatTimer() => _playerCombatStart != default
+            ? (float)(Autorot.WorldState.CurrentTime - _playerCombatStart).TotalSeconds
+            : -Math.Max(0.001f, Autorot.WorldState.Client.CountdownRemaining ?? float.MaxValue);
 
     protected (AIHints.Enemy Target, int Priority) FindBetterTargetBy(AIHints.Enemy initial, float maxDistanceFromPlayer, Func<AIHints.Enemy, int> prioFunc)
     {
         var bestTarget = initial;
         var bestPrio = prioFunc(bestTarget);
-        foreach(var enemy in Autorot.Hints.PriorityTargets.Where(x => x != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer + x.Actor.HitboxRadius)))
+        foreach (var enemy in Autorot.Hints.PriorityTargets.Where(x => x != initial && x.Actor.Position.InCircle(Player.Position, maxDistanceFromPlayer + x.Actor.HitboxRadius)))
         {
             var newPrio = prioFunc(enemy);
-            if (newPrio > bestPrio) {
+            if (newPrio > bestPrio)
+            {
                 bestPrio = newPrio;
                 bestTarget = enemy;
             }

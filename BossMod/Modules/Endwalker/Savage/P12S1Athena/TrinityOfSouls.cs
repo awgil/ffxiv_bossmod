@@ -4,7 +4,7 @@ class TrinityOfSouls(BossModule module) : Components.GenericAOEs(module)
 {
     private bool _invertMiddle;
     private uint _moves; // bit 0 - move after first, bit1 - move after second
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shape = new(60, 90.Degrees());
 
@@ -115,7 +115,7 @@ class TrinityOfSouls(BossModule module) : Components.GenericAOEs(module)
 
         var rotation = (!last && _invertMiddle) ? Module.PrimaryActor.Rotation - offset : Module.PrimaryActor.Rotation + offset;
         _aoes.Add(new(_shape, Module.PrimaryActor.Position, rotation, _aoes.LastOrDefault().Activation.AddSeconds(2.6f)));
-        if (_aoes.Count > 1 && !_aoes[_aoes.Count - 1].Rotation.AlmostEqual(_aoes[_aoes.Count - 2].Rotation, 0.05f))
+        if (_aoes.Count > 1 && !_aoes[^1].Rotation.AlmostEqual(_aoes[^2].Rotation, 0.05f))
             _moves |= last ? 2u : 1u;
     }
 }

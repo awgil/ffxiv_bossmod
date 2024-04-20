@@ -31,7 +31,7 @@ class ChitinousTrace(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_active && _pendingShapes.Count > 0)
-            yield return new(_pendingShapes.First(), Module.PrimaryActor.Position); // TODO: activation
+            yield return new(_pendingShapes[0], Module.PrimaryActor.Position); // TODO: activation
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -85,7 +85,7 @@ class T06GarudaHStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 61, NameID = 1644)]
 public class T06GarudaH : BossModule
 {
-    private IReadOnlyList<Actor> _monoliths;
+    private readonly IReadOnlyList<Actor> _monoliths;
     public IEnumerable<Actor> ActiveMonoliths => _monoliths;
 
     public T06GarudaH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 22))

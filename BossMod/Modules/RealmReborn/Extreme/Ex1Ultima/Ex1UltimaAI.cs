@@ -2,10 +2,10 @@
 
 class Ex1UltimaAI(BossModule module) : BossComponent(module)
 {
-    private ViscousAetheroplasm? _viscousAetheroplasm = module.FindComponent<ViscousAetheroplasm>();
+    private readonly ViscousAetheroplasm? _viscousAetheroplasm = module.FindComponent<ViscousAetheroplasm>();
 
-    private static readonly float _meleeRange = 7;
-    private static readonly float _rangedRange = 15; // outside ceruleum vent range, which is 14
+    private const float _meleeRange = 7;
+    private const float _rangedRange = 15; // outside ceruleum vent range, which is 14
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

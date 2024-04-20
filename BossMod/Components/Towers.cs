@@ -10,13 +10,13 @@ public class GenericTowers(BossModule module, ActionID aid = default) : CastCoun
         public int MaxSoakers = maxSoakers;
         public BitMask ForbiddenSoakers = forbiddenSoakers;
 
-        public bool IsInside(WPos pos) => pos.InCircle(Position, Radius);
-        public bool IsInside(Actor actor) => IsInside(actor.Position);
-        public int NumInside(BossModule module) => module.Raid.WithSlot().ExcludedFromMask(ForbiddenSoakers).InRadius(Position, Radius).Count();
-        public bool CorrectAmountInside(BossModule module) => NumInside(module) is var count && count >= MinSoakers && count <= MaxSoakers;
+        public readonly bool IsInside(WPos pos) => pos.InCircle(Position, Radius);
+        public readonly bool IsInside(Actor actor) => IsInside(actor.Position);
+        public readonly int NumInside(BossModule module) => module.Raid.WithSlot().ExcludedFromMask(ForbiddenSoakers).InRadius(Position, Radius).Count();
+        public readonly bool CorrectAmountInside(BossModule module) => NumInside(module) is var count && count >= MinSoakers && count <= MaxSoakers;
     }
 
-    public List<Tower> Towers = new();
+    public List<Tower> Towers = [];
 
     // default tower styling
     public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe)

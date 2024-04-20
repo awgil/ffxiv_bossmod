@@ -5,32 +5,19 @@
 // otherwise we show own bait as as outline (and warn if player is clipping someone) and other baits as filled (and warn if player is being clipped)
 public class GenericBaitAway(BossModule module, ActionID aid = default, bool alwaysDrawOtherBaits = true, bool centerAtTarget = false) : CastCounter(module, aid)
 {
-    public struct Bait
+    public record struct Bait(Actor Source, Actor Target, AOEShape Shape, DateTime Activation = default)
     {
-        public Actor Source;
-        public Actor Target;
-        public AOEShape Shape;
-        public DateTime Activation;
-
-        public Angle Rotation => Angle.FromDirection(Target.Position - Source.Position);
-
-        public Bait(Actor source, Actor target, AOEShape shape, DateTime activation = default)
-        {
-            Source = source;
-            Target = target;
-            Shape = shape;
-            Activation = activation;
-        }
+        public readonly Angle Rotation => Angle.FromDirection(Target.Position - Source.Position);
     }
 
     public bool AlwaysDrawOtherBaits = alwaysDrawOtherBaits; // if false, other baits are drawn only if they are clipping a player
     public bool CenterAtTarget = centerAtTarget; // if true, aoe source is at target
     public bool AllowDeadTargets = true; // if false, baits with dead targets are ignored
     public bool EnableHints = true;
-    public bool IgnoreOtherBaits = false; // if true, don't show hints/aoes for baits by others
+    public bool IgnoreOtherBaits; // if true, don't show hints/aoes for baits by others
     public PlayerPriority BaiterPriority = PlayerPriority.Interesting;
     public BitMask ForbiddenPlayers; // these players should avoid baiting
-    public List<Bait> CurrentBaits = new();
+    public List<Bait> CurrentBaits = [];
 
     public IEnumerable<Bait> ActiveBaits => AllowDeadTargets ? CurrentBaits : CurrentBaits.Where(b => !b.Target.IsDead);
     public IEnumerable<Bait> ActiveBaitsOn(Actor target) => ActiveBaits.Where(b => b.Target == target);

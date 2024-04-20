@@ -6,10 +6,10 @@ class Coherence(BossModule module) : Components.CastCounter(module, ActionID.Mak
 {
     private Actor? _tetherTarget;
     private Actor? _rayTarget;
-    private AOEShapeRect _rayShape = new(50, 3);
+    private readonly AOEShapeRect _rayShape = new(50, 3);
     private BitMask _inRay;
 
-    private static readonly float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff? i have very few data points < 15
+    private const float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff? i have very few data points < 15
 
     public override void Update()
     {

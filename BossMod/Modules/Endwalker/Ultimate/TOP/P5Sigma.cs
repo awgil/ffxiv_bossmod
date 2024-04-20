@@ -359,7 +359,7 @@ class P5SigmaRearLasers(BossModule module) : Components.GenericAOEs(module)
 class P5SigmaDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 {
     public bool Show;
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Show ? AOEs : Enumerable.Empty<AOEInstance>();
 
@@ -388,7 +388,7 @@ class P5SigmaDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 
 class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 {
-    private P5SigmaRearLasers? _lasers = module.FindComponent<P5SigmaRearLasers>();
+    private readonly P5SigmaRearLasers? _lasers = module.FindComponent<P5SigmaRearLasers>();
     private BitMask _dynamisStacks;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

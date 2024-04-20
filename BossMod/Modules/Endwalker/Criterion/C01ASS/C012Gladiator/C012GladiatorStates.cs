@@ -2,7 +2,7 @@
 
 class C012GladiatorStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C012GladiatorStates(BossModule module, bool savage) : base(module)
     {

@@ -6,7 +6,7 @@ public enum OID : uint
     BossAdd = 0x2566, //R=2.2
     BossHelper = 0x233C,
     FireVoidzone = 0x1EA8BB,
-    BonusAdd_AltarMatanga = 0x2545, // R3.420
+    BonusAddAltarMatanga = 0x2545, // R3.420
 }
 
 public enum AID : uint
@@ -20,10 +20,10 @@ public enum AID : uint
     TheWardensVerdict = 13739, // BossAdd->self, 3,0s cast, range 40+R width 4 rect
     FlamesOfFury = 13452, // Boss->location, 4,0s cast, range 10 circle
 
-    unknown = 9636, // BonusAdd_AltarMatanga->self, no cast, single-target
-    Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
+    unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
+    Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
@@ -82,7 +82,7 @@ class FlamesOfFuryBait(BossModule module) : Components.GenericBaitAway(module)
 class FlamesOfFuryVoidzone(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7));
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class TotemStates : StateMachineBuilder
 {
@@ -99,7 +99,7 @@ class TotemStates : StateMachineBuilder
             .ActivateOnEnter<Hurl>()
             .ActivateOnEnter<RaucousScritch>()
             .ActivateOnEnter<Spin>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddAltarMatanga).All(e => e.IsDead);
     }
 }
 
@@ -111,7 +111,7 @@ public class Totem(WorldState ws, Actor primary) : BossModule(ws, primary, new A
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
+        foreach (var s in Enemies(OID.BonusAddAltarMatanga))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -122,7 +122,7 @@ public class Totem(WorldState ws, Actor primary) : BossModule(ws, primary, new A
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_AltarMatanga => 3,
+                OID.BonusAddAltarMatanga => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

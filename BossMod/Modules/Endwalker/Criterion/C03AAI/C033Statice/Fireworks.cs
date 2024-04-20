@@ -100,11 +100,11 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
         public DateTime NextActivation;
     }
 
-    public List<Sequence> Sequences = new();
+    public List<Sequence> Sequences = [];
     private Angle _rotation;
 
     private static readonly AOEShapeRect _shape = new(20, 2.5f, -8);
-    private static readonly int _maxShownExplosions = 3;
+    private const int _maxShownExplosions = 3;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -180,11 +180,11 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
 // TODO: assign spread safespots based on initial missile position
 class Fireworks1Hints(BossModule module) : BossComponent(module)
 {
-    private RingARingOExplosions? _bombs = module.FindComponent<RingARingOExplosions>();
-    private Fireworks? _fireworks = module.FindComponent<Fireworks>();
+    private readonly RingARingOExplosions? _bombs = module.FindComponent<RingARingOExplosions>();
+    private readonly Fireworks? _fireworks = module.FindComponent<Fireworks>();
     private BitMask _pattern;
-    private List<WPos> _safeSpotsClaw = new();
-    private List<WPos> _safeSpotsMissile = new();
+    private readonly List<WPos> _safeSpotsClaw = [];
+    private readonly List<WPos> _safeSpotsMissile = [];
 
     public override void Update()
     {
@@ -286,9 +286,9 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
 // TODO: currently this assumes that DD always go rel-west, supports rel-east
 class Fireworks2Hints(BossModule module) : BossComponent(module)
 {
-    private Fireworks? _fireworks = module.FindComponent<Fireworks>();
-    private Dartboard? _dartboard = module.FindComponent<Dartboard>();
-    private FireSpread? _fireSpread = module.FindComponent<FireSpread>();
+    private readonly Fireworks? _fireworks = module.FindComponent<Fireworks>();
+    private readonly Dartboard? _dartboard = module.FindComponent<Dartboard>();
+    private readonly FireSpread? _fireSpread = module.FindComponent<FireSpread>();
     private Angle? _relNorth;
 
     public override void Update()

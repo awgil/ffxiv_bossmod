@@ -3,8 +3,8 @@
 class Exocleaver(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ExocleaverAOE2))
 {
     public bool FirstDone { get; private set; }
-    private AOEShapeCone _cone = new(30, 15.Degrees());
-    private List<Angle> _directions = new();
+    private readonly AOEShapeCone _cone = new(30, 15.Degrees());
+    private readonly List<Angle> _directions = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

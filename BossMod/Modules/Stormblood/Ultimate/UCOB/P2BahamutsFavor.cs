@@ -88,8 +88,8 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
 class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
 {
     public int NumDeathstorms { get; private set; }
-    private List<(Actor player, DateTime expiration, bool cleansed)> _dooms = new();
-    private List<(WPos predicted, Actor? voidzone)> _cleanses = new();
+    private readonly List<(Actor player, DateTime expiration, bool cleansed)> _dooms = [];
+    private readonly List<(WPos predicted, Actor? voidzone)> _cleanses = [];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

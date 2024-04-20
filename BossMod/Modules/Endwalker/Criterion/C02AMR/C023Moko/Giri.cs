@@ -4,10 +4,10 @@
 // we need cast to know proper rotation (we can't use actor's rotation, since it's interpolated)
 class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<string> _hints = new();
-    private List<Angle> _directionOffsets = new();
+    private readonly List<string> _hints = [];
+    private readonly List<Angle> _directionOffsets = [];
     private BitMask _ins; // [i] == true if i'th aoe is in
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shapeCone = new(60, 135.Degrees());
     private static readonly AOEShapeCircle _shapeOut = new(6);
@@ -47,8 +47,8 @@ class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
             _directionOffsets.Add(dir);
             _hints.Add(hint);
 
-            //var activation = _aoes.Count > 0 ? _aoes.Last().Activation.AddSeconds(3.1f) : actor.CastInfo?.NPCFinishAt ?? WorldState.FutureTime(12);
-            //var rotation = (_aoes.Count > 0 ? _aoes.Last().Rotation : actor.Rotation) + dir;
+            //var activation = _aoes.Count > 0 ? _aoes[^1].Activation.AddSeconds(3.1f) : actor.CastInfo?.NPCFinishAt ?? WorldState.FutureTime(12);
+            //var rotation = (_aoes.Count > 0 ? _aoes[^1].Rotation : actor.Rotation) + dir;
             //_aoes.Add(new(donut ? _shapeIn : _shapeOut, actor.Position, rotation, activation));
             //_aoes.Add(new(_shapeCone, actor.Position, rotation, activation));
             //_hints.Add(hint);
@@ -83,7 +83,7 @@ class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        var (dir, donut, order) = ClassifyAction(spell.Action);
+        var (_, _, order) = ClassifyAction(spell.Action);
         if (order < 0)
             return; // irrelevant spell
 
@@ -141,13 +141,13 @@ class IaiGiriBait : Components.GenericBaitAway
         public Actor Source = source;
         public Actor FakeSource = new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new());
         public Actor? Target;
-        public List<Angle> DirOffsets = new();
-        public List<string> Hints = new();
+        public List<Angle> DirOffsets = [];
+        public List<string> Hints = [];
     }
 
     public float Distance;
-    public List<Instance> Instances = new();
-    private float _jumpOffset;
+    public List<Instance> Instances = [];
+    private readonly float _jumpOffset;
     private bool _baitsDirty;
 
     public IaiGiriBait(BossModule module, float jumpOffset, float distance) : base(module)
@@ -228,24 +228,19 @@ class IaiGiriBait : Components.GenericBaitAway
 
 class IaiGiriResolve(BossModule module) : Components.GenericAOEs(module)
 {
-    public class Instance
+    public class Instance(Actor source)
     {
-        public Actor Source;
-        public List<AOEInstance> AOEs = new();
-
-        public Instance(Actor source)
-        {
-            Source = source;
-        }
+        public Actor Source = source;
+        public List<AOEInstance> AOEs = [];
     }
 
-    private List<Instance> _instances = new();
+    private readonly List<Instance> _instances = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var i in _instances)
             if (i.AOEs.Count > 0)
-                yield return i.AOEs.First();
+                yield return i.AOEs[0];
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

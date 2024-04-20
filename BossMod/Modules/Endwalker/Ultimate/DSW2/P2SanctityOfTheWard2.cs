@@ -18,7 +18,7 @@ class P2SanctityOfTheWard2Knockback(BossModule module) : Components.KnockbackFro
 }
 
 // note: technically it's a 2-man stack, but that is not really helpful here...
-class P2SanctityOfTheWard2HiemalStorm (BossModule module): Components.CastCounter(module, ActionID.MakeSpell(AID.HiemalStormAOE))
+class P2SanctityOfTheWard2HiemalStorm(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HiemalStormAOE))
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -46,28 +46,28 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
         public int NonPreySlot;
     }
 
-    [Flags]
-    enum AssignmentDebug
-    {
-        PreySwapLazy = 0x01,
-        PreySwapCursed = 0x02,
-        OuterSync = 0x04,
-        OuterCenter = 0x08,
-    }
+    //[Flags]
+    //enum AssignmentDebug
+    //{
+    //    PreySwapLazy = 0x01,
+    //    PreySwapCursed = 0x02,
+    //    OuterSync = 0x04,
+    //    OuterCenter = 0x08,
+    //}
 
-    private AssignmentDebug _assignmentDebug;
+    //private AssignmentDebug _assignmentDebug;
     private bool _stormsDone;
     private bool _preyOnTH;
     private BitMask _preyTargets;
-    private int[] _towerIndices = Utils.MakeArray(16, -1);
-    private PlayerData[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerData() { AssignedQuadrant = -1 });
-    private QuadrantData[] _quadrants = Utils.MakeArray(4, new QuadrantData() { PreySlot = -1, NonPreySlot = -1 });
+    private readonly int[] _towerIndices = Utils.MakeArray(16, -1);
+    private readonly PlayerData[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerData() { AssignedQuadrant = -1 });
+    private readonly QuadrantData[] _quadrants = Utils.MakeArray(4, new QuadrantData() { PreySlot = -1, NonPreySlot = -1 });
     private BitMask _activeTowers;
     private string _preySwap = "";
     private string _preyHint = "";
 
-    private static readonly float _stormPlacementOffset = 10;
-    private static readonly float _cometLinkRange = 5;
+    private const float _stormPlacementOffset = 10;
+    private const float _cometLinkRange = 5;
 
     public bool Active => Towers.Count == 8;
 
@@ -255,7 +255,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
         // lazy preferences: if both preys are at wrong cardinal, prefer not moving
         if (config.P2Sanctity2PreyCardinals is DSW2Config.P2PreyCardinals.PreferNS or DSW2Config.P2PreyCardinals.PreferEW && !_preyTargets[_quadrants[q1].PreySlot] && !_preyTargets[_quadrants[q2].PreySlot])
         {
-            _assignmentDebug |= AssignmentDebug.PreySwapLazy;
+            //_assignmentDebug |= AssignmentDebug.PreySwapLazy;
             q1 ^= 1;
             q2 ^= 1;
         }
@@ -269,7 +269,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
             bool cursed = (q1towers & q2towers) == 0 && (q1towers | q2towers) == 0b101; // 100+001 or 001+100
             if (cursed)
             {
-                _assignmentDebug |= AssignmentDebug.PreySwapCursed;
+                //_assignmentDebug |= AssignmentDebug.PreySwapCursed;
                 q1 ^= 1;
                 q2 ^= 1;
             }
@@ -360,7 +360,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
                 q12cw = !q12cw;
                 q1selected = q1alt;
                 q2selected = q2alt;
-                _assignmentDebug |= AssignmentDebug.OuterSync;
+                //_assignmentDebug |= AssignmentDebug.OuterSync;
             }
         }
         _preyHint = q12cw ? "cw" : "ccw";
@@ -375,7 +375,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
             q2selected = 1;
             _preyHint = "center";
             // note: q12cw is now meaningless, but it doesn't matter
-            _assignmentDebug |= AssignmentDebug.OuterCenter;
+            //_assignmentDebug |= AssignmentDebug.OuterCenter;
         }
 
         // ok, assign outer towers for prey targets
@@ -396,12 +396,12 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
         AssignTower(_quadrants[q4].PreySlot, q4 * 3 + q4selected);
 
         // and finally assign towers for non-prey roles
-        Action<int, ulong, int> assignNonPrey = (q, towers, taken) =>
+        void assignNonPrey(int q, ulong towers, int taken)
         {
             var remaining = new BitMask(towers ^ (1u << taken));
             if (remaining.Any())
                 AssignTower(_quadrants[q].NonPreySlot, remaining.LowestSetBit() + 3 * q);
-        };
+        }
         assignNonPrey(q1, q1towers, q1selected);
         assignNonPrey(q2, q2towers, q2selected);
         assignNonPrey(q3, q3towers, q3selected);
@@ -560,7 +560,7 @@ class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(mod
 {
     private bool _preyOnTH;
     private BitMask _preyTargets;
-    private int[] _playerTowers = Utils.MakeArray(PartyState.MaxPartySize, -1);
+    private readonly int[] _playerTowers = Utils.MakeArray(PartyState.MaxPartySize, -1);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

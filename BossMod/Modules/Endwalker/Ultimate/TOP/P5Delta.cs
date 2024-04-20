@@ -29,8 +29,8 @@ class P5Delta(BossModule module) : BossComponent(module)
     private WDir _eyeDir; // relative north; beetle is rel west, final is rel east
     private WDir _monitorSafeDir;
     private WDir _swivelCannonSafeDir;
-    private List<(int, int)> _localTethers = new();
-    private List<(int, int)> _remoteTethers = new();
+    private readonly List<(int, int)> _localTethers = [];
+    private readonly List<(int, int)> _remoteTethers = [];
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
@@ -172,7 +172,8 @@ class P5Delta(BossModule module) : BossComponent(module)
     {
         if ((OID)actor.OID is OID.LeftArmUnit or OID.RightArmUnit)
         {
-            var rotation = (IconID)iconID switch {
+            var rotation = (IconID)iconID switch
+            {
                 IconID.RotateCW => -20.Degrees(),
                 IconID.RotateCCW => 20.Degrees(),
                 _ => default
@@ -376,7 +377,7 @@ class P5DeltaOpticalLaser(BossModule module) : Components.GenericAOEs(module, Ac
 
 class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaExplosion), 3)
 {
-    private P5Delta? _delta = module.FindComponent<P5Delta>();
+    private readonly P5Delta? _delta = module.FindComponent<P5Delta>();
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -391,11 +392,11 @@ class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(modu
 
 class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
 {
-    private P5Delta? _delta = module.FindComponent<P5Delta>();
-    private List<AOEInstance> _aoes = new();
+    private readonly P5Delta? _delta = module.FindComponent<P5Delta>();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape = new(100, 4);
-    private static readonly int _numRepeats = 6;
+    private const int _numRepeats = 6;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -449,7 +450,7 @@ class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
 
 class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
-    private P5Delta? _delta = module.FindComponent<P5Delta>();
+    private readonly P5Delta? _delta = module.FindComponent<P5Delta>();
     private Actor? _boss;
     private Angle _bossAngle;
     private BitMask _bossIntendedTargets;
@@ -466,7 +467,7 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
         if (_player == actor)
         {
             // ensure we hit only two intended targets
-            hints.Add("Aim monitor!", Raid.WithSlot().Exclude(actor).Where(ip => _shape.Check(ip.Item2.Position, actor.Position, actor.Rotation + _playerAngle) != _playerIntendedTargets[ip.Item1]).Any());
+            hints.Add("Aim monitor!", Raid.WithSlot().Exclude(actor).Any(ip => _shape.Check(ip.Item2.Position, actor.Position, actor.Rotation + _playerAngle) != _playerIntendedTargets[ip.Item1]));
         }
         else if (_player != null)
         {

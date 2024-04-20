@@ -8,8 +8,8 @@ class PredatoryAvarice(BossModule module) : BossComponent(module)
     private BitMask _playersInTides;
     private BitMask _playersInDepths;
 
-    private static readonly float _tidesRadius = 10;
-    private static readonly float _depthsRadius = 6;
+    private const float _tidesRadius = 10;
+    private const float _depthsRadius = 6;
 
     public bool Active => (_playersWithTides | _playersWithDepths).Any();
 

@@ -34,7 +34,7 @@ class DarkWyrmtail(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 
 class CreatureOfDarkness(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<Actor> _heads = new();
+    private readonly List<Actor> _heads = [];
     private static readonly AOEShapeRect rect = new(2, 2, 2);
     private static readonly AOEShapeRect rect2 = new(6, 2);
 

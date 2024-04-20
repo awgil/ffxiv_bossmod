@@ -8,7 +8,7 @@ class Palladion(BossModule module) : BossComponent(module)
     public BitMask BaitOrder; // bit i is set if i'th action is a bait rather than center aoe
     public int NumBaitsAssigned;
     public int NumBaitsDone;
-    private Dictionary<ulong, bool> _baitedLight = new(); // key = instance id, value = true if bait, false if center aoe
+    private readonly Dictionary<ulong, bool> _baitedLight = []; // key = instance id, value = true if bait, false if center aoe
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -80,7 +80,7 @@ class PalladionArena(BossModule module) : BossComponent(module)
 // shockwave is targeted at next jump target; everyone except target and partner should avoid it
 class PalladionShockwave(BossModule module) : Components.GenericAOEs(module)
 {
-    private Palladion? _palladion = module.FindComponent<Palladion>();
+    private readonly Palladion? _palladion = module.FindComponent<Palladion>();
     private WPos _origin = module.PrimaryActor.Position;
     private DateTime _activation = module.PrimaryActor.CastInfo?.NPCFinishAt.AddSeconds(0.3f) ?? default;
 
@@ -125,7 +125,7 @@ class PalladionShockwave(BossModule module) : Components.GenericAOEs(module)
 class PalladionStack : Components.UniformStackSpread
 {
     private int _numCasts;
-    private Palladion? _palladion;
+    private readonly Palladion? _palladion;
 
     public PalladionStack(BossModule module) : base(module, 6, 0, raidwideOnResolve: false)
     {
@@ -156,7 +156,7 @@ class PalladionVoidzone(BossModule module) : Components.PersistentVoidzoneAtCast
 
 class PalladionClearCut(BossModule module) : Components.GenericAOEs(module)
 {
-    private Palladion? _palladion = module.FindComponent<Palladion>();
+    private readonly Palladion? _palladion = module.FindComponent<Palladion>();
 
     private static readonly AOEShapeCircle _shape = new(4); // note: it's really a 270? degree cone, but we don't really know rotation early enough, and we just shouldn't stay in center anyway
 
@@ -170,8 +170,8 @@ class PalladionClearCut(BossModule module) : Components.GenericAOEs(module)
 // TODO: reconsider - show always, even if next is clear cut?..
 class PalladionWhiteFlame : Components.GenericBaitAway
 {
-    private Palladion? _palladion;
-    private Actor _fakeSource = new(0, 0, -1, "dummy", 0, ActorType.None, Class.None, 0, new(100, 0, 100, 0)); // fake actor used as bait source
+    private readonly Palladion? _palladion;
+    private readonly Actor _fakeSource = new(0, 0, -1, "dummy", 0, ActorType.None, Class.None, 0, new(100, 0, 100, 0)); // fake actor used as bait source
 
     private static readonly AOEShapeRect _shape = new(100, 2);
 

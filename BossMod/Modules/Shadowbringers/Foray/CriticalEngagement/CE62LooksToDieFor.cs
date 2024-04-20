@@ -104,8 +104,8 @@ class Flame(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSp
 
 class Burn(BossModule module) : Components.GenericAOEs(module)
 {
-    private IReadOnlyList<Actor> _flames = module.Enemies(OID.BallOfFire);
-    private List<(Actor actor, AOEInstance? aoe)> _casters = [];
+    private readonly IReadOnlyList<Actor> _flames = module.Enemies(OID.BallOfFire);
+    private readonly List<(Actor actor, AOEInstance? aoe)> _casters = [];
 
     private static readonly AOEShapeCircle _shape = new(8);
 
@@ -127,7 +127,7 @@ class Burn(BossModule module) : Components.GenericAOEs(module)
     {
         foreach (var f in _flames.Where(f => f.ModelState.AnimState1 == 1 && _casters.FindIndex(c => c.actor == f) < 0))
         {
-            _casters.Add((f, new (_shape, f.Position, default, WorldState.FutureTime(5))));
+            _casters.Add((f, new(_shape, f.Position, default, WorldState.FutureTime(5))));
         }
     }
 

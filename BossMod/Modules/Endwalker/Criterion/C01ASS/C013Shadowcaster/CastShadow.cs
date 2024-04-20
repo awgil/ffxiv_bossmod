@@ -2,8 +2,8 @@
 
 class CastShadow(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<Actor> FirstAOECasters = new();
-    public List<Actor> SecondAOECasters = new();
+    public List<Actor> FirstAOECasters = [];
+    public List<Actor> SecondAOECasters = [];
 
     private static readonly AOEShape _shape = new AOEShapeCone(65, 15.Degrees());
 

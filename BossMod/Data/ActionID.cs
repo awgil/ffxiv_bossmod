@@ -29,12 +29,12 @@ public enum ActionType : byte
 
 public enum Positional { Any, Flank, Rear, Front }
 
-public struct ActionID
+public struct ActionID : IEquatable<ActionID>
 {
     public uint Raw; // high byte is type, low 3 bytes is ID
 
-    public ActionType Type => (ActionType)(Raw >> 24);
-    public uint ID => Raw & 0x00FFFFFFu;
+    public readonly ActionType Type => (ActionType)(Raw >> 24);
+    public readonly uint ID => Raw & 0x00FFFFFFu;
 
     public ActionID(uint raw = 0) { Raw = raw; }
     public ActionID(ActionType type, uint id) { Raw = ((uint)type << 24) | id; }
@@ -42,13 +42,14 @@ public struct ActionID
     public static implicit operator bool(ActionID x) => x.Raw != 0;
     public static bool operator ==(ActionID l, ActionID r) => l.Raw == r.Raw;
     public static bool operator !=(ActionID l, ActionID r) => l.Raw != r.Raw;
-    public override bool Equals(object? obj) => obj is ActionID && this == (ActionID)obj;
-    public override int GetHashCode() => Raw.GetHashCode();
-    public override string ToString() => $"{Type} {ID} '{Name()}'";
+    public readonly bool Equals(ActionID other) => this == other;
+    public override readonly bool Equals(object? obj) => obj is ActionID other && this == other;
+    public override readonly int GetHashCode() => Raw.GetHashCode();
+    public override readonly string ToString() => $"{Type} {ID} '{Name()}'";
 
-    public AID As<AID>() where AID : Enum => (AID)(object)ID;
+    public readonly AID As<AID>() where AID : Enum => (AID)(object)ID;
 
-    public string Name() => Type switch
+    public readonly string Name() => Type switch
     {
         ActionType.Spell => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.Name ?? "<not found>",
         ActionType.Item => $"{Service.LuminaRow<Lumina.Excel.GeneratedSheets.Item>(ID % 1000000)?.Name ?? "<not found>"}{(ID > 1000000 ? " (HQ)" : "")}", // see Dalamud.Game.Text.SeStringHandling.Payloads.GetAdjustedId; TODO: id > 500000 is "collectible", >2000000 is "event" ??
@@ -56,15 +57,15 @@ public struct ActionID
         _ => ""
     };
 
-    public float CastTime() => Type switch
+    public readonly float CastTime() => Type switch
     {
         ActionType.Spell => (Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.Cast100ms ?? 0) * 0.1f,
         _ => 0
     };
 
-    public bool IsCasted() => CastTime() > 0;
+    public readonly bool IsCasted() => CastTime() > 0;
 
-    public bool IsGroundTargeted() => Type switch
+    public readonly bool IsGroundTargeted() => Type switch
     {
         ActionType.Spell => Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(ID)?.TargetArea ?? false,
         _ => false

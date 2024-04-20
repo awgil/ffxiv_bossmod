@@ -3,8 +3,8 @@
 // both phases use radiant plumes
 class TitanIfrit(BossModule module) : BossComponent(module)
 {
-    private List<(Actor, AOEShapeCircle)> _activeLocationTargetedAOEs = new();
-    private List<Actor> _crimsonCyclone = new();
+    private readonly List<(Actor, AOEShapeCircle)> _activeLocationTargetedAOEs = [];
+    private readonly List<Actor> _crimsonCyclone = [];
 
     private static readonly AOEShapeCircle _aoeRadiantPlume = new(8);
     private static readonly AOEShapeCircle _aoeWeightOfLand = new(6);

@@ -2,27 +2,16 @@
 
 // attribute that specifies group count and names for group assignment property
 [AttributeUsage(AttributeTargets.Field)]
-public class GroupDetailsAttribute : Attribute
+public sealed class GroupDetailsAttribute(string[] names) : Attribute
 {
-    public string[] Names;
-
-    public GroupDetailsAttribute(string[] names)
-    {
-        Names = names;
-    }
+    public string[] Names { get; } = names;
 }
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-public class GroupPresetAttribute : Attribute
+public sealed class GroupPresetAttribute(string name, int[] preset) : Attribute
 {
-    public string Name;
-    public int[] Preset;
-
-    public GroupPresetAttribute(string name, int[] preset)
-    {
-        Name = name;
-        Preset = preset;
-    }
+    public string Name { get; } = name;
+    public int[] Preset { get; } = preset;
 }
 
 // config node property that allows assigning party roles to arbitrary named groups
@@ -117,11 +106,11 @@ public class GroupAssignmentDDSupportPairs : GroupAssignment
     public override bool Validate()
     {
         BitMask mask = new(); // bits 0-3 - support for group N, bits 4-7 - dd for group (N-4)
-        Action<int, int> addToMask = (group, offset) =>
+        void addToMask(int group, int offset)
         {
             if (group is >= 0 and < 4)
                 mask.Set(group + offset);
-        };
+        }
         for (int i = 0; i < 4; ++i)
             addToMask(Assignments[i], 0);
         for (int i = 4; i < 8; ++i)

@@ -2,7 +2,7 @@
 
 class EinSof(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.EinSofAOE))
 {
-    private List<Actor> _active = new();
+    private readonly List<Actor> _active = [];
 
     private static readonly AOEShape _shape = new AOEShapeCircle(10); // TODO: verify radius
 
@@ -17,14 +17,14 @@ class EinSof(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSp
     {
         switch (state)
         {
+            // 0x00100020 - become harmful, happens ~2.5s after appear and ~1.5s before first aoe
+            // 0x00400080 - ??? (after 5th aoe)
             case 0x00040008: // appear as harmless
                 _active.Add(actor);
                 break;
             case 0x00010200: // disappear (happens ~1.2s after last aoe)
                 _active.Remove(actor);
                 break;
-            // 0x00100020 - become harmful, happens ~2.5s after appear and ~1.5s before first aoe
-            // 0x00400080 - ??? (after 5th aoe)
         }
     }
 }

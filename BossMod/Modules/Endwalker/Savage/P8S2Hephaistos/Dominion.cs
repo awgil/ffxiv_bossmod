@@ -4,10 +4,10 @@ class Dominion : Components.UniformStackSpread
 {
     public int NumDeformations { get; private set; }
     public int NumShifts { get; private set; }
-    public List<Actor> Casters = new();
+    public List<Actor> Casters = [];
     private BitMask _secondOrder;
 
-    private static readonly float _towerRadius = 3;
+    private const float _towerRadius = 3;
 
     public Dominion(BossModule module) : base(module, 0, 6)
     {

@@ -61,7 +61,7 @@ public enum SID : uint
 // the only thing that is well timed is P3 (divebombs phase)
 class T05TwintaniaStates : StateMachineBuilder
 {
-    private T05Twintania _module;
+    private readonly T05Twintania _module;
 
     public T05TwintaniaStates(T05Twintania module) : base(module)
     {

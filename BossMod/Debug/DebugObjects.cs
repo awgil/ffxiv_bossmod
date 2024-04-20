@@ -8,9 +8,9 @@ namespace BossMod;
 
 public class DebugObjects
 {
-    private UITree _tree = new();
-    private bool _showCrap = false;
-    private uint _selectedID = 0;
+    private readonly UITree _tree = new();
+    private bool _showCrap;
+    private uint _selectedID;
 
     public unsafe void DrawObjectTable()
     {

@@ -3,12 +3,12 @@
 class RokujoRevel(BossModule module) : Components.GenericAOEs(module)
 {
     private int _numBreaths;
-    private List<Actor> _clouds = [.. module.Enemies(OID.NRaiun), .. module.Enemies(OID.SRaiun)];
-    private List<(Angle dir, DateTime activation)> _pendingLines = new();
-    private List<(WPos origin, DateTime activation)> _pendingCircles = new();
+    private readonly List<Actor> _clouds = [.. module.Enemies(OID.NRaiun), .. module.Enemies(OID.SRaiun)];
+    private readonly List<(Angle dir, DateTime activation)> _pendingLines = [];
+    private readonly List<(WPos origin, DateTime activation)> _pendingCircles = [];
 
     private static readonly AOEShapeRect _shapeLine = new(30, 7, 30);
-    private static readonly AOEShapeCircle[] _shapesCircle = { new(8), new(12), new(23) };
+    private static readonly AOEShapeCircle[] _shapesCircle = [new(8), new(12), new(23)];
 
     private AOEShapeCircle? ShapeCircle => _numBreaths is > 0 and <= 3 ? _shapesCircle[_numBreaths - 1] : null;
 

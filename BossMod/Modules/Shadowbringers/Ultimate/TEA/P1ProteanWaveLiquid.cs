@@ -6,7 +6,7 @@ class P1ProteanWaveLiquidVisHelper(BossModule module) : Components.SelfTargetedA
 // single protean ("shadow") that fires in the direction the boss is facing
 class P1ProteanWaveLiquidInvisFixed(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ProteanWaveLiquidInvisBoss))
 {
-    private Actor? _source = module.Enemies(OID.BossP1).FirstOrDefault();
+    private readonly Actor? _source = module.Enemies(OID.BossP1).FirstOrDefault();
 
     private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
 
@@ -20,7 +20,7 @@ class P1ProteanWaveLiquidInvisFixed(BossModule module) : Components.GenericAOEs(
 // proteans baited on 4 closest targets
 class P1ProteanWaveLiquidInvisBaited(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.ProteanWaveLiquidInvisHelper))
 {
-    private Actor? _source = module.Enemies(OID.BossP1).FirstOrDefault();
+    private readonly Actor? _source = module.Enemies(OID.BossP1).FirstOrDefault();
 
     private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
 

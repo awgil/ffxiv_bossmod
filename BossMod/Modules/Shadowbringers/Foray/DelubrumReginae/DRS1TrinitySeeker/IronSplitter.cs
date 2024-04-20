@@ -2,7 +2,7 @@
 
 class IronSplitter(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.IronSplitter))
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
@@ -11,7 +11,7 @@ class IronSplitter(BossModule module) : Components.GenericAOEs(module, ActionID.
         if (spell.Action == WatchedAction)
         {
             var distance = (caster.Position - Module.Bounds.Center).Length();
-            if (distance is <3 or >9 and <11 or >17 and <19) // tiles
+            if (distance is < 3 or > 9 and < 11 or > 17 and < 19) // tiles
             {
                 _aoes.Add(new(new AOEShapeCircle(4), Module.Bounds.Center, new(), spell.NPCFinishAt));
                 _aoes.Add(new(new AOEShapeDonut(8, 12), Module.Bounds.Center, new(), spell.NPCFinishAt));

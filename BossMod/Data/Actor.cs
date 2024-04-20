@@ -55,7 +55,7 @@ public class ActorCastEvent
     public ulong MainTargetID; // note that actual affected targets could be completely different
     public float AnimationLockTime;
     public uint MaxTargets;
-    public List<Target> Targets = new();
+    public List<Target> Targets = [];
     public Vector3 TargetPos;
     public uint SourceSequence;
     public uint GlobalSequence;
@@ -95,31 +95,31 @@ public struct ActorModelState
     public byte AnimState2;
 }
 
-public class Actor
+public class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
 {
-    public ulong InstanceID; // 'uuid'
-    public uint OID;
-    public int SpawnIndex; // [0-200) = character (even for normal, odd for dependents like mounts), [200-246) = client-side, [246, 286) = event object, [286, 426) = ???, [426-526) = ???, [526,596) = ???
-    public string Name;
-    public uint NameID;
-    public ActorType Type;
-    public Class Class;
-    public int Level;
-    public Vector4 PosRot = new(); // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
-    public float HitboxRadius;
-    public ActorHP HP;
-    public uint CurMP;
+    public ulong InstanceID = instanceID; // 'uuid'
+    public uint OID = oid;
+    public int SpawnIndex = spawnIndex; // [0-200) = character (even for normal, odd for dependents like mounts), [200-246) = client-side, [246, 286) = event object, [286, 426) = ???, [426-526) = ???, [526,596) = ???
+    public string Name = name;
+    public uint NameID = nameID;
+    public ActorType Type = type;
+    public Class Class = classID;
+    public int Level = level;
+    public Vector4 PosRot = posRot; // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
+    public float HitboxRadius = hitboxRadius;
+    public ActorHP HP = hp;
+    public uint CurMP = mp;
     public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
-    public bool IsTargetable;
-    public bool IsAlly;
+    public bool IsTargetable = targetable;
+    public bool IsAlly = ally;
     public bool IsDead;
     public bool InCombat;
     public ActorModelState ModelState;
     public byte EventState; // not sure about the field meaning...
-    public ulong OwnerID; // uuid of owner, for pets and similar
+    public ulong OwnerID = ownerID; // uuid of owner, for pets and similar
     public ulong TargetID;
     public ActorCastInfo? CastInfo;
-    public ActorTetherInfo Tether = new();
+    public ActorTetherInfo Tether;
     public ActorStatus[] Statuses = new ActorStatus[60]; // empty slots have ID=0
 
     public Role Role => Class.GetRole();
@@ -127,25 +127,6 @@ public class Actor
     public Angle Rotation => PosRot.W.Radians();
     public bool Omnidirectional => Utils.CharacterIsOmnidirectional(OID);
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
-
-    public Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
-    {
-        InstanceID = instanceID;
-        OID = oid;
-        SpawnIndex = spawnIndex;
-        Name = name;
-        NameID = nameID;
-        Type = type;
-        Class = classID;
-        Level = level;
-        PosRot = posRot;
-        HitboxRadius = hitboxRadius;
-        HP = hp;
-        CurMP = mp;
-        IsTargetable = targetable;
-        IsAlly = ally;
-        OwnerID = ownerID;
-    }
 
     public ActorStatus? FindStatus(uint sid)
     {

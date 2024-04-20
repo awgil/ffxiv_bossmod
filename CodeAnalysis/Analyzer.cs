@@ -7,7 +7,7 @@ namespace CodeAnalysis;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class Analyzer : DiagnosticAnalyzer
 {
-    private static readonly List<DiagnosticDescriptor> s_diagnostics = new();
+    private static readonly List<DiagnosticDescriptor> s_diagnostics = [];
     private static DiagnosticDescriptor Register(string title, string message)
     {
         var res = new DiagnosticDescriptor($"VBM{s_diagnostics.Count + 1:d3}", title, message, "Custom rules", DiagnosticSeverity.Error, true);
@@ -66,8 +66,6 @@ public class Analyzer : DiagnosticAnalyzer
         if (symbol.Kind != SymbolKind.Field || !symbol.IsStatic)
             return false;
         var cast = (IFieldSymbol)symbol;
-        if (cast.IsReadOnly || cast.IsConst)
-            return false;
-        return true;
+        return !cast.IsReadOnly && !cast.IsConst;
     }
 }

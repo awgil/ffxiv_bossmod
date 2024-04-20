@@ -5,12 +5,12 @@ public enum OID : uint
     Boss = 0x3016, //R=2.5
     Thunderhead = 0x3017, //R=1.0, untargetable
     BossHelper = 0x233C,
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
 }
 
 public enum AID : uint
 {
-    AutoAttack = 872, // Boss/BonusAdd_TheKeeperOfTheKeys->player, no cast, single-target
+    AutoAttack = 872, // Boss/BonusAddKeeperOfKeys->player, no cast, single-target
     BurningBright = 21667, // Boss->self, 3,0s cast, range 47 width 6 rect
     Nicker = 21668, // Boss->self, 4,0s cast, range 12 circle
     CloudCall = 21666, // Boss->self, 3,0s cast, single-target, calls clouds
@@ -44,7 +44,7 @@ class PegasusStates : StateMachineBuilder
             .ActivateOnEnter<Spin>()
             .ActivateOnEnter<Mash>()
             .ActivateOnEnter<Scoop>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead);
     }
 }
 
@@ -56,7 +56,7 @@ public class Pegasus(WorldState ws, Actor primary) : BossModule(ws, primary, new
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.Thunderhead).Where(x => !x.IsDead))
             Arena.Actor(s, ArenaColor.Object, true);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -67,7 +67,7 @@ public class Pegasus(WorldState ws, Actor primary) : BossModule(ws, primary, new
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_TheKeeperOfTheKeys => 2,
+                OID.BonusAddKeeperOfKeys => 2,
                 OID.Boss => 1,
                 _ => 0
             };

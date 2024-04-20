@@ -5,23 +5,18 @@ namespace BossMod;
 
 // reusable polygon clipper & tesselator
 // currently uses Clipper library (Vatti algorithm) for clipping and Earcut.net library (earcutting) for triangulating
-public class Clip2D
+public class Clip2D(bool strictlySimple = true)
 {
     private const float _scale = 1000;
     private const float _invScale = 1 / _scale;
 
-    private Clipper _clipper;
-    private List<IntPoint> _clipPoly = new();
+    private readonly Clipper _clipper = new(strictlySimple ? Clipper.ioStrictlySimple : 0);
+    private List<IntPoint> _clipPoly = [];
 
     public IEnumerable<WPos> ClipPoly
     {
         get => _clipPoly.Select(ConvertPoint);
         set => _clipPoly = value.Select(ConvertPoint).ToList();
-    }
-
-    public Clip2D(bool strictlySimple = true)
-    {
-        _clipper = new(strictlySimple ? Clipper.ioStrictlySimple : 0);
     }
 
     public PolyTree Simplify(IEnumerable<IEnumerable<WPos>> poly)
@@ -124,7 +119,7 @@ public class Clip2D
 
     public static List<(WPos, WPos, WPos)> Triangulate(PolyTree solution)
     {
-        List<(WPos, WPos, WPos)> triangulation = new();
+        List<(WPos, WPos, WPos)> triangulation = [];
         Triangulate(triangulation, solution);
         return triangulation;
     }
@@ -153,7 +148,7 @@ public class Clip2D
     {
         if (n.Contour.Count == 0)
             yield break;
-        var prev = ConvertPoint(n.Contour.Last());
+        var prev = ConvertPoint(n.Contour[^1]);
         foreach (var next in n.Contour.Select(ConvertPoint))
         {
             yield return (prev, next);
@@ -165,8 +160,8 @@ public class Clip2D
     {
         foreach (var outer in node.Childs.Where(o => !o.IsOpen && o.Contour.Count > 0))
         {
-            List<double> pts = new();
-            List<int> holes = new();
+            List<double> pts = [];
+            List<int> holes = [];
 
             AddClipperPoly(pts, outer.Contour);
             foreach (var hole in outer.Childs.Where(h => h.Contour.Count > 0))

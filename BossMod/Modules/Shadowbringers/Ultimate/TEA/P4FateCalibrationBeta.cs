@@ -5,10 +5,10 @@ class P4FateCalibrationBetaDebuffs(BossModule module) : P4ForcedMarchDebuffs(mod
 {
     private enum Color { Unknown, Light, Dark }
 
-    private P4FateProjection? _proj = module.FindComponent<P4FateProjection>();
-    private Color[] _colors = new Color[PartyState.MaxPartySize];
-    private int[] _farTethers = { -1, -1 };
-    private int[] _nearTethers = { -1, -1 };
+    private readonly P4FateProjection? _proj = module.FindComponent<P4FateProjection>();
+    private readonly Color[] _colors = new Color[PartyState.MaxPartySize];
+    private readonly int[] _farTethers = [-1, -1];
+    private readonly int[] _nearTethers = [-1, -1];
     private int _sharedSentence = -1;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -112,7 +112,7 @@ class P4FateCalibrationBetaDebuffs(BossModule module) : P4ForcedMarchDebuffs(mod
 class P4FateCalibrationBetaJJump(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     private bool _enabled;
-    private List<Actor> _jumpers = new();
+    private readonly List<Actor> _jumpers = [];
 
     private static readonly AOEShapeCircle _shape = new(10);
 
@@ -153,7 +153,7 @@ class P4FateCalibrationBetaOpticalSight(BossModule module) : Components.UniformS
 
     public bool Done { get; private set; }
     private Mechanic _mechanic;
-    private List<Actor> _stackTargets = new();
+    private readonly List<Actor> _stackTargets = [];
 
     public void Show()
     {

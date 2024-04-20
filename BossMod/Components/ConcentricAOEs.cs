@@ -12,7 +12,7 @@ public class ConcentricAOEs(BossModule module, AOEShape[] shapes) : GenericAOEs(
     }
 
     public AOEShape[] Shapes = shapes;
-    public List<Sequence> Sequences = new();
+    public List<Sequence> Sequences = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Sequences.Where(s => s.NumCastsDone < Shapes.Length).Select(s => new AOEInstance(Shapes[s.NumCastsDone], s.Origin, s.Rotation, s.NextActivation));
 

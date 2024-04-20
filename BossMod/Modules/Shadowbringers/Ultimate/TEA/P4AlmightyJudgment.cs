@@ -3,7 +3,7 @@
 // note: sets are 2s apart, 8-9 casts per set
 class P4AlmightyJudgment(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos pos, DateTime activation)> _casters = new();
+    private readonly List<(WPos pos, DateTime activation)> _casters = [];
 
     private static readonly AOEShapeCircle _shape = new(6);
 

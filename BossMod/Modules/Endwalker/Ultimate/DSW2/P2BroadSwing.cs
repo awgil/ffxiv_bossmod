@@ -2,7 +2,7 @@
 
 class P2BroadSwing(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BroadSwingAOE))
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _aoe = new(40, 60.Degrees());
 

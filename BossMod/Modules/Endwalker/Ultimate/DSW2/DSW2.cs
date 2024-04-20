@@ -19,10 +19,9 @@ class P7AlternativeEnd(BossModule module) : Components.CastCounter(module, Actio
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788)]
 public class DSW2(WorldState ws, Actor primary) : BossModule(ws, primary, BoundsCircle)
 {
-    public static readonly ArenaBoundsCircle BoundsCircle = new ArenaBoundsCircle(new(100, 100), 21); // p2, intermission
-    public static readonly ArenaBoundsSquare BoundsSquare = new ArenaBoundsSquare(new(100, 100), 21); // p3, p4
+    public static readonly ArenaBoundsCircle BoundsCircle = new(new(100, 100), 21); // p2, intermission
+    public static readonly ArenaBoundsSquare BoundsSquare = new(new(100, 100), 21); // p3, p4
 
-    private Actor? _arenaFeatures;
     private Actor? _bossP3;
     private Actor? _leftEyeP4;
     private Actor? _rightEyeP4;
@@ -33,7 +32,7 @@ public class DSW2(WorldState ws, Actor primary) : BossModule(ws, primary, Bounds
     private Actor? _nidhoggP6;
     private Actor? _hraesvelgrP6;
     private Actor? _bossP7;
-    public Actor? ArenaFeatures => _arenaFeatures;
+    public Actor? ArenaFeatures { get; private set; }
     public Actor? BossP2() => PrimaryActor;
     public Actor? BossP3() => _bossP3;
     public Actor? LeftEyeP4() => _leftEyeP4;
@@ -50,7 +49,7 @@ public class DSW2(WorldState ws, Actor primary) : BossModule(ws, primary, Bounds
     {
         // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
         // the problem is that on wipe, any actor can be deleted and recreated in the same frame
-        _arenaFeatures ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.ArenaFeatures).FirstOrDefault() : null;
+        ArenaFeatures ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.ArenaFeatures).FirstOrDefault() : null;
         _bossP3 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.BossP3).FirstOrDefault() : null;
         _leftEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.LeftEye).FirstOrDefault() : null;
         _rightEyeP4 ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.RightEye).FirstOrDefault() : null;

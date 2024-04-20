@@ -13,9 +13,9 @@ class P2BrokenSeal(BossModule module) : BossComponent(module)
 
     public int NumAssigned { get; private set; }
     public int NumCasts { get; private set; }
-    private PlayerState[] _playerStates = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Partner = -1 });
-    private IReadOnlyList<Actor> _fireTowers = module.Enemies(OID.FireTower);
-    private IReadOnlyList<Actor> _iceTowers = module.Enemies(OID.IceTower);
+    private readonly PlayerState[] _playerStates = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Partner = -1 });
+    private readonly IReadOnlyList<Actor> _fireTowers = module.Enemies(OID.FireTower);
+    private readonly IReadOnlyList<Actor> _iceTowers = module.Enemies(OID.IceTower);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

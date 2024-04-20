@@ -3,14 +3,14 @@
 // state related to fledgling flight & death toll mechanics
 class FledglingFlight(BossModule module) : BossComponent(module)
 {
-    public bool PlacementDone { get; private set; } = false;
-    public bool CastsDone { get; private set; } = false;
-    private List<(Actor, Angle)> _sources = new(); // actor + rotation
-    private int[] _playerDeathTollStacks = new int[8];
-    private int[] _playerAOECount = new int[8];
+    public bool PlacementDone { get; private set; }
+    public bool CastsDone { get; private set; }
+    private readonly List<(Actor, Angle)> _sources = []; // actor + rotation
+    private readonly int[] _playerDeathTollStacks = new int[8];
+    private readonly int[] _playerAOECount = new int[8];
 
     private static readonly Angle _coneHalfAngle = 45.Degrees();
-    private static readonly float _eyePlacementOffset = 10;
+    private const float _eyePlacementOffset = 10;
 
     public override void Update()
     {
@@ -91,7 +91,7 @@ class FledglingFlight(BossModule module) : BossComponent(module)
 
     public override void OnEventIcon(Actor actor, uint iconID)
     {
-        if (iconID >= 296 && iconID <= 299)
+        if (iconID is >= 296 and <= 299)
         {
             if (PlacementDone)
             {

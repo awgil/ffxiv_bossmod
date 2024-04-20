@@ -3,7 +3,7 @@
 // TODO: improve...
 class PathogenicCells(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PathogenicCellsAOE))
 {
-    private int[] _order = new int[PartyState.MaxPartySize];
+    private readonly int[] _order = new int[PartyState.MaxPartySize];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

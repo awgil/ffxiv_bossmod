@@ -2,7 +2,7 @@
 
 class StrewnBubbles(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape = new(20, 5);
 
@@ -30,7 +30,7 @@ class StrewnBubbles(BossModule module) : Components.GenericAOEs(module)
 
 class RecedingEncroachingTwintides(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shapeOut = new(14);
     private static readonly AOEShapeDonut _shapeIn = new(8, 60);

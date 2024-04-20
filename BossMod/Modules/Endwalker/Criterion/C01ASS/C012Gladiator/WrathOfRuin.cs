@@ -2,9 +2,9 @@
 
 class GoldenSilverFlame(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _goldenFlames = new();
-    private List<Actor> _silverFlames = new();
-    private int[] _debuffs = new int[PartyState.MaxPartySize]; // silver << 16 | gold
+    private readonly List<Actor> _goldenFlames = [];
+    private readonly List<Actor> _silverFlames = [];
+    private readonly int[] _debuffs = new int[PartyState.MaxPartySize]; // silver << 16 | gold
 
     public bool Active => _goldenFlames.Count + _silverFlames.Count > 0;
 

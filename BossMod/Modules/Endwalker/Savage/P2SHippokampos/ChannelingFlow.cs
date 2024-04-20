@@ -4,9 +4,9 @@
 class ChannelingFlow(BossModule module) : BossComponent(module)
 {
     public int NumStunned { get; private set; }
-    private (WDir, DateTime)[] _arrows = new (WDir, DateTime)[PartyState.MaxPartySize];
+    private readonly (WDir, DateTime)[] _arrows = new (WDir, DateTime)[PartyState.MaxPartySize];
 
-    private static readonly float _typhoonHalfWidth = 2.5f;
+    private const float _typhoonHalfWidth = 2.5f;
 
     public bool SlotActive(int slot)
     {
@@ -103,7 +103,7 @@ class ChannelingFlow(BossModule module) : BossComponent(module)
 
     private IEnumerable<(Actor, WDir)> ActiveArrows()
     {
-        return Raid.WithSlot().WhereSlot(slot => SlotActive(slot)).Select(ia => (ia.Item2, _arrows[ia.Item1].Item1));
+        return Raid.WithSlot().WhereSlot(SlotActive).Select(ia => (ia.Item2, _arrows[ia.Item1].Item1));
     }
 
     private IEnumerable<(int, Actor)> ActorsHitBy(int slot, Actor actor)

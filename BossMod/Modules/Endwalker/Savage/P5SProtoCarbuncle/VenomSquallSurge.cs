@@ -9,7 +9,7 @@ class VenomSquallSurge(BossModule module) : BossComponent(module)
     public int Progress { get; private set; }
     public bool _reverse;
 
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

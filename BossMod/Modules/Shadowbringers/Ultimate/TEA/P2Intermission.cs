@@ -6,7 +6,7 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
 {
     private Angle _blasterStartingDirection;
 
-    private static readonly float _blasterOffset = 14;
+    private const float _blasterOffset = 14;
     private static readonly AOEShapeCircle _blasterShape = new(10);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -68,28 +68,35 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
     {
         switch (index)
         {
-            case 0: case 1: case 2: case 3:
+            case 0:
+            case 1:
+            case 2:
+            case 3:
                 {
                     var dir = (_blasterStartingDirection - index * 45.Degrees()).ToDirection();
                     yield return Module.Bounds.Center + _blasterOffset * dir;
                     yield return Module.Bounds.Center - _blasterOffset * dir;
                 }
                 break;
-            case 5: case 6: case 7: case 8:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
                 {
                     var dir = (_blasterStartingDirection - (index - 5) * 45.Degrees()).ToDirection();
                     yield return Module.Bounds.Center + _blasterOffset * dir;
                     yield return Module.Bounds.Center - _blasterOffset * dir;
                 }
                 break;
-            case 4: case 9:
+            case 4:
+            case 9:
                 yield return Module.Bounds.Center;
                 break;
         }
     }
 
-    private IEnumerable<WPos> ImminentBlasterCenters() => NumCasts > 0 ? BlasterCenters(NextBlasterIndex) : Enumerable.Empty<WPos>();
-    private IEnumerable<WPos> FutureBlasterCenters() => NumCasts > 0 ? BlasterCenters(NextBlasterIndex + 1) : Enumerable.Empty<WPos>();
+    private IEnumerable<WPos> ImminentBlasterCenters() => NumCasts > 0 ? BlasterCenters(NextBlasterIndex) : [];
+    private IEnumerable<WPos> FutureBlasterCenters() => NumCasts > 0 ? BlasterCenters(NextBlasterIndex + 1) : [];
 
     // TODO: reconsider
     private WPos? SafeSpotHint(int slot)

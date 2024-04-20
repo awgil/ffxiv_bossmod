@@ -2,7 +2,7 @@
 
 class DivisiveOverruling(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
 
     private static readonly AOEShapeRect _shapeNarrow = new(46, 8, 23); // note: boss variants are 23+23, clone variants are 46+0, doesn't matter too much
     private static readonly AOEShapeRect _shapeWide = new(46, 13, 23);

@@ -66,12 +66,12 @@ class QueensEdict(BossModule module) : Chess(module)
     {
         public int FirstEdict;
         public int SecondEdict;
-        public List<WPos> Safespots = new();
+        public List<WPos> Safespots = [];
     }
 
     public int NumStuns { get; private set; }
-    private Dictionary<ulong, PlayerState> _playerStates = new();
-    private int _safespotZOffset = 0;
+    private readonly Dictionary<ulong, PlayerState> _playerStates = [];
+    private int _safespotZOffset;
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {

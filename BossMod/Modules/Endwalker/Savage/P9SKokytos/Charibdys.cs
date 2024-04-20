@@ -22,7 +22,7 @@ class CometBurst(BossModule module) : Components.SelfTargetedAOEs(module, Action
 class BeastlyBile(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4)
 {
     public int NumCasts { get; private set; }
-    private Comet? _comet = module.FindComponent<Comet>();
+    private readonly Comet? _comet = module.FindComponent<Comet>();
     private DateTime _activation = module.WorldState.FutureTime(15); // assuming component is activated after proximity
     private BitMask _forbiddenPlayers;
 
@@ -61,7 +61,7 @@ class BeastlyBile(BossModule module) : Components.UniformStackSpread(module, 6, 
 
 class Thunderbolt(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.ThunderboltAOE))
 {
-    private Comet? _comet = module.FindComponent<Comet>();
+    private readonly Comet? _comet = module.FindComponent<Comet>();
 
     private static readonly AOEShapeCone _shape = new(40, 22.5f.Degrees());
 

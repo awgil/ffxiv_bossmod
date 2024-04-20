@@ -2,9 +2,9 @@
 
 namespace BossMod;
 
-class IPCProvider : IDisposable
+sealed class IPCProvider : IDisposable
 {
-    private List<Action> _disposeActions = new();
+    private readonly List<Action> _disposeActions = [];
 
     public IPCProvider(Autorotation autorotation)
     {
@@ -48,10 +48,10 @@ class IPCProvider : IDisposable
         _disposeActions.Add(p.UnregisterAction);
     }
 
-    private void Register<T1>(string name, Action<T1> func)
-    {
-        var p = Service.PluginInterface.GetIpcProvider<T1, object>("BossMod." + name);
-        p.RegisterAction(func);
-        _disposeActions.Add(p.UnregisterAction);
-    }
+    //private void Register<T1>(string name, Action<T1> func)
+    //{
+    //    var p = Service.PluginInterface.GetIpcProvider<T1, object>("BossMod." + name);
+    //    p.RegisterAction(func);
+    //    _disposeActions.Add(p.UnregisterAction);
+    //}
 }

@@ -3,10 +3,10 @@
 // common ai features for whole fight
 class Ex4IfritAICommon(BossModule module) : BossComponent(module)
 {
-    private Incinerate? _incinerate = module.FindComponent<Incinerate>();
-    private Eruption? _eruption = module.FindComponent<Eruption>();
-    private SearingWind? _searingWind = module.FindComponent<SearingWind>();
-    private InfernalFetters? _infernalFetters = module.FindComponent<InfernalFetters>();
+    private readonly Incinerate? _incinerate = module.FindComponent<Incinerate>();
+    private readonly Eruption? _eruption = module.FindComponent<Eruption>();
+    private readonly SearingWind? _searingWind = module.FindComponent<SearingWind>();
+    private readonly InfernalFetters? _infernalFetters = module.FindComponent<InfernalFetters>();
     protected DateTime CreatedAt = module.WorldState.CurrentTime;
     public PartyRolesConfig.Assignment BossTankRole = PartyRolesConfig.Assignment.Unassigned;
 
@@ -185,8 +185,8 @@ class Ex4IfritAINormal(BossModule module) : Ex4IfritAICommon(module)
 // - dd stay anywhere outside cleave range and center (so that not to bait eruptions on healers)
 class Ex4IfritAINails : Ex4IfritAINormal
 {
-    private List<Actor> NailKillOrder = new();
-    private int MinNailsForCWSearingWinds;
+    private readonly List<Actor> NailKillOrder = [];
+    private readonly int MinNailsForCWSearingWinds;
     private BitMask OTTankAtIncinerateCounts;
 
     public Ex4IfritAINails(BossModule module, int minNailsForCWSearingWinds, ulong otTankAtIncinerateCounts) : base(module)
@@ -200,7 +200,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
         {
             NailKillOrder.Add(startingNail);
             var startingDir = Angle.FromDirection(startingNail.Position - Module.Bounds.Center);
-            NailKillOrder.AddRange(smallNails.Exclude(startingNail).Select(n => (n, NailDirDist(n.Position - Module.Bounds.Center, startingDir))).OrderBy(t => t.Item2.Item1).ThenBy(t => t.Item2.Item2).Select(t => t.Item1));
+            NailKillOrder.AddRange(smallNails.Exclude(startingNail).Select(n => (n, NailDirDist(n.Position - Module.Bounds.Center, startingDir))).OrderBy(t => t.Item2.Item1).ThenBy(t => t.Item2.Item2).Select(t => t.n));
         }
         NailKillOrder.AddRange(module.Enemies(OID.InfernalNailLarge));
     }

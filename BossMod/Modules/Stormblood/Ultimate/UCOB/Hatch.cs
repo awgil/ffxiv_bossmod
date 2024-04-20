@@ -5,8 +5,8 @@ class Hatch : Components.CastCounter
     public bool Active = true;
     public int NumNeurolinkSpawns { get; private set; }
     public int NumTargetsAssigned { get; private set; }
-    private IReadOnlyList<Actor> _orbs;
-    private IReadOnlyList<Actor> _neurolinks;
+    private readonly IReadOnlyList<Actor> _orbs;
+    private readonly IReadOnlyList<Actor> _neurolinks;
     private BitMask _targets;
 
     public Hatch(BossModule module) : base(module, ActionID.MakeSpell(AID.Hatch))

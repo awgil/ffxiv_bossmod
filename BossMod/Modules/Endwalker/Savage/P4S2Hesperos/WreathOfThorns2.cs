@@ -8,17 +8,17 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
     public enum State { DarkDesign, FirstSet, SecondSet, Done }
 
     public State CurState { get; private set; } = State.DarkDesign;
-    private List<Actor> _relevantHelpers = new(); // 2 aoes -> 8 towers -> 2 aoes
+    private readonly List<Actor> _relevantHelpers = []; // 2 aoes -> 8 towers -> 2 aoes
     private (Actor?, Actor?) _darkTH; // first is one having tether
     private (Actor?, Actor?) _fireTH;
     private (Actor?, Actor?) _fireDD;
-    private IconID[] _playerIcons = new IconID[8];
-    private int _numAOECasts = 0;
+    private readonly IconID[] _playerIcons = new IconID[8];
+    private int _numAOECasts;
 
-    private IEnumerable<Actor> _firstSet => _relevantHelpers.Take(4);
-    private IEnumerable<Actor> _secondSet => _relevantHelpers.Skip(4);
+    private IEnumerable<Actor> FirstSet => _relevantHelpers.Take(4);
+    private IEnumerable<Actor> SecondSet => _relevantHelpers.Skip(4);
 
-    private static readonly float _fireExplosionRadius = 6;
+    private const float _fireExplosionRadius = 6;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -50,7 +50,7 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
 
             if (CurState != State.Done)
             {
-                var relevantHelpers = CurState == State.FirstSet ? _firstSet : _secondSet;
+                var relevantHelpers = CurState == State.FirstSet ? FirstSet : SecondSet;
                 if (relevantHelpers.Where(IsAOE).InRadius(actor.Position, P4S2.WreathAOERadius).Any())
                 {
                     hints.Add("GTFO from AOE!");
@@ -75,7 +75,7 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
         if (CurState == State.Done)
             return;
 
-        foreach (var aoe in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsAOE))
+        foreach (var aoe in (CurState == State.SecondSet ? SecondSet : FirstSet).Where(IsAOE))
             Arena.ZoneCircle(aoe.Position, P4S2.WreathAOERadius, ArenaColor.AOE);
     }
 
@@ -91,7 +91,8 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
             : Raid.WithoutSlot().FirstOrDefault(p => p.Tether.Target == pc.InstanceID);
         if (pcPartner != null)
         {
-            var tetherColor = _playerIcons[pcSlot] switch {
+            var tetherColor = _playerIcons[pcSlot] switch
+            {
                 IconID.AkanthaiFire => 0xff00ffff,
                 IconID.AkanthaiWind => 0xff00ff00,
                 _ => 0xffff00ff
@@ -102,8 +103,8 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
         // draw towers for designated tower soakers
         bool isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
         if (isTowerSoaker && CurState != State.Done)
-            foreach (var tower in (CurState == State.SecondSet ? _secondSet : _firstSet).Where(IsTower))
-                Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ?  ArenaColor.Danger : ArenaColor.Safe);
+            foreach (var tower in (CurState == State.SecondSet ? SecondSet : FirstSet).Where(IsTower))
+                Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ? ArenaColor.Danger : ArenaColor.Safe);
 
         // draw circles around next imminent fire explosion
         if (CurState != State.DarkDesign)
@@ -164,7 +165,7 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
         }
         else if (_playerIcons[slot] == IconID.AkanthaiFire)
         {
-            if (actor.Role == Role.Tank || actor.Role == Role.Healer)
+            if (actor.Role is Role.Tank or Role.Healer)
                 _fireTH = (actor, tetherTarget);
             else
                 _fireDD = (actor, tetherTarget);

@@ -2,7 +2,7 @@
 
 class DarkMatter(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private List<int> _remainingCasts = new();
+    private readonly List<int> _remainingCasts = [];
 
     private static readonly AOEShapeCircle _shape = new(8);
 

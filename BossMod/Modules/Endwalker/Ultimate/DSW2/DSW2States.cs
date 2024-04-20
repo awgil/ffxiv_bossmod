@@ -2,7 +2,7 @@
 
 class DSW2States : StateMachineBuilder
 {
-    private DSW2 _module;
+    private readonly DSW2 _module;
 
     private bool IsReset => Module.PrimaryActor.IsDestroyed && (_module.ArenaFeatures?.IsDestroyed ?? true);
     private bool IsResetOrRewindFailed => IsReset || Module.Enemies(OID.BossP2).Any();

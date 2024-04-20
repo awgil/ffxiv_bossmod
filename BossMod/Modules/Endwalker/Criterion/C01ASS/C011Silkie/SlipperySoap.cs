@@ -17,7 +17,7 @@ class SlipperySoapCharge(BossModule module) : Components.Knockback(module)
 {
     private Actor? _chargeTarget;
     private Angle _chargeDir;
-    private AOEShapeRect _chargeShape = new(0, 5);
+    private readonly AOEShapeRect _chargeShape = new(0, 5);
     private SlipperySoap.Color _color;
     private DateTime _chargeResolve;
 

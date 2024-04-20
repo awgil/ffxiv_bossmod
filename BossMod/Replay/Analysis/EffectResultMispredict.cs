@@ -9,7 +9,7 @@
 // - stuff like actor disappearing right after cast event will have no ER
 class EffectResultMispredict
 {
-    private List<(Replay r, Replay.Action a)> _unexpected = new();
+    private readonly List<(Replay r, Replay.Action a)> _unexpected = [];
 
     public EffectResultMispredict(List<Replay> replays, bool showMissing)
     {

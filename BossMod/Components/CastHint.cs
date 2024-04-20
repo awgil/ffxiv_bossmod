@@ -5,14 +5,14 @@ public class CastHint(BossModule module, ActionID aid, string hint, bool showCas
 {
     public string Hint = hint;
     public bool ShowCastTimeLeft = showCastTimeLeft; // if true, show cast time left until next instance
-    public readonly List<Actor> Casters = new();
+    public readonly List<Actor> Casters = [];
 
     public bool Active => Casters.Count > 0;
 
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (Active && Hint.Length > 0)
-            hints.Add(ShowCastTimeLeft ? $"{Hint} {((Casters.First().CastInfo?.NPCFinishAt ?? WorldState.CurrentTime) - WorldState.CurrentTime).TotalSeconds:f1}s left" : Hint);
+            hints.Add(ShowCastTimeLeft ? $"{Hint} {((Casters[0].CastInfo?.NPCFinishAt ?? WorldState.CurrentTime) - WorldState.CurrentTime).TotalSeconds:f1}s left" : Hint);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

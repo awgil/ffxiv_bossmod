@@ -4,8 +4,8 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 {
     public int[] BaitOrder = new int[PartyState.MaxPartySize];
     public int NumBaitsAssigned;
-    public List<Actor> Casters = new();
-    private List<(Actor actor, int position)> _dragons = new(); // position 0 is N, then CW
+    public List<Actor> Casters = [];
+    private readonly List<(Actor actor, int position)> _dragons = []; // position 0 is N, then CW
 
     private static readonly AOEShapeRect _shape = new(52, 10);
 

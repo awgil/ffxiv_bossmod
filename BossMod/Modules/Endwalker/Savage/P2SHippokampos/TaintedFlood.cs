@@ -5,7 +5,7 @@ class TaintedFlood : Components.CastCounter
 {
     private BitMask _ignoredTargets;
 
-    private static readonly float _radius = 6;
+    private const float _radius = 6;
 
     public TaintedFlood(BossModule module) : base(module, ActionID.MakeSpell(AID.TaintedFloodAOE))
     {

@@ -7,10 +7,10 @@ class P3WormholeRepentance(BossModule module) : BossComponent(module)
 {
     public int NumSoaks { get; private set; }
     private bool _chakramsDone;
-    private LimitCut? _limitCut = module.FindComponent<LimitCut>();
-    private List<WPos> _wormholes = new();
+    private readonly LimitCut? _limitCut = module.FindComponent<LimitCut>();
+    private readonly List<WPos> _wormholes = [];
 
-    private static readonly float[] _radiuses = { 8, 6, 3 };
+    private static readonly float[] _radiuses = [8, 6, 3];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

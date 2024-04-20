@@ -4,7 +4,7 @@ class P2BlockTransition(BossModule module) : BossComponent(module);
 
 class UCOBStates : StateMachineBuilder
 {
-    private UCOB _module;
+    private readonly UCOB _module;
 
     public UCOBStates(UCOB module) : base(module)
     {
@@ -159,7 +159,7 @@ class UCOBStates : StateMachineBuilder
 
     private void P1FireballResolve(uint id, float delay)
     {
-        ComponentCondition<P1Fireball>(id, delay, comp => comp.ActiveStacks.Count() == 0, "Stack", 1, delay - 0.2f) // note that if target dies, fireball won't happen
+        ComponentCondition<P1Fireball>(id, delay, comp => !comp.ActiveStacks.Any(), "Stack", 1, delay - 0.2f) // note that if target dies, fireball won't happen
             .DeactivateOnExit<P1Fireball>();
     }
 

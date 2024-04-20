@@ -10,7 +10,7 @@ public enum OID : uint
     AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-    BonusAdd_AltarMatanga = 0x2545, // R3.420
+    BonusAddAltarMatanga = 0x2545, // R3.420
 }
 
 public enum AID : uint
@@ -31,10 +31,10 @@ public enum AID : uint
     PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
     PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-    unknown = 9636, // BonusAdd_AltarMatanga->self, no cast, single-target
-    Spin = 8599, // BonusAdd_AltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAdd_AltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAdd_AltarMatanga->location, 3,0s cast, range 6 circle
+    unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
+    Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
 }
 
 class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustingClaw), new AOEShapeCone(12.6f, 60.Degrees()));
@@ -50,7 +50,7 @@ class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, 
 class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
 class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
 class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAdd_AltarMatanga);
+class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class BeastStates : StateMachineBuilder
 {
@@ -71,7 +71,7 @@ class BeastStates : StateMachineBuilder
             .ActivateOnEnter<RaucousScritch>()
             .ActivateOnEnter<Hurl>()
             .ActivateOnEnter<Spin>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_AltarMatanga).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.AltarEgg).All(e => e.IsDead) && module.Enemies(OID.AltarQueen).All(e => e.IsDead) && module.Enemies(OID.AltarOnion).All(e => e.IsDead) && module.Enemies(OID.AltarGarlic).All(e => e.IsDead) && module.Enemies(OID.AltarTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAddAltarMatanga).All(e => e.IsDead);
     }
 }
 
@@ -93,7 +93,7 @@ public class Beast(WorldState ws, Actor primary) : BossModule(ws, primary, new A
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.AltarOnion))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_AltarMatanga))
+        foreach (var s in Enemies(OID.BonusAddAltarMatanga))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -108,7 +108,7 @@ public class Beast(WorldState ws, Actor primary) : BossModule(ws, primary, new A
                 OID.AltarEgg => 6,
                 OID.AltarGarlic => 5,
                 OID.AltarTomato => 4,
-                OID.AltarQueen or OID.BonusAdd_AltarMatanga => 3,
+                OID.AltarQueen or OID.BonusAddAltarMatanga => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

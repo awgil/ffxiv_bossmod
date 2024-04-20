@@ -2,7 +2,7 @@
 
 class OminousBubbling(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.OminousBubblingAOE))
 {
-    private static readonly float _radius = 6;
+    private const float _radius = 6;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

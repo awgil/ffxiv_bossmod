@@ -3,8 +3,8 @@
 // predict puddles under all players until actual casts start
 class P1FeatherRain(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FeatherRain), "GTFO from puddle!")
 {
-    private List<WPos> _predicted = new();
-    private List<Actor> _casters = new();
+    private readonly List<WPos> _predicted = [];
+    private readonly List<Actor> _casters = [];
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(3);

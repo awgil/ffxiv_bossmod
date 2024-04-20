@@ -11,7 +11,7 @@ public enum OID : uint
     MagickedBroom4 = 0x30F1, // R=3.125
     MagickedBroom5 = 0x3015, // R=3.125
     MagickedBroom6 = 0x30F0, // R=3.125
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
     SecretQueen = 0x3021, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
     SecretGarlic = 0x301F, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
     SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
@@ -21,7 +21,7 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttack = 872, // Boss/BonusAdd_TheKeeperOfTheKeys->player/Mandragoras, no cast, single-target
+    AutoAttack = 872, // Boss/BonusAddKeeperOfKeys->player/Mandragoras, no cast, single-target
     BrewingStorm = 21670, // Boss->self, 2,5s cast, range 5 60-degree cone, knockback 10 away from source
     HarrowingDream = 21671, // Boss->self, 3,0s cast, range 6 circle, applies sleep
     BecloudingDust = 22935, // Boss->self, 3,0s cast, single-target
@@ -93,7 +93,7 @@ class PorxieStates : StateMachineBuilder
             .ActivateOnEnter<HeirloomScream>()
             .ActivateOnEnter<PungentPirouette>()
             .ActivateOnEnter<Pollen>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead) && module.Enemies(OID.SecretEgg).All(e => e.IsDead) && module.Enemies(OID.SecretQueen).All(e => e.IsDead) && module.Enemies(OID.SecretOnion).All(e => e.IsDead) && module.Enemies(OID.SecretGarlic).All(e => e.IsDead) && module.Enemies(OID.SecretTomato).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead) && module.Enemies(OID.SecretEgg).All(e => e.IsDead) && module.Enemies(OID.SecretQueen).All(e => e.IsDead) && module.Enemies(OID.SecretOnion).All(e => e.IsDead) && module.Enemies(OID.SecretGarlic).All(e => e.IsDead) && module.Enemies(OID.SecretTomato).All(e => e.IsDead);
     }
 }
 
@@ -103,7 +103,7 @@ public class Porxie(WorldState ws, Actor primary) : BossModule(ws, primary, new 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.SecretEgg))
             Arena.Actor(s, ArenaColor.Vulnerable);
@@ -128,7 +128,7 @@ public class Porxie(WorldState ws, Actor primary) : BossModule(ws, primary, new 
                 OID.SecretEgg => 5,
                 OID.SecretGarlic => 4,
                 OID.SecretTomato => 3,
-                OID.BonusAdd_TheKeeperOfTheKeys or OID.SecretQueen => 2,
+                OID.BonusAddKeeperOfKeys or OID.SecretQueen => 2,
                 OID.Boss => 1,
                 _ => 0
             };

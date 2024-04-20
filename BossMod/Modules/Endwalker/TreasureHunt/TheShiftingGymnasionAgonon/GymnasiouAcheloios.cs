@@ -10,8 +10,8 @@ public enum OID : uint
     GymnasticEggplant = 0x3D50, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
-    BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
+    BonusAddLampas = 0x3D4D, //R=2.001, bonus loot adds
+    BonusAddLyssa = 0x3D4E, //R=3.75, bonus loot adds
 }
 
 public enum AID : uint
@@ -39,7 +39,7 @@ public enum AID : uint
     PungentPirouette = 32303, // GymnasticGarlic->self, 3,5s cast, range 7 circle
     TearyTwirl = 32301, // GymnasticOnion->self, 3,5s cast, range 7 circle
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
-    HeavySmash = 32317, // BonusAdd_Lyssa->location, 3,0s cast, range 6 circle
+    HeavySmash = 32317, // BonusAddLyssa->location, 3,0s cast, range 6 circle
 }
 
 public enum IconID : uint
@@ -134,7 +134,7 @@ class AcheloiosStates : StateMachineBuilder
             .ActivateOnEnter<PungentPirouette>()
             .ActivateOnEnter<Pollen>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAddLampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
     }
 }
 
@@ -156,9 +156,9 @@ public class Acheloios(WorldState ws, Actor primary) : BossModule(ws, primary, n
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.GymnasticOnion))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdds_Lampas))
+        foreach (var s in Enemies(OID.BonusAddLampas))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+        foreach (var s in Enemies(OID.BonusAddLyssa))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -173,7 +173,7 @@ public class Acheloios(WorldState ws, Actor primary) : BossModule(ws, primary, n
                 OID.GymnasticEggplant => 6,
                 OID.GymnasticGarlic => 5,
                 OID.GymnasticTomato => 4,
-                OID.GymnasticQueen or OID.BonusAdds_Lampas or OID.BonusAdds_Lyssa => 3,
+                OID.GymnasticQueen or OID.BonusAddLampas or OID.BonusAddLyssa => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

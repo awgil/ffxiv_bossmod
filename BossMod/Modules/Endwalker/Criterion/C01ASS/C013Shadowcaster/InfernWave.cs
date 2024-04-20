@@ -2,23 +2,17 @@
 
 class InfernWave(BossModule module, bool savage, bool showHints, int maxActive) : Components.CastCounter(module, ActionID.MakeSpell(savage ? AID.SInfernWaveAOE : AID.NInfernWaveAOE))
 {
-    private class Beacon
+    private class Beacon(Actor source, DateTime activation)
     {
-        public Actor Source;
-        public DateTime Activation;
-        public List<(Actor target, Angle dir)> Targets = new();
-
-        public Beacon(Actor source, DateTime activation)
-        {
-            Source = source;
-            Activation = activation;
-        }
+        public Actor Source = source;
+        public DateTime Activation = activation;
+        public List<(Actor target, Angle dir)> Targets = [];
     }
 
     public bool ShowHints = showHints;
-    private bool _savage = savage;
-    private int _maxActive = maxActive;
-    private List<Beacon> _beacons = new();
+    private readonly bool _savage = savage;
+    private readonly int _maxActive = maxActive;
+    private readonly List<Beacon> _beacons = [];
 
     private static readonly AOEShapeCone _shape = new(60, 45.Degrees());
 

@@ -201,7 +201,7 @@ class Un3SophiaStates : StateMachineBuilder
             .ActivateOnEnter<ScalesOfWisdom>();
         ComponentCondition<ScalesOfWisdom>(id + 0x3001, 8.0f, comp => comp.NumCasts > 0, "Tilt 1");
         ComponentCondition<ScalesOfWisdom>(id + 0x3002, 5.0f, comp => comp.NumCasts > 1, "Tilt 2");
-        ComponentCondition<ScalesOfWisdom>(id + 0x3003, 4.5f, comp => comp.RaidwideDone , "Raidwide")
+        ComponentCondition<ScalesOfWisdom>(id + 0x3003, 4.5f, comp => comp.RaidwideDone, "Raidwide")
             .DeactivateOnExit<ScalesOfWisdom>()
             .SetHint(StateMachine.StateHint.Raidwide);
 

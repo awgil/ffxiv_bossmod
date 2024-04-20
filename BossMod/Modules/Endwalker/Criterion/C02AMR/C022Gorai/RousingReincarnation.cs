@@ -7,8 +7,8 @@ class SRousingReincarnation(BossModule module) : RousingReincarnation(module, AI
 // note on towers: indices are 0-7 CW from N, even (cardinal) are blue, odd (intercardinal) are orange
 class MalformedPrayer1(BossModule module) : Components.GenericTowers(module)
 {
-    public int[] OrangeSoakOrder = { -1, -1, -1, -1 }; // blue is inferred as (x+2)%4
-    private List<int> _towerOrder = new();
+    public int[] OrangeSoakOrder = [-1, -1, -1, -1]; // blue is inferred as (x+2)%4
+    private readonly List<int> _towerOrder = [];
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -86,7 +86,7 @@ class PointedPurgation : Components.BaitAwayTethers
     private BitMask _oddSoakers; // players with 1/3 debuff
 
     public PointedPurgation(BossModule module) : base(module, new AOEShapeCone(60, 22.5f.Degrees()), (uint)TetherID.PointedPurgation)
-{
+    {
         var malformedPlayer = module.FindComponent<MalformedPrayer1>();
         foreach (var (index, _) in Raid.WithSlot(true))
         {

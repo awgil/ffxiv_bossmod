@@ -3,7 +3,7 @@ namespace BossMod.RPR;
 
 public static class Rotation
 {
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public int ShroudGauge;
         public int SoulGauge;
@@ -34,7 +34,6 @@ public static class Rotation
         public AID BestSow => HasSoulsow ? AID.HarvestMoon : AID.SoulSow;
         public SID ExpectedShadowofDeath => SID.DeathsDesign;
         public AID ComboLastMove => (AID)ComboLastAction;
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
@@ -259,12 +258,10 @@ public static class Rotation
         if (aoe)
             return AID.Guillotine;
 
-
         return AID.Gallows;
     }
 
     public static bool RefreshDOT(State state, float timeLeft) => timeLeft < state.GCD;
-
 
     public static bool ShouldUseBloodstalk(State state, Strategy strategy, bool aoe)
     {
@@ -486,7 +483,7 @@ public static class Rotation
 
     public static bool ShouldUseSoulSlice(State state, Strategy strategy, bool aoe)
     {
-        bool plentifulReady = state.Unlocked(AID.PlentifulHarvest) && state.ImmortalSacrificeLeft > state.AnimationLock && state.CircleofSacrificeLeft < state.GCD;
+        //bool plentifulReady = state.Unlocked(AID.PlentifulHarvest) && state.ImmortalSacrificeLeft > state.AnimationLock && state.CircleofSacrificeLeft < state.GCD;
         bool soulReaver = state.Unlocked(AID.BloodStalk) && state.SoulReaverLeft > state.AnimationLock;
         bool enshrouded = state.Unlocked(AID.Enshroud) && state.EnshroudedLeft > state.AnimationLock;
         switch (strategy.SoulSliceStrategy)
@@ -520,9 +517,9 @@ public static class Rotation
         // prepull
         if (strategy.CombatTimer > -100 && strategy.CombatTimer < -4.2f && !state.HasSoulsow)
             return AID.SoulSow;
-        if (strategy.CombatTimer > -100 && strategy.CombatTimer < -1.6f)
+        if (strategy.CombatTimer is > -100 and < -1.6f)
             return AID.None;
-        if (strategy.CombatTimer > -1.6f && strategy.CombatTimer < 0f)
+        if (strategy.CombatTimer is > -1.6f and < 0f)
             return AID.Harpe;
 
         if (strategy.GaugeStrategy == Strategy.GaugeUse.HarvestMoonIfNotInMelee && state.HasSoulsow && state.RangeToTarget > 3 && strategy.CombatTimer > 0)
@@ -542,7 +539,7 @@ public static class Rotation
         {
             if (state.CD(CDGroup.ArcaneCircle) < 11.5f && state.TargetDeathDesignLeft < 30)
                 return AID.ShadowofDeath;
-            if (state.ComboTimeLeft != 0 || state.ComboTimeLeft == 0 && !enshrouded && !soulReaver)
+            if (state.ComboTimeLeft != 0 || !enshrouded && !soulReaver)
                 return GetNextUnlockedComboAction(state, aoe);
             if (state.LemureShroudCount is 3 && !state.lastActionisSoD && state.PotionCD < 1)
                 return AID.ShadowofDeath;
@@ -620,9 +617,9 @@ public static class Rotation
 
     public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline, bool aoe)
     {
-        bool soulReaver = state.Unlocked(AID.BloodStalk) && state.SoulReaverLeft > state.AnimationLock;
+        //bool soulReaver = state.Unlocked(AID.BloodStalk) && state.SoulReaverLeft > state.AnimationLock;
         bool enshrouded = state.Unlocked(AID.Enshroud) && state.EnshroudedLeft > state.AnimationLock;
-        var (positional, shouldUsePositional) = GetNextPositional(state, strategy);
+        //var (positional, shouldUsePositional) = GetNextPositional(state, strategy);
         //if (strategy.ArcaneCircleStrategy == Strategy.ArcaneCircleUse.Delay)
         //    return ActionID.MakeSpell(AID.Enshroud);
         if (strategy.PotionStrategy == Strategy.PotionUse.Special && state.HasSoulsow)

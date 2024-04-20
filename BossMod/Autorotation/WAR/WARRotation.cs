@@ -3,7 +3,7 @@
 public static class Rotation
 {
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public int Gauge; // 0 to 100
         public float SurgingTempestLeft; // 0 if buff not up, max 60
@@ -20,8 +20,6 @@ public static class Rotation
 
         public AID ComboLastMove => (AID)ComboLastAction;
         //public float InnerReleaseCD => CD(UnlockedInnerRelease ? CDGroup.InnerRelease : CDGroup.Berserk); // note: technically berserk and IR don't share CD, and with level sync you can have both...
-
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
@@ -455,7 +453,7 @@ public static class Rotation
     public static AID GetNextBestGCD(State state, Strategy strategy, bool aoe)
     {
         // prepull
-        if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
+        if (strategy.CombatTimer is > -100 and < -0.7f)
             return AID.None;
 
         // 0. non-standard actions forced by strategy

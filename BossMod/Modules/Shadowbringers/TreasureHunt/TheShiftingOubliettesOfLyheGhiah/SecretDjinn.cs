@@ -5,13 +5,13 @@ public enum OID : uint
     Boss = 0x300F, //R=3.48
     BossAdd = 0x3010, //R=1.32
     BossHelper = 0x233C,
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
 }
 
 public enum AID : uint
 {
     AutoAttack = 23185, // Boss->player, no cast, single-target
-    AutoAttack2 = 872, // BossAdd/BonusAdd_TheKeeperOfTheKeys->player, no cast, single-target
+    AutoAttack2 = 872, // BossAdd/BonusAddKeeperOfKeys->player, no cast, single-target
     Gust = 21655, // Boss->location, 3,0s cast, range 6 circle
     ChangelessWinds = 21657, // Boss->self, 3,0s cast, range 40 width 8 rect, knockback 10, source forward
     WhirlingGaol = 21654, // Boss->self, 4,0s cast, range 40 circle, knockback 25 away from source
@@ -53,7 +53,7 @@ class DjinnStates : StateMachineBuilder
             .ActivateOnEnter<Spin>()
             .ActivateOnEnter<Mash>()
             .ActivateOnEnter<Scoop>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead);
     }
 }
 
@@ -65,7 +65,7 @@ public class Djinn(WorldState ws, Actor primary) : BossModule(ws, primary, new A
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -76,7 +76,7 @@ public class Djinn(WorldState ws, Actor primary) : BossModule(ws, primary, new A
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_TheKeeperOfTheKeys => 3,
+                OID.BonusAddKeeperOfKeys => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

@@ -15,11 +15,11 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         public ActionID CooldownAction;
     }
 
-    private ColumnGenericHistory _autoAttacks;
-    private ColumnGenericHistory _animLocks;
-    private CooldownGroup[] _cdGroups = new CooldownGroup[ClientState.NumCooldownGroups];
-    private ColumnSeparator _sep;
-    private Dictionary<ActionID, (int group, float cd)> _cooldownReductions = new();
+    private readonly ColumnGenericHistory _autoAttacks;
+    private readonly ColumnGenericHistory _animLocks;
+    private readonly CooldownGroup[] _cdGroups = new CooldownGroup[ClientState.NumCooldownGroups];
+    private readonly ColumnSeparator _sep;
+    private readonly Dictionary<ActionID, (int group, float cd)> _cooldownReductions = [];
 
     public ColumnPlayerActions(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass)
         : base(timeline)
@@ -157,17 +157,17 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         {
             case Class.WAR:
                 // make sure important damage cooldowns are in consistent order
-                GetCooldownColumn((int)BossMod.WAR.CDGroup.Infuriate, ActionID.MakeSpell(BossMod.WAR.AID.Infuriate));
-                GetCooldownColumn((int)BossMod.WAR.CDGroup.InnerRelease, ActionID.MakeSpell(BossMod.WAR.AID.InnerRelease));
-                GetCooldownColumn((int)BossMod.WAR.CDGroup.Upheaval, ActionID.MakeSpell(BossMod.WAR.AID.Upheaval));
-                GetCooldownColumn((int)BossMod.WAR.CDGroup.Onslaught, ActionID.MakeSpell(BossMod.WAR.AID.Onslaught));
+                GetCooldownColumn((int)WAR.CDGroup.Infuriate, ActionID.MakeSpell(WAR.AID.Infuriate));
+                GetCooldownColumn((int)WAR.CDGroup.InnerRelease, ActionID.MakeSpell(WAR.AID.InnerRelease));
+                GetCooldownColumn((int)WAR.CDGroup.Upheaval, ActionID.MakeSpell(WAR.AID.Upheaval));
+                GetCooldownColumn((int)WAR.CDGroup.Onslaught, ActionID.MakeSpell(WAR.AID.Onslaught));
                 // infuriate cooldown reductions
-                _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.InnerBeast)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.FellCleave)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.InnerChaos)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.SteelCyclone)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.Decimate)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
-                _cooldownReductions[ActionID.MakeSpell(BossMod.WAR.AID.ChaoticCyclone)] = ((int)BossMod.WAR.CDGroup.Infuriate, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.InnerBeast)] = ((int)WAR.CDGroup.Infuriate, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.FellCleave)] = ((int)WAR.CDGroup.Infuriate, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.InnerChaos)] = ((int)WAR.CDGroup.Infuriate, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.SteelCyclone)] = ((int)WAR.CDGroup.Infuriate, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.Decimate)] = ((int)WAR.CDGroup.Infuriate, 5);
+                _cooldownReductions[ActionID.MakeSpell(WAR.AID.ChaoticCyclone)] = ((int)WAR.CDGroup.Infuriate, 5);
                 break;
         }
     }
@@ -193,12 +193,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
     }
 
     private ColumnGenericHistory GetCooldownColumn(int cooldownGroup, ActionID defaultAction)
-    {
-        var col = _cdGroups[cooldownGroup].Column;
-        if (col == null)
-            col = _cdGroups[cooldownGroup].Column = AddBefore<ColumnGenericHistory>(new(Timeline, _autoAttacks.Tree, _autoAttacks.PhaseBranches, defaultAction.ToString()), _sep);
-        return col;
-    }
+        => _cdGroups[cooldownGroup].Column ??= AddBefore<ColumnGenericHistory>(new(Timeline, _autoAttacks.Tree, _autoAttacks.PhaseBranches, defaultAction.ToString()), _sep);
 
     private void AddCooldownRange(ref CooldownGroup data, DateTime encStart, DateTime rangeEnd)
     {

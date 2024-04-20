@@ -9,7 +9,7 @@ public class ConfigRoot
     private const int _version = 7;
 
     public event Action? Modified;
-    private Dictionary<Type, ConfigNode> _nodes = new();
+    private readonly Dictionary<Type, ConfigNode> _nodes = [];
 
     public IEnumerable<ConfigNode> Nodes => _nodes.Values;
 
@@ -17,8 +17,7 @@ public class ConfigRoot
     {
         foreach (var t in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
         {
-            var inst = Activator.CreateInstance(t) as ConfigNode;
-            if (inst == null)
+            if (Activator.CreateInstance(t) is not ConfigNode inst)
             {
                 Service.Log($"[Config] Failed to create an instance of {t}");
                 continue;
@@ -38,8 +37,7 @@ public class ConfigRoot
             var contents = File.ReadAllText(file.FullName);
             var json = JObject.Parse(contents);
             var version = (int?)json["Version"] ?? 0;
-            var payload = json["Payload"] as JObject;
-            if (payload != null)
+            if (json["Payload"] is JObject payload)
             {
                 payload = ConvertConfig(payload, version);
                 var ser = Serialization.BuildSerializer();
@@ -47,8 +45,7 @@ public class ConfigRoot
                 {
                     var type = Type.GetType(t);
                     var node = type != null ? _nodes.GetValueOrDefault(type) : null;
-                    var jObj = j as JObject;
-                    if (node != null && jObj != null)
+                    if (node != null && j is JObject jObj)
                     {
                         node.Deserialize(jObj, ser);
                     }
@@ -66,7 +63,7 @@ public class ConfigRoot
         try
         {
             var ser = Serialization.BuildSerializer();
-            JObject payload = new();
+            JObject payload = [];
             foreach (var (t, n) in _nodes)
             {
                 var jNode = n.Serialize(ser);
@@ -75,9 +72,11 @@ public class ConfigRoot
                     payload.Add(t.FullName!, jNode);
                 }
             }
-            JObject jContents = new();
-            jContents.Add("Version", _version);
-            jContents.Add("Payload", payload);
+            JObject jContents = new()
+            {
+                { "Version", _version },
+                { "Payload", payload }
+            };
             File.WriteAllText(file.FullName, jContents.ToString());
         }
         catch (Exception e)
@@ -88,7 +87,7 @@ public class ConfigRoot
 
     public List<string> ConsoleCommand(IReadOnlyList<string> args)
     {
-        List<string> result = new();
+        List<string> result = [];
         if (args.Count == 0)
         {
             result.Add("Usage: /vbm cfg <config-type> <field> <value>");
@@ -98,7 +97,7 @@ public class ConfigRoot
         }
         else
         {
-            List<ConfigNode> matchingNodes = new();
+            List<ConfigNode> matchingNodes = [];
             foreach (var (t, n) in _nodes)
                 if (t.Name.Contains(args[0], StringComparison.CurrentCultureIgnoreCase))
                     matchingNodes.Add(n);
@@ -123,15 +122,14 @@ public class ConfigRoot
             }
             else
             {
-                var fields = matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null);
-                List<FieldInfo> matchingFields = new();
-                foreach (var f in fields)
+                List<FieldInfo> matchingFields = [];
+                foreach (var f in matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null))
                     if (f.Name.Contains(args[1], StringComparison.CurrentCultureIgnoreCase))
                         matchingFields.Add(f);
                 if (matchingFields.Count == 0)
                 {
                     result.Add("Field not found. Valid fields:");
-                    foreach (var f in fields)
+                    foreach (var f in matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null))
                         result.Add($"- {f.Name}");
                 }
                 else if (matchingFields.Count > 1)
@@ -171,16 +169,10 @@ public class ConfigRoot
     }
 
     private object? FromConsoleString(string str, Type t)
-    {
-        if (t == typeof(bool))
-            return bool.Parse(str);
-        else if (t == typeof(float))
-            return float.Parse(str);
-        else if (t.IsAssignableTo(typeof(Enum)))
-            return Enum.Parse(t, str);
-        else
-            return null;
-    }
+        => t == typeof(bool) ? bool.Parse(str)
+        : t == typeof(float) ? float.Parse(str)
+        : t.IsAssignableTo(typeof(Enum)) ? Enum.Parse(t, str)
+        : null;
 
     private static JObject ConvertConfig(JObject payload, int version)
     {
@@ -188,14 +180,14 @@ public class ConfigRoot
         // v2: flat structure (config root contains all nodes)
         if (version < 2)
         {
-            JObject newPayload = new();
+            JObject newPayload = [];
             ConvertV1GatherChildren(newPayload, payload, version == 0);
             payload = newPayload;
         }
         // v3: modified namespaces for old modules
         if (version < 3)
         {
-            JObject newPayload = new();
+            JObject newPayload = [];
             foreach (var (k, v) in payload)
             {
                 var newKey = k switch
@@ -211,8 +203,7 @@ public class ConfigRoot
         // v4: cooldown plans moved to encounter configs
         if (version < 4)
         {
-            var plans = payload["BossMod.CooldownPlanManager"]?["Plans"] as JObject;
-            if (plans != null)
+            if (payload["BossMod.CooldownPlanManager"]?["Plans"] is JObject plans)
             {
                 foreach (var (k, planData) in plans)
                 {
@@ -222,9 +213,8 @@ public class ConfigRoot
                     if (config?.FullName == null)
                         continue;
 
-                    var node = payload[config.FullName] as JObject;
-                    if (node == null)
-                        payload[config.FullName] = node = new JObject();
+                    if (payload[config.FullName] is not JObject node)
+                        payload[config.FullName] = node = [];
                     node["CooldownPlans"] = planData;
                 }
             }
@@ -233,17 +223,17 @@ public class ConfigRoot
         // v5: bloodwhetting -> raw intuition in cd planner, to support low-level content
         if (version < 5)
         {
-            Dictionary<string, string> renames = new();
-            renames[ActionID.MakeSpell(WAR.AID.Bloodwhetting).Raw.ToString()] = ActionID.MakeSpell(WAR.AID.RawIntuition).Raw.ToString();
+            Dictionary<string, string> renames = new()
+            {
+                [ActionID.MakeSpell(WAR.AID.Bloodwhetting).Raw.ToString()] = ActionID.MakeSpell(WAR.AID.RawIntuition).Raw.ToString()
+            };
             foreach (var (k, config) in payload)
             {
-                var plans = config?["CooldownPlans"]?["WAR"]?["Available"] as JArray;
-                if (plans != null)
+                if (config?["CooldownPlans"]?["WAR"]?["Available"] is JArray plans)
                 {
                     foreach (var plan in plans)
                     {
-                        var planAbilities = plan["PlanAbilities"] as JObject;
-                        if (planAbilities != null)
+                        if (plan["PlanAbilities"] is JObject planAbilities)
                         {
                             RenameKeys(planAbilities, renames);
                         }
@@ -256,28 +246,24 @@ public class ConfigRoot
         {
             foreach (var (k, config) in payload)
             {
-                var plans = config?["CooldownPlans"] as JObject;
-                if (plans == null)
+                if (config?["CooldownPlans"] is not JObject plans)
                     continue;
                 bool isTEA = k == typeof(Shadowbringers.Ultimate.TEA.TEAConfig).FullName;
                 foreach (var (cls, planList) in plans)
                 {
-                    var avail = planList?["Available"] as JArray;
-                    if (avail == null)
+                    if (planList?["Available"] is not JArray avail)
                         continue;
                     var c = Enum.Parse<Class>(cls);
                     var aidType = PlanDefinitions.Classes[c].AIDType;
                     foreach (var plan in avail)
                     {
-                        var abilities = plan?["PlanAbilities"] as JObject;
-                        if (abilities == null)
+                        if (plan?["PlanAbilities"] is not JObject abilities)
                             continue;
 
                         var actions = new JArray();
                         foreach (var (aidRaw, aidData) in abilities)
                         {
-                            var aidList = aidData as JArray;
-                            if (aidList == null)
+                            if (aidData is not JArray aidList)
                                 continue;
 
                             var aid = new ActionID(uint.Parse(aidRaw));
@@ -314,13 +300,11 @@ public class ConfigRoot
 
     private static void ConvertV1GatherChildren(JObject result, JObject json, bool isV0)
     {
-        var children = json["__children__"] as JObject;
-        if (children == null)
+        if (json["__children__"] is not JObject children)
             return;
         foreach ((var childTypeName, var jChild) in children)
         {
-            var jChildObj = jChild as JObject;
-            if (jChildObj == null)
+            if (jChild is not JObject jChildObj)
                 continue;
 
             string realTypeName = isV0 ? (jChildObj["__type__"]?.ToString() ?? childTypeName) : childTypeName;
@@ -332,7 +316,7 @@ public class ConfigRoot
 
     private static void RenameKeys(JObject map, Dictionary<string, string> rename)
     {
-        JObject upd = new();
+        JObject upd = [];
         foreach (var (k, v) in map)
             upd[rename.GetValueOrDefault(k, k)] = v;
         map.Replace(upd);

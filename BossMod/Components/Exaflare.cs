@@ -17,7 +17,7 @@ public class Exaflare(BossModule module, AOEShape shape, ActionID aid = default)
     public AOEShape Shape { get; init; } = shape;
     public uint ImminentColor = ArenaColor.Danger;
     public uint FutureColor = ArenaColor.AOE;
-    protected List<Line> Lines = new();
+    protected List<Line> Lines = [];
 
     public bool Active => Lines.Count > 0;
 

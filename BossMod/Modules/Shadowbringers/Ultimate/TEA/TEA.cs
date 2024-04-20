@@ -25,7 +25,7 @@ class P3DivineJudgmentRaidwide(BossModule module) : Components.CastCounter(modul
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 694)]
 public class TEA : BossModule
 {
-    private IReadOnlyList<Actor> _liquidHand;
+    private readonly IReadOnlyList<Actor> _liquidHand;
     public Actor? BossP1() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
     public Actor? LiquidHand() => _liquidHand.FirstOrDefault();
 
@@ -35,7 +35,7 @@ public class TEA : BossModule
     public Actor? CruiseChaser() => _cruiseChaser;
 
     private Actor? _alexPrime;
-    private IReadOnlyList<Actor> _trueHeart;
+    private readonly IReadOnlyList<Actor> _trueHeart;
     public Actor? AlexPrime() => _alexPrime;
     public Actor? TrueHeart() => _trueHeart.FirstOrDefault();
 

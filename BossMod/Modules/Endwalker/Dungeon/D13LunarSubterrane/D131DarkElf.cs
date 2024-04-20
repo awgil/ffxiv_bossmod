@@ -32,7 +32,7 @@ public enum SID : uint
 
 class HexingStaves(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<Actor> _staves = new();
+    private readonly List<Actor> _staves = [];
     private static readonly AOEShapeCross cross = new(40, 4);
     private DateTime _activation;
 
@@ -76,7 +76,7 @@ class AbyssalOutburst(BossModule module) : Components.RaidwideCast(module, Actio
 
 class Doom(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _doomed = new();
+    private readonly List<Actor> _doomed = [];
     public bool Doomed { get; private set; }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

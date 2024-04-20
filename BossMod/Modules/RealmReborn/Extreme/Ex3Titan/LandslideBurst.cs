@@ -4,8 +4,8 @@
 class LandslideBurst(BossModule module) : Components.GenericAOEs(module)
 {
     public int MaxBombs = 9;
-    private List<Actor> _landslides = new();
-    private List<Actor> _bursts = new(); // TODO: reconsider: we can start showing bombs even before cast starts...
+    private readonly List<Actor> _landslides = [];
+    private readonly List<Actor> _bursts = []; // TODO: reconsider: we can start showing bombs even before cast starts...
     public int NumActiveBursts => _bursts.Count;
 
     private static readonly AOEShapeRect _shapeLandslide = new(40.25f, 3);

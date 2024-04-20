@@ -32,7 +32,7 @@ class SteelWebStack(BossModule module) : Components.UniformStackSpread(module, 6
 
 class SteelWebTethers(BossModule module) : BossComponent(module)
 {
-    private List<(Actor from, Actor to, uint color)> _webs = new();
+    private readonly List<(Actor from, Actor to, uint color)> _webs = [];
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

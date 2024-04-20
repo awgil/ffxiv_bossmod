@@ -4,20 +4,12 @@ class RightArmRayNormal(BossModule module) : Components.SelfTargetedAOEs(module,
 
 class RightArmRayBuffed(BossModule module) : Components.GenericAOEs(module)
 {
-    public class SphereState
+    public class SphereState(Actor sphere, Angle increment)
     {
-        public Actor Sphere;
-        public Angle RotNext;
-        public Angle RotIncrement;
-        public int NumCastsLeft;
-
-        public SphereState(Actor sphere, Angle increment)
-        {
-            Sphere = sphere;
-            RotNext = sphere.Rotation;
-            RotIncrement = increment;
-            NumCastsLeft = 11;
-        }
+        public Actor Sphere = sphere;
+        public Angle RotNext = sphere.Rotation;
+        public Angle RotIncrement = increment;
+        public int NumCastsLeft = 11;
     }
 
     private readonly List<SphereState> _spheres = [];

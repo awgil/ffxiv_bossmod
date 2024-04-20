@@ -7,7 +7,7 @@ public class PartyRolesConfig : ConfigNode
 {
     public enum Assignment { MT, OT, H1, H2, M1, M2, R1, R2, Unassigned }
 
-    public Dictionary<ulong, Assignment> Assignments = new();
+    public Dictionary<ulong, Assignment> Assignments = [];
 
     public Assignment this[ulong contentID] => Assignments.GetValueOrDefault(contentID, Assignment.Unassigned);
 
@@ -20,9 +20,9 @@ public class PartyRolesConfig : ConfigNode
         {
             var r = this[party.ContentIDs[i]];
             if (r == Assignment.Unassigned)
-                return new Assignment[0];
+                return [];
             if (counts[(int)r]++ > 0)
-                return new Assignment[0];
+                return [];
             res[i] = r;
         }
         return res;
@@ -36,9 +36,9 @@ public class PartyRolesConfig : ConfigNode
         {
             var r = this[party.ContentIDs[i]];
             if (r == Assignment.Unassigned)
-                return new int[0];
+                return [];
             if (res[(int)r] != PartyState.MaxPartySize)
-                return new int[0];
+                return [];
             res[(int)r] = i;
         }
         return res;
@@ -71,7 +71,7 @@ public class PartyRolesConfig : ConfigNode
             ImGui.TableSetupColumn("Name");
             ImGui.TableHeadersRow();
 
-            List<(ulong cid, string name, Role role, Assignment assignment)> party = new();
+            List<(ulong cid, string name, Role role, Assignment assignment)> party = [];
             for (int i = 0; i < PartyState.MaxPartySize; ++i)
             {
                 var m = ws.Party.Members[i];

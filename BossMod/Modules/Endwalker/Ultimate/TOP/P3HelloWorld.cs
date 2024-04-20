@@ -7,8 +7,8 @@ class P3HelloWorld(BossModule module) : Components.GenericTowers(module)
 
     public int NumRotExplodes { get; private set; }
     public int NumTetherBreaks { get; private set; }
-    private PlayerRole[] _initialRoles = Utils.MakeArray(PartyState.MaxPartySize, PlayerRole.None);
-    private TowerColor[] _initialRots = new TowerColor[PartyState.MaxPartySize];
+    private readonly PlayerRole[] _initialRoles = Utils.MakeArray(PartyState.MaxPartySize, PlayerRole.None);
+    private readonly TowerColor[] _initialRots = new TowerColor[PartyState.MaxPartySize];
     private TowerColor _defamationTowerColor;
     private BitMask _defamationTowers;
     private BitMask _defamationRotDone;

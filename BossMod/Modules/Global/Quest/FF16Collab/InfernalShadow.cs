@@ -162,14 +162,14 @@ class BurningStrike(BossModule module) : BossComponent(module)
 
     public override void Update()
     {
-        var defendtargetable = Module.Enemies(OID.DefendClive).Where(x => x.IsTargetable).FirstOrDefault();
+        var defendtargetable = Module.Enemies(OID.DefendClive).FirstOrDefault(x => x.IsTargetable);
         if (defendtargetable != null && casting)
             casting = false;
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var defendtargetable = Module.Enemies(OID.DefendClive).Where(x => x.IsTargetable).FirstOrDefault();
+        var defendtargetable = Module.Enemies(OID.DefendClive).FirstOrDefault(x => x.IsTargetable);
         if (casting && defendtargetable == null)
             hints.Add("Prepare to defend Clive!");
         if (defendtargetable != null)
@@ -178,7 +178,7 @@ class BurningStrike(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var defendtargetable = Module.Enemies(OID.DefendClive).Where(x => x.IsTargetable).FirstOrDefault();
+        var defendtargetable = Module.Enemies(OID.DefendClive).FirstOrDefault(x => x.IsTargetable);
         if (defendtargetable != null)
             Arena.AddCircle(defendtargetable.Position, 1.4f, ArenaColor.Safe);
     }
@@ -213,9 +213,8 @@ class SearingStomp(BossModule module) : BossComponent(module)
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70334, NameID = 12564)] // also: CFC 959
-public class InfernalShadow : BossModule
+public class InfernalShadow(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))
 {
-    public InfernalShadow(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20)) { }
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

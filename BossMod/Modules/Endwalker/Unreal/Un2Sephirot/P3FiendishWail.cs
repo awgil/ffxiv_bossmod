@@ -3,11 +3,11 @@
 class P3FiendishWail(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.FiendishWailAOE))
 {
     private BitMask _physResistMask;
-    private List<Actor> _towers = new();
+    private readonly List<Actor> _towers = [];
 
     public bool Active => _towers.Count > 0;
 
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

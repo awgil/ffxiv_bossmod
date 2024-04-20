@@ -4,12 +4,12 @@ class HeavensflameAOE(BossModule module) : Components.CastCounter(module, Action
 
 class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.FaithUnmoving), 16)
 {
-    private WPos[] _playerAdjustedPositions = new WPos[PartyState.MaxPartySize];
-    private int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple
+    private readonly WPos[] _playerAdjustedPositions = new WPos[PartyState.MaxPartySize];
+    private readonly int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple
     private BitMask _brokenTethers;
 
-    private static readonly float _aoeRadius = 10;
-    private static readonly float _tetherBreakDistance = 32; // TODO: verify...
+    private const float _aoeRadius = 10;
+    private const float _tetherBreakDistance = 32; // TODO: verify...
 
     public override void Update()
     {

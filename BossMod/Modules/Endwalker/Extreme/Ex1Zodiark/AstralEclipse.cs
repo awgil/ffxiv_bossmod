@@ -6,14 +6,14 @@
 // 'completed' or 'not started' is represented as fully safe (all 0) mask, 'unknown' pattern is represented as fully dangerous (all 1) mask
 class AstralEclipse(BossModule module) : BossComponent(module)
 {
-    private int[] _patterns = new int[3]; // W -> S -> E
+    private readonly int[] _patterns = new int[3]; // W -> S -> E
 
     private static readonly AOEShapeCircle _aoe = new(10);
 
     // transform from 'pattern space' (X goes to the right, Y goes to the bottom) to world space
-    private static readonly float _centerOffset = 14;
+    private const float _centerOffset = 14;
     private static readonly Vector3[] _basisX = [-Vector3.UnitZ, -Vector3.UnitX, Vector3.UnitZ];
-    private static readonly Vector3[] _basisY = [-Vector3.UnitX,  Vector3.UnitZ, Vector3.UnitX];
+    private static readonly Vector3[] _basisY = [-Vector3.UnitX, Vector3.UnitZ, Vector3.UnitX];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -43,7 +43,7 @@ class AstralEclipse(BossModule module) : BossComponent(module)
 
     public override void OnEventEnvControl(byte index, uint state)
     {
-        if (index < 6 || index > 8)
+        if (index is < 6 or > 8)
             return;
         var seq = index - 6;
         _patterns[seq] = state switch

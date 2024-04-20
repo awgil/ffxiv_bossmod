@@ -8,7 +8,7 @@ public enum Waymark : byte
 // waymark positions in world; part of the world state structure
 public class WaymarkState
 {
-    private Vector3?[] _positions = new Vector3?[8]; // null if unset
+    private readonly Vector3?[] _positions = new Vector3?[8]; // null if unset
 
     public Vector3? this[Waymark wm]
     {

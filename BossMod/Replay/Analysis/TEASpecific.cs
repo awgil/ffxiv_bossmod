@@ -20,16 +20,16 @@ class TEASpecific
         public int Damage;
     }
 
-    private List<HandBaitData> _handBaits = new();
-    private List<ResolveData> _handResolvesParting = new();
-    private List<ResolveData> _handResolvesPrayer = new();
-    private List<ResolveData> _suretyResolvesClose = new();
-    private List<ResolveData> _suretyResolvesFar = new();
-    private UIPlot _plotHandBaits = new();
-    private UIPlot _plotHandResolvesParting = new();
-    private UIPlot _plotHandResolvesPrayer = new();
-    private UIPlot _plotSuretyResolvesClose = new();
-    private UIPlot _plotSuretyResolvesFar = new();
+    private readonly List<HandBaitData> _handBaits = [];
+    private readonly List<ResolveData> _handResolvesParting = [];
+    private readonly List<ResolveData> _handResolvesPrayer = [];
+    private readonly List<ResolveData> _suretyResolvesClose = [];
+    private readonly List<ResolveData> _suretyResolvesFar = [];
+    private readonly UIPlot _plotHandBaits = new();
+    private readonly UIPlot _plotHandResolvesParting = new();
+    private readonly UIPlot _plotHandResolvesPrayer = new();
+    private readonly UIPlot _plotSuretyResolvesClose = new();
+    private readonly UIPlot _plotSuretyResolvesFar = new();
 
     public TEASpecific(List<Replay> replays, uint oid)
     {

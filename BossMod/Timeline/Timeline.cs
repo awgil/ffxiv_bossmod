@@ -6,16 +6,11 @@ namespace BossMod;
 public class Timeline
 {
     // definition of a timeline column
-    public class Column
+    public class Column(Timeline timeline)
     {
         public float Width;
         public string Name = "";
-        public Timeline Timeline { get; private init; }
-
-        public Column(Timeline timeline)
-        {
-            Timeline = timeline;
-        }
+        public Timeline Timeline { get; private init; } = timeline;
 
         // called before layouting and drawing, good chance to update e.g. width
         public virtual void Update() { }
@@ -38,11 +33,9 @@ public class Timeline
 
     // a number of consecutive columns grouped together
     // if a column has a name, it won't draw subcolumn names
-    public class ColumnGroup : Column
+    public class ColumnGroup(Timeline timeline) : Column(timeline)
     {
-        public List<Column> Columns = new();
-
-        public ColumnGroup(Timeline timeline) : base(timeline) { }
+        public List<Column> Columns = [];
 
         public override void Update()
         {
@@ -92,31 +85,29 @@ public class Timeline
         public Column AddDummy()
         {
             Columns.Add(new(Timeline));
-            return Columns.Last();
+            return Columns[^1];
         }
     }
 
-    public float MinTime = 0;
-    public float MaxTime = 0;
-    public float? CurrentTime = null;
+    public float MinTime;
+    public float MaxTime;
+    public float? CurrentTime;
     public float PixelsPerSecond = 10;
     public float TopMargin = 20;
     public float BottomMargin = 5;
     public ColumnGroup Columns;
 
-    private float _tScroll = 0;
     private float _tickFrequency = 5;
-    private float _timeAxisWidth = 35;
+    private readonly float _timeAxisWidth = 35;
 
     // these fields are transient and reinitialized on each draw
-    private float _height = 0;
-    private float _curColumnOffset = 0;
+    private float _curColumnOffset;
     private Vector2 _screenClientTL;
-    private List<List<string>> _tooltip = new();
-    public float MinVisibleTime => _tScroll;
-    public float MaxVisibleTime => _tScroll + _height / PixelsPerSecond;
+    private readonly List<List<string>> _tooltip = [];
+    public float MinVisibleTime { get; private set; }
+    public float MaxVisibleTime => MinVisibleTime + Height / PixelsPerSecond;
 
-    public float Height => _height;
+    public float Height { get; private set; }
     public Vector2 ScreenClientTL => _screenClientTL;
 
     public Timeline()
@@ -135,11 +126,11 @@ public class Timeline
         ImGui.SetCursorScreenPos(_screenClientTL);
         _screenClientTL.X += _timeAxisWidth;
 
-        _height = MathF.Max(10, ImGui.GetWindowPos().Y + ImGui.GetWindowHeight() - _screenClientTL.Y - TopMargin - BottomMargin - 8);
-        ImGui.InvisibleButton("canvas", new(_timeAxisWidth + Columns.Width, _height), ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight);
+        Height = MathF.Max(10, ImGui.GetWindowPos().Y + ImGui.GetWindowHeight() - _screenClientTL.Y - TopMargin - BottomMargin - 8);
+        ImGui.InvisibleButton("canvas", new(_timeAxisWidth + Columns.Width, Height), ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight);
         HandleScrollZoom();
         DrawTimeAxis();
-        ImGui.PushClipRect(_screenClientTL, _screenClientTL + new Vector2(Columns.Width, _height), true);
+        ImGui.PushClipRect(_screenClientTL, _screenClientTL + new Vector2(Columns.Width, Height), true);
 
         _curColumnOffset = 0;
         Columns.DrawAdvance(ref _curColumnOffset);
@@ -176,8 +167,8 @@ public class Timeline
 
     public float TimeDeltaToScreenDelta(float dt) => dt * PixelsPerSecond;
     public float ScreenDeltaToTimeDelta(float dy) => dy / PixelsPerSecond;
-    public float TimeToScreenCoord(float t) => _screenClientTL.Y + TimeDeltaToScreenDelta(t - _tScroll);
-    public float ScreenCoordToTime(float y) => _tScroll + ScreenDeltaToTimeDelta(y - _screenClientTL.Y);
+    public float TimeToScreenCoord(float t) => _screenClientTL.Y + TimeDeltaToScreenDelta(t - MinVisibleTime);
+    public float ScreenCoordToTime(float y) => MinVisibleTime + ScreenDeltaToTimeDelta(y - _screenClientTL.Y);
     public float ColumnOffsetToScreenCoord(float o) => _screenClientTL.X + _curColumnOffset + o;
     public float ScreenCoordToColumnOffset(float x) => x - _screenClientTL.X - _curColumnOffset;
     public float CanvasOffsetToScreenCoord(float o) => _screenClientTL.X + o;
@@ -194,7 +185,7 @@ public class Timeline
             {
                 var cursorT = ScreenCoordToTime(ImGui.GetMousePos().Y);
                 PixelsPerSecond *= MathF.Pow(1.05f, ImGui.GetIO().MouseWheel);
-                _tScroll += cursorT - ScreenCoordToTime(ImGui.GetMousePos().Y);
+                MinVisibleTime += cursorT - ScreenCoordToTime(ImGui.GetMousePos().Y);
 
                 _tickFrequency = 5;
                 while (_tickFrequency < 60 && PixelsPerSecond * _tickFrequency < 30)
@@ -206,21 +197,21 @@ public class Timeline
             }
             else
             {
-                _tScroll -= ScreenDeltaToTimeDelta(70 * ImGui.GetIO().MouseWheel);
+                MinVisibleTime -= ScreenDeltaToTimeDelta(70 * ImGui.GetIO().MouseWheel);
             }
         }
 
         // clamp to data range
-        _tScroll = MathF.Min(_tScroll, MaxTime - _height / PixelsPerSecond);
-        _tScroll = MathF.Max(_tScroll, MinTime);
+        MinVisibleTime = MathF.Min(MinVisibleTime, MaxTime - Height / PixelsPerSecond);
+        MinVisibleTime = MathF.Max(MinVisibleTime, MinTime);
     }
 
     private void DrawTimeAxis()
     {
-        var maxT = Math.Min(MaxTime, _tScroll + _height / PixelsPerSecond);
+        var maxT = Math.Min(MaxTime, MinVisibleTime + Height / PixelsPerSecond);
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.AddLine(_screenClientTL, CanvasCoordsToScreenCoords(0, maxT), 0xffffffff);
-        for (float t = MathF.Ceiling(_tScroll / _tickFrequency) * _tickFrequency; t <= maxT; t += _tickFrequency)
+        for (float t = MathF.Ceiling(MinVisibleTime / _tickFrequency) * _tickFrequency; t <= maxT; t += _tickFrequency)
         {
             string tickText = $"{t:f1}";
             var tickTextSize = ImGui.CalcTextSize(tickText);
@@ -230,7 +221,7 @@ public class Timeline
             drawlist.AddText(p - new Vector2(tickTextSize.X + 5, tickTextSize.Y / 2), 0xffffffff, tickText);
         }
 
-        if (CurrentTime != null && CurrentTime.Value >= _tScroll && CurrentTime.Value <= maxT)
+        if (CurrentTime != null && CurrentTime.Value >= MinVisibleTime && CurrentTime.Value <= maxT)
         {
             // draw timeline mark
             var p = CanvasCoordsToScreenCoords(0, CurrentTime.Value);

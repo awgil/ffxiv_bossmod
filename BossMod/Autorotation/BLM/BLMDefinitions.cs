@@ -115,7 +115,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 65886, 65889, 66609, 66610, 66611, 66612, 66614, 67215, 67216, 67217, 67218, 67219, 68128 };
+    public static readonly uint[] UnlockQuests = [65886, 65889, 66609, 66610, 66611, 66612, 66614, 67215, 67216, 67217, 67218, 67219, 68128];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -188,45 +188,46 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionInt);
-        SupportedActions.GCDCast(AID.Blizzard1, 25, 2.5f);
-        SupportedActions.GCDCast(AID.Fire1, 25, 2.5f);
-        SupportedActions.GCDCast(AID.Thunder1, 25, 2.5f); // note: animation lock is 0.1 if cast or 0.6 if instant (under thundercloud)
-        SupportedActions.GCD(AID.Scathe, 25);
-        SupportedActions.GCDCast(AID.Blizzard3, 25, 3.5f);
-        SupportedActions.GCDCast(AID.Fire3, 25, 3.5f);
-        SupportedActions.GCDCast(AID.Thunder3, 25, 2.5f);
-        SupportedActions.GCDCast(AID.Blizzard4, 25, 2.5f);
-        SupportedActions.GCDCast(AID.Fire4, 25, 2.8f);
-        SupportedActions.GCDCast(AID.Foul, 25, 2.5f);
-        SupportedActions.GCDCast(AID.Despair, 25, 3.0f);
-        SupportedActions.GCD(AID.Xenoglossy, 25);
-        SupportedActions.GCDCast(AID.Paradox, 25, 2.5f);
-        SupportedActions.GCDCast(AID.Blizzard2, 25, 3.0f);
-        SupportedActions.GCDCast(AID.Fire2, 25, 3.0f);
-        SupportedActions.GCDCast(AID.Thunder2, 25, 2.5f);
-        SupportedActions.GCDCast(AID.Freeze, 25, 2.8f);
-        SupportedActions.GCDCast(AID.Flare, 25, 4.0f);
-        SupportedActions.GCDCast(AID.Thunder4, 25, 2.5f);
-        SupportedActions.GCDCast(AID.HighBlizzard2, 25, 3.0f);
-        SupportedActions.GCDCast(AID.HighFire2, 25, 3.0f);
-        SupportedActions.OGCD(AID.Transpose, 0, CDGroup.Transpose, 5.0f);
-        SupportedActions.OGCD(AID.Sharpcast, 0, CDGroup.Sharpcast, 60.0f);
-        SupportedActions.OGCD(AID.Swiftcast, 0, CDGroup.Swiftcast, 60.0f);
-        SupportedActions.OGCD(AID.Manafont, 0, CDGroup.Manafont, 180.0f);
-        SupportedActions.OGCD(AID.LeyLines, 0, CDGroup.LeyLines, 120.0f);
-        SupportedActions.OGCDWithCharges(AID.Triplecast, 0, CDGroup.Triplecast, 60.0f, 2);
-        SupportedActions.OGCD(AID.Amplifier, 0, CDGroup.Amplifier, 120.0f);
-        SupportedActions.OGCD(AID.LucidDreaming, 0, CDGroup.LucidDreaming, 60.0f);
-        SupportedActions.OGCD(AID.Addle, 25, CDGroup.Addle, 90.0f);
-        SupportedActions.OGCD(AID.Manaward, 0, CDGroup.Manaward, 120.0f);
-        SupportedActions.OGCD(AID.Surecast, 0, CDGroup.Surecast, 120.0f);
-        SupportedActions.OGCD(AID.AetherialManipulation, 25, CDGroup.AetherialManipulation, 10.0f);
-        SupportedActions.OGCD(AID.BetweenTheLines, 25, CDGroup.BetweenTheLines, 3.0f);
-        SupportedActions.GCD(AID.UmbralSoul, 0);
-        SupportedActions.GCDCast(AID.Sleep, 30, 2.5f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionInt);
+        res.GCDCast(AID.Blizzard1, 25, 2.5f);
+        res.GCDCast(AID.Fire1, 25, 2.5f);
+        res.GCDCast(AID.Thunder1, 25, 2.5f); // note: animation lock is 0.1 if cast or 0.6 if instant (under thundercloud)
+        res.GCD(AID.Scathe, 25);
+        res.GCDCast(AID.Blizzard3, 25, 3.5f);
+        res.GCDCast(AID.Fire3, 25, 3.5f);
+        res.GCDCast(AID.Thunder3, 25, 2.5f);
+        res.GCDCast(AID.Blizzard4, 25, 2.5f);
+        res.GCDCast(AID.Fire4, 25, 2.8f);
+        res.GCDCast(AID.Foul, 25, 2.5f);
+        res.GCDCast(AID.Despair, 25, 3.0f);
+        res.GCD(AID.Xenoglossy, 25);
+        res.GCDCast(AID.Paradox, 25, 2.5f);
+        res.GCDCast(AID.Blizzard2, 25, 3.0f);
+        res.GCDCast(AID.Fire2, 25, 3.0f);
+        res.GCDCast(AID.Thunder2, 25, 2.5f);
+        res.GCDCast(AID.Freeze, 25, 2.8f);
+        res.GCDCast(AID.Flare, 25, 4.0f);
+        res.GCDCast(AID.Thunder4, 25, 2.5f);
+        res.GCDCast(AID.HighBlizzard2, 25, 3.0f);
+        res.GCDCast(AID.HighFire2, 25, 3.0f);
+        res.OGCD(AID.Transpose, 0, CDGroup.Transpose, 5.0f);
+        res.OGCD(AID.Sharpcast, 0, CDGroup.Sharpcast, 60.0f);
+        res.OGCD(AID.Swiftcast, 0, CDGroup.Swiftcast, 60.0f);
+        res.OGCD(AID.Manafont, 0, CDGroup.Manafont, 180.0f);
+        res.OGCD(AID.LeyLines, 0, CDGroup.LeyLines, 120.0f);
+        res.OGCDWithCharges(AID.Triplecast, 0, CDGroup.Triplecast, 60.0f, 2);
+        res.OGCD(AID.Amplifier, 0, CDGroup.Amplifier, 120.0f);
+        res.OGCD(AID.LucidDreaming, 0, CDGroup.LucidDreaming, 60.0f);
+        res.OGCD(AID.Addle, 25, CDGroup.Addle, 90.0f);
+        res.OGCD(AID.Manaward, 0, CDGroup.Manaward, 120.0f);
+        res.OGCD(AID.Surecast, 0, CDGroup.Surecast, 120.0f);
+        res.OGCD(AID.AetherialManipulation, 25, CDGroup.AetherialManipulation, 10.0f);
+        res.OGCD(AID.BetweenTheLines, 25, CDGroup.BetweenTheLines, 3.0f);
+        res.GCD(AID.UmbralSoul, 0);
+        res.GCDCast(AID.Sleep, 30, 2.5f);
+        return res;
     }
 }

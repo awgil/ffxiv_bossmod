@@ -3,12 +3,12 @@
 // note: currently we assume that there is max 1 rot being passed around
 class AllaganRot(BossModule module) : BossComponent(module)
 {
-    private DateTime[] _rotExpiration = new DateTime[PartyState.MaxPartySize];
-    private DateTime[] _immunityExpiration = new DateTime[PartyState.MaxPartySize];
+    private readonly DateTime[] _rotExpiration = new DateTime[PartyState.MaxPartySize];
+    private readonly DateTime[] _immunityExpiration = new DateTime[PartyState.MaxPartySize];
     private int _rotHolderSlot = -1;
 
-    private static readonly float _rotPassRadius = 3;
-    private static readonly PartyRolesConfig.Assignment[] _rotPriority = { PartyRolesConfig.Assignment.R1, PartyRolesConfig.Assignment.M1, PartyRolesConfig.Assignment.M2, PartyRolesConfig.Assignment.H1, PartyRolesConfig.Assignment.H2, PartyRolesConfig.Assignment.R2 };
+    private const float _rotPassRadius = 3;
+    private static readonly PartyRolesConfig.Assignment[] _rotPriority = [PartyRolesConfig.Assignment.R1, PartyRolesConfig.Assignment.M1, PartyRolesConfig.Assignment.M2, PartyRolesConfig.Assignment.H1, PartyRolesConfig.Assignment.H2, PartyRolesConfig.Assignment.R2];
 
     public override void AddGlobalHints(GlobalHints hints)
     {

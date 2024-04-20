@@ -3,7 +3,7 @@
 class ChimericSuccession(BossModule module) : Components.UniformStackSpread(module, 6, 20, 4, alwaysShowSpreads: true)
 {
     public int NumCasts { get; private set; }
-    private Actor?[] _baitOrder = { null, null, null, null };
+    private readonly Actor?[] _baitOrder = [null, null, null, null];
     private BitMask _forbiddenStack;
     private DateTime _jumpActivation;
 

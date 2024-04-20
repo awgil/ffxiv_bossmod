@@ -5,14 +5,14 @@ using ImGuiNET;
 
 namespace BossMod.AI;
 
-class AIManager : IDisposable
+sealed class AIManager : IDisposable
 {
-    private Autorotation _autorot;
-    private AIController _controller;
-    private AIConfig _config;
+    private readonly Autorotation _autorot;
+    private readonly AIController _controller;
+    private readonly AIConfig _config;
     private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
     private AIBehaviour? _beh;
-    private UISimpleWindow _ui;
+    private readonly UISimpleWindow _ui;
 
     public AIManager(Autorotation autorot)
     {
@@ -96,13 +96,10 @@ class AIManager : IDisposable
 
     private int FindPartyMemberSlotFromSender(SeString sender)
     {
-        var source = sender.Payloads.FirstOrDefault() as PlayerPayload;
-        if (source == null)
+        if (sender.Payloads.FirstOrDefault() is not PlayerPayload source)
             return -1;
         var pm = Service.PartyList.FirstOrDefault(pm => pm.Name.TextValue == source.PlayerName && pm.World.Id == source.World.RowId);
-        if (pm == null)
-            return -1;
-        return _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)pm.ContentId);
+        return pm != null ? _autorot.WorldState.Party.ContentIDs.IndexOf((ulong)pm.ContentId) : -1;
     }
 
     private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -111,7 +108,7 @@ class AIManager : IDisposable
             return;
 
         var messagePrefix = message.Payloads.FirstOrDefault() as TextPayload;
-        if (messagePrefix?.Text == null || !messagePrefix.Text.StartsWith("vbmai "))
+        if (messagePrefix?.Text == null || !messagePrefix.Text.StartsWith("vbmai ", StringComparison.Ordinal))
             return;
 
         var messageData = messagePrefix.Text.Split(' ');

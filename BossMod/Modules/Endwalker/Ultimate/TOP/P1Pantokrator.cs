@@ -4,8 +4,8 @@ class P1BallisticImpact(BossModule module) : Components.LocationTargetedAOEs(mod
 
 class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<Actor> Casters = new();
-    private P1Pantokrator? _pantokrator = module.FindComponent<P1Pantokrator>();
+    public List<Actor> Casters = [];
+    private readonly P1Pantokrator? _pantokrator = module.FindComponent<P1Pantokrator>();
 
     private static readonly AOEShapeCone _shape = new(65, 30.Degrees());
 
@@ -25,7 +25,7 @@ class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
         var group = _pantokrator != null ? _pantokrator.PlayerStates[pcSlot].Group : 0;
         if (group > 0)
         {
-            var dir = (Casters.First().CastInfo!.Rotation - Module.PrimaryActor.Rotation).Normalized().Deg switch
+            var dir = (Casters[0].CastInfo!.Rotation - Module.PrimaryActor.Rotation).Normalized().Deg switch
             {
                 (> 15 and < 45) or (> -165 and < -135) => -60.Degrees(),
                 (> 45 and < 75) or (> -135 and < -105) => -30.Degrees(),
@@ -64,7 +64,7 @@ class P1Pantokrator(BossModule module) : P1CommonAssignments(module)
     public int NumSpreadsDone { get; private set; }
     public int NumStacksDone { get; private set; }
 
-    private static readonly float _spreadRadius = 5;
+    private const float _spreadRadius = 5;
     private static readonly AOEShapeRect _stackShape = new(50, 3);
 
     protected override (GroupAssignmentUnique assignment, bool global) Assignments()

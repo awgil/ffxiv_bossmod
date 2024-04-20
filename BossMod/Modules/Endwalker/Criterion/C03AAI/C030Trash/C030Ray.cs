@@ -16,7 +16,7 @@ class SElectricWhorl(BossModule module) : ElectricWhorl(module, AID.SElectricWho
 
 class C030RayStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030RayStates(BossModule module, bool savage) : base(module)
     {

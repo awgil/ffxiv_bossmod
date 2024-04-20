@@ -6,8 +6,8 @@ class P4Hatebound(BossModule module) : BossComponent(module)
     public enum Color { None, Red, Blue }
 
     public bool ColorsAssigned { get; private set; }
-    private List<(Actor orb, Color color, bool exploded)> _orbs = new(); // 'red' is actually 'yellow orb'
-    private Color[] _playerColors = new Color[PartyState.MaxPartySize];
+    private readonly List<(Actor orb, Color color, bool exploded)> _orbs = []; // 'red' is actually 'yellow orb'
+    private readonly Color[] _playerColors = new Color[PartyState.MaxPartySize];
 
     public bool ColorReady(Color c) => _orbs.Any(o => o.color == c && OrbReady(o.orb));
     public bool YellowReady => ColorReady(Color.Red);
@@ -69,11 +69,11 @@ class P4Hatebound(BossModule module) : BossComponent(module)
 
 class P4MirageDive(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MirageDiveAOE))
 {
-    private List<int> _targets = new();
+    private readonly List<int> _targets = [];
     private BitMask _forbidden;
     private BitMask _baiters;
 
-    private static readonly float _radius = 4;
+    private const float _radius = 4;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

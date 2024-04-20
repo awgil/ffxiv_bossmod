@@ -4,7 +4,7 @@
 class FlamesOfBozja(BossModule module, bool risky) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FlamesOfBozjaAOE))
 {
     public AOEInstance? AOE { get; private set; }
-    private bool _risky = risky;
+    private readonly bool _risky = risky;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 
@@ -31,10 +31,10 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
 {
     public enum Pattern { Unknown, EWNormal, EWInverted, WENormal, WEInverted }
 
-    private int[] _slotTempAdjustments = new int[5];
+    private readonly int[] _slotTempAdjustments = new int[5];
     private BitMask _arrowsInited;
     private Pattern _pattern;
-    private float _spawnToActivation = spawnToActivation;
+    private readonly float _spawnToActivation = spawnToActivation;
     private DateTime _activation;
 
     private static readonly AOEShapeRect _shapeCell = new(5, 5, 5);
@@ -131,7 +131,7 @@ class FlamesOfBozja1(BossModule module) : FlamesOfBozja(module, false);
 
 class QuickMarchBow1(BossModule module) : QuickMarch(module)
 {
-    private FlamesOfBozja1? _flames = module.FindComponent<FlamesOfBozja1>();
+    private readonly FlamesOfBozja1? _flames = module.FindComponent<FlamesOfBozja1>();
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_flames?.AOE?.Shape.Check(pos, _flames.AOE.Value.Origin, _flames.AOE.Value.Rotation) ?? false);
 }
@@ -154,7 +154,7 @@ class ShimmeringShot2(BossModule module) : ShimmeringShot(module, 14.0f)
 
 class QuickMarchBow2(BossModule module) : QuickMarch(module)
 {
-    private ShimmeringShot2? _shimmering = module.FindComponent<ShimmeringShot2>();
+    private readonly ShimmeringShot2? _shimmering = module.FindComponent<ShimmeringShot2>();
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_shimmering?.ActorUnsafeAt(actor, pos) ?? false);
 }

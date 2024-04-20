@@ -90,7 +90,7 @@ class CallRaze(BossModule module) : Components.RaidwideCast(module, ActionID.Mak
 // since hitbox is 7.2 it is probably starting to be optimal around distance 15
 class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.RawSteel), 2)
 {
-    private static readonly float _safeDistance = 15;
+    private const float _safeDistance = 15;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

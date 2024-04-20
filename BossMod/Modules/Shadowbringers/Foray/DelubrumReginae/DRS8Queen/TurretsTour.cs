@@ -2,8 +2,8 @@
 
 class TurretsTour : Components.GenericAOEs
 {
-    private List<(Actor turret, AOEShapeRect shape)> _turrets = new();
-    private List<(Actor caster, AOEShapeRect shape)> _casters = new();
+    private readonly List<(Actor turret, AOEShapeRect shape)> _turrets = [];
+    private readonly List<(Actor caster, AOEShapeRect shape)> _casters = [];
     private DateTime _activation;
 
     public TurretsTour(BossModule module) : base(module)

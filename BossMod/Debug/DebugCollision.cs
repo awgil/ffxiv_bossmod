@@ -15,7 +15,7 @@ public unsafe struct Mat4x3
     [FieldOffset(0x18)] public Vector3 Row2;
     [FieldOffset(0x24)] public Vector3 Row3;
 
-    public SharpDX.Matrix M => new(Row0.X, Row0.Y, Row0.Z, 0, Row1.X, Row1.Y, Row1.Z, 0, Row2.X, Row2.Y, Row2.Z, 0, Row3.X, Row3.Y, Row3.Z, 1);
+    public readonly SharpDX.Matrix M => new(Row0.X, Row0.Y, Row0.Z, 0, Row1.X, Row1.Y, Row1.Z, 0, Row2.X, Row2.Y, Row2.Z, 0, Row3.X, Row3.Y, Row3.Z, 1);
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 0x20)]
@@ -90,7 +90,7 @@ public enum CollisionObjectType : int
     Cylinder = 4,
     Sphere = 5,
     Plane = 6,
-    PlaneEx = 7,
+    PlaneTwoSided = 7,
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 0xA0)]
@@ -105,7 +105,7 @@ public unsafe struct CollisionObjectBase
     [FieldOffset(0x68)] public uint LayerMask;
 }
 
-[StructLayout(LayoutKind.Explicit, Size = 24*8)]
+[StructLayout(LayoutKind.Explicit, Size = 24 * 8)]
 public unsafe struct CollisionObjectBaseVTable
 {
     [FieldOffset(17 * 8)] public delegate* unmanaged[Stdcall]<CollisionObjectBase*, CollisionObjectType> GetObjectType;
@@ -239,13 +239,13 @@ public unsafe struct CollisionShapePrimitive
     [FieldOffset(0x8)] public uint Unk8;
 }
 
-public unsafe class DebugCollision : IDisposable
+public unsafe sealed class DebugCollision : IDisposable
 {
-    private UITree _tree = new();
+    private readonly UITree _tree = new();
     private (Action, nint) _drawExtra;
-    private HashSet<nint> _slaveShapes = new();
+    private readonly HashSet<nint> _slaveShapes = [];
 
-    private nint _typeinfoCollisionShapePCB;
+    private readonly nint _typeinfoCollisionShapePCB;
 
     public DebugCollision()
     {
@@ -428,7 +428,7 @@ public unsafe class DebugCollision : IDisposable
                     }
                     break;
                 case CollisionObjectType.Plane:
-                case CollisionObjectType.PlaneEx:
+                case CollisionObjectType.PlaneTwoSided:
                     {
                         var castObj = (CollisionObjectPlane*)obj;
                         _tree.LeafNode($"Translation: {Utils.Vec3String(castObj->Translation)}");
@@ -600,7 +600,7 @@ public unsafe class DebugCollision : IDisposable
                 }
                 break;
             case CollisionObjectType.Plane:
-            case CollisionObjectType.PlaneEx:
+            case CollisionObjectType.PlaneTwoSided:
                 {
                     var castObj = (CollisionObjectPlane*)obj;
                     var m = castObj->World.M;
@@ -745,8 +745,8 @@ public unsafe class DebugCollision : IDisposable
 
     private void Report()
     {
-        Dictionary<nint, int> shapeVtbls = new();
-        Dictionary<int, int> multiVersions = new();
+        Dictionary<nint, int> shapeVtbls = [];
+        Dictionary<int, int> multiVersions = [];
 
         var scene = CollisionModule.Instance->Manager->FirstScene;
         while (scene != null)

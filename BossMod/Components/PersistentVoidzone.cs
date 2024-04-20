@@ -20,8 +20,8 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Act
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public Func<BossModule, IEnumerable<Actor>> Sources { get; init; } = sources;
     public float CastEventToSpawn { get; init; } = castEventToSpawn;
-    private List<(WPos pos, DateTime time)> _predictedByEvent = new();
-    private List<(Actor caster, DateTime time)> _predictedByCast = new();
+    private readonly List<(WPos pos, DateTime time)> _predictedByEvent = [];
+    private readonly List<(Actor caster, DateTime time)> _predictedByCast = [];
 
     public bool HaveCasters => _predictedByCast.Count > 0;
 
@@ -88,11 +88,11 @@ public class PersistentInvertibleVoidzone(BossModule module, float radius, Func<
         if (shapes.Count == 0)
             return;
 
-        Func<WPos, float> distance = p =>
+        float distance(WPos p)
         {
-            float dist = shapes.Select(s => s(p)).Min();
+            var dist = shapes.Select(s => s(p)).Min();
             return Inverted ? -dist : dist;
-        };
+        }
         hints.AddForbiddenZone(distance, InvertResolveAt);
     }
 

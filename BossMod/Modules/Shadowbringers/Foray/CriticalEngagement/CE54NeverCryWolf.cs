@@ -64,7 +64,7 @@ class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module
 class LunarCry(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.LunarCry), 80, false)
 {
     private readonly List<Actor> _safePillars = [];
-    private BracingWind? _knockback = module.FindComponent<BracingWind>();
+    private readonly BracingWind? _knockback = module.FindComponent<BracingWind>();
 
     public override IEnumerable<Actor> BlockerActors() => _safePillars;
 
@@ -198,7 +198,7 @@ class CE54NeverCryWolfStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 25)] // bnpcname=9941
 public class CE54NeverCryWolf : BossModule
 {
-    private IReadOnlyList<Actor> _adds;
+    private readonly IReadOnlyList<Actor> _adds;
 
     public CE54NeverCryWolf(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-830, 190), 24))
     {

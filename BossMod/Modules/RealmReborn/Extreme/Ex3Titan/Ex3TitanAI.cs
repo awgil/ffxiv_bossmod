@@ -3,7 +3,7 @@
 class Ex3TitanAI(BossModule module) : BossComponent(module)
 {
     public bool KillNextBomb;
-    private GraniteGaol? _rockThrow = module.FindComponent<GraniteGaol>();
+    private readonly GraniteGaol? _rockThrow = module.FindComponent<GraniteGaol>();
 
     public override void Update()
     {

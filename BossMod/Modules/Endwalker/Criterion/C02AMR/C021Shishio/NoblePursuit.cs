@@ -3,10 +3,10 @@
 class NoblePursuit(BossModule module) : Components.GenericAOEs(module)
 {
     private WPos _posAfterLastCharge;
-    private List<AOEInstance> _charges = new();
-    private List<AOEInstance> _rings = new();
+    private readonly List<AOEInstance> _charges = [];
+    private readonly List<AOEInstance> _rings = [];
 
-    private static readonly float _chargeHalfWidth = 6;
+    private const float _chargeHalfWidth = 6;
     private static readonly AOEShapeRect _shapeRing = new(5, 50, 5);
 
     public bool Active => _charges.Count + _rings.Count > 0;
@@ -30,7 +30,7 @@ class NoblePursuit(BossModule module) : Components.GenericAOEs(module)
             }
 
             // see whether this ring shows next charge
-            if (!_charges.Last().Check(actor.Position))
+            if (!_charges[^1].Check(actor.Position))
             {
                 var nextDir = actor.Position - _posAfterLastCharge;
                 if (Math.Abs(nextDir.X) < 0.1)
@@ -40,17 +40,17 @@ class NoblePursuit(BossModule module) : Components.GenericAOEs(module)
                 nextDir = nextDir.Normalized();
                 var ts = Module.Bounds.Center + nextDir.Sign() * Module.Bounds.HalfSize - _posAfterLastCharge;
                 var t = Math.Min(nextDir.X != 0 ? ts.X / nextDir.X : float.MaxValue, nextDir.Z != 0 ? ts.Z / nextDir.Z : float.MaxValue);
-                _charges.Add(new(new AOEShapeRect(t, _chargeHalfWidth), _posAfterLastCharge, Angle.FromDirection(nextDir), _charges.Last().Activation.AddSeconds(1.4f)));
+                _charges.Add(new(new AOEShapeRect(t, _chargeHalfWidth), _posAfterLastCharge, Angle.FromDirection(nextDir), _charges[^1].Activation.AddSeconds(1.4f)));
                 _posAfterLastCharge += nextDir * t;
             }
 
             // ensure ring rotations are expected
-            if (!_charges.Last().Rotation.AlmostEqual(actor.Rotation, 0.1f))
+            if (!_charges[^1].Rotation.AlmostEqual(actor.Rotation, 0.1f))
             {
                 ReportError("Unexpected rotation for ring inside last pending charge");
             }
 
-            _rings.Add(new(_shapeRing, actor.Position, actor.Rotation, _charges.Last().Activation.AddSeconds(0.8f)));
+            _rings.Add(new(_shapeRing, actor.Position, actor.Rotation, _charges[^1].Activation.AddSeconds(0.8f)));
         }
     }
 

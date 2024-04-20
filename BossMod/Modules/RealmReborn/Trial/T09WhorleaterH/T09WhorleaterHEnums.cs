@@ -11,7 +11,7 @@ public enum OID : uint
     HydroshotZone = 0x1E9230, // R0.500, EventObj type, spawn during fight
     DreadstormZone = 0x1E9231, // R0.500, EventObj type, spawn during fight
     AnotherSpinningDiveHelper = 0xA88, // R0.500, x14, 523 type
-    Leviathan_Unk2 = 0xACD, // R0.500, x4
+    //Leviathan_Unk2 = 0xACD, // R0.500, x4
     ElementalConverter = 0xB84, // R0.500, x1
     SpinningDiveHelper = 0xA87, // R4.500, 523 type, spawn during fight
 }
@@ -29,14 +29,14 @@ public enum AID : uint
     AetherDraw = 1870, // Spume->B84, no cast, single-target
     StunShot = 1862, // Sahagin->player, no cast, single-target
     DreadTide = 1877, // A88->location, no cast, range 2 circle
-    DreadTide_Boss = 1876, // Boss->self, no cast, single-target
+    DreadTideBoss = 1876, // Boss->self, no cast, single-target
     AquaBreath = 1855, // Boss->self, no cast, range 10+R circle
     TailWhip = 1856, // Tail->self, no cast, range 10+R circle
     Waterspout = 1859, // A88->location, no cast, range 4 circle
-    Waterspout_Boss = 1858, // Boss->self, no cast, single-target
+    WaterspoutBoss = 1858, // Boss->self, no cast, single-target
     Hydroshot = 1864, // Sahagin->location, 2.5s cast, range 5 circle
     TidalRoar = 1868, // A88->self, no cast, range 60+R circle
-    TidalRoar_Boss = 1867, // Boss->self, no cast, single-target
+    TidalRoarBoss = 1867, // Boss->self, no cast, single-target
     SpinningDiveSnapshot = 1869, // A87->self, no cast, range 46+R width 16 rect
     SpinningDiveEffect = 1861, // A88->self, no cast, range 46+R width 16 rect
     Splash = 1871, // Spume->self, no cast, range 50+R circle

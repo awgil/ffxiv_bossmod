@@ -6,7 +6,7 @@ class SFightingSpirits(BossModule module) : FightingSpirits(module, AID.SFightin
 
 class WorldlyPursuitBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private int[] _order = { -1, -1, -1, -1 };
+    private readonly int[] _order = [-1, -1, -1, -1];
 
     private static readonly AOEShapeCross _shape = new(60, 10);
 
@@ -60,7 +60,7 @@ class WorldlyPursuitBait(BossModule module) : Components.GenericBaitAway(module,
 
 class WorldlyPursuitLast(BossModule module) : Components.GenericAOEs(module)
 {
-    private DateTime _activation = module.WorldState.FutureTime(3.1f);
+    private readonly DateTime _activation = module.WorldState.FutureTime(3.1f);
 
     private static readonly AOEShapeCross _shape = new(60, 10);
 

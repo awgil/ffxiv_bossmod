@@ -7,25 +7,19 @@ namespace BossMod;
 //                       rotation 0 corresponds to South, and increases counterclockwise (so East is +pi/2, North is pi, West is -pi/2)
 // - camera azimuth 0 correpsonds to camera looking North and increases counterclockwise
 // - screen coordinates - X points left to right, Y points top to bottom
-public class MiniArena
+public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
 {
-    public BossModuleConfig Config { get; init; }
-    public ArenaBounds Bounds;
+    public BossModuleConfig Config { get; init; } = config;
+    public ArenaBounds Bounds = bounds;
 
     public float ScreenHalfSize => 150 * Config.ArenaScale;
     public float ScreenMarginSize => 20 * Config.ArenaScale;
 
     // these are set at the beginning of each draw
-    public Vector2 ScreenCenter { get; private set; } = new();
+    public Vector2 ScreenCenter { get; private set; }
     private float _cameraAzimuth;
-    private float _cameraSinAzimuth = 0;
+    private float _cameraSinAzimuth;
     private float _cameraCosAzimuth = 1;
-
-    public MiniArena(BossModuleConfig config, ArenaBounds bounds)
-    {
-        Config = config;
-        Bounds = bounds;
-    }
 
     // prepare for drawing - set up internal state, clip rect etc.
     public void Begin(float cameraAzimuthRadians)

@@ -127,7 +127,7 @@ abstract class P6HallowedPlume(BossModule module) : Components.GenericBaitAway(m
 
 class P6HallowedPlume1(BossModule module) : P6HallowedPlume(module)
 {
-    private P6CauterizeN? _cauterize = module.FindComponent<P6CauterizeN>();
+    private readonly P6CauterizeN? _cauterize = module.FindComponent<P6CauterizeN>();
 
     protected override IEnumerable<WPos> SafeSpots(Actor actor)
     {
@@ -156,7 +156,7 @@ class P6HallowedPlume1(BossModule module) : P6HallowedPlume(module)
 
 class P6HallowedPlume2(BossModule module) : P6HallowedPlume(module)
 {
-    private P6HotWingTail? _wingTail = module.FindComponent<P6HotWingTail>();
+    private readonly P6HotWingTail? _wingTail = module.FindComponent<P6HotWingTail>();
 
     protected override IEnumerable<WPos> SafeSpots(Actor actor)
     {

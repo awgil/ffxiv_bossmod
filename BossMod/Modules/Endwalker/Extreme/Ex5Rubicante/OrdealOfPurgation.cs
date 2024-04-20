@@ -19,7 +19,7 @@ class OrdealOfPurgation(BossModule module) : Components.GenericAOEs(module)
     private int _midIncrement; // inner with this index is incremented by one (rotated CCW) when passing middle ring
     private int _midDecrement; // inner with this index is decremented by one (rotated CW) when passing middle ring
     private int _rotationOuter;
-    private Symbol[] _symbols = new Symbol[8];
+    private readonly Symbol[] _symbols = new Symbol[8];
     private DateTime _activation;
 
     private static readonly AOEShapeCone _shapeTri = new(60, 30.Degrees());

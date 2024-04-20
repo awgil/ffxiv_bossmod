@@ -1,56 +1,36 @@
 ﻿namespace BossMod;
 
-public struct QuestLockEntry
-{
-    public int Level;
-    public uint QuestID;
+public record struct QuestLockEntry(int Level, uint QuestID);
 
-    public QuestLockEntry(int level, uint questID)
-    {
-        Level = level;
-        QuestID = questID;
-    }
-}
-
-public class ActionDefinition
+public class ActionDefinition(float range, float castTime, int cooldownGroup, float cooldown, int maxChargesAtCap, float animationLock)
 {
-    public float Range; // 0 is for self-targeted abilities
-    public float CastTime; // 0 for instant-cast
-    public int CooldownGroup;
-    public float Cooldown; // for multi-charge abilities - for single charge
-    public int MaxChargesAtCap;
-    public float AnimationLock;
+    public float Range = range; // 0 is for self-targeted abilities
+    public float CastTime = castTime; // 0 for instant-cast
+    public int CooldownGroup = cooldownGroup;
+    public float Cooldown = cooldown; // for multi-charge abilities - for single charge
+    public int MaxChargesAtCap = maxChargesAtCap;
+    public float AnimationLock = animationLock;
     public float EffectDuration; // used by planner UI
 
     public float CooldownAtFirstCharge => (MaxChargesAtCap - 1) * Cooldown;
-
-    public ActionDefinition(float range, float castTime, int cooldownGroup, float cooldown, int maxChargesAtCap, float animationLock)
-    {
-        Range = range;
-        CastTime = castTime;
-        CooldownGroup = cooldownGroup;
-        Cooldown = cooldown;
-        MaxChargesAtCap = maxChargesAtCap;
-        AnimationLock = animationLock;
-    }
 }
 
 public static class CommonDefinitions
 {
-    public static ActionID IDAutoAttack = new(ActionType.Spell, 7);
-    public static ActionID IDAutoShot = new(ActionType.Spell, 8);
-    public static ActionID IDSprint = new(ActionType.Spell, 3);
-    public static ActionID IDPotionStr = new(ActionType.Item, 1039727); // hq grade 8 tincture of strength
-    public static ActionID IDPotionDex = new(ActionType.Item, 1039728); // hq grade 8 tincture of dexterity
-    public static ActionID IDPotionVit = new(ActionType.Item, 1039729); // hq grade 8 tincture of vitality
-    public static ActionID IDPotionInt = new(ActionType.Item, 1039730); // hq grade 8 tincture of intelligence
-    public static ActionID IDPotionMnd = new(ActionType.Item, 1039731); // hq grade 8 tincture of mind
+    public static readonly ActionID IDAutoAttack = new(ActionType.Spell, 7);
+    public static readonly ActionID IDAutoShot = new(ActionType.Spell, 8);
+    public static readonly ActionID IDSprint = new(ActionType.Spell, 3);
+    public static readonly ActionID IDPotionStr = new(ActionType.Item, 1039727); // hq grade 8 tincture of strength
+    public static readonly ActionID IDPotionDex = new(ActionType.Item, 1039728); // hq grade 8 tincture of dexterity
+    public static readonly ActionID IDPotionVit = new(ActionType.Item, 1039729); // hq grade 8 tincture of vitality
+    public static readonly ActionID IDPotionInt = new(ActionType.Item, 1039730); // hq grade 8 tincture of intelligence
+    public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1039731); // hq grade 8 tincture of mind
 
-    public static int SprintCDGroup = 55;
-    public static int GCDGroup = 57;
-    public static int PotionCDGroup = 58;
-    public static int DutyAction0CDGroup = 80;
-    public static int DutyAction1CDGroup = 81;
+    public const int SprintCDGroup = 55;
+    public const int GCDGroup = 57;
+    public const int PotionCDGroup = 58;
+    public const int DutyAction0CDGroup = 80;
+    public const int DutyAction1CDGroup = 81;
 
     public static Dictionary<ActionID, ActionDefinition> CommonActionData(ActionID statPotion)
     {
@@ -59,7 +39,7 @@ public static class CommonDefinitions
         (res[statPotion] = new(0, 0, PotionCDGroup, 270, 1, 1.1f)).EffectDuration = 30;
 
         // bozja actions
-        for (BozjaHolsterID i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
+        for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
         {
             var normalAction = BozjaActionID.GetNormal(i);
             var normalData = Service.LuminaRow<Lumina.Excel.GeneratedSheets.Action>(normalAction.ID);

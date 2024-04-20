@@ -2,7 +2,7 @@
 
 class WildfireWard(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.IlluminatingGlimpse), 15, false, 1, kind: Kind.DirLeft)
 {
-    private static readonly WPos[] _tri = { new(-750, -762), new(-760.392f, -744), new(-739.608f, -744) };
+    private static readonly WPos[] _tri = [new(-750, -762), new(-760.392f, -744), new(-739.608f, -744)];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

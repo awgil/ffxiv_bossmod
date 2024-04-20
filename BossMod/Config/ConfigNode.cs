@@ -5,58 +5,40 @@ namespace BossMod;
 
 // attribute that specifies how config node should be shown in the UI
 [AttributeUsage(AttributeTargets.Class)]
-public class ConfigDisplayAttribute : Attribute
+public sealed class ConfigDisplayAttribute : Attribute
 {
-    public string? Name;
-    public int Order;
-    public Type? Parent;
+    public string? Name { get; set; }
+    public int Order { get; set; }
+    public Type? Parent { get; set; }
 }
 
 // attribute that specifies how config node field or enumeration value is shown in the UI
 [AttributeUsage(AttributeTargets.Field)]
-public class PropertyDisplayAttribute : Attribute
+public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff) : Attribute
 {
-    public string Label;
-    public uint Color;
-
-    public PropertyDisplayAttribute(string label, uint color = 0xffffffff)
-    {
-        Label = label;
-        Color = color;
-    }
+    public string Label { get; } = label;
+    public uint Color { get; } = color;
 }
 
 // attribute that specifies combobox should be used for displaying int/bool property
 [AttributeUsage(AttributeTargets.Field)]
-public class PropertyComboAttribute : Attribute
+public sealed class PropertyComboAttribute(string[] values) : Attribute
 {
-    public string[] Values;
+    public string[] Values { get; } = values;
 
-    public PropertyComboAttribute(string[] values)
-    {
-        Values = values;
-    }
-
-    public PropertyComboAttribute(string falseText, string trueText)
-    {
-        Values = new[] { falseText, trueText };
-    }
+#pragma warning disable CA1019 // this is just a shorthand
+    public PropertyComboAttribute(string falseText, string trueText) : this([falseText, trueText]) { }
+#pragma warning restore CA1019
 }
 
 // attribute that specifies slider should be used for displaying float/int property
 [AttributeUsage(AttributeTargets.Field)]
-public class PropertySliderAttribute : Attribute
+public sealed class PropertySliderAttribute(float min, float max) : Attribute
 {
-    public float Speed = 1;
-    public float Min;
-    public float Max;
-    public bool Logarithmic;
-
-    public PropertySliderAttribute(float min, float max)
-    {
-        Min = min;
-        Max = max;
-    }
+    public float Speed { get; set; } = 1;
+    public float Min { get; } = min;
+    public float Max { get; } = max;
+    public bool Logarithmic { get; set; }
 }
 
 // base class for configuration nodes

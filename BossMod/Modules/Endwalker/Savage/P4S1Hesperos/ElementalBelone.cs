@@ -3,9 +3,9 @@
 // state related to elemental belone mechanic (3 of 4 corners exploding)
 class ElementalBelone : BossComponent
 {
-    public bool Visible = false;
-    private SettingTheScene.Element _safeElement;
-    private List<WPos> _imminentExplodingCorners = new();
+    public bool Visible;
+    private readonly SettingTheScene.Element _safeElement;
+    private readonly List<WPos> _imminentExplodingCorners = [];
 
     public ElementalBelone(BossModule module) : base(module)
     {
@@ -19,7 +19,7 @@ class ElementalBelone : BossComponent
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (_imminentExplodingCorners.Where(p => actor.Position.InRect(p, new WDir(1, 0), 10, 10, 10)).Any())
+        if (_imminentExplodingCorners.Any(p => actor.Position.InRect(p, new WDir(1, 0), 10, 10, 10)))
         {
             hints.Add($"GTFO from exploding square");
         }

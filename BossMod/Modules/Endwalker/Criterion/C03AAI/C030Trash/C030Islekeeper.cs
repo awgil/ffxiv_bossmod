@@ -10,7 +10,7 @@ class SIsleDrop(BossModule module) : IsleDrop(module, AID.SIsleDrop);
 
 class C030IslekeeperStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030IslekeeperStates(BossModule module, bool savage) : base(module)
     {

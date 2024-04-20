@@ -3,9 +3,9 @@
 class MatronsBreath(BossModule module) : BossComponent(module)
 {
     public int NumCasts { get; private set; }
-    private IReadOnlyList<Actor> _blueSafe = module.Enemies(OID.BlueSafeZone);
-    private IReadOnlyList<Actor> _goldSafe = module.Enemies(OID.GoldSafeZone);
-    private List<Actor> _towers = new();
+    private readonly IReadOnlyList<Actor> _blueSafe = module.Enemies(OID.BlueSafeZone);
+    private readonly IReadOnlyList<Actor> _goldSafe = module.Enemies(OID.GoldSafeZone);
+    private readonly List<Actor> _towers = [];
 
     private static readonly AOEShapeDonut _shape = new(8, 40); // TODO: verify safe zone radius
 

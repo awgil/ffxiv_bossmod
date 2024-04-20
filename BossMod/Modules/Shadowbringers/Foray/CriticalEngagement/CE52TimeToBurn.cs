@@ -37,7 +37,7 @@ class TimeEruptionBombReproduce(BossModule module) : Components.GenericAOEs(modu
 {
     private DateTime _bombsActivation;
     private DateTime _eruptionStart; // timestamp of StartTime cast start
-    private IReadOnlyList<Actor> _bombs = module.Enemies(OID.TimeBomb1); // either 1 or 2 works, dunno what's the difference
+    private readonly IReadOnlyList<Actor> _bombs = module.Enemies(OID.TimeBomb1); // either 1 or 2 works, dunno what's the difference
     private readonly List<Actor> _cycloneCasters = [];
     private readonly List<(WPos pos, TimeSpan delay)> _clocks = [];
     private readonly List<WPos> _eruptionSafeSpots = [];

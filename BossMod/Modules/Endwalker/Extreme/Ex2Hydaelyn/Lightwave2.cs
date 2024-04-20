@@ -7,9 +7,9 @@ class Lightwave2(BossModule module) : LightwaveCommon(module)
     private Vector4? _safeCrystalOrigin;
 
     private static readonly WPos _crystalCenter = new(100, 101);
-    private static readonly WPos _crystalTL = new( 90,  92);
-    private static readonly WPos _crystalTR = new(110,  92);
-    private static readonly WPos _crystalBL = new( 90, 110);
+    private static readonly WPos _crystalTL = new(90, 92);
+    private static readonly WPos _crystalTR = new(110, 92);
+    private static readonly WPos _crystalBL = new(90, 110);
     private static readonly WPos _crystalBR = new(110, 110);
     private static readonly AOEShapeCone _gloryAOE = new(40, 90.Degrees());
 
@@ -29,7 +29,7 @@ class Lightwave2(BossModule module) : LightwaveCommon(module)
 
         (bool inWave, bool inSafeCone) = NumCasts < 4
             ? (WaveAOE.Check(actor.Position, Wave1Pos(), 0.Degrees()) || WaveAOE.Check(actor.Position, Wave2Pos(), 0.Degrees()), InSafeCone(NextSideCrystal(), _crystalCenter, actor.Position))
-            : (WaveAOE.Check(actor.Position, Wave3Pos(), 0.Degrees()), _safeCrystal != new WPos() ? InSafeCone(_crystalCenter, _safeCrystal, actor.Position) : true);
+            : (WaveAOE.Check(actor.Position, Wave3Pos(), 0.Degrees()), _safeCrystal == default || InSafeCone(_crystalCenter, _safeCrystal, actor.Position));
 
         if (inWave)
             hints.Add("GTFO from wave!");

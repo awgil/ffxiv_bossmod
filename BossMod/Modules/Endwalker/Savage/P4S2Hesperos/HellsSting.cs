@@ -3,10 +3,10 @@
 // state related to hell's sting mechanic (part of curtain call sequence)
 class HellsSting(BossModule module) : BossComponent(module)
 {
-    public int NumCasts { get; private set; } = 0;
+    public int NumCasts { get; private set; }
 
-    private AOEShapeCone _cone = new(50, 15.Degrees());
-    private List<Angle> _directions = new();
+    private readonly AOEShapeCone _cone = new(50, 15.Degrees());
+    private readonly List<Angle> _directions = [];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

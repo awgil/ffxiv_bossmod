@@ -4,8 +4,8 @@ class FiresteelStrike : Components.UniformStackSpread
 {
     public int NumJumps { get; private set; }
     public int NumCleaves { get; private set; }
-    private List<Actor> _jumpTargets = new();
-    private List<Actor> _interceptors = new();
+    private readonly List<Actor> _jumpTargets = [];
+    private readonly List<Actor> _interceptors = [];
 
     private static readonly AOEShapeRect _cleaveShape = new(65, 4);
 

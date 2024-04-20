@@ -38,7 +38,7 @@ class P3Divebomb(BossModule module) : Components.GenericAOEs(module)
 
 class P3Adds(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _hygieia = module.Enemies(OID.Hygieia);
+    private readonly IReadOnlyList<Actor> _hygieia = module.Enemies(OID.Hygieia);
     public IReadOnlyList<Actor> Asclepius { get; private set; } = module.Enemies(OID.Asclepius);
     public IEnumerable<Actor> ActiveHygieia => _hygieia.Where(a => !a.IsDead);
 
@@ -93,7 +93,7 @@ class P3Adds(BossModule module) : BossComponent(module)
 
 class P3AethericProfusion(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AethericProfusion))
 {
-    private DateTime _activation = module.WorldState.FutureTime(6.7f);
+    private readonly DateTime _activation = module.WorldState.FutureTime(6.7f);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

@@ -2,9 +2,9 @@
 
 class P1Plumes(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _razor = module.Enemies(OID.RazorPlume);
-    private IReadOnlyList<Actor> _spiny = module.Enemies(OID.SpinyPlume);
-    private IReadOnlyList<Actor> _satin = module.Enemies(OID.SatinPlume);
+    private readonly IReadOnlyList<Actor> _razor = module.Enemies(OID.RazorPlume);
+    private readonly IReadOnlyList<Actor> _spiny = module.Enemies(OID.SpinyPlume);
+    private readonly IReadOnlyList<Actor> _satin = module.Enemies(OID.SatinPlume);
 
     public bool Active => _razor.Any(p => p.IsTargetable) || _spiny.Any(p => p.IsTargetable) || _satin.Any(p => p.IsTargetable);
 

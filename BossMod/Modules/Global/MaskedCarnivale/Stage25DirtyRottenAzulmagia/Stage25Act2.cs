@@ -43,7 +43,7 @@ class Hints2(BossModule module) : BossComponent(module)
     {
         if (!Module.Enemies(OID.BlazingAngon).All(e => e.IsDead))
             hints.Add($"Kill {Module.Enemies(OID.BlazingAngon).FirstOrDefault()!.Name}! Use physical attacks except fire aspected.");
-        var magicreflect = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.RepellingSpray) != null).FirstOrDefault();
+        var magicreflect = Module.Enemies(OID.Boss).FirstOrDefault(x => x.FindStatus(SID.RepellingSpray) != null);
         if (magicreflect != null)
             hints.Add($"{Module.PrimaryActor.Name} will reflect all magic damage!");
     }

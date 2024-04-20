@@ -3,12 +3,12 @@
 // state related to vengeful belone mechanic
 class VengefulBelone(BossModule module) : BossComponent(module)
 {
-    private Dictionary<ulong, Role> _orbTargets = new();
-    private int _orbsExploded = 0;
-    private int[] _playerRuinCount = new int[8];
-    private Role[] _playerActingRole = new Role[8];
+    private readonly Dictionary<ulong, Role> _orbTargets = [];
+    private int _orbsExploded;
+    private readonly int[] _playerRuinCount = new int[8];
+    private readonly Role[] _playerActingRole = new Role[8];
 
-    private static readonly float _burstRadius = 8;
+    private const float _burstRadius = 8;
 
     private Role OrbTarget(ulong instanceID) => _orbTargets.GetValueOrDefault(instanceID, Role.None);
 

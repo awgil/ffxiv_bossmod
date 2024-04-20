@@ -3,7 +3,7 @@
 class P3QuickmarchTrio(BossModule module) : BossComponent(module)
 {
     private Actor? _relNorth;
-    private WPos[] _safeSpots = new WPos[PartyState.MaxPartySize];
+    private readonly WPos[] _safeSpots = new WPos[PartyState.MaxPartySize];
 
     public bool Active => _relNorth != null;
 
@@ -43,7 +43,7 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
     private BitMask _stackTargets;
 
     public P3MegaflareSpreadStack(BossModule module) : base(module, 5, 5, 3, 3, alwaysShowSpreads: true)
-{
+    {
         AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(2.6f));
     }
 

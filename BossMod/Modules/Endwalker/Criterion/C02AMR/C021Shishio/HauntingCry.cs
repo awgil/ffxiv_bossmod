@@ -2,7 +2,7 @@
 
 class HauntingCrySwipes(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
 
     private static readonly AOEShapeCone _shape = new(40, 90.Degrees());
 
@@ -29,7 +29,7 @@ class HauntingCrySwipes(BossModule module) : Components.GenericAOEs(module)
 
 class HauntingCryReisho(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _ghosts = new();
+    private readonly List<Actor> _ghosts = [];
     private DateTime _activation;
     private DateTime _ignoreBefore;
 

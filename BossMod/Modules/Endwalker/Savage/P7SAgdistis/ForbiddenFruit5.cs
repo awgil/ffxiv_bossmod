@@ -3,7 +3,7 @@
 // TODO: improve!
 class ForbiddenFruit5(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.Burst))
 {
-    private IReadOnlyList<Actor> _towers = module.Enemies(OID.Tower);
+    private readonly IReadOnlyList<Actor> _towers = module.Enemies(OID.Tower);
 
     private const float _towerRadius = 5;
 

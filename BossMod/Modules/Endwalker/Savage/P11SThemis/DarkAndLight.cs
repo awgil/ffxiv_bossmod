@@ -12,10 +12,10 @@ class DarkAndLight(BossModule module) : BossComponent(module)
     }
 
     public bool ShowSafespots = true;
-    private PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
+    private readonly PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
 
-    private static readonly float _farOffset = 13;
-    private static readonly float _nearOffset = 7;
+    private const float _farOffset = 13;
+    private const float _nearOffset = 7;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

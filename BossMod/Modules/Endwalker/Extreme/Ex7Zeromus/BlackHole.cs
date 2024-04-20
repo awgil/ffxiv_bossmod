@@ -8,9 +8,9 @@ class BlackHole(BossModule module) : BossComponent(module)
     private DateTime _growthStart;
 
     // TODO: verify...
-    private static readonly float _startingRadius = 5;
-    private static readonly float _maxRadius = 35;
-    private static readonly float _growthPerSecond = 3.3f;
+    private const float _startingRadius = 5;
+    private const float _maxRadius = 35;
+    private const float _growthPerSecond = 3.3f;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -84,7 +84,7 @@ class FracturedEventide(BossModule module) : Components.GenericAOEs(module)
     private DateTime _startingActivation;
 
     private static readonly AOEShapeRect _shape = new(60, 4);
-    private static readonly int _maxCasts = 21;
+    private const int _maxCasts = 21;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

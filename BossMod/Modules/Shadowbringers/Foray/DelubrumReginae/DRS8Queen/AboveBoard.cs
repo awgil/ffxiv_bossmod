@@ -6,8 +6,8 @@ class AboveBoard(BossModule module) : Components.GenericAOEs(module)
     public enum State { Initial, ThrowUpDone, ShortExplosionsDone, LongExplosionsDone }
 
     public State CurState { get; private set; }
-    private IReadOnlyList<Actor> _smallBombs = module.Enemies(OID.AetherialBolt);
-    private IReadOnlyList<Actor> _bigBombs = module.Enemies(OID.AetherialBurst);
+    private readonly IReadOnlyList<Actor> _smallBombs = module.Enemies(OID.AetherialBolt);
+    private readonly IReadOnlyList<Actor> _bigBombs = module.Enemies(OID.AetherialBurst);
     private bool _invertedBombs; // bombs are always either all normal (big=short) or all inverted
     private BitMask _invertedPlayers; // default for player is 'long', short is considered inverted (has visible status)
     private DateTime _activation = module.WorldState.FutureTime(14.4f);

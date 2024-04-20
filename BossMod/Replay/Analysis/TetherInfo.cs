@@ -8,12 +8,12 @@ class TetherInfo : CommonEnumInfo
 {
     private class TetherData
     {
-        public HashSet<uint> SourceOIDs = new();
-        public HashSet<uint> TargetOIDs = new();
+        public HashSet<uint> SourceOIDs = [];
+        public HashSet<uint> TargetOIDs = [];
     }
 
-    private Type? _tidType;
-    private Dictionary<uint, TetherData> _data = new();
+    private readonly Type? _tidType;
+    private readonly Dictionary<uint, TetherData> _data = [];
 
     public TetherInfo(List<Replay> replays, uint oid)
     {
@@ -36,11 +36,11 @@ class TetherInfo : CommonEnumInfo
 
     public void Draw(UITree tree)
     {
-        Func<KeyValuePair<uint, TetherData>, UITree.NodeProperties> map = kv =>
+        UITree.NodeProperties map(KeyValuePair<uint, TetherData> kv)
         {
             var name = _tidType?.GetEnumName(kv.Key);
             return new($"{kv.Key} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);
-        };
+        }
         foreach (var (tid, data) in tree.Nodes(_data, map))
         {
             tree.LeafNode($"Source IDs: {OIDListString(data.SourceOIDs)}");

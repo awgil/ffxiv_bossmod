@@ -3,8 +3,8 @@
 // TODO :implement hints...
 class P1Mesohigh(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Mesohigh))
 {
-    private IReadOnlyList<Actor> _sisters = module.Enemies(OID.GarudaSister);
-    private static readonly float _radius = 3;
+    private readonly IReadOnlyList<Actor> _sisters = module.Enemies(OID.GarudaSister);
+    private const float _radius = 3;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

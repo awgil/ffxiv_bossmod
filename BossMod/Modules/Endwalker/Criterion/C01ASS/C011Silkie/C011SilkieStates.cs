@@ -2,7 +2,7 @@
 
 class C011SilkieStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C011SilkieStates(BossModule module, bool savage) : base(module)
     {

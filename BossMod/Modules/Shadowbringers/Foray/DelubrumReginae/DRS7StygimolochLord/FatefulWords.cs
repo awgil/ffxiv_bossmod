@@ -2,7 +2,7 @@
 
 class FatefulWords(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.FatefulWordsAOE), true)
 {
-    private Kind[] _mechanics = new Kind[PartyState.MaxPartySize];
+    private readonly Kind[] _mechanics = new Kind[PartyState.MaxPartySize];
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

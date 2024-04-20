@@ -46,7 +46,7 @@ class MistralSongP1(BossModule module) : Components.CastLineOfSightAOE(module, A
 // actual casts happen every ~6s after aerial blast cast
 class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.AerialBlast))
 {
-    private AOEShapeDonut _shape = new(12, 25);
+    private readonly AOEShapeDonut _shape = new(12, 25);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -75,10 +75,8 @@ class T03GarudaNStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 58, NameID = 1644)]
-public class T03GarudaN : BossModule
+public class T03GarudaN(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 21))
 {
-    public T03GarudaN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 21)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

@@ -10,7 +10,7 @@ class SOvation(BossModule module) : Ovation(module, AID.SOvation);
 
 class C030WoodGolemStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030WoodGolemStates(BossModule module, bool savage) : base(module)
     {

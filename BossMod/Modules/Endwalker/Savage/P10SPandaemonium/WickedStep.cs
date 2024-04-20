@@ -2,10 +2,10 @@
 
 class WickedStep(BossModule module) : Components.Knockback(module, ignoreImmunes: true)
 {
-    private Actor?[] _towers = { null, null };
+    private readonly Actor?[] _towers = [null, null];
 
-    private static readonly float _towerRadius = 4;
-    private static readonly float _knockbackRadius = 36;
+    private const float _towerRadius = 4;
+    private const float _knockbackRadius = 36;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

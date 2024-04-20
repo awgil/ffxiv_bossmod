@@ -1,13 +1,20 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using System.IO.Compression;
 
 namespace BossMod;
 
-public class ReplayRecorder : IDisposable
+public sealed class ReplayRecorder : IDisposable
 {
     public abstract class Output : IDisposable
     {
-        public abstract void Dispose();
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected abstract void Dispose(bool disposing);
         public abstract Output Entry(string tag, DateTime t);
         public abstract Output Emit();
         public abstract Output Emit(string v);
@@ -35,19 +42,12 @@ public class ReplayRecorder : IDisposable
         public abstract void Flush();
     }
 
-    public class TextOutput : Output
+    public class TextOutput(Stream dest, ActorState? actorLookup) : Output
     {
-        private StreamWriter _dest;
+        private readonly StreamWriter _dest = new(dest);
         private DateTime _curEntry;
-        private ActorState? _actorLookup;
 
-        public TextOutput(Stream dest, ActorState? actorLookup)
-        {
-            _dest = new(dest);
-            _actorLookup = actorLookup;
-        }
-
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             _dest.Dispose();
         }
@@ -92,7 +92,7 @@ public class ReplayRecorder : IDisposable
         public override Output EmitTimePair(DateTime t1, float t2) => WriteEntry($"{(t1 - _curEntry).TotalSeconds:f3}/{t2:f3}");
         public override Output EmitActor(ulong instanceID)
         {
-            var actor = _actorLookup?.Find(instanceID);
+            var actor = actorLookup?.Find(instanceID);
             return WriteEntry(actor != null ? $"{actor.InstanceID:X8}/{actor.OID:X}/{actor.Name}/{actor.Type}/{actor.PosRot.X:f3}/{actor.PosRot.Y:f3}/{actor.PosRot.Z:f3}/{actor.Rotation}" : $"{instanceID:X8}");
         }
 
@@ -112,16 +112,11 @@ public class ReplayRecorder : IDisposable
         }
     }
 
-    public class BinaryOutput : Output
+    public class BinaryOutput(Stream dest) : Output
     {
-        private BinaryWriter _dest;
+        private readonly BinaryWriter _dest = new(dest);
 
-        public BinaryOutput(Stream dest)
-        {
-            _dest = new(dest);
-        }
-
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             _dest.Dispose();
         }
@@ -169,8 +164,8 @@ public class ReplayRecorder : IDisposable
         public override void Flush() => _dest.Flush();
     }
 
-    private WorldState _ws;
-    private Output _logger;
+    private readonly WorldState _ws;
+    private readonly Output _logger;
 
     public const int Version = 13;
 
@@ -197,7 +192,7 @@ public class ReplayRecorder : IDisposable
                 _logger = new TextOutput(stream, _ws.Actors);
                 break;
             default:
-                throw new Exception("Bad format");
+                throw new InvalidEnumArgumentException("Bad format");
         }
 
         // log initial state

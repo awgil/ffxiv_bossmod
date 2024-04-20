@@ -5,7 +5,7 @@ class ArcaneRevelation(BossModule module) : Components.GenericAOEs(module)
 {
     private uint _activeMirrors;
     private uint _activeSpheres;
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shapeMirror = new(50, 5);
     private static readonly AOEShapeCircle _shapeSphere = new(15);

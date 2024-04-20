@@ -60,7 +60,7 @@ class P2MeteorStream : Components.UniformStackSpread
 
 class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DalamudDive), true, true)
 {
-    private Actor? _target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
+    private readonly Actor? _target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
 
     private static readonly AOEShapeCircle _shape = new(5);
 

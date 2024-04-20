@@ -6,7 +6,7 @@ class SettingTheScene(BossModule module) : BossComponent(module)
     public enum Corner { Unknown, NE, SE, SW, NW }
     public enum Element { Fire, Lightning, Acid, Water }
 
-    private Corner[] _assignments = new Corner[4];
+    private readonly Corner[] _assignments = new Corner[4];
     public Corner Assignment(Element elem) => _assignments[(int)elem];
 
     public Element FindElement(Corner corner)
@@ -18,9 +18,9 @@ class SettingTheScene(BossModule module) : BossComponent(module)
     {
         return corner switch
         {
-            Corner.NE => new( 1, -1),
-            Corner.SE => new( 1,  1),
-            Corner.SW => new(-1,  1),
+            Corner.NE => new(+1, -1),
+            Corner.SE => new(+1, +1),
+            Corner.SW => new(-1, +1),
             Corner.NW => new(-1, -1),
             _ => new()
         };

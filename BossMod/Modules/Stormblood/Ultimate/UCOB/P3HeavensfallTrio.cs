@@ -5,7 +5,7 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
     private Actor? _nael;
     private Actor? _twin;
     private Actor? _baha;
-    private WPos[] _safeSpots = new WPos[PartyState.MaxPartySize];
+    private readonly WPos[] _safeSpots = new WPos[PartyState.MaxPartySize];
 
     public bool Active => _nael != null;
 

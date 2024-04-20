@@ -2,7 +2,7 @@
 
 class P6HotWingTail(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shapeWing = new(50, 10.5f);
     private static readonly AOEShapeRect _shapeTail = new(50, 8);

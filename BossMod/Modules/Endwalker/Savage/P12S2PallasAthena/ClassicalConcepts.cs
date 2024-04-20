@@ -15,12 +15,12 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
 
     public int NumPlayerTethers { get; private set; }
     public int NumShapeTethers { get; private set; }
-    private IReadOnlyList<Actor> _hexa = module.Enemies(OID.ConceptOfWater);
-    private IReadOnlyList<Actor> _tri = module.Enemies(OID.ConceptOfFire);
-    private IReadOnlyList<Actor> _sq = module.Enemies(OID.ConceptOfEarth);
-    private (WPos hexa, WPos tri, WPos sq)[] _resolvedShapes = new(WPos, WPos, WPos)[4];
-    private PlayerState[] _states = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Column = -1, PartnerSlot = -1 });
-    private bool _invert = invert;
+    private readonly IReadOnlyList<Actor> _hexa = module.Enemies(OID.ConceptOfWater);
+    private readonly IReadOnlyList<Actor> _tri = module.Enemies(OID.ConceptOfFire);
+    private readonly IReadOnlyList<Actor> _sq = module.Enemies(OID.ConceptOfEarth);
+    private readonly (WPos hexa, WPos tri, WPos sq)[] _resolvedShapes = new (WPos, WPos, WPos)[4];
+    private readonly PlayerState[] _states = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Column = -1, PartnerSlot = -1 });
+    private readonly bool _invert = invert;
     private bool _showShapes = true;
     private bool _showTethers = true;
 
@@ -175,7 +175,7 @@ class Implode(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.
 
 class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.PalladianRayAOEFirst))
 {
-    private Actor[] _dummies = { new(0, 0, -1, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0)) };
+    private readonly Actor[] _dummies = [new(0, 0, -1, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0))];
 
     private static readonly AOEShapeCone _shape = new(100, 15.Degrees());
 
@@ -190,7 +190,7 @@ class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, A
 
 class PalladianRayAOE(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.PalladianRayAOERest))
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
     public int NumConcurrentAOEs => _aoes.Count;
 
     private static readonly AOEShapeCone _shape = new(100, 15.Degrees());

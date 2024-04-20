@@ -6,8 +6,8 @@ public enum OID : uint
     BossAdd = 0x3019, //R=1.8
     BossHelper = 0x233C,
     ResinVoidzone = 0x1E8FC7,
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
-    BonusAdd_FuathTrickster = 0x3033, // R0.750
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
+    BonusAddFuathTrickster = 0x3033, // R0.750
 }
 
 public enum AID : uint
@@ -50,7 +50,7 @@ class KeeperStates : StateMachineBuilder
             .ActivateOnEnter<Spin>()
             .ActivateOnEnter<Mash>()
             .ActivateOnEnter<Scoop>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_FuathTrickster).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead) && module.Enemies(OID.BonusAddFuathTrickster).All(e => e.IsDead);
     }
 }
 
@@ -62,9 +62,9 @@ public class Keeper(WorldState ws, Actor primary) : BossModule(ws, primary, new 
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_FuathTrickster))
+        foreach (var s in Enemies(OID.BonusAddFuathTrickster))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -75,8 +75,8 @@ public class Keeper(WorldState ws, Actor primary) : BossModule(ws, primary, new 
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_FuathTrickster => 4,
-                OID.BonusAdd_TheKeeperOfTheKeys => 3,
+                OID.BonusAddFuathTrickster => 4,
+                OID.BonusAddKeeperOfKeys => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

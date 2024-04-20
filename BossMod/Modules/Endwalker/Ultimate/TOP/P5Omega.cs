@@ -2,7 +2,7 @@
 
 class P5OmegaDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -49,7 +49,7 @@ class P5OmegaDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
 
 class P5OmegaDiffuseWaveCannon(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shape = new(100, 60.Degrees());
 
@@ -118,7 +118,7 @@ class P5OmegaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 // TODO: assign soakers
 class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
-    private P5OmegaNearDistantWorld? _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
+    private readonly P5OmegaNearDistantWorld? _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
     private Actor? _boss;
     private Angle _bossAngle;
 
@@ -199,7 +199,7 @@ class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackS
 // TODO: assign soakers
 class P5OmegaBlaster : Components.BaitAwayTethers
 {
-    private P5OmegaNearDistantWorld? _ndw;
+    private readonly P5OmegaNearDistantWorld? _ndw;
 
     public P5OmegaBlaster(BossModule module) : base(module, new AOEShapeCircle(15), (uint)TetherID.Blaster, ActionID.MakeSpell(AID.OmegaBlasterAOE))
     {
@@ -226,7 +226,7 @@ class P5OmegaBlaster : Components.BaitAwayTethers
         if (_ndw == null || CurrentBaits.Count == 0)
             yield break;
 
-        var toBoss = (CurrentBaits.First().Source.Position - Module.Bounds.Center).Normalized();
+        var toBoss = (CurrentBaits[0].Source.Position - Module.Bounds.Center).Normalized();
         if (actor == _ndw.NearWorld)
         {
             yield return Module.Bounds.Center - 10 * toBoss;

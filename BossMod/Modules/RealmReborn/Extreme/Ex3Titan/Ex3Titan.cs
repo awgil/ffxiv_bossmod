@@ -9,7 +9,7 @@ public class Ex3TitanConfig() : CooldownPlanningConfigNode(50);
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 64, NameID = 1801)]
 public class Ex3Titan : BossModule
 {
-    private IReadOnlyList<Actor> _heart;
+    private readonly IReadOnlyList<Actor> _heart;
     public Actor? Heart() => _heart.FirstOrDefault();
 
     public IReadOnlyList<Actor> Gaolers;

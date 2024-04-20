@@ -3,9 +3,9 @@
 // state related to storms of asphodelos mechanics
 class StormsOfAsphodelos(BossModule module) : BossComponent(module)
 {
-    private AOEShapeCone _windsAOE = new(50, 30.Degrees());
-    private AOEShapeCircle _beaconAOE = new(6);
-    private List<Actor> _twisterTargets = new();
+    private readonly AOEShapeCone _windsAOE = new(50, 30.Degrees());
+    private readonly AOEShapeCircle _beaconAOE = new(6);
+    private readonly List<Actor> _twisterTargets = [];
     private BitMask _tetherTargets;
     private BitMask _bossTargets;
     private BitMask _closeToTetherTarget;

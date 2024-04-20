@@ -24,7 +24,7 @@ class BallisticMissile(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEShape? _activeMissile;
     private Actor? _activeTarget;
-    private WPos _activeLocation = new();
+    private WPos _activeLocation;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

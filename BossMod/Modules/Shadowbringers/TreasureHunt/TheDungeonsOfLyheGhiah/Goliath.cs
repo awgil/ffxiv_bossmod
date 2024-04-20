@@ -10,7 +10,7 @@ public enum OID : uint
     DungeonTomato = 0x2A09, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     DungeonOnion = 0x2A06, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     DungeonEgg = 0x2A07, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-    BonusAdd_TheKeeperOfTheKeys = 0x2A05, // R3.230
+    BonusAddKeeperOfKeys = 0x2A05, // R3.230
 }
 
 public enum AID : uint
@@ -68,7 +68,7 @@ class GoliathStates : StateMachineBuilder
             .ActivateOnEnter<HeirloomScream>()
             .ActivateOnEnter<PungentPirouette>()
             .ActivateOnEnter<Pollen>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.DungeonEgg).All(e => e.IsDead) && module.Enemies(OID.DungeonQueen).All(e => e.IsDead) && module.Enemies(OID.DungeonOnion).All(e => e.IsDead) && module.Enemies(OID.DungeonGarlic).All(e => e.IsDead) && module.Enemies(OID.DungeonTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.DungeonEgg).All(e => e.IsDead) && module.Enemies(OID.DungeonQueen).All(e => e.IsDead) && module.Enemies(OID.DungeonOnion).All(e => e.IsDead) && module.Enemies(OID.DungeonGarlic).All(e => e.IsDead) && module.Enemies(OID.DungeonTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead);
     }
 }
 
@@ -90,7 +90,7 @@ public class Goliath(WorldState ws, Actor primary) : BossModule(ws, primary, new
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.DungeonOnion))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -105,7 +105,7 @@ public class Goliath(WorldState ws, Actor primary) : BossModule(ws, primary, new
                 OID.DungeonEgg => 6,
                 OID.DungeonGarlic => 5,
                 OID.DungeonTomato => 4,
-                OID.DungeonQueen or OID.BonusAdd_TheKeeperOfTheKeys => 3,
+                OID.DungeonQueen or OID.BonusAddKeeperOfKeys => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

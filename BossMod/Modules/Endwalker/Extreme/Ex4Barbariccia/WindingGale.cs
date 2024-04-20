@@ -3,7 +3,7 @@
 // TODO: not sure how 'spiral arms' are really implemented
 class WindingGale(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.WindingGale))
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
 
     private static readonly AOEShapeDonutSector _shape = new(9, 11, 90.Degrees());
 

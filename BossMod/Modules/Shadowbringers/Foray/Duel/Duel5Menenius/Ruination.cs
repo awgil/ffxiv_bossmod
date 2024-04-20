@@ -3,7 +3,7 @@
 class RuinationCross(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect _aoeShape = new(20, 4, 20);
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 

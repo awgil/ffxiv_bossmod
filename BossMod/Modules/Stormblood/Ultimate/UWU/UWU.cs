@@ -27,13 +27,12 @@ class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(mod
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539)]
 public class UWU : BossModule
 {
-    private IReadOnlyList<Actor> _ifrits;
-    private IReadOnlyList<Actor> _titan;
-    private IReadOnlyList<Actor> _lahabrea;
-    private IReadOnlyList<Actor> _ultima;
+    private readonly IReadOnlyList<Actor> _titan;
+    private readonly IReadOnlyList<Actor> _lahabrea;
+    private readonly IReadOnlyList<Actor> _ultima;
     private Actor? _mainIfrit;
 
-    public IReadOnlyList<Actor> Ifrits => _ifrits;
+    public IReadOnlyList<Actor> Ifrits { get; }
 
     public Actor? Garuda() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
     public Actor? Ifrit() => _mainIfrit;
@@ -43,7 +42,7 @@ public class UWU : BossModule
 
     public UWU(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
     {
-        _ifrits = Enemies(OID.Ifrit);
+        Ifrits = Enemies(OID.Ifrit);
         _titan = Enemies(OID.Titan);
         _lahabrea = Enemies(OID.Lahabrea);
         _ultima = Enemies(OID.UltimaWeapon);
@@ -52,7 +51,7 @@ public class UWU : BossModule
     protected override void UpdateModule()
     {
         if (StateMachine.ActivePhaseIndex == 1)
-            _mainIfrit ??= _ifrits.FirstOrDefault(a => a.IsTargetable);
+            _mainIfrit ??= Ifrits.FirstOrDefault(a => a.IsTargetable);
     }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)

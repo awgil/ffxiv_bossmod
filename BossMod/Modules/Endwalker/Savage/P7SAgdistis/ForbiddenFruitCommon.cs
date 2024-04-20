@@ -9,8 +9,8 @@ class ForbiddenFruitCommon(BossModule module, ActionID watchedAction) : Componen
     public bool MinotaursBaited { get; private set; }
     protected Actor?[] TetherSources = new Actor?[8];
     protected BitMask[] SafePlatforms = new BitMask[8];
-    private List<(Actor, AOEShape, DateTime)> _predictedAOEs = new();
-    private List<(Actor, AOEShape)> _activeAOEs = new();
+    private readonly List<(Actor, AOEShape, DateTime)> _predictedAOEs = [];
+    private readonly List<(Actor, AOEShape)> _activeAOEs = [];
     private BitMatrix _tetherClips; // [i,j] is set if i is tethered and clips j
 
     protected static readonly BitMask ValidPlatformsMask = new(7);

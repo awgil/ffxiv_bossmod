@@ -2,7 +2,7 @@
 
 class BladeOfTheTengu(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shape = new(50, 45.Degrees()); // TODO: verify angle
 

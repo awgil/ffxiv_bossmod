@@ -2,7 +2,7 @@
 
 class CurseOfTheFallen(BossModule module) : Components.UniformStackSpread(module, 5, 6, 3, 3, true)
 {
-    private List<Actor> _fallen = new();
+    private readonly List<Actor> _fallen = [];
     private Actor? _thunderous;
     private BitMask _lingering;
     private DateTime _spreadResolve;

@@ -8,7 +8,7 @@ public static class Rotation
     public enum Form { None, OpoOpo, Raptor, Coeurl }
 
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public int Chakra; // 0-5
         public BeastChakra[] BeastChakra = [];
@@ -29,7 +29,7 @@ public static class Rotation
         public int BeastCount => BeastChakra.Count(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE);
 
         public bool ForcedLunar => BeastChakra[0] == Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.OPOOPO && BeastChakra[1] == Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.OPOOPO;
-        public bool ForcedSolar => BeastChakra.Any(x => x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE && x != Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.OPOOPO);
+        public bool ForcedSolar => BeastChakra.Any(x => x is not Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.NONE and not Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra.OPOOPO);
 
         // upgrade paths
         public AID BestForbiddenChakra => Unlocked(AID.ForbiddenChakra) ? AID.ForbiddenChakra : AID.SteelPeak;
@@ -57,8 +57,6 @@ public static class Rotation
                 return AID.CelestialRevolution;
             }
         }
-
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
@@ -303,7 +301,7 @@ public static class Rotation
     {
         // TODO: potion
 
-        if (strategy.CombatTimer < 0 && strategy.CombatTimer > -100)
+        if (strategy.CombatTimer is < 0 and > -100)
         {
             if (
                 strategy.CombatTimer > -0.2
@@ -582,14 +580,9 @@ public static class Rotation
 
     public static bool HaveTarget(State state, Strategy strategy) => state.TargetingEnemy || strategy.UseAOE;
 
-    private static bool WillDemolishExpire(State state, Strategy strategy, int gcds) =>
-        !strategy.UseAOE && WillStatusExpire(state, gcds, state.TargetDemolishLeft);
-
-    private static bool WillDFExpire(State state, int gcds) =>
-        WillStatusExpire(state, gcds, state.DisciplinedFistLeft);
-
-    private static bool WillStatusExpire(State state, int gcds, float statusDuration) =>
-        statusDuration < state.GCD + (state.AttackGCDTime * gcds);
+    private static bool WillDemolishExpire(State state, Strategy strategy, int gcds) => !strategy.UseAOE && WillStatusExpire(state, gcds, state.TargetDemolishLeft);
+    private static bool WillDFExpire(State state, int gcds) => WillStatusExpire(state, gcds, state.DisciplinedFistLeft);
+    private static bool WillStatusExpire(State state, int gcds, float statusDuration) => statusDuration < state.GCD + (state.AttackGCDTime * gcds);
 
     private static bool CanSolar(State state, Strategy strategy) => strategy.NextNadi switch
     {

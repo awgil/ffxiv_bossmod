@@ -11,9 +11,9 @@
 // - if delta is >0 (i.e. scramble is applied), client stores sum of delta and two bases in 'adjusted' field; otherwise it generates random value for 'adjusted' field that is less than sum of bases
 public static unsafe class IDScramble
 {
-    public static int* OffsetBaseFixed = null; // this is set to rand() % 256 + 14 on static init
-    public static int* OffsetBaseChanging = null; // this is set to rand() % 255 + 1 on every zone change
-    public static int* OffsetAdjusted = null; // this is set to (rand() % base-sum) if id is not scrambled (so < base-sum) -or- to base-sum + delta calculated from packet data (if scrambled) on every zone change
+    public static int* OffsetBaseFixed { get; private set; } = null; // this is set to rand() % 256 + 14 on static init
+    public static int* OffsetBaseChanging { get; private set; } = null; // this is set to rand() % 255 + 1 on every zone change
+    public static int* OffsetAdjusted { get; private set; } = null; // this is set to (rand() % base-sum) if id is not scrambled (so < base-sum) -or- to base-sum + delta calculated from packet data (if scrambled) on every zone change
 
     public static uint Delta => OffsetAdjusted != null && *OffsetAdjusted > *OffsetBaseFixed + *OffsetBaseChanging ? (uint)(*OffsetAdjusted - *OffsetBaseFixed - *OffsetBaseChanging) : 0;
 

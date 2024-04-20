@@ -7,7 +7,7 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttack_SanctifiedScathe = 17439, // 298A->player, no cast, single-target
+    AutoAttackSanctifiedScathe = 17439, // 298A->player, no cast, single-target
     LeftCheek = 17446, // 298A->self, 5,0s cast, range 60 180-degree cone
     LeftCheek2 = 17447, // 298A->self, no cast, range 60 180-degree cone
     RightCheek = 17448, // 298A->self, 5,0s cast, range 60 180-degree cone
@@ -86,7 +86,7 @@ class FeveredFlagellationHint(BossModule module) : Components.SingleTargetCast(m
 
 class WitchHunt(BossModule module) : Components.GenericBaitAway(module)
 {
-    private static readonly AOEShapeRect rect = new AOEShapeRect(0, 5);
+    private static readonly AOEShapeRect rect = new(0, 5);
     private bool witchHunt1done;
 
     public override void Update()

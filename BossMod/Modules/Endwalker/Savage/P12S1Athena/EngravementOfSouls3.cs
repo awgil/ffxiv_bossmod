@@ -40,7 +40,7 @@ class EngravementOfSouls3Shock(BossModule module) : Components.CastTowers(module
 
 class EngravementOfSouls3Spread(BossModule module) : Components.UniformStackSpread(module, 0, 3, alwaysShowSpreads: true, raidwideOnResolve: false)
 {
-    private EngravementOfSoulsTethers? _tethers = module.FindComponent<EngravementOfSoulsTethers>();
+    private readonly EngravementOfSoulsTethers? _tethers = module.FindComponent<EngravementOfSoulsTethers>();
     private EngravementOfSoulsTethers.TetherType _soakers;
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -86,7 +86,7 @@ class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)
     private bool _topLeftSafe;
     private bool _towersLight;
     private bool _leftTowerMatchTether;
-    private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+    private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {

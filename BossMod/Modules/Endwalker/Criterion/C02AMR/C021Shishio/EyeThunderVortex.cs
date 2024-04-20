@@ -2,7 +2,7 @@
 
 class EyeThunderVortex(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shapeCircle = new(15);
     private static readonly AOEShapeDonut _shapeDonut = new(8, 30);

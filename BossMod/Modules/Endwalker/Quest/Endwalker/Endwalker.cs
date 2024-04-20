@@ -73,7 +73,7 @@ class UnmovingDvenadkatik(BossModule module) : Components.SelfTargetedAOEs(modul
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "croizat", PrimaryActorOID = (uint)OID.ZenosP1, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70000, NameID = 10393)]
 public class Endwalker : BossModule
 {
-    private IReadOnlyList<Actor> _zenosP2;
+    private readonly IReadOnlyList<Actor> _zenosP2;
 
     public Actor? ZenosP1() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
     public Actor? ZenosP2() => _zenosP2.FirstOrDefault();

@@ -2,7 +2,7 @@
 
 class P6WrothFlames : Components.GenericAOEs
 {
-    private List<AOEInstance> _aoes = new(); // cauterize, then flame blasts
+    private readonly List<AOEInstance> _aoes = []; // cauterize, then flame blasts
     private WPos _startingSpot;
 
     private static readonly AOEShapeRect _shapeCauterize = new(80, 11);
@@ -79,8 +79,8 @@ class P6AkhMornVoidzone(BossModule module) : Components.PersistentVoidzone(modul
 
 class P6SpreadingEntangledFlames(BossModule module) : Components.UniformStackSpread(module, 4, 5, 2, alwaysShowSpreads: true)
 {
-    private P6HotWingTail? _wingTail = module.FindComponent<P6HotWingTail>();
-    private bool _voidzonesNorth = module.Enemies(OID.VoidzoneAhkMorn).Sum(z => z.Position.Z - module.Bounds.Center.Z) < 0;
+    private readonly P6HotWingTail? _wingTail = module.FindComponent<P6HotWingTail>();
+    private readonly bool _voidzonesNorth = module.Enemies(OID.VoidzoneAhkMorn).Sum(z => z.Position.Z - module.Bounds.Center.Z) < 0;
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {

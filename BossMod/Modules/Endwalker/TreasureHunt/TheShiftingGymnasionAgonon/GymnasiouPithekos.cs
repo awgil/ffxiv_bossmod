@@ -6,7 +6,7 @@ public enum OID : uint
     BallOfLevin = 0x3E90,
     BossAdd = 0x3D2C, //R=4.2
     BossHelper = 0x233C,
-    BonusAdd_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
+    BonusAddLyssa = 0x3D4E, //R=3.75, bonus loot adds
 }
 
 public enum AID : uint
@@ -89,7 +89,7 @@ class PithekosStates : StateMachineBuilder
             .ActivateOnEnter<SweepingGouge>()
             .ActivateOnEnter<ThunderIV>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_Lyssa).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead);
     }
 }
 
@@ -101,7 +101,7 @@ public class Pithekos(WorldState ws, Actor primary) : BossModule(ws, primary, ne
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_Lyssa))
+        foreach (var s in Enemies(OID.BonusAddLyssa))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -112,7 +112,7 @@ public class Pithekos(WorldState ws, Actor primary) : BossModule(ws, primary, ne
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_Lyssa => 3,
+                OID.BonusAddLyssa => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

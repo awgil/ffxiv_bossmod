@@ -3,7 +3,7 @@
 // state related to [aether]flails mechanics
 class Flails : BossComponent
 {
-    public int NumCasts { get; private set; } = 0;
+    public int NumCasts { get; private set; }
     private AOEShape? _first;
     private AOEShape? _second;
     private bool _detectSecond;

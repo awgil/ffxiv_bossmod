@@ -2,7 +2,7 @@
 
 class DRS4States : StateMachineBuilder
 {
-    DRS4 _module;
+    readonly DRS4 _module;
 
     public DRS4States(DRS4 module) : base(module)
     {

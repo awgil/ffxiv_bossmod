@@ -21,7 +21,7 @@ class Burst(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(
 
 class Selfdetonations(BossModule module) : BossComponent(module)
 {
-    private static readonly string hint = "In bomb explosion radius!";
+    private const string hint = "In bomb explosion radius!";
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

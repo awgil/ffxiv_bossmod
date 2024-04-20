@@ -6,7 +6,7 @@ class SLightningBolt(BossModule module) : LightningBolt(module, AID.SLightningBo
 
 class CloudToCloud(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape1 = new(100, 1);
     private static readonly AOEShapeRect _shape2 = new(100, 3);

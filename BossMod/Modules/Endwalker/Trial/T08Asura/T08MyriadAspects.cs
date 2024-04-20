@@ -5,8 +5,8 @@ class MyriadAspects(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeCone cone = new(40, 15.Degrees());
     private DateTime _activation1;
     private DateTime _activation2;
-    private List<ActorCastInfo> _spell1 = new();
-    private List<ActorCastInfo> _spell2 = new();
+    private readonly List<ActorCastInfo> _spell1 = [];
+    private readonly List<ActorCastInfo> _spell2 = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

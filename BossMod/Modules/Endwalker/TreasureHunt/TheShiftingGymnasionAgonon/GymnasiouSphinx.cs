@@ -11,8 +11,8 @@ public enum OID : uint
     GymnasticEggplant = 0x3D50, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
-    BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
+    BonusAddLampas = 0x3D4D, //R=2.001, bonus loot adds
+    BonusAddLyssa = 0x3D4E, //R=3.75, bonus loot adds
 }
 
 public enum AID : uint
@@ -73,7 +73,7 @@ class SphinxStates : StateMachineBuilder
             .ActivateOnEnter<PungentPirouette>()
             .ActivateOnEnter<Pollen>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAddLampas).All(e => e.IsDead) && module.Enemies(OID.GymnasticEggplant).All(e => e.IsDead) && module.Enemies(OID.GymnasticQueen).All(e => e.IsDead) && module.Enemies(OID.GymnasticOnion).All(e => e.IsDead) && module.Enemies(OID.GymnasticGarlic).All(e => e.IsDead) && module.Enemies(OID.GymnasticTomato).All(e => e.IsDead);
     }
 }
 
@@ -95,9 +95,9 @@ public class Sphinx(WorldState ws, Actor primary) : BossModule(ws, primary, new 
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.GymnasticOnion))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdds_Lampas))
+        foreach (var s in Enemies(OID.BonusAddLampas))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+        foreach (var s in Enemies(OID.BonusAddLyssa))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -112,7 +112,7 @@ public class Sphinx(WorldState ws, Actor primary) : BossModule(ws, primary, new 
                 OID.GymnasticEggplant => 6,
                 OID.GymnasticGarlic => 5,
                 OID.GymnasticTomato => 4,
-                OID.GymnasticQueen or OID.BonusAdds_Lampas or OID.BonusAdds_Lyssa => 3,
+                OID.GymnasticQueen or OID.BonusAddLampas or OID.BonusAddLyssa => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

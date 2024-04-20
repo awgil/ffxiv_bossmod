@@ -2,7 +2,7 @@
 
 class C013ShadowcasterStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C013ShadowcasterStates(BossModule module, bool savage) : base(module)
     {

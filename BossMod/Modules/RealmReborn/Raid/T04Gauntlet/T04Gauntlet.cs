@@ -44,7 +44,7 @@ class EmergencyOverride(BossModule module) : Components.CastCounter(module, Acti
 
 class T04GauntletStates : StateMachineBuilder
 {
-    private T04Gauntlet _module;
+    private readonly T04Gauntlet _module;
 
     public T04GauntletStates(T04Gauntlet module) : base(module)
     {

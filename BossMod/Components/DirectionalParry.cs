@@ -17,7 +17,7 @@ public class DirectionalParry(BossModule module, uint actorOID) : Adds(module, a
 
     public const uint ParrySID = 680; // common 'directional parry' status
 
-    private Dictionary<ulong, int> _actorStates = new(); // value == active-side | (imminent-side << 4)
+    private readonly Dictionary<ulong, int> _actorStates = []; // value == active-side | (imminent-side << 4)
     public bool Active => _actorStates.Values.Any(s => ActiveSides(s) != Side.None);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -50,9 +50,9 @@ public class DirectionalParry(BossModule module, uint actorOID) : Adds(module, a
             {
                 var active = ActiveSides(aState);
                 var imminent = ImminentSides(aState);
-                DrawParry(a, 0.Degrees(),   active, imminent, Side.Front);
+                DrawParry(a, 0.Degrees(), active, imminent, Side.Front);
                 DrawParry(a, 180.Degrees(), active, imminent, Side.Back);
-                DrawParry(a, 90.Degrees(),  active, imminent, Side.Left);
+                DrawParry(a, 90.Degrees(), active, imminent, Side.Left);
                 DrawParry(a, 270.Degrees(), active, imminent, Side.Right);
             }
         }

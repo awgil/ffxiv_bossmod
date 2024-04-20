@@ -70,9 +70,9 @@ class P2Conflagrate(BossModule module) : BossComponent(module)
 
 class P2AI(BossModule module) : BossComponent(module)
 {
-    private DeathSentence? _deathSentence = module.FindComponent<DeathSentence>();
-    private P2Fireball? _fireball = module.FindComponent<P2Fireball>();
-    private P2Conflagrate? _conflagrate = module.FindComponent<P2Conflagrate>();
+    private readonly DeathSentence? _deathSentence = module.FindComponent<DeathSentence>();
+    private readonly P2Fireball? _fireball = module.FindComponent<P2Fireball>();
+    private readonly P2Conflagrate? _conflagrate = module.FindComponent<P2Conflagrate>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

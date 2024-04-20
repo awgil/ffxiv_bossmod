@@ -52,7 +52,7 @@ class Contrapasso(BossModule module) : Components.RaidwideCast(module, ActionID.
 
 class DuplicitousBattery(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos source, DateTime activation)> _casters = new();
+    private readonly List<(WPos source, DateTime activation)> _casters = [];
     private static readonly AOEShapeCircle circle = new(5);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)

@@ -2,7 +2,7 @@
 
 class Gorgospit(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Gorgospit))
 {
-    public List<(Actor caster, DateTime finish)> Casters = new();
+    public List<(Actor caster, DateTime finish)> Casters = [];
 
     private static readonly AOEShapeRect _shape = new(60, 5);
 
@@ -40,10 +40,10 @@ class Snake2(BossModule module) : PetrifactionCommon(module)
         public bool HasBreath;
         public int AssignedSnake; // -1 if not assigned, otherwise index of assigned snake
 
-        public bool HasDebuff => HasCrown || HasBreath;
+        public readonly bool HasDebuff => HasCrown || HasBreath;
     }
 
-    private PlayerState[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { AssignedSnake = -1 });
+    private readonly PlayerState[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { AssignedSnake = -1 });
     private int _gorgospitCounter;
 
     private const float _breathRadius = 6;
@@ -102,14 +102,14 @@ class Snake2(BossModule module) : PetrifactionCommon(module)
         if ((OID)actor.OID != OID.IllusoryHephaistosSnakes || id != 0x11D2 || _gorgospitCounter++ != 4)
             return;
 
-        int[] assignedSlots = { -1, -1, -1, -1, -1, -1, -1, -1 }; // supports then dd
+        int[] assignedSlots = [-1, -1, -1, -1, -1, -1, -1, -1]; // supports then dd
         foreach (var a in Service.Config.Get<P8S1Config>().Snake2Assignments.Resolve(Raid))
             assignedSlots[a.group + (Raid[a.slot]?.Role is Role.Tank or Role.Healer ? 0 : 4)] = a.slot;
         if (assignedSlots[0] == -1)
             return; // invalid assignments
 
         // 5th gorgospit => find snakes that will survive it
-        List<int> survivingSnakes = new();
+        List<int> survivingSnakes = [];
         var normal = actor.Rotation.ToDirection().OrthoL();
         for (int i = 0; i < ActiveGorgons.Count; ++i)
             if (Math.Abs(normal.Dot(ActiveGorgons[i].caster.Position - actor.Position)) > 5)

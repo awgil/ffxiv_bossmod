@@ -2,7 +2,7 @@
 
 // TODO: allow invulning instead
 // TODO: not sure at what point target is snapshotted - assume first hit is on primary target when cast starts, second on current main target?..
-class PalladianGrasp (BossModule module): Components.CastCounter(module, default)
+class PalladianGrasp(BossModule module) : Components.CastCounter(module, default)
 {
     private ulong _firstPrimaryTarget;
 

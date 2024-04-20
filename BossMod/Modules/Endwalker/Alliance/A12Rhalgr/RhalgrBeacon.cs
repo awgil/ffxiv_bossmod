@@ -4,7 +4,7 @@ class RhalgrBeaconAOE(BossModule module) : Components.SelfTargetedAOEs(module, A
 
 class RhalgrBeaconShock(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Shock))
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shape = new(8);
 

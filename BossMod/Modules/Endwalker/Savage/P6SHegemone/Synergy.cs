@@ -3,7 +3,7 @@
 class Synergy(BossModule module) : BossComponent(module)
 {
     public bool Done { get; private set; }
-    private Actor?[] _targets = { null, null }; // second target is for non-chelic synergy
+    private readonly Actor?[] _targets = [null, null]; // second target is for non-chelic synergy
     private bool _chelic;
 
     private static readonly AOEShapeCircle _shapeNormal = new(5);

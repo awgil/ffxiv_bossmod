@@ -12,7 +12,7 @@ class DemiParhelion(BossModule module) : Components.SelfTargetedAOEs(module, Act
 class Geocentrism(BossModule module) : Components.GenericAOEs(module)
 {
     public int NumConcurrentAOEs { get; private set; }
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shapeLine = new(20, 2);
     private static readonly AOEShapeCircle _shapeCircle = new(2);
@@ -81,7 +81,7 @@ class GaiaochosEnd(BossModule module) : BossComponent(module)
 // TODO: assign pairs, draw wrong pairs as aoes
 class UltimaBlow(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.UltimaBlow))
 {
-    private List<(Actor source, Actor target)> _tethers = new();
+    private readonly List<(Actor source, Actor target)> _tethers = [];
     private BitMask _vulnerable;
 
     private static readonly AOEShapeRect _shape = new(20, 3);

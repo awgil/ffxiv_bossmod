@@ -25,7 +25,7 @@ class Hydroshot(BossModule module) : Components.Knockback(module)
 
 class C030MonkStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030MonkStates(BossModule module, bool savage) : base(module)
     {

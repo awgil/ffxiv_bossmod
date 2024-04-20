@@ -41,16 +41,16 @@ class P5DeathOfTheHeavensLightningStorm : Components.UniformStackSpread
 class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.HeavensflameAOE))
 {
     public bool KnockbackDone { get; private set; }
-    private WPos[] _playerAdjustedPositions = new WPos[PartyState.MaxPartySize];
-    private int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple
+    private readonly WPos[] _playerAdjustedPositions = new WPos[PartyState.MaxPartySize];
+    private readonly int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple
     private BitMask _brokenTethers;
     private BitMask _dooms;
-    private List<WPos> _cleanses = new();
+    private readonly List<WPos> _cleanses = [];
     private WDir _relSouth; // TODO: this is quite hacky, works for LPDU...
 
-    private static readonly float _knockbackDistance = 16;
-    private static readonly float _aoeRadius = 10;
-    private static readonly float _tetherBreakDistance = 32; // TODO: verify...
+    private const float _knockbackDistance = 16;
+    private const float _aoeRadius = 10;
+    private const float _tetherBreakDistance = 32; // TODO: verify...
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

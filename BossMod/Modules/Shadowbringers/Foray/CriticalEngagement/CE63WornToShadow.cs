@@ -81,7 +81,7 @@ class Fantod(BossModule module) : Components.LocationTargetedAOEs(module, Action
 class Foreshadowing(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEShape? _bossAOE;
-    private List<(Actor caster, AOEShape? shape)> _addAOEs = []; // shape is null if add starts cast slightly before boss
+    private readonly List<(Actor caster, AOEShape? shape)> _addAOEs = []; // shape is null if add starts cast slightly before boss
     private DateTime _addActivation;
 
     private static readonly AOEShapeDonut _shapePulse = new(8, 25);

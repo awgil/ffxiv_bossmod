@@ -7,14 +7,14 @@ class DebugGraphics
 {
     private class WatchedRenderObject
     {
-        public List<uint> Data = new();
-        public List<(int, int)> Modifications = new();
+        public List<uint> Data = [];
+        public List<(int, int)> Modifications = [];
         public bool Live;
     }
 
     private bool _showGraphicsLeafCharactersOnly = true;
-    private Dictionary<IntPtr, WatchedRenderObject> _watchedRenderObjects = new();
-    private bool _overlayCircle = false;
+    private readonly Dictionary<IntPtr, WatchedRenderObject> _watchedRenderObjects = [];
+    private bool _overlayCircle;
     private Vector2 _overlayCenter = new(100, 100);
     private Vector2 _overlayStep = new(2, 2);
     private Vector2 _overlayMaxOffset = new(20, 20);
@@ -92,7 +92,7 @@ class DebugGraphics
         if (root != null)
             UpdateWatchedMods(root);
 
-        List<IntPtr> del = new();
+        List<IntPtr> del = [];
         foreach (var v in _watchedRenderObjects)
             if (!v.Value.Live)
                 del.Add(v.Key);
@@ -177,7 +177,7 @@ class DebugGraphics
         if (start == end)
             return null; // nothing changed
 
-        List<(int, int)> res = new();
+        List<(int, int)> res = [];
         while (start < end)
         {
             int m = start + 1;
@@ -212,7 +212,7 @@ class DebugGraphics
         while (start < end)
         {
             if (sb.Length > 0)
-                sb.Append(" ");
+                sb.Append(' ');
             sb.AppendFormat("{0:X8}", w.Data[start++]);
 
             if ((start % 16) == 0)

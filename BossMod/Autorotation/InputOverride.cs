@@ -7,27 +7,27 @@ namespace BossMod;
 
 // utility for overriding keyboard input as seen in game
 // TODO: currently we don't handle cast-start while moving correctly, blocking movement on keypress is too late, cast gets cancelled anyway
-class InputOverride : IDisposable
+sealed partial class InputOverride : IDisposable
 {
     private const int WM_KEYDOWN = 0x0100;
 
     public int[] GamepadOverrides = new int[7];
     public bool GamepadOverridesEnabled;
 
-    private bool _movementBlocked = false;
+    private bool _movementBlocked;
     private ulong _hwnd;
 
     //private unsafe delegate int PeekMessageDelegate(ulong* lpMsg, void* hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
     //private Hook<PeekMessageDelegate> _peekMessageHook;
 
     private delegate void KbprocDelegate(ulong hWnd, uint uMsg, ulong wParam, ulong lParam, ulong uIdSubclass, ulong dwRefData);
-    private Hook<KbprocDelegate> _kbprocHook;
+    private readonly Hook<KbprocDelegate> _kbprocHook;
 
     private delegate int GetGamepadAxisDelegate(ulong self, int axisID);
-    private Hook<GetGamepadAxisDelegate> _getGamepadAxisHook;
+    private readonly Hook<GetGamepadAxisDelegate> _getGamepadAxisHook;
 
     private delegate ref int GetRefValueDelegate(int vkCode);
-    private GetRefValueDelegate _getKeyRef;
+    private readonly GetRefValueDelegate _getKeyRef;
 
     public unsafe InputOverride()
     {
@@ -127,9 +127,9 @@ class InputOverride : IDisposable
             : _getGamepadAxisHook.Original(self, axisID);
     }
 
-    [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-    private static extern short GetKeyState(int keyCode);
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial short GetKeyState(int keyCode);
 
-    [DllImport("user32.dll", ExactSpelling = true)]
-    private static extern ulong GetForegroundWindow();
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial ulong GetForegroundWindow();
 }

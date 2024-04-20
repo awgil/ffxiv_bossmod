@@ -116,7 +116,7 @@ public static class Rotation
         }
     }
 
-    const float FINISH_DANCE_WINDOW = 0.5f;
+    const float FinishDanceWindow = 0.5f;
 
     public static AID GetNextBestGCD(State state, Strategy strategy)
     {
@@ -136,7 +136,7 @@ public static class Rotation
             return AID.None;
         }
 
-        if (strategy.CombatTimer > -100 && strategy.CombatTimer < 0)
+        if (strategy.CombatTimer is > -100 and < 0)
         {
             if (
                 strategy.CombatTimer > -15.5
@@ -337,7 +337,7 @@ public static class Rotation
     {
         if (state.NextStep != 0)
             return false;
-        if (danceTimeLeft > 0 && danceTimeLeft < FINISH_DANCE_WINDOW)
+        if (danceTimeLeft is > 0 and < FinishDanceWindow)
             return true;
 
         return danceTimeLeft > state.GCD && strategy.NumDanceTargets > 0;
@@ -395,11 +395,6 @@ public static class Rotation
         return false;
     }
 
-    private static bool HaveTarget(State state, Strategy strategy) =>
-        strategy.NumAOETargets > 1 || state.TargetingEnemy;
-
-    private static bool ShouldDoNothing(State state, Strategy strategy)
-    {
-        return strategy.PauseDuringImprov && state.ImprovisationLeft > 0;
-    }
+    private static bool HaveTarget(State state, Strategy strategy) => strategy.NumAOETargets > 1 || state.TargetingEnemy;
+    private static bool ShouldDoNothing(State state, Strategy strategy) => strategy.PauseDuringImprov && state.ImprovisationLeft > 0;
 }

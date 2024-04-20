@@ -28,7 +28,7 @@ class PureOfHeartSkyblindBait(BossModule module) : BossComponent(module)
 {
     private BitMask _baiters;
 
-    private static readonly float _radius = 3;
+    private const float _radius = 3;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

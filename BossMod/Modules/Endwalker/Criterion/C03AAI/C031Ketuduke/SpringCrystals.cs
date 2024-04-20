@@ -3,10 +3,10 @@
 class SpringCrystalsRect(BossModule module, bool moveCasters, bool risky, float delay) : Components.GenericAOEs(module)
 {
     public List<WPos> SafeZoneCenters = InitialSafeZoneCenters(module.Bounds.Center);
-    private List<AOEInstance> _aoes = new();
-    private bool _moveCasters = moveCasters;
-    private bool _risky = risky;
-    private float _delay = delay;
+    private readonly List<AOEInstance> _aoes = [];
+    private readonly bool _moveCasters = moveCasters;
+    private readonly bool _risky = risky;
+    private readonly float _delay = delay;
 
     private static readonly AOEShapeRect _shape = new(38, 5, 38);
 
@@ -52,7 +52,7 @@ class SpringCrystalsRectStay(BossModule module) : SpringCrystalsRect(module, fal
 
 class SpringCrystalsSphere(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
     private bool _active;
 
     private static readonly AOEShapeCircle _shape = new(8);

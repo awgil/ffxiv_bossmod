@@ -22,7 +22,7 @@ class Sandstorm(BossModule module) : Components.Cleave(module, ActionID.MakeSpel
 // TODO: pillars teleport right before cast, so we don't show them for now...
 class Submerge(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Earthbreak))
 {
-    private AOEShapeCircle _shape = new(14.5f);
+    private readonly AOEShapeCircle _shape = new(14.5f);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

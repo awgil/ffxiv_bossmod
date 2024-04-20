@@ -10,8 +10,8 @@ abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = defaul
     public enum ArenaState { Normal, Cells, DiagNW, DiagNE } // DiagNW == NW to SE, etc
 
     public ArenaState State { get; private set; }
-    private List<Actor> _magicStones = new();
-    private List<Actor> _poisonStones = new();
+    private readonly List<Actor> _magicStones = [];
+    private readonly List<Actor> _poisonStones = [];
     public IEnumerable<Actor> MagicStones => _magicStones.Where(s => !s.IsDestroyed);
     public IEnumerable<Actor> PoisonStones => _poisonStones.Where(s => !s.IsDestroyed);
 
@@ -31,13 +31,13 @@ abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = defaul
         };
     }
 
-    public WDir QuadrantDir(int q) => new WDir((q & 1) != 0 ? +1 : -1, (q & 2) != 0 ? +1 : -1); // both coords are +-1
+    public WDir QuadrantDir(int q) => new((q & 1) != 0 ? +1 : -1, (q & 2) != 0 ? +1 : -1); // both coords are +-1
     public WPos QuadrantCenter(int q) => Module.Bounds.Center + Module.Bounds.HalfSize * 0.5f * QuadrantDir(q);
 
     public Waymark WaymarkForQuadrant(int q)
     {
         var c = QuadrantCenter(q);
-        Waymark w = Waymark.Count;
+        var w = Waymark.Count;
         float wd = float.MaxValue;
         for (int i = 0; i < (int)Waymark.Count; i++)
         {
@@ -115,6 +115,7 @@ abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = defaul
 
         switch (state)
         {
+            // 0x00100020 - happens ~1s after activation
             case 0x00020001:
                 if (State != ArenaState.Normal)
                     ReportError($"Active state {State} while state {astate} is activated");
@@ -125,7 +126,6 @@ abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = defaul
                     ReportError($"Active state {State} while state {astate} is deactivated");
                 State = ArenaState.Normal;
                 break;
-            // 0x00100020 - happens ~1s after activation
         }
     }
 }
@@ -139,7 +139,7 @@ abstract class RubyGlowRecolor(BossModule module, int expectedMagicStones) : Rub
 
     public RecolorState CurRecolorState { get; private set; }
     public int AOEQuadrant { get; private set; }
-    private int _expectedMagicStones = expectedMagicStones;
+    private readonly int _expectedMagicStones = expectedMagicStones;
 
     private const float _recolorRadius = 5;
 
@@ -182,7 +182,7 @@ abstract class RubyGlowRecolor(BossModule module, int expectedMagicStones) : Rub
                 }
                 break;
             case RecolorState.BeforeRecolor:
-                if (PoisonStones.Count() > 0)
+                if (PoisonStones.Any())
                 {
                     CurRecolorState = RecolorState.Done;
                 }

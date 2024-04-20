@@ -4,8 +4,8 @@ class ChorosIxou(BossModule module) : Components.GenericAOEs(module)
 {
     public bool FirstDone { get; private set; }
     public bool SecondDone { get; private set; }
-    private AOEShapeCone _cone = new(40, 45.Degrees());
-    private List<Angle> _directions = new();
+    private readonly AOEShapeCone _cone = new(40, 45.Degrees());
+    private readonly List<Angle> _directions = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

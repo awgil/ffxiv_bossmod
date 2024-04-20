@@ -2,7 +2,7 @@
 
 class DancingFlame(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.DancingFlameFirst))
 {
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
 
     private static readonly AOEShapeRect _shape = new(17.5f, 17.5f, 17.5f); // 15 for diagonal 'squares' + 2.5 for central cross
 

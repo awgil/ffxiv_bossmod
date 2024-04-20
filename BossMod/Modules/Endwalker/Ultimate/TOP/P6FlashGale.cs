@@ -2,7 +2,7 @@
 
 class P6FlashGale : Components.GenericBaitAway
 {
-    private Actor? _source;
+    private readonly Actor? _source;
 
     private static readonly AOEShapeCircle _shape = new(5);
 

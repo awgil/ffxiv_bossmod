@@ -4,7 +4,7 @@ using System.Text;
 namespace BossMod;
 
 // utility to remove anti-multibox check
-public class MultiboxUnlock
+public static partial class MultiboxUnlock
 {
     public unsafe static void Exec()
     {
@@ -15,7 +15,7 @@ public class MultiboxUnlock
             if (ObjectNameOrTypeName(handle, true) == "Mutant")
             {
                 var name = ObjectNameOrTypeName(handle, false);
-                if (name.Contains("6AA83AB5-BAC4-4a36-9F66-A309770760CB_ffxiv_game0"))
+                if (name.Contains("6AA83AB5-BAC4-4a36-9F66-A309770760CB_ffxiv_game0", StringComparison.Ordinal))
                 {
                     Service.Log($"[Multibox] Closing handle {handle:X} '{name}'");
                     CloseHandle(handle);
@@ -26,7 +26,7 @@ public class MultiboxUnlock
 
     private unsafe static List<ulong> EnumHandles()
     {
-        List<ulong> ret = new();
+        List<ulong> ret = [];
         uint bufferSize = 0x8000;
         while (true)
         {
@@ -102,12 +102,13 @@ public class MultiboxUnlock
     }
 #pragma warning restore 0649
 
-    [DllImport("ntdll.dll", ExactSpelling = true)]
-    private unsafe static extern int NtQueryInformationProcess(ulong ProcessHandle, int ProcessInformationClass, void* ProcessInformation, uint ProcessInformationLength, uint* ReturnLength);
+    [LibraryImport("ntdll.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static unsafe partial int NtQueryInformationProcess(ulong ProcessHandle, int ProcessInformationClass, void* ProcessInformation, uint ProcessInformationLength, uint* ReturnLength);
 
-    [DllImport("ntdll.dll", ExactSpelling = true)]
-    private unsafe static extern int NtQueryObject(ulong Handle, int ObjectInformationClass, void* ObjectInformation, uint ObjectInformationLength, uint* ReturnLength);
+    [LibraryImport("ntdll.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static unsafe partial int NtQueryObject(ulong Handle, int ObjectInformationClass, void* ObjectInformation, uint ObjectInformationLength, uint* ReturnLength);
 
-    [DllImport("kernel32.dll", ExactSpelling = true)]
-    private unsafe static extern bool CloseHandle(ulong Handle);
+    [LibraryImport("kernel32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static unsafe partial bool CloseHandle(ulong Handle);
 }

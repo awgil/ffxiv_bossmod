@@ -7,9 +7,9 @@
 // p4 predation is a single awakened charge along intercardinal
 class CrimsonCyclone(BossModule module, float predictionDelay) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrimsonCyclone))
 {
-    private float _predictionDelay = predictionDelay;
-    private List<(AOEShape shape, WPos pos, Angle rot, DateTime activation)> _predicted = new(); // note: there could be 1/2/4 predicted normal charges and 0 or 2 'cross' charges
-    private List<Actor> _casters = new();
+    private readonly float _predictionDelay = predictionDelay;
+    private readonly List<(AOEShape shape, WPos pos, Angle rot, DateTime activation)> _predicted = []; // note: there could be 1/2/4 predicted normal charges and 0 or 2 'cross' charges
+    private readonly List<Actor> _casters = [];
 
     private static readonly AOEShapeRect _shapeMain = new(49, 9, 5);
     private static readonly AOEShapeRect _shapeCross = new(44.5f, 5, 0.5f);

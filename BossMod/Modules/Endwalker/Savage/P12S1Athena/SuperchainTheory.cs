@@ -4,26 +4,11 @@
 abstract class SuperchainTheory(BossModule module) : BossComponent(module)
 {
     public enum Shape { Unknown, Circle, Donut, Spread, Pairs }
+    public record struct Chain(Actor Origin, Actor Moving, Shape Shape, DateTime Activation);
 
-    public struct Chain
-    {
-        public Actor Origin;
-        public Actor Moving;
-        public Shape Shape;
-        public DateTime Activation;
-
-        public Chain(Actor origin, Actor moving, Shape shape, DateTime activation)
-        {
-            Origin = origin;
-            Moving = moving;
-            Shape = shape;
-            Activation = activation;
-        }
-    }
-
-    public List<Chain> Chains = new();
+    public List<Chain> Chains = [];
     public int NumCasts { get; private set; }
-    private List<Actor> _pendingTethers = new(); // unfortunately, sometimes tether targets are created after tether events - recheck such tethers every frame
+    private readonly List<Actor> _pendingTethers = []; // unfortunately, sometimes tether targets are created after tether events - recheck such tethers every frame
 
     private static readonly AOEShapeCircle _shapeCircle = new(7);
     private static readonly AOEShapeDonut _shapeDonut = new(6, 70);

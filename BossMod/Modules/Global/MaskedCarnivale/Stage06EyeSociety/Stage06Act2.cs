@@ -40,7 +40,7 @@ class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpe
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(slot, actor);
+        return _blinded[slot] ? [] : base.ActiveEyes(slot, actor);
     }
 }
 
@@ -62,7 +62,7 @@ class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(slot, actor);
+        return _blinded[slot] ? [] : base.ActiveAOEs(slot, actor);
     }
 }
 
@@ -109,7 +109,7 @@ class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(slot, actor);
+        return _blinded[slot] ? [] : base.ActiveAOEs(slot, actor);
     }
 }
 

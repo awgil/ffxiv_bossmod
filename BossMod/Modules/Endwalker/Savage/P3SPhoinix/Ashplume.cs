@@ -9,8 +9,8 @@ class Ashplume : BossComponent
 
     public State CurState { get; private set; }
 
-    private static readonly float _stackRadius = 8;
-    private static readonly float _spreadRadius = 6;
+    private const float _stackRadius = 8;
+    private const float _spreadRadius = 6;
 
     public Ashplume(BossModule module) : base(module)
     {
@@ -67,7 +67,7 @@ class Ashplume : BossComponent
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (CurState == State.UnknownGlory || CurState == State.Done)
+        if (CurState is State.UnknownGlory or State.Done)
             return;
 
         // draw all raid members, to simplify positioning

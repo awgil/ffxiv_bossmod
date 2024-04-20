@@ -6,16 +6,16 @@ class BeloneCoils(BossModule module) : BossComponent(module)
     public enum Soaker { Unknown, TankOrHealer, DamageDealer }
 
     public Soaker ActiveSoakers { get; private set; } = Soaker.Unknown;
-    private List<Actor> _activeTowers = new();
+    private readonly List<Actor> _activeTowers = [];
 
-    private static readonly float _towerRadius = 4;
+    private const float _towerRadius = 4;
 
     public bool IsValidSoaker(Actor player)
     {
         return ActiveSoakers switch
         {
-            Soaker.TankOrHealer => player.Role == Role.Tank || player.Role == Role.Healer,
-            Soaker.DamageDealer => player.Role == Role.Melee || player.Role == Role.Ranged,
+            Soaker.TankOrHealer => player.Role is Role.Tank or Role.Healer,
+            Soaker.DamageDealer => player.Role is Role.Melee or Role.Ranged,
             _ => false
         };
     }

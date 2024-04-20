@@ -2,8 +2,8 @@
 
 class P6HPCheck(BossModule module) : BossComponent(module)
 {
-    private Actor? _nidhogg = module.Enemies(OID.NidhoggP6).FirstOrDefault();
-    private Actor? _hraesvelgr = module.Enemies(OID.HraesvelgrP6).FirstOrDefault();
+    private readonly Actor? _nidhogg = module.Enemies(OID.NidhoggP6).FirstOrDefault();
+    private readonly Actor? _hraesvelgr = module.Enemies(OID.HraesvelgrP6).FirstOrDefault();
 
     public override void AddGlobalHints(GlobalHints hints)
     {

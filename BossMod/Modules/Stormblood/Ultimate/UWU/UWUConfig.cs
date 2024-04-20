@@ -4,6 +4,6 @@
 public class UWUConfig() : CooldownPlanningConfigNode(70)
 {
     [PropertyDisplay("Titan gaols priorities (close < far)")]
-    [GroupDetails(new string[] { "0", "1", "2", "3", "4", "5", "6", "7" })]
+    [GroupDetails(["0", "1", "2", "3", "4", "5", "6", "7"])]
     public GroupAssignmentUnique P3GaolPriorities = GroupAssignmentUnique.Default();
 }

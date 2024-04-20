@@ -4,7 +4,7 @@
 // note: it's somewhat simpler to count casts rather than activating/deactivating stones
 class RubyGlow3(BossModule module) : RubyGlowCommon(module, ActionID.MakeSpell(AID.RubyReflectionQuarter))
 {
-    private BitMask[] _aoeQuadrants = new BitMask[4]; // [i] = danger quardants at explosion #i, bits: 0=NW, 1=NE, 2=SW, 3=SE
+    private readonly BitMask[] _aoeQuadrants = new BitMask[4]; // [i] = danger quardants at explosion #i, bits: 0=NW, 1=NE, 2=SW, 3=SE
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

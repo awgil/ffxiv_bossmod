@@ -3,7 +3,7 @@
 namespace BossMod;
 
 // bozja-specific utilities
-unsafe class BozjaInterop : IDisposable
+unsafe sealed class BozjaInterop : IDisposable
 {
     public static BozjaInterop? Instance;
 
@@ -16,10 +16,10 @@ unsafe class BozjaInterop : IDisposable
     }
 
     private delegate Holster* GetHolsterDelegate();
-    private GetHolsterDelegate _getHolsterFunc;
+    private readonly GetHolsterDelegate _getHolsterFunc;
 
     private delegate bool UseFromHolsterDelegate(uint holsterId, uint slot);
-    private UseFromHolsterDelegate _useFromHolsterFunc;
+    private readonly UseFromHolsterDelegate _useFromHolsterFunc;
 
     public BozjaInterop()
     {

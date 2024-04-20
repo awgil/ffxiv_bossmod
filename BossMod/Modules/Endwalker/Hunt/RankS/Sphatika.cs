@@ -43,14 +43,14 @@ class Caterwaul(BossModule module) : Components.RaidwideCast(module, ActionID.Ma
 
 class Stance(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Angle> _pendingCleaves = new();
+    private readonly List<Angle> _pendingCleaves = [];
 
     private static readonly AOEShapeCone _shape = new(40, 90.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_pendingCleaves.Count > 0)
-            yield return new(_shape, Module.PrimaryActor.Position, _pendingCleaves.First()); // TODO: activation
+            yield return new(_shape, Module.PrimaryActor.Position, _pendingCleaves[0]); // TODO: activation
     }
 
     public override void AddGlobalHints(GlobalHints hints)
@@ -97,7 +97,7 @@ class Stance(BossModule module) : Components.GenericAOEs(module)
     private void InitCleaves(Angle reference, bool inverted)
     {
         // bearings are resolved in UI order; it is forward > backward > left > right, see PartyListPriority column
-        List<(Angle offset, int priority)> bearings = new();
+        List<(Angle offset, int priority)> bearings = [];
         foreach (var s in Module.PrimaryActor.Statuses)
         {
             switch ((SID)s.ID)

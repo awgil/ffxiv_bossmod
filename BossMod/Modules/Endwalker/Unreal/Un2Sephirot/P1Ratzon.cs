@@ -6,8 +6,8 @@ class P1Ratzon(BossModule module) : BossComponent(module)
     private BitMask _greenTargets;
     private BitMask _purpleTargets;
 
-    private static readonly float _greenRadius = 5;
-    private static readonly float _purpleRadius = 10;
+    private const float _greenRadius = 5;
+    private const float _purpleRadius = 10;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

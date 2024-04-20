@@ -3,8 +3,8 @@
 // shows all three demiurges + handles directional parry from first; the reason is to simplify condition checks
 class Demiurges(BossModule module) : Components.DirectionalParry(module, (uint)OID.Demiurge1)
 {
-    private IReadOnlyList<Actor> _second = module.Enemies(OID.Demiurge2);
-    private IReadOnlyList<Actor> _third = module.Enemies(OID.Demiurge3);
+    private readonly IReadOnlyList<Actor> _second = module.Enemies(OID.Demiurge2);
+    private readonly IReadOnlyList<Actor> _third = module.Enemies(OID.Demiurge3);
 
     public bool AddsActive => ActiveActors.Any() || _second.Any(a => a.IsTargetable && !a.IsDead) || _third.Any(a => a.IsTargetable && !a.IsDead);
 

@@ -4,11 +4,11 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
 {
     public int NumTowersDone { get; private set; }
     public int NumTethersDone { get; private set; }
-    private List<Actor> _towers = new();
+    private readonly List<Actor> _towers = [];
     private BitMask _tethers;
 
-    private static readonly float _towerRadius = 3;
-    private static readonly float _tetherRadius = 15;
+    private const float _towerRadius = 3;
+    private const float _tetherRadius = 15;
 
     protected override (GroupAssignmentUnique assignment, bool global) Assignments()
     {
@@ -74,7 +74,7 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
         {
             var ts = PlayerStates[s];
             bool correctSoaker = ts.Order == NextTethersOrder();
-            bool tetherToGrab = ts.Group == ps.Group && (grabNextTether ? correctSoaker : grabThisTether ? NumTethersDone > 0 && ts.Order == NextTethersOrder(-1) : false);
+            bool tetherToGrab = ts.Group == ps.Group && (grabNextTether ? correctSoaker : grabThisTether && NumTethersDone > 0 && ts.Order == NextTethersOrder(-1));
             Arena.AddCircle(t.Position, _tetherRadius, t == pc ? ArenaColor.Safe : ArenaColor.Danger);
             Arena.AddLine(t.Position, Module.PrimaryActor.Position, correctSoaker ? ArenaColor.Safe : ArenaColor.Danger, tetherToGrab ? 2 : 1);
         }

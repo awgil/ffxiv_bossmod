@@ -1,17 +1,11 @@
 ﻿namespace BossMod;
 
 // a disjoint set of circle arcs; useful for e.g. selecting a bunch of safe spots at max melee or arena edge or whatever
-public class ArcList
+public class ArcList(WPos center, float radius)
 {
-    public WPos Center;
-    public float Radius;
+    public WPos Center = center;
+    public float Radius = radius;
     public DisjointSegmentList Forbidden = new();
-
-    public ArcList(WPos center, float radius)
-    {
-        Center = center;
-        Radius = radius;
-    }
 
     public void ForbidArc(Angle from, Angle to)
     {
@@ -101,7 +95,7 @@ public class ArcList
             yield break;
         }
 
-        var last = Forbidden.Segments.Last();
+        var last = Forbidden.Segments[^1];
         if (Forbidden.Segments[0].Min > -MathF.PI)
             yield return (last.Max.Radians() - 360.Degrees(), Forbidden.Segments[0].Min.Radians());
 

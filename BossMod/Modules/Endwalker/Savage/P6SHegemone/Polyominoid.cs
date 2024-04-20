@@ -9,8 +9,8 @@ class Polyominoid(BossModule module) : Components.GenericAOEs(module, ActionID.M
 {
     public enum State { None, Plus, Cross }
 
-    private State[] _states = new State[16];
-    private List<(Actor, Actor)> _tethers = new();
+    private readonly State[] _states = new State[16];
+    private readonly List<(Actor, Actor)> _tethers = [];
     private BitMask _dangerCells;
     private bool _dangerDirty;
 
@@ -32,9 +32,7 @@ class Polyominoid(BossModule module) : Components.GenericAOEs(module, ActionID.M
         {
             var i1 = PositionToIndex(from.Position);
             var i2 = PositionToIndex(to.Position);
-            var t = effStates[i1];
-            effStates[i1] = effStates[i2];
-            effStates[i2] = t;
+            (effStates[i2], effStates[i1]) = (effStates[i1], effStates[i2]);
         }
 
         _dangerDirty = false;
@@ -103,17 +101,17 @@ class Polyominoid(BossModule module) : Components.GenericAOEs(module, ActionID.M
 
         switch (state)
         {
-            case 0x00020001: // +
             //case 0x00100001: // x to +
-                _states[square] = State.Plus;
-                break;
-            case 0x00400020: // x
             //case 0x00800020: // + to x
-                _states[square] = State.Cross;
-                break;
             //case 0x00080004:
             //    _states[square] = State.None;
             //    break;
+            case 0x00020001: // +
+                _states[square] = State.Plus;
+                break;
+            case 0x00400020: // x
+                _states[square] = State.Cross;
+                break;
         }
         _dangerDirty = true;
     }

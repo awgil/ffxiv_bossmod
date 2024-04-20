@@ -2,7 +2,7 @@
 
 class C021ShishioStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C021ShishioStates(BossModule module, bool savage) : base(module)
     {

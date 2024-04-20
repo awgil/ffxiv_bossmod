@@ -5,14 +5,14 @@ namespace BossMod.ReplayVisualization;
 
 public class ColumnActorStatuses : Timeline.ColumnGroup
 {
-    private StateMachineTree _tree;
-    private List<int> _phaseBranches;
-    private Replay _replay;
-    private Replay.Encounter _enc;
-    private Replay.Participant _target;
+    private readonly StateMachineTree _tree;
+    private readonly List<int> _phaseBranches;
+    private readonly Replay _replay;
+    private readonly Replay.Encounter _enc;
+    private readonly Replay.Participant _target;
 
-    private ColumnSeparator _sep;
-    private List<(uint sid, Replay.Participant? source, ColumnGenericHistory? col)> _columns = new();
+    private readonly ColumnSeparator _sep;
+    private readonly List<(uint sid, Replay.Participant? source, ColumnGenericHistory? col)> _columns = [];
 
     public bool Visible => _sep.Width > 0;
 

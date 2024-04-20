@@ -3,10 +3,10 @@ namespace BossMod.Endwalker.TreasureHunt.ShiftingGymnasionAgonon.LyssaChrysine;
 public enum OID : uint
 {
     Boss = 0x3D43, //R=5
-    BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
+    BonusAddLyssa = 0x3D4E, //R=3.75, bonus loot adds
     BossHelper = 0x233C,
     IcePillars = 0x3D44,
-    BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
+    BonusAddLampas = 0x3D4D, //R=2.001, bonus loot adds
 }
 
 public enum AID : uint
@@ -33,7 +33,7 @@ class FrigidStone2(BossModule module) : Components.LocationTargetedAOEs(module, 
 
 class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
-    private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20) };
+    private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 20)];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -87,7 +87,7 @@ class HeavySmash(BossModule module) : Components.StackWithCastTargets(module, Ac
 
 class IcePillarSpawn(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(4);
 
@@ -119,7 +119,7 @@ class LyssaStates : StateMachineBuilder
             .ActivateOnEnter<FrigidStone2>()
             .ActivateOnEnter<HeavySmash2>()
             .ActivateOnEnter<PillarPierce>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAddLampas).All(e => e.IsDead);
     }
 }
 
@@ -129,9 +129,9 @@ public class Lyssa(WorldState ws, Actor primary) : BossModule(ws, primary, new A
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+        foreach (var s in Enemies(OID.BonusAddLyssa))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdds_Lampas))
+        foreach (var s in Enemies(OID.BonusAddLampas))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -142,8 +142,8 @@ public class Lyssa(WorldState ws, Actor primary) : BossModule(ws, primary, new A
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdds_Lampas => 3,
-                OID.BonusAdds_Lyssa => 2,
+                OID.BonusAddLampas => 3,
+                OID.BonusAddLyssa => 2,
                 OID.Boss => 1,
                 _ => 0
             };

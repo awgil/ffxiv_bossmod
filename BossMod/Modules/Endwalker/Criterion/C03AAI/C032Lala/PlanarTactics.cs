@@ -9,7 +9,7 @@ class PlanarTactics(BossModule module) : Components.GenericAOEs(module)
         public WDir[]? StartingOffsets;
     }
 
-    public List<AOEInstance> Mines = new();
+    public List<AOEInstance> Mines = [];
     public PlayerState[] Players = new PlayerState[4];
 
     private static readonly AOEShapeRect _shape = new(4, 4, 4);
@@ -80,8 +80,8 @@ class PlanarTactics(BossModule module) : Components.GenericAOEs(module)
 
 class PlanarTacticsForcedMarch : Components.GenericForcedMarch
 {
-    private int[] _rotationCount = new int[4];
-    private Angle[] _rotation = new Angle[4];
+    private readonly int[] _rotationCount = new int[4];
+    private readonly Angle[] _rotation = new Angle[4];
     private DateTime _activation;
 
     public PlanarTacticsForcedMarch(BossModule module) : base(module)

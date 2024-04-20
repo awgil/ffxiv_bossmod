@@ -10,17 +10,17 @@ class HighConceptCommon(BossModule module) : BossComponent(module)
     public Mechanic NextMechanic { get; private set; } = Mechanic.Explosion1;
     protected TowerColor FirstTowers { get; private set; } // if assigned - two towers of same color at (0, +-10)
     protected TowerColor SecondTowersHC1 { get; private set; } // if assigned - four towers of same color at (0, +-5/15)
-    protected List<(WPos p, TowerColor c)> SecondTowersHC2 { get; private set; } = new();
+    protected List<(WPos p, TowerColor c)> SecondTowersHC2 { get; private set; } = [];
     protected int NumAssignedRoles { get; private set; }
-    private int[] _roleSlots = Utils.MakeArray((int)PlayerRole.Count, -1);
-    private PlayerRole[] _playerRoles = new PlayerRole[PartyState.MaxPartySize]; // for HC2, this doesn't have stack roles, since players also have long letters
+    private readonly int[] _roleSlots = Utils.MakeArray((int)PlayerRole.Count, -1);
+    private readonly PlayerRole[] _playerRoles = new PlayerRole[PartyState.MaxPartySize]; // for HC2, this doesn't have stack roles, since players also have long letters
 
     protected int SlotForRole(PlayerRole r) => _roleSlots[(int)r];
     protected PlayerRole RoleForSlot(int slot) => _playerRoles[slot];
 
-    protected static readonly float ShiftRadius = 20;
-    protected static readonly float SpliceRadius = 6;
-    protected static readonly float TowerRadius = 3;
+    protected const float ShiftRadius = 20;
+    protected const float SpliceRadius = 6;
+    protected const float TowerRadius = 3;
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => NumAssignedRoles < 8 ? PlayerPriority.Irrelevant : PlayerPriority.Normal;
 

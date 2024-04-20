@@ -23,7 +23,7 @@ class DeadIron : Components.BaitAwayTethers
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9834)]
 public class DRS1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 278), 25))
 {
-    public static readonly float BarricadeRadius = 20;
+    public const float BarricadeRadius = 20;
 
     protected override void DrawArenaForeground(int pcSlot, Actor pc)
     {

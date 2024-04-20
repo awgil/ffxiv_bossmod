@@ -10,7 +10,7 @@ abstract class TemperatureAOE(BossModule module) : Components.GenericAOEs(module
         public int Temperature => BaseTemperature + Brand;
     }
 
-    private Dictionary<ulong, PlayerState> _playerState = new();
+    private readonly Dictionary<ulong, PlayerState> _playerState = [];
 
     public int Temperature(Actor player) => _playerState.GetValueOrDefault(player.InstanceID)?.Temperature ?? 0;
 

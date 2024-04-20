@@ -103,6 +103,7 @@ class Flamerake(BossModule module) : Components.GenericAOEs(module)
         {
             switch (state)
             {
+                // 00080004 when rotation ends
                 case 0x00010001:
                 case 0x00100010:
                     _offset = 45.Degrees();
@@ -113,7 +114,6 @@ class Flamerake(BossModule module) : Components.GenericAOEs(module)
                     _offset = 0.Degrees();
                     _activation = WorldState.FutureTime(8.5f);
                     break;
-                // 00080004 when rotation ends
             }
         }
     }

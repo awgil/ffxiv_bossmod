@@ -2,9 +2,9 @@
 
 class P2SoarTwinSpirit(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(Actor caster, AOEInstance aoe)> _pending = new();
+    private readonly List<(Actor caster, AOEInstance aoe)> _pending = [];
 
-    private AOEShapeRect _shape = new(50, 5);
+    private readonly AOEShapeRect _shape = new(50, 5);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _pending.Select(p => p.aoe);
 

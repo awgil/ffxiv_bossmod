@@ -4,8 +4,8 @@ class GunberdShot(BossModule module) : BossComponent(module)
 {
     private Actor? _gunberdCaster;
 
-    public bool darkShotLoaded { get; private set; }
-    public bool windslicerLoaded { get; private set; }
+    public bool DarkShotLoaded { get; private set; }
+    public bool WindslicerLoaded { get; private set; }
 
     public bool Gunberding { get; private set; }
 
@@ -13,16 +13,16 @@ class GunberdShot(BossModule module) : BossComponent(module)
     {
         if (Gunberding)
         {
-            if (darkShotLoaded)
+            if (DarkShotLoaded)
                 hints.Add("Maintain Distance");
-            if (windslicerLoaded)
+            if (WindslicerLoaded)
                 hints.Add("Knockback");
         }
         else
         {
-            if (darkShotLoaded)
+            if (DarkShotLoaded)
                 hints.Add("Dark Loaded");
-            if (windslicerLoaded)
+            if (WindslicerLoaded)
                 hints.Add("Windslicer Loaded");
         }
     }
@@ -32,10 +32,10 @@ class GunberdShot(BossModule module) : BossComponent(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.DarkShot:
-                darkShotLoaded = true;
+                DarkShotLoaded = true;
                 break;
             case AID.WindslicerShot:
-                windslicerLoaded = true;
+                WindslicerLoaded = true;
                 break;
             case AID.GunberdDark:
             case AID.GunberdWindslicer:
@@ -50,11 +50,11 @@ class GunberdShot(BossModule module) : BossComponent(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.GunberdDark:
-                darkShotLoaded = false;
+                DarkShotLoaded = false;
                 Gunberding = false;
                 break;
             case AID.GunberdWindslicer:
-                windslicerLoaded = false;
+                WindslicerLoaded = false;
                 Gunberding = false;
                 break;
         }
@@ -62,7 +62,7 @@ class GunberdShot(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (Gunberding && windslicerLoaded)
+        if (Gunberding && WindslicerLoaded)
         {
             var adjPos = Components.Knockback.AwayFromSource(pc.Position, _gunberdCaster, 10);
             Components.Knockback.DrawKnockback(pc, adjPos, Arena);

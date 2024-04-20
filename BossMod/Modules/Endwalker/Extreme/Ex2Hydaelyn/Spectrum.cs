@@ -2,7 +2,7 @@
 
 class Spectrum(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.BrightSpectrum))
 {
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

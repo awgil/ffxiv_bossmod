@@ -2,60 +2,50 @@
 
 public class ReplayParser : IDisposable
 {
-    class LoadedModuleData
+    class LoadedModuleData(BossModule module, Replay.Encounter enc)
     {
-        public BossModule Module;
-        public Replay.Encounter Encounter;
+        public BossModule Module = module;
+        public Replay.Encounter Encounter = enc;
         public int ActivePhaseIndex = -1;
         public StateMachine.State? ActiveState;
-
-        public LoadedModuleData(BossModule module, Replay.Encounter enc)
-        {
-            Module = module;
-            Encounter = enc;
-        }
     }
 
-    class BossModuleManagerWrapper : BossModuleManager
+    class BossModuleManagerWrapper(ReplayParser self) : BossModuleManager(self._ws)
     {
-        private ReplayParser _self;
-
-        public BossModuleManagerWrapper(ReplayParser self) : base(self._ws) { _self = self; }
-
         protected override void OnModuleLoaded(BossModule module)
         {
-            var enc = new Replay.Encounter(module.PrimaryActor.InstanceID, module.PrimaryActor.OID, _self._ws.CurrentZone);
-            _self._modules[module.PrimaryActor.InstanceID] = new(module, enc);
+            var enc = new Replay.Encounter(module.PrimaryActor.InstanceID, module.PrimaryActor.OID, self._ws.CurrentZone);
+            self._modules[module.PrimaryActor.InstanceID] = new(module, enc);
             module.Error += OnError;
         }
 
         protected override void OnModuleUnloaded(BossModule module)
         {
-            var data = _self._modules[module.PrimaryActor.InstanceID];
+            var data = self._modules[module.PrimaryActor.InstanceID];
             if (data.ActiveState != null)
             {
-                data.Encounter.Phases.Add(new(data.ActivePhaseIndex, data.ActiveState.ID, _self._ws.CurrentTime));
-                data.Encounter.States.Add(new(data.ActiveState.ID, data.ActiveState.Name, data.ActiveState.Comment, data.ActiveState.Duration, _self._ws.CurrentTime));
+                data.Encounter.Phases.Add(new(data.ActivePhaseIndex, data.ActiveState.ID, self._ws.CurrentTime));
+                data.Encounter.States.Add(new(data.ActiveState.ID, data.ActiveState.Name, data.ActiveState.Comment, data.ActiveState.Duration, self._ws.CurrentTime));
             }
-            data.Encounter.Time.End = _self._ws.CurrentTime;
-            _self._modules.Remove(module.PrimaryActor.InstanceID);
+            data.Encounter.Time.End = self._ws.CurrentTime;
+            self._modules.Remove(module.PrimaryActor.InstanceID);
             module.Error -= OnError;
         }
 
         private void OnError(BossModule module, BossComponent? comp, string message)
         {
-            _self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new(_self._ws.CurrentTime, comp?.GetType(), message));
+            self._modules[module.PrimaryActor.InstanceID].Encounter.Errors.Add(new(self._ws.CurrentTime, comp?.GetType(), message));
         }
     }
 
     protected Replay _res = new();
     protected WorldState _ws = new(TimeSpan.TicksPerSecond, "pending");
-    private BossModuleManagerWrapper _mgr;
-    private Dictionary<ulong, LoadedModuleData> _modules = new();
-    private Dictionary<ulong, Replay.Participant> _participants = new(); // these are either existing actors, destroyed actors that can still be recreated, or never-created-but-referenced actors
-    private Dictionary<(ulong, int), Replay.Status> _statuses = new();
-    private Dictionary<ulong, Replay.Tether> _tethers = new();
-    private List<Replay.ClientAction> _pendingClientActions = new();
+    private readonly BossModuleManagerWrapper _mgr;
+    private readonly Dictionary<ulong, LoadedModuleData> _modules = [];
+    private readonly Dictionary<ulong, Replay.Participant> _participants = []; // these are either existing actors, destroyed actors that can still be recreated, or never-created-but-referenced actors
+    private readonly Dictionary<(ulong, int), Replay.Status> _statuses = [];
+    private readonly Dictionary<ulong, Replay.Tether> _tethers = [];
+    private readonly List<Replay.ClientAction> _pendingClientActions = [];
 
     protected ReplayParser()
     {
@@ -85,33 +75,42 @@ public class ReplayParser : IDisposable
         _ws.Client.ActionRejected += ClientActionRejected;
     }
 
-    public virtual void Dispose()
+    public void Dispose()
     {
-        _mgr.Dispose();
-        _modules.Clear();
-        _ws.Actors.Added -= ActorAdded;
-        _ws.Actors.Removed -= ActorRemoved;
-        _ws.Actors.Renamed -= ActorRenamed;
-        _ws.Actors.IsTargetableChanged -= ActorTargetable;
-        _ws.Actors.IsDeadChanged -= ActorDead;
-        _ws.Actors.Moved -= ActorMoved;
-        _ws.Actors.SizeChanged -= ActorSize;
-        _ws.Actors.HPMPChanged -= ActorHPMP;
-        _ws.Actors.CastStarted -= CastStart;
-        _ws.Actors.CastFinished -= CastFinish;
-        _ws.Actors.Tethered -= TetherAdd;
-        _ws.Actors.Untethered -= TetherRemove;
-        _ws.Actors.StatusGain -= StatusGain;
-        _ws.Actors.StatusLose -= StatusLose;
-        _ws.Actors.IconAppeared -= EventIcon;
-        _ws.Actors.CastEvent -= EventCast;
-        _ws.Actors.EffectResult -= EventConfirm;
-        _ws.UserMarkerAdded -= EventUserMarker;
-        _ws.CurrentZoneChanged -= EventZoneChange;
-        _ws.DirectorUpdate -= EventDirectorUpdate;
-        _ws.EnvControl -= EventEnvControl;
-        _ws.Client.ActionRequested -= ClientActionRequested;
-        _ws.Client.ActionRejected -= ClientActionRejected;
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _mgr.Dispose();
+            _modules.Clear();
+            _ws.Actors.Added -= ActorAdded;
+            _ws.Actors.Removed -= ActorRemoved;
+            _ws.Actors.Renamed -= ActorRenamed;
+            _ws.Actors.IsTargetableChanged -= ActorTargetable;
+            _ws.Actors.IsDeadChanged -= ActorDead;
+            _ws.Actors.Moved -= ActorMoved;
+            _ws.Actors.SizeChanged -= ActorSize;
+            _ws.Actors.HPMPChanged -= ActorHPMP;
+            _ws.Actors.CastStarted -= CastStart;
+            _ws.Actors.CastFinished -= CastFinish;
+            _ws.Actors.Tethered -= TetherAdd;
+            _ws.Actors.Untethered -= TetherRemove;
+            _ws.Actors.StatusGain -= StatusGain;
+            _ws.Actors.StatusLose -= StatusLose;
+            _ws.Actors.IconAppeared -= EventIcon;
+            _ws.Actors.CastEvent -= EventCast;
+            _ws.Actors.EffectResult -= EventConfirm;
+            _ws.UserMarkerAdded -= EventUserMarker;
+            _ws.CurrentZoneChanged -= EventZoneChange;
+            _ws.DirectorUpdate -= EventDirectorUpdate;
+            _ws.EnvControl -= EventEnvControl;
+            _ws.Client.ActionRequested -= ClientActionRequested;
+            _ws.Client.ActionRejected -= ClientActionRejected;
+        }
     }
 
     protected void Start(DateTime timestamp, ulong qpf, string gameVersion)
@@ -173,7 +172,7 @@ public class ReplayParser : IDisposable
                     m.Encounter.FirstIcon = _res.Icons.Count;
                     m.Encounter.FirstDirectorUpdate = _res.DirectorUpdates.Count;
                     m.Encounter.FirstEnvControl = _res.EnvControls.Count;
-                    foreach (var p in _participants.Values.Where(p => p.WorldExistence.Count > 0 && p.WorldExistence.Last().End == default)) // include only live actors
+                    foreach (var p in _participants.Values.Where(p => p.WorldExistence.Count > 0 && p.WorldExistence[^1].End == default)) // include only live actors
                         m.Encounter.ParticipantsByOID.GetOrAdd(p.OID).Add(p);
                     foreach (var p in _ws.Party.WithoutSlot(true))
                         m.Encounter.PartyMembers.Add((_participants[p.InstanceID], p.Class, p.Level));
@@ -197,15 +196,15 @@ public class ReplayParser : IDisposable
     {
         if (p.EffectiveExistence.End > _ws.CurrentTime)
             p.EffectiveExistence.End = _ws.CurrentTime; // note that this would be extended by any new references
-        if (p.WorldExistence.Count > 0 && p.WorldExistence.Last().End == default)
-            p.WorldExistence.AsSpan()[p.WorldExistence.Count - 1].End = _ws.CurrentTime;
+        if (p.WorldExistence.Count > 0 && p.WorldExistence[^1].End == default)
+            p.WorldExistence.Ref(p.WorldExistence.Count - 1).End = _ws.CurrentTime;
 
-        if (p.Casts.Count > 0 && p.Casts.Last().Time.End == default)
-            p.Casts.Last().Time.End = _ws.CurrentTime;
+        if (p.Casts.Count > 0 && p.Casts[^1].Time.End == default)
+            p.Casts[^1].Time.End = _ws.CurrentTime;
 
         if (p.TargetableHistory.LastOrDefault().Value)
         {
-            if (p.TargetableHistory.Last().Key < _ws.CurrentTime)
+            if (p.TargetableHistory.Keys[^1] < _ws.CurrentTime)
                 p.TargetableHistory.Add(_ws.CurrentTime, false);
             else
                 p.TargetableHistory.RemoveAt(p.TargetableHistory.Count - 1);
@@ -234,7 +233,7 @@ public class ReplayParser : IDisposable
         var p = GetOrCreateParticipant(actor.InstanceID, false);
         if (p.EffectiveExistence.End > _ws.CurrentTime)
         {
-            throw new Exception($"Unexpected actor add while participant still effectively exists: {actor}");
+            throw new InvalidOperationException($"Unexpected actor add while participant still effectively exists: {actor}");
         }
         else if (p.WorldExistence.Count == 0)
         {
@@ -246,8 +245,8 @@ public class ReplayParser : IDisposable
         else if (p.OID == actor.OID && p.Type == actor.Type && p.OwnerID == actor.OwnerID)
         {
             // recreate after destruction
-            if (p.WorldExistence.Last().End == default)
-                throw new Exception($"Actor add after actor add: {actor}");
+            if (p.WorldExistence[^1].End == default)
+                throw new InvalidOperationException($"Actor add after actor add: {actor}");
         }
         else
         {
@@ -260,7 +259,7 @@ public class ReplayParser : IDisposable
 
         p.EffectiveExistence.End = DateTime.MaxValue; // until it is destroyed
         p.WorldExistence.Add(new(_ws.CurrentTime));
-        if (p.NameHistory.Count == 0 ? (actor.Name.Length > 0 || actor.NameID != 0) : p.NameHistory.Values.Last() != (actor.Name, actor.NameID))
+        if (p.NameHistory.Count == 0 ? (actor.Name.Length > 0 || actor.NameID != 0) : p.NameHistory.Values[^1] != (actor.Name, actor.NameID))
             p.NameHistory.Add(_ws.CurrentTime, (actor.Name, actor.NameID));
         if (actor.IsTargetable)
             p.TargetableHistory.Add(_ws.CurrentTime, true);
@@ -323,16 +322,16 @@ public class ReplayParser : IDisposable
         var cast = new Replay.Cast(c.Action, c.TotalTime, target, location, c.Rotation, c.Interruptible);
         cast.Time.Start = _ws.CurrentTime;
         _participants[actor.InstanceID].Casts.Add(cast);
-        if (actor == _ws.Party.Player() && _pendingClientActions.Count > 0 && _pendingClientActions.Last().ID == c.Action)
+        if (actor == _ws.Party.Player() && _pendingClientActions.Count > 0 && _pendingClientActions[^1].ID == c.Action)
         {
-            cast.ClientAction = _pendingClientActions.Last();
-            _pendingClientActions.Last().Cast = cast;
+            cast.ClientAction = _pendingClientActions[^1];
+            _pendingClientActions[^1].Cast = cast;
         }
     }
 
     private void CastFinish(Actor actor)
     {
-        var cast = _participants[actor.InstanceID].Casts.Last();
+        var cast = _participants[actor.InstanceID].Casts[^1];
         cast.Time.End = _ws.CurrentTime;
         if (actor == _ws.Party.Player() && _pendingClientActions.FindIndex(a => a.Cast == cast) is var index && index >= 0)
             _pendingClientActions.RemoveAt(index);

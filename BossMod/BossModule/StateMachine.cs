@@ -7,7 +7,7 @@ namespace BossMod;
 // by far the most common state has a single transition to a neighbouring state, and by far the most common transition is spell cast/finish by boss
 // some bosses have multiple "phases"; when phase condition is triggered, initial state of the next phase is activated
 // typical phase condition is boss reaching specific hp %
-public class StateMachine
+public class StateMachine(List<StateMachine.Phase> phases)
 {
     [Flags]
     public enum StateHint
@@ -29,35 +29,28 @@ public class StateMachine
 
     public class State
     {
-        public uint ID = 0;
-        public float Duration = 0; // estimated state duration
+        public uint ID;
+        public float Duration; // estimated state duration
         public string Name = ""; // if name is empty, state is "hidden" from UI
         public string Comment = "";
-        public List<Action> Enter = new(); // callbacks executed when state is activated
-        public List<Action> Exit = new(); // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset or phase change
+        public List<Action> Enter = []; // callbacks executed when state is activated
+        public List<Action> Exit = []; // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset or phase change
         public Func<float, int>? Update; // callback executed every frame when state is active; should return target state index for transition or -1 to remain in current state; argument = time since activation
         public State[]? NextStates; // potential successor states
         public StateHint EndHint = StateHint.None; // special flags for state end (used for visualization, autorotation, etc.)
     }
 
-    public class Phase
+    public class Phase(StateMachine.State initialState, string name, float expectedDuration = -1)
     {
-        public State InitialState;
-        public string Name;
-        public float ExpectedDuration; // if >= 0, this is 'expected' phase duration (for use by CD planner etc); <0 means 'calculate from state tree max time'
-        public List<Action> Enter = new(); // callbacks executed when phase is activated
-        public List<Action> Exit = new(); // callbacks executed when phase is deactivated; note that this can happen unexpectedly, e.g. due to external reset
+        public State InitialState = initialState;
+        public string Name = name;
+        public float ExpectedDuration = expectedDuration; // if >= 0, this is 'expected' phase duration (for use by CD planner etc); <0 means 'calculate from state tree max time'
+        public List<Action> Enter = []; // callbacks executed when phase is activated
+        public List<Action> Exit = []; // callbacks executed when phase is deactivated; note that this can happen unexpectedly, e.g. due to external reset
         public Func<bool>? Update; // callback executed every frame when phase is active; should return whether transition to next phase should happen
-
-        public Phase(State initialState, string name, float expectedDuration = -1)
-        {
-            InitialState = initialState;
-            Name = name;
-            ExpectedDuration = expectedDuration;
-        }
     }
 
-    public List<Phase> Phases { get; private init; }
+    public List<Phase> Phases { get; private init; } = phases;
 
     private DateTime _curTime;
     private DateTime _activation;
@@ -72,11 +65,6 @@ public class StateMachine
     public int ActivePhaseIndex { get; private set; } = -1;
     public Phase? ActivePhase => Phases.ElementAtOrDefault(ActivePhaseIndex);
     public State? ActiveState { get; private set; }
-
-    public StateMachine(List<Phase> phases)
-    {
-        Phases = phases;
-    }
 
     public void Start(DateTime now)
     {

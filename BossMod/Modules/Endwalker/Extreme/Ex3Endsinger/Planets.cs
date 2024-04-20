@@ -4,13 +4,13 @@
 class Planets(BossModule module) : BossComponent(module)
 {
     private Actor? _head;
-    private List<WPos> _planetsFiery = new();
-    private List<WPos> _planetsAzure = new();
+    private readonly List<WPos> _planetsFiery = [];
+    private readonly List<WPos> _planetsAzure = [];
 
     private static readonly AOEShapeCone _aoeHead = new(20, 90.Degrees());
     private static readonly AOEShapeCircle _aoePlanet = new(30);
-    private static readonly float _knockbackDistance = 25;
-    private static readonly float _planetOffset = 19.8f; // == 14 * sqrt(2)
+    private const float _knockbackDistance = 25;
+    private const float _planetOffset = 19.8f; // == 14 * sqrt(2)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

@@ -4,7 +4,7 @@
 class PandaemoniacMeltdown(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PandaemoniacMeltdownStack))
 {
     private Actor? _stackTarget;
-    private List<Actor> _spreadTargets = new();
+    private readonly List<Actor> _spreadTargets = [];
 
     private static readonly AOEShapeRect _shapeStack = new(50, 3);
     private static readonly AOEShapeRect _shapeSpread = new(50, 2);

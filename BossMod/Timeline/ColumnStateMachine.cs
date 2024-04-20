@@ -2,7 +2,7 @@
 
 namespace BossMod;
 
-public abstract class ColumnStateMachine : Timeline.Column
+public abstract class ColumnStateMachine(Timeline timeline, StateMachineTree tree) : Timeline.Column(timeline)
 {
     public enum NodeTextDisplay
     {
@@ -16,11 +16,11 @@ public abstract class ColumnStateMachine : Timeline.Column
         IDName,
     }
 
-    public StateMachineTree Tree;
+    public StateMachineTree Tree = tree;
     public NodeTextDisplay TextDisplay = NodeTextDisplay.IDName;
     public bool DrawUnnamedNodes = true;
-    public bool DrawTankbusterNodesOnly = false;
-    public bool DrawRaidwideNodesOnly = false;
+    public bool DrawTankbusterNodesOnly;
+    public bool DrawRaidwideNodesOnly;
 
     public float PixelsPerBranch => TextDisplay switch
     {
@@ -29,14 +29,8 @@ public abstract class ColumnStateMachine : Timeline.Column
         _ => 20,
     };
 
-    private float _nodeHOffset = 10;
-    private float _nodeRadius = 5;
-
-    public ColumnStateMachine(Timeline timeline, StateMachineTree tree)
-        : base(timeline)
-    {
-        Tree = tree;
-    }
+    private readonly float _nodeHOffset = 10;
+    private readonly float _nodeRadius = 5;
 
     protected void DrawNode(StateMachineTree.Node node, bool singleColumn, float? progress = null)
     {
@@ -114,12 +108,14 @@ public abstract class ColumnStateMachine : Timeline.Column
 
     private List<string> NodeTooltip(StateMachineTree.Node n)
     {
-        List<string> res = new();
-        res.Add($"State: {n.State.ID:X8} '{n.State.Name}'");
-        res.Add($"Comment: {n.State.Comment}");
-        res.Add($"Phase: {n.PhaseID} '{Tree.Phases[n.PhaseID].Name}'");
-        res.Add($"Time: {n.Time:f1} ({n.State.Duration:f1} from prev)");
-        res.Add($"Flags: {n.State.EndHint}");
+        List<string> res =
+        [
+            $"State: {n.State.ID:X8} '{n.State.Name}'",
+            $"Comment: {n.State.Comment}",
+            $"Phase: {n.PhaseID} '{Tree.Phases[n.PhaseID].Name}'",
+            $"Time: {n.Time:f1} ({n.State.Duration:f1} from prev)",
+            $"Flags: {n.State.EndHint}",
+        ];
         return res;
     }
 }

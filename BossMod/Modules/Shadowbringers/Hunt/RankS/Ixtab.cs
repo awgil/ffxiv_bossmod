@@ -32,7 +32,7 @@ public enum SID : uint
 
 class DualCastTartareanFlameThunder(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeCircle circle = new(20);
     private static readonly AOEShapeDonut donut = new(8, 40);
 

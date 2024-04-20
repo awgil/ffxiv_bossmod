@@ -53,7 +53,7 @@ class P2Enumeration(BossModule module) : Components.UniformStackSpread(module, 5
 
 class P2HiddenMinefield(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HiddenMinefield), new AOEShapeCircle(5))
 {
-    private List<WPos> _mines = new();
+    private readonly List<WPos> _mines = [];
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

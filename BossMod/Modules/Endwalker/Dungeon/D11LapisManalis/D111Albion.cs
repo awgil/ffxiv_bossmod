@@ -61,16 +61,16 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (stampede1.active && stampede1.beasts.Count > 0)
-            yield return new(new AOEShapeRect(CalculateStampedeLength(stampede1.beasts) + 30, 5), new(stampede1.beasts.Last().Position.X, stampede1.position.Z), stampede1.rotation);
+            yield return new(new AOEShapeRect(CalculateStampedeLength(stampede1.beasts) + 30, 5), new(stampede1.beasts[^1].Position.X, stampede1.position.Z), stampede1.rotation);
         if (stampede2.active && stampede2.beasts.Count > 0)
-            yield return new(new AOEShapeRect(CalculateStampedeLength(stampede2.beasts) + 30, 5), new(stampede2.beasts.Last().Position.X, stampede2.position.Z), stampede2.rotation);
+            yield return new(new AOEShapeRect(CalculateStampedeLength(stampede2.beasts) + 30, 5), new(stampede2.beasts[^1].Position.X, stampede2.position.Z), stampede2.rotation);
         if (stampede1.active && stampede1.beasts.Count == 0)
             yield return new(rect, stampede1.position, _rot90);
         if (stampede2.active && stampede2.beasts.Count == 0)
             yield return new(rect, stampede2.position, _rot90);
     }
 
-    private static float CalculateStampedeLength(List<Actor> beasts) => (beasts.First().Position - beasts.Last().Position).Length();
+    private static float CalculateStampedeLength(List<Actor> beasts) => (beasts[0].Position - beasts[^1].Position).Length();
 
     public override void OnEventEnvControl(byte index, uint state)
     {

@@ -62,15 +62,15 @@ class Border(BossModule module) : BossComponent(module)
             case 0: // small platforms
                 switch (state)
                 {
+                    // 0x00200010 - large platform disappears?
+                    // 0x00800040 - small platforms appear?
+                    // 0x08000004 - small platforms disappear?
                     case 0x00020001: // this is preparation
                         _threePlatforms = true;
                         break;
                     case 0x02000100: // this is preparation
                         _threePlatforms = false;
                         break;
-                    // 0x00200010 - large platform disappears?
-                    // 0x00800040 - small platforms appear?
-                    // 0x08000004 - small platforms disappear?
                 }
                 break;
             case 1: // bridge N

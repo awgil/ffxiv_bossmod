@@ -5,7 +5,7 @@ public abstract class GenericAOEs(BossModule module, ActionID aid = default, str
 {
     public record struct AOEInstance(AOEShape Shape, WPos Origin, Angle Rotation = default, DateTime Activation = default, uint Color = ArenaColor.AOE, bool Risky = true)
     {
-        public bool Check(WPos pos) => Shape.Check(pos, Origin, Rotation);
+        public readonly bool Check(WPos pos) => Shape.Check(pos, Origin, Rotation);
     }
 
     public string WarningText = warningText;
@@ -39,7 +39,7 @@ public class SelfTargetedAOEs(BossModule module, ActionID aid, AOEShape shape, i
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
     public uint Color = ArenaColor.AOE; // can be customized if needed
     public bool Risky = true; // can be customized if needed
-    public readonly List<Actor> Casters = new();
+    public readonly List<Actor> Casters = [];
 
     public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
 
@@ -63,7 +63,7 @@ public class SelfTargetedLegacyRotationAOEs(BossModule module, ActionID aid, AOE
 {
     public AOEShape Shape { get; init; } = shape;
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
-    public readonly List<Actor> Casters = new();
+    public readonly List<Actor> Casters = [];
 
     public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
 
@@ -89,7 +89,7 @@ public class LocationTargetedAOEs(BossModule module, ActionID aid, float radius,
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
     public uint Color = ArenaColor.AOE; // can be customized if needed
     public bool Risky = true; // can be customized if needed
-    public readonly List<Actor> Casters = new();
+    public readonly List<Actor> Casters = [];
 
     public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
 
@@ -112,7 +112,7 @@ public class LocationTargetedAOEs(BossModule module, ActionID aid, float radius,
 public class ChargeAOEs(BossModule module, ActionID aid, float halfWidth) : GenericAOEs(module, aid)
 {
     public float HalfWidth { get; init; } = halfWidth;
-    public readonly List<(Actor caster, AOEShape shape, Angle direction)> Casters = new();
+    public readonly List<(Actor caster, AOEShape shape, Angle direction)> Casters = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(csr => new AOEInstance(csr.shape, csr.caster.Position, csr.direction, csr.caster.CastInfo!.NPCFinishAt));
 

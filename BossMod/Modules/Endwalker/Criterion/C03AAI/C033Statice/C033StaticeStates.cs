@@ -2,7 +2,7 @@
 
 class C033StaticeStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C033StaticeStates(BossModule module, bool savage) : base(module)
     {

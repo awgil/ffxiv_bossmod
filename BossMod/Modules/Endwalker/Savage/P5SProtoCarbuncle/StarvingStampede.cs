@@ -2,7 +2,7 @@
 
 class StarvingStampede(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.StarvingStampede))
 {
-    private List<WPos> _positions = new();
+    private readonly List<WPos> _positions = [];
 
     private static readonly AOEShape _shape = new AOEShapeCircle(12);
 

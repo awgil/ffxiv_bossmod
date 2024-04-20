@@ -2,8 +2,8 @@
 
 class ArcaneArrayPlot : Components.GenericAOEs
 {
-    public List<AOEInstance> AOEs = new();
-    public List<WPos> SafeZoneCenters = new();
+    public List<AOEInstance> AOEs = [];
+    public List<WPos> SafeZoneCenters = [];
 
     public static readonly AOEShapeRect Shape = new(4, 4, 4);
 

@@ -117,7 +117,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 65798, 66591, 66592, 66593, 66595, 66596, 67570, 67571, 67572, 67573, 68111 };
+    public static readonly uint[] UnlockQuests = [65798, 66591, 66592, 66593, 66595, 66596, 67570, 67571, 67572, 67573, 68111];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -186,48 +186,49 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
-        SupportedActions.GCD(AID.FastBlade, 3);
-        SupportedActions.GCD(AID.RiotBlade, 3);
-        SupportedActions.GCD(AID.RageOfHalone, 3);
-        SupportedActions.GCD(AID.GoringBlade, 3);
-        SupportedActions.GCD(AID.RoyalAuthority, 3);
-        SupportedActions.GCD(AID.HolySpirit, 25);
-        SupportedActions.GCD(AID.Atonement, 3);
-        SupportedActions.GCD(AID.Confiteor, 25);
-        SupportedActions.GCD(AID.BladeOfFaith, 25);
-        SupportedActions.GCD(AID.BladeOfTruth, 25);
-        SupportedActions.GCD(AID.BladeOfValor, 25);
-        SupportedActions.GCD(AID.TotalEclipse, 0);
-        SupportedActions.GCD(AID.Prominence, 0);
-        SupportedActions.GCD(AID.HolyCircle, 0);
-        SupportedActions.OGCD(AID.SpiritsWithin, 3, CDGroup.SpiritsWithin, 30.0f);
-        SupportedActions.OGCD(AID.Expiacion, 3, CDGroup.SpiritsWithin, 30.0f);
-        SupportedActions.OGCD(AID.CircleOfScorn, 0, CDGroup.CircleOfScorn, 30.0f);
-        SupportedActions.OGCDWithCharges(AID.Intervene, 20, CDGroup.Intervene, 30.0f, 2);
-        SupportedActions.OGCD(AID.FightOrFlight, 0, CDGroup.FightOrFlight, 60.0f).EffectDuration = 25;
-        SupportedActions.OGCD(AID.Requiescat, 3, CDGroup.Requiescat, 60.0f);
-        SupportedActions.OGCD(AID.Rampart, 0, CDGroup.Rampart, 90.0f).EffectDuration = 20;
-        SupportedActions.OGCD(AID.Sheltron, 0, CDGroup.Sheltron, 5.0f).EffectDuration = 4;
-        SupportedActions.OGCD(AID.Sentinel, 0, CDGroup.Sentinel, 120.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.Cover, 10, CDGroup.Cover, 120.0f);
-        SupportedActions.OGCD(AID.HolySheltron, 0, CDGroup.HolySheltron, 5.0f);
-        SupportedActions.OGCD(AID.HallowedGround, 0, CDGroup.HallowedGround, 420.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.Reprisal, 0, CDGroup.Reprisal, 60.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.PassageOfArms, 0, CDGroup.PassageOfArms, 120.0f);
-        SupportedActions.OGCD(AID.DivineVeil, 0, CDGroup.DivineVeil, 90.0f);
-        SupportedActions.OGCD(AID.Intervention, 30, CDGroup.Intervention, 10.0f);
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.GCD(AID.Clemency, 30);
-        SupportedActions.GCD(AID.ShieldBash, 3);
-        SupportedActions.GCD(AID.ShieldLob, 20);
-        SupportedActions.OGCD(AID.IronWill, 0, CDGroup.IronWill, 3.0f);
-        SupportedActions.OGCD(AID.Provoke, 25, CDGroup.Provoke, 30.0f);
-        SupportedActions.OGCD(AID.Shirk, 25, CDGroup.Shirk, 120.0f);
-        SupportedActions.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
-        SupportedActions.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+        res.GCD(AID.FastBlade, 3);
+        res.GCD(AID.RiotBlade, 3);
+        res.GCD(AID.RageOfHalone, 3);
+        res.GCD(AID.GoringBlade, 3);
+        res.GCD(AID.RoyalAuthority, 3);
+        res.GCD(AID.HolySpirit, 25);
+        res.GCD(AID.Atonement, 3);
+        res.GCD(AID.Confiteor, 25);
+        res.GCD(AID.BladeOfFaith, 25);
+        res.GCD(AID.BladeOfTruth, 25);
+        res.GCD(AID.BladeOfValor, 25);
+        res.GCD(AID.TotalEclipse, 0);
+        res.GCD(AID.Prominence, 0);
+        res.GCD(AID.HolyCircle, 0);
+        res.OGCD(AID.SpiritsWithin, 3, CDGroup.SpiritsWithin, 30.0f);
+        res.OGCD(AID.Expiacion, 3, CDGroup.SpiritsWithin, 30.0f);
+        res.OGCD(AID.CircleOfScorn, 0, CDGroup.CircleOfScorn, 30.0f);
+        res.OGCDWithCharges(AID.Intervene, 20, CDGroup.Intervene, 30.0f, 2);
+        res.OGCD(AID.FightOrFlight, 0, CDGroup.FightOrFlight, 60.0f).EffectDuration = 25;
+        res.OGCD(AID.Requiescat, 3, CDGroup.Requiescat, 60.0f);
+        res.OGCD(AID.Rampart, 0, CDGroup.Rampart, 90.0f).EffectDuration = 20;
+        res.OGCD(AID.Sheltron, 0, CDGroup.Sheltron, 5.0f).EffectDuration = 4;
+        res.OGCD(AID.Sentinel, 0, CDGroup.Sentinel, 120.0f).EffectDuration = 15;
+        res.OGCD(AID.Cover, 10, CDGroup.Cover, 120.0f);
+        res.OGCD(AID.HolySheltron, 0, CDGroup.HolySheltron, 5.0f);
+        res.OGCD(AID.HallowedGround, 0, CDGroup.HallowedGround, 420.0f).EffectDuration = 10;
+        res.OGCD(AID.Reprisal, 0, CDGroup.Reprisal, 60.0f).EffectDuration = 10;
+        res.OGCD(AID.PassageOfArms, 0, CDGroup.PassageOfArms, 120.0f);
+        res.OGCD(AID.DivineVeil, 0, CDGroup.DivineVeil, 90.0f);
+        res.OGCD(AID.Intervention, 30, CDGroup.Intervention, 10.0f);
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.GCD(AID.Clemency, 30);
+        res.GCD(AID.ShieldBash, 3);
+        res.GCD(AID.ShieldLob, 20);
+        res.OGCD(AID.IronWill, 0, CDGroup.IronWill, 3.0f);
+        res.OGCD(AID.Provoke, 25, CDGroup.Provoke, 30.0f);
+        res.OGCD(AID.Shirk, 25, CDGroup.Shirk, 120.0f);
+        res.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
+        res.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
+        return res;
     }
 }

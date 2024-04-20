@@ -14,7 +14,7 @@ public abstract class BossModule : IDisposable
     public ModuleRegistry.Info? Info { get; private init; }
     // TODO: this should be moved outside...
     public CooldownPlanningConfigNode? PlanConfig { get; init; }
-    public CooldownPlanExecution? PlanExecution = null;
+    public CooldownPlanExecution? PlanExecution;
 
     public event Action<BossModule, BossComponent?, string>? Error;
 
@@ -22,21 +22,18 @@ public abstract class BossModule : IDisposable
     public ArenaBounds Bounds => Arena.Bounds;
 
     // per-oid enemy lists; filled on first request
-    private Dictionary<uint, List<Actor>> _relevantEnemies = new(); // key = actor OID
+    private readonly Dictionary<uint, List<Actor>> _relevantEnemies = []; // key = actor OID
     public IReadOnlyDictionary<uint, List<Actor>> RelevantEnemies => _relevantEnemies;
     public IReadOnlyList<Actor> Enemies(uint oid)
     {
-        var entry = _relevantEnemies.GetValueOrDefault(oid);
-        if (entry == null)
-        {
-            _relevantEnemies[oid] = entry = WorldState.Actors.Where(actor => actor.OID == oid).ToList();
-        }
+        IReadOnlyList<Actor>? entry = _relevantEnemies.GetValueOrDefault(oid);
+        entry ??= _relevantEnemies[oid] = WorldState.Actors.Where(actor => actor.OID == oid).ToList();
         return entry;
     }
     public IReadOnlyList<Actor> Enemies<OID>(OID oid) where OID : Enum => Enemies((uint)(object)oid);
 
     // component management: at most one component of any given type can be active at any time
-    private List<BossComponent> _components = new();
+    private readonly List<BossComponent> _components = [];
     public IReadOnlyList<BossComponent> Components => _components;
     public T? FindComponent<T>() where T : BossComponent => _components.OfType<T>().FirstOrDefault();
 
@@ -77,7 +74,7 @@ public abstract class BossModule : IDisposable
 
     public void ClearComponents(Predicate<BossComponent> condition) => _components.RemoveAll(condition);
 
-    public BossModule(WorldState ws, Actor primary, ArenaBounds bounds)
+    protected BossModule(WorldState ws, Actor primary, ArenaBounds bounds)
     {
         WorldState = ws;
         PrimaryActor = primary;
@@ -85,7 +82,7 @@ public abstract class BossModule : IDisposable
         Arena = new(WindowConfig, bounds);
 
         Info = ModuleRegistry.FindByOID(primary.OID);
-        StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new(new());
+        StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
         if (Info?.CooldownPlanningSupported ?? false)
         {
             PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(Info.ConfigType!);
@@ -152,7 +149,7 @@ public abstract class BossModule : IDisposable
         // update cooldown plan if needed
         var cls = Raid.Player()?.Class ?? Class.None;
         var plan = PlanConfig?.SelectedPlan(cls);
-        if (PlanExecution == null || PlanExecution?.Plan != plan)
+        if (PlanExecution?.Plan != plan)
         {
             Service.Log($"[BM] Selected plan for '{GetType()}' ({PrimaryActor.InstanceID:X}) for {cls}: '{(plan?.Name ?? "<none>")}'");
             PlanExecution = new(StateMachine, plan);
@@ -228,7 +225,7 @@ public abstract class BossModule : IDisposable
 
     public BossComponent.TextHints CalculateHintsForRaidMember(int slot, Actor actor)
     {
-        BossComponent.TextHints hints = new();
+        BossComponent.TextHints hints = [];
         foreach (var comp in _components)
             comp.AddHints(slot, actor, hints);
         return hints;
@@ -236,7 +233,7 @@ public abstract class BossModule : IDisposable
 
     public BossComponent.MovementHints CalculateMovementHintsForRaidMember(int slot, Actor actor)
     {
-        BossComponent.MovementHints hints = new();
+        BossComponent.MovementHints hints = [];
         foreach (var comp in _components)
             comp.AddMovementHints(slot, actor, hints);
         return hints;
@@ -244,7 +241,7 @@ public abstract class BossModule : IDisposable
 
     public BossComponent.GlobalHints CalculateGlobalHints()
     {
-        BossComponent.GlobalHints hints = new();
+        BossComponent.GlobalHints hints = [];
         foreach (var comp in _components)
             comp.AddGlobalHints(hints);
         return hints;

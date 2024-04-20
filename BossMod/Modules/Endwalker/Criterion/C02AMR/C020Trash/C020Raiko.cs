@@ -25,7 +25,7 @@ class SMasterOfLevin(BossModule module) : MasterOfLevin(module, AID.SMasterOfLev
 
 class C020RaikoStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C020RaikoStates(BossModule module, bool savage) : base(module)
     {

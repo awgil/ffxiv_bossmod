@@ -21,7 +21,7 @@ class SonicStorm(BossModule module) : Components.LocationTargetedAOEs(module, Ac
 
 class Typhoon(BossModule module) : Components.Exaflare(module, 3)
 {
-    private IReadOnlyList<Actor> _maelstroms = module.Enemies(OID.MaelstromVisual);
+    private readonly IReadOnlyList<Actor> _maelstroms = module.Enemies(OID.MaelstromVisual);
 
     public override void Update()
     {

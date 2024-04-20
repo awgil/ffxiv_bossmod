@@ -81,7 +81,7 @@ class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var critbuff = Module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.CriticalStrikes) != null).FirstOrDefault();
+        var critbuff = Module.Enemies(OID.Boss).FirstOrDefault(x => x.FindStatus(SID.CriticalStrikes) != null);
         if (critbuff != null)
             hints.Add($"Dispel {Module.PrimaryActor.Name} with Eerie Soundwave!");
     }

@@ -2,7 +2,7 @@
 
 class P4Freefire(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FreefireIntermission))
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
     private DateTime _activation;
 
     private static readonly AOEShape _shape = new AOEShapeCircle(15); // TODO: verify falloff

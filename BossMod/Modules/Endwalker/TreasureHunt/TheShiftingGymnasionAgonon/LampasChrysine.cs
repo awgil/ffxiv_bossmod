@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x3D40, //R=6
     BossHelper = 0x233C,
-    BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
+    BonusAddLampas = 0x3D4D, //R=2.001, bonus loot adds
 }
 
 public enum AID : uint
@@ -18,7 +18,7 @@ public enum AID : uint
     Shine = 32291, // Boss->self, 1,3s cast, single-target
     Shine2 = 32292, // BossHelper->location, 3,0s cast, range 5 circle
     Summon = 32288, // Boss->self, 1,3s cast, single-target, spawns bonus loot adds
-    Telega = 9630, // BonusAdds_Lampas->self, no cast, single-target, bonus loot add despawn
+    Telega = 9630, // BonusAddLampas->self, no cast, single-target, bonus loot add despawn
 }
 
 class Shine(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Shine2), 5);
@@ -50,7 +50,7 @@ class LampasStates : StateMachineBuilder
             .ActivateOnEnter<AetherialLight>()
             .ActivateOnEnter<Lightburst>()
             .ActivateOnEnter<Summon>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BonusAddLampas).All(e => e.IsDead);
     }
 }
 
@@ -60,7 +60,7 @@ public class Lampas(WorldState ws, Actor primary) : BossModule(ws, primary, new 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.BonusAdds_Lampas))
+        foreach (var s in Enemies(OID.BonusAddLampas))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -71,7 +71,7 @@ public class Lampas(WorldState ws, Actor primary) : BossModule(ws, primary, new 
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdds_Lampas => 2,
+                OID.BonusAddLampas => 2,
                 OID.Boss => 1,
                 _ => 0
             };

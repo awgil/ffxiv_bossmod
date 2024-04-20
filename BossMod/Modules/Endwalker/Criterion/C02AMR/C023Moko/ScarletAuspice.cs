@@ -15,8 +15,8 @@ class SBoundlessScarletRest(BossModule module) : BoundlessScarletRest(module, AI
 class InvocationOfVengeance(BossModule module) : Components.UniformStackSpread(module, 3, 3, alwaysShowSpreads: true)
 {
     public int NumMechanics { get; private set; }
-    private List<Actor> _spreadTargets = new();
-    private List<Actor> _stackTargets = new();
+    private readonly List<Actor> _spreadTargets = [];
+    private readonly List<Actor> _stackTargets = [];
     private DateTime _spreadResolve;
     private DateTime _stackResolve;
 

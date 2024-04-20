@@ -2,13 +2,13 @@
 
 class ClientActions
 {
-    private List<(Replay r, DateTime ts, string warning)> _warnings = new();
+    private readonly List<(Replay r, DateTime ts, string warning)> _warnings = [];
 
     public ClientActions(List<Replay> replays)
     {
         foreach (var r in replays)
         {
-            List<ClientState.OpActionRequest> pendingRequests = new();
+            List<ClientState.OpActionRequest> pendingRequests = [];
             ulong playerID = 0;
             ActorCastInfo? pendingCast = null;
             foreach (var op in r.Ops)

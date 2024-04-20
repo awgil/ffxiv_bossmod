@@ -5,8 +5,8 @@ class DespairUnforgotten(BossModule module) : BossComponent(module)
     private enum State { None, Donut, Spread, Flare, Stack }
 
     public bool Done { get; private set; }
-    private State[] _states = new State[PartyState.MaxPartySize * 4];
-    private int[] _doneCasts = new int[PartyState.MaxPartySize];
+    private readonly State[] _states = new State[PartyState.MaxPartySize * 4];
+    private readonly int[] _doneCasts = new int[PartyState.MaxPartySize];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

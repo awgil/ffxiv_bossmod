@@ -2,23 +2,15 @@
 
 class UnknownActionEffects
 {
-    class Entry
+    class Entry(Replay replay, Replay.Action action, Replay.ActionTarget target, ActionEffect effect)
     {
-        public Replay Replay;
-        public Replay.Action Action;
-        public Replay.ActionTarget Target;
-        public ActionEffect Effect;
-
-        public Entry(Replay replay, Replay.Action action, Replay.ActionTarget target, ActionEffect effect)
-        {
-            Replay = replay;
-            Action = action;
-            Target = target;
-            Effect = effect;
-        }
+        public Replay Replay = replay;
+        public Replay.Action Action = action;
+        public Replay.ActionTarget Target = target;
+        public ActionEffect Effect = effect;
     }
 
-    private SortedDictionary<string, Dictionary<ActionID, List<Entry>>> _unknownActionEffects = new();
+    private readonly SortedDictionary<string, Dictionary<ActionID, List<Entry>>> _unknownActionEffects = [];
 
     public UnknownActionEffects(List<Replay> replays)
     {

@@ -54,7 +54,7 @@ class P4FateCalibrationAlphaDebuffs(BossModule module) : Components.UniformStack
     public enum Debuff { None, Defamation, SharedSentence, AggravatedAssault }
 
     public Debuff[] Debuffs = new Debuff[PartyState.MaxPartySize];
-    private P4FateProjection? _proj = module.FindComponent<P4FateProjection>();
+    private readonly P4FateProjection? _proj = module.FindComponent<P4FateProjection>();
     private BitMask _avoidMask;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -98,7 +98,7 @@ class P4FateCalibrationAlphaDebuffs(BossModule module) : Components.UniformStack
 
 class P4FateCalibrationAlphaSacrament(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(Actor caster, DateTime activation)> _casters = new();
+    private readonly List<(Actor caster, DateTime activation)> _casters = [];
     private WPos[]? _safespots;
 
     private static readonly AOEShapeCross _shape = new(100, 8);

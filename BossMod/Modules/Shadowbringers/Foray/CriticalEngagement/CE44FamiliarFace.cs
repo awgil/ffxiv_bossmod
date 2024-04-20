@@ -54,7 +54,7 @@ class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 
 class ExtremeEdge(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(Actor caster, float offset)> _casters = new();
+    private readonly List<(Actor caster, float offset)> _casters = [];
 
     private static readonly AOEShapeRect _shape = new(60, 18);
 

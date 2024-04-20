@@ -5,9 +5,9 @@ namespace BossMod;
 
 public class BossModuleMainWindow : UIWindow
 {
-    private BossModuleManager _mgr;
+    private readonly BossModuleManager _mgr;
 
-    private static string _windowID = "###Boss module";
+    private const string _windowID = "###Boss module";
 
     public BossModuleMainWindow(BossModuleManager mgr) : base(_windowID, false, new(400, 400))
     {
@@ -100,6 +100,6 @@ public class BossModuleMainWindow : UIWindow
     private void OpenModuleConfig()
     {
         if (_mgr.ActiveModule?.Info?.ConfigType != null)
-            new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
+            _ = new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
     }
 }

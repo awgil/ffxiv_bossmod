@@ -3,11 +3,11 @@
 // state related to act 5 (finale) wreath of thorns
 class WreathOfThorns5(BossModule module) : BossComponent(module)
 {
-    private List<ulong> _playersOrder = new();
-    private List<Actor> _towersOrder = new();
-    private int _castsDone = 0;
+    private readonly List<ulong> _playersOrder = [];
+    private readonly List<Actor> _towersOrder = [];
+    private int _castsDone;
 
-    private static readonly float _impulseAOERadius = 5;
+    private const float _impulseAOERadius = 5;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

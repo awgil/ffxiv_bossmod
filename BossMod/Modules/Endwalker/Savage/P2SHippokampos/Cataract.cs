@@ -3,8 +3,8 @@
 // state related to cataract mechanic
 class Cataract : BossComponent
 {
-    private AOEShapeRect _aoeBoss = new(50, 7.5f, 50);
-    private AOEShapeRect _aoeHead = new(50, 50);
+    private readonly AOEShapeRect _aoeBoss = new(50, 7.5f, 50);
+    private readonly AOEShapeRect _aoeHead = new(50, 50);
 
     public Cataract(BossModule module) : base(module)
     {

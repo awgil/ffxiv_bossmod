@@ -92,7 +92,7 @@ class ManusyaBio(BossModule module) : Components.SingleTargetCast(module, Action
 
 class Poison(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _poisoned = [];
+    private readonly List<Actor> _poisoned = [];
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

@@ -2,7 +2,7 @@
 
 class EndOfDays(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.EndOfDays))
 {
-    public List<(Actor caster, DateTime finish)> Casters = new();
+    public List<(Actor caster, DateTime finish)> Casters = [];
 
     private static readonly AOEShapeRect _shape = new(60, 5);
 

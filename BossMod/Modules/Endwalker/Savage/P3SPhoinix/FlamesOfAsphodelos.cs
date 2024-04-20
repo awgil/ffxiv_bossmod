@@ -3,7 +3,7 @@
 // state related to flames of asphodelos mechanic
 class FlamesOfAsphodelos(BossModule module) : BossComponent(module)
 {
-    private Angle?[] _directions = new Angle?[3];
+    private readonly Angle?[] _directions = new Angle?[3];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

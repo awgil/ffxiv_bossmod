@@ -5,9 +5,9 @@ class Crystallize : BossComponent
     public enum Element { None, Water, Earth, Ice }
     public Element CurElement { get; private set; }
 
-    private static readonly float _waterRadius = 6;
-    private static readonly float _earthRadius = 6;
-    private static readonly float _iceRadius = 5;
+    private const float _waterRadius = 6;
+    private const float _earthRadius = 6;
+    private const float _iceRadius = 5;
 
     public Crystallize(BossModule module) : base(module)
     {

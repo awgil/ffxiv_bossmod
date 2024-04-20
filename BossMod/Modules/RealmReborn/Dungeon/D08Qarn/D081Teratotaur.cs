@@ -33,7 +33,7 @@ class FrightfulRoar(BossModule module) : Components.SelfTargetedAOEs(module, Act
 class MortalRay(BossModule module) : BossComponent(module)
 {
     private BitMask _dooms;
-    private Actor?[] _platforms = { null, null, null };
+    private readonly Actor?[] _platforms = [null, null, null];
 
     private static readonly AOEShapeCircle _platformShape = new(2);
 

@@ -21,7 +21,7 @@ public class GenericChasingAOEs(BossModule module, ActionID aid = default, strin
         }
     }
 
-    public List<Chaser> Chasers = new();
+    public List<Chaser> Chasers = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

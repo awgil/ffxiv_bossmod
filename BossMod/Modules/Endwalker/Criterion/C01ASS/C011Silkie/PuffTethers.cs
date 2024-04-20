@@ -2,11 +2,11 @@
 
 class PuffTethers(BossModule module, bool originAtBoss) : BossComponent(module)
 {
-    private bool _originAtBoss = originAtBoss;
-    private PuffTracker? _tracker = module.FindComponent<PuffTracker>();
+    private readonly bool _originAtBoss = originAtBoss;
+    private readonly PuffTracker? _tracker = module.FindComponent<PuffTracker>();
     private SlipperySoap.Color _bossColor;
 
-    private static readonly uint _hintColor = 0x40008080;
+    private const uint _hintColor = 0x40008080;
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {

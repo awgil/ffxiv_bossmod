@@ -8,7 +8,7 @@ class SConstructiveFigure(BossModule module) : ConstructiveFigure(module, AID.SA
 class ArcanePoint(BossModule module) : BossComponent(module)
 {
     public int NumCasts { get; private set; }
-    private ArcanePlot? _plot = module.FindComponent<ArcanePlot>();
+    private readonly ArcanePlot? _plot = module.FindComponent<ArcanePlot>();
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

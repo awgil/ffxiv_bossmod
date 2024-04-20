@@ -4,12 +4,12 @@
 // TODO: simplify and make more robust, e.g. in case something goes wrong and bird dies without tether update
 class BirdTether(BossModule module) : BossComponent(module)
 {
-    public int NumFinishedChains { get; private set; } = 0;
-    private (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
+    public int NumFinishedChains { get; private set; }
+    private readonly (Actor?, Actor?, int)[] _chains = new (Actor?, Actor?, int)[4]; // actor1, actor2, num-charges
     private BitMask _playersInAOE;
 
-    private static readonly float _chargeHalfWidth = 3;
-    private static readonly float _chargeMinSafeDistance = 30;
+    private const float _chargeHalfWidth = 3;
+    private const float _chargeMinSafeDistance = 30;
 
     public override void Update()
     {

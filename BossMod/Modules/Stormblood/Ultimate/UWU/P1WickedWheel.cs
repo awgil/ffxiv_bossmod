@@ -5,7 +5,7 @@
 class WickedWheel(BossModule module) : Components.GenericAOEs(module)
 {
     public DateTime AwakenedResolve { get; private set; }
-    public List<(Actor source, AOEShape shape, DateTime activation)> Sources = new();
+    public List<(Actor source, AOEShape shape, DateTime activation)> Sources = [];
 
     public static readonly AOEShapeCircle ShapeWheel = new(8.7f);
     public static readonly AOEShapeDonut ShapeTornado = new(7, 20);

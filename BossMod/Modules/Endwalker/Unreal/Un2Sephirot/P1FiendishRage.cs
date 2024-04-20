@@ -4,7 +4,7 @@ class P1FiendishRage(BossModule module) : Components.CastCounter(module, ActionI
 {
     private BitMask _targets;
 
-    private static readonly float _range = 6;
+    private const float _range = 6;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

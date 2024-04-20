@@ -2,7 +2,7 @@
 
 class TyrantsUnholyDarkness(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.TyrantsUnholyDarknessAOE))
 {
-    private static readonly float _radius = 6;
+    private const float _radius = 6;
 
     // TODO: we need some sort of a threat info in worldstate to determine targets properly...
     public bool IsTarget(Actor actor) => actor.Role == Role.Tank;

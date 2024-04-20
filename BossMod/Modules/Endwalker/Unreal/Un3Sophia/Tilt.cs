@@ -2,8 +2,8 @@
 
 class Tilt(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.QuasarTilt))
 {
-    public static readonly float DistanceShort = 28;
-    public static readonly float DistanceLong = 37;
+    public const float DistanceShort = 28;
+    public const float DistanceLong = 37;
 
     public float Distance;
     public Angle Direction;

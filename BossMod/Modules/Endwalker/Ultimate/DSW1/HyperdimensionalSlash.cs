@@ -5,10 +5,10 @@ class HyperdimensionalSlash(BossModule module) : BossComponent(module)
     public int NumCasts { get; private set; }
     private BitMask _laserTargets;
     private Angle _coneDir;
-    private List<(WPos Pos, Actor? Source)> _tears = new();
+    private readonly List<(WPos Pos, Actor? Source)> _tears = [];
     private BitMask _riskyTears;
 
-    private static readonly float _linkRadius = 9; // TODO: verify
+    private const float _linkRadius = 9; // TODO: verify
     private static readonly AOEShapeRect _aoeLaser = new(70, 4);
     private static readonly AOEShapeCone _aoeCone = new(40, 60.Degrees());
 

@@ -3,14 +3,14 @@
 // state related to 'single' and 'multi' fireplumes (normal or parts of gloryplume)
 class Fireplume(BossModule module) : BossComponent(module)
 {
-    private WPos? _singlePos = null;
+    private WPos? _singlePos;
     private Angle _multiStartingDirection;
-    private int _multiStartedCasts = 0;
-    private int _multiFinishedCasts = 0;
+    private int _multiStartedCasts;
+    private int _multiFinishedCasts;
 
-    private static readonly float _singleRadius = 15;
-    private static readonly float _multiRadius = 10;
-    private static readonly float _multiPairOffset = 15;
+    private const float _singleRadius = 15;
+    private const float _multiRadius = 10;
+    private const float _multiPairOffset = 15;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

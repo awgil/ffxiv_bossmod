@@ -2,7 +2,7 @@
 
 class AngrySeasAOE(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = [];
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape = new(20, 5, 20);
 
@@ -18,7 +18,7 @@ class AngrySeasAOE(BossModule module) : Components.GenericAOEs(module)
 // TODO: generalize
 class AngrySeasKnockback(BossModule module) : Components.Knockback(module)
 {
-    private List<Source> _sources = [];
+    private readonly List<Source> _sources = [];
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _sources;

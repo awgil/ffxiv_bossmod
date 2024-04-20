@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x3D27, //R=5.95
     BossAdd = 0x3D28, //R=3.5
     BossHelper = 0x233C,
-    BonusAdds_Lyssa = 0x3D4E, //R=3.75
+    BonusAddLyssa = 0x3D4E, //R=3.75
 }
 
 public enum AID : uint
@@ -42,7 +42,7 @@ class LeonStates : StateMachineBuilder
             .ActivateOnEnter<Pounce>()
             .ActivateOnEnter<MagmaChamber>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead);
     }
 }
 
@@ -54,7 +54,7 @@ public class Leon(WorldState ws, Actor primary) : BossModule(ws, primary, new Ar
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+        foreach (var s in Enemies(OID.BonusAddLyssa))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -65,7 +65,7 @@ public class Leon(WorldState ws, Actor primary) : BossModule(ws, primary, new Ar
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdds_Lyssa => 3,
+                OID.BonusAddLyssa => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

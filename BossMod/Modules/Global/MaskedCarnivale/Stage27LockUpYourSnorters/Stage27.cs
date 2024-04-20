@@ -25,7 +25,7 @@ class Snort(BossModule module) : Components.KnockbackFromCastTarget(module, Acti
 class Fungah(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
     private DateTime _activation;
-    private List<Actor> _bombs = new();
+    private readonly List<Actor> _bombs = [];
     private bool otherpatterns;
     private static readonly AOEShapeCone cone = new(12.5f, 45.Degrees());
 
@@ -65,8 +65,8 @@ class Fungah(BossModule module) : Components.Knockback(module, stopAtWall: true)
 
 class Explosion(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _bombs = new();
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _bombs = [];
+    private List<Actor> _casters = [];
     private static readonly AOEShapeCircle circle = new(8);
     private DateTime _activation;
     private DateTime _snortingeffectends;

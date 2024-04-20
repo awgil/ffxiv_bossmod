@@ -3,8 +3,8 @@
 class WindsHoly(BossModule module) : Components.UniformStackSpread(module, 6, 7, 4)
 {
     public int NumCasts { get; private set; }
-    private List<Actor>[] _futureStacks = { new(), new(), new(), new() };
-    private List<Actor>[] _futureSpreads = { new(), new(), new(), new() };
+    private readonly List<Actor>[] _futureStacks = [new(), new(), new(), new()];
+    private readonly List<Actor>[] _futureSpreads = [new(), new(), new(), new()];
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

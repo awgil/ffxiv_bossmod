@@ -4,8 +4,8 @@ class PandaemoniacRay(BossModule module) : Components.SelfTargetedAOEs(module, A
 
 class JadePassage(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.JadePassage))
 {
-    private IReadOnlyList<Actor> _spheres = module.Enemies(OID.ArcaneSphere);
-    private DateTime _activation = module.WorldState.FutureTime(3.6f);
+    private readonly IReadOnlyList<Actor> _spheres = module.Enemies(OID.ArcaneSphere);
+    private readonly DateTime _activation = module.WorldState.FutureTime(3.6f);
 
     private static readonly AOEShapeRect _shape = new(40, 1, 40);
 

@@ -8,14 +8,14 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
     class PerOID
     {
         public uint OID;
-        public List<(Replay.Participant, ColumnEnemyDetails?)> Columns = new();
+        public List<(Replay.Participant, ColumnEnemyDetails?)> Columns = [];
     }
 
-    private StateMachineTree _tree;
-    private List<int> _phaseBranches;
-    private Replay _replay;
-    private Replay.Encounter _encounter;
-    private List<PerOID> _data = new();
+    private readonly StateMachineTree _tree;
+    private readonly List<int> _phaseBranches;
+    private readonly Replay _replay;
+    private readonly Replay.Encounter _encounter;
+    private readonly List<PerOID> _data = [];
 
     public ColumnEnemiesDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
         : base(timeline)

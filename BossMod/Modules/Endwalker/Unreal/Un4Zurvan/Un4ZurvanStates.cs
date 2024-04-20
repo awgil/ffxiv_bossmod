@@ -2,7 +2,7 @@
 
 class Un4ZurvanStates : StateMachineBuilder
 {
-    Un4Zurvan _module;
+    readonly Un4Zurvan _module;
 
     public Un4ZurvanStates(Un4Zurvan module) : base(module)
     {

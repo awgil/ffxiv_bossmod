@@ -3,7 +3,7 @@
 // common AI for all phases
 class Ex2GarudaAI(BossModule module) : BossComponent(module)
 {
-    private AerialBlast? _aerialBlast = module.FindComponent<AerialBlast>();
+    private readonly AerialBlast? _aerialBlast = module.FindComponent<AerialBlast>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

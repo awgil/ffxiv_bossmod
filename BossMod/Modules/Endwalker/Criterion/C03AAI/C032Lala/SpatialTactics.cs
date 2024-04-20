@@ -2,9 +2,9 @@
 
 class SpatialTactics(BossModule module) : Components.GenericAOEs(module)
 {
-    private ArcaneArray? _array = module.FindComponent<ArcaneArray>();
-    private List<Actor> _fonts = new();
-    private int[] _remainingStacks = new int[4];
+    private readonly ArcaneArray? _array = module.FindComponent<ArcaneArray>();
+    private readonly List<Actor> _fonts = [];
+    private readonly int[] _remainingStacks = new int[4];
 
     private static readonly AOEShapeCross _shape = new(50, 4);
 

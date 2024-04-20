@@ -16,7 +16,7 @@ public class StateMachineTree
         public bool IsVulnerable;
         public StateMachine.State State;
         public Node? Predecessor;
-        public List<Node> Successors = new();
+        public List<Node> Successors = [];
 
         internal Node(float t, int phaseID, int branchID, StateMachine.State state, Node? pred)
         {
@@ -89,10 +89,10 @@ public class StateMachineTree
         }
     }
 
-    private Dictionary<uint, Node> _nodes = new();
+    private readonly Dictionary<uint, Node> _nodes = [];
     public IReadOnlyDictionary<uint, Node> Nodes => _nodes;
 
-    private List<Phase> _phases = new();
+    private readonly List<Phase> _phases = [];
     public IReadOnlyList<Phase> Phases => _phases;
 
     public int TotalBranches { get; private set; }
@@ -121,7 +121,7 @@ public class StateMachineTree
         for (int i = 1; i < Phases.Count; ++i)
             Phases[i].StartTime = Phases[i - 1].StartTime + Phases[i - 1].Duration;
 
-        var lastPhase = Phases.Last();
+        var lastPhase = Phases[^1];
         TotalMaxTime = lastPhase.StartTime + lastPhase.Duration;
     }
 

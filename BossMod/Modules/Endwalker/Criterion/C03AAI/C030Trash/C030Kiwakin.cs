@@ -15,7 +15,7 @@ class STailScrew(BossModule module) : TailScrew(module, AID.STailScrew);
 
 class C030KiwakinStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030KiwakinStates(BossModule module, bool savage) : base(module)
     {

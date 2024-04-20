@@ -2,7 +2,7 @@
 
 class Transmission(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.ReekHavoc))
 {
-    private DateTime[] _infectionExpire = new DateTime[PartyState.MaxPartySize]; // when status expires, it will be replaced with stun - we show aoes for last few seconds only
+    private readonly DateTime[] _infectionExpire = new DateTime[PartyState.MaxPartySize]; // when status expires, it will be replaced with stun - we show aoes for last few seconds only
     private BitMask _snakeInfection; // hits front
     private BitMask _wingInfection; // hits back
     private BitMask _stuns;

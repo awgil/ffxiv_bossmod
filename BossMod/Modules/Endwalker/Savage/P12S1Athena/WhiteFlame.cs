@@ -5,7 +5,7 @@
 class WhiteFlame(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool _enabled;
-    private List<Actor> _sources = new();
+    private readonly List<Actor> _sources = [];
 
     private static readonly AOEShapeRect _shape = new(100, 2);
 

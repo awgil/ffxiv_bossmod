@@ -5,8 +5,8 @@ class P3Inception3Sacrament(BossModule module) : Components.GenericAOEs(module, 
 {
     public bool Active => _source != null;
 
-    private Actor? _source = ((TEA)module).AlexPrime();
-    private DateTime _activation = module.WorldState.FutureTime(4.1f);
+    private readonly Actor? _source = ((TEA)module).AlexPrime();
+    private readonly DateTime _activation = module.WorldState.FutureTime(4.1f);
     private static readonly AOEShapeCross _shape = new(100, 8);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)

@@ -5,7 +5,7 @@ class Ania(BossModule module) : BossComponent(module)
 {
     private Actor? _target;
 
-    private static readonly float _aoeRadius = 3;
+    private const float _aoeRadius = 3;
 
     public bool Done => _target == null;
 

@@ -2,11 +2,11 @@
 
 class Turrets(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.PealOfCondemnation), true, 1) // TODO: verify whether it ignores immunes
 {
-    private Actor?[] _turrets = new Actor?[8]; // pairs in order of activation
+    private readonly Actor?[] _turrets = new Actor?[8]; // pairs in order of activation
     private DateTime _activation;
     private BitMask _forbidden;
 
-    private static readonly float _distance = 17;
+    private const float _distance = 17;
     private static readonly AOEShapeRect _shape = new(50, 2.5f);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)

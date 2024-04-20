@@ -3,16 +3,13 @@
 // state related to curtain call mechanic
 class CurtainCall(BossModule module) : BossComponent(module)
 {
-    private int[] _playerOrder = new int[8];
+    private readonly int[] _playerOrder = new int[8];
     private List<Actor>? _playersInBreakOrder;
-    private int _numCasts = 0;
+    private int _numCasts;
 
     public override void Update()
     {
-        if (_playersInBreakOrder == null)
-        {
-            _playersInBreakOrder = Raid.Members.Zip(_playerOrder).Where(po => po.Item1 != null && po.Item2 != 0).OrderBy(po => po.Item2).Select(po => po.Item1!).ToList();
-        }
+        _playersInBreakOrder ??= Raid.Members.Zip(_playerOrder).Where(po => po.First != null && po.Second != 0).OrderBy(po => po.Second).Select(po => po.First!).ToList();
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

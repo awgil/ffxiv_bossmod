@@ -3,10 +3,10 @@
 // baited cones part of the mechanic
 class P6Wyrmsbreath(BossModule module, bool allowIntersect) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FlameBreath)) // note: cast is arbitrary
 {
-    public Actor?[] Dragons = { null, null }; // nidhogg & hraesvelgr
+    public Actor?[] Dragons = [null, null]; // nidhogg & hraesvelgr
     public BitMask Glows;
-    private bool _allowIntersect = allowIntersect;
-    private Actor?[] _tetheredTo = new Actor?[PartyState.MaxPartySize];
+    private readonly bool _allowIntersect = allowIntersect;
+    private readonly Actor?[] _tetheredTo = new Actor?[PartyState.MaxPartySize];
     private BitMask _tooClose;
 
     private static readonly AOEShapeCone _shape = new(100, 10.Degrees()); // TODO: verify angle
@@ -96,7 +96,7 @@ class P6Wyrmsbreath2(BossModule module) : P6Wyrmsbreath(module, false);
 // note: it is actually symmetrical (both tanks get tankbusters), but that is hard to express, so we select one to show arbitrarily (nidhogg)
 class P6WyrmsbreathTankbusterShared(BossModule module) : Components.GenericSharedTankbuster(module, ActionID.MakeSpell(AID.DarkOrb), 6)
 {
-    private P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
+    private readonly P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
 
     public override void Update()
     {
@@ -112,7 +112,7 @@ class P6WyrmsbreathTankbusterShared(BossModule module) : Components.GenericShare
 
 class P6WyrmsbreathTankbusterSolo(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
+    private readonly P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
 
     private static readonly AOEShapeCircle _shape = new(15);
 
@@ -131,7 +131,7 @@ class P6WyrmsbreathTankbusterSolo(BossModule module) : Components.GenericBaitAwa
 
 class P6WyrmsbreathCone(BossModule module) : Components.GenericAOEs(module)
 {
-    private P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
+    private readonly P6Wyrmsbreath? _main = module.FindComponent<P6Wyrmsbreath>();
 
     private static readonly AOEShapeCone _shape = new(50, 15.Degrees()); // TODO: verify angle
 
