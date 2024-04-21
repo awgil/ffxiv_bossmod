@@ -260,7 +260,7 @@ public class ArenaBoundsPolygon : ArenaBounds
     private (WPos Center, float HalfHeight, float HalfWidth)? _cachedPolygonProperties;
     private readonly Dictionary<WPos, bool> _containsCache = [];
     private readonly Dictionary<(WPos, WDir), float> _intersectRayCache = [];
-    private readonly Dictionary<IEnumerable<WPos>, Pathfinding.Map> _buildMapCache = [];
+    private static readonly Dictionary<IEnumerable<WPos>, Pathfinding.Map> _buildMapCache = [];
     private readonly Dictionary<(WPos, WDir), WDir> _clampToBoundsCache = [];
 
     public readonly IEnumerable<WPos> Points;
@@ -452,10 +452,10 @@ public class ArenaBoundsUnion : ArenaBounds
     }
 
     private (WPos Center, float HalfHeight, float HalfWidth)? _cachedUnionProperties;
-    private readonly Dictionary<List<ArenaBounds>, IEnumerable<WPos>> _polyCache = [];
+    private static readonly Dictionary<List<ArenaBounds>, IEnumerable<WPos>> _polyCache = [];
     private readonly Dictionary<WPos, bool> _containsCache = [];
     private readonly Dictionary<(WPos, WDir), float> _intersectRayCache = [];
-    private readonly Dictionary<List<ArenaBounds>, Pathfinding.Map> _buildMapCache = [];
+    private static readonly Dictionary<List<ArenaBounds>, Pathfinding.Map> _buildMapCache = [];
     private readonly Dictionary<(WPos, WDir), WDir> _clampToBoundsCache = [];
 
     private (WPos Center, float HalfHeight, float HalfWidth) CalculateUnionProperties()
@@ -688,10 +688,10 @@ public class ArenaBoundsDifference : ArenaBounds
         }
     }
     private (WPos Center, float HalfHeight, float HalfWidth)? _cachedDifferenceProperties;
-    private readonly Dictionary<(ArenaBounds, List<ArenaBounds>), IEnumerable<WPos>> _polyCache = [];
+    private static readonly Dictionary<(ArenaBounds, List<ArenaBounds>), IEnumerable<WPos>> _polyCache = [];
     private readonly Dictionary<WPos, bool> _containsCache = [];
     private readonly Dictionary<(WPos, WDir), float> _intersectRayCache = [];
-    private readonly Dictionary<(ArenaBounds, List<ArenaBounds>), Pathfinding.Map> _buildMapCache = [];
+    private static readonly Dictionary<(ArenaBounds, List<ArenaBounds>), Pathfinding.Map> _buildMapCache = [];
     private readonly Dictionary<(WPos, WDir), WDir> _clampToBoundsCache = [];
 
     public ArenaBoundsDifference(ArenaBounds baseBound, IEnumerable<ArenaBounds> subtractBounds) : base(default, default)

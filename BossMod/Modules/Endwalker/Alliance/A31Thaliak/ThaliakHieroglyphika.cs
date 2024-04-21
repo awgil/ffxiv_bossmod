@@ -7,7 +7,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module)
     private static readonly WPos[] StartingCoords = [new(-963, 939), new(-963, 963), new(-939, 927), new(-951, 939), new(-951, 927), new(-939, 963), new(-927, 939), new(-939, 951), new(-939, 939), new(-927, 963), new(-963, 951), new(-927, 951), new(-951, 951), new(-963, 927)];
     private byte currentIndex;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(14);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
     public override void OnEventEnvControl(byte index, uint state)
     {
