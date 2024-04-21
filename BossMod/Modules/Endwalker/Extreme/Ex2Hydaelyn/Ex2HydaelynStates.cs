@@ -92,7 +92,7 @@ class Ex2HydaelynStates : StateMachineBuilder
         SwitchWeapon(id + 0x160000, 1.3f, false);
         CrystallizeAureole(id + 0x170000, 7.3f, false);
         SwitchWeapon(id + 0x180000, 1.3f, true);
-        Cast(id + 0x190000, AID.Enrage, 9.5f, 10, "Enrage");
+        Cast(id + 0x190000, AID.HerosRadianceEnrage, 9.5f, 10, "Enrage");
     }
 
     private void Intermission(uint id, float delay)
@@ -219,9 +219,15 @@ class Ex2HydaelynStates : StateMachineBuilder
     {
         // note: what is the difference between aureole spells? seems to be determined by weapon?..
         CastMulti(id, new AID[] { AID.Aureole1, AID.Aureole2, AID.LateralAureole1, AID.LateralAureole2 }, delay, 5)
-            .ActivateOnEnter<Aureole>();
+            .ActivateOnEnter<Aureole1>()
+            .ActivateOnEnter<Aureole2>()
+            .ActivateOnEnter<LateralAureole1>()
+            .ActivateOnEnter<LateralAureole2>();
         return ComponentCondition<Aureole>(id + 2, 0.5f, comp => comp.Done, "Aureole")
-            .DeactivateOnExit<Aureole>();
+            .DeactivateOnExit<Aureole1>()
+            .DeactivateOnExit<Aureole2>()
+            .DeactivateOnExit<LateralAureole1>()
+            .DeactivateOnExit<LateralAureole2>();
     }
 
     private void ParhelicCircle(uint id, float delay)
@@ -235,7 +241,7 @@ class Ex2HydaelynStates : StateMachineBuilder
     private void SwitchWeapon(uint id, float delay, bool toSword)
     {
         ComponentCondition<WeaponTracker>(id, delay, comp => comp.AOEImminent, "Select weapon");
-        ComponentCondition<WeaponTracker>(id + 0x10, toSword ? 4.5f : 3.7f, comp => !comp.AOEImminent, "Weapon AOE");
+        ComponentCondition<WeaponTracker>(id + 0x10, toSword ? 6.9f : 6, comp => !comp.AOEImminent, "Weapon AOE");
     }
 
     // note: activates Crystallize component and sets positioning flag

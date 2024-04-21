@@ -24,7 +24,7 @@ public enum AID : uint
     Teleport2 = 28282, // Boss->location, no cast, single-target
     Teleport3 = 26030, // 3503->location, no cast, single-target, Mystic Refulgence teleports
     DawnMantle = 27660, // Boss->self, 4,9s cast, single-target
-    Anthelion = 26056, // Boss->self, no cast, range 5-40 donut (not sure if 5.04 or 5, impossible to tell with naked eye)
+    Anthelion = 26056, // Boss->self, no cast, range 5-40 donut
     MousasScorn = 26070, // Boss->players, 5,0s cast, range 4 circle, shared tankbuster
     HighestHoly = 26055, // Boss->self, no cast, range 10 circle
     MagossRadiance = 26072, // Boss->self, 5,0s cast, range 40 circle

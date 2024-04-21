@@ -17,30 +17,58 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttackSword = 870,
-    Enrage = 24571, // Boss->self
-    WeaponChangeAOEChakram = 26004, // Boss->self, no cast, chakram aoe
-    WeaponChangeAOEStaff = 26008, // Boss->self, no cast, staff aoe
-    ShiningSaberAOE = 26006, // Boss->target, no cast, shared damage
-    CrystallizeSwordStaffWater = 26010, // Boss->self: (1) water+blue->red/green, (6) ?
-    CrystallizeStaffEarth = 26011, // Boss->self: (3) earth+green->blue
-    CrystallizeStaffIce = 26012, // Boss->self: (2) ice+green->red, (4) ice+green->green
-    CrystallizeChakramIce = 26013, // Boss->self: (2) ice+red->green
-    CrystallizeChakramEarth = 26014, // Boss->self: (3) earth+red->blue
-    CrystallizeTriggerEarth = 26015, // Boss->self, no cast, removes buff and triggers aoe
-    CrystallizeTriggerIce = 26016, // Boss->self, no cast, removes buff and triggers aoe
-    CrystallizeTriggerWater = 26017, // Boss->self, no cast, removes buff and triggers aoe
-    CrystallineWater = 26018, // Helper->healer, no cast
-    CrystallineStone = 26019, // Helper->target, no cast
-    CrystallineBlizzard = 26020, // Helper->target, no cast
-    Halo = 26021, // Boss->self
-    LightOfTheCrystal = 26022, // Helper->self, no cast, aoe when lightwave hits crystal
-    RayOfLight = 26023, // Helper->self, no cast, aoe inside lightwave
-    HerosGlory = 26024, // Boss->self
-    TeleportToCenter = 26025, // Boss->n/a
-    InfralateralArcAOE = 26026, // Boss->self, no cast
-    ParhelicCircle = 26028, // Boss->self
-    Incandescence = 26031, // MysticRefulgence->self, no cast, aoe
+    AutoAttackSword = 870, // Boss/Echo->player, no cast, single-target
+    HerosRadiance = 26049, // Boss->self, 5,0s cast, range 40 circle
+    ShiningSaber = 26824, // Boss->self, 4,9s cast, single-target, stack
+    ShiningSaberAOE = 26006, // Boss->players, no cast, range 6 circle
+    CrystallizeSwordStaffWater = 26010, // Boss->self, 4,0s cast, single-target, (1) water+blue->red/green, (6) ?
+    WeaponChangeAOEStaff = 26008, // Boss->self, no cast, range 10 circle
+    CrystallizeTriggerIce = 26016, // Boss->self, no cast, single-target
+    CrystallineWater = 26018, // Helper->players, no cast, range 6 circle, healer light party stack
+    MagosRadiance = 26050, // Boss->self, 5,0s cast, range 40 circle
+    AutoAttackStaff = 27732, // Boss->player, no cast, single-target
+    LateralAureole2 = 28435, // Boss->self, 5,0s cast, single-target
+    LateralAureole2AOE = 28436, // Helper->self, 5,5s cast, range 40 150-degree cone
+    CrystallizeStaffIce = 26012, // Boss->self, 4,0s cast, single-target, (2) ice+green->red, (4) ice+green->green
+    WeaponChangeAOEChakram = 26004, // Boss->self, no cast, range 5-40 donut
+    CrystallizeTriggerWater = 26017, // Boss->self, no cast, single-target
+    CrystallineBlizzard = 26020, // Helper->players, no cast, range 5 circle
+    AutoAttackChakram = 27733, // Boss->player, no cast, single-target
+    MousaScorn = 26048, // Boss->players, 5,0s cast, range 4 circle
+    LateralAureole1 = 26053, // Boss->self, 5,0s cast, single-target
+    LateralAureole1AOE = 26256, // Helper->self, 5,5s cast, range 40 150-degree cone
+    CrystallizeChakramEarth = 26014, // Boss->self, 4,0s cast, single-target, (3) earth+red->blue
+    WeaponChangeVisualSword = 26051, // Boss->self, no cast, single-target
+    WeaponChangeAOESword = 28338, // Helper->self, no cast, range 40 width 10 cross
+    CrystallizeTriggerEarth = 26015, // Boss->self, no cast, single-target
+    CrystallineStone = 26019, // Helper->players, no cast, range 6 circle
+    CrystalPhase = 26044, // Boss->self, no cast, single-target, trigger for crystal phase
+    PureCrystal = 26045, // Helper->self, no cast, range 40 circle
+    IncreaseConviction = 26046, // CrystalOfLight->Boss, no cast, single-target, performed every 1s by glowing crystals to increase conviction
+    CrystalOfLightDeath = 26732, // Helper->Echo, no cast, single-target, 1 cast per echo after each crystal dies
+    ExodusVisual = 26043, // Boss->self, no cast, single-target, happens after all echoes die
+    Exodus = 26155, // Helper->self, no cast, range 40 circle
+    ExodusEnrage = 27911, // Helper->self, no cast, range 40 circle, enrage if crystal phase takes too long
+    Halo = 26021, // Boss->self, 5,0s cast, range 40 circle
+    LightwaveSword = 26259, // Boss->self, 4,0s cast, single-target
+    RayOfLight = 26023, // Helper->self, no cast, range 15 width 16 rect, aoe inside lightwave
+    LightOfTheCrystal = 26022, // Helper->self, 1,0s cast, range 40 circle, aoe when lightwave hits crystal
+    TeleportToCenter = 26025, // Boss->location, no cast, single-target
+    InfralateralArc = 26217, // Boss->self, 4,9s cast, single-target
+    InfralateralArcAOE = 26026, // Boss->self, no cast, range 40 90-degree cone
+    HerosGlory = 26024, // Boss->self, 5,0s cast, range 40 180-degree cone
+    HerosSundering = 26047, // Boss->self/players, 5,0s cast, range 40 90-degree cone
+    ParhelicCircle = 26028, // Boss->self, 6,0s cast, single-target
+    MysticRefulgenceTeleport = 26030, // MysticRefulgence->location, no cast, single-target
+    IncandescenceTrigger = 26029, // MysticRefulgence2->self, no cast, single-target
+    Incandescence = 26031, // MysticRefulgence->self, no cast, range 6 circle
+    Aureole1 = 27793, // Boss->self, 5,0s cast, single-target
+    Aureole1AOE = 27794, // Helper->self, 5,5s cast, range 40 150-degree cone
+    Aureole2 = 28433, // Boss->self, 5,0s cast, single-target
+    Aureole2AOE = 28434, // Helper->self, 5,5s cast, range 40 150-degree cone
+    CrystallizeChakramWater = 28373, // Boss->self, 4,0s cast, single-target, (5) water+red->red
+    CrystallizeChakramIce = 26013, // Boss->self, 4,0s cast, single-target, (2) ice+red->green
+    CrystallizeStaffEarth = 26011, // Boss->self, 4,0s cast, single-target, (3) earth+green->blue
     Parhelion = 26032, // Boss->self
     ParhelionNext = 26033, // Boss->self, no cast
     BeaconParhelion = 26034, // Parhelion->location
@@ -52,42 +80,19 @@ public enum AID : uint
     DichroicSpectrum = 26040, // Helper->mt
     BrightSpectrum = 26041, // Helper->non-tank
     EchoesAOE = 26042, // Helper->target, no cast
-    ExodusVisual = 26043, // Boss->self, no cast, ??? (happens after all echoes die)
-    PureCrystal = 26045, // Helper->self, no cast, raidwide
-    IncreaseConviction = 26046, // CrystalOfLight->Boss, no cast, performed every 1s by glowing crystals to increase conviction
-    HerosSundering = 26047, // Boss->mt
-    MousaScorn = 26048, // Boss->mt
-    HerosRadiance = 26049, // Boss->self
-    MagosRadiance = 26050, // Boss->self
-    WeaponChangeVisualSword = 26051, // Boss->self, no cast, sword visual
-    LateralAureole1 = 26053, // Boss->self
-    Exodus = 26155, // Helper->self, no cast, raidwide
-    InfralateralArc = 26217, // Boss->self
-    LateralAureole1AOE = 26256, // Helper->self
-    LightwaveSword = 26259, // Boss->self
     LightwaveStaff = 26260, // Boss->self
     LightwaveChakram = 26261, // Boss->self
-    CrystalOfLightDeath = 26732, // Helper->Echo, no cast, 1 cast per echo after each crystal dies
-    ShiningSaber = 26824, // Boss->self
-    AutoAttackStaff = 27732,
-    AutoAttackChakram = 27733,
     Subparhelion = 27734, // Boss->self
-    Aureole1 = 27793, // Boss->self
-    Aureole1AOE = 27794, // Helper->self
-    WeaponChangeAOESword = 28338, // Helper->self, no cast, sword aoe
-    CrystallizeChakramWater = 28373, // Boss->self: (5) water+red->red
-    Aureole2 = 28433, // Boss->self
-    Aureole2AOE = 28434, // Helper->self
-    LateralAureole2 = 28435, // Boss->self
-    LateralAureole2AOE = 28436, // Helper->self
+    HerosRadianceEnrage = 24571, // Boss->self
 }
 
 public enum SID : uint
 {
-    CrystallizeElement = 2056, // invisible in ui, extra determines element type
-    HerosMantle = 2876, // sword stance
-    MagosMantle = 2877, // staff stance
-    MousaMantle = 2878, // chakram stance
+    CrystallizeElement = 2056, // Boss->Boss, extra=0x151/0x153/0x152, invisible in ui, extra determines element type
+    HydaelynsWeapon = 2273, // Boss->Boss, extra=0x1B4/0x1B5, (n/a for sword, 1B4 for staff, 1B5 for chakram)
+    MagosMantle = 2877, // none->Boss, extra=0x0
+    MousaMantle = 2878, // none->Boss, extra=0x0
+    HerosMantle = 2876, // none->Boss/Echo, extra=0x0
 }
 
 public enum IconID : uint

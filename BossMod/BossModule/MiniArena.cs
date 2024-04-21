@@ -43,7 +43,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
         ImGui.GetWindowDrawList().PushClipRect(Vector2.Max(cursor, wmin), Vector2.Min(cursor + fullSize, wmax));
         if (Config.OpaqueArenaBackground)
         {
-            if (Bounds is ArenaBoundsPolygon or ArenaBoundsDonut or ArenaBoundsUnion) //only use the more expensive fill algorithm if needed, draw time is 0.05 to 0.1ms higher
+            if (Bounds is ArenaBoundsPolygon or ArenaBoundsDonut or ArenaBoundsUnion or ArenaBoundsDifference) //only use the more expensive fill algorithm if needed, draw time is 0.05 to 0.1ms higher
             {
                 var clipPoly = Bounds.BuildClipPoly();
                 var triangles = Bounds.ClipAndTriangulate(clipPoly);
@@ -202,27 +202,38 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     // draw arena border
     public void Border(uint color)
     {
-        if (Bounds is ArenaBoundsUnion union)
+        ProcessBounds(Bounds, color);
+    }
+
+    private void ProcessBounds(ArenaBounds bounds, uint color)
+    {
+        switch (bounds)
         {
-            var polygons = union.BuildClipPoly().ToList();
-            var groupedPolygons = GroupPolygons(polygons);
-            foreach (var polygon in groupedPolygons)
-                DrawPolygon(polygon, color);
-        }
-        else if (Bounds is ArenaBoundsDonut donut)
-        {
-            AddCircle(Bounds.Center, donut.OuterRadius, color, 2);
-            AddCircle(Bounds.Center, donut.InnerRadius, color, 2);
-        }
-        else
-        {
-            foreach (var p in Bounds.ClipPoly)
-                PathLineTo(p);
-            PathStroke(true, color, 2);
+            case ArenaBoundsUnion union:
+                DrawPolygons(union, color);
+                break;
+            case ArenaBoundsDifference difference:
+                DrawPolygons(difference, color);
+                break;
+            case ArenaBoundsDonut donut:
+                AddCircle(bounds.Center, donut.OuterRadius, color, 2);
+                AddCircle(bounds.Center, donut.InnerRadius, color, 2);
+                break;
+            default:
+                DefaultHandling(bounds, color);
+                break;
         }
     }
 
-    private void DrawPolygon(IEnumerable<WPos> vertices, uint color)
+    private void DrawPolygons(ArenaBounds bounds, uint color)
+    {
+        var polygons = bounds.BuildClipPoly().ToList();
+        var groupedPolygons = GroupPolygons(polygons);
+        foreach (var polygon in groupedPolygons)
+            DrawPolygons2(polygon, color);
+    }
+
+    private void DrawPolygons2(IEnumerable<WPos> vertices, uint color)
     {
         var lastPoint = vertices.First();
         PathLineTo(lastPoint);
@@ -234,6 +245,14 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
         }
         PathStroke(true, color, 2);
     }
+
+    private void DefaultHandling(ArenaBounds bounds, uint color)
+    {
+        foreach (var p in bounds.ClipPoly)
+            PathLineTo(p);
+        PathStroke(true, color, 2);
+    }
+
 
     private static IEnumerable<IEnumerable<WPos>> GroupPolygons(IEnumerable<WPos> vertices)
     {

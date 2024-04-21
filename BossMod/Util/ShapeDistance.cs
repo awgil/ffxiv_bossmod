@@ -146,14 +146,14 @@ public static class ShapeDistance
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
     {
         List<(WPos point, WDir normal)> edges = [];
-        Action<WPos, WPos> addEdge = (p1, p2) =>
+        void addEdge(WPos p1, WPos p2)
         {
             if (p1 != p2)
             {
                 var dir = (p2 - p1).Normalized();
                 edges.Add((p1, cw ? dir.OrthoL() : dir.OrthoR()));
             }
-        };
+        }
 
         var en = vertices.GetEnumerator();
         if (!en.MoveNext())

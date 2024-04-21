@@ -2,50 +2,32 @@ namespace BossMod.Endwalker.Trial.T02Hydaelyn;
 
 class ParhelicCircle(BossModule module) : Components.GenericAOEs(module)
 {
-    private const float _triRadius = 8;
-    private const float _hexRadius = 17;
+    private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeCircle _circle = new(6);
-    private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_activation != default)
-        {
-            // there are 10 orbs: 1 in center, 3 in vertices of a triangle with radius=8, 6 in vertices of a hexagon with radius=17
-            // note: i'm not sure how exactly orientation is determined, it seems to be related to eventobj rotations...
-            var hex = Module.Enemies(OID.RefulgenceHexagon).FirstOrDefault();
-            var tri = Module.Enemies(OID.RefulgenceTriangle).FirstOrDefault();
-            if (hex != null && tri != null)
-            {
-                var c = Module.Bounds.Center;
-                yield return new(_circle, c, default, _activation);
-                yield return new(_circle, c + _triRadius * (tri.Rotation + 60.Degrees()).ToDirection(), default, _activation);
-                yield return new(_circle, c + _triRadius * (tri.Rotation + 180.Degrees()).ToDirection(), default, _activation);
-                yield return new(_circle, c + _triRadius * (tri.Rotation - 60.Degrees()).ToDirection(), default, _activation);
-                yield return new(_circle, c + _hexRadius * hex.Rotation.ToDirection(), default, _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation + 60.Degrees()).ToDirection(), default, _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation + 120.Degrees()).ToDirection(), default, _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation + 180.Degrees()).ToDirection(), default, _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation - 120.Degrees()).ToDirection(), default, _activation);
-                yield return new(_circle, c + _hexRadius * (hex.Rotation - 60.Degrees()).ToDirection(), default, _activation);
-            }
-        }
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID is OID.RefulgenceHexagon)
-            _activation = WorldState.FutureTime(8.9f);
+        var activation = WorldState.FutureTime(8.9f);
+        var c = Module.Bounds.Center;
+        if ((OID)actor.OID == OID.RefulgenceHexagon)
+        {
+            _aoes.Add(new(_circle, c, default, activation));
+            for (int i = 1; i < 7; ++i)
+            _aoes.Add(new(_circle, Helpers.RotateAroundOrigin(i * 60, c, c + 17 * actor.Rotation.ToDirection()), default, activation));
+        }
+        if ((OID)actor.OID == OID.RefulgenceTriangle)
+            for (int i = 1; i < 4; ++i)
+                _aoes.Add(new(_circle, Helpers.RotateAroundOrigin(-60 + i * 120, c, c + 8 * actor.Rotation.ToDirection()), default, activation));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Incandescence)
-            ++NumCasts;
-        if (NumCasts == 10)
         {
-            NumCasts = 0;
-            _activation = default;
+            ++NumCasts;
+            _aoes.Clear();
         }
     }
 }
