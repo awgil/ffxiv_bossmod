@@ -8,38 +8,27 @@ class CanvasTest : TestWindow
     private Vector2 _screenSize = new(300, 300);
     private WPos _start = new(5, 150);
     private WPos _goal = new(295, 150);
-    private List<List<WPos>> _contours = new();
+    private readonly List<List<WPos>> _contours = [];
 
-    List<WPos>? _mouseoverContour = null;
-    int _mouseoverIndex = 0;
-    bool _mouseoverPoint = false;
+    List<WPos>? _mouseoverContour;
+    int _mouseoverIndex;
+    bool _mouseoverPoint;
 
     public CanvasTest() : base("Canvas test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
-        var c1 = new List<WPos>();
-        c1.Add(new(30, 100));
-        c1.Add(new(10, 50));
-        c1.Add(new(200, 50));
-        c1.Add(new(220, 250));
-        c1.Add(new(170, 250));
-        c1.Add(new(150, 130));
-        c1.Add(new(130, 130));
-        c1.Add(new(100, 250));
-        c1.Add(new(10, 250));
-        _contours.Add(c1);
-
-        var c2 = new List<WPos>();
-        c2.Add(new(140, 170));
-        c2.Add(new(160, 280));
-        c2.Add(new(120, 280));
-        _contours.Add(c2);
-
-        var c3 = new List<WPos>();
-        c3.Add(new(240, 140));
-        c3.Add(new(260, 140));
-        c3.Add(new(260, 160));
-        c3.Add(new(240, 160));
-        _contours.Add(c3);
+        _contours.Add([
+            new(30, 100),
+            new(10, 50),
+            new(200, 50),
+            new(220, 250),
+            new(170, 250),
+            new(150, 130),
+            new(130, 130),
+            new(100, 250),
+            new(10, 250),
+        ]);
+        _contours.Add([new(140, 170), new(160, 280), new(120, 280)]);
+        _contours.Add([new(240, 140), new(260, 140), new(260, 160), new(240, 160)]);
     }
 
     public override void Draw()
@@ -63,7 +52,7 @@ class CanvasTest : TestWindow
 
         foreach (var c in _contours)
         {
-            var prev = c.Last();
+            var prev = c[^1];
             int i = 0;
             foreach (var next in c)
             {

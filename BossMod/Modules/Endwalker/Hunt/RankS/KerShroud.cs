@@ -12,15 +12,9 @@ public enum AID : uint
     EntropicFlame = 27724, // Boss->self, 4.0s cast, range 60 width 8 rect
 }
 
-class AccursedPox : Components.LocationTargetedAOEs
-{
-    public AccursedPox() : base(ActionID.MakeSpell(AID.AccursedPox), 8) { }
-}
+class AccursedPox(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AccursedPox), 8);
 
-class EntropicFlame : Components.SelfTargetedAOEs
-{
-    public EntropicFlame() : base(ActionID.MakeSpell(AID.EntropicFlame), new AOEShapeRect(60, 4)) { }
-}
+class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EntropicFlame), new AOEShapeRect(60, 4));
 
 class KerShroudStates : StateMachineBuilder
 {
@@ -33,7 +27,4 @@ class KerShroudStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10616)]
-public class KerShroud : SimpleBossModule
-{
-    public KerShroud(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class KerShroud(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

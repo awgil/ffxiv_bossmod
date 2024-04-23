@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
-class P2BrokenSeal : BossComponent
+class P2BrokenSeal(BossModule module) : BossComponent(module)
 {
     public enum Color { None, Fire, Ice }
 
@@ -13,17 +13,11 @@ class P2BrokenSeal : BossComponent
 
     public int NumAssigned { get; private set; }
     public int NumCasts { get; private set; }
-    private PlayerState[] _playerStates = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Partner = -1 });
-    private IReadOnlyList<Actor> _fireTowers = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _iceTowers = ActorEnumeration.EmptyList;
+    private readonly PlayerState[] _playerStates = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Partner = -1 });
+    private readonly IReadOnlyList<Actor> _fireTowers = module.Enemies(OID.FireTower);
+    private readonly IReadOnlyList<Actor> _iceTowers = module.Enemies(OID.IceTower);
 
-    public override void Init(BossModule module)
-    {
-        _fireTowers = module.Enemies(OID.FireTower);
-        _iceTowers = module.Enemies(OID.IceTower);
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (NumCasts > 0)
             return;
@@ -41,38 +35,36 @@ class P2BrokenSeal : BossComponent
             hints.Add("Soak the tower!");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return _playerStates[pcSlot].Color != Color.None && _playerStates[pcSlot].Partner == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        => _playerStates[pcSlot].Color != Color.None && _playerStates[pcSlot].Partner == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (NumCasts > 0)
             return;
 
         var state = _playerStates[pcSlot];
-        var partner = state.Color != Color.None && state.Partner >= 0 ? module.Raid[state.Partner] : null;
+        var partner = state.Color != Color.None && state.Partner >= 0 ? Raid[state.Partner] : null;
         if (partner != null)
         {
-            arena.AddLine(pc.Position, partner.Position, state.Color == Color.Fire ? 0xff0080ff : 0xffff8000, state.TooFar ? 2 : 1);
+            Arena.AddLine(pc.Position, partner.Position, state.Color == Color.Fire ? 0xff0080ff : 0xffff8000, state.TooFar ? 2 : 1);
         }
 
         foreach (var t in _fireTowers)
-            arena.AddCircle(t.Position, 2, state.Color == Color.Fire ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(t.Position, 2, state.Color == Color.Fire ? ArenaColor.Safe : ArenaColor.Danger);
         foreach (var t in _iceTowers)
-            arena.AddCircle(t.Position, 2, state.Color == Color.Ice ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(t.Position, 2, state.Color == Color.Ice ? ArenaColor.Safe : ArenaColor.Danger);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.InfiniteFire:
-                AssignColor(module, spell.MainTargetID, Color.Fire);
+                AssignColor(spell.MainTargetID, Color.Fire);
                 break;
             case AID.InfiniteIce:
-                AssignColor(module, spell.MainTargetID, Color.Ice);
+                AssignColor(spell.MainTargetID, Color.Ice);
                 break;
             case AID.SouthStar:
             case AID.NorthStar:
@@ -85,12 +77,12 @@ class P2BrokenSeal : BossComponent
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.InfiniteAnguish or TetherID.InfiniteFire or TetherID.InfiniteIce)
         {
-            var from = module.Raid.FindSlot(source.InstanceID);
-            var to = module.Raid.FindSlot(tether.Target);
+            var from = Raid.FindSlot(source.InstanceID);
+            var to = Raid.FindSlot(tether.Target);
             if (from >= 0 && to >= 0)
             {
                 _playerStates[from].Partner = to;
@@ -100,10 +92,10 @@ class P2BrokenSeal : BossComponent
         }
     }
 
-    private void AssignColor(BossModule module, ulong playerID, Color color)
+    private void AssignColor(ulong playerID, Color color)
     {
         ++NumAssigned;
-        var slot = module.Raid.FindSlot(playerID);
+        var slot = Raid.FindSlot(playerID);
         if (slot >= 0)
             _playerStates[slot].Color = color;
     }

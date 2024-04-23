@@ -5,7 +5,7 @@ public static class Rotation
     public enum Song { None, MagesBallad, ArmysPaeon, WanderersMinuet }
 
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public Song ActiveSong;
         public float ActiveSongLeft; // 45 max
@@ -34,8 +34,6 @@ public static class Rotation
         // statuses
         public SID ExpectedCaustic => Unlocked(AID.CausticBite) ? SID.CausticBite : SID.VenomousBite;
         public SID ExpectedStormbite => Unlocked(AID.Stormbite) ? SID.Stormbite : SID.Windbite;
-
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
@@ -300,7 +298,7 @@ public static class Rotation
         Strategy.BloodletterUse.Delay => false,
         Strategy.BloodletterUse.Force => true,
         Strategy.BloodletterUse.KeepOneCharge => state.CD(CDGroup.Bloodletter) <= 15 + state.AnimationLock,
-        Strategy.BloodletterUse.KeepTwoCharges => state.Unlocked(TraitID.EnhancedBloodletter) ? state.CD(CDGroup.Bloodletter) <= state.AnimationLock : false,
+        Strategy.BloodletterUse.KeepTwoCharges => state.Unlocked(TraitID.EnhancedBloodletter) && state.CD(CDGroup.Bloodletter) <= state.AnimationLock,
         _ => !state.Unlocked(AID.WanderersMinuet) || // don't try to pool BLs at low level (reconsider)
             state.ActiveSong == Song.MagesBallad || // don't try to pool BLs during MB, it's risky
             state.BattleVoiceLeft > state.AnimationLock || // don't pool BLs during buffs
@@ -339,7 +337,7 @@ public static class Rotation
     public static AID GetNextBestGCD(State state, Strategy strategy)
     {
         // prepull
-        if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
+        if (strategy.CombatTimer is > -100 and < -0.7f)
             return AID.None;
 
         if (strategy.NumLadonsbiteTargets >= 2 && state.Unlocked(AID.QuickNock))

@@ -2,7 +2,7 @@
 
 // note: rows at Z=100, 92, 84; columns at X=88, 96, 104, 112
 // note: assumes standard assignments (BPOG columns, alpha to tri, beta to square)
-class ClassicalConcepts : BossComponent
+class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
 {
     enum Debuff { None, Alpha, Beta }
 
@@ -15,28 +15,16 @@ class ClassicalConcepts : BossComponent
 
     public int NumPlayerTethers { get; private set; }
     public int NumShapeTethers { get; private set; }
-    private IReadOnlyList<Actor> _hexa = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _tri = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _sq = ActorEnumeration.EmptyList;
-    private (WPos hexa, WPos tri, WPos sq)[] _resolvedShapes = new(WPos, WPos, WPos)[4];
-    private PlayerState[] _states = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Column = -1, PartnerSlot = -1 });
-    private bool _invert;
+    private readonly IReadOnlyList<Actor> _hexa = module.Enemies(OID.ConceptOfWater);
+    private readonly IReadOnlyList<Actor> _tri = module.Enemies(OID.ConceptOfFire);
+    private readonly IReadOnlyList<Actor> _sq = module.Enemies(OID.ConceptOfEarth);
+    private readonly (WPos hexa, WPos tri, WPos sq)[] _resolvedShapes = new (WPos, WPos, WPos)[4];
+    private readonly PlayerState[] _states = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { Column = -1, PartnerSlot = -1 });
+    private readonly bool _invert = invert;
     private bool _showShapes = true;
     private bool _showTethers = true;
 
-    public ClassicalConcepts(bool invert)
-    {
-        _invert = invert;
-    }
-
-    public override void Init(BossModule module)
-    {
-        _hexa = module.Enemies(OID.ConceptOfWater);
-        _tri = module.Enemies(OID.ConceptOfFire);
-        _sq = module.Enemies(OID.ConceptOfEarth);
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (PlayerShapes(slot) is var shapes && shapes.hexa != default && shapes.linked != default)
         {
@@ -49,29 +37,29 @@ class ClassicalConcepts : BossComponent
         }
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return _states[pcSlot].PartnerSlot == playerSlot ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (PlayerShapes(pcSlot) is var shapes && shapes.hexa != default && shapes.linked != default)
         {
-            arena.Actor(shapes.hexa, default, ArenaColor.Object);
-            arena.Actor(shapes.linked, default, ArenaColor.Object);
+            Arena.Actor(shapes.hexa, default, ArenaColor.Object);
+            Arena.Actor(shapes.linked, default, ArenaColor.Object);
             var safespot = shapes.hexa + (shapes.linked - shapes.hexa) / 3;
-            arena.AddCircle(safespot, 1, ArenaColor.Safe);
+            Arena.AddCircle(safespot, 1, ArenaColor.Safe);
             if (_invert)
-                arena.AddCircle(InvertedPos(safespot), 1, ArenaColor.Danger);
+                Arena.AddCircle(InvertedPos(safespot), 1, ArenaColor.Danger);
         }
-        if (_showTethers && module.Raid[_states[pcSlot].PartnerSlot] is var partner && partner != null)
+        if (_showTethers && Raid[_states[pcSlot].PartnerSlot] is var partner && partner != null)
         {
-            arena.AddLine(pc.Position, partner.Position, ArenaColor.Safe);
+            Arena.AddLine(pc.Position, partner.Position, ArenaColor.Safe);
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.ConceptOfFire or OID.ConceptOfWater or OID.ConceptOfEarth && _hexa.Count + _tri.Count + _sq.Count == 12)
         {
@@ -80,7 +68,7 @@ class ClassicalConcepts : BossComponent
                 var hexa = _hexa.FirstOrDefault(h => Utils.AlmostEqual(h.PosRot.X, 88 + col * 8, 1));
                 if (hexa == null)
                 {
-                    module.ReportError(this, $"Failed to find hexagon at column {col}");
+                    ReportError($"Failed to find hexagon at column {col}");
                     continue;
                 }
 
@@ -88,12 +76,12 @@ class ClassicalConcepts : BossComponent
                 var sq = LinkedShape(_sq, hexa);
                 _resolvedShapes[col] = (hexa.Position, tri?.Position ?? default, sq?.Position ?? default);
                 if (tri == null || sq == null)
-                    module.ReportError(this, $"Failed to find neighbour for column {col}");
+                    ReportError($"Failed to find neighbour for column {col}");
             }
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var debuff = (SID)status.ID switch
         {
@@ -101,11 +89,11 @@ class ClassicalConcepts : BossComponent
             SID.BetaTarget => Debuff.Beta,
             _ => Debuff.None
         };
-        if (debuff != Debuff.None && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (debuff != Debuff.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
             _states[slot].Debuff = debuff;
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var column = (IconID)iconID switch
         {
@@ -115,7 +103,7 @@ class ClassicalConcepts : BossComponent
             IconID.ClassicalConceptsTriangle => 3, // G
             _ => -1
         };
-        if (column >= 0 && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (column >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
         {
             var partner = Array.FindIndex(_states, s => s.Column == column);
             _states[slot].Column = column;
@@ -127,7 +115,7 @@ class ClassicalConcepts : BossComponent
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {
@@ -142,7 +130,7 @@ class ClassicalConcepts : BossComponent
         }
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {
@@ -180,52 +168,38 @@ class ClassicalConcepts : BossComponent
     }
 }
 
-class ClassicalConcepts1 : ClassicalConcepts
-{
-    public ClassicalConcepts1() : base(false) { }
-}
+class ClassicalConcepts1(BossModule module) : ClassicalConcepts(module, false);
+class ClassicalConcepts2(BossModule module) : ClassicalConcepts(module, true);
 
-class ClassicalConcepts2 : ClassicalConcepts
-{
-    public ClassicalConcepts2() : base(true) { }
-}
+class Implode(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Implode), new AOEShapeCircle(4));
 
-class Implode : Components.SelfTargetedAOEs
+class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.PalladianRayAOEFirst))
 {
-    public Implode() : base(ActionID.MakeSpell(AID.Implode), new AOEShapeCircle(4)) { }
-}
-
-class PalladianRayBait : Components.GenericBaitAway
-{
-    private Actor[] _dummies = { new(0, 0, -1, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0)) };
+    private readonly Actor[] _dummies = [new(0, 0, -1, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0))];
 
     private static readonly AOEShapeCone _shape = new(100, 15.Degrees());
 
-    public PalladianRayBait() : base(ActionID.MakeSpell(AID.PalladianRayAOEFirst)) { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
         foreach (var d in _dummies)
-            foreach (var p in module.Raid.WithoutSlot().SortedByRange(d.Position).Take(4))
+            foreach (var p in Raid.WithoutSlot().SortedByRange(d.Position).Take(4))
                 CurrentBaits.Add(new(d, p, _shape));
     }
 }
 
-class PalladianRayAOE : Components.GenericAOEs
+class PalladianRayAOE(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.PalladianRayAOERest))
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
     public int NumConcurrentAOEs => _aoes.Count;
 
     private static readonly AOEShapeCone _shape = new(100, 15.Degrees());
 
-    public PalladianRayAOE() : base(ActionID.MakeSpell(AID.PalladianRayAOERest)) { }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.PalladianRayAOEFirst)
             _aoes.Add(new(_shape, caster.Position, caster.Rotation));
     }

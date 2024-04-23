@@ -10,7 +10,7 @@ public abstract class AOEShape
 
     public bool Check(WPos position, Actor? origin)
     {
-        return origin != null ? Check(position, origin.Position, origin.Rotation) : false;
+        return origin != null && Check(position, origin.Position, origin.Rotation);
     }
 
     public void Draw(MiniArena arena, Actor? origin, uint color = ArenaColor.AOE)
@@ -26,18 +26,11 @@ public abstract class AOEShape
     }
 }
 
-public class AOEShapeCone : AOEShape
+public class AOEShapeCone(float radius, Angle halfAngle, Angle directionOffset = default) : AOEShape
 {
-    public float Radius;
-    public Angle DirectionOffset;
-    public Angle HalfAngle;
-
-    public AOEShapeCone(float radius, Angle halfAngle, Angle directionOffset = new())
-    {
-        Radius = radius;
-        DirectionOffset = directionOffset;
-        HalfAngle = halfAngle;
-    }
+    public float Radius = radius;
+    public Angle DirectionOffset = directionOffset;
+    public Angle HalfAngle = halfAngle;
 
     public override string ToString() => $"Cone: r={Radius:f3}, angle={HalfAngle * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InCircleCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
@@ -52,14 +45,9 @@ public class AOEShapeCone : AOEShape
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Cone(origin, Radius, rotation + DirectionOffset, HalfAngle);
 }
 
-public class AOEShapeCircle : AOEShape
+public class AOEShapeCircle(float radius) : AOEShape
 {
-    public float Radius;
-
-    public AOEShapeCircle(float radius)
-    {
-        Radius = radius;
-    }
+    public float Radius = radius;
 
     public override string ToString() => $"Circle: r={Radius:f3}";
     public override bool Check(WPos position, WPos origin, Angle rotation = new()) => position.InCircle(origin, Radius);
@@ -72,16 +60,10 @@ public class AOEShapeCircle : AOEShape
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Circle(origin, Radius);
 }
 
-public class AOEShapeDonut : AOEShape
+public class AOEShapeDonut(float innerRadius, float outerRadius) : AOEShape
 {
-    public float InnerRadius;
-    public float OuterRadius;
-
-    public AOEShapeDonut(float innerRadius, float outerRadius)
-    {
-        InnerRadius = innerRadius;
-        OuterRadius = outerRadius;
-    }
+    public float InnerRadius = innerRadius;
+    public float OuterRadius = outerRadius;
 
     public override string ToString() => $"Donut: r={InnerRadius:f3}-{OuterRadius:f3}";
     public override bool Check(WPos position, WPos origin, Angle rotation = new()) => position.InDonut(origin, InnerRadius, OuterRadius);
@@ -99,20 +81,12 @@ public class AOEShapeDonut : AOEShape
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Donut(origin, InnerRadius, OuterRadius);
 }
 
-public class AOEShapeDonutSector : AOEShape
+public class AOEShapeDonutSector(float innerRadius, float outerRadius, Angle halfAngle, Angle directionOffset = default) : AOEShape
 {
-    public float InnerRadius;
-    public float OuterRadius;
-    public Angle DirectionOffset;
-    public Angle HalfAngle;
-
-    public AOEShapeDonutSector(float innerRadius, float outerRadius, Angle halfAngle, Angle directionOffset = new())
-    {
-        InnerRadius = innerRadius;
-        OuterRadius = outerRadius;
-        DirectionOffset = directionOffset;
-        HalfAngle = halfAngle;
-    }
+    public float InnerRadius = innerRadius;
+    public float OuterRadius = outerRadius;
+    public Angle DirectionOffset = directionOffset;
+    public Angle HalfAngle = halfAngle;
 
     public override string ToString() => $"Donut sector: r={InnerRadius:f3}-{OuterRadius:f3}, angle={HalfAngle * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InDonutCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
@@ -127,20 +101,12 @@ public class AOEShapeDonutSector : AOEShape
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.DonutSector(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
 }
 
-public class AOEShapeRect : AOEShape
+public class AOEShapeRect(float lengthFront, float halfWidth, float lengthBack = 0, Angle directionOffset = default) : AOEShape
 {
-    public float LengthFront;
-    public float LengthBack;
-    public float HalfWidth;
-    public Angle DirectionOffset;
-
-    public AOEShapeRect(float lengthFront, float halfWidth, float lengthBack = 0, Angle directionOffset = new())
-    {
-        LengthFront = lengthFront;
-        LengthBack = lengthBack;
-        HalfWidth = halfWidth;
-        DirectionOffset = directionOffset;
-    }
+    public float LengthFront = lengthFront;
+    public float LengthBack = lengthBack;
+    public float HalfWidth = halfWidth;
+    public Angle DirectionOffset = directionOffset;
 
     public override string ToString() => $"Rect: l={LengthFront:f3}+{LengthBack:f3}, w={HalfWidth * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
@@ -178,18 +144,11 @@ public class AOEShapeRect : AOEShape
     }
 }
 
-public class AOEShapeCross : AOEShape
+public class AOEShapeCross(float length, float halfWidth, Angle directionOffset = default) : AOEShape
 {
-    public float Length;
-    public float HalfWidth;
-    public Angle DirectionOffset;
-
-    public AOEShapeCross(float length, float halfWidth, Angle directionOffset = new())
-    {
-        Length = length;
-        HalfWidth = halfWidth;
-        DirectionOffset = directionOffset;
-    }
+    public float Length = length;
+    public float HalfWidth = halfWidth;
+    public Angle DirectionOffset = directionOffset;
 
     public override string ToString() => $"Cross: l={Length:f3}, w={HalfWidth * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation + DirectionOffset, Length, Length, HalfWidth) || position.InRect(origin, rotation + DirectionOffset, HalfWidth, HalfWidth, Length);
@@ -233,16 +192,10 @@ public class AOEShapeCross : AOEShape
 }
 
 // TODO: revise and reconsider, not convinced it needs to be here, and it's not well implemented
-public class AOEShapeTriangle : AOEShape
+public class AOEShapeTriangle(float sideLength, Angle directionOffset = default) : AOEShape
 {
-    public float SideLength;
-    public Angle DirectionOffset;
-
-    public AOEShapeTriangle(float sideLength, Angle directionOffset = new())
-    {
-        SideLength = sideLength;
-        DirectionOffset = directionOffset;
-    }
+    public float SideLength = sideLength;
+    public Angle DirectionOffset = directionOffset;
 
     public override bool Check(WPos position, WPos origin, Angle rotation)
     {
@@ -265,7 +218,7 @@ public class AOEShapeTriangle : AOEShape
     public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset = 0, float maxError = 1)
     {
         var vertices = CalculateVertices(origin, rotation + DirectionOffset, offset);
-        return new List<IEnumerable<WPos>> { new[] { vertices.p1, vertices.p2, vertices.p3 } };
+        return [new[] { vertices.p1, vertices.p2, vertices.p3 }];
     }
 
     public override Func<WPos, float> Distance(WPos origin, Angle rotation)

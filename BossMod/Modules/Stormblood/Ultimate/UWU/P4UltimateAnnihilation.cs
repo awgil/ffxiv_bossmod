@@ -1,22 +1,17 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P4UltimateAnnihilation : BossComponent
+class P4UltimateAnnihilation(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _orbs = ActorEnumeration.EmptyList;
+    private readonly IReadOnlyList<Actor> _orbs = module.Enemies(OID.Aetheroplasm);
 
-    private static readonly float _radius = 6;
+    private const float _radius = 6;
 
-    public override void Init(BossModule module)
-    {
-        _orbs = module.Enemies(OID.Aetheroplasm);
-    }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var orb in _orbs.Where(o => !o.IsDead))
         {
-            arena.Actor(orb, ArenaColor.Object, true);
-            arena.AddCircle(orb.Position, _radius, ArenaColor.Object);
+            Arena.Actor(orb, ArenaColor.Object, true);
+            Arena.AddCircle(orb.Position, _radius, ArenaColor.Object);
         }
     }
 }

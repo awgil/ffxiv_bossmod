@@ -1,37 +1,37 @@
 ﻿namespace BossMod.Endwalker.Savage.P6SHegemone;
 
 // TODO: improve...
-class AetheronecrosisPredation : BossComponent
+class AetheronecrosisPredation(BossModule module) : BossComponent(module)
 {
     public int NumCastsAetheronecrosis { get; private set; }
     public int NumCastsDualPredation { get; private set; }
-    private int[] _orders = new int[PartyState.MaxPartySize];
+    private readonly int[] _orders = new int[PartyState.MaxPartySize];
     private BitMask _vulnSnake;
     private BitMask _vulnWing;
 
     public bool Active => (_vulnSnake | _vulnWing).Any();
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_orders[slot] > 0)
             hints.Add($"Order: {_orders[slot]}, side: {(_vulnSnake[slot] ? "wing" : _vulnWing[slot] ? "snake" : "???")}", false);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.GlossalResistanceDown:
-                _vulnSnake.Set(module.Raid.FindSlot(actor.InstanceID));
+                _vulnSnake.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.ChelicResistanceDown:
-                _vulnWing.Set(module.Raid.FindSlot(actor.InstanceID));
+                _vulnWing.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.Aetheronecrosis:
-                var slot = module.Raid.FindSlot(actor.InstanceID);
+                var slot = Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                 {
-                    _orders[slot] = (status.ExpireAt - module.WorldState.CurrentTime).TotalSeconds switch
+                    _orders[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds switch
                     {
                         < 10 => 2,
                         < 14 => 3,
@@ -43,20 +43,20 @@ class AetheronecrosisPredation : BossComponent
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.GlossalResistanceDown:
-                _vulnSnake.Clear(module.Raid.FindSlot(actor.InstanceID));
+                _vulnSnake.Clear(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.ChelicResistanceDown:
-                _vulnWing.Clear(module.Raid.FindSlot(actor.InstanceID));
+                _vulnWing.Clear(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

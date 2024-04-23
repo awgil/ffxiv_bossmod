@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6TrinityAvowed;
 
-abstract class TemperatureAOE : Components.GenericAOEs
+abstract class TemperatureAOE(BossModule module) : Components.GenericAOEs(module)
 {
     private class PlayerState
     {
@@ -10,11 +10,11 @@ abstract class TemperatureAOE : Components.GenericAOEs
         public int Temperature => BaseTemperature + Brand;
     }
 
-    private Dictionary<ulong, PlayerState> _playerState = new();
+    private readonly Dictionary<ulong, PlayerState> _playerState = [];
 
     public int Temperature(Actor player) => _playerState.GetValueOrDefault(player.InstanceID)?.Temperature ?? 0;
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -45,7 +45,7 @@ abstract class TemperatureAOE : Components.GenericAOEs
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {

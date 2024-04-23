@@ -1,14 +1,12 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
-class Gorgospit : Components.GenericAOEs
+class Gorgospit(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Gorgospit))
 {
-    public List<(Actor caster, DateTime finish)> Casters = new();
+    public List<(Actor caster, DateTime finish)> Casters = [];
 
     private static readonly AOEShapeRect _shape = new(60, 5);
 
-    public Gorgospit() : base(ActionID.MakeSpell(AID.Gorgospit)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in Casters)
         {
@@ -19,13 +17,13 @@ class Gorgospit : Components.GenericAOEs
         }
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.IllusoryHephaistosSnakes && id == 0x11D2)
-            Casters.Add((actor, module.WorldState.CurrentTime.AddSeconds(8)));
+            Casters.Add((actor, WorldState.FutureTime(8)));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             Casters.RemoveAll(c => c.caster == caster);
@@ -33,7 +31,7 @@ class Gorgospit : Components.GenericAOEs
 }
 
 // TODO: add various hints for gaze/explode
-class Snake2 : PetrifactionCommon
+class Snake2(BossModule module) : PetrifactionCommon(module)
 {
     struct PlayerState
     {
@@ -42,79 +40,76 @@ class Snake2 : PetrifactionCommon
         public bool HasBreath;
         public int AssignedSnake; // -1 if not assigned, otherwise index of assigned snake
 
-        public bool HasDebuff => HasCrown || HasBreath;
+        public readonly bool HasDebuff => HasCrown || HasBreath;
     }
 
-    private PlayerState[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { AssignedSnake = -1 });
+    private readonly PlayerState[] _players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { AssignedSnake = -1 });
     private int _gorgospitCounter;
 
     private const float _breathRadius = 6;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         var state = _players[slot];
         hints.Add($"Petrify order: {(state.LongPetrify ? 2 : 1)}, {(state.HasCrown ? "hide behind snake" : "stack between snakes")}", false);
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return NumCrownCasts == 0 && _players[playerSlot].HasCrown ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => NumCrownCasts == 0 && _players[playerSlot].HasCrown ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         if (NumEyeCasts < 8)
         {
             if (_players[pcSlot].LongPetrify != (NumEyeCasts < 4))
-                DrawPetrify(pc, NumCasts == 0, arena);
+                DrawPetrify(pc, NumCasts == 0);
             else
-                DrawExplode(pc, NumCasts == 0, arena);
+                DrawExplode(pc, NumCasts == 0);
         }
         else if (NumBreathCasts == 0)
         {
             // show circle around assigned snake
             if (_players[pcSlot].AssignedSnake >= 0)
-                arena.AddCircle(ActiveGorgons[_players[pcSlot].AssignedSnake].caster.Position, 2, ArenaColor.Safe);
+                Arena.AddCircle(ActiveGorgons[_players[pcSlot].AssignedSnake].caster.Position, 2, ArenaColor.Safe);
 
-            foreach (var (slot, player) in module.Raid.WithSlot())
+            foreach (var (slot, player) in Raid.WithSlot())
                 if (_players[slot].HasBreath)
-                    arena.AddCircle(player.Position, _breathRadius, ArenaColor.Safe);
+                    Arena.AddCircle(player.Position, _breathRadius, ArenaColor.Safe);
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.EyeOfTheGorgon:
-                SetPlayerLongPetrify(module.Raid.FindSlot(actor.InstanceID), (status.ExpireAt - module.WorldState.CurrentTime).TotalSeconds > 25);
+                SetPlayerLongPetrify(Raid.FindSlot(actor.InstanceID), (status.ExpireAt - WorldState.CurrentTime).TotalSeconds > 25);
                 break;
             case SID.CrownOfTheGorgon:
-                SetPlayerCrown(module.Raid.FindSlot(actor.InstanceID), true);
+                SetPlayerCrown(Raid.FindSlot(actor.InstanceID), true);
                 break;
             case SID.BreathOfTheGorgon:
-                SetPlayerBreath(module.Raid.FindSlot(actor.InstanceID), true);
+                SetPlayerBreath(Raid.FindSlot(actor.InstanceID), true);
                 break;
         }
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID != OID.IllusoryHephaistosSnakes || id != 0x11D2 || _gorgospitCounter++ != 4)
             return;
 
-        int[] assignedSlots = { -1, -1, -1, -1, -1, -1, -1, -1 }; // supports then dd
-        foreach (var a in Service.Config.Get<P8S1Config>().Snake2Assignments.Resolve(module.Raid))
-            assignedSlots[a.group + (module.Raid[a.slot]?.Role is Role.Tank or Role.Healer ? 0 : 4)] = a.slot;
+        int[] assignedSlots = [-1, -1, -1, -1, -1, -1, -1, -1]; // supports then dd
+        foreach (var a in Service.Config.Get<P8S1Config>().Snake2Assignments.Resolve(Raid))
+            assignedSlots[a.group + (Raid[a.slot]?.Role is Role.Tank or Role.Healer ? 0 : 4)] = a.slot;
         if (assignedSlots[0] == -1)
             return; // invalid assignments
 
         // 5th gorgospit => find snakes that will survive it
-        List<int> survivingSnakes = new();
+        List<int> survivingSnakes = [];
         var normal = actor.Rotation.ToDirection().OrthoL();
         for (int i = 0; i < ActiveGorgons.Count; ++i)
             if (Math.Abs(normal.Dot(ActiveGorgons[i].caster.Position - actor.Position)) > 5)

@@ -1,22 +1,21 @@
-﻿namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
+﻿using BossMod;
 
-class Water : Components.StackWithCastTargets
-{
-    public Water(AID aid) : base(ActionID.MakeSpell(aid), 8, 4) { }
-}
-class NWater : Water { public NWater() : base(AID.NWater) { } }
-class SWater : Water { public SWater() : base(AID.SWater) { } }
+namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
 
-class BubbleShowerCrabDribble : Components.GenericAOEs
+class Water(BossModule module, AID aid) : Components.StackWithCastTargets(module, ActionID.MakeSpell(aid), 8, 4);
+class NWater(BossModule module) : Water(module, AID.NWater);
+class SWater(BossModule module) : Water(module, AID.SWater);
+
+class BubbleShowerCrabDribble(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shape1 = new(9, 45.Degrees());
     private static readonly AOEShapeCone _shape2 = new(6, 60.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NBubbleShower or AID.SBubbleShower)
         {
@@ -26,7 +25,7 @@ class BubbleShowerCrabDribble : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NBubbleShower or AID.SBubbleShower or AID.NCrabDribble or AID.SCrabDribble && _aoes.Count > 0)
         {
@@ -37,7 +36,7 @@ class BubbleShowerCrabDribble : Components.GenericAOEs
 
 class C030SnipperStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030SnipperStates(BossModule module, bool savage) : base(module)
     {
@@ -71,14 +70,12 @@ class C030SnipperStates : StateMachineBuilder
         Cast(id + 0x10, _savage ? AID.SCrabDribble : AID.NCrabDribble, 2.1f, 1.5f, "Cleave back");
     }
 }
-class C030NSnipperStates : C030SnipperStates { public C030NSnipperStates(BossModule module) : base(module, false) { } }
-class C030SSnipperStates : C030SnipperStates { public C030SSnipperStates(BossModule module) : base(module, true) { } }
+class C030NSnipperStates(BossModule module) : C030SnipperStates(module, false);
+class C030SSnipperStates(BossModule module) : C030SnipperStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NSnipper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12537, SortOrder = 2)]
-public class C030NSnipper : C030Trash1
+public class C030NSnipper(WorldState ws, Actor primary) : C030Trash1(ws, primary)
 {
-    public C030NSnipper(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
@@ -87,10 +84,8 @@ public class C030NSnipper : C030Trash1
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SSnipper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12537, SortOrder = 2)]
-public class C030SSnipper : C030Trash1
+public class C030SSnipper(WorldState ws, Actor primary) : C030Trash1(ws, primary)
 {
-    public C030SSnipper(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

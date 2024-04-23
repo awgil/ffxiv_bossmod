@@ -3,12 +3,12 @@ using System.Text;
 
 namespace BossMod;
 
-class DebugClassDefinitions : IDisposable
+sealed class DebugClassDefinitions : IDisposable
 {
     private class StatusData
     {
-        public HashSet<Class> Classes = new();
-        public HashSet<ActionID> Actions = new();
+        public HashSet<Class> Classes = [];
+        public HashSet<ActionID> Actions = [];
         public bool OnSource;
         public bool OnTarget;
 
@@ -22,10 +22,10 @@ class DebugClassDefinitions : IDisposable
         public Type? CDGType;
         public Type? SIDType;
         public Type? TraitIDType;
-        public List<Lumina.Excel.GeneratedSheets.Action> Actions = new();
-        public List<Lumina.Excel.GeneratedSheets.Trait> Traits = new();
+        public List<Lumina.Excel.GeneratedSheets.Action> Actions = [];
+        public List<Lumina.Excel.GeneratedSheets.Trait> Traits = [];
         public List<uint>? Unlocks;
-        public SortedDictionary<int, List<Lumina.Excel.GeneratedSheets.Action>> CooldownGroups = new();
+        public SortedDictionary<int, List<Lumina.Excel.GeneratedSheets.Action>> CooldownGroups = [];
 
         public ClassData(Class c)
         {
@@ -35,12 +35,12 @@ class DebugClassDefinitions : IDisposable
             TraitIDType = Type.GetType($"BossMod.{c}.TraitID");
 
             var cp = typeof(Lumina.Excel.GeneratedSheets.ClassJobCategory).GetProperty(c.ToString());
-            Func<Lumina.Excel.GeneratedSheets.Action, bool> actionIsInteresting = a => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
-            Actions = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(actionIsInteresting).ToList() ?? new();
+            bool actionIsInteresting(Lumina.Excel.GeneratedSheets.Action a) => !a.IsPvP && a.ClassJobLevel > 0 && (cp?.GetValue(a.ClassJobCategory.Value) as bool? ?? false);
+            Actions = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(actionIsInteresting).ToList() ?? [];
             Actions.SortBy(e => e.ClassJobLevel);
 
-            Func<Lumina.Excel.GeneratedSheets.Trait, bool> traitIsInteresting = t => (cp?.GetValue(t.ClassJobCategory.Value) as bool? ?? false);
-            Traits = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Trait>()?.Where(traitIsInteresting).ToList() ?? new();
+            bool traitIsInteresting(Lumina.Excel.GeneratedSheets.Trait t) => cp?.GetValue(t.ClassJobCategory.Value) as bool? ?? false;
+            Traits = Service.LuminaGameData?.GetExcelSheet<Lumina.Excel.GeneratedSheets.Trait>()?.Where(traitIsInteresting).ToList() ?? [];
             Traits.SortBy(e => e.Level);
 
             foreach (var action in Actions)
@@ -50,7 +50,7 @@ class DebugClassDefinitions : IDisposable
                     CooldownGroups.GetOrAdd(cg).Add(action);
             }
 
-            List<(uint, bool)>? quests = new();
+            List<(uint, bool)>? quests = [];
             foreach (var action in Actions.Where(a => a.UnlockLink != 0))
             {
                 quests = BuildOrderedQuests(quests, action.UnlockLink);
@@ -97,7 +97,7 @@ class DebugClassDefinitions : IDisposable
                     return false;
                 }
             }
-            else if (list.Count == 0 || list.Last().Item1 == prereq.RowId || AddToDepChain(list, prereq))
+            else if (list.Count == 0 || list[^1].Item1 == prereq.RowId || AddToDepChain(list, prereq))
             {
                 list.Add((item.RowId, false));
                 return true;
@@ -109,11 +109,11 @@ class DebugClassDefinitions : IDisposable
         }
     }
 
-    private WorldState _ws;
-    private ClassData?[] _classes = new ClassData?[41];
-    private Dictionary<ActionID, float> _seenActionLocks = new();
-    private Dictionary<uint, StatusData> _seenStatuses = new();
-    private UITree _tree = new();
+    private readonly WorldState _ws;
+    private readonly ClassData?[] _classes = new ClassData?[41];
+    private readonly Dictionary<ActionID, float> _seenActionLocks = [];
+    private readonly Dictionary<uint, StatusData> _seenStatuses = [];
+    private readonly UITree _tree = new();
 
     public DebugClassDefinitions(WorldState ws)
     {
@@ -137,10 +137,7 @@ class DebugClassDefinitions : IDisposable
             var c = (Class)i;
             foreach (var cn in _tree.Node(c.ToString(), false, c == player.Class ? 0xff00ff00 : 0xffffffff))
             {
-                var data = _classes[i];
-                if (data == null)
-                    data = _classes[i] = new(c);
-
+                var data = _classes[i] ??= new(c);
                 foreach (var n in _tree.Node("Actions", contextMenu: () => ActionsContextMenu(data)))
                 {
                     foreach (var action in _tree.Nodes(data.Actions, a => ActionNode(data, a)))
@@ -224,9 +221,9 @@ class DebugClassDefinitions : IDisposable
                 if (cg == CommonDefinitions.GCDGroup)
                 {
                     if (action.Cast100ms == 0)
-                        sb.Append($"SupportedActions.GCD(AID.{aidEnum}, {action.Range}{animLockStr});\n");
+                        sb.Append($"res.GCD(AID.{aidEnum}, {action.Range}{animLockStr});\n");
                     else
-                        sb.Append($"SupportedActions.GCDCast(AID.{aidEnum}, {action.Range}, {action.Cast100ms * 0.1f:f1}f{animLockStr});\n");
+                        sb.Append($"res.GCDCast(AID.{aidEnum}, {action.Range}, {action.Cast100ms * 0.1f:f1}f{animLockStr});\n");
                 }
                 else
                 {
@@ -234,11 +231,11 @@ class DebugClassDefinitions : IDisposable
                     var firstArgsStr = $"AID.{aidEnum}, {action.Range}, CDGroup.{cdgName}, {action.Recast100ms * 0.1f:f1}f";
                     var charges = MaxChargesAtCap(action.RowId);
                     if (action.Cast100ms != 0)
-                        sb.Append($"SupportedActions.OGCDCast({firstArgsStr}{animLockStr});\n"); // don't think such exist?..
+                        sb.Append($"res.OGCDCast({firstArgsStr}{animLockStr});\n"); // don't think such exist?..
                     else if (charges <= 1)
-                        sb.Append($"SupportedActions.OGCD({firstArgsStr}{animLockStr});\n");
+                        sb.Append($"res.OGCD({firstArgsStr}{animLockStr});\n");
                     else
-                        sb.Append($"SupportedActions.OGCDWithCharges({firstArgsStr}, {charges}{animLockStr});\n");
+                        sb.Append($"res.OGCDWithCharges({firstArgsStr}, {charges}{animLockStr});\n");
                 }
             }
             ImGui.SetClipboardText(sb.ToString());
@@ -246,7 +243,7 @@ class DebugClassDefinitions : IDisposable
 
         if (cd.Unlocks != null && ImGui.MenuItem("Generate quest lock definitions"))
         {
-            ImGui.SetClipboardText($"public static uint[] UnlockQuests = {{ {string.Join(", ", cd.Unlocks)} }};\n");
+            ImGui.SetClipboardText($"public static readonly uint[] UnlockQuests = [{string.Join(", ", cd.Unlocks)}];\n");
         }
     }
 
@@ -300,8 +297,8 @@ class DebugClassDefinitions : IDisposable
             if (cg == CommonDefinitions.GCDGroup)
                 continue;
 
-            ushort? commonRecast = actions.First().Recast100ms;
-            int? commonMaxCharges = MaxChargesAtCap(actions.First().RowId);
+            ushort? commonRecast = actions[0].Recast100ms;
+            int? commonMaxCharges = MaxChargesAtCap(actions[0].RowId);
             foreach (var action in actions.Skip(1))
             {
                 if (commonRecast != action.Recast100ms)
@@ -310,7 +307,7 @@ class DebugClassDefinitions : IDisposable
                     commonMaxCharges = null;
             }
 
-            var cdgName = (forceRegen ? null : cd.CDGType?.GetEnumName(cg)) ?? Utils.StringToIdentifier(actions.First().Name);
+            var cdgName = (forceRegen ? null : cd.CDGType?.GetEnumName(cg)) ?? Utils.StringToIdentifier(actions[0].Name);
             sb.Append($"\n    {cdgName} = {cg}, // ");
 
             if (commonRecast == null || commonMaxCharges == null)
@@ -407,7 +404,7 @@ class DebugClassDefinitions : IDisposable
 
     private string AnimLockString(ActionID id)
     {
-        return _seenActionLocks.ContainsKey(id) ? $"{_seenActionLocks[id]:f3}s" : "???";
+        return _seenActionLocks.TryGetValue(id, out var animLock) ? $"{animLock:f3}s" : "???";
     }
 
     private string CastTypeString(int castType)

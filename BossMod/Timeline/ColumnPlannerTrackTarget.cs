@@ -2,27 +2,15 @@
 
 namespace BossMod;
 
-public class ColumnPlannerTrackTarget : ColumnPlannerTrack
+public class ColumnPlannerTrackTarget(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, ModuleRegistry.Info? moduleInfo) : ColumnPlannerTrack(timeline, tree, phaseBranches, "Target")
 {
-    public class OverrideElement : Element
+    public class OverrideElement(Entry window, uint oid, string comment) : Element(window)
     {
-        public uint OID;
-        public string Comment;
-
-        public OverrideElement(Entry window, uint oid, string comment) : base(window)
-        {
-            OID = oid;
-            Comment = comment;
-        }
+        public uint OID = oid;
+        public string Comment = comment;
     }
 
-    public ModuleRegistry.Info? ModuleInfo;
-
-    public ColumnPlannerTrackTarget(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, ModuleRegistry.Info? moduleInfo)
-        : base(timeline, tree, phaseBranches, "Target")
-    {
-        ModuleInfo = moduleInfo;
-    }
+    public ModuleRegistry.Info? ModuleInfo = moduleInfo;
 
     public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, uint oid, string comment)
     {
@@ -39,9 +27,7 @@ public class ColumnPlannerTrackTarget : ColumnPlannerTrack
     protected override List<string> DescribeElement(Element e)
     {
         var cast = (OverrideElement)e;
-        List<string> res = new();
-        res.Add($"Comment: {cast.Comment}");
-        res.Add($"Target: {OIDString(cast.OID)}");
+        List<string> res = [$"Comment: {cast.Comment}", $"Target: {OIDString(cast.OID)}"];
         return res;
     }
 

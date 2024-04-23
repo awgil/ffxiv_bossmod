@@ -21,64 +21,52 @@ public enum AID : uint
     Hellfire = 1357, // Boss->self, 2.0s cast, infernal nail 'enrage' (raidwide if killed)
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     private DateTime _nailSpawn;
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        bool nailsActive = ((T05IfritH)module).ActiveNails.Any();
+        bool nailsActive = ((T05IfritH)Module).ActiveNails.Any();
         if (_nailSpawn == default && nailsActive)
         {
-            _nailSpawn = module.WorldState.CurrentTime;
+            _nailSpawn = WorldState.CurrentTime;
         }
         if (_nailSpawn != default && nailsActive)
         {
-            hints.Add($"Nail enrage in: {Math.Max(55 - (module.WorldState.CurrentTime - _nailSpawn).TotalSeconds, 0.0f):f1}s");
+            hints.Add($"Nail enrage in: {Math.Max(55 - (WorldState.CurrentTime - _nailSpawn).TotalSeconds, 0.0f):f1}s");
         }
     }
 }
 
-class Incinerate : Components.Cleave
-{
-    public Incinerate() : base(ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Incinerate(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees()));
+class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EruptionAOE), 8);
 
-class Eruption : Components.LocationTargetedAOEs
+class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrimsonCyclone))
 {
-    public Eruption() : base(ActionID.MakeSpell(AID.EruptionAOE), 8) { }
-}
-
-class CrimsonCyclone : Components.GenericAOEs
-{
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
 
     private static readonly AOEShape _shape = new AOEShapeRect(43, 6);
 
-    public CrimsonCyclone() : base(ActionID.MakeSpell(AID.CrimsonCyclone)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime.AddSeconds(4)));
+        return _casters.Select(c => new AOEInstance(_shape, c.Position, c.CastInfo?.Rotation ?? c.Rotation, c.CastInfo?.NPCFinishAt ?? WorldState.FutureTime(4)));
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if ((OID)actor.OID == OID.Boss && actor != module.PrimaryActor && id == 0x008D)
+        if ((OID)actor.OID == OID.Boss && actor != Module.PrimaryActor && id == 0x008D)
             _casters.Add(actor);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             _casters.Remove(caster);
     }
 }
 
-class RadiantPlume : Components.LocationTargetedAOEs
-{
-    public RadiantPlume() : base(ActionID.MakeSpell(AID.RadiantPlumeAOE), 8) { }
-}
+class RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlumeAOE), 8);
 
 class T05IfritHStates : StateMachineBuilder
 {
@@ -96,7 +84,7 @@ class T05IfritHStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 59, NameID = 1185)]
 public class T05IfritH : BossModule
 {
-    private IReadOnlyList<Actor> _nails;
+    private readonly IReadOnlyList<Actor> _nails;
     public IEnumerable<Actor> ActiveNails => _nails.Where(n => n.IsTargetable && !n.IsDead);
 
     public T05IfritH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))

@@ -3,7 +3,7 @@
 public static class Rotation
 {
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public float TimeToManaTick; // we assume mana tick happens every 3s
         public int ElementalLevel; // -3 (umbral ice 3) to +3 (astral fire 3)
@@ -18,8 +18,6 @@ public static class Rotation
 
         // statuses
         public SID ExpectedThunder3 => Unlocked(AID.Thunder3) ? SID.Thunder3 : SID.Thunder1;
-
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);

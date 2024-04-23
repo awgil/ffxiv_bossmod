@@ -1,11 +1,8 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
-class MeteorImpactProximity : Components.SelfTargetedAOEs
-{
-    public MeteorImpactProximity() : base(ActionID.MakeSpell(AID.MeteorImpactProximity), new AOEShapeCircle(10)) { } // TODO: verify falloff
-}
+class MeteorImpactProximity(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpactProximity), new AOEShapeCircle(10)); // TODO: verify falloff
 
-class MeteorImpactCharge : BossComponent
+class MeteorImpactCharge(BossModule module) : BossComponent(module)
 {
     struct PlayerState
     {
@@ -18,15 +15,15 @@ class MeteorImpactCharge : BossComponent
 
     public int NumCasts { get; private set; }
     private int _numTethers;
-    private List<WPos> _meteors = new();
-    private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+    private readonly List<WPos> _meteors = [];
+    private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
 
-    private static readonly float _radius = 2;
-    private static readonly int _ownThickness = 2;
-    private static readonly int _otherThickness = 1;
-    private static readonly bool _drawShadows = true;
+    private const float _radius = 2;
+    private const int _ownThickness = 2;
+    private const int _otherThickness = 1;
+    private const bool _drawShadows = true;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (SourceIfActive(slot) != null)
         {
@@ -36,31 +33,28 @@ class MeteorImpactCharge : BossComponent
                 hints.Add("Stretch the tether!");
         }
 
-        if (IsClippedByOthers(module, actor))
+        if (IsClippedByOthers(actor))
             hints.Add("GTFO from charges!");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return SourceIfActive(playerSlot) != null ? PlayerPriority.Interesting : PlayerPriority.Normal;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => SourceIfActive(playerSlot) != null ? PlayerPriority.Interesting : PlayerPriority.Normal;
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_drawShadows && SourceIfActive(pcSlot) is var source && source != null)
         {
             ref var state = ref _playerStates.AsSpan()[pcSlot];
-            state.DangerZone ??= arena.Bounds.ClipAndTriangulate(new Clip2D().Union(_meteors.Select(m => BuildShadowPolygon(source.Position, m))));
-            arena.Zone(state.DangerZone, ArenaColor.AOE);
+            state.DangerZone ??= Arena.Bounds.ClipAndTriangulate(new Clip2D().Union(_meteors.Select(m => BuildShadowPolygon(source.Position, m))));
+            Arena.Zone(state.DangerZone, ArenaColor.AOE);
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var m in _meteors)
-            arena.AddCircle(m, _radius, ArenaColor.Object);
+            Arena.AddCircle(m, _radius, ArenaColor.Object);
 
-        foreach (var (slot, target) in module.Raid.WithSlot(true))
+        foreach (var (slot, target) in Raid.WithSlot(true))
         {
             if (SourceIfActive(slot) is var source && source != null)
             {
@@ -69,21 +63,21 @@ class MeteorImpactCharge : BossComponent
                 {
                     var norm = (target.Position - source.Position).Normalized().OrthoL() * 2;
                     var rot = Angle.FromDirection(target.Position - source.Position);
-                    arena.PathArcTo(target.Position, 2, (rot + 90.Degrees()).Rad, (rot - 90.Degrees()).Rad);
-                    arena.PathLineTo(source.Position - norm);
-                    arena.PathLineTo(source.Position + norm);
-                    arena.PathStroke(true, _playerStates[slot].NonClipping ? ArenaColor.Safe : ArenaColor.Danger, thickness);
-                    arena.AddLine(source.Position, target.Position, _playerStates[slot].Stretched ? ArenaColor.Safe : ArenaColor.Danger, thickness);
+                    Arena.PathArcTo(target.Position, 2, (rot + 90.Degrees()).Rad, (rot - 90.Degrees()).Rad);
+                    Arena.PathLineTo(source.Position - norm);
+                    Arena.PathLineTo(source.Position + norm);
+                    Arena.PathStroke(true, _playerStates[slot].NonClipping ? ArenaColor.Safe : ArenaColor.Danger, thickness);
+                    Arena.AddLine(source.Position, target.Position, _playerStates[slot].Stretched ? ArenaColor.Safe : ArenaColor.Danger, thickness);
                 }
             }
         }
 
         // circle showing approximate min stretch distance; for second order, we might be forced to drop meteor there and die to avoid wipe
         if (SourceIfActive(pcSlot) is var pcSource && pcSource != null)
-            arena.AddCircle(pcSource.Position, 26, ArenaColor.Danger);
+            Arena.AddCircle(pcSource.Position, 26, ArenaColor.Danger);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -94,16 +88,16 @@ class MeteorImpactCharge : BossComponent
             case AID.MeteorImpactChargeClipping:
                 _meteors.Add(spell.TargetXZ);
                 ++NumCasts;
-                var (closestSlot, closestPlayer) = module.Raid.WithSlot(true).Closest(spell.TargetXZ);
+                var (closestSlot, closestPlayer) = Raid.WithSlot(true).Closest(spell.TargetXZ);
                 if (closestPlayer != null)
                     _playerStates[closestSlot].TetherSource = null;
                 break;
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID is TetherID.VoidMeteorCloseClipping or TetherID.VoidMeteorCloseGood or TetherID.VoidMeteorStretchedClipping or TetherID.VoidMeteorStretchedGood && module.Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+        if ((TetherID)tether.ID is TetherID.VoidMeteorCloseClipping or TetherID.VoidMeteorCloseGood or TetherID.VoidMeteorStretchedClipping or TetherID.VoidMeteorStretchedGood && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
         {
             if (_playerStates[slot].TetherSource == null)
                 _playerStates[slot].Order = _numTethers++;
@@ -136,16 +130,13 @@ class MeteorImpactCharge : BossComponent
 
     private bool IsClipped(WPos source, WPos target, WPos position) => position.InCircle(target, _radius) || position.InRect(source, target - source, _radius);
 
-    private bool IsClippedByOthers(BossModule module, Actor player)
+    private bool IsClippedByOthers(Actor player)
     {
-        foreach (var (i, p) in module.Raid.WithSlot(true).Exclude(player))
+        foreach (var (i, p) in Raid.WithSlot(true).Exclude(player))
             if (SourceIfActive(i) is var src && src != null && IsClipped(src.Position, p.Position, player.Position))
                 return true;
         return false;
     }
 }
 
-class MeteorImpactExplosion : Components.SelfTargetedAOEs
-{
-    public MeteorImpactExplosion() : base(ActionID.MakeSpell(AID.MeteorImpactExplosion), new AOEShapeCircle(10)) { }
-}
+class MeteorImpactExplosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpactExplosion), new AOEShapeCircle(10));

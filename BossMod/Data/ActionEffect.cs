@@ -24,7 +24,7 @@ public enum ActionEffectType : byte
     RecoveredFromStatusEffect = 16, // 0x10
     LoseStatusEffectTarget = 17, // 0x11
     LoseStatusEffectSource = 18, // 0x12
-    Unknown_13 = 19, // 0x13 - sometimes part of pvp Purify & Empyrean Rain spells, related to afflictions removal?..
+    //Unknown_13 = 19, // 0x13 - sometimes part of pvp Purify & Empyrean Rain spells, related to afflictions removal?..
     StatusNoEffect = 20, // 0x14
     ThreatPosition = 24, // 0x18 - provoke
     EnmityAmountUp = 25, // 0x19 - ? summons
@@ -37,26 +37,26 @@ public enum ActionEffectType : byte
     AttractCustom1 = 35, // 0x23
     AttractCustom2 = 36, // 0x24
     AttractCustom3 = 37, // 0x25
-    Unknown_27 = 39, // 0x27
+    //Unknown_27 = 39, // 0x27
     Mount = 40, // 0x28
-    unknown_30 = 48, // 0x30
-    unknown_31 = 49, // 0x31
-    Unknown_32 = 50, // 0x32
+    //unknown_30 = 48, // 0x30
+    //unknown_31 = 49, // 0x31
+    //Unknown_32 = 50, // 0x32
     ReviveLB = 51, // 0x33 - heal lb3 revive with full hp; seen value == 1
-    Unknown_34 = 52, // 0x34
+    //Unknown_34 = 52, // 0x34
     FullResistStatus = 55, // 0x37 - full resist status (e.g. 9 = resist 'arms length' slow, 2 = resist 'low blow' stun)
-    Unknown_38 = 56, // 0x38
-    Unknown_39 = 57, // 0x39 - 'you have been sentenced to death!' message
+    //Unknown_38 = 56, // 0x38
+    //Unknown_39 = 57, // 0x39 - 'you have been sentenced to death!' message
     VFX = 59, // 0x3B
-    Unknown_3D = 61, // 0x3D - was called 'gauge', but i think it's incorrect
+    //Unknown_3D = 61, // 0x3D - was called 'gauge', but i think it's incorrect
     Resource = 62, // 0x3E - value 0x34 = gain war gauge (amount == hitSeverity)
-    Unknown_41 = 65, // 0x41
-    Unknown_43 = 67, // 0x43
-    Unknown_47 = 71, // 0x47
-    Unknown_48 = 72, // 0x48
+    //Unknown_41 = 65, // 0x41
+    //Unknown_43 = 67, // 0x43
+    //Unknown_47 = 71, // 0x47
+    //Unknown_48 = 72, // 0x48
     SetModelState = 73, // 0x49 - value == model state
     SetHP = 74, // 0x4A - e.g. zodiark's kokytos
-    Partial_Invulnerable = 75, // 0x4B
+    PartialInvulnerable = 75, // 0x4B
     Interrupt = 76, // 0x4C
 }
 
@@ -111,11 +111,11 @@ public unsafe struct ActionEffect
     public byte Param4;
     public ushort Value;
 
-    public bool FromTarget => (Param4 & 0x20) != 0;
-    public bool AtSource => (Param4 & 0x80) != 0;
-    public DamageType DamageType => (DamageType)(Param1 & 0x0F); // for various damage effects
-    public DamageElementType DamageElement => (DamageElementType)(Param1 >> 4); // for various damage effects
-    public int DamageHealValue => Value + ((Param4 & 0x40) != 0 ? Param3 * 0x10000 : 0); // for damage/heal effects
+    public readonly bool FromTarget => (Param4 & 0x20) != 0;
+    public readonly bool AtSource => (Param4 & 0x80) != 0;
+    public readonly DamageType DamageType => (DamageType)(Param1 & 0x0F); // for various damage effects
+    public readonly DamageElementType DamageElement => (DamageElementType)(Param1 >> 4); // for various damage effects
+    public readonly int DamageHealValue => Value + ((Param4 & 0x40) != 0 ? Param3 * 0x10000 : 0); // for damage/heal effects
 }
 
 public unsafe struct ActionEffects : IEnumerable<ActionEffect>
@@ -272,31 +272,19 @@ public static class ActionEffectParser
             case ActionEffectType.Damage:
             case ActionEffectType.BlockedDamage:
             case ActionEffectType.ParriedDamage:
-                if ((eff.Param0 & ~0x60) != 0)
-                    return $"param0={eff.Param0 & ~0x60:X2}";
-                else if (eff.Param3 != 0 && (eff.Param4 & 0x40) == 0)
-                    return "non-zero param3 while large-value bit is unset";
-                else if ((eff.Param4 & ~0xF0) != 0)
-                    return $"param4={eff.Param4 & ~0xF0:X2}";
-                else if ((eff.Param4 & 0x10) != 0 && eff.Value != 0)
-                    return $"immune bit set but value is non-zero";
-                else
-                    return "";
+                return (eff.Param0 & ~0x60) != 0 ? $"param0={eff.Param0 & ~0x60:X2}"
+                    : eff.Param3 != 0 && (eff.Param4 & 0x40) == 0 ? "non-zero param3 while large-value bit is unset"
+                    : (eff.Param4 & ~0xF0) != 0 ? $"param4={eff.Param4 & ~0xF0:X2}"
+                    : (eff.Param4 & 0x10) != 0 && eff.Value != 0 ? $"immune bit set but value is non-zero"
+                    : "";
             case ActionEffectType.Heal:
-                if ((eff.Param0 & ~3) != 0)
-                    return $"param0={eff.Param0 & ~3:X2}";
-                else if ((eff.Param1 & ~0x20) != 0)
-                    return $"param1={eff.Param1 & ~0x20:X2}";
-                else if (eff.Param2 != 0)
-                    return $"param2={eff.Param2}";
-                else if (eff.Param3 != 0 && (eff.Param4 & 0x40) == 0)
-                    return "non-zero param3 while large-value bit is unset";
-                else if ((eff.Param4 & ~0xC0) != 0)
-                    return $"param4={eff.Param4 & ~0xC0:X2}";
-                else if (eff.Param0 != 0 && (eff.Param4 & 0x80) == 0)
-                    return "lifedrain bits set while source bit is unset";
-                else
-                    return "";
+                return (eff.Param0 & ~3) != 0 ? $"param0={eff.Param0 & ~3:X2}"
+                    : (eff.Param1 & ~0x20) != 0 ? $"param1={eff.Param1 & ~0x20:X2}"
+                    : eff.Param2 != 0 ? $"param2={eff.Param2}"
+                    : eff.Param3 != 0 && (eff.Param4 & 0x40) == 0 ? "non-zero param3 while large-value bit is unset"
+                    : (eff.Param4 & ~0xC0) != 0 ? $"param4={eff.Param4 & ~0xC0:X2}"
+                    : eff.Param0 != 0 && (eff.Param4 & 0x80) == 0 ? "lifedrain bits set while source bit is unset"
+                    : "";
             case ActionEffectType.Invulnerable:
             case ActionEffectType.MpGain:
             case ActionEffectType.TpGain:
@@ -349,13 +337,11 @@ public static class ActionEffectParser
             case ActionEffectType.ReviveLB:
                 return eff.Param0 != 0 || eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 || eff.Value != 1 ? "unknown payload" : "";
             case ActionEffectType.Resource:
-                switch ((ActionResourceType)eff.Value)
+                return (ActionResourceType)eff.Value switch
                 {
-                    case ActionResourceType.WARGauge:
-                        return eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "";
-                    default:
-                        return $"unknown value {eff.Value}";
-                }
+                    ActionResourceType.WARGauge => eff.Param1 != 0 || eff.Param2 != 0 || eff.Param3 != 0 || eff.Param4 != 0 ? "non-zero params" : "",
+                    _ => $"unknown value {eff.Value}",
+                };
             default:
                 return $"unknown type";
         }

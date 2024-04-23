@@ -4,20 +4,12 @@ namespace BossMod.ReplayAnalysis;
 
 class StateTransitionTimings
 {
-    class TransitionMetric
+    class TransitionMetric(double duration, Replay replay, Replay.Encounter encounter, DateTime time)
     {
-        public double Duration;
-        public Replay Replay;
-        public Replay.Encounter Encounter;
-        public DateTime Time;
-
-        public TransitionMetric(double duration, Replay replay, Replay.Encounter encounter, DateTime time)
-        {
-            Duration = duration;
-            Replay = replay;
-            Encounter = encounter;
-            Time = time;
-        }
+        public double Duration = duration;
+        public Replay Replay = replay;
+        public Replay.Encounter Encounter = encounter;
+        public DateTime Time = time;
     }
 
     class TransitionMetrics
@@ -26,26 +18,20 @@ class StateTransitionTimings
         public double MaxTime;
         public double AvgTime;
         public double StdDev;
-        public List<TransitionMetric> Instances = new();
+        public List<TransitionMetric> Instances = [];
     }
 
-    class StateMetrics
+    class StateMetrics(string name, double expectedTime)
     {
-        public string Name;
-        public double ExpectedTime;
-        public SortedDictionary<uint, TransitionMetrics> Transitions = new();
-
-        public StateMetrics(string name, double expectedTime)
-        {
-            Name = name;
-            ExpectedTime = expectedTime;
-        }
+        public string Name = name;
+        public double ExpectedTime = expectedTime;
+        public SortedDictionary<uint, TransitionMetrics> Transitions = [];
     }
 
-    private SortedDictionary<uint, StateMetrics> _metrics = new();
-    private List<(Replay, Replay.Encounter, Replay.EncounterError)> _errors = new();
-    private List<(Replay, Replay.Encounter)> _encounters = new();
-    private float _lastSecondsToIgnore = 0;
+    private readonly SortedDictionary<uint, StateMetrics> _metrics = [];
+    private readonly List<(Replay, Replay.Encounter, Replay.EncounterError)> _errors = [];
+    private readonly List<(Replay, Replay.Encounter)> _encounters = [];
+    private float _lastSecondsToIgnore;
     private object? _selected;
 
     public StateTransitionTimings(List<Replay> replays, uint oid)
@@ -103,10 +89,10 @@ class StateTransitionTimings
             tree.LeafNodes(_errors.Where(e => (e.Item2.Time.End - e.Item3.Timestamp).TotalSeconds >= _lastSecondsToIgnore), error => $"{LocationString(error.Item1, error.Item2, error.Item3.Timestamp)} [{error.Item3.CompType}] {error.Item3.Message}");
         }
 
-        List<Action> actions = new();
+        List<Action> actions = [];
         foreach (var from in _metrics.Values)
         {
-            Func<KeyValuePair<uint, TransitionMetrics>, UITree.NodeProperties> map = kv =>
+            UITree.NodeProperties map(KeyValuePair<uint, TransitionMetrics> kv)
             {
                 var destName = kv.Key != uint.MaxValue ? _metrics[kv.Key].Name : "<end>";
                 var name = $"{from.Name} -> {destName}";
@@ -114,7 +100,7 @@ class StateTransitionTimings
                 //bool warn = from.ExpectedTime < Math.Round(m.MinTime, 1) || from.ExpectedTime > Math.Round(m.MaxTime, 1);
                 bool warn = Math.Abs(from.ExpectedTime - kv.Value.AvgTime) > Math.Ceiling(kv.Value.StdDev * 10) / 10;
                 return new($"{name}: {value}###{name}", false, warn ? 0xff00ffff : 0xffffffff);
-            };
+            }
             foreach (var (toID, m) in tree.Nodes(from.Transitions, map, kv => TransitionContextMenu(from, kv.Key, kv.Value, tree, actions), select: kv => _selected = kv.Value))
             {
                 foreach (var inst in m.Instances)
@@ -134,8 +120,8 @@ class StateTransitionTimings
     private void RecalculateMetrics(TransitionMetrics trans)
     {
         trans.Instances.SortBy(e => e.Duration);
-        trans.MinTime = trans.Instances.First().Duration;
-        trans.MaxTime = trans.Instances.Last().Duration;
+        trans.MinTime = trans.Instances[0].Duration;
+        trans.MaxTime = trans.Instances[^1].Duration;
         double sum = 0, sumSq = 0;
         foreach (var inst in trans.Instances)
         {

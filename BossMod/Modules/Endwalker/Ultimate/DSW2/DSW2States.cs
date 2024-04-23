@@ -2,12 +2,12 @@
 
 class DSW2States : StateMachineBuilder
 {
-    private DSW2 _module;
+    private readonly DSW2 _module;
 
-    private bool IsReset => _module.PrimaryActor.IsDestroyed && (_module.ArenaFeatures?.IsDestroyed ?? true);
+    private bool IsReset => Module.PrimaryActor.IsDestroyed && (_module.ArenaFeatures?.IsDestroyed ?? true);
     private bool IsResetOrRewindFailed => IsReset || Module.Enemies(OID.BossP2).Any();
-    private bool IsDead(Actor? actor) => actor != null && (actor.IsDestroyed || actor.IsDead);
-    private bool IsEffectivelyDead(Actor? actor) => actor != null && (actor.IsDestroyed || actor.IsDead || !actor.IsTargetable && actor.HP.Cur <= 1);
+    private bool IsDead(Actor? actor) => actor != null && actor.IsDeadOrDestroyed;
+    private bool IsEffectivelyDead(Actor? actor) => actor != null && (actor.IsDeadOrDestroyed || !actor.IsTargetable && actor.HP.Cur <= 1);
 
     public DSW2States(DSW2 module) : base(module)
     {
@@ -404,7 +404,7 @@ class DSW2States : StateMachineBuilder
             .DeactivateOnExit<P5WrathOfTheHeavensAscalonsMercyRevealed>()
             .DeactivateOnExit<P5WrathOfTheHeavensTwister>(); // twisters disappear together with protean hits
         ComponentCondition<P5Cauterize1>(id + 0x210, 0.9f, comp => comp.Casters.Count > 0, "Green marker bait")
-            .ExecOnEnter<P5WrathOfTheHeavensChainLightning>(comp => comp.ShowSpreads(Module, 5.2f))
+            .ExecOnEnter<P5WrathOfTheHeavensChainLightning>(comp => comp.ShowSpreads(5.2f))
             .ActivateOnEnter<P5Cauterize1>()
             .ActivateOnEnter<P5Cauterize2>()
             .ActivateOnEnter<P5WrathOfTheHeavensAltarFlare>() // first cast starts right as proteans resolve
@@ -552,7 +552,7 @@ class DSW2States : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Tankbuster);
 
         ComponentCondition<P6MortalVow>(id + 0x100, 8.7f, comp => comp.Progress > 1, "Mortal vow pass 1")
-            .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass(_module));
+            .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass());
     }
 
     private void P6HallowedWingsPlume2(uint id, float delay)
@@ -567,7 +567,7 @@ class DSW2States : StateMachineBuilder
             .DeactivateOnExit<P6HallowedPlume2>(); // tankbusters happen at the same time as wings
 
         ComponentCondition<P6MortalVow>(id + 0x100, 8.7f, comp => comp.Progress > 3, "Mortal vow pass 3")
-            .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass(_module));
+            .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass());
     }
 
     private void P6WrothFlames(uint id, float delay)
@@ -601,7 +601,7 @@ class DSW2States : StateMachineBuilder
             .DeactivateOnExit<P6HotWingTail>();
 
         ComponentCondition<P6MortalVow>(id + 0x100, 4.0f, comp => comp.Progress > 2, "Mortal vow pass 2")
-            .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass(_module));
+            .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass());
         // note: voidzones disappear slightly later...
     }
 
@@ -617,7 +617,7 @@ class DSW2States : StateMachineBuilder
             .DeactivateOnExit<P6Touchdown>();
 
         ActorCastStart(id + 0x100, _module.NidhoggP6, AID.RevengeOfTheHordeP6, 1.2f, true)
-            .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass(_module));
+            .ExecOnEnter<P6MortalVow>(comp => comp.ShowNextPass());
         ComponentCondition<P6MortalVow>(id + 0x101, 2.3f, comp => comp.Progress > 4, "Mortal vow pass 4")
             .DeactivateOnExit<P6MortalVow>();
         ActorCastEnd(id + 0x102, _module.NidhoggP6, 22.7f, true, "Enrage");

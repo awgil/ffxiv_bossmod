@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P5NearDistantWorld : Components.GenericStackSpread
+class P5NearDistantWorld(BossModule module) : Components.GenericStackSpread(module, true)
 {
     public int NumNearJumpsDone { get; private set; }
     public int NumDistantJumpsDone { get; private set; }
@@ -11,28 +11,26 @@ class P5NearDistantWorld : Components.GenericStackSpread
     private BitMask _risky;
     private DateTime _firstActivation;
 
-    public P5NearDistantWorld() : base(true) { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         Spreads.Clear();
         _risky.Reset();
         _targets = _completedJumps;
-        AddChain(module, NearWorld, NumNearJumpsDone, true);
-        AddChain(module, DistantWorld, NumDistantJumpsDone, false);
+        AddChain(NearWorld, NumNearJumpsDone, true);
+        AddChain(DistantWorld, NumDistantJumpsDone, false);
 
-        base.Update(module);
+        base.Update();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         if (_risky[slot])
             hints.Add("Avoid baiting jump!");
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -47,23 +45,23 @@ class P5NearDistantWorld : Components.GenericStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.HelloNearWorld:
             case AID.HelloNearWorldJump:
                 ++NumNearJumpsDone;
-                var nearSlot = module.Raid.FindSlot(spell.MainTargetID);
+                var nearSlot = Raid.FindSlot(spell.MainTargetID);
                 _completedJumps.Set(nearSlot);
-                NearWorld = module.Raid[nearSlot];
+                NearWorld = Raid[nearSlot];
                 break;
             case AID.HelloDistantWorld:
             case AID.HelloDistantWorldJump:
                 ++NumDistantJumpsDone;
-                var distantSlot = module.Raid.FindSlot(spell.MainTargetID);
+                var distantSlot = Raid.FindSlot(spell.MainTargetID);
                 _completedJumps.Set(distantSlot);
-                DistantWorld = module.Raid[distantSlot];
+                DistantWorld = Raid[distantSlot];
                 break;
         }
     }
@@ -77,31 +75,31 @@ class P5NearDistantWorld : Components.GenericStackSpread
         _firstActivation = activation;
     }
 
-    private void AddChain(BossModule module, Actor? start, int numDone, bool close)
+    private void AddChain(Actor? start, int numDone, bool close)
     {
         if (numDone == 0)
         {
             if (start != null)
-                AddSpread(module, start, 8, 0);
+                AddSpread(start, 8, 0);
         }
         if (numDone <= 1 && start != null)
         {
-            start = close ? module.Raid.WithoutSlot().Exclude(start).Closest(start.Position) : module.Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
+            start = close ? Raid.WithoutSlot().Exclude(start).Closest(start.Position) : Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
             if (start != null)
-                AddSpread(module, start, 4, 1);
+                AddSpread(start, 4, 1);
         }
         if (numDone <= 2 && start != null)
         {
-            start = close ? module.Raid.WithoutSlot().Exclude(start).Closest(start.Position) : module.Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
+            start = close ? Raid.WithoutSlot().Exclude(start).Closest(start.Position) : Raid.WithoutSlot().Exclude(start).Farthest(start.Position);
             if (start != null)
-                AddSpread(module, start, 4, 2);
+                AddSpread(start, 4, 2);
         }
     }
 
-    private void AddSpread(BossModule module, Actor target, float radius, int order)
+    private void AddSpread(Actor target, float radius, int order)
     {
         Spreads.Add(new(target, radius, _firstActivation.AddSeconds(order * 1.0)));
-        var slot = module.Raid.FindSlot(target.InstanceID);
+        var slot = Raid.FindSlot(target.InstanceID);
         if (_targets[slot])
             _risky.Set(slot);
         else

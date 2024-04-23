@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
-class HydrofallHydrobullet : Components.UniformStackSpread
+class HydrofallHydrobullet(BossModule module) : Components.UniformStackSpread(module, 6, 15)
 {
     public struct Mechanic
     {
@@ -10,11 +10,9 @@ class HydrofallHydrobullet : Components.UniformStackSpread
     }
 
     public int ActiveMechanic { get; private set; } = -1;
-    public List<Mechanic> Mechanics = new();
+    public List<Mechanic> Mechanics = [];
 
-    public HydrofallHydrobullet() : base(6, 15) { }
-
-    public void Activate(BossModule module, int index)
+    public void Activate(int index)
     {
         if (ActiveMechanic == index)
             return;
@@ -25,30 +23,30 @@ class HydrofallHydrobullet : Components.UniformStackSpread
         {
             ref var m = ref Mechanics.AsSpan()[index];
             if (m.Spread)
-                AddSpreads(module.Raid.WithSlot(true).IncludedInMask(m.Targets).Actors(), m.Activation);
+                AddSpreads(Raid.WithSlot(true).IncludedInMask(m.Targets).Actors(), m.Activation);
             else
-                AddStacks(module.Raid.WithSlot(true).IncludedInMask(m.Targets).Actors(), m.Activation);
+                AddStacks(Raid.WithSlot(true).IncludedInMask(m.Targets).Actors(), m.Activation);
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         var firstMech = Math.Max(ActiveMechanic, 0);
         if (Mechanics.Count > firstMech)
             hints.Add(string.Join(" -> ", Mechanics.Skip(firstMech).Select(m => m.Spread ? "Spread" : "Stack")));
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.HydrofallTarget or SID.HydrobulletTarget && Mechanics.Count > 0)
         {
             ref var m = ref Mechanics.AsSpan()[Mechanics.Count - 1];
             if (m.Spread != ((SID)status.ID == SID.HydrobulletTarget))
             {
-                module.ReportError(this, $"Unexpected SID: {status.ID}");
+                ReportError($"Unexpected SID: {status.ID}");
                 return;
             }
-            m.Targets.Set(module.Raid.FindSlot(actor.InstanceID));
+            m.Targets.Set(Raid.FindSlot(actor.InstanceID));
             m.Activation = status.ExpireAt;
             if (ActiveMechanic == Mechanics.Count - 1)
             {
@@ -60,7 +58,7 @@ class HydrofallHydrobullet : Components.UniformStackSpread
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -73,7 +71,7 @@ class HydrofallHydrobullet : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -86,12 +84,12 @@ class HydrofallHydrobullet : Components.UniformStackSpread
             case AID.NHydrofallAOE:
             case AID.SHydrofallAOE:
                 if (ActiveMechanic >= 0 && ActiveMechanic < Mechanics.Count && !Mechanics[ActiveMechanic].Spread)
-                    Activate(module, ActiveMechanic + 1);
+                    Activate(ActiveMechanic + 1);
                 break;
             case AID.NHydrobulletAOE:
             case AID.SHydrobulletAOE:
                 if (ActiveMechanic >= 0 && ActiveMechanic < Mechanics.Count && Mechanics[ActiveMechanic].Spread)
-                    Activate(module, ActiveMechanic + 1);
+                    Activate(ActiveMechanic + 1);
                 break;
         }
     }

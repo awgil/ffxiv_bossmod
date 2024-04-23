@@ -1,6 +1,6 @@
 namespace BossMod.Endwalker.Alliance.A31Thaliak;
 
-class Hieroglyphika : Components.GenericAOEs
+class Hieroglyphika(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect rect = new(6, 6, 6);
     private readonly List<AOEInstance> _aoes = [];
@@ -8,7 +8,7 @@ class Hieroglyphika : Components.GenericAOEs
     private static readonly WPos[] StartingCoords = [new(-963, 939), new(-963, 963), new(-939, 927), new(-951, 939), new(-951, 927), new(-939, 963), new(-927, 939), new(-939, 951), new(-939, 939), new(-927, 963), new(-963, 951), new(-927, 951), new(-951, 951), new(-963, 927)];
     private byte currentIndex;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(14);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(14);
 
     private static WPos RotateAroundOrigin(float rotatebydegrees, WPos origin, WPos caster) //TODO: consider moving to utils for future use
     {
@@ -17,7 +17,7 @@ class Hieroglyphika : Components.GenericAOEs
         return new WPos(origin.X + x, origin.Z + z);
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001)
         {
@@ -28,10 +28,10 @@ class Hieroglyphika : Components.GenericAOEs
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
-        var _activation = module.WorldState.CurrentTime.AddSeconds(17);
-        var origin = module.Bounds.Center;
+        var _activation = WorldState.FutureTime(17);
+        var origin = Module.Bounds.Center;
         if (iconID == (uint)IconID.ClockwiseHieroglyphika)
         {
             if (currentIndex == 0x17)
@@ -52,7 +52,7 @@ class Hieroglyphika : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.HieroglyphikaRect)
             _aoes.Clear();

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS8Queen;
 
-abstract class Chess : Components.GenericAOEs
+abstract class Chess(BossModule module) : Components.GenericAOEs(module)
 {
     public struct GuardState
     {
@@ -11,7 +11,7 @@ abstract class Chess : Components.GenericAOEs
     protected GuardState[] GuardStates = new GuardState[4];
     protected static readonly AOEShapeCross Shape = new(60, 5);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (NumCasts >= 4)
             yield break;
@@ -22,7 +22,7 @@ abstract class Chess : Components.GenericAOEs
                 yield return new(Shape, g.FinalPosition, g.Actor.Rotation);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.MovementIndicator)
         {
@@ -41,7 +41,7 @@ abstract class Chess : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.EndsKnight or AID.MeansWarrior or AID.EndsSoldier or AID.MeansGunner)
             ++NumCasts;
@@ -57,38 +57,37 @@ abstract class Chess : Components.GenericAOEs
     };
 }
 
-class QueensWill : Chess { }
+class QueensWill(BossModule module) : Chess(module) { }
 
 // TODO: enumerate all possible safespots instead? after first pair of casts, select still suitable second safespots
-class QueensEdict : Chess
+class QueensEdict(BossModule module) : Chess(module)
 {
     public class PlayerState
     {
         public int FirstEdict;
         public int SecondEdict;
-        public List<WPos> Safespots = new();
+        public List<WPos> Safespots = [];
     }
 
     public int NumStuns { get; private set; }
-    private Dictionary<ulong, PlayerState> _playerStates = new();
-    private int _safespotZOffset = 0;
+    private readonly Dictionary<ulong, PlayerState> _playerStates = [];
+    private int _safespotZOffset;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        if (movementHints != null)
-            foreach (var m in GetSafeSpotMoves(module, actor))
-                movementHints.Add(m);
+        foreach (var m in GetSafeSpotMoves(actor))
+            movementHints.Add(m);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var m in GetSafeSpotMoves(module, pc))
-            arena.AddLine(m.from, m.to, m.color);
+        foreach (var m in GetSafeSpotMoves(pc))
+            Arena.AddLine(m.from, m.to, m.color);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        base.OnStatusGain(module, actor, status);
+        base.OnStatusGain(actor, status);
         switch ((SID)status.ID)
         {
             case SID.Stun:
@@ -115,19 +114,19 @@ class QueensEdict : Chess
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Stun)
             --NumStuns;
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (index is 0x1C or 0x1D && state == 0x00020001)
             _safespotZOffset = index == 0x1D ? 2 : -2;
     }
 
-    private IEnumerable<(WPos from, WPos to, uint color)> GetSafeSpotMoves(BossModule module, Actor actor)
+    private IEnumerable<(WPos from, WPos to, uint color)> GetSafeSpotMoves(Actor actor)
     {
         var state = _playerStates.GetValueOrDefault(actor.InstanceID);
         if (state == null)
@@ -140,17 +139,17 @@ class QueensEdict : Chess
                 yield break; // not ready yet...
 
             // initialize second safespot: select cells that are SecondEdict distance from safespot and not in columns clipped by second set of guards
-            int forbiddenCol1 = OffsetToCell(GuardStates[2].FinalPosition.X - module.Bounds.Center.X);
-            int forbiddenCol2 = OffsetToCell(GuardStates[3].FinalPosition.X - module.Bounds.Center.X);
-            int forbiddenRow1 = OffsetToCell(GuardStates[0].FinalPosition.Z - module.Bounds.Center.Z);
-            int forbiddenRow2 = OffsetToCell(GuardStates[1].FinalPosition.Z - module.Bounds.Center.Z);
+            int forbiddenCol1 = OffsetToCell(GuardStates[2].FinalPosition.X - Module.Bounds.Center.X);
+            int forbiddenCol2 = OffsetToCell(GuardStates[3].FinalPosition.X - Module.Bounds.Center.X);
+            int forbiddenRow1 = OffsetToCell(GuardStates[0].FinalPosition.Z - Module.Bounds.Center.Z);
+            int forbiddenRow2 = OffsetToCell(GuardStates[1].FinalPosition.Z - Module.Bounds.Center.Z);
             foreach (var s2 in CellsAtManhattanDistance((0, _safespotZOffset), state.SecondEdict).Where(s2 => s2.x != forbiddenCol1 && s2.x != forbiddenCol2))
             {
                 foreach (var s1 in CellsAtManhattanDistance(s2, state.FirstEdict).Where(s1 => s1.z != forbiddenRow1 && s1.z != forbiddenRow2))
                 {
-                    state.Safespots.Add(CellCenter(module, s1));
-                    state.Safespots.Add(CellCenter(module, s2));
-                    state.Safespots.Add(CellCenter(module, (0, _safespotZOffset)));
+                    state.Safespots.Add(CellCenter(s1));
+                    state.Safespots.Add(CellCenter(s2));
+                    state.Safespots.Add(CellCenter((0, _safespotZOffset)));
                     break;
                 }
                 if (state.Safespots.Count > 0)
@@ -179,7 +178,7 @@ class QueensEdict : Chess
         _ => 3
     };
 
-    private WPos CellCenter(BossModule module, (int x, int z) cell) => module.Bounds.Center + 10 * new WDir(cell.x, cell.z);
+    private WPos CellCenter((int x, int z) cell) => Module.Bounds.Center + 10 * new WDir(cell.x, cell.z);
 
     private IEnumerable<(int x, int z)> CellsAtManhattanDistance((int x, int z) origin, int distance)
     {

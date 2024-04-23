@@ -29,24 +29,13 @@ public enum AID : uint
     PerfectContrition = 15630, // 27CD->self, 6,0s cast, range 5-15 donut
 }
 
-class Catechism : Components.SingleTargetCastDelay
-{
-    public Catechism() : base(ActionID.MakeSpell(AID.Catechism), ActionID.MakeSpell(AID.Catechism2), 0.5f) { }
-}
+class Catechism(BossModule module) : Components.SingleTargetCastDelay(module, ActionID.MakeSpell(AID.Catechism), ActionID.MakeSpell(AID.Catechism2), 0.5f);
+class SacramentOfPenance(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.SacramentOfPenance), ActionID.MakeSpell(AID.SacramentOfPenance2), 0.5f);
+class PerfectContrition(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PerfectContrition), new AOEShapeDonut(5, 15));
 
-class SacramentOfPenance : Components.RaidwideCastDelay
+class JudgmentDay(BossModule module) : Components.GenericTowers(module)
 {
-    public SacramentOfPenance() : base(ActionID.MakeSpell(AID.SacramentOfPenance), ActionID.MakeSpell(AID.SacramentOfPenance2), 0.5f) { }
-}
-
-class PerfectContrition : Components.SelfTargetedAOEs
-{
-    public PerfectContrition() : base(ActionID.MakeSpell(AID.PerfectContrition), new AOEShapeDonut(5, 15)) { }
-}
-
-public class JudgmentDay : Components.GenericTowers
-{
-    public override void OnActorEState(BossModule module, Actor actor, ushort state)
+    public override void OnActorEState(Actor actor, ushort state)
     {
         if (state is 0x01C or 0x02C)
         {
@@ -55,13 +44,13 @@ public class JudgmentDay : Components.GenericTowers
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.Judged or AID.FoundWanting && Towers.Count > 0)
             Towers.RemoveAt(0);
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Towers.Count > 0)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Towers[0].Position, 5));
@@ -70,14 +59,14 @@ public class JudgmentDay : Components.GenericTowers
     }
 }
 
-class Exegesis : Components.GenericAOEs
+class Exegesis(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     public enum Patterns { None, Diagonal, Cross, EastWest, NorthSouth }
     public Patterns Pattern { get; private set; }
     private static readonly AOEShapeRect rect = new(5, 5, 5);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (Pattern == Patterns.Diagonal)
         {
@@ -107,7 +96,7 @@ class Exegesis : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -130,7 +119,7 @@ class Exegesis : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Exegesis)
             Pattern = Patterns.None;
@@ -151,7 +140,4 @@ class D053ForgivenWhimsyStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8261)]
-public class D053ForgivenWhimsy : BossModule
-{
-    public D053ForgivenWhimsy(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15)) { }
-}
+public class D053ForgivenWhimsy(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15));

@@ -7,30 +7,30 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 namespace BossMod;
 
 // world state that is updated to correspond to game state
-class WorldStateGame : WorldState, IDisposable
+sealed class WorldStateGame : WorldState, IDisposable
 {
-    private DateTime _startTime;
-    private ulong _startQPC;
+    private readonly DateTime _startTime;
+    private readonly ulong _startQPC;
 
-    private PartyAlliance _alliance = new();
-    private List<Operation> _globalOps = new();
-    private Dictionary<ulong, List<Operation>> _actorOps = new();
-    private Actor?[] _actorsByIndex = new Actor?[Service.ObjectTable.Length];
+    private readonly PartyAlliance _alliance = new();
+    private readonly List<Operation> _globalOps = [];
+    private readonly Dictionary<ulong, List<Operation>> _actorOps = [];
+    private readonly Actor?[] _actorsByIndex = new Actor?[Service.ObjectTable.Length];
 
-    private List<(ulong Caster, ActorCastEvent Event)> _castEvents = new();
-    private List<(uint Seq, ulong Target, int TargetIndex)> _confirms = new();
+    private readonly List<(ulong Caster, ActorCastEvent Event)> _castEvents = [];
+    private readonly List<(uint Seq, ulong Target, int TargetIndex)> _confirms = [];
 
     private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
-    private Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
+    private readonly Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
 
     private unsafe delegate void ProcessPacketNpcYellDelegate(Network.ServerIPC.NpcYell* packet);
-    private Hook<ProcessPacketNpcYellDelegate> _processPacketNpcYellHook;
+    private readonly Hook<ProcessPacketNpcYellDelegate> _processPacketNpcYellHook;
 
     private unsafe delegate void ProcessEnvControlDelegate(void* self, uint index, ushort s1, ushort s2);
-    private Hook<ProcessEnvControlDelegate> _processEnvControlHook;
+    private readonly Hook<ProcessEnvControlDelegate> _processEnvControlHook;
 
     private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
-    private Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
+    private readonly Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
 
     public unsafe WorldStateGame(string gameVersion) : base(Utils.FrameQPF(), gameVersion)
     {
@@ -72,7 +72,8 @@ class WorldStateGame : WorldState, IDisposable
 
     public unsafe void Update(TimeSpan prevFramePerf)
     {
-        var frame = new FrameState() {
+        var frame = new FrameState()
+        {
             Timestamp = _startTime.AddSeconds((double)(Utils.FrameQPC() - _startQPC) / QPF),
             QPC = Utils.FrameQPC(),
             Index = Utils.FrameIndex(),
@@ -191,7 +192,8 @@ class WorldStateGame : WorldState, IDisposable
 
         if (act == null)
         {
-            Execute(new ActorState.OpCreate() {
+            Execute(new ActorState.OpCreate()
+            {
                 InstanceID = obj.ObjectId,
                 OID = obj.DataId,
                 SpawnIndex = index,
@@ -211,7 +213,7 @@ class WorldStateGame : WorldState, IDisposable
             act = _actorsByIndex[index] = Actors.Find(obj.ObjectId)!;
 
             // note: for now, we continue relying on network messages for tether changes, since sometimes multiple changes can happen in a single frame, and some components rely on seeing all of them...
-            var tether = character != null ? new ActorTetherInfo{ ID = Utils.CharacterTetherID(character), Target = Utils.CharacterTetherTargetID(character) } : new ActorTetherInfo();
+            var tether = character != null ? new ActorTetherInfo { ID = Utils.CharacterTetherID(character), Target = Utils.CharacterTetherTargetID(character) } : new ActorTetherInfo();
             if (tether.ID != 0)
                 Execute(new ActorState.OpTether() { InstanceID = act.InstanceID, Value = tether });
         }
@@ -248,7 +250,7 @@ class WorldStateGame : WorldState, IDisposable
         var chara = obj as BattleChara;
         if (chara != null)
         {
-            ActorCastInfo? curCast = chara.IsCasting
+            var curCast = chara.IsCasting
                 ? new ActorCastInfo
                 {
                     Action = new((ActionType)chara.CastActionType, chara.CastActionId),
@@ -341,7 +343,7 @@ class WorldStateGame : WorldState, IDisposable
             if (Party.ContentIDs.IndexOf(contentID) != -1)
                 continue; // already added, updated in previous loop
 
-            var freeSlot = Party.ContentIDs.Slice(1).IndexOf(0ul);
+            var freeSlot = Party.ContentIDs[1..].IndexOf(0ul);
             if (freeSlot == -1)
             {
                 Service.Log($"[WorldState] Failed to find empty slot for party member {contentID:X}:{member->ObjectID:X}");
@@ -430,7 +432,7 @@ class WorldStateGame : WorldState, IDisposable
 
     private unsafe ulong GaugeData()
     {
-        var curGauge = FFXIVClientStructs.FFXIV.Client.Game.JobGaugeManager.Instance()->CurrentGauge;
+        var curGauge = JobGaugeManager.Instance()->CurrentGauge;
         return curGauge != null ? Utils.ReadField<ulong>(curGauge, 8) : 0;
     }
 

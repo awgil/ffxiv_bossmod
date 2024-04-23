@@ -1,44 +1,42 @@
 ﻿namespace BossMod.Endwalker.Quest.Endwalker;
 
-class AkhMorn : Components.GenericBaitAway
+class AkhMorn(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     private DateTime _activation;
 
-    public AkhMorn() : base(centerAtTarget: true) { }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_activation != default)
-            hints.Add($"Tankbuster x{NumExpectedCasts(module)}");
+            hints.Add($"Tankbuster x{NumExpectedCasts()}");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_activation != default)
             hints.PredictedDamage.Add((new(1), _activation));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AkhMorn)
         {
-            CurrentBaits.Add(new(module.PrimaryActor, module.Raid.Player()!, new AOEShapeCircle(4)));
+            CurrentBaits.Add(new(Module.PrimaryActor, Raid.Player()!, new AOEShapeCircle(4)));
             _activation = spell.NPCFinishAt;
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AkhMorn)
             ++NumCasts;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.AkhMornVisual)
         {
             ++NumCasts;
-            if (NumCasts == NumExpectedCasts(module))
+            if (NumCasts == NumExpectedCasts())
             {
                 CurrentBaits.Clear();
                 NumCasts = 0;
@@ -47,5 +45,5 @@ class AkhMorn : Components.GenericBaitAway
         }
     }
 
-    private int NumExpectedCasts(BossModule module) => module.PrimaryActor.IsDead ? 8 : 6;
+    private int NumExpectedCasts() => Module.PrimaryActor.IsDead ? 8 : 6;
 }

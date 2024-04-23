@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
-class P1Platforms : Components.GenericAOEs
+class P1Platforms(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> ForbiddenPlatforms = new();
+    public List<AOEInstance> ForbiddenPlatforms = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => ForbiddenPlatforms;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ForbiddenPlatforms;
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         var dir = (OID)actor.OID switch
         {
@@ -21,7 +21,7 @@ class P1Platforms : Components.GenericAOEs
         switch (state)
         {
             case 0x00040008:
-                ForbiddenPlatforms.Add(new(new AOEShapeCone(20, 45.Degrees()), module.Bounds.Center, dir, module.WorldState.CurrentTime.AddSeconds(5)));
+                ForbiddenPlatforms.Add(new(new AOEShapeCone(20, 45.Degrees()), Module.Bounds.Center, dir, WorldState.FutureTime(5)));
                 break;
             case 0x00100020:
                 ++NumCasts;

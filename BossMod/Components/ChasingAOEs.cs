@@ -1,28 +1,17 @@
 namespace BossMod.Components;
 
 // generic 'chasing AOE' component - these are AOEs that follow the target for a set amount of casts
-public class GenericChasingAOEs : GenericAOEs
+public class GenericChasingAOEs(BossModule module, ActionID aid = default, string warningText = "GTFO from chasing aoe!") : GenericAOEs(module, aid, warningText)
 {
-    public class Chaser
+    public class Chaser(AOEShape shape, Actor target, WPos prevPos, float moveDist, int numRemaining, DateTime nextActivation, float secondsBetweenActivations)
     {
-        public AOEShape Shape;
-        public Actor Target;
-        public WPos PrevPos;
-        public float MoveDist;
-        public int NumRemaining;
-        public DateTime NextActivation;
-        public float SecondsBetweenActivations;
-
-        public Chaser(AOEShape shape, Actor target, WPos prevPos, float moveDist, int numRemaining, DateTime nextActivation, float secondsBetweenActivations)
-        {
-            Shape = shape;
-            Target = target;
-            PrevPos = prevPos;
-            MoveDist = moveDist;
-            NumRemaining = numRemaining;
-            NextActivation = nextActivation;
-            SecondsBetweenActivations = secondsBetweenActivations;
-        }
+        public AOEShape Shape = shape;
+        public Actor Target = target;
+        public WPos PrevPos = prevPos;
+        public float MoveDist = moveDist;
+        public int NumRemaining = numRemaining;
+        public DateTime NextActivation = nextActivation;
+        public float SecondsBetweenActivations = secondsBetweenActivations;
 
         public WPos PredictedPosition()
         {
@@ -32,11 +21,9 @@ public class GenericChasingAOEs : GenericAOEs
         }
     }
 
-    public List<Chaser> Chasers = new();
+    public List<Chaser> Chasers = [];
 
-    public GenericChasingAOEs(ActionID aid = default, string warningText = "GTFO from chasing aoe!") : base(aid, warningText) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in Chasers)
         {
@@ -46,10 +33,7 @@ public class GenericChasingAOEs : GenericAOEs
         }
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return Chasers.Any(c => c.Target == player) ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Chasers.Any(c => c.Target == player) ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
     // return false if chaser was not found
     public bool Advance(WPos pos, float moveDistance, DateTime currentTime, bool removeWhenFinished = true)
@@ -74,47 +58,37 @@ public class GenericChasingAOEs : GenericAOEs
 }
 
 // standard chasing aoe; first cast is long - assume it is baited on the nearest allowed target; successive casts are instant
-public class StandardChasingAOEs : GenericChasingAOEs
+public class StandardChasingAOEs(BossModule module, AOEShape shape, ActionID actionFirst, ActionID actionRest, float moveDistance, float secondsBetweenActivations, int maxCasts) : GenericChasingAOEs(module)
 {
-    public AOEShape Shape;
-    public ActionID ActionFirst;
-    public ActionID ActionRest;
-    public float MoveDistance;
-    public float SecondsBetweenActivations;
-    public int MaxCasts;
+    public AOEShape Shape = shape;
+    public ActionID ActionFirst = actionFirst;
+    public ActionID ActionRest = actionRest;
+    public float MoveDistance = moveDistance;
+    public float SecondsBetweenActivations = secondsBetweenActivations;
+    public int MaxCasts = maxCasts;
     public BitMask ExcludedTargets; // any targets in this mask aren't considered to be possible targets
 
-    public StandardChasingAOEs(AOEShape shape, ActionID actionFirst, ActionID actionRest, float moveDistance, float secondsBetweenActivations, int maxCasts)
-    {
-        Shape = shape;
-        ActionFirst = actionFirst;
-        ActionRest = actionRest;
-        MoveDistance = moveDistance;
-        SecondsBetweenActivations = secondsBetweenActivations;
-        MaxCasts = maxCasts;
-    }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         Chasers.RemoveAll(c => (c.Target.IsDestroyed || c.Target.IsDead) && c.NumRemaining < MaxCasts);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var c in Chasers)
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddLine(c.PrevPos, c.Target.Position, 0xFF000000, 2);
-            arena.AddLine(c.PrevPos, c.Target.Position, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddLine(c.PrevPos, c.Target.Position, 0xFF000000, 2);
+            Arena.AddLine(c.PrevPos, c.Target.Position, ArenaColor.Danger);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == ActionFirst)
         {
-            var pos = spell.TargetID == caster.InstanceID ? caster.Position : module.WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
-            var (slot, target) = module.Raid.WithSlot().ExcludedFromMask(ExcludedTargets).MinBy(ip => (ip.Item2.Position - pos).LengthSq());
+            var pos = spell.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
+            var (slot, target) = Raid.WithSlot().ExcludedFromMask(ExcludedTargets).MinBy(ip => (ip.Item2.Position - pos).LengthSq());
             if (target != null)
             {
                 Chasers.Add(new(Shape, target, pos, 0, MaxCasts, spell.NPCFinishAt, SecondsBetweenActivations)); // initial cast does not move anywhere
@@ -123,12 +97,12 @@ public class StandardChasingAOEs : GenericChasingAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == ActionFirst || spell.Action == ActionRest)
         {
-            var pos = spell.MainTargetID == caster.InstanceID ? caster.Position : module.WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ;
-            Advance(pos, MoveDistance, module.WorldState.CurrentTime);
+            var pos = spell.MainTargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ;
+            Advance(pos, MoveDistance, WorldState.CurrentTime);
         }
     }
 }

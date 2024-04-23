@@ -5,9 +5,9 @@ namespace BossMod.SCH;
 // TODO: this is shit, like all healer modules...
 class Actions : HealerActions
 {
-    private SCHConfig _config;
-    private Rotation.State _state;
-    private Rotation.Strategy _strategy;
+    private readonly SCHConfig _config;
+    private readonly Rotation.State _state;
+    private readonly Rotation.Strategy _strategy;
     private bool _allowDelayingNextGCD;
 
     public Actions(Autorotation autorot, Actor player)
@@ -26,10 +26,10 @@ class Actions : HealerActions
         OnConfigModified();
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         _config.Modified -= OnConfigModified;
-        base.Dispose();
+        base.Dispose(disposing);
     }
 
     public override CommonRotation.PlayerState GetState() => _state;

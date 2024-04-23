@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Endwalker.Savage.P6SHegemone;
 
-class Transmission : Components.CastCounter
+class Transmission(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.ReekHavoc))
 {
-    private DateTime[] _infectionExpire = new DateTime[PartyState.MaxPartySize]; // when status expires, it will be replaced with stun - we show aoes for last few seconds only
+    private readonly DateTime[] _infectionExpire = new DateTime[PartyState.MaxPartySize]; // when status expires, it will be replaced with stun - we show aoes for last few seconds only
     private BitMask _snakeInfection; // hits front
     private BitMask _wingInfection; // hits back
     private BitMask _stuns;
@@ -13,84 +13,82 @@ class Transmission : Components.CastCounter
 
     public bool StunsActive => _stuns.Any();
 
-    public Transmission() : base(ActionID.MakeSpell(AID.ReekHavoc)) { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         _clips.Reset();
         _clippedByOthers.Reset();
-        foreach (var e in ActiveAOEs(module))
+        foreach (var e in ActiveAOEs())
         {
-            _clippedByOthers |= _clips[e.slot] = module.Raid.WithSlot().Exclude(e.player).InShape(_shape, e.player.Position, e.direction).Mask();
+            _clippedByOthers |= _clips[e.slot] = Raid.WithSlot().Exclude(e.player).InShape(_shape, e.player.Position, e.direction).Mask();
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_snakeInfection[slot])
             hints.Add("Face away from raid", _clips[slot].Any());
         if (_wingInfection[slot])
             hints.Add("Face raid", _clips[slot].Any());
-        if (_clippedByOthers[slot] && ExpireImminent(module, slot))
+        if (_clippedByOthers[slot] && ExpireImminent(slot))
             hints.Add("Avoid transmission aoe!");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return _clips[playerSlot, pcSlot] ? PlayerPriority.Danger : _clippedByOthers[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Normal;
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        foreach (var e in ActiveAOEs(module))
-            if (e.slot == pcSlot || ExpireImminent(module, e.slot))
-                _shape.Draw(arena, e.player.Position, e.direction);
+        foreach (var e in ActiveAOEs())
+            if (e.slot == pcSlot || ExpireImminent(e.slot))
+                _shape.Draw(Arena, e.player.Position, e.direction);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {
             case TetherID.TransmissionSnake:
-                _snakeInfection.Set(module.Raid.FindSlot(source.InstanceID));
+                _snakeInfection.Set(Raid.FindSlot(source.InstanceID));
                 break;
             case TetherID.TransmissionWing:
-                _wingInfection.Set(module.Raid.FindSlot(source.InstanceID));
+                _wingInfection.Set(Raid.FindSlot(source.InstanceID));
                 break;
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.Glossomorph:
             case SID.Chelomorph:
-                var slot = module.Raid.FindSlot(actor.InstanceID);
+                var slot = Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     _infectionExpire[slot] = status.ExpireAt;
                 break;
             case SID.OutOfControlSnake:
             case SID.OutOfControlWing:
-                _stuns.Set(module.Raid.FindSlot(actor.InstanceID));
+                _stuns.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.OutOfControlSnake:
             case SID.OutOfControlWing:
-                _stuns.Clear(module.Raid.FindSlot(actor.InstanceID));
+                _stuns.Clear(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    private IEnumerable<(int slot, Actor player, Angle direction)> ActiveAOEs(BossModule module)
+    private IEnumerable<(int slot, Actor player, Angle direction)> ActiveAOEs()
     {
-        foreach (var (slot, player) in module.Raid.WithSlot(true))
+        foreach (var (slot, player) in Raid.WithSlot(true))
         {
             if (_snakeInfection[slot])
                 yield return (slot, player, player.Rotation);
@@ -99,9 +97,9 @@ class Transmission : Components.CastCounter
         }
     }
 
-    private bool ExpireImminent(BossModule module, int slot)
+    private bool ExpireImminent(int slot)
     {
         var expire = _infectionExpire[slot];
-        return expire != default && (expire - module.WorldState.CurrentTime).TotalSeconds < 2;
+        return expire != default && (expire - WorldState.CurrentTime).TotalSeconds < 2;
     }
 }

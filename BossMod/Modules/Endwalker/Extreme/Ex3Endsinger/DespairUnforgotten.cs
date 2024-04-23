@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex3Endsigner;
 
-class DespairUnforgotten : BossComponent
+class DespairUnforgotten(BossModule module) : BossComponent(module)
 {
     private enum State { None, Donut, Spread, Flare, Stack }
 
     public bool Done { get; private set; }
-    private State[] _states = new State[PartyState.MaxPartySize * 4];
-    private int[] _doneCasts = new int[PartyState.MaxPartySize];
+    private readonly State[] _states = new State[PartyState.MaxPartySize * 4];
+    private readonly int[] _doneCasts = new int[PartyState.MaxPartySize];
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         // TODO: improve
         if (_doneCasts[slot] > 3)
@@ -26,12 +26,12 @@ class DespairUnforgotten : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // TODO: think what to draw here...
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -45,30 +45,30 @@ class DespairUnforgotten : BossComponent
                 };
                 if (rings == 0)
                 {
-                    module.ReportError(this, $"Unexpected extra {status.Extra:X} for rewind status");
+                    ReportError($"Unexpected extra {status.Extra:X} for rewind status");
                     break;
                 }
 
-                int slot = module.Raid.FindSlot(actor.InstanceID);
+                int slot = Raid.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     _states[slot * 4 + 3] = _states[slot * 4 + 3 - rings];
                 break;
             case SID.EchoesOfNausea:
-                ModifyState(module, actor, State.Donut);
+                ModifyState(actor, State.Donut);
                 break;
             case SID.EchoesOfBefoulment:
-                ModifyState(module, actor, State.Spread);
+                ModifyState(actor, State.Spread);
                 break;
             case SID.EchoesOfFuture:
-                ModifyState(module, actor, State.Flare);
+                ModifyState(actor, State.Flare);
                 break;
             case SID.EchoesOfBenevolence:
-                ModifyState(module, actor, State.Stack);
+                ModifyState(actor, State.Stack);
                 break;
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -76,20 +76,20 @@ class DespairUnforgotten : BossComponent
             case SID.EchoesOfBefoulment:
             case SID.EchoesOfFuture:
             case SID.EchoesOfBenevolence:
-                int slot = module.WorldState.Party.FindSlot(actor.InstanceID);
+                int slot = WorldState.Party.FindSlot(actor.InstanceID);
                 if (slot >= 0)
                     Done |= ++_doneCasts[slot] > 3;
                 break;
         }
     }
 
-    private void ModifyState(BossModule module, Actor actor, State state)
+    private void ModifyState(Actor actor, State state)
     {
-        int slot = module.Raid.FindSlot(actor.InstanceID);
+        int slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0)
         {
             if (_doneCasts[slot] > 3)
-                module.ReportError(this, $"Unexpected state change after {_doneCasts[slot]} casts");
+                ReportError($"Unexpected state change after {_doneCasts[slot]} casts");
             else
                 _states[slot * 4 + _doneCasts[slot]] = state;
         }

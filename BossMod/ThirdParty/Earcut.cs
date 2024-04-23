@@ -1,4 +1,6 @@
 ﻿#pragma warning disable CS8625, 8604, 8603, 8600, 8601, 8602, 8618
+#pragma warning disable CA1052, 1051, 1002, 1062
+#pragma warning disable IDE0007, IDE0046, IDE0047, IDE0048, IDE0074, IDE0290, IDE2005
 
 namespace EarcutNet;
 

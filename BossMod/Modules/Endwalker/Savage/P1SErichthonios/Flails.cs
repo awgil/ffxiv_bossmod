@@ -3,7 +3,7 @@
 // state related to [aether]flails mechanics
 class Flails : BossComponent
 {
-    public int NumCasts { get; private set; } = 0;
+    public int NumCasts { get; private set; }
     private AOEShape? _first;
     private AOEShape? _second;
     private bool _detectSecond;
@@ -14,9 +14,9 @@ class Flails : BossComponent
     private static readonly AOEShape _aoeInner = new AOEShapeCircle(P1S.InnerCircleRadius);
     private static readonly AOEShape _aoeOuter = new AOEShapeDonut(P1S.InnerCircleRadius, 60);
 
-    public override void Init(BossModule module)
+    public Flails(BossModule module) : base(module)
     {
-        (_first, _second) = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
+        (_first, _second) = (AID)(Module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
         {
             AID.GaolerFlailRL => (_aoeRight, _aoeLeft),
             AID.GaolerFlailLR => (_aoeLeft, _aoeRight),
@@ -34,27 +34,27 @@ class Flails : BossComponent
         };
 
         if (_first == null)
-            module.ReportError(this, "Failed to detect flail zones");
+            ReportError("Failed to detect flail zones");
 
         _detectSecond = _first != null && _second == null;
         _showSecond = _first is AOEShapeCone != _second is AOEShapeCone;
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         // currently the best way i've found to determine secondary aetherflail attack if first attack is a cone is to watch spawned npcs
         // these can appear few frames later...
         if (!_detectSecond)
             return;
 
-        var weaponsBall = module.Enemies(OID.FlailI);
-        var weaponsChakram = module.Enemies(OID.FlailO);
+        var weaponsBall = Module.Enemies(OID.FlailI);
+        var weaponsChakram = Module.Enemies(OID.FlailO);
         if (weaponsBall.Count + weaponsChakram.Count > 0)
         {
             _detectSecond = false;
             if (weaponsBall.Count > 0 && weaponsChakram.Count > 0)
             {
-                module.ReportError(this, $"Failed to determine second aetherflail: there are {weaponsBall.Count} balls and {weaponsChakram.Count} chakrams");
+                ReportError($"Failed to determine second aetherflail: there are {weaponsBall.Count} balls and {weaponsChakram.Count} chakrams");
             }
             else
             {
@@ -63,22 +63,22 @@ class Flails : BossComponent
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (_first?.Check(actor.Position, module.PrimaryActor) ?? false)
+        if (_first?.Check(actor.Position, Module.PrimaryActor) ?? false)
             hints.Add("Hit by first flail!");
-        if (_showSecond && _second != null && _second.Check(actor.Position, module.PrimaryActor))
+        if (_showSecond && _second != null && _second.Check(actor.Position, Module.PrimaryActor))
             hints.Add("Hit by second flail!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        _first?.Draw(arena, module.PrimaryActor);
+        _first?.Draw(Arena, Module.PrimaryActor);
         if (_showSecond)
-            _second?.Draw(arena, module.PrimaryActor);
+            _second?.Draw(Arena, Module.PrimaryActor);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {

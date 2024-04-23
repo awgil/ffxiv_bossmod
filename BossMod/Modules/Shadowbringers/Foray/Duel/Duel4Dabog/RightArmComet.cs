@@ -1,32 +1,22 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
 
-class RightArmComet : Components.KnockbackFromCastTarget
+class RightArmComet(BossModule module, AID aid, float distance) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(aid), distance, shape: new AOEShapeCircle(_radius))
 {
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
-    public RightArmComet(AID aid, float distance) : base(ActionID.MakeSpell(aid), distance, shape: new AOEShapeCircle(_radius)) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (Casters.Any(c => !Shape!.Check(actor.Position, c)))
             hints.Add("Soak the tower!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         foreach (var c in Casters)
-            arena.AddCircle(c.Position, _radius, pc.Position.InCircle(c.Position, _radius) ? ArenaColor.Safe : ArenaColor.Danger, 2);
+            Arena.AddCircle(c.Position, _radius, pc.Position.InCircle(c.Position, _radius) ? ArenaColor.Safe : ArenaColor.Danger, 2);
     }
 }
-
-class RightArmCometShort : RightArmComet
-{
-    public RightArmCometShort() : base(AID.RightArmCometKnockbackShort, 12) { }
-}
-
-class RightArmCometLong : RightArmComet
-{
-    public RightArmCometLong() : base(AID.RightArmCometKnockbackLong, 25) { }
-}
+class RightArmCometShort(BossModule module) : RightArmComet(module, AID.RightArmCometKnockbackShort, 12);
+class RightArmCometLong(BossModule module) : RightArmComet(module, AID.RightArmCometKnockbackLong, 25);

@@ -1,44 +1,31 @@
-﻿namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash1;
+﻿using BossMod;
 
-class BloodyCaress : Components.SelfTargetedAOEs
-{
-    public BloodyCaress(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCone(12, 60.Degrees())) { }
-}
-class NBloodyCaress : BloodyCaress { public NBloodyCaress() : base(AID.NBloodyCaress) { } }
-class SBloodyCaress : BloodyCaress { public SBloodyCaress() : base(AID.SBloodyCaress) { } }
+namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash1;
 
-class DisciplesOfLevin : Components.SelfTargetedAOEs
-{
-    public DisciplesOfLevin(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(10)) { }
-}
-class NDisciplesOfLevin : DisciplesOfLevin { public NDisciplesOfLevin() : base(AID.NDisciplesOfLevin) { } }
-class SDisciplesOfLevin : DisciplesOfLevin { public SDisciplesOfLevin() : base(AID.SDisciplesOfLevin) { } }
+class BloodyCaress(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(12, 60.Degrees()));
+class NBloodyCaress(BossModule module) : BloodyCaress(module, AID.NBloodyCaress);
+class SBloodyCaress(BossModule module) : BloodyCaress(module, AID.SBloodyCaress);
+
+class DisciplesOfLevin(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(10));
+class NDisciplesOfLevin(BossModule module) : DisciplesOfLevin(module, AID.NDisciplesOfLevin);
+class SDisciplesOfLevin(BossModule module) : DisciplesOfLevin(module, AID.SDisciplesOfLevin);
 
 // TODO: better component (auto update rect length)
-class BarrelingSmash : Components.BaitAwayCast
-{
-    public BarrelingSmash(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(50, 3.5f)) { } // TODO: it should be safe to stay beyond target...
-}
-class NBarrelingSmash : BarrelingSmash { public NBarrelingSmash() : base(AID.NBarrelingSmash) { } }
-class SBarrelingSmash : BarrelingSmash { public SBarrelingSmash() : base(AID.SBarrelingSmash) { } }
+class BarrelingSmash(BossModule module, AID aid) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(aid), 3.5f);
+class NBarrelingSmash(BossModule module) : BarrelingSmash(module, AID.NBarrelingSmash);
+class SBarrelingSmash(BossModule module) : BarrelingSmash(module, AID.SBarrelingSmash);
 
-class Howl : Components.RaidwideCast
-{
-    public Howl(AID aid) : base(ActionID.MakeSpell(aid)) { }
-}
-class NHowl : Howl { public NHowl() : base(AID.NHowl) { } }
-class SHowl : Howl { public SHowl() : base(AID.SHowl) { } }
+class Howl(BossModule module, AID aid) : Components.RaidwideCast(module, ActionID.MakeSpell(aid));
+class NHowl(BossModule module) : Howl(module, AID.NHowl);
+class SHowl(BossModule module) : Howl(module, AID.SHowl);
 
-class MasterOfLevin : Components.SelfTargetedAOEs
-{
-    public MasterOfLevin(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeDonut(5, 30)) { }
-}
-class NMasterOfLevin : MasterOfLevin { public NMasterOfLevin() : base(AID.NMasterOfLevin) { } }
-class SMasterOfLevin : MasterOfLevin { public SMasterOfLevin() : base(AID.SMasterOfLevin) { } }
+class MasterOfLevin(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeDonut(5, 30));
+class NMasterOfLevin(BossModule module) : MasterOfLevin(module, AID.NMasterOfLevin);
+class SMasterOfLevin(BossModule module) : MasterOfLevin(module, AID.SMasterOfLevin);
 
 class C020RaikoStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C020RaikoStates(BossModule module, bool savage) : base(module)
     {
@@ -86,14 +73,12 @@ class C020RaikoStates : StateMachineBuilder
         Cast(id, _savage ? AID.SMasterOfLevin : AID.NMasterOfLevin, delay, 4, "In");
     }
 }
-class C020NRaikoStates : C020RaikoStates { public C020NRaikoStates(BossModule module) : base(module, false) { } }
-class C020SRaikoStates : C020RaikoStates { public C020SRaikoStates(BossModule module) : base(module, true) { } }
+class C020NRaikoStates(BossModule module) : C020RaikoStates(module, false);
+class C020SRaikoStates(BossModule module) : C020RaikoStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12422, SortOrder = 1)]
-public class C020NRaiko : C020Trash1
+public class C020NRaiko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
 {
-    public C020NRaiko(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
@@ -103,10 +88,8 @@ public class C020NRaiko : C020Trash1
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12422, SortOrder = 1)]
-public class C020SRaiko : C020Trash1
+public class C020SRaiko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
 {
-    public C020SRaiko(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

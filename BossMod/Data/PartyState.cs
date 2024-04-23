@@ -10,13 +10,13 @@ namespace BossMod;
 // in alliance, two 'other' groups use slots 8-15 and 16-23; alliance members don't have content-ID, but always have actor-ID
 public class PartyState
 {
-    public static int PlayerSlot { get; } = 0;
-    public static int MaxPartySize { get; } = 8;
-    public static int MaxAllianceSize { get; } = 24;
+    public const int PlayerSlot = 0;
+    public const int MaxPartySize = 8;
+    public const int MaxAllianceSize = 24;
 
-    private ulong[] _contentIDs = new ulong[MaxPartySize]; // non-alliance slots: empty slots contain 0's, alliance slots: n/a (FF always reports 0)
-    private ulong[] _actorIDs = new ulong[MaxAllianceSize]; // non-alliance slots: empty slots or slots corresponding to players not in world contain 0's, alliance slots: empty slots contains 0's
-    private Actor?[] _actors = new Actor?[MaxAllianceSize];
+    private readonly ulong[] _contentIDs = new ulong[MaxPartySize]; // non-alliance slots: empty slots contain 0's, alliance slots: n/a (FF always reports 0)
+    private readonly ulong[] _actorIDs = new ulong[MaxAllianceSize]; // non-alliance slots: empty slots or slots corresponding to players not in world contain 0's, alliance slots: empty slots contains 0's
+    private readonly Actor?[] _actors = new Actor?[MaxAllianceSize];
 
     public ReadOnlySpan<ulong> ContentIDs => _contentIDs;
     public ReadOnlySpan<ulong> ActorIDs => _actorIDs;
@@ -93,7 +93,7 @@ public class PartyState
 
         protected override void Exec(WorldState ws)
         {
-            if (Slot < 0 || Slot >= MaxAllianceSize)
+            if (Slot is < 0 or >= MaxAllianceSize)
             {
                 Service.Log($"[PartyState] Out-of-bounds slot {Slot}");
                 return;

@@ -153,7 +153,7 @@ class FloodFillTest : TestWindow
         foreach (var vx in x)
         {
             BlockCircle(m, vx, z, 6, t, 0.1f, seqRepeat, _aoeLeeway);
-            t += vx == x.Last() ? 1.9f : 1.4f;
+            t += vx == x[^1] ? 1.9f : 1.4f;
         }
     }
 

@@ -6,14 +6,14 @@ namespace BossMod;
 
 public class ReplayManagementWindow : UIWindow
 {
-    private WorldState _ws;
-    private DirectoryInfo _logDir;
-    private ReplayManagementConfig _config;
-    private ReplayManager _manager;
+    private readonly WorldState _ws;
+    private readonly DirectoryInfo _logDir;
+    private readonly ReplayManagementConfig _config;
+    private readonly ReplayManager _manager;
     private ReplayRecorder? _recorder;
     private string _message = "";
 
-    private static string _windowID = "###Replay recorder";
+    private const string _windowID = "###Replay recorder";
 
     public ReplayManagementWindow(WorldState ws, DirectoryInfo logDir) : base(_windowID, false, new(300, 200))
     {
@@ -37,6 +37,7 @@ public class ReplayManagementWindow : UIWindow
         _ws.CurrentZoneChanged -= OnZoneChanged;
         _recorder?.Dispose();
         _manager.Dispose();
+        base.Dispose(disposing);
     }
 
     public void SetVisible(bool vis)
@@ -125,7 +126,7 @@ public class ReplayManagementWindow : UIWindow
         SetVisible(false);
     }
 
-    private void UpdateTitle() =>  WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
+    private void UpdateTitle() => WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
 
     private bool UpdateAutoRecord(uint cfcId)
     {
@@ -151,7 +152,7 @@ public class ReplayManagementWindow : UIWindow
     {
         string? prefix = null;
         if (_ws.CurrentCFCID != 0)
-            prefix ??= Service.LuminaRow<ContentFinderCondition>(_ws.CurrentCFCID)?.Name.ToString();
+            prefix = Service.LuminaRow<ContentFinderCondition>(_ws.CurrentCFCID)?.Name.ToString();
         if (_ws.CurrentZone != 0)
             prefix ??= Service.LuminaRow<TerritoryType>(_ws.CurrentZone)?.PlaceName.Value?.NameNoArticle.ToString();
         prefix ??= "World";
@@ -159,7 +160,7 @@ public class ReplayManagementWindow : UIWindow
 
         var player = _ws.Party.Player();
         if (player != null)
-            prefix += $"_{player.Class}{player.Level}_{player.Name.Replace(" ", null)}";
+            prefix += $"_{player.Class}{player.Level}_{player.Name.Replace(" ", null, StringComparison.Ordinal)}";
 
         var cf = FFXIVClientStructs.FFXIV.Client.Game.UI.ContentsFinder.Instance();
         if (cf->IsUnrestrictedParty)

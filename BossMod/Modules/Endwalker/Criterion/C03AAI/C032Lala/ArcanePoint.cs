@@ -1,47 +1,39 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
 
 // TODO: we could detect aoe positions slightly earlier, when golems spawn
-class ConstructiveFigure : Components.SelfTargetedAOEs
-{
-    public ConstructiveFigure(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(50, 4)) { }
-}
-class NConstructiveFigure : ConstructiveFigure { public NConstructiveFigure() : base(AID.NAero) { } }
-class SConstructiveFigure : ConstructiveFigure { public SConstructiveFigure() : base(AID.SAero) { } }
+class ConstructiveFigure(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(50, 4));
+class NConstructiveFigure(BossModule module) : ConstructiveFigure(module, AID.NAero);
+class SConstructiveFigure(BossModule module) : ConstructiveFigure(module, AID.SAero);
 
-class ArcanePoint : BossComponent
+class ArcanePoint(BossModule module) : BossComponent(module)
 {
     public int NumCasts { get; private set; }
-    private ArcanePlot? _plot;
+    private readonly ArcanePlot? _plot = module.FindComponent<ArcanePlot>();
 
-    public override void Init(BossModule module)
-    {
-        _plot = module.FindComponent<ArcanePlot>();
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (NumCasts > 0)
             return;
         var spot = CurrentSafeSpot(actor.Position);
-        if (spot != null && module.Raid.WithoutSlot().Exclude(actor).Any(p => CurrentSafeSpot(p.Position) == spot))
+        if (spot != null && Raid.WithoutSlot().Exclude(actor).Any(p => CurrentSafeSpot(p.Position) == spot))
             hints.Add("Spread on different squares!");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return PlayerPriority.Interesting;
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (NumCasts > 0)
             return;
         var spot = CurrentSafeSpot(pc.Position);
         if (spot != null)
-            ArcaneArrayPlot.Shape.Draw(arena, spot.Value, default, ArenaColor.SafeFromAOE);
+            ArcaneArrayPlot.Shape.Draw(Arena, spot.Value, default, ArenaColor.SafeFromAOE);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NPowerfulLight or AID.SPowerfulLight)
         {
@@ -59,16 +51,10 @@ class ArcanePoint : BossComponent
     }
 }
 
-class ExplosiveTheorem : Components.SpreadFromCastTargets
-{
-    public ExplosiveTheorem(AID aid) : base(ActionID.MakeSpell(aid), 8) { }
-}
-class NExplosiveTheorem : ExplosiveTheorem { public NExplosiveTheorem() : base(AID.NExplosiveTheoremAOE) { } }
-class SExplosiveTheorem : ExplosiveTheorem { public SExplosiveTheorem() : base(AID.SExplosiveTheoremAOE) { } }
+class ExplosiveTheorem(BossModule module, AID aid) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(aid), 8);
+class NExplosiveTheorem(BossModule module) : ExplosiveTheorem(module, AID.NExplosiveTheoremAOE);
+class SExplosiveTheorem(BossModule module) : ExplosiveTheorem(module, AID.SExplosiveTheoremAOE);
 
-class TelluricTheorem : Components.LocationTargetedAOEs
-{
-    public TelluricTheorem(AID aid) : base(ActionID.MakeSpell(aid), 8) { }
-}
-class NTelluricTheorem : TelluricTheorem { public NTelluricTheorem() : base(AID.NTelluricTheorem) { } }
-class STelluricTheorem : TelluricTheorem { public STelluricTheorem() : base(AID.STelluricTheorem) { } }
+class TelluricTheorem(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 8);
+class NTelluricTheorem(BossModule module) : TelluricTheorem(module, AID.NTelluricTheorem);
+class STelluricTheorem(BossModule module) : TelluricTheorem(module, AID.STelluricTheorem);

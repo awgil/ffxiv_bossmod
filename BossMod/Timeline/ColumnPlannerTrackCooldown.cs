@@ -3,38 +3,22 @@ using System.Reflection;
 
 namespace BossMod;
 
-public class ColumnPlannerTrackCooldown : ColumnPlannerTrack
+public class ColumnPlannerTrackCooldown(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, ModuleRegistry.Info? moduleInfo, PlanDefinitions.ClassData classDef, PlanDefinitions.CooldownTrack trackDef, ActionID defaultAction, int level)
+    : ColumnPlannerTrack(timeline, tree, phaseBranches, name)
 {
-    public class ActionElement : Element
+    public class ActionElement(Entry window, bool lowPriority, PlanTarget.ISelector target, string comment) : Element(window)
     {
         public ActionID Action;
-        public bool LowPriority;
-        public PlanTarget.ISelector Target;
-        public string Comment;
-
-        public ActionElement(Entry window, bool lowPriority, PlanTarget.ISelector target, string comment) : base(window)
-        {
-            LowPriority = lowPriority;
-            Target = target;
-            Comment = comment;
-        }
+        public bool LowPriority = lowPriority;
+        public PlanTarget.ISelector Target = target;
+        public string Comment = comment;
     }
 
-    public ModuleRegistry.Info? ModuleInfo;
-    public PlanDefinitions.ClassData ClassDef;
-    public PlanDefinitions.CooldownTrack TrackDef;
-    public ActionID DefaultAction;
-    public int Level;
-
-    public ColumnPlannerTrackCooldown(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, ModuleRegistry.Info? moduleInfo, PlanDefinitions.ClassData classDef, PlanDefinitions.CooldownTrack trackDef, ActionID defaultAction, int level)
-        : base(timeline, tree, phaseBranches, name)
-    {
-        ModuleInfo = moduleInfo;
-        ClassDef = classDef;
-        TrackDef = trackDef;
-        DefaultAction = defaultAction;
-        Level = level;
-    }
+    public ModuleRegistry.Info? ModuleInfo = moduleInfo;
+    public PlanDefinitions.ClassData ClassDef = classDef;
+    public PlanDefinitions.CooldownTrack TrackDef = trackDef;
+    public ActionID DefaultAction = defaultAction;
+    public int Level = level;
 
     public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, ActionID aid, bool lowPriority, PlanTarget.ISelector target, string comment)
     {
@@ -53,11 +37,13 @@ public class ColumnPlannerTrackCooldown : ColumnPlannerTrack
     protected override List<string> DescribeElement(Element e)
     {
         var cast = (ActionElement)e;
-        List<string> res = new();
-        res.Add($"Comment: {cast.Comment}");
-        res.Add($"Action: {cast.Action}");
-        res.Add($"Target: {cast.Target.GetType().Name}: {cast.Target.Describe(ModuleInfo)}");
-        res.Add($"Priority: {(cast.LowPriority ? "low" : "high")}");
+        List<string> res =
+        [
+            $"Comment: {cast.Comment}",
+            $"Action: {cast.Action}",
+            $"Target: {cast.Target.GetType().Name}: {cast.Target.Describe(ModuleInfo)}",
+            $"Priority: {(cast.LowPriority ? "low" : "high")}",
+        ];
         return res;
     }
 

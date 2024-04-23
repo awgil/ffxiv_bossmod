@@ -3,49 +3,33 @@
 namespace BossMod;
 
 // column representing single planner track (could be cooldowns or anything else)
-public abstract class ColumnPlannerTrack : ColumnGenericHistory
+public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name) : ColumnGenericHistory(timeline, tree, phaseBranches, name)
 {
-    public class Element
+    public class Element(ColumnGenericHistory.Entry window)
     {
-        public Entry Window;
+        public Entry Window = window;
         public Entry? Effect; // null if window length is >= than effect length
         public Entry? Cooldown; // null if cooldown is zero
         public float EffectLength;
         public float CooldownLength;
 
         public float TotalLength => Math.Max(EffectLength, Window.Duration + CooldownLength);
-
-        public Element(Entry window)
-        {
-            Window = window;
-        }
     }
 
-    private class EditState
+    private class EditState(ColumnPlannerTrack.Element element, bool editingEnd)
     {
-        public Element Element;
-        public bool EditingEnd;
-
-        public EditState(Element element, bool editingEnd)
-        {
-            Element = element;
-            EditingEnd = editingEnd;
-        }
+        public Element Element = element;
+        public bool EditingEnd = editingEnd;
     }
 
     public Action NotifyModified = () => { };
-    public List<Element> Elements = new();
-    private EditState? _edit = null;
-    private Element? _popupElement = null;
+    public List<Element> Elements = [];
+    private EditState? _edit;
+    private Element? _popupElement;
 
-    private uint _colCooldown = 0x80808080;
-    private uint _colEffect = 0x8000ff00;
-    private uint _colWindow = 0x8000ffff;
-
-    public ColumnPlannerTrack(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name)
-        : base(timeline, tree, phaseBranches, name)
-    {
-    }
+    private readonly uint _colCooldown = 0x80808080;
+    private readonly uint _colEffect = 0x8000ff00;
+    private readonly uint _colWindow = 0x8000ffff;
 
     public override void Draw()
     {
@@ -226,7 +210,7 @@ public abstract class ColumnPlannerTrack : ColumnGenericHistory
     {
         var tStart = element.Window.TimeSinceGlobalStart(Tree);
 
-        List<string> tooltip = DescribeElement(element);
+        var tooltip = DescribeElement(element);
         tooltip.Add($"Press at: {tStart:f1}s ({element.Window.TimeSincePhaseStart():f1}s since phase start, {element.Window.Delay:f1}s after state start)");
         if (element.Window.AttachNode.Predecessor != null)
             tooltip.Add($"Attached: {element.Window.Delay:f1}s after {element.Window.AttachNode.Predecessor.State.ID:X} '{element.Window.AttachNode.Predecessor.State.Name}' ({element.Window.AttachNode.Predecessor.State.Comment})");

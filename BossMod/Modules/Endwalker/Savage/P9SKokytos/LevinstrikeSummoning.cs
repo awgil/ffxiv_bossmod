@@ -2,26 +2,24 @@
 
 // TODO: positioning hints for unmarked players
 // TODO: or is it a spread?.. one thing i like about bait-away better here is that it better distinguishes bait vs avoid
-class LevinstrikeSummoningIcemeld : Components.GenericBaitAway
+class LevinstrikeSummoningIcemeld(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private List<Actor> _pendingBaiters = new(); // we only want to show max 1 baiter at a time
+    private readonly List<Actor> _pendingBaiters = []; // we only want to show max 1 baiter at a time
 
     private static readonly AOEShapeCircle _shape = new(20);
 
-    public LevinstrikeSummoningIcemeld() : base(centerAtTarget: true) { }
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Icemeld)
         {
             if (CurrentBaits.Count == 0)
-                CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
+                CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape));
             else
                 _pendingBaiters.Add(actor);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.Icemeld1 or AID.Icemeld2 or AID.Icemeld3 or AID.Icemeld4)
         {
@@ -29,7 +27,7 @@ class LevinstrikeSummoningIcemeld : Components.GenericBaitAway
             CurrentBaits.Clear();
             if (_pendingBaiters.Count > 0)
             {
-                CurrentBaits.Add(new(module.PrimaryActor, _pendingBaiters[0], _shape));
+                CurrentBaits.Add(new(Module.PrimaryActor, _pendingBaiters[0], _shape));
                 _pendingBaiters.RemoveAt(0);
             }
         }
@@ -38,15 +36,13 @@ class LevinstrikeSummoningIcemeld : Components.GenericBaitAway
 
 // TODO: positioning hints for next baiter
 // TODO: or is it a spread?.. one thing i like about bait-away better here is that it better distinguishes bait vs avoid
-class LevinstrikeSummoningFiremeld : Components.GenericBaitAway
+class LevinstrikeSummoningFiremeld(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.Firemeld), centerAtTarget: true)
 {
-    private Actor?[] _baitOrder = { null, null, null, null };
+    private readonly Actor?[] _baitOrder = [null, null, null, null];
 
     private static readonly AOEShapeCircle _shape = new(6);
 
-    public LevinstrikeSummoningFiremeld() : base(ActionID.MakeSpell(AID.Firemeld), centerAtTarget: true) { }
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         int order = (IconID)iconID switch
         {
@@ -60,44 +56,44 @@ class LevinstrikeSummoningFiremeld : Components.GenericBaitAway
             return;
         _baitOrder[order] = actor;
         if (order == 0)
-            InitBaits(module);
+            InitBaits();
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
         {
             ++NumCasts;
-            InitBaits(module);
+            InitBaits();
         }
     }
 
-    private void InitBaits(BossModule module)
+    private void InitBaits()
     {
         CurrentBaits.Clear();
         var target = NumCasts < _baitOrder.Length ? _baitOrder[NumCasts] : null;
         if (target != null)
-            CurrentBaits.Add(new(module.PrimaryActor, target, _shape));
+            CurrentBaits.Add(new(Module.PrimaryActor, target, _shape));
     }
 }
 
 // both explosions and towers
-class LevinstrikeSummoningShock : Components.GenericAOEs
+class LevinstrikeSummoningShock(BossModule module) : Components.GenericAOEs(module)
 {
     public int NumTowers { get; private set; } // NumCasts counts explosions
-    private WPos[] _explodeOrder = { default, default, default, default };
-    private Actor?[] _soakerOrder = { null, null, null, null };
+    private readonly WPos[] _explodeOrder = [default, default, default, default];
+    private readonly Actor?[] _soakerOrder = [null, null, null, null];
     private DateTime _firstExplosion;
 
     private static readonly AOEShapeCircle _shape = new(6);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (NumCasts < _explodeOrder.Length)
             yield return new(_shape, _explodeOrder[NumCasts], default, _firstExplosion.AddSeconds(NumCasts * 5.6f));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var hint = Array.IndexOf(_soakerOrder, actor) switch
         {
@@ -118,16 +114,16 @@ class LevinstrikeSummoningShock : Components.GenericAOEs
                 hints.Add(shouldSoak ? "Soak the tower!" : "GTFO from tower!");
         }
 
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (NumTowers < NumCasts)
-            arena.AddCircle(_explodeOrder[NumTowers], 3, _soakerOrder[NumTowers] == pc ? ArenaColor.Safe : ArenaColor.Danger, 2);
+            Arena.AddCircle(_explodeOrder[NumTowers], 3, _soakerOrder[NumTowers] == pc ? ArenaColor.Safe : ArenaColor.Danger, 2);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var (order, isBall) = (IconID)iconID switch
         {
@@ -145,9 +141,9 @@ class LevinstrikeSummoningShock : Components.GenericAOEs
             return;
         if (isBall)
         {
-            var dir = (actor.Position - module.Bounds.Center).Normalized();
-            _explodeOrder[order] = module.Bounds.Center - 16 * dir;
-            _firstExplosion = module.WorldState.CurrentTime.AddSeconds(12.7f);
+            var dir = (actor.Position - Module.Bounds.Center).Normalized();
+            _explodeOrder[order] = Module.Bounds.Center - 16 * dir;
+            _firstExplosion = WorldState.FutureTime(12.7f);
         }
         else
         {
@@ -155,7 +151,7 @@ class LevinstrikeSummoningShock : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

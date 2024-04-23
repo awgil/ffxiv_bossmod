@@ -2,49 +2,45 @@
 
 class ManifoldFlames : Components.UniformStackSpread
 {
-    public ManifoldFlames() : base(0, 6) { }
-
-    public override void Init(BossModule module)
+    public ManifoldFlames(BossModule module) : base(module, 0, 6)
     {
-        AddSpreads(module.Raid.WithoutSlot(true));
+        AddSpreads(Raid.WithoutSlot(true));
     }
 }
 
-class NestOfFlamevipersCommon : Components.CastCounter
+class NestOfFlamevipersCommon(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.NestOfFlamevipersAOE))
 {
     protected BitMask BaitingPlayers;
 
     private static readonly AOEShapeRect _shape = new(60, 2.5f);
 
-    public NestOfFlamevipersCommon() : base(ActionID.MakeSpell(AID.NestOfFlamevipersAOE)) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (module.Raid.WithSlot().IncludedInMask(BaitingPlayers).WhereActor(p => p != actor && _shape.Check(actor.Position, module.PrimaryActor.Position, Angle.FromDirection(p.Position - module.PrimaryActor.Position))).Any())
+        if (Raid.WithSlot().IncludedInMask(BaitingPlayers).WhereActor(p => p != actor && _shape.Check(actor.Position, Module.PrimaryActor.Position, Angle.FromDirection(p.Position - Module.PrimaryActor.Position))).Any())
             hints.Add("GTFO from baited aoe!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var (_, player) in module.Raid.WithSlot().IncludedInMask(BaitingPlayers))
-            _shape.Outline(arena, module.PrimaryActor.Position, Angle.FromDirection(player.Position - module.PrimaryActor.Position));
+        foreach (var (_, player) in Raid.WithSlot().IncludedInMask(BaitingPlayers))
+            _shape.Outline(Arena, Module.PrimaryActor.Position, Angle.FromDirection(player.Position - Module.PrimaryActor.Position));
     }
 }
 
 // variant that happens right after manifold flames and baits to 4 closest players
-class NestOfFlamevipersBaited : NestOfFlamevipersCommon
+class NestOfFlamevipersBaited(BossModule module) : NestOfFlamevipersCommon(module)
 {
     private BitMask _forbiddenPlayers;
     public bool Active => NumCasts == 0 && _forbiddenPlayers.Any();
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
-        BaitingPlayers = Active ? module.Raid.WithSlot().SortedByRange(module.PrimaryActor.Position).Take(4).Mask() : new();
+        BaitingPlayers = Active ? Raid.WithSlot().SortedByRange(Module.PrimaryActor.Position).Take(4).Mask() : new();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (Active)
         {
             bool shouldBait = !_forbiddenPlayers[slot];
@@ -52,22 +48,22 @@ class NestOfFlamevipersBaited : NestOfFlamevipersCommon
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.HemitheosFlare)
-            _forbiddenPlayers.Set(module.Raid.FindSlot(spell.MainTargetID));
+            _forbiddenPlayers.Set(Raid.FindSlot(spell.MainTargetID));
     }
 }
 
 // variant that happens when cast is started and baits to everyone
-class NestOfFlamevipersEveryone : NestOfFlamevipersCommon
+class NestOfFlamevipersEveryone(BossModule module) : NestOfFlamevipersCommon(module)
 {
     public bool Active => NumCasts == 0 && BaitingPlayers.Any();
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.NestOfFlamevipers)
-            BaitingPlayers = module.Raid.WithSlot().Mask();
+            BaitingPlayers = Raid.WithSlot().Mask();
     }
 }

@@ -1,11 +1,9 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P1Cascade : Components.PersistentVoidzone
+class P1Cascade(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.LiquidRage))
 {
-    public P1Cascade() : base(8, m => m.Enemies(OID.LiquidRage)) { }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actors(module.Enemies(OID.Embolus), ArenaColor.Object, true);
+        Arena.Actors(Module.Enemies(OID.Embolus), ArenaColor.Object, true);
     }
 }

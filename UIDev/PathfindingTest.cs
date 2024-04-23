@@ -25,14 +25,14 @@ class PathfindingTest : TestWindow
     private Vector2 _blockConeRadius = new(0, 10);
     private float _blockConeRotationDeg;
     private float _blockConeHalfAngle = 180;
-    private float _blockConeG = 0;
+    private float _blockConeG;
 
-    private bool _blockRect = false;
+    private bool _blockRect;
     private Vector2 _blockRectCenter = new(0, 0);
     private Vector2 _blockRectLen = new(20, 20);
     private float _blockRectHalfWidth = 20;
     private float _blockRectRotationDeg;
-    private float _blockRectG = 0;
+    private float _blockRectG;
 
     public PathfindingTest() : base("Pathfinding test", new(400, 400), ImGuiWindowFlags.None)
     {

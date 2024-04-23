@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
-class VoidStardust : Components.GenericAOEs
+class VoidStardust(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos pos, DateTime activation)> _aoes = new();
+    private readonly List<(WPos pos, DateTime activation)> _aoes = [];
 
     private static readonly AOEShapeCircle _shape = new(6);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var aoe in _aoes.Skip(NumCasts + 2).Take(10))
             yield return new(_shape, aoe.pos, default, aoe.activation);
@@ -14,7 +14,7 @@ class VoidStardust : Components.GenericAOEs
             yield return new(_shape, aoe.pos, default, aoe.activation, ArenaColor.Danger);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -27,14 +27,11 @@ class VoidStardust : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.VoidStardustFirst or AID.VoidStardustRestAOE)
             ++NumCasts;
     }
 }
 
-class AbyssalQuasar : Components.StackWithCastTargets
-{
-    public AbyssalQuasar() : base(ActionID.MakeSpell(AID.AbyssalQuasar), 3, 2) { }
-}
+class AbyssalQuasar(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.AbyssalQuasar), 3, 2);

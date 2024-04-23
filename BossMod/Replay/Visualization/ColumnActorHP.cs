@@ -2,9 +2,9 @@
 
 public class ColumnActorHP : Timeline.ColumnGroup, IToggleableColumn
 {
-    private ColumnGenericHistory _hpBase;
-    private ColumnGenericHistory _hpExtended;
-    private ColumnGenericHistory _shield;
+    private readonly ColumnGenericHistory _hpBase;
+    private readonly ColumnGenericHistory _hpExtended;
+    private readonly ColumnGenericHistory _shield;
 
     public bool Visible
     {

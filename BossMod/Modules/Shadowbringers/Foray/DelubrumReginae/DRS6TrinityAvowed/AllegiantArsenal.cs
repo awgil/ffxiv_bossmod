@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS6TrinityAvowed;
 
-class AllegiantArsenal : Components.GenericAOEs
+class AllegiantArsenal(BossModule module) : Components.GenericAOEs(module)
 {
     public enum Order { Unknown, SwordSecond, BowSecond, StaffSecond, StaffSwordBow, BowSwordStaff, SwordBowStaff, StaffBowSword, SwordStaffBow, BowStaffSword }
 
@@ -14,13 +14,13 @@ class AllegiantArsenal : Components.GenericAOEs
     private static readonly AOEShapeCone _shapeBow = new(70, 135.Degrees());
     private static readonly AOEShapeCircle _shapeStaff = new(10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_pendingAOE != null)
-            yield return new(_pendingAOE, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
+            yield return new(_pendingAOE, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -54,7 +54,7 @@ class AllegiantArsenal : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.InfernalSlash or AID.Flashvane or AID.FuryOfBozja)
             _pendingAOE = null;

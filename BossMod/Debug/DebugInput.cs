@@ -77,28 +77,28 @@ public unsafe struct CameraX
     [FieldOffset(0x14C)] public float DirVMax;
 }
 
-unsafe class DebugInput : IDisposable
+unsafe sealed class DebugInput : IDisposable
 {
     private delegate byte ConvertVirtualKeyDelegate(int vkCode);
-    private ConvertVirtualKeyDelegate _convertVirtualKey;
+    private readonly ConvertVirtualKeyDelegate _convertVirtualKey;
 
     private delegate ref int GetRefValueDelegate(int vkCode);
-    private GetRefValueDelegate _getKeyRef;
+    private readonly GetRefValueDelegate _getKeyRef;
 
-    private PlayerController* _playerController;
+    private readonly PlayerController* _playerController;
 
     private delegate void RMIWalkDelegate(PlayerMoveControllerWalk* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
-    private Hook<RMIWalkDelegate> _rmiWalkHook;
+    private readonly Hook<RMIWalkDelegate> _rmiWalkHook;
 
     private delegate void RMIFlyDelegate(PlayerMoveControllerFly* self, PlayerMoveControllerFlyInput* result);
-    private Hook<RMIFlyDelegate> _rmiFlyHook;
+    private readonly Hook<RMIFlyDelegate> _rmiFlyHook;
 
     private delegate void RMICameraDelegate(CameraX* self, int inputMode, float speedH, float speedV);
-    private Hook<RMICameraDelegate> _rmiCameraHook;
+    private readonly Hook<RMICameraDelegate> _rmiCameraHook;
 
-    private UITree _tree = new();
-    private WorldState _ws;
-    private AI.AIController _navi;
+    private readonly UITree _tree = new();
+    private readonly WorldState _ws;
+    private readonly AI.AIController _navi;
     private Vector2 _dest;
     private Vector3 _prevPos;
     private bool _jump;
@@ -189,14 +189,14 @@ unsafe class DebugInput : IDisposable
                 foreach (var vk in Service.KeyState.GetValidVirtualKeys())
                     mapping[_convertVirtualKey((int)vk)] = vk;
 
-                Func<byte, string> bindString = v => v switch
+                string bindString(byte v) => v switch
                 {
                     0 => "---",
                     < 0xA0 => mapping[v].ToString(),
                     < 0xA7 => $"mouse{v - 0xA0}",
-                    _ => $"gamepad{v-0xA7}"
+                    _ => $"gamepad{v - 0xA7}"
                 };
-                Func<ushort, string> printBinding = v => $"{((v & 0x100) != 0 ? "shift+" : "")}{((v & 0x200) != 0 ? "ctrl+" : "")}{((v & 0x400) != 0 ? "alt+" : "")}{((v & 0xF800) != 0 ? "?+" : "")}{bindString((byte)v)} ({v:X4})";
+                string printBinding(ushort v) => $"{((v & 0x100) != 0 ? "shift+" : "")}{((v & 0x200) != 0 ? "ctrl+" : "")}{((v & 0x400) != 0 ? "alt+" : "")}{((v & 0xF800) != 0 ? "?+" : "")}{bindString((byte)v)} ({v:X4})";
                 for (int i = 0; i < idata->KeybindCount; ++i)
                 {
                     _tree.LeafNode($"{i} = {string.Join(", ", Enumerable.Range(0, 5).Select(j => printBinding(idata->Keybinds[i].Bindings[j])))}");

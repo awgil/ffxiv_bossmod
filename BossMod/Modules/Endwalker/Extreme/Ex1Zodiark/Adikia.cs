@@ -1,33 +1,33 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex1Zodiark;
 
 // state related to adikia mechanic
-class Adikia : BossComponent
+class Adikia(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
 
     private static readonly AOEShapeCircle _shape = new(21);
 
     public bool Done => _casters.Count == 0;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_casters.Any(c => _shape.Check(actor.Position, c)))
             hints.Add("GTFO from side smash aoe!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var c in _casters)
-            _shape.Draw(arena, c);
+            _shape.Draw(Arena, c);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.AdikiaL or AID.AdikiaR)
             _casters.Add(caster);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.AdikiaL or AID.AdikiaR)
             _casters.Remove(caster);

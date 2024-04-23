@@ -1,15 +1,15 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS4QueensGuard;
 
-class GreatBallOfFire : Components.GenericAOEs
+class GreatBallOfFire(BossModule module) : Components.GenericAOEs(module)
 {
-    private IReadOnlyList<Actor> _smallFlames = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _bigFlames = ActorEnumeration.EmptyList;
-    private DateTime _activation;
+    private readonly IReadOnlyList<Actor> _smallFlames = module.Enemies(OID.RagingFlame);
+    private readonly IReadOnlyList<Actor> _bigFlames = module.Enemies(OID.ImmolatingFlame);
+    private readonly DateTime _activation = module.WorldState.FutureTime(6.6f);
 
     private static readonly AOEShapeCircle _shapeSmall = new(10);
     private static readonly AOEShapeCircle _shapeBig = new(18);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var f in _smallFlames)
             yield return new(_shapeSmall, f.Position, new(), f.CastInfo?.NPCFinishAt ?? _activation);
@@ -17,14 +17,7 @@ class GreatBallOfFire : Components.GenericAOEs
             yield return new(_shapeBig, f.Position, new(), f.CastInfo?.NPCFinishAt ?? _activation);
     }
 
-    public override void Init(BossModule module)
-    {
-        _smallFlames = module.Enemies(OID.RagingFlame);
-        _bigFlames = module.Enemies(OID.ImmolatingFlame);
-        _activation = module.WorldState.CurrentTime.AddSeconds(6.6f); // TODO: this depends on when do we want to start showing hints...
-    }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BurnSmall or AID.BurnBig)
             ++NumCasts;

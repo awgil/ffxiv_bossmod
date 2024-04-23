@@ -1,22 +1,16 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash2;
 
-class Tornado : Components.SpreadFromCastTargets
-{
-    public Tornado(AID aid) : base(ActionID.MakeSpell(aid), 4) { }
-}
-class NTornado : Tornado { public NTornado() : base(AID.NTornado) { } }
-class STornado : Tornado { public STornado() : base(AID.STornado) { } }
+class Tornado(BossModule module, AID aid) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(aid), 4);
+class NTornado(BossModule module) : Tornado(module, AID.NTornado);
+class STornado(BossModule module) : Tornado(module, AID.STornado);
 
-class Ovation : Components.SelfTargetedAOEs
-{
-    public Ovation(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(12, 2)) { }
-}
-class NOvation : Ovation { public NOvation() : base(AID.NOvation) { } }
-class SOvation : Ovation { public SOvation() : base(AID.SOvation) { } }
+class Ovation(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(12, 2));
+class NOvation(BossModule module) : Ovation(module, AID.NOvation);
+class SOvation(BossModule module) : Ovation(module, AID.SOvation);
 
 class C030WoodGolemStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030WoodGolemStates(BossModule module, bool savage) : base(module)
     {
@@ -57,17 +51,11 @@ class C030WoodGolemStates : StateMachineBuilder
             .DeactivateOnExit<Ovation>();
     }
 }
-class C030NWoodGolemStates : C030WoodGolemStates { public C030NWoodGolemStates(BossModule module) : base(module, false) { } }
-class C030SWoodGolemStates : C030WoodGolemStates { public C030SWoodGolemStates(BossModule module) : base(module, true) { } }
+class C030NWoodGolemStates(BossModule module) : C030WoodGolemStates(module, false);
+class C030SWoodGolemStates(BossModule module) : C030WoodGolemStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NWoodGolem, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12560, SortOrder = 6)]
-public class C030NWoodGolem : C030Trash2
-{
-    public C030NWoodGolem(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class C030NWoodGolem(WorldState ws, Actor primary) : C030Trash2(ws, primary);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SWoodGolem, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12560, SortOrder = 6)]
-public class C030SWoodGolem : C030Trash2
-{
-    public C030SWoodGolem(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class C030SWoodGolem(WorldState ws, Actor primary) : C030Trash2(ws, primary);

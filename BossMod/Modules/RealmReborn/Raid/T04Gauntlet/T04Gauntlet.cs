@@ -27,32 +27,24 @@ public enum AID : uint
     EmergencyOverride = 1258, // DriveCylinder->self, no cast, soft enrage raidwide
 }
 
-class Rotoswipe : Components.Cleave
-{
-    public Rotoswipe() : base(ActionID.MakeSpell(AID.Rotoswipe), new AOEShapeCone(11, 60.Degrees()), (uint)OID.ClockworkDreadnaught) { } // TODO: verify angle
-}
+class Rotoswipe(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Rotoswipe), new AOEShapeCone(11, 60.Degrees()), (uint)OID.ClockworkDreadnaught); // TODO: verify angle
 
-class GravityThrustPox : Components.GenericAOEs
+class GravityThrustPox(BossModule module) : Components.GenericAOEs(module, default, "Move behind rook!")
 {
     private static readonly AOEShape _shape = new AOEShapeRect(50, 50);
 
-    public GravityThrustPox() : base(new(), "Move behind rook!") { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var c in ((T04Gauntlet)module).Rooks.Where(a => a.CastInfo?.TargetID == actor.InstanceID))
+        foreach (var c in ((T04Gauntlet)Module).Rooks.Where(a => a.CastInfo?.TargetID == actor.InstanceID))
             yield return new(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt);
     }
 }
 
-class EmergencyOverride : Components.CastCounter
-{
-    public EmergencyOverride() : base(ActionID.MakeSpell(AID.EmergencyOverride)) { }
-}
+class EmergencyOverride(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.EmergencyOverride));
 
 class T04GauntletStates : StateMachineBuilder
 {
-    private T04Gauntlet _module;
+    private readonly T04Gauntlet _module;
 
     public T04GauntletStates(T04Gauntlet module) : base(module)
     {

@@ -3,29 +3,18 @@ using Newtonsoft.Json.Linq;
 
 namespace BossMod;
 
-public class CooldownPlan
+public class CooldownPlan(Class cls, int level, string name)
 {
-    public class ActionUse
+    public class ActionUse(ActionID aid, uint stateID, float timeSinceActivation, float windowLength, bool lowPriority, PlanTarget.ISelector target, string comment)
     {
-        public ActionID ID;
-        public uint StateID;
-        public float TimeSinceActivation;
-        public float WindowLength;
-        public bool LowPriority;
-        public PlanTarget.ISelector Target;
-        public string Comment;
+        public ActionID ID = aid;
+        public uint StateID = stateID;
+        public float TimeSinceActivation = timeSinceActivation;
+        public float WindowLength = windowLength;
+        public bool LowPriority = lowPriority;
+        public PlanTarget.ISelector Target = target;
+        public string Comment = comment;
         // TODO: condition, delay-auto
-
-        public ActionUse(ActionID aid, uint stateID, float timeSinceActivation, float windowLength, bool lowPriority, PlanTarget.ISelector target, string comment)
-        {
-            ID = aid;
-            StateID = stateID;
-            TimeSinceActivation = timeSinceActivation;
-            WindowLength = windowLength;
-            LowPriority = lowPriority;
-            Target = target;
-            Comment = comment;
-        }
 
         public ActionUse Clone() => new(ID, StateID, TimeSinceActivation, WindowLength, LowPriority, Target.Clone(), Comment);
 
@@ -58,34 +47,27 @@ public class CooldownPlan
             var target = JObject.FromObject(Target, ser);
             target["Type"] = Target.GetType().Name;
 
-            JObject res = new();
-            res["ID"] = ser.SerializeActionID(ID, aidType);
-            res["StateID"] = $"0x{StateID:X8}";
-            res["TimeSinceActivation"] = TimeSinceActivation;
-            res["WindowLength"] = WindowLength;
-            res["LowPriority"] = LowPriority;
-            res["Target"] = target;
-            res["Comment"] = Comment;
+            JObject res = new()
+            {
+                ["ID"] = ser.SerializeActionID(ID, aidType),
+                ["StateID"] = $"0x{StateID:X8}",
+                ["TimeSinceActivation"] = TimeSinceActivation,
+                ["WindowLength"] = WindowLength,
+                ["LowPriority"] = LowPriority,
+                ["Target"] = target,
+                ["Comment"] = Comment
+            };
             return res;
         }
     }
 
-    public class StrategyOverride
+    public class StrategyOverride(uint value, uint stateID, float timeSinceActivation, float windowLength, string comment)
     {
-        public uint Value;
-        public uint StateID;
-        public float TimeSinceActivation;
-        public float WindowLength;
-        public string Comment;
-
-        public StrategyOverride(uint value, uint stateID, float timeSinceActivation, float windowLength, string comment)
-        {
-            Value = value;
-            StateID = stateID;
-            TimeSinceActivation = timeSinceActivation;
-            WindowLength = windowLength;
-            Comment = comment;
-        }
+        public uint Value = value;
+        public uint StateID = stateID;
+        public float TimeSinceActivation = timeSinceActivation;
+        public float WindowLength = windowLength;
+        public string Comment = comment;
 
         public StrategyOverride Clone() => new(Value, StateID, TimeSinceActivation, WindowLength, Comment);
 
@@ -100,7 +82,7 @@ public class CooldownPlan
 
         public JObject ToJSON(Type? valueType, JsonSerializer ser)
         {
-            JObject res = new();
+            JObject res = [];
             if (valueType != null && Value != 0)
                 res["Value"] = valueType.GetEnumName(Value);
             res["StateID"] = $"0x{StateID:X8}";
@@ -111,22 +93,13 @@ public class CooldownPlan
         }
     }
 
-    public class TargetOverride
+    public class TargetOverride(uint oid, uint stateID, float timeSinceActivation, float windowLength, string comment)
     {
-        public uint OID;
-        public uint StateID;
-        public float TimeSinceActivation;
-        public float WindowLength;
-        public string Comment;
-
-        public TargetOverride(uint oid, uint stateID, float timeSinceActivation, float windowLength, string comment)
-        {
-            OID = oid;
-            StateID = stateID;
-            TimeSinceActivation = timeSinceActivation;
-            WindowLength = windowLength;
-            Comment = comment;
-        }
+        public uint OID = oid;
+        public uint StateID = stateID;
+        public float TimeSinceActivation = timeSinceActivation;
+        public float WindowLength = windowLength;
+        public string Comment = comment;
 
         public TargetOverride Clone() => new(OID, StateID, TimeSinceActivation, WindowLength, Comment);
 
@@ -141,44 +114,33 @@ public class CooldownPlan
 
         public JObject ToJSON(JsonSerializer ser)
         {
-            JObject res = new();
-            res["OID"] = $"0x{OID:X}";
-            res["StateID"] = $"0x{StateID:X8}";
-            res["TimeSinceActivation"] = TimeSinceActivation;
-            res["WindowLength"] = WindowLength;
-            res["Comment"] = Comment;
+            JObject res = new()
+            {
+                ["OID"] = $"0x{OID:X}",
+                ["StateID"] = $"0x{StateID:X8}",
+                ["TimeSinceActivation"] = TimeSinceActivation,
+                ["WindowLength"] = WindowLength,
+                ["Comment"] = Comment
+            };
             return res;
         }
     }
 
-    public Class Class;
-    public int Level;
-    public string Name;
+    public Class Class = cls;
+    public int Level = level;
+    public string Name = name;
     public StateMachineTimings Timings = new();
-    public List<ActionUse> Actions = new();
-    public List<List<StrategyOverride>> StrategyOverrides = new();
-    public List<TargetOverride> TargetOverrides = new();
+    public List<ActionUse> Actions = [];
+    public List<List<StrategyOverride>> StrategyOverrides = [.. PlanDefinitions.Classes[cls].StrategyTracks.Select(_ => new List<StrategyOverride>())];
+    public List<TargetOverride> TargetOverrides = [];
 
-    public CooldownPlan(Class cls, int level, string name)
+    public CooldownPlan Clone() => new(Class, Level, Name)
     {
-        Class = cls;
-        Level = level;
-        Name = name;
-
-        foreach (var s in PlanDefinitions.Classes[cls].StrategyTracks)
-            StrategyOverrides.Add(new());
-    }
-
-    public CooldownPlan Clone()
-    {
-        var res = new CooldownPlan(Class, Level, Name);
-        res.Timings = Timings.Clone();
-        res.Actions.AddRange(Actions.Select(a => a.Clone()));
-        for (int i = 0; i < StrategyOverrides.Count; ++i)
-            res.StrategyOverrides[i].AddRange(StrategyOverrides[i].Select(s => s.Clone()));
-        res.TargetOverrides.AddRange(TargetOverrides.Select(t => t.Clone()));
-        return res;
-    }
+        Timings = Timings.Clone(),
+        Actions = [.. Actions.Select(a => a.Clone())],
+        StrategyOverrides = [.. StrategyOverrides.Select(l => l.Select(s => s.Clone()).ToList())],
+        TargetOverrides = [.. TargetOverrides.Select(t => t.Clone())]
+    };
 
     public static CooldownPlan? FromJSON(Class cls, int level, JObject? j, JsonSerializer ser)
     {
@@ -189,8 +151,7 @@ public class CooldownPlan
         res.Timings = j?["Timings"]?.ToObject<StateMachineTimings>(ser) ?? res.Timings;
 
         var classData = PlanDefinitions.Classes[cls];
-        var actions = j?["Actions"] as JArray;
-        if (actions != null)
+        if (j?["Actions"] is JArray actions)
         {
             foreach (var ja in actions)
             {
@@ -205,8 +166,7 @@ public class CooldownPlan
         var jstrats = j?["Strategies"] as JObject;
         foreach (var (trackData, resStrats) in classData.StrategyTracks.Zip(res.StrategyOverrides))
         {
-            var jstrat = jstrats?[trackData.Name] as JArray;
-            if (jstrat == null)
+            if (jstrats?[trackData.Name] is not JArray jstrat)
                 continue;
 
             foreach (var js in jstrat)
@@ -219,8 +179,7 @@ public class CooldownPlan
             }
         }
 
-        var jtargets = j?["Targets"] as JArray;
-        if (jtargets != null)
+        if (j?["Targets"] is JArray jtargets)
         {
             foreach (var jt in jtargets)
             {
@@ -237,9 +196,11 @@ public class CooldownPlan
 
     public JObject ToJSON(JsonSerializer ser)
     {
-        JObject res = new();
-        res["Name"] = Name;
-        res["Timings"] = JObject.FromObject(Timings, ser);
+        JObject res = new()
+        {
+            ["Name"] = Name,
+            ["Timings"] = JObject.FromObject(Timings, ser)
+        };
 
         var classData = PlanDefinitions.Classes[Class];
         var actions = new JArray();

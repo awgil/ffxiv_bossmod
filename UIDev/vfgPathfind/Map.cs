@@ -55,7 +55,7 @@ public class Map
     // block all the voxels for which the shape function returns true for specified time intervals
     public bool BlockPixelsInside(Vector2 boundsMin, Vector2 boundsMax, Func<Vector2, bool> shape, float tStart, float tDuration, float tRepeat, float tLeeway)
     {
-        List<(int begin, int end)> intTime = new();
+        List<(int begin, int end)> intTime = [];
         var tMax = Duration * TimeResolution;
         for (var t = tStart; t < tMax; t += tRepeat)
         {

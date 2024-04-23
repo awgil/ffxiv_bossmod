@@ -1,15 +1,15 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 // note: sets are 2s apart, 8-9 casts per set
-class P4AlmightyJudgment : Components.GenericAOEs
+class P4AlmightyJudgment(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(WPos pos, DateTime activation)> _casters = new();
+    private readonly List<(WPos pos, DateTime activation)> _casters = [];
 
     private static readonly AOEShapeCircle _shape = new(6);
 
     public bool Active => _casters.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
         {
@@ -22,13 +22,13 @@ class P4AlmightyJudgment : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AlmightyJudgmentVisual)
-            _casters.Add((caster.Position, module.WorldState.CurrentTime.AddSeconds(8)));
+            _casters.Add((caster.Position, WorldState.FutureTime(8)));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.AlmightyJudgmentAOE)
             _casters.RemoveAll(c => c.pos.AlmostEqual(caster.Position, 1));

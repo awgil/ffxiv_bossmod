@@ -12,14 +12,11 @@ public enum AID : uint
     Mow = 14879, // Boss->self, 3,0s cast, range 6+R 120-degree cone
 }
 
-class Mow : Components.SelfTargetedAOEs
-{
-    public Mow() : base(ActionID.MakeSpell(AID.Mow), new AOEShapeCone(7.4f, 60.Degrees())) { }
-}
+class Mow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mow), new AOEShapeCone(7.4f, 60.Degrees()));
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("The first act is trivial, almost anything will work.\nFor act 2 having Flying Sardine is recommended.");
     }

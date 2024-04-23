@@ -1,24 +1,24 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW1;
 
-class HyperdimensionalSlash : BossComponent
+class HyperdimensionalSlash(BossModule module) : BossComponent(module)
 {
     public int NumCasts { get; private set; }
     private BitMask _laserTargets;
     private Angle _coneDir;
-    private List<(WPos Pos, Actor? Source)> _tears = new();
+    private readonly List<(WPos Pos, Actor? Source)> _tears = [];
     private BitMask _riskyTears;
 
-    private static readonly float _linkRadius = 9; // TODO: verify
+    private const float _linkRadius = 9; // TODO: verify
     private static readonly AOEShapeRect _aoeLaser = new(70, 4);
     private static readonly AOEShapeCone _aoeCone = new(40, 60.Degrees());
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         _tears.Clear();
-        foreach (var tear in module.Enemies(OID.AetherialTear))
+        foreach (var tear in Module.Enemies(OID.AetherialTear))
             _tears.Add((tear.Position, null));
-        foreach (var target in module.Raid.WithSlot(true).IncludedInMask(_laserTargets).Actors())
-            _tears.Add((TearPosition(module, target), target));
+        foreach (var target in Raid.WithSlot(true).IncludedInMask(_laserTargets).Actors())
+            _tears.Add((TearPosition(target), target));
 
         _riskyTears.Reset();
         for (int i = 0; i < _tears.Count; ++i)
@@ -34,11 +34,11 @@ class HyperdimensionalSlash : BossComponent
         }
 
         // TODO: proper targeting (seems to be predefined, charibert's target for first?..)
-        var coneTarget = module.Raid.WithSlot().ExcludedFromMask(_laserTargets).Actors().Closest(module.Bounds.Center);
-        _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - module.Bounds.Center) : 0.Degrees();
+        var coneTarget = Raid.WithSlot().ExcludedFromMask(_laserTargets).Actors().Closest(Module.Bounds.Center);
+        _coneDir = coneTarget != null ? Angle.FromDirection(coneTarget.Position - Module.Bounds.Center) : 0.Degrees();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_laserTargets.None())
             return;
@@ -57,37 +57,37 @@ class HyperdimensionalSlash : BossComponent
         // make sure actor is not clipped by any lasers
         var otherLasers = _laserTargets;
         otherLasers.Clear(slot);
-        if (module.Raid.WithSlot().IncludedInMask(otherLasers).WhereActor(target => _aoeLaser.Check(actor.Position, module.Bounds.Center, Angle.FromDirection(target.Position - module.Bounds.Center))).Any())
+        if (Raid.WithSlot().IncludedInMask(otherLasers).WhereActor(target => _aoeLaser.Check(actor.Position, Module.Bounds.Center, Angle.FromDirection(target.Position - Module.Bounds.Center))).Any())
             hints.Add("GTFO from laser aoe!");
 
         // make sure actor is either not hit by cone (if is target of a laser) or is hit by a cone (otherwise)
-        bool hitByCone = _aoeCone.Check(actor.Position, module.Bounds.Center, _coneDir);
+        bool hitByCone = _aoeCone.Check(actor.Position, Module.Bounds.Center, _coneDir);
         if (tearIndex >= 0 && hitByCone)
             hints.Add("GTFO from cone aoe!");
         else if (tearIndex < 0 && !hitByCone)
             hints.Add("Stack with others!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_laserTargets.None())
             return;
 
-        foreach (var t in module.Raid.WithSlot().IncludedInMask(_laserTargets).Actors())
-            _aoeLaser.Draw(arena, module.Bounds.Center, Angle.FromDirection(t.Position - module.Bounds.Center));
-        _aoeCone.Draw(arena, module.Bounds.Center, _coneDir);
+        foreach (var t in Raid.WithSlot().IncludedInMask(_laserTargets).Actors())
+            _aoeLaser.Draw(Arena, Module.Bounds.Center, Angle.FromDirection(t.Position - Module.Bounds.Center));
+        _aoeCone.Draw(Arena, Module.Bounds.Center, _coneDir);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         for (int i = 0; i < _tears.Count; ++i)
-            arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? ArenaColor.Danger : ArenaColor.Safe);
+            Arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? ArenaColor.Danger : ArenaColor.Safe);
 
         if (_laserTargets[pcSlot])
-            arena.AddLine(module.Bounds.Center, TearPosition(module, pc), ArenaColor.Danger);
+            Arena.AddLine(Module.Bounds.Center, TearPosition(pc), ArenaColor.Danger);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.HyperdimensionalSlashAOERest)
         {
@@ -96,16 +96,13 @@ class HyperdimensionalSlash : BossComponent
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if ((IconID)iconID == IconID.HyperdimensionalSlash)
         {
-            _laserTargets.Set(module.Raid.FindSlot(actor.InstanceID));
+            _laserTargets.Set(Raid.FindSlot(actor.InstanceID));
         }
     }
 
-    private WPos TearPosition(BossModule module, Actor target)
-    {
-        return module.Bounds.ClampToBounds(module.Bounds.Center + 50 * (target.Position - module.Bounds.Center).Normalized());
-    }
+    private WPos TearPosition(Actor target) => Module.Bounds.ClampToBounds(Module.Bounds.Center + 50 * (target.Position - Module.Bounds.Center).Normalized());
 }

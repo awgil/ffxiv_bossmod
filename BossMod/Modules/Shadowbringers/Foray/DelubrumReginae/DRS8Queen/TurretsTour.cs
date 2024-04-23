@@ -2,19 +2,11 @@
 
 class TurretsTour : Components.GenericAOEs
 {
-    private List<(Actor turret, AOEShapeRect shape)> _turrets = new();
-    private List<(Actor caster, AOEShapeRect shape)> _casters = new();
+    private readonly List<(Actor turret, AOEShapeRect shape)> _turrets = [];
+    private readonly List<(Actor caster, AOEShapeRect shape)> _casters = [];
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-    {
-        foreach (var t in _turrets)
-            yield return new(t.shape, t.turret.Position, t.turret.Rotation, _activation);
-        foreach (var c in _casters)
-            yield return new(c.shape, c.caster.Position, c.caster.CastInfo!.Rotation, c.caster.CastInfo.NPCFinishAt);
-    }
-
-    public override void Init(BossModule module)
+    public TurretsTour(BossModule module) : base(module)
     {
         var turrets = module.Enemies(OID.AutomaticTurret);
         foreach (var t in turrets)
@@ -27,7 +19,15 @@ class TurretsTour : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var t in _turrets)
+            yield return new(t.shape, t.turret.Position, t.turret.Rotation, _activation);
+        foreach (var c in _casters)
+            yield return new(c.shape, c.caster.Position, c.caster.CastInfo!.Rotation, c.caster.CastInfo.NPCFinishAt);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.TurretsTourAOE1)
         {
@@ -38,13 +38,13 @@ class TurretsTour : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.TurretsTourAOE1)
             _casters.RemoveAll(c => c.caster == caster);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.TurretsTourAOE2 or AID.TurretsTourAOE3)
         {

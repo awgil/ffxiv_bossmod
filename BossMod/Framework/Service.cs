@@ -7,7 +7,7 @@ using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
-public class Service
+public sealed class Service
 {
 #pragma warning disable CS8618
     [PluginService] public static IPluginLog Logger { get; private set; }
@@ -29,19 +29,17 @@ public class Service
     [PluginService] public static DalamudPluginInterface PluginInterface { get; private set; }
 #pragma warning restore CS8618
 
-    public static Action<string>? LogHandler = null;
-    public static void Log(string msg)
-    {
-        if (LogHandler != null)
-            LogHandler(msg);
-    }
+#pragma warning disable CA2211
+    public static Action<string>? LogHandler;
+    public static void Log(string msg) => LogHandler?.Invoke(msg);
 
-    public static Lumina.GameData? LuminaGameData = null;
+    public static Lumina.GameData? LuminaGameData;
     public static T? LuminaRow<T>(uint row) where T : Lumina.Excel.ExcelRow => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English)?.GetRow(row);
 
-    public static WindowSystem? WindowSystem = null;
+    public static WindowSystem? WindowSystem;
+#pragma warning restore CA2211
 
-    public static ConfigRoot Config = new();
+    public static readonly ConfigRoot Config = new();
 
     //public static SharpDX.Direct3D11.Device? Device = null;
 }

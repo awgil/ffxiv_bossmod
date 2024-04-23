@@ -13,37 +13,26 @@ public enum AID : uint
     Shred = 14759, // 2720/271F->self, 2,5s cast, range 4+R width 4 rect, stuns player
 }
 
-class TheHand : Components.SelfTargetedAOEs
-{
-    public TheHand() : base(ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees())) { }
-}
+class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees()));
+class Shred(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2));
+class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0,9s after snapshot
 
-class Shred : Components.SelfTargetedAOEs
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public Shred() : base(ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2)) { }
-}
-
-class TheHandKB : Components.KnockbackFromCastTarget //actual knockback happens a whole 0,9s after snapshot
-{
-    public TheHandKB() : base(ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())) { }
-}
-
-class Hints2 : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!module.PrimaryActor.IsDead)
-            hints.Add($"{module.PrimaryActor.Name} counters magical damage!");
-        if (!module.Enemies(OID.RightClaw).All(e => e.IsDead))
-            hints.Add($"{module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
+        if (!Module.PrimaryActor.IsDead)
+            hints.Add($"{Module.PrimaryActor.Name} counters magical damage!");
+        if (!Module.Enemies(OID.RightClaw).All(e => e.IsDead))
+            hints.Add($"{Module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical damage!");
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"The {module.PrimaryActor.Name} counters magical attacks, the {module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical\nattacks. If you have healing spells you can just tank the counter damage\nand kill them however you like anyway. All opponents in this stage are\nweak to lightning.\nThe Ram's Voice and Ultravibration combo can be used in Act 2.");
+        hints.Add($"The {Module.PrimaryActor.Name} counters magical attacks, the {Module.Enemies(OID.RightClaw).FirstOrDefault()!.Name} counters physical\nattacks. If you have healing spells you can just tank the counter damage\nand kill them however you like anyway. All opponents in this stage are\nweak to lightning.\nThe Ram's Voice and Ultravibration combo can be used in Act 2.");
     }
 }
 

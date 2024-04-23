@@ -4,22 +4,17 @@
 // when small birds die and large birds appear, they cast 26328, and if it hits any other large bird, they buff
 // when large birds die and sparkfledgeds appear, they cast 26329, and if it hits any other sparkfledged, they wipe the raid or something
 // so we show range helper for dead birds
-class BirdDistance : BossComponent
+class BirdDistance(BossModule module, OID watchedBirdsID) : BossComponent(module)
 {
-    private OID _watchedBirdsID;
+    private readonly OID _watchedBirdsID = watchedBirdsID;
     private BitMask _birdsAtRisk;
 
-    private static readonly float _radius = 13;
+    private const float _radius = 13;
 
-    public BirdDistance(OID watchedBirdsID)
-    {
-        _watchedBirdsID = watchedBirdsID;
-    }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         _birdsAtRisk.Reset();
-        var watchedBirds = module.Enemies(_watchedBirdsID);
+        var watchedBirds = Module.Enemies(_watchedBirdsID);
         for (int i = 0; i < watchedBirds.Count; ++i)
         {
             var bird = watchedBirds[i];
@@ -30,9 +25,9 @@ class BirdDistance : BossComponent
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var watchedBirds = module.Enemies(_watchedBirdsID);
+        var watchedBirds = Module.Enemies(_watchedBirdsID);
         for (int i = 0; i < watchedBirds.Count; ++i)
         {
             var bird = watchedBirds[i];
@@ -44,31 +39,24 @@ class BirdDistance : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw alive birds tanked by PC and circles around dead birds
-        var watchedBirds = module.Enemies(_watchedBirdsID);
+        var watchedBirds = Module.Enemies(_watchedBirdsID);
         for (int i = 0; i < watchedBirds.Count; ++i)
         {
             var bird = watchedBirds[i];
             if (bird.IsDead)
             {
-                arena.AddCircle(bird.Position, _radius, ArenaColor.Danger);
+                Arena.AddCircle(bird.Position, _radius, ArenaColor.Danger);
             }
             else if (bird.TargetID == pc.InstanceID)
             {
-                arena.Actor(bird, _birdsAtRisk[i] ? ArenaColor.Enemy : ArenaColor.PlayerGeneric);
+                Arena.Actor(bird, _birdsAtRisk[i] ? ArenaColor.Enemy : ArenaColor.PlayerGeneric);
             }
         }
     }
 }
 
-class SmallBirdDistance : BirdDistance
-{
-    public SmallBirdDistance() : base(OID.SunbirdSmall) { }
-}
-
-class LargeBirdDistance : BirdDistance
-{
-    public LargeBirdDistance() : base(OID.SunbirdLarge) { }
-}
+class SmallBirdDistance(BossModule module) : BirdDistance(module, OID.SunbirdSmall);
+class LargeBirdDistance(BossModule module) : BirdDistance(module, OID.SunbirdLarge);

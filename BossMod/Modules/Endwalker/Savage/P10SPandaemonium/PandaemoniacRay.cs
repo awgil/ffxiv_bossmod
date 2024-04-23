@@ -1,27 +1,13 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class PandaemoniacRay : Components.SelfTargetedAOEs
-{
-    public PandaemoniacRay() : base(ActionID.MakeSpell(AID.PandaemoniacRayAOE), new AOEShapeRect(30, 25)) { }
-}
+class PandaemoniacRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PandaemoniacRayAOE), new AOEShapeRect(30, 25));
 
-class JadePassage : Components.GenericAOEs
+class JadePassage(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.JadePassage))
 {
-    private IReadOnlyList<Actor> _spheres = ActorEnumeration.EmptyList;
-    private DateTime _activation;
+    private readonly IReadOnlyList<Actor> _spheres = module.Enemies(OID.ArcaneSphere);
+    private readonly DateTime _activation = module.WorldState.FutureTime(3.6f);
 
     private static readonly AOEShapeRect _shape = new(40, 1, 40);
 
-    public JadePassage() : base(ActionID.MakeSpell(AID.JadePassage)) { }
-
-    public override void Init(BossModule module)
-    {
-        _spheres = module.Enemies(OID.ArcaneSphere);
-        _activation = module.WorldState.CurrentTime.AddSeconds(3.6f);
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
-    {
-        return _spheres.Where(s => !s.IsDead).Select(s => new AOEInstance(_shape, s.Position, s.Rotation, s.CastInfo?.NPCFinishAt ?? _activation));
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _spheres.Where(s => !s.IsDead).Select(s => new AOEInstance(_shape, s.Position, s.Rotation, s.CastInfo?.NPCFinishAt ?? _activation));
 }

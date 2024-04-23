@@ -12,12 +12,12 @@ public class ThetaStar
         public float PathLeeway;
     }
 
-    private Map _map;
-    private (int x, int y)[] _goals;
-    private Node[] _nodes;
-    private List<int> _openList = new();
-    private float _deltaGSide;
-    private float _deltaGDiag;
+    private readonly Map _map;
+    private readonly (int x, int y)[] _goals;
+    private readonly Node[] _nodes;
+    private readonly List<int> _openList = [];
+    private readonly float _deltaGSide;
+    private readonly float _deltaGDiag;
 
     public ref Node NodeByIndex(int index) => ref _nodes[index];
     public int CellIndex(int x, int y) => y * _map.Width + x;
@@ -177,7 +177,7 @@ public class ThetaStar
     private int PopMinOpen()
     {
         int nodeIndex = _openList[0];
-        _openList[0] = _openList[_openList.Count - 1];
+        _openList[0] = _openList[^1];
         _nodes[nodeIndex].OpenHeapIndex = -1;
         _openList.RemoveAt(_openList.Count - 1);
         if (_openList.Count > 0)

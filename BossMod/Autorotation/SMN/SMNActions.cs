@@ -7,10 +7,10 @@ class Actions : CommonActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private SMNConfig _config;
+    private readonly SMNConfig _config;
     private bool _aoe;
-    private Rotation.State _state;
-    private Rotation.Strategy _strategy;
+    private readonly Rotation.State _state;
+    private readonly Rotation.Strategy _strategy;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
@@ -23,9 +23,10 @@ class Actions : CommonActions
         OnConfigModified();
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         _config.Modified -= OnConfigModified;
+        base.Dispose(disposing);
     }
 
     public override CommonRotation.PlayerState GetState() => _state;
@@ -118,12 +119,12 @@ class Actions : CommonActions
         SupportedSpell(AID.Physick).TransformTarget = _config.MouseoverFriendly ? SmartTargetFriendly : null;
     }
 
-    private AID SmartResurrectAction()
-    {
-        // 1. swiftcast, if ready and not up yet
-        if (_state.Unlocked(AID.Swiftcast) && _state.SwiftcastLeft <= 0 && _state.CD(CDGroup.Swiftcast) <= 0)
-            return AID.Swiftcast;
+    //private AID SmartResurrectAction()
+    //{
+    //    // 1. swiftcast, if ready and not up yet
+    //    if (_state.Unlocked(AID.Swiftcast) && _state.SwiftcastLeft <= 0 && _state.CD(CDGroup.Swiftcast) <= 0)
+    //        return AID.Swiftcast;
 
-        return AID.Resurrection;
-    }
+    //    return AID.Resurrection;
+    //}
 }

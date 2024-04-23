@@ -20,20 +20,12 @@ public enum AID : uint
     Sanctification = 16814, // Boss->self, 5,0s cast, range 12 90-degree cone
 }
 
-class SanctifiedAero : Components.SelfTargetedAOEs
-{
-    public SanctifiedAero() : base(ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4)) { }
-}
+class SanctifiedAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4));
 
-class PunitiveLight : Components.CastInterruptHint
-{ //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
-    public PunitiveLight() : base(ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true) { }
-}
+//Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails
+class PunitiveLight(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.PunitiveLight), true, true, "Raidwide", true);
 
-class Sanctification : Components.SelfTargetedAOEs
-{
-    public Sanctification() : base(ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees())) { }
-}
+class Sanctification(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sanctification), new AOEShapeCone(12, 45.Degrees()));
 
 class D050ForgivenPrejudiceStates : StateMachineBuilder
 {
@@ -48,9 +40,8 @@ class D050ForgivenPrejudiceStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8269)]
-public class D050ForgivenPrejudice : SimpleBossModule
+public class D050ForgivenPrejudice(WorldState ws, Actor primary) : SimpleBossModule(ws, primary)
 {
-    public D050ForgivenPrejudice(WorldState ws, Actor primary) : base(ws, primary) { }
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         foreach (var s in Enemies(OID.Boss))
@@ -61,7 +52,7 @@ public class D050ForgivenPrejudice : SimpleBossModule
             Arena.Actor(s, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.ForgivenVenery))
             Arena.Actor(s, ArenaColor.Enemy);
-
     }
+
     protected override bool CheckPull() { return (!Enemies(OID.ForgivenApathy).Any(e => e.InCombat) || !Enemies(OID.ForgivenApathy).Any(e => e.IsTargetable)) && PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.ForgivenExtortion).Any(e => e.InCombat) || Enemies(OID.ForgivenConformity).Any(e => e.InCombat) || Enemies(OID.ForgivenVenery).Any(e => e.InCombat); }
 }

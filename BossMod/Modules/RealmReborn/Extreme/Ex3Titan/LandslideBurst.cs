@@ -1,17 +1,17 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
 // burst (bomb explosion) needs to be shown in particular moment (different for different patterns) so that ai can avoid them nicely
-class LandslideBurst : Components.GenericAOEs
+class LandslideBurst(BossModule module) : Components.GenericAOEs(module)
 {
     public int MaxBombs = 9;
-    private List<Actor> _landslides = new();
-    private List<Actor> _bursts = new(); // TODO: reconsider: we can start showing bombs even before cast starts...
+    private readonly List<Actor> _landslides = [];
+    private readonly List<Actor> _bursts = []; // TODO: reconsider: we can start showing bombs even before cast starts...
     public int NumActiveBursts => _bursts.Count;
 
     private static readonly AOEShapeRect _shapeLandslide = new(40.25f, 3);
     private static readonly AOEShapeCircle _shapeBurst = new(6.3f);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var l in _landslides)
             yield return new(_shapeLandslide, l.Position, l.CastInfo!.Rotation, l.CastInfo.NPCFinishAt);
@@ -19,7 +19,7 @@ class LandslideBurst : Components.GenericAOEs
             yield return new(_shapeBurst, b.Position, b.CastInfo!.Rotation, b.CastInfo.NPCFinishAt);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -34,7 +34,7 @@ class LandslideBurst : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {

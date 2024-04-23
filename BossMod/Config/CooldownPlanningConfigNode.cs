@@ -10,18 +10,18 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
     // per-class list of plans
     public class PlanList
     {
-        public List<CooldownPlan> Available = new();
+        public List<CooldownPlan> Available = [];
         public int SelectedIndex = -1;
 
         public CooldownPlan? Selected() => SelectedIndex >= 0 && SelectedIndex < Available.Count ? Available[SelectedIndex] : null;
     }
 
     public int SyncLevel { get; private init; }
-    public Dictionary<Class, PlanList> CooldownPlans = new();
+    public Dictionary<Class, PlanList> CooldownPlans = [];
 
     public CooldownPlan? SelectedPlan(Class c) => CooldownPlans.GetValueOrDefault(c)?.Selected();
 
-    public CooldownPlanningConfigNode(int syncLevel)
+    protected CooldownPlanningConfigNode(int syncLevel)
     {
         SyncLevel = syncLevel;
         foreach (var c in PlanDefinitions.Classes.Keys)
@@ -152,7 +152,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
     public override JObject Serialize(JsonSerializer ser)
     {
         var baseType = typeof(CooldownPlanningConfigNode);
-        JObject res = new();
+        JObject res = [];
         foreach (var f in GetType().GetFields().Where(f => f.DeclaringType != baseType))
         {
             var v = f.GetValue(this);
@@ -169,7 +169,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
     {
         if (sm == null)
             return;
-        new CooldownPlanEditorWindow(plan, sm, moduleInfo, NotifyModified);
+        _ = new CooldownPlanEditorWindow(plan, sm, moduleInfo, NotifyModified);
     }
 
     private void StartPlanEditor(CooldownPlan plan)
@@ -185,14 +185,12 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
             return;
         foreach (var (c, data) in j)
         {
-            Class cls;
-            if (!Enum.TryParse(c, out cls))
+            if (!Enum.TryParse(c, out Class cls))
                 continue; // invalid class
             var plans = CooldownPlans.GetValueOrDefault(cls);
             if (plans == null)
                 continue; // non-plannable class
-            var jPlans = data?["Available"] as JArray;
-            if (jPlans == null)
+            if (data?["Available"] is not JArray jPlans)
                 continue;
 
             plans.SelectedIndex = data?["SelectedIndex"]?.Value<int>() ?? -1;
@@ -209,7 +207,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
 
     private JObject SerializeCooldownPlans(JsonSerializer ser)
     {
-        JObject res = new();
+        JObject res = [];
         foreach (var (c, plans) in CooldownPlans)
         {
             if (plans.Available.Count == 0)

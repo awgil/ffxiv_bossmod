@@ -1,14 +1,12 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
-class WindsHoly : Components.UniformStackSpread
+class WindsHoly(BossModule module) : Components.UniformStackSpread(module, 6, 7, 4)
 {
     public int NumCasts { get; private set; }
-    private List<Actor>[] _futureStacks = { new(), new(), new(), new() };
-    private List<Actor>[] _futureSpreads = { new(), new(), new(), new() };
+    private readonly List<Actor>[] _futureStacks = [new(), new(), new(), new()];
+    private readonly List<Actor>[] _futureSpreads = [new(), new(), new(), new()];
 
-    public WindsHoly() : base(6, 7, 4) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -43,7 +41,7 @@ class WindsHoly : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.HemitheosHolyExpire)
         {

@@ -1,14 +1,12 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class DaemoniacBonds : Components.UniformStackSpread
+class DaemoniacBonds(BossModule module) : Components.UniformStackSpread(module, 4, 6, alwaysShowSpreads: true)
 {
     public int NumMechanics { get; private set; }
-    private List<Actor> _spreadTargets = new();
-    private List<Actor> _stackTargets = new();
+    private readonly List<Actor> _spreadTargets = [];
+    private readonly List<Actor> _stackTargets = [];
     private DateTime _spreadResolve;
     private DateTime _stackResolve;
-
-    public DaemoniacBonds() : base(4, 6, alwaysShowSpreads: true) { }
 
     public void Show()
     {
@@ -18,7 +16,7 @@ class DaemoniacBonds : Components.UniformStackSpread
             AddStacks(_stackTargets, _stackResolve);
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_spreadResolve == default || _stackResolve == default)
             return;
@@ -27,7 +25,7 @@ class DaemoniacBonds : Components.UniformStackSpread
         hints.Add($"Debuff order: {orderHint}");
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -44,7 +42,7 @@ class DaemoniacBonds : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

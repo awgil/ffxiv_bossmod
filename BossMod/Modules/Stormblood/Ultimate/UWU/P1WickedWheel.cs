@@ -2,10 +2,10 @@
 
 // wicked wheel is used in phase 1 (depending on 'woken' status, it can be used with followup wicked tornado - this can happen with low dps late in the phase) - it is triggered by cast start
 // it is also used during phase 4 as part of some mechanics (ultimate predation, ???) - in such case we typically want to show it earlier (based on PATE)
-class WickedWheel : Components.GenericAOEs
+class WickedWheel(BossModule module) : Components.GenericAOEs(module)
 {
     public DateTime AwakenedResolve { get; private set; }
-    public List<(Actor source, AOEShape shape, DateTime activation)> Sources = new();
+    public List<(Actor source, AOEShape shape, DateTime activation)> Sources = [];
 
     public static readonly AOEShapeCircle ShapeWheel = new(8.7f);
     public static readonly AOEShapeDonut ShapeTornado = new(7, 20);
@@ -14,12 +14,12 @@ class WickedWheel : Components.GenericAOEs
 
     public bool Active => Sources.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return Sources.Select(s => new AOEInstance(s.shape, s.source.Position, s.source.Rotation, s.activation));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -37,13 +37,13 @@ class WickedWheel : Components.GenericAOEs
         };
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.WickedWheel:
                 Sources.RemoveAll(s => s.source == caster);
-                AwakenedResolve = module.WorldState.CurrentTime.AddSeconds(2.1f); // for tornado
+                AwakenedResolve = WorldState.FutureTime(2.1f); // for tornado
                 if (caster.FindStatus(SID.Woken) != null)
                     Sources.Add((caster, ShapeTornado, AwakenedResolve));
                 ++NumCasts;
@@ -60,13 +60,13 @@ class WickedWheel : Components.GenericAOEs
     }
 }
 
-class P1WickedWheel : WickedWheel { }
+class P1WickedWheel(BossModule module) : WickedWheel(module) { }
 
-class P4WickedWheel : WickedWheel
+class P4WickedWheel(BossModule module) : WickedWheel(module)
 {
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.Garuda && id == 0x1E43)
-            Sources.Add((actor, ShapeCombined, module.WorldState.CurrentTime.AddSeconds(8.1f)));
+            Sources.Add((actor, ShapeCombined, WorldState.FutureTime(8.1f)));
     }
 }

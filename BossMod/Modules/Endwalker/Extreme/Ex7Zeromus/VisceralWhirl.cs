@@ -1,18 +1,18 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
 // note: apparently there's a slight overlap between aoes in the center, which looks ugly, but at least that's the truth...
-class VisceralWhirl : Components.GenericAOEs
+class VisceralWhirl(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shapeNormal = new(29, 14);
     private static readonly AOEShapeRect _shapeOffset = new(60, 14);
 
     public bool Active => _aoes.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -29,61 +29,50 @@ class VisceralWhirl : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.VisceralWhirlRAOE1 or AID.VisceralWhirlRAOE2 or AID.VisceralWhirlLAOE1 or AID.VisceralWhirlLAOE2)
             _aoes.RemoveAll(a => a.Rotation.AlmostEqual(spell.Rotation, 0.05f));
     }
 }
 
-class MiasmicBlast : Components.SelfTargetedAOEs
-{
-    public MiasmicBlast() : base(ActionID.MakeSpell(AID.MiasmicBlast), new AOEShapeCross(60, 5)) { }
-}
+class MiasmicBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MiasmicBlast), new AOEShapeCross(60, 5));
 
-class VoidBio : Components.GenericAOEs
+class VoidBio(BossModule module) : Components.GenericAOEs(module)
 {
-    private IReadOnlyList<Actor> _bubbles = ActorEnumeration.EmptyList;
+    private readonly IReadOnlyList<Actor> _bubbles = module.Enemies(OID.ToxicBubble);
 
     private static readonly AOEShapeCircle _shape = new(2); // TODO: verify explosion radius
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _bubbles.Where(actor => !actor.IsDead).Select(b => new AOEInstance(_shape, b.Position));
-
-    public override void Init(BossModule module)
-    {
-        _bubbles = module.Enemies(OID.ToxicBubble);
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _bubbles.Where(actor => !actor.IsDead).Select(b => new AOEInstance(_shape, b.Position));
 }
 
-class BondsOfDarkness : BossComponent
+class BondsOfDarkness(BossModule module) : BossComponent(module)
 {
     public int NumTethers { get; private set; }
-    private int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
+    private readonly int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_partners[slot] >= 0)
             hints.Add("Break tether!");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return _partners[pcSlot] == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => _partners[pcSlot] == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var partner = module.Raid[_partners[pcSlot]];
+        var partner = Raid[_partners[pcSlot]];
         if (partner != null)
-            arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+            Arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.BondsOfDarkness)
         {
-            var slot1 = module.Raid.FindSlot(source.InstanceID);
-            var slot2 = module.Raid.FindSlot(tether.Target);
+            var slot1 = Raid.FindSlot(source.InstanceID);
+            var slot2 = Raid.FindSlot(tether.Target);
             if (slot1 >= 0 && slot2 >= 0)
             {
                 ++NumTethers;
@@ -93,12 +82,12 @@ class BondsOfDarkness : BossComponent
         }
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.BondsOfDarkness)
         {
-            var slot1 = module.Raid.FindSlot(source.InstanceID);
-            var slot2 = module.Raid.FindSlot(tether.Target);
+            var slot1 = Raid.FindSlot(source.InstanceID);
+            var slot2 = Raid.FindSlot(tether.Target);
             if (slot1 >= 0 && slot2 >= 0)
             {
                 --NumTethers;
@@ -109,17 +98,15 @@ class BondsOfDarkness : BossComponent
     }
 }
 
-class DarkDivides : Components.UniformStackSpread
+class DarkDivides(BossModule module) : Components.UniformStackSpread(module, 0, 5)
 {
-    public DarkDivides() : base(0, 5) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.DivisiveDark)
             AddSpread(actor, status.ExpireAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.DarkDivides)
             Spreads.Clear();

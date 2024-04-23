@@ -12,7 +12,7 @@ class Camera
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate IntPtr GetMatrixSingletonDelegate();
 
-    private GetMatrixSingletonDelegate _getMatrixSingleton { get; init; }
+    private GetMatrixSingletonDelegate GetMatrixSingleton { get; init; }
 
     public SharpDX.Matrix ViewProj { get; private set; }
     public SharpDX.Matrix Proj { get; private set; }
@@ -22,17 +22,17 @@ class Camera
     public float CameraAltitude { get; private set; } // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
     public SharpDX.Vector2 ViewportSize { get; private set; }
 
-    private List<(Vector2 from, Vector2 to, uint col)> _worldDrawLines = new();
+    private readonly List<(Vector2 from, Vector2 to, uint col)> _worldDrawLines = [];
 
     public Camera()
     {
         var funcAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
-        _getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(funcAddress);
+        GetMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(funcAddress);
     }
 
     public void Update()
     {
-        var matrixSingleton = _getMatrixSingleton();
+        var matrixSingleton = GetMatrixSingleton();
         ViewProj = ReadMatrix(matrixSingleton + 0x1b4);
         Proj = ReadMatrix(matrixSingleton + 0x174);
         View = ViewProj * SharpDX.Matrix.Invert(Proj);
@@ -195,10 +195,11 @@ class Camera
             var ab = b - a;
             var abn = SharpDX.Vector3.Dot(ab, new(n.X, n.Y, n.Z));
             var t = -an / abn;
+            var p = a + t * ab;
             if (an < 0)
-                a = a + t * ab;
+                a = p;
             else
-                b = a + t * ab;
+                b = p;
         }
         return true;
     }

@@ -1,16 +1,16 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C033Statice;
 
-class RingARingOExplosions : Components.GenericAOEs
+class RingARingOExplosions(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<Actor> ActiveBombs = new();
-    private List<Actor> _bombs = new();
+    public List<Actor> ActiveBombs = [];
+    private readonly List<Actor> _bombs = [];
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(12);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => ActiveBombs.Select(b => new AOEInstance(_shape, b.Position, default, _activation));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveBombs.Select(b => new AOEInstance(_shape, b.Position, default, _activation));
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (_bombs.Count == 6 && ActiveBombs.Count == 0)
         {
@@ -21,20 +21,20 @@ class RingARingOExplosions : Components.GenericAOEs
                 do
                 {
                     ActiveBombs.Add(cur);
-                    cur = module.WorldState.Actors.Find(cur.Tether.Target);
+                    cur = WorldState.Actors.Find(cur.Tether.Target);
                 } while (cur != null && cur != glowingBomb);
-                _activation = module.WorldState.CurrentTime.AddSeconds(17.4f);
+                _activation = WorldState.FutureTime(17.4f);
             }
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.NBomb or OID.SBomb)
             _bombs.Add(actor);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NBombBurst or AID.SBombBurst)
         {

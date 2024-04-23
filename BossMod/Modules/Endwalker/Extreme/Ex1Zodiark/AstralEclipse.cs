@@ -4,44 +4,46 @@
 // 'pattern' is a mask containing explosion spots; index is 4 bits, with low 2 bits describing world X position and 2 high bits describing world Z position
 // so NE corner (X=+1, Z=-1) corresponds to index 0b0010 = 2; S corner (X=0, Z=+1) corresponds to index 0b1001 = 9 and so on (0b11 index is unused)
 // 'completed' or 'not started' is represented as fully safe (all 0) mask, 'unknown' pattern is represented as fully dangerous (all 1) mask
-class AstralEclipse : BossComponent
+class AstralEclipse(BossModule module) : BossComponent(module)
 {
-    private int[] _patterns = new int[3]; // W -> S -> E
+    private readonly int[] _patterns = new int[3]; // W -> S -> E
 
     private static readonly AOEShapeCircle _aoe = new(10);
 
     // transform from 'pattern space' (X goes to the right, Y goes to the bottom) to world space
-    private static readonly float _centerOffset = 14;
-    private static readonly Vector3[] _basisX = new Vector3[3] { -Vector3.UnitZ, -Vector3.UnitX, Vector3.UnitZ };
-    private static readonly Vector3[] _basisY = new Vector3[3] { -Vector3.UnitX,  Vector3.UnitZ, Vector3.UnitX };
+    private const float _centerOffset = 14;
+    private static readonly Vector3[] _basisX = [-Vector3.UnitZ, -Vector3.UnitX, Vector3.UnitZ];
+    private static readonly Vector3[] _basisY = [-Vector3.UnitX, Vector3.UnitZ, Vector3.UnitX];
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
-        if (PatternSpots(module, nextPattern).Any(p => _aoe.Check(actor.Position, p)))
+        if (PatternSpots(nextPattern).Any(p => _aoe.Check(actor.Position, p)))
             hints.Add("GTFO from explosion!");
-
-        if (movementHints != null)
-            foreach (var (from, to) in EnumMovementHints(module, actor.Position))
-                movementHints.Add(from, to, ArenaColor.Safe);
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        foreach (var (from, to) in EnumMovementHints(actor.Position))
+            movementHints.Add(from, to, ArenaColor.Safe);
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
-        foreach (var p in PatternSpots(module, nextPattern))
-            _aoe.Draw(arena, p);
+        foreach (var p in PatternSpots(nextPattern))
+            _aoe.Draw(Arena, p);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var (from, to) in EnumMovementHints(module, pc.Position))
-            arena.AddLine(from, to, ArenaColor.Safe);
+        foreach (var (from, to) in EnumMovementHints(pc.Position))
+            Arena.AddLine(from, to, ArenaColor.Safe);
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
-        if (index < 6 || index > 8)
+        if (index is < 6 or > 8)
             return;
         var seq = index - 6;
         _patterns[seq] = state switch
@@ -68,16 +70,16 @@ class AstralEclipse : BossComponent
         return 0x777 & ~BuildMask(seq, safe1) & ~BuildMask(seq, safe2);
     }
 
-    private IEnumerable<WPos> PatternSpots(BossModule module, int pattern)
+    private IEnumerable<WPos> PatternSpots(int pattern)
     {
         if (pattern != 0)
             for (int z = -1; z <= 1; ++z)
                 for (int x = -1; x <= 1; ++x)
                     if ((pattern & (1 << ((z + 1) * 4 + (x + 1)))) != 0)
-                        yield return module.Bounds.Center + _centerOffset * new WDir(x, z);
+                        yield return Module.Bounds.Center + _centerOffset * new WDir(x, z);
     }
 
-    private IEnumerable<(WPos, WPos)> EnumMovementHints(BossModule module, WPos startingPosition)
+    private IEnumerable<(WPos, WPos)> EnumMovementHints(WPos startingPosition)
     {
         WPos prev = startingPosition;
         foreach (var p in _patterns.Where(p => p != 0))
@@ -85,7 +87,7 @@ class AstralEclipse : BossComponent
             if (p == 0xFFFF)
                 break;
 
-            var next = PatternSpots(module, ~p).MinBy(pos => (pos - prev).LengthSq() + (pos - module.PrimaryActor.Position).LengthSq() * 0.2f); // slightly penalize far positions...
+            var next = PatternSpots(~p).MinBy(pos => (pos - prev).LengthSq() + (pos - Module.PrimaryActor.Position).LengthSq() * 0.2f); // slightly penalize far positions...
             yield return (prev, next);
             prev = next;
         }

@@ -1,20 +1,20 @@
 ﻿namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
 
-class Hydrostasis : Components.Knockback
+class Hydrostasis(BossModule module) : Components.Knockback(module)
 {
-    private List<Source> _sources = new();
+    private readonly List<Source> _sources = [];
 
     public bool Active => _sources.Count == 3 || NumCasts > 0;
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Active ? _sources : Enumerable.Empty<Source>();
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Active ? _sources : Enumerable.Empty<Source>();
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.HydrostasisAOE1 or AID.HydrostasisAOE2 or AID.HydrostasisAOE3 or AID.HydrostasisAOEDelayed)
             AddSource(caster.Position, spell.NPCFinishAt);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.HydrostasisAOE1 or AID.HydrostasisAOE2 or AID.HydrostasisAOE3 or AID.HydrostasisAOE0 or AID.HydrostasisAOEDelayed)
         {
@@ -24,10 +24,10 @@ class Hydrostasis : Components.Knockback
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.HydrostasisQuick)
-            AddSource(source.Position, module.WorldState.CurrentTime.AddSeconds(12));
+            AddSource(source.Position, WorldState.FutureTime(12));
     }
 
     private void AddSource(WPos pos, DateTime activation)

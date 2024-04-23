@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3Dahu;
 
-class FirebreatheRotating : Components.GenericRotatingAOE
+class FirebreatheRotating(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private Angle _increment;
 
     private static readonly AOEShapeCone _shape = new(60, 45.Degrees());
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FirebreatheRotating)
         {
@@ -14,15 +14,15 @@ class FirebreatheRotating : Components.GenericRotatingAOE
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.FirebreatheRotatingAOE && Sequences.Count > 0)
         {
-            AdvanceSequence(0, module.WorldState.CurrentTime);
+            AdvanceSequence(0, WorldState.CurrentTime);
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var angle = (IconID)iconID switch
         {

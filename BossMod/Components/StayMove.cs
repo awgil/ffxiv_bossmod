@@ -1,20 +1,20 @@
 ﻿namespace BossMod.Components;
 
 // component for mechanics that either require players to move or stay still
-public class StayMove : BossComponent
+public class StayMove(BossModule module) : BossComponent(module)
 {
     public enum Requirement { None, Stay, Move }
 
     public Requirement[] Requirements = new Requirement[PartyState.MaxPartySize];
-    private (Vector3 prev, Vector3 curr)[] _lastPositions = new (Vector3, Vector3)[PartyState.MaxPartySize];
+    private readonly (Vector3 prev, Vector3 curr)[] _lastPositions = new (Vector3, Vector3)[PartyState.MaxPartySize];
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         for (int i = 0; i < _lastPositions.Length; ++i)
-            _lastPositions[i] = (_lastPositions[i].curr, module.Raid[i]?.PosRot.XYZ() ?? default);
+            _lastPositions[i] = (_lastPositions[i].curr, Raid[i]?.PosRot.XYZ() ?? default);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         switch (Requirements[slot])
         {

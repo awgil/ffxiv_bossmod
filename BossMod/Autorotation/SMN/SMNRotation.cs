@@ -5,7 +5,7 @@ public static class Rotation
     public enum Attunement { None, Ifrit, Titan, Garuda }
 
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public bool PetSummoned;
         public bool IfritReady;
@@ -17,8 +17,6 @@ public static class Rotation
         public float SummonLockLeft;
         public int AetherflowStacks; // 0-2
         public float SwiftcastLeft; // 0 if buff not up, max 10
-
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);

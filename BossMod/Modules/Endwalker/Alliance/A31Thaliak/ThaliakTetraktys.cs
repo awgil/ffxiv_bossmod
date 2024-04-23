@@ -1,17 +1,17 @@
 ﻿namespace BossMod.Endwalker.Alliance.A31Thaliak;
 
-class Tetraktys : BossComponent
+class Tetraktys(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00080004 && index == 0x04) // 02, 03, 04 always activate at the same time
-            module.Arena.Bounds = new ArenaBoundsSquare(new(-945, 945), 24);
+            Module.Arena.Bounds = new ArenaBoundsSquare(new(-945, 945), 24);
         if (state == 0x00200010 && index == 0x04) // 02, 03, 04 always deactivate at the same time
-            module.Arena.Bounds = new ArenaBoundsTri(new(-945, 948.5f), 41);
+            Module.Arena.Bounds = new ArenaBoundsTri(new(-945, 948.5f), 41);
     }
 }
 
-class TetraTriangles : Components.GenericAOEs
+class TetraTriangles(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeTriangle tri = new(16);
@@ -28,17 +28,17 @@ class TetraTriangles : Components.GenericAOEs
     private static readonly Angle _rot9 = 60.Degrees();
     private bool TutorialDone;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in _aoes)
             if (_aoes.Count > 0)
                 yield return new(c.Shape, c.Origin, c.Rotation, c.Activation);
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
-        var _activation = module.WorldState.CurrentTime.AddSeconds(3.8f);
-        var _activation2 = module.WorldState.CurrentTime.AddSeconds(7.9f);
+        var _activation = WorldState.FutureTime(3.8f);
+        var _activation2 = WorldState.FutureTime(7.9f);
         if (state == 0x00020001)
         {
             if (index == 0x07) //07, 0A, 0D always activate together
@@ -119,7 +119,7 @@ class TetraTriangles : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.TetraBlueTriangles or AID.TetraGreenTriangles or AID.TetraktuosKosmosTri or AID.TetraktuosKosmosRect)
             _aoes.RemoveAt(0);

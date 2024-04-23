@@ -19,13 +19,13 @@ unsafe struct ReceivedPacket
     [FieldOffset(0x18)] public long SendTimestamp;
 }
 
-public class PacketInterceptor : IDisposable
+internal sealed class PacketInterceptor : IDisposable
 {
     public delegate void ServerIPCReceivedDelegate(DateTime sendTimestamp, uint sourceServerActor, uint targetServerActor, ushort opcode, uint epoch, Span<byte> payload);
     public event ServerIPCReceivedDelegate? ServerIPCReceived;
 
     private unsafe delegate bool FetchReceivedPacketDelegate(void* self, ReceivedPacket* outData);
-    private Hook<FetchReceivedPacketDelegate>? _fetchHook;
+    private readonly Hook<FetchReceivedPacketDelegate>? _fetchHook;
 
     public bool Active
     {
@@ -46,10 +46,9 @@ public class PacketInterceptor : IDisposable
         // alternative signatures - seem to be changing from build to build:
         // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35
         // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24
-        nint fetchAddress = 0;
-        var foundFetchAddress = Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35", out fetchAddress) || Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24", out fetchAddress);
+        var foundFetchAddress = Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35", out var fetchAddress) || Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24", out fetchAddress);
         Service.Log($"[NPI] FetchReceivedPacket address = 0x{fetchAddress:X}");
-        if (fetchAddress != 0)
+        if (foundFetchAddress)
             _fetchHook = Service.Hook.HookFromAddress<FetchReceivedPacketDelegate>(fetchAddress, FetchReceivedPacketDetour);
 
         // potentially useful sigs from dalamud:
@@ -57,10 +56,7 @@ public class PacketInterceptor : IDisposable
         // client ipc handler: 48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 56 41 57 48 83 EC 70 8B 81 ?? ?? ?? ?? --- byte(void* self, void* dataPtr, void* a3, byte a4)
     }
 
-    public void Dispose()
-    {
-        _fetchHook?.Dispose();
-    }
+    public void Dispose() => _fetchHook?.Dispose();
 
     private unsafe bool FetchReceivedPacketDetour(void* self, ReceivedPacket* outData)
     {

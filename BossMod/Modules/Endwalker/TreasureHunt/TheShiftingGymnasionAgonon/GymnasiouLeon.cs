@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x3D27, //R=5.95
     BossAdd = 0x3D28, //R=3.5
     BossHelper = 0x233C,
-    BonusAdds_Lyssa = 0x3D4E, //R=3.75
+    BonusAddLyssa = 0x3D4E, //R=3.75
 }
 
 public enum AID : uint
@@ -22,40 +22,13 @@ public enum AID : uint
     MarkOfTheBeast = 32205, // 3D28->self, 3,0s cast, range 8 120-degree cone
 }
 
-class InfernoBlast : Components.SelfTargetedAOEs
-{
-    public InfernoBlast() : base(ActionID.MakeSpell(AID.InfernoBlast), new AOEShapeRect(46, 20)) { }
-}
-
-class Roar : Components.SelfTargetedAOEs
-{
-    public Roar() : base(ActionID.MakeSpell(AID.Roar), new AOEShapeCircle(12)) { }
-}
-
-class FlareStar : Components.SelfTargetedAOEs
-{
-    public FlareStar() : base(ActionID.MakeSpell(AID.FlareStar), new AOEShapeCircle(12)) { }
-}
-
-class MarkOfTheBeast : Components.SelfTargetedAOEs
-{
-    public MarkOfTheBeast() : base(ActionID.MakeSpell(AID.MarkOfTheBeast), new AOEShapeCone(8, 60.Degrees())) { }
-}
-
-class Pounce : Components.SingleTargetCast
-{
-    public Pounce() : base(ActionID.MakeSpell(AID.Pounce)) { }
-}
-
-class MagmaChamber : Components.LocationTargetedAOEs
-{
-    public MagmaChamber() : base(ActionID.MakeSpell(AID.MagmaChamber2), 8) { }
-}
-
-class HeavySmash : Components.LocationTargetedAOEs
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-}
+class InfernoBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InfernoBlast), new AOEShapeRect(46, 20));
+class Roar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Roar), new AOEShapeCircle(12));
+class FlareStar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlareStar), new AOEShapeCircle(12));
+class MarkOfTheBeast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MarkOfTheBeast), new AOEShapeCone(8, 60.Degrees()));
+class Pounce(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Pounce));
+class MagmaChamber(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagmaChamber2), 8);
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
 
 class LeonStates : StateMachineBuilder
 {
@@ -69,21 +42,19 @@ class LeonStates : StateMachineBuilder
             .ActivateOnEnter<Pounce>()
             .ActivateOnEnter<MagmaChamber>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 11997)]
-public class Leon : BossModule
+public class Leon(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Leon(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+        foreach (var s in Enemies(OID.BonusAddLyssa))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -94,7 +65,7 @@ public class Leon : BossModule
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdds_Lyssa => 3,
+                OID.BonusAddLyssa => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

@@ -1,24 +1,21 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
-class FlareTowers : Components.CastTowers
-{
-    public FlareTowers() : base(ActionID.MakeSpell(AID.FlareAOE), 5, 4, 4) { }
-}
+class FlareTowers(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.FlareAOE), 5, 4, 4);
 
-class FlareScald : Components.GenericAOEs
+class FlareScald(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shape = new(5);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.FlareAOE:
-                _aoes.Add(new(_shape, caster.Position, default, module.WorldState.CurrentTime.AddSeconds(2.1f)));
+                _aoes.Add(new(_shape, caster.Position, default, WorldState.FutureTime(2.1f)));
                 break;
             case AID.FlareScald:
             case AID.FlareKill:
@@ -28,25 +25,19 @@ class FlareScald : Components.GenericAOEs
     }
 }
 
-class ProminenceSpine : Components.SelfTargetedAOEs
-{
-    public ProminenceSpine() : base(ActionID.MakeSpell(AID.ProminenceSpine), new AOEShapeRect(60, 5)) { }
-}
-
-class SparklingBrandingFlare : Components.CastStackSpread
-{
-    public SparklingBrandingFlare() : base(ActionID.MakeSpell(AID.BrandingFlareAOE), ActionID.MakeSpell(AID.SparkingFlareAOE), 4, 4) { }
-}
+class ProminenceSpine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ProminenceSpine), new AOEShapeRect(60, 5));
+class SparklingBrandingFlare(BossModule module) : Components.CastStackSpread(module, ActionID.MakeSpell(AID.BrandingFlareAOE), ActionID.MakeSpell(AID.SparkingFlareAOE), 4, 4);
 
 class Nox : Components.StandardChasingAOEs
 {
-    public Nox() : base(new AOEShapeCircle(10), ActionID.MakeSpell(AID.NoxAOEFirst), ActionID.MakeSpell(AID.NoxAOERest), 5.5f, 1.6f, 5) { }
+    public Nox(BossModule module) : base(module, new AOEShapeCircle(10), ActionID.MakeSpell(AID.NoxAOEFirst), ActionID.MakeSpell(AID.NoxAOERest), 5.5f, 1.6f, 5)
+    {
+        ExcludedTargets = Raid.WithSlot(true).Mask();
+    }
 
-    public override void Init(BossModule module) => ExcludedTargets = module.Raid.WithSlot(true).Mask();
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Nox)
-            ExcludedTargets.Clear(module.Raid.FindSlot(actor.InstanceID));
+            ExcludedTargets.Clear(Raid.FindSlot(actor.InstanceID));
     }
 }

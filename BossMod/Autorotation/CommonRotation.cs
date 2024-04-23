@@ -8,7 +8,7 @@ public static class CommonRotation
         return cg is > 0 and <= 80 ? cg - 1 : -1;
     }
 
-    public class PlayerState
+    public class PlayerState(WorldState ws)
     {
         public int Level;
         public int UnlockProgress;
@@ -24,9 +24,9 @@ public static class CommonRotation
         public int LimitBreakLevel;
 
         // these simply point to client state
-        public Cooldown[] Cooldowns;
-        public ActionID[] DutyActions;
-        public byte[] BozjaHolster;
+        public readonly Cooldown[] Cooldowns = ws.Client.Cooldowns;
+        public readonly ActionID[] DutyActions = ws.Client.DutyActions;
+        public readonly byte[] BozjaHolster = ws.Client.BozjaHolster;
 
         // both 2.5 max (unless slowed), reduced by gear attributes and certain status effects
         public float AttackGCDTime;
@@ -56,13 +56,6 @@ public static class CommonRotation
         // deadline is typically either infinity (if we don't care about GCDs) or GCD (for second/only ogcd slot) or GCD-OGCDSlotLength (for first ogcd slot)
         public bool CanWeave(float cooldown, float actionLock, float deadline) => deadline < 10000 ? MathF.Max(cooldown, AnimationLock) + actionLock + AnimationLockDelay <= deadline : cooldown <= AnimationLock;
         public bool CanWeave<CDGroup>(CDGroup group, float actionLock, float deadline) where CDGroup : Enum => CanWeave(CD(group), actionLock, deadline);
-
-        public PlayerState(WorldState ws)
-        {
-            Cooldowns = ws.Client.Cooldowns;
-            DutyActions = ws.Client.DutyActions;
-            BozjaHolster = ws.Client.BozjaHolster;
-        }
     }
 
     public class Strategy

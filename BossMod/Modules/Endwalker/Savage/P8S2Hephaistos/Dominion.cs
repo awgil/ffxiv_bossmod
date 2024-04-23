@@ -4,21 +4,19 @@ class Dominion : Components.UniformStackSpread
 {
     public int NumDeformations { get; private set; }
     public int NumShifts { get; private set; }
-    public List<Actor> Casters = new();
+    public List<Actor> Casters = [];
     private BitMask _secondOrder;
 
-    private static readonly float _towerRadius = 3;
+    private const float _towerRadius = 3;
 
-    public Dominion() : base(0, 6) { }
-
-    public override void Init(BossModule module)
+    public Dominion(BossModule module) : base(module, 0, 6)
     {
-        AddSpreads(module.Raid.WithoutSlot());
+        AddSpreads(Raid.WithoutSlot());
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         if (NumDeformations >= 4)
         {
@@ -26,16 +24,16 @@ class Dominion : Components.UniformStackSpread
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         if (NumDeformations >= 4 && ShouldSoak(pcSlot))
             foreach (var tower in ActiveTowers())
-                arena.AddCircle(tower.Position, _towerRadius, ArenaColor.Danger, 2);
+                Arena.AddCircle(tower.Position, _towerRadius, ArenaColor.Danger, 2);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OrogenicShift)
         {
@@ -43,7 +41,7 @@ class Dominion : Components.UniformStackSpread
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OrogenicShift)
         {
@@ -51,12 +49,12 @@ class Dominion : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.OrogenicDeformation)
         {
             Spreads.Clear();
-            _secondOrder.Set(module.Raid.FindSlot(spell.MainTargetID));
+            _secondOrder.Set(Raid.FindSlot(spell.MainTargetID));
             ++NumDeformations;
         }
     }

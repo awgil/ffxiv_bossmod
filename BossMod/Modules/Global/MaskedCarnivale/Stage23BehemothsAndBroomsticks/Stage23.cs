@@ -18,37 +18,17 @@ public enum AID : uint
     EclipticMeteor = 15257, // Boss->location, 10,0s cast, range 50 circle
 }
 
+class Charybdis(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Charybdis), 6);
+class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Maelstrom));
+class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(55.8f, 30.Degrees()));
+class Comet(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Comet2), 10);
+class EclipticMeteor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EclipticMeteor), "Use Diamondback!");
 
-class Charybdis : Components.LocationTargetedAOEs
+class Hints(BossModule module) : BossComponent(module)
 {
-    public Charybdis() : base(ActionID.MakeSpell(AID.Charybdis), 6) { }
-}
-
-class Maelstrom : Components.PersistentVoidzone
-{
-    public Maelstrom() : base(8, m => m.Enemies(OID.Maelstrom)) { }
-}
-
-class Trounce : Components.SelfTargetedAOEs
-{
-    public Trounce() : base(ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(55.8f, 30.Degrees())) { }
-}
-
-class Comet : Components.LocationTargetedAOEs
-{
-    public Comet() : base(ActionID.MakeSpell(AID.Comet2), 10) { }
-}
-
-class EclipticMeteor : Components.RaidwideCast
-{
-    public EclipticMeteor() : base(ActionID.MakeSpell(AID.EclipticMeteor), "Use Diamondback!") { }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"The {module.PrimaryActor.Name} will use Ecliptic Meteor.\nUse Diamondback to survive it.\nYou can start the Final Sting combination at about 40% health left.\n(Off-guard->Bristle->Moonflute->Final Sting)");
+        hints.Add($"The {Module.PrimaryActor.Name} will use Ecliptic Meteor.\nUse Diamondback to survive it.\nYou can start the Final Sting combination at about 40% health left.\n(Off-guard->Bristle->Moonflute->Final Sting)");
     }
 }
 

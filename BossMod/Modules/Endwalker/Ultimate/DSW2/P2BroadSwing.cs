@@ -1,16 +1,14 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
-class P2BroadSwing : Components.GenericAOEs
+class P2BroadSwing(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BroadSwingAOE))
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _aoe = new(40, 60.Degrees());
 
-    public P2BroadSwing() : base(ActionID.MakeSpell(AID.BroadSwingAOE)) { }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(2);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var rot = (AID)spell.Action.ID switch
         {
@@ -26,7 +24,7 @@ class P2BroadSwing : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
         {

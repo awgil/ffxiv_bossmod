@@ -1,38 +1,26 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
 
-class Gaiaochos : Components.SelfTargetedAOEs
-{
-    public Gaiaochos() : base(ActionID.MakeSpell(AID.GaiaochosTransition), new AOEShapeDonut(7, 30)) { }
-}
+class Gaiaochos(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GaiaochosTransition), new AOEShapeDonut(7, 30));
 
 // TODO: we could show it earlier, casters do PATE 11D2 ~4s before starting cast
-class UltimaRay : Components.SelfTargetedAOEs
-{
-    public UltimaRay() : base(ActionID.MakeSpell(AID.UltimaRay), new AOEShapeRect(20, 3)) { }
-}
+class UltimaRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UltimaRay), new AOEShapeRect(20, 3));
 
-class MissingLink : Components.Chains
-{
-    public MissingLink() : base((uint)TetherID.MissingLink, ActionID.MakeSpell(AID.MissingLink)) { }
-}
+class MissingLink(BossModule module) : Components.Chains(module, (uint)TetherID.MissingLink, ActionID.MakeSpell(AID.MissingLink));
 
-class DemiParhelion : Components.SelfTargetedAOEs
-{
-    public DemiParhelion() : base(ActionID.MakeSpell(AID.DemiParhelionAOE), new AOEShapeCircle(2)) { }
-}
+class DemiParhelion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DemiParhelionAOE), new AOEShapeCircle(2));
 
-class Geocentrism : Components.GenericAOEs
+class Geocentrism(BossModule module) : Components.GenericAOEs(module)
 {
     public int NumConcurrentAOEs { get; private set; }
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shapeLine = new(20, 2);
     private static readonly AOEShapeCircle _shapeCircle = new(2);
     private static readonly AOEShapeDonut _shapeDonut = new(3, 7);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -56,35 +44,33 @@ class Geocentrism : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.DemiParhelionGeoLine or AID.DemiParhelionGeoDonut or AID.DemiParhelionGeoCircle)
             ++NumCasts;
     }
 }
 
-class DivineExcoriation : Components.UniformStackSpread
+class DivineExcoriation(BossModule module) : Components.UniformStackSpread(module, 0, 1)
 {
-    public DivineExcoriation() : base(0, 1) { }
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.DivineExcoriation)
-            AddSpread(actor, module.WorldState.CurrentTime.AddSeconds(3.1f));
+            AddSpread(actor, WorldState.FutureTime(3.1f));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.DivineExcoriation)
             Spreads.Clear();
     }
 }
 
-class GaiaochosEnd : BossComponent
+class GaiaochosEnd(BossModule module) : BossComponent(module)
 {
     public bool Finished { get; private set; }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         // note: there are 3 env controls happening at the same time, not sure which is the actual trigger: .9=02000001, .11=00800001, .12=00080004
         if (index == 9 && state == 0x02000001)
@@ -93,21 +79,19 @@ class GaiaochosEnd : BossComponent
 }
 
 // TODO: assign pairs, draw wrong pairs as aoes
-class UltimaBlow : Components.CastCounter
+class UltimaBlow(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.UltimaBlow))
 {
-    private List<(Actor source, Actor target)> _tethers = new();
+    private readonly List<(Actor source, Actor target)> _tethers = [];
     private BitMask _vulnerable;
 
     private static readonly AOEShapeRect _shape = new(20, 3);
 
-    public UltimaBlow() : base(ActionID.MakeSpell(AID.UltimaBlow)) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_vulnerable[slot])
         {
             var source = _tethers.Find(t => t.target == actor).source;
-            var numHit = source != null ? module.Raid.WithoutSlot().Exclude(actor).InShape(_shape, source.Position, Angle.FromDirection(actor.Position - source.Position)).Count() : 0;
+            var numHit = source != null ? Raid.WithoutSlot().Exclude(actor).InShape(_shape, source.Position, Angle.FromDirection(actor.Position - source.Position)).Count() : 0;
             if (numHit == 0)
                 hints.Add("Hide behind partner!");
             else if (numHit > 1)
@@ -123,35 +107,35 @@ class UltimaBlow : Components.CastCounter
         }
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         return _tethers.Any(t => t.target == player) ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_vulnerable[pcSlot]) // TODO: reconsider
             foreach (var t in _tethers.Where(t => t.target != pc))
-                _shape.Draw(arena, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position));
+                _shape.Draw(Arena, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position));
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var t in _tethers)
         {
-            arena.Actor(t.source, ArenaColor.Object, true);
-            arena.AddLine(t.source.Position, t.target.Position, ArenaColor.Danger);
+            Arena.Actor(t.source, ArenaColor.Object, true);
+            Arena.AddLine(t.source.Position, t.target.Position, ArenaColor.Danger);
             if (t.target == pc || !_vulnerable[pcSlot])
-                _shape.Outline(arena, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position), t.target == pc ? ArenaColor.Safe : ArenaColor.Danger); // TODO: reconsider...
+                _shape.Outline(Arena, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position), t.target == pc ? ArenaColor.Safe : ArenaColor.Danger); // TODO: reconsider...
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.ClassicalConceptsShapes && module.WorldState.Actors.Find(tether.Target) is var target && target != null)
+        if (tether.ID == (uint)TetherID.ClassicalConceptsShapes && WorldState.Actors.Find(tether.Target) is var target && target != null)
         {
             _tethers.Add((source, target));
-            _vulnerable.Set(module.Raid.FindSlot(tether.Target));
+            _vulnerable.Set(Raid.FindSlot(tether.Target));
         }
     }
 }

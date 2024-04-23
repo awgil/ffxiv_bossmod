@@ -3,18 +3,16 @@
 // AI idea: we want to run as a group and pop all orbs, without necessarily involving tanks
 // for 1/2 casts, we first try to stack S of boss, since everyone is somewhat close to that point, to get knocked back to the south edge; we then pop S orb and E orb(s) in order S->N
 // for 3 cast, we immune knockbacks and stack where two south orbs spawn to immediately handle two pairs; we then run to pop N orbs
-class AethericBoom : Components.CastHint
+class AethericBoom(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.AethericBoom), "Knockback + orbs")
 {
     private bool _waitingForOrbs;
-    private List<Actor> _activeOrbs = new();
-    private List<Actor> _orbsToPop = new();
+    private readonly List<Actor> _activeOrbs = [];
+    private readonly List<Actor> _orbsToPop = [];
     public bool OrbsActive => _waitingForOrbs || _orbsToPop.Count > 0;
 
-    private static readonly float _explosionRadius = 8;
+    private const float _explosionRadius = 8;
 
-    public AethericBoom() : base(ActionID.MakeSpell(AID.AethericBoom), "Knockback + orbs") { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         // cleanup
         _orbsToPop.RemoveAll(a => a.IsDestroyed);
@@ -25,7 +23,7 @@ class AethericBoom : Components.CastHint
 
         if (_waitingForOrbs)
         {
-            var orbs = module.Enemies(OID.Ultimaplasm);
+            var orbs = Module.Enemies(OID.Ultimaplasm);
             if (orbs.Count == 2 * (NumCasts + 1)) // 4/6/8 orbs should spawn after 1/2/3 casts
             {
                 _activeOrbs.AddRange(orbs);
@@ -52,12 +50,12 @@ class AethericBoom : Components.CastHint
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (!OrbsActive)
             return;
 
-        if (module.PrimaryActor.TargetID == actor.InstanceID)
+        if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {
             // current MT should not be doing this mechanic
             foreach (var orb in _activeOrbs)
@@ -70,7 +68,7 @@ class AethericBoom : Components.CastHint
             if (NumCasts < 2)
             {
                 // first or second cast in progress => stack S of boss to be knocked back roughly in same direction
-                hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 50, 180.Degrees(), 170.Degrees()));
+                hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 50, 180.Degrees(), 170.Degrees()));
             }
             else
             {
@@ -89,7 +87,7 @@ class AethericBoom : Components.CastHint
         {
             // run to pop next orb
             var nextOrb = _orbsToPop[0];
-            if (actor.Role is Role.Melee or Role.Tank && module.Raid.WithoutSlot().InRadius(nextOrb.Position, _explosionRadius).Count() > 5)
+            if (actor.Role is Role.Melee or Role.Tank && Raid.WithoutSlot().InRadius(nextOrb.Position, _explosionRadius).Count() > 5)
             {
                 // pop the orb
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nextOrb.Position, 1.5f));
@@ -102,18 +100,18 @@ class AethericBoom : Components.CastHint
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var orb in _activeOrbs)
         {
-            arena.Actor(orb, ArenaColor.Object, true);
-            arena.AddCircle(orb.Position, _explosionRadius, ArenaColor.Danger);
+            Arena.Actor(orb, ArenaColor.Object, true);
+            Arena.AddCircle(orb.Position, _explosionRadius, ArenaColor.Danger);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.AetheroplasmBoom)
         {
             _activeOrbs.Remove(caster);

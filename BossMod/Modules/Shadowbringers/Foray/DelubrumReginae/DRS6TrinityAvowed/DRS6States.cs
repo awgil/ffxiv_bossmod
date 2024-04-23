@@ -15,13 +15,15 @@ class DRS6States : StateMachineBuilder
         AllegiantArsenalAOE(id + 0x20000, 6.3f);
         AllegiantArsenalAOE(id + 0x30000, 5.2f);
 
-        Dictionary<AllegiantArsenal.Order, (uint seqID, Action<uint> buildState)> dispatch = new();
-        dispatch[AllegiantArsenal.Order.StaffSwordBow] = ((id >> 24) + 1, ForkStaffSwordBow);
-        dispatch[AllegiantArsenal.Order.BowSwordStaff] = ((id >> 24) + 2, ForkBowSwordStaff);
-        dispatch[AllegiantArsenal.Order.SwordBowStaff] = ((id >> 24) + 3, ForkSwordBowStaff);
-        dispatch[AllegiantArsenal.Order.StaffBowSword] = ((id >> 24) + 4, ForkStaffBowSword);
-        dispatch[AllegiantArsenal.Order.SwordStaffBow] = ((id >> 24) + 5, ForkSwordStaffBow);
-        dispatch[AllegiantArsenal.Order.BowStaffSword] = ((id >> 24) + 6, ForkBowStaffSword);
+        Dictionary<AllegiantArsenal.Order, (uint seqID, Action<uint> buildState)> dispatch = new()
+        {
+            [AllegiantArsenal.Order.StaffSwordBow] = ((id >> 24) + 1, ForkStaffSwordBow),
+            [AllegiantArsenal.Order.BowSwordStaff] = ((id >> 24) + 2, ForkBowSwordStaff),
+            [AllegiantArsenal.Order.SwordBowStaff] = ((id >> 24) + 3, ForkSwordBowStaff),
+            [AllegiantArsenal.Order.StaffBowSword] = ((id >> 24) + 4, ForkStaffBowSword),
+            [AllegiantArsenal.Order.SwordStaffBow] = ((id >> 24) + 5, ForkSwordStaffBow),
+            [AllegiantArsenal.Order.BowStaffSword] = ((id >> 24) + 6, ForkBowStaffSword)
+        };
         ComponentConditionFork<AllegiantArsenal, AllegiantArsenal.Order>(id + 0x40000, 0, _ => true, comp => comp.Mechanics, dispatch);
     }
 

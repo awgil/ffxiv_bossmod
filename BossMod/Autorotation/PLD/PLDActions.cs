@@ -5,10 +5,10 @@ class Actions : TankActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private PLDConfig _config;
+    private readonly PLDConfig _config;
     private bool _aoe;
-    private Rotation.State _state;
-    private Rotation.Strategy _strategy;
+    private readonly Rotation.State _state;
+    private readonly Rotation.Strategy _strategy;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
@@ -24,9 +24,10 @@ class Actions : TankActions
         OnConfigModified();
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         _config.Modified -= OnConfigModified;
+        base.Dispose(disposing);
     }
 
     public override CommonRotation.PlayerState GetState() => _state;

@@ -1,35 +1,9 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
-// hard-hitting add
-class P2ExecratedWill : Components.Adds
-{
-    public P2ExecratedWill() : base((uint)OID.ExecratedWill) { }
-}
+class P2ExecratedWill(BossModule module) : Components.Adds(module, (uint)OID.ExecratedWill); // hard-hitting add
+class P2ExecratedWit(BossModule module) : Components.Adds(module, (uint)OID.ExecratedWit); // high-priority add (casts comets and meteor)
+class P2ExecratedWile(BossModule module) : Components.Adds(module, (uint)OID.ExecratedWile); // low-priority add (casts fear, then magical autos)
+class P2ExecratedThew(BossModule module) : Components.Adds(module, (uint)OID.ExecratedThew); // small add
 
-// high-priority add (casts comets and meteor)
-class P2ExecratedWit : Components.Adds
-{
-    public P2ExecratedWit() : base((uint)OID.ExecratedWit) { }
-}
-
-// low-priority add (casts fear, then magical autos)
-class P2ExecratedWile : Components.Adds
-{
-    public P2ExecratedWile() : base((uint)OID.ExecratedWile) { }
-}
-
-// small add
-class P2ExecratedThew : Components.Adds
-{
-    public P2ExecratedThew() : base((uint)OID.ExecratedThew) { }
-}
-
-class P2Comet : Components.LocationTargetedAOEs
-{
-    public P2Comet() : base(ActionID.MakeSpell(AID.Comet), 4) { }
-}
-
-class P2MeracydianFear : Components.CastGaze
-{
-    public P2MeracydianFear() : base(ActionID.MakeSpell(AID.MeracydianFear)) { }
-}
+class P2Comet(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Comet), 4);
+class P2MeracydianFear(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.MeracydianFear));

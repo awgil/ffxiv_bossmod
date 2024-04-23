@@ -1,18 +1,16 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
 
-class SavageBarbery : Components.GenericAOEs
+class SavageBarbery(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(Actor Caster, AOEShape Shape)> _casts = new();
+    private readonly List<(Actor Caster, AOEShape Shape)> _casts = [];
     public int NumActiveCasts => _casts.Count;
 
-    public SavageBarbery() : base(new()) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return _casts.Select(cs => new AOEInstance(cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.NPCFinishAt));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         AOEShape? shape = (AID)spell.Action.ID switch
         {
@@ -25,26 +23,24 @@ class SavageBarbery : Components.GenericAOEs
             _casts.Add((caster, shape));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.SavageBarberyDonutAOE or AID.SavageBarberyRectAOE or AID.SavageBarberyDonutSword or AID.SavageBarberyRectSword)
             _casts.RemoveAll(cs => cs.Caster == caster);
     }
 }
 
-class HairRaid : Components.GenericAOEs
+class HairRaid(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<(Actor Caster, AOEShape Shape)> _casts = new();
+    private readonly List<(Actor Caster, AOEShape Shape)> _casts = [];
     public int NumActiveCasts => _casts.Count;
 
-    public HairRaid() : base(new()) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return _casts.Select(cs => new AOEInstance(cs.Shape, cs.Caster.Position, cs.Caster.CastInfo!.Rotation, cs.Caster.CastInfo.NPCFinishAt));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         AOEShape? shape = (AID)spell.Action.ID switch
         {
@@ -56,14 +52,11 @@ class HairRaid : Components.GenericAOEs
             _casts.Add((caster, shape));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.HairRaidConeAOE or AID.HairRaidDonutAOE)
             _casts.RemoveAll(cs => cs.Caster == caster);
     }
 }
 
-class HairSprayDeadlyTwist : Components.CastStackSpread
-{
-    public HairSprayDeadlyTwist() : base(ActionID.MakeSpell(AID.DeadlyTwist), ActionID.MakeSpell(AID.HairSpray), 6, 5, 4) { }
-}
+class HairSprayDeadlyTwist(BossModule module) : Components.CastStackSpread(module, ActionID.MakeSpell(AID.DeadlyTwist), ActionID.MakeSpell(AID.HairSpray), 6, 5, 4);

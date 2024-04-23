@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Savage.P4S1Hesperos;
 
 // component detecting corner assignments for 'setting the scene'; it is used by other components to show various warnings
-class SettingTheScene : BossComponent
+class SettingTheScene(BossModule module) : BossComponent(module)
 {
     public enum Corner { Unknown, NE, SE, SW, NW }
     public enum Element { Fire, Lightning, Acid, Water }
 
-    private Corner[] _assignments = new Corner[4];
+    private readonly Corner[] _assignments = new Corner[4];
     public Corner Assignment(Element elem) => _assignments[(int)elem];
 
     public Element FindElement(Corner corner)
@@ -18,42 +18,42 @@ class SettingTheScene : BossComponent
     {
         return corner switch
         {
-            Corner.NE => new( 1, -1),
-            Corner.SE => new( 1,  1),
-            Corner.SW => new(-1,  1),
+            Corner.NE => new(+1, -1),
+            Corner.SE => new(+1, +1),
+            Corner.SW => new(-1, +1),
             Corner.NW => new(-1, -1),
             _ => new()
         };
     }
 
-    public Corner FromPos(BossModule module, WPos pos)
+    public Corner FromPos(WPos pos)
     {
-        return pos.X > module.Bounds.Center.X
-            ? (pos.Z > module.Bounds.Center.Z ? Corner.SE : Corner.NE)
-            : (pos.Z > module.Bounds.Center.Z ? Corner.SW : Corner.NW);
+        return pos.X > Module.Bounds.Center.X
+            ? (pos.Z > Module.Bounds.Center.Z ? Corner.SE : Corner.NE)
+            : (pos.Z > Module.Bounds.Center.Z ? Corner.SW : Corner.NW);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         // this is a fallback in case env-control assignment doesn't work for some reason...
         switch ((AID)spell.Action.ID)
         {
             case AID.PinaxAcid:
-                AssignFromCast(module, Element.Acid, caster.Position);
+                AssignFromCast(Element.Acid, caster.Position);
                 break;
             case AID.PinaxLava:
-                AssignFromCast(module, Element.Fire, caster.Position);
+                AssignFromCast(Element.Fire, caster.Position);
                 break;
             case AID.PinaxWell:
-                AssignFromCast(module, Element.Water, caster.Position);
+                AssignFromCast(Element.Water, caster.Position);
                 break;
             case AID.PinaxLevinstrike:
-                AssignFromCast(module, Element.Lightning, caster.Position);
+                AssignFromCast(Element.Lightning, caster.Position);
                 break;
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         // 8003759C, state=00020001
         // what I've seen so far:
@@ -87,13 +87,13 @@ class SettingTheScene : BossComponent
         }
     }
 
-    private void AssignFromCast(BossModule module, Element elem, WPos pos)
+    private void AssignFromCast(Element elem, WPos pos)
     {
-        var corner = FromPos(module, pos);
+        var corner = FromPos(pos);
         var prev = Assignment(elem);
         if (prev != Corner.Unknown && prev != corner)
         {
-            module.ReportError(this, $"Assignment mismatch: {prev} from env-control, {corner} from cast");
+            ReportError($"Assignment mismatch: {prev} from env-control, {corner} from cast");
         }
         _assignments[(int)elem] = corner;
     }

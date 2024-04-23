@@ -46,7 +46,7 @@ public class PendingEffects
         }
     }
 
-    private List<Entry> _entries = new(); // implicitly sorted by timestamp/global sequence?
+    private readonly List<Entry> _entries = []; // implicitly sorted by timestamp/global sequence?
     public IReadOnlyList<Entry> Entries => _entries;
 
     public void AddEntry(DateTime ts, ulong source, ActorCastEvent ev)
@@ -102,7 +102,8 @@ public class PendingEffects
     public void RemoveExpired(DateTime ts)
     {
         var minRemaining = ts.AddSeconds(-3);
-        _entries.RemoveAll(e => {
+        _entries.RemoveAll(e =>
+        {
             bool expired = e.Timestamp < minRemaining;
             // note: this can happen if we misjudge and assume event required confirmation, but get none
             //if (expired)

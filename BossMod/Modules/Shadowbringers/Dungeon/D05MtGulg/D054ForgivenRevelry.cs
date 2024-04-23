@@ -18,38 +18,35 @@ public enum AID : uint
     RightPalm2 = 16248, // 233C->self, 4,5s cast, range 30 width 15 rect
 }
 
-class PalmAttacks : Components.GenericAOEs //Palm Attacks have a wrong origin, so i made a custom solution
+class PalmAttacks(BossModule module) : Components.GenericAOEs(module) //Palm Attacks have a wrong origin, so i made a custom solution
 {
-
     private AOEInstance? _aoe;
 
     private static readonly AOEShapeRect rect = new(15, 15);
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.LeftPalm2:
-                _aoe = new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), -90.Degrees(), spell.NPCFinishAt);
+                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Bounds.Center.Z), -90.Degrees(), spell.NPCFinishAt);
                 break;
             case AID.RightPalm2:
-                _aoe = new(rect, new(module.PrimaryActor.Position.X, module.Bounds.Center.Z), 90.Degrees(), spell.NPCFinishAt);
+                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Bounds.Center.Z), 90.Degrees(), spell.NPCFinishAt);
                 break;
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.LeftPalm2 or AID.RightPalm2)
             _aoe = null;
     }
 }
 
-class LightShot : Components.SelfTargetedAOEs
-{
-    public LightShot() : base(ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2)) { }
-}
+class LightShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2));
 
 class D054ForgivenRevelryStates : StateMachineBuilder
 {
@@ -62,7 +59,4 @@ class D054ForgivenRevelryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8270)]
-public class D054ForgivenRevelry : BossModule
-{
-    public D054ForgivenRevelry(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-240, 176), 15)) { }
-}
+public class D054ForgivenRevelry(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-240, 176), 15));

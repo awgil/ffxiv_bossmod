@@ -1,17 +1,12 @@
 ﻿namespace BossMod.Components;
 
 // generic component that counts specified casts
-public class CastCounter : BossComponent
+public class CastCounter(BossModule module, ActionID aid) : BossComponent(module)
 {
-    public ActionID WatchedAction { get; private set; }
-    public int NumCasts { get; protected set; } = 0;
+    public ActionID WatchedAction { get; private set; } = aid;
+    public int NumCasts { get; protected set; }
 
-    public CastCounter(ActionID aid)
-    {
-        WatchedAction = aid;
-    }
-
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
             ++NumCasts;

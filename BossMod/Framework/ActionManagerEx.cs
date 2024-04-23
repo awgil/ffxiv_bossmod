@@ -42,7 +42,7 @@ namespace BossMod;
 // 6. ground-targeted action queueing
 //    ground-targeted actions can't be queued, making using them efficiently tricky
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
-unsafe class ActionManagerEx : IDisposable
+unsafe sealed class ActionManagerEx : IDisposable
 {
     public static ActionManagerEx? Instance;
 
@@ -80,9 +80,9 @@ unsafe class ActionManagerEx : IDisposable
     public ActionID GTSpell => new(ActionType.Spell, GTSpellID);
     public uint GTUnkArg => Utils.ReadField<uint>(_inst, 0x94);
     public ulong GTUnkObj => Utils.ReadField<ulong>(_inst, 0x98);
-    public byte GT_uA0 => Utils.ReadField<byte>(_inst, 0xA0);
-    public byte GT_uB8 => Utils.ReadField<byte>(_inst, 0xB8);
-    public uint GT_uBC => Utils.ReadField<byte>(_inst, 0xBC);
+    public byte GTUnkA0 => Utils.ReadField<byte>(_inst, 0xA0);
+    public byte GTUnkB8 => Utils.ReadField<byte>(_inst, 0xB8);
+    public uint GTUnkBC => Utils.ReadField<byte>(_inst, 0xBC);
 
     public ushort LastUsedActionSequence => Utils.ReadField<ushort>(_inst, 0x110);
 
@@ -101,7 +101,7 @@ unsafe class ActionManagerEx : IDisposable
     public ActionManagerConfig Config;
     public CommonActions.NextAction AutoQueue; // TODO: consider using native 'queue' fields for this?
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
-    private ActionManager* _inst;
+    private readonly ActionManager* _inst;
     private float _lastReqInitialAnimLock;
     private int _lastReqSequence = -1;
     private float _useActionInPast; // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
@@ -109,30 +109,30 @@ unsafe class ActionManagerEx : IDisposable
     private int _restoreCntr;
 
     private delegate bool GetGroundTargetPositionDelegate(ActionManager* self, Vector3* outPos);
-    private GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
+    private readonly GetGroundTargetPositionDelegate _getGroundTargetPositionFunc;
 
     private delegate void FaceTargetDelegate(ActionManager* self, Vector3* position, ulong targetID);
-    private FaceTargetDelegate _faceTargetFunc;
+    private readonly FaceTargetDelegate _faceTargetFunc;
 
     private delegate void UpdateDelegate(ActionManager* self);
-    private Hook<UpdateDelegate> _updateHook;
+    private readonly Hook<UpdateDelegate> _updateHook;
 
     private delegate bool UseActionLocationDelegate(ActionManager* self, ActionType actionType, uint actionID, ulong targetID, Vector3* targetPos, uint itemLocation);
-    private Hook<UseActionLocationDelegate> _useActionLocationHook;
+    private readonly Hook<UseActionLocationDelegate> _useActionLocationHook;
 
     private delegate bool UseBozjaFromHolsterDirectorDelegate(void* self, uint holsterIndex, uint slot);
-    private Hook<UseBozjaFromHolsterDirectorDelegate> _useBozjaFromHolsterDirectorHook;
+    private readonly Hook<UseBozjaFromHolsterDirectorDelegate> _useBozjaFromHolsterDirectorHook;
 
     private delegate void ProcessPacketActionEffectDelegate(uint casterID, FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* casterObj, Vector3* targetPos, Network.ServerIPC.ActionEffectHeader* header, ulong* effects, ulong* targets);
-    private Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
+    private readonly Hook<ProcessPacketActionEffectDelegate> _processPacketActionEffectHook;
 
     private delegate void ProcessPacketEffectResultDelegate(uint targetID, byte* packet, byte replaying);
-    private Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
-    private Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
+    private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
+    private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
 
     // it's a static function of StatusManager really
     private delegate bool CancelStatusDelegate(uint statusId, uint sourceId);
-    private CancelStatusDelegate _cancelStatusFunc;
+    private readonly CancelStatusDelegate _cancelStatusFunc;
 
     public ActionManagerEx()
     {
@@ -196,10 +196,7 @@ unsafe class ActionManagerEx : IDisposable
         return _getGroundTargetPositionFunc(_inst, &res) ? res : null;
     }
 
-    public void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId)
-    {
-        _faceTargetFunc(_inst, &position, unkObjID);
-    }
+    public void FaceTarget(Vector3 position, ulong unkObjID = GameObject.InvalidGameObjectId) => _faceTargetFunc(_inst, &position, unkObjID);
     public void FaceDirection(WDir direction)
     {
         var player = Service.ClientState.LocalPlayer;
@@ -228,11 +225,15 @@ unsafe class ActionManagerEx : IDisposable
             GetCooldown(ref cooldowns[i], rg++);
         rg = _inst->GetRecastGroupDetail(80);
         if (rg != null)
+        {
             for (int i = 80; i < 82; ++i)
                 GetCooldown(ref cooldowns[i], rg++);
+        }
         else
+        {
             for (int i = 80; i < 82; ++i)
                 cooldowns[i] = default;
+        }
     }
 
     public float GCD()
@@ -268,9 +269,7 @@ unsafe class ActionManagerEx : IDisposable
         => _inst->GetRecastGroup((int)action.Type, action.ID);
 
     public bool UseAction(ActionID action, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted)
-    {
-        return _inst->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
-    }
+        => _inst->UseAction((FFXIVClientStructs.FFXIV.Client.Game.ActionType)action.Type, action.ID, targetID, itemLocation, callType, comboRouteID, outOptGTModeStarted);
 
     // skips queueing etc
     public bool UseActionRaw(ActionID action, ulong targetID = GameObject.InvalidGameObjectId, Vector3 targetPos = new(), uint itemLocation = 0, Angle? facingAngleOverride = null)
@@ -418,8 +417,7 @@ unsafe class ActionManagerEx : IDisposable
             };
             for (int i = 0; i < header->NumTargets; ++i)
             {
-                var target = new ActorCastEvent.Target();
-                target.ID = targets[i];
+                var target = new ActorCastEvent.Target() { ID = targets[i] };
                 for (int j = 0; j < 8; ++j)
                     target.Effects[j] = effects[i * 8 + j];
                 info.Targets.Add(target);

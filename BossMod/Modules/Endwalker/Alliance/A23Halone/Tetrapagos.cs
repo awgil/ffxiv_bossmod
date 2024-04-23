@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Alliance.A23Halone;
 
-class Tetrapagos : Components.GenericAOEs
+class Tetrapagos(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         AOEShape? shape = (AID)spell.Action.ID switch
         {
@@ -19,7 +19,7 @@ class Tetrapagos : Components.GenericAOEs
             _aoes.Add(new(shape, caster.Position, caster.Rotation, spell.NPCFinishAt.AddSeconds(7.3f)));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.TetrapagosHailstormAOE or AID.TetrapagosSwirlAOE or AID.TetrapagosRightrimeAOE or AID.TetrapagosLeftrimeAOE)
         {

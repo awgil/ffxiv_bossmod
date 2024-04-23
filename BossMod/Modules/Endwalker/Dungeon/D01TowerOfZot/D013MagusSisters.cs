@@ -57,18 +57,18 @@ public enum SID : uint
     Electrocution = 2086, // Minduruva->player, extra=0x0
 }
 
-class Dhrupad : BossComponent
+class Dhrupad(BossModule module) : BossComponent(module)
 {
     private int NumCasts;
     private bool active;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Dhrupad)
             active = true;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ManusyaFire1 or AID.ManusyaBlizzard1 or AID.ManusyaThunder1)
         {
@@ -81,35 +81,32 @@ class Dhrupad : BossComponent
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (active)
             hints.Add("3 single target hits + DoTs");
     }
 }
 
-class ManusyaBio : Components.SingleTargetCast
-{
-    public ManusyaBio() : base(ActionID.MakeSpell(AID.ManusyaBio), "Tankbuster + cleansable poison") { }
-}
+class ManusyaBio(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ManusyaBio), "Tankbuster + cleansable poison");
 
-class Poison : BossComponent
+class Poison(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _poisoned = [];
+    private readonly List<Actor> _poisoned = [];
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Poison)
             _poisoned.Add(actor);
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Poison)
             _poisoned.Remove(actor);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_poisoned.Contains(actor) && !(actor.Role == Role.Healer || actor.Class == Class.BRD)) //theoretically only the tank can ge poisoned, this is just in here incase of bad tanks
             hints.Add("You were poisoned! Get cleansed fast.");
@@ -120,9 +117,9 @@ class Poison : BossComponent
                 hints.Add($"Cleanse {c.Name} (Poison)");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         foreach (var c in _poisoned)
         {
             if (_poisoned.Count > 0 && actor.Role == Role.Healer)
@@ -133,94 +130,43 @@ class Poison : BossComponent
     }
 }
 
-class IsitvaSiddhi : Components.SingleTargetCast
-{
-    public IsitvaSiddhi() : base(ActionID.MakeSpell(AID.IsitvaSiddhi)) { }
-}
+class IsitvaSiddhi(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.IsitvaSiddhi));
+class Samsara(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Samsara));
+class DeltaThunderIII1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaThunderIII1), 3);
+class DeltaThunderIII2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaThunderIII2), 5);
+class DeltaThunderIII3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaThunderIII3), new AOEShapeRect(40, 5));
+class DeltaThunderIII4(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.DeltaThunderIII4), 5);
+class DeltaBlizzardIII1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaBlizzardIII1), new AOEShapeCone(40.5f, 10.Degrees()));
+class DeltaBlizzardIII2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaBlizzardIII2), new AOEShapeRect(44, 2));
+class DeltaBlizzardIII3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaBlizzardIII3), new AOEShapeCircle(15));
+class DeltaFireIII1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaFireIII1), new AOEShapeDonut(5, 40));
+class DeltaFireIII2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaFireIII2), new AOEShapeRect(44, 5));
+class DeltaFireIII3(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DeltaFireIII3), 6);
+class PraptiSiddhi(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(40, 2));
 
-class Samsara : Components.RaidwideCast
-{
-    public Samsara() : base(ActionID.MakeSpell(AID.Samsara)) { }
-}
-
-class DeltaThunderIII1 : Components.LocationTargetedAOEs
-{
-    public DeltaThunderIII1() : base(ActionID.MakeSpell(AID.DeltaThunderIII1), 3) { }
-}
-
-class DeltaThunderIII2 : Components.LocationTargetedAOEs
-{
-    public DeltaThunderIII2() : base(ActionID.MakeSpell(AID.DeltaThunderIII2), 5) { }
-}
-
-class DeltaThunderIII3 : Components.SelfTargetedAOEs
-{
-    public DeltaThunderIII3() : base(ActionID.MakeSpell(AID.DeltaThunderIII3), new AOEShapeRect(40, 5)) { }
-}
-
-class DeltaThunderIII4 : Components.StackWithCastTargets
-{
-    public DeltaThunderIII4() : base(ActionID.MakeSpell(AID.DeltaThunderIII4), 5) { }
-}
-
-class DeltaBlizzardIII1 : Components.SelfTargetedAOEs
-{
-    public DeltaBlizzardIII1() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII1), new AOEShapeCone(40.5f, 10.Degrees())) { }
-}
-
-class DeltaBlizzardIII2 : Components.SelfTargetedAOEs
-{
-    public DeltaBlizzardIII2() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII2), new AOEShapeRect(44, 2)) { }
-}
-
-class DeltaBlizzardIII3 : Components.SelfTargetedAOEs
-{
-    public DeltaBlizzardIII3() : base(ActionID.MakeSpell(AID.DeltaBlizzardIII3), new AOEShapeCircle(15)) { }
-}
-
-class DeltaFireIII1 : Components.SelfTargetedAOEs
-{
-    public DeltaFireIII1() : base(ActionID.MakeSpell(AID.DeltaFireIII1), new AOEShapeDonut(5, 40)) { }
-}
-
-class DeltaFireIII2 : Components.SelfTargetedAOEs
-{
-    public DeltaFireIII2() : base(ActionID.MakeSpell(AID.DeltaFireIII2), new AOEShapeRect(44, 5)) { }
-}
-
-class DeltaFireIII3 : Components.SpreadFromCastTargets
-{
-    public DeltaFireIII3() : base(ActionID.MakeSpell(AID.DeltaFireIII3), 6) { }
-}
-
-class PraptiSiddhi : Components.SelfTargetedAOEs
-{
-    public PraptiSiddhi() : base(ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(40, 2)) { }
-}
-
-class SphereShatter : Components.GenericAOEs
+class SphereShatter(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private readonly List<Actor> _casters = [];
     private static readonly AOEShapeCircle circle = new(15);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
             foreach (var c in _casters)
-                yield return new(circle, c.Position, activation: _activation);
+                yield return new(circle, c.Position, default, _activation);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.BerserkerSphere)
         {
             _casters.Add(actor);
-            _activation = module.WorldState.CurrentTime.AddSeconds(7.3f);
+            _activation = WorldState.FutureTime(7.3f);
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SphereShatter)
         {
@@ -230,15 +176,8 @@ class SphereShatter : Components.GenericAOEs
     }
 }
 
-class PrakamyaSiddhi : Components.SelfTargetedAOEs
-{
-    public PrakamyaSiddhi() : base(ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(5)) { }
-}
-
-class ManusyaBlizzardIII : Components.SelfTargetedAOEs
-{
-    public ManusyaBlizzardIII() : base(ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(40.5f, 10.Degrees())) { }
-}
+class PrakamyaSiddhi(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(5));
+class ManusyaBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ManusyaBlizzardIII2), new AOEShapeCone(40.5f, 10.Degrees()));
 
 class D013MagusSistersStates : StateMachineBuilder
 {
@@ -269,17 +208,13 @@ class D013MagusSistersStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10265)]
-class D013MagusSisters : BossModule
+class D013MagusSisters(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-27.5f, -49.5f), 20))
 {
-    public D013MagusSisters(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-27.5f, -49.5f), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.Minduruva))
-            Arena.Actor(s, ArenaColor.Enemy);
-        foreach (var s in Enemies(OID.Sanduruva))
-            Arena.Actor(s, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Minduruva), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Sanduruva), ArenaColor.Enemy);
     }
 
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

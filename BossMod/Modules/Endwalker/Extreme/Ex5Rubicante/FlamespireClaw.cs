@@ -1,17 +1,15 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
 
-class FlamespireClaw : Components.GenericBaitAway
+class FlamespireClaw(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FlamespireClawAOE))
 {
-    private int[] _order = new int[PartyState.MaxPartySize];
+    private readonly int[] _order = new int[PartyState.MaxPartySize];
     private BitMask _tethers;
 
     private static readonly AOEShapeCone _shape = new(20, 45.Degrees()); // TODO: verify angle
 
-    public FlamespireClaw() : base(ActionID.MakeSpell(AID.FlamespireClawAOE)) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         var order = _order[slot];
         if (order != 0 && NumCasts < 8)
@@ -33,48 +31,48 @@ class FlamespireClaw : Components.GenericBaitAway
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var (_, player) in module.Raid.WithSlot(true).IncludedInMask(_tethers))
-            arena.AddLine(player.Position, module.PrimaryActor.Position, ArenaColor.Danger);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var (_, player) in Raid.WithSlot(true).IncludedInMask(_tethers))
+            Arena.AddLine(player.Position, Module.PrimaryActor.Position, ArenaColor.Danger);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
         {
             CurrentBaits.Clear();
             var nextSlot = Array.IndexOf(_order, NumCasts + 1);
-            var nextTarget = nextSlot >= 0 ? module.Raid[nextSlot] : null;
+            var nextTarget = nextSlot >= 0 ? Raid[nextSlot] : null;
             if (nextTarget != null)
-                CurrentBaits.Add(new(module.PrimaryActor, nextTarget, _shape));
+                CurrentBaits.Add(new(Module.PrimaryActor, nextTarget, _shape));
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.FlamespireClaw)
-            _tethers.Set(module.Raid.FindSlot(source.InstanceID));
+            _tethers.Set(Raid.FindSlot(source.InstanceID));
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.FlamespireClaw)
-            _tethers.Clear(module.Raid.FindSlot(source.InstanceID));
+            _tethers.Clear(Raid.FindSlot(source.InstanceID));
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID is >= (uint)IconID.FlamespireClaw1 and <= (uint)IconID.FlamespireClaw8)
         {
-            var slot = module.Raid.FindSlot(actor.InstanceID);
+            var slot = Raid.FindSlot(actor.InstanceID);
             var order = (int)iconID - (int)IconID.FlamespireClaw1 + 1;
             if (slot >= 0)
                 _order[slot] = order;
             if (order == 1)
-                CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
+                CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape));
         }
     }
 }

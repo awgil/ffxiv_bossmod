@@ -4,7 +4,7 @@ namespace BossMod;
 
 public class BossModuleHintsWindow : UIWindow
 {
-    private BossModuleManager _mgr;
+    private readonly BossModuleManager _mgr;
 
     public BossModuleHintsWindow(BossModuleManager mgr) : base("Boss module hints", false, new(400, 100))
     {
@@ -24,7 +24,7 @@ public class BossModuleHintsWindow : UIWindow
     {
         try
         {
-            _mgr.ActiveModule?.Draw(0, PartyState.PlayerSlot, null, true, false);
+            _mgr.ActiveModule?.Draw(0, PartyState.PlayerSlot, true, false);
         }
         catch (Exception ex)
         {

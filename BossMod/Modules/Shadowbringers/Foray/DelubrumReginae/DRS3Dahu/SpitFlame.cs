@@ -1,26 +1,19 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS3Dahu;
 
-class SpitFlame : Components.UniformStackSpread
+class SpitFlame(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true, raidwideOnResolve: false)
 {
-    private Actor?[] _targets = { null, null, null, null };
-    private IReadOnlyList<Actor> _adds = ActorEnumeration.EmptyList;
+    private readonly Actor?[] _targets = [null, null, null, null];
+    private readonly IReadOnlyList<Actor> _adds = module.Enemies(OID.Marchosias);
 
-    public SpitFlame() : base(0, 4, alwaysShowSpreads: true, raidwideOnResolve: false) { }
-
-    public override void Init(BossModule module)
-    {
-        _adds = module.Enemies(OID.Marchosias);
-    }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         Spreads.RemoveAll(s => s.Target.IsDead); // if target dies after being marked, cast will be skipped
-        base.Update(module);
+        base.Update();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (Array.IndexOf(_targets, actor) is var order && order >= 0)
         {
             hints.Add($"Order: {order + 1}", false);
@@ -29,13 +22,13 @@ class SpitFlame : Components.UniformStackSpread
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actors(_adds, ArenaColor.Object, true);
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        Arena.Actors(_adds, ArenaColor.Object, true);
+        base.DrawArenaForeground(pcSlot, pc);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var order = (IconID)iconID switch
         {
@@ -52,7 +45,7 @@ class SpitFlame : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SpitFlameAOE)
             Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);

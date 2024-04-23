@@ -1,18 +1,18 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class ThousandfoldThrust : Components.GenericAOEs
+class ThousandfoldThrust(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ThousandfoldThrustAOEFirst)
             _aoe = new(new AOEShapeCone(60, 90.Degrees()), caster.Position, spell.Rotation, spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.ThousandfoldThrustAOERest)
         {
@@ -22,7 +22,7 @@ class ThousandfoldThrust : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ThousandfoldThrustAOEFirst)
             ++NumCasts;

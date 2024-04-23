@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Components;
 
 // generic 'exaflare' component - these mechanics are a bunch of moving aoes, with different lines either staggered or moving with different speed
-public class Exaflare : GenericAOEs
+public class Exaflare(BossModule module, AOEShape shape, ActionID aid = default) : GenericAOEs(module, aid, "GTFO from exaflare!")
 {
     public class Line
     {
@@ -14,36 +14,32 @@ public class Exaflare : GenericAOEs
         public int MaxShownExplosions;
     }
 
-    public AOEShape Shape { get; private init; }
+    public AOEShape Shape { get; init; } = shape;
     public uint ImminentColor = ArenaColor.Danger;
     public uint FutureColor = ArenaColor.AOE;
-    protected List<Line> Lines = new();
+    protected List<Line> Lines = [];
 
     public bool Active => Lines.Count > 0;
 
-    public Exaflare(AOEShape shape, ActionID watchedAction = new()) : base(watchedAction, "GTFO from exaflare!")
-    {
-        Shape = shape;
-    }
-    public Exaflare(float radius, ActionID watchedAction = new()) : this(new AOEShapeCircle(radius), watchedAction) { }
+    public Exaflare(BossModule module, float radius, ActionID aid = new()) : this(module, new AOEShapeCircle(radius), aid) { }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var (c, t, r) in FutureAOEs(module.WorldState.CurrentTime))
-            yield return new(Shape, c, r, activation: t, color: FutureColor);
+        foreach (var (c, t, r) in FutureAOEs())
+            yield return new(Shape, c, r, t, FutureColor);
         foreach (var (c, t, r) in ImminentAOEs())
-            yield return new(Shape, c, r, activation: t, color: ImminentColor);
+            yield return new(Shape, c, r, t, ImminentColor);
     }
 
     protected IEnumerable<(WPos, DateTime, Angle)> ImminentAOEs() => Lines.Where(l => l.ExplosionsLeft > 0).Select(l => (l.Next, l.NextExplosion, l.Rotation));
 
-    protected IEnumerable<(WPos, DateTime, Angle)> FutureAOEs(DateTime currentTime)
+    protected IEnumerable<(WPos, DateTime, Angle)> FutureAOEs()
     {
         foreach (var l in Lines)
         {
             int num = Math.Min(l.ExplosionsLeft, l.MaxShownExplosions);
             var pos = l.Next;
-            var time = l.NextExplosion > currentTime ? l.NextExplosion : currentTime;
+            var time = l.NextExplosion > WorldState.CurrentTime ? l.NextExplosion : WorldState.CurrentTime;
             for (int i = 1; i < num; ++i)
             {
                 pos += l.Advance;
@@ -53,10 +49,10 @@ public class Exaflare : GenericAOEs
         }
     }
 
-    protected void AdvanceLine(BossModule module, Line l, WPos pos)
+    protected void AdvanceLine(Line l, WPos pos)
     {
         l.Next = pos + l.Advance;
-        l.NextExplosion = module.WorldState.CurrentTime.AddSeconds(l.TimeToMove);
+        l.NextExplosion = WorldState.FutureTime(l.TimeToMove);
         --l.ExplosionsLeft;
     }
 }

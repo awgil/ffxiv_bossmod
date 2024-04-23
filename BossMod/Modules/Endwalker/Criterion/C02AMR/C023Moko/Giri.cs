@@ -2,26 +2,26 @@
 
 // the main complexity is that first status and cast-start happen at the same time, so we can receive them in arbitrary order
 // we need cast to know proper rotation (we can't use actor's rotation, since it's interpolated)
-class TripleKasumiGiri : Components.GenericAOEs
+class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<string> _hints = new();
-    private List<Angle> _directionOffsets = new();
+    private readonly List<string> _hints = [];
+    private readonly List<Angle> _directionOffsets = [];
     private BitMask _ins; // [i] == true if i'th aoe is in
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shapeCone = new(60, 135.Degrees());
     private static readonly AOEShapeCircle _shapeOut = new(6);
     private static readonly AOEShapeDonut _shapeIn = new(6, 40);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(2);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(2);
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_hints.Count > 0)
             hints.Add($"Safespots: {string.Join(" > ", _hints)}");
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Giri)
         {
@@ -39,7 +39,7 @@ class TripleKasumiGiri : Components.GenericAOEs
             };
             if (hint.Length == 0)
             {
-                module.ReportError(this, $"Unexpected extra {status.Extra:X}");
+                ReportError($"Unexpected extra {status.Extra:X}");
                 return;
             }
 
@@ -47,15 +47,15 @@ class TripleKasumiGiri : Components.GenericAOEs
             _directionOffsets.Add(dir);
             _hints.Add(hint);
 
-            //var activation = _aoes.Count > 0 ? _aoes.Last().Activation.AddSeconds(3.1f) : actor.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime.AddSeconds(12);
-            //var rotation = (_aoes.Count > 0 ? _aoes.Last().Rotation : actor.Rotation) + dir;
+            //var activation = _aoes.Count > 0 ? _aoes[^1].Activation.AddSeconds(3.1f) : actor.CastInfo?.NPCFinishAt ?? WorldState.FutureTime(12);
+            //var rotation = (_aoes.Count > 0 ? _aoes[^1].Rotation : actor.Rotation) + dir;
             //_aoes.Add(new(donut ? _shapeIn : _shapeOut, actor.Position, rotation, activation));
             //_aoes.Add(new(_shapeCone, actor.Position, rotation, activation));
             //_hints.Add(hint);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var (dir, donut, order) = ClassifyAction(spell.Action);
         if (order < 0)
@@ -65,36 +65,36 @@ class TripleKasumiGiri : Components.GenericAOEs
         {
             // first cast: create first aoe pair, first status may or may not be known yet, so verify consistency on cast-finish
             if (_aoes.Count > 0 || NumCasts > 0)
-                module.ReportError(this, "Unexpected state on first cast start");
+                ReportError("Unexpected state on first cast start");
         }
         else if (order > 0)
         {
             // subsequent casts: ensure predicted state is correct, then update aoes in case it was not
             if (NumCasts == 0 || NumCasts >= 3 || _aoes.Count != 2)
-                module.ReportError(this, "Unexpected state on subsequent cast");
+                ReportError("Unexpected state on subsequent cast");
             var mismatch = _aoes.FindIndex(aoe => !aoe.Rotation.AlmostEqual(spell.Rotation, 0.1f));
             if (mismatch >= 0)
-                module.ReportError(this, $"Mispredicted rotation: {spell.Rotation} vs predicted {_aoes[mismatch].Rotation}");
+                ReportError($"Mispredicted rotation: {spell.Rotation} vs predicted {_aoes[mismatch].Rotation}");
             _aoes.Clear();
         }
         _aoes.Add(new(donut ? _shapeIn : _shapeOut, caster.Position, spell.Rotation, spell.NPCFinishAt));
         _aoes.Add(new(_shapeCone, caster.Position, spell.Rotation, spell.NPCFinishAt));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        var (dir, donut, order) = ClassifyAction(spell.Action);
+        var (_, _, order) = ClassifyAction(spell.Action);
         if (order < 0)
             return; // irrelevant spell
 
         if ((order == 0) != (NumCasts == 0))
-            module.ReportError(this, $"Unexpected cast order: spell {order} at num-casts {NumCasts}");
+            ReportError($"Unexpected cast order: spell {order} at num-casts {NumCasts}");
         if (_aoes.Count != 2)
-            module.ReportError(this, "No predicted casts");
+            ReportError("No predicted casts");
         if (NumCasts >= _directionOffsets.Count)
-            module.ReportError(this, $"Unexpected cast #{NumCasts}");
+            ReportError($"Unexpected cast #{NumCasts}");
         if (order == 0 && NumCasts == 0 && _directionOffsets.Count > 0 && !spell.Rotation.AlmostEqual(caster.Rotation + _directionOffsets[0], 0.1f))
-            module.ReportError(this, $"Mispredicted first rotation: expected {caster.Rotation}+{_directionOffsets[0]}, got {spell.Rotation}");
+            ReportError($"Mispredicted first rotation: expected {caster.Rotation}+{_directionOffsets[0]}, got {spell.Rotation}");
 
         // complete part of mechanic
         if (_hints.Count > 0)
@@ -105,7 +105,7 @@ class TripleKasumiGiri : Components.GenericAOEs
         // predict next set of aoes
         if (NumCasts < _directionOffsets.Count)
         {
-            var activation = module.WorldState.CurrentTime.AddSeconds(3.1f);
+            var activation = WorldState.FutureTime(3.1f);
             var rotation = spell.Rotation + _directionOffsets[NumCasts];
             _aoes.Add(new(_ins[NumCasts] ? _shapeIn : _shapeOut, caster.Position, rotation, activation));
             _aoes.Add(new(_shapeCone, caster.Position, rotation, activation));
@@ -136,34 +136,28 @@ class TripleKasumiGiri : Components.GenericAOEs
 
 class IaiGiriBait : Components.GenericBaitAway
 {
-    public class Instance
+    public class Instance(Actor source)
     {
-        public Actor Source;
-        public Actor FakeSource;
+        public Actor Source = source;
+        public Actor FakeSource = new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new());
         public Actor? Target;
-        public List<Angle> DirOffsets = new();
-        public List<string> Hints = new();
-
-        public Instance(Actor source)
-        {
-            Source = source;
-            FakeSource = new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new());
-        }
+        public List<Angle> DirOffsets = [];
+        public List<string> Hints = [];
     }
 
     public float Distance;
-    public List<Instance> Instances = new();
-    private float _jumpOffset;
+    public List<Instance> Instances = [];
+    private readonly float _jumpOffset;
     private bool _baitsDirty;
 
-    public IaiGiriBait(float jumpOffset, float distance)
+    public IaiGiriBait(BossModule module, float jumpOffset, float distance) : base(module)
     {
         Distance = distance;
         IgnoreOtherBaits = true; // this really makes things only worse...
         _jumpOffset = jumpOffset;
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         foreach (var inst in Instances)
             if (inst.Target != null)
@@ -180,7 +174,7 @@ class IaiGiriBait : Components.GenericBaitAway
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Giri)
         {
@@ -194,7 +188,7 @@ class IaiGiriBait : Components.GenericBaitAway
             };
             if (hint.Length == 0)
             {
-                module.ReportError(this, $"Unexpected extra {status.Extra:X}");
+                ReportError($"Unexpected extra {status.Extra:X}");
                 return;
             }
 
@@ -205,16 +199,16 @@ class IaiGiriBait : Components.GenericBaitAway
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID is (uint)TetherID.RatAndMouse)
         {
-            InstanceFor(source).Target = module.WorldState.Actors.Find(tether.Target);
+            InstanceFor(source).Target = WorldState.Actors.Find(tether.Target);
             _baitsDirty = true;
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FleetingIaiGiri or AID.DoubleIaiGiri)
             CurrentBaits.Clear(); // TODO: this is a hack, if we ever mark baits as dirty again, they will be recreated - but we need instances for resolve
@@ -232,29 +226,24 @@ class IaiGiriBait : Components.GenericBaitAway
     }
 }
 
-class IaiGiriResolve : Components.GenericAOEs
+class IaiGiriResolve(BossModule module) : Components.GenericAOEs(module)
 {
-    public class Instance
+    public class Instance(Actor source)
     {
-        public Actor Source;
-        public List<AOEInstance> AOEs = new();
-
-        public Instance(Actor source)
-        {
-            Source = source;
-        }
+        public Actor Source = source;
+        public List<AOEInstance> AOEs = [];
     }
 
-    private List<Instance> _instances = new();
+    private readonly List<Instance> _instances = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var i in _instances)
             if (i.AOEs.Count > 0)
-                yield return i.AOEs.First();
+                yield return i.AOEs[0];
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID
             is AID.NFleetingIaiGiriFront or AID.NFleetingIaiGiriRight or AID.NFleetingIaiGiriLeft or AID.SFleetingIaiGiriFront or AID.SFleetingIaiGiriRight or AID.SFleetingIaiGiriLeft
@@ -266,7 +255,7 @@ class IaiGiriResolve : Components.GenericAOEs
             var inst = _instances.Find(i => i.Source == caster);
             if (inst == null)
             {
-                module.ReportError(this, $"Did not predict cast for {caster.InstanceID:X}");
+                ReportError($"Did not predict cast for {caster.InstanceID:X}");
                 return;
             }
 
@@ -285,23 +274,23 @@ class IaiGiriResolve : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.FleetingIaiGiri:
             case AID.DoubleIaiGiri:
-                var comp = module.FindComponent<IaiGiriBait>();
+                var comp = Module.FindComponent<IaiGiriBait>();
                 var bait = comp?.Instances.Find(i => i.Source == caster);
                 if (bait?.Target == null)
                 {
-                    module.ReportError(this, $"Failed to find bait for {caster.InstanceID:X}");
+                    ReportError($"Failed to find bait for {caster.InstanceID:X}");
                     return;
                 }
 
                 var inst = new Instance(caster);
                 var curRot = bait.Target.Rotation;
-                var nextActivation = module.WorldState.CurrentTime.AddSeconds(2.7f);
+                var nextActivation = WorldState.FutureTime(2.7f);
                 foreach (var off in bait.DirOffsets)
                 {
                     curRot += off;
@@ -341,22 +330,18 @@ class IaiGiriResolve : Components.GenericAOEs
     }
 }
 
-class FleetingIaiGiriBait : IaiGiriBait
+class FleetingIaiGiriBait(BossModule module) : IaiGiriBait(module, 3, 60)
 {
-    public FleetingIaiGiriBait() : base(3, 60) { }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (Instances.Count == 1 && Instances[0].Hints.Count == 1)
             hints.Add($"Safespot: {Instances[0].Hints[0]}");
     }
 }
 
-class DoubleIaiGiriBait : IaiGiriBait
+class DoubleIaiGiriBait(BossModule module) : IaiGiriBait(module, 1, 23)
 {
-    public DoubleIaiGiriBait() : base(1, 23) { }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         var safespots = string.Join(", ", Instances.Where(i => i.Hints.Count == 2).Select(i => i.Hints[1]));
         if (safespots.Length > 0)

@@ -26,44 +26,33 @@ public enum SID : uint
     Doom = 210, // Boss->player, extra=0x0
 }
 
-class Triclip : Components.Cleave
-{
-    public Triclip() : base(ActionID.MakeSpell(AID.Triclip), new AOEShapeRect(5.25f, 2)) { }
-}
+class Triclip(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Triclip), new AOEShapeRect(5.25f, 2));
+class Mow(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Mow), new AOEShapeCone(8.25f, 60.Degrees()));
+class FrightfulRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrightfulRoar), new AOEShapeCircle(8.25f));
 
-class Mow : Components.SelfTargetedLegacyRotationAOEs
-{
-    public Mow() : base(ActionID.MakeSpell(AID.Mow), new AOEShapeCone(8.25f, 60.Degrees())) { }
-}
-
-class FrightfulRoar : Components.SelfTargetedAOEs
-{
-    public FrightfulRoar() : base(ActionID.MakeSpell(AID.FrightfulRoar), new AOEShapeCircle(8.25f)) { }
-}
-
-class MortalRay : BossComponent
+class MortalRay(BossModule module) : BossComponent(module)
 {
     private BitMask _dooms;
-    private Actor?[] _platforms = { null, null, null };
+    private readonly Actor?[] _platforms = [null, null, null];
 
     private static readonly AOEShapeCircle _platformShape = new(2);
 
     private Actor? ActivePlatform => _platforms.FirstOrDefault(a => a != null && a.EventState == 0);
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
-        _platforms[0] ??= module.Enemies(OID.Platform1).FirstOrDefault();
-        _platforms[1] ??= module.Enemies(OID.Platform2).FirstOrDefault();
-        _platforms[2] ??= module.Enemies(OID.Platform3).FirstOrDefault();
+        _platforms[0] ??= Module.Enemies(OID.Platform1).FirstOrDefault();
+        _platforms[1] ??= Module.Enemies(OID.Platform2).FirstOrDefault();
+        _platforms[2] ??= Module.Enemies(OID.Platform3).FirstOrDefault();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_dooms[slot])
             hints.Add("Go to glowing platform!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_dooms[slot])
         {
@@ -75,22 +64,22 @@ class MortalRay : BossComponent
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_dooms[pcSlot])
-            _platformShape.Draw(arena, ActivePlatform, ArenaColor.SafeFromAOE);
+            _platformShape.Draw(Arena, ActivePlatform, ArenaColor.SafeFromAOE);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
-            _dooms.Set(module.Raid.FindSlot(actor.InstanceID));
+            _dooms.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
-            _dooms.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _dooms.Clear(Raid.FindSlot(actor.InstanceID));
     }
 }
 
@@ -107,10 +96,8 @@ class D081TeratotaurStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1567)]
-public class D081Teratotaur : BossModule
+public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-70, -60), 20))
 {
-    public D081Teratotaur(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-70, -60), 20)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

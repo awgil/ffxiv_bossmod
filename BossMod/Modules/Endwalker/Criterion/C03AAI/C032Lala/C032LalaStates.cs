@@ -2,7 +2,7 @@
 
 class C032LalaStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C032LalaStates(BossModule module, bool savage) : base(module)
     {
@@ -151,5 +151,5 @@ class C032LalaStates : StateMachineBuilder
             .DeactivateOnExit<ArcanePlot>();
     }
 }
-class C032NLalaStates : C032LalaStates { public C032NLalaStates(BossModule module) : base(module, false) { } }
-class C032SLalaStates : C032LalaStates { public C032SLalaStates(BossModule module) : base(module, true) { } }
+class C032NLalaStates(BossModule module) : C032LalaStates(module, false);
+class C032SLalaStates(BossModule module) : C032LalaStates(module, true);

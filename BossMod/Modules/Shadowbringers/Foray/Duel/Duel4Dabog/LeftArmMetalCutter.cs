@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
 
-class LeftArmMetalCutterAOE : Components.GenericAOEs
+class LeftArmMetalCutterAOE(BossModule module) : Components.GenericAOEs(module)
 {
     public enum State { FirstAOEs, SecondAOEs, Done }
 
@@ -8,15 +8,15 @@ class LeftArmMetalCutterAOE : Components.GenericAOEs
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeCone _shape = new(40, 45.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.LeftArmMetalCutterAOE1)
             _aoes.Add(new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -27,7 +27,7 @@ class LeftArmMetalCutterAOE : Components.GenericAOEs
                     {
                         var aoe = _aoes[i];
                         aoe.Rotation += 180.Degrees();
-                        aoe.Activation = module.WorldState.CurrentTime.AddSeconds(5.1f);
+                        aoe.Activation = WorldState.FutureTime(5.1f);
                         _aoes[i] = aoe;
                     }
                     CurState = State.SecondAOEs;
@@ -41,31 +41,18 @@ class LeftArmMetalCutterAOE : Components.GenericAOEs
     }
 }
 
-class LeftArmMetalCutterKnockback : Components.Knockback
+class LeftArmMetalCutterKnockback(BossModule module, AID aid, float distance) : Components.Knockback(module, ActionID.MakeSpell(aid))
 {
-    private float _distance;
+    private readonly float _distance = distance;
     private Source? _instance;
 
-    public LeftArmMetalCutterKnockback(AID aid, float distance) : base(ActionID.MakeSpell(aid))
-    {
-        _distance = distance;
-    }
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_instance);
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_instance);
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.LeftArmMetalCutter or AID.ArmUnit)
             _instance = new(caster.Position, _distance, spell.NPCFinishAt.AddSeconds(0.6f));
     }
 }
-
-class LeftArmMetalCutterKnockbackShort : LeftArmMetalCutterKnockback
-{
-    public LeftArmMetalCutterKnockbackShort() : base(AID.LeftArmMetalCutterKnockbackShort, 5) { }
-}
-
-class LeftArmMetalCutterKnockbackLong : LeftArmMetalCutterKnockback
-{
-    public LeftArmMetalCutterKnockbackLong() : base(AID.LeftArmMetalCutterKnockbackLong, 15) { }
-}
+class LeftArmMetalCutterKnockbackShort(BossModule module) : LeftArmMetalCutterKnockback(module, AID.LeftArmMetalCutterKnockbackShort, 5);
+class LeftArmMetalCutterKnockbackLong(BossModule module) : LeftArmMetalCutterKnockback(module, AID.LeftArmMetalCutterKnockbackLong, 15);

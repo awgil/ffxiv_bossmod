@@ -38,33 +38,26 @@ public enum SID : uint
     RightwardBearing = 2838, // Boss->Boss, extra=0x0
 }
 
-class Gnaw : Components.SingleTargetCast
-{
-    public Gnaw() : base(ActionID.MakeSpell(AID.Gnaw)) { }
-}
+class Gnaw(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Gnaw));
+class Caterwaul(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Caterwaul));
 
-class Caterwaul : Components.RaidwideCast
+class Stance(BossModule module) : Components.GenericAOEs(module)
 {
-    public Caterwaul() : base(ActionID.MakeSpell(AID.Caterwaul)) { }
-}
-
-class Stance : Components.GenericAOEs
-{
-    private List<Angle> _pendingCleaves = new();
+    private readonly List<Angle> _pendingCleaves = [];
 
     private static readonly AOEShapeCone _shape = new(40, 90.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_pendingCleaves.Count > 0)
-            yield return new(_shape, module.PrimaryActor.Position, _pendingCleaves.First()); // TODO: activation
+            yield return new(_shape, Module.PrimaryActor.Position, _pendingCleaves[0]); // TODO: activation
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+        if (!(Module.PrimaryActor.CastInfo?.IsSpell() ?? false))
             return;
-        var hint = (AID)module.PrimaryActor.CastInfo!.Action.ID switch
+        var hint = (AID)Module.PrimaryActor.CastInfo!.Action.ID switch
         {
             AID.Brace1 or AID.Brace2 or AID.Brace3 or AID.Brace4 => "Select directions",
             AID.LickwhipStance => "Cleave sides literal",
@@ -75,25 +68,25 @@ class Stance : Components.GenericAOEs
             hints.Add(hint);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (caster != module.PrimaryActor)
+        if (caster != Module.PrimaryActor)
             return;
 
         switch ((AID)spell.Action.ID)
         {
             case AID.LickwhipStance:
-                InitCleaves(module, spell.Rotation, false);
+                InitCleaves(spell.Rotation, false);
                 break;
             case AID.WhiplickStance:
-                InitCleaves(module, spell.Rotation, true);
+                InitCleaves(spell.Rotation, true);
                 break;
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (caster == module.PrimaryActor && _pendingCleaves.Count > 0 &&
+        if (caster == Module.PrimaryActor && _pendingCleaves.Count > 0 &&
             (AID)spell.Action.ID is AID.LongLickForward or AID.LongLickBackward or AID.LongLickLeftward or AID.LongLickRightward or AID.LongLickSecond
                                  or AID.HindWhipForward or AID.HindWhipBackward or AID.HindWhipLeftward or AID.HindWhipRightward or AID.HindWhipSecond)
         {
@@ -101,11 +94,11 @@ class Stance : Components.GenericAOEs
         }
     }
 
-    private void InitCleaves(BossModule module, Angle reference, bool inverted)
+    private void InitCleaves(Angle reference, bool inverted)
     {
         // bearings are resolved in UI order; it is forward > backward > left > right, see PartyListPriority column
-        List<(Angle offset, int priority)> bearings = new();
-        foreach (var s in module.PrimaryActor.Statuses)
+        List<(Angle offset, int priority)> bearings = [];
+        foreach (var s in Module.PrimaryActor.Statuses)
         {
             switch ((SID)s.ID)
             {
@@ -149,7 +142,4 @@ class SphatikaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10618)]
-public class Sphatika : SimpleBossModule
-{
-    public Sphatika(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Sphatika(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

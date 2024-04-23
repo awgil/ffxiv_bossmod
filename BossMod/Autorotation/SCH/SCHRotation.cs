@@ -3,7 +3,7 @@
 public static class Rotation
 {
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public Actor? Fairy;
         public int AetherflowStacks; // 3 max
@@ -17,8 +17,6 @@ public static class Rotation
 
         // statuses
         public SID ExpectedBio => Unlocked(AID.Biolysis) ? SID.Biolysis : Unlocked(AID.Bio2) ? SID.Bio2 : SID.Bio1;
-
-        public State(WorldState ws) : base(ws) { }
 
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
@@ -39,7 +37,7 @@ public static class Rotation
 
         public override string ToString()
         {
-            return $"AOE={NumArtOfWarTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumSuccorTargets}/{NumWhisperingDawnTargets}, no-dots={ForbidDOTs}, movement-in={ForceMovementIn:f3}";
+            return $"AOE={NumArtOfWarTargets}, SH={BestSTHeal.Target?.Name[..4]}={BestSTHeal.HPRatio:f2}, AH={NumSuccorTargets}/{NumWhisperingDawnTargets}, no-dots={ForbidDOTs}, movement-in={ForceMovementIn:f3}";
         }
     }
 

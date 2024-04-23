@@ -2,34 +2,36 @@
 
 public class DemoModule : BossModule
 {
-    private class DemoComponent : BossComponent
+    private class DemoComponent(BossModule module) : BossComponent(module)
     {
-        public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+        public override void AddHints(int slot, Actor actor, TextHints hints)
         {
             hints.Add("Hint", false);
             hints.Add("Risk");
-            if (movementHints != null)
-                movementHints.Add(actor.Position, actor.Position + new WDir(10, 10), ArenaColor.Danger);
         }
 
-        public override void AddGlobalHints(BossModule module, GlobalHints hints)
+        public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+        {
+            movementHints.Add(actor.Position, actor.Position + new WDir(10, 10), ArenaColor.Danger);
+        }
+
+        public override void AddGlobalHints(GlobalHints hints)
         {
             hints.Add("Global");
         }
 
-        public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaBackground(int pcSlot, Actor pc)
         {
-            arena.ZoneCircle(module.Bounds.Center, 10, ArenaColor.AOE);
+            Arena.ZoneCircle(Module.Bounds.Center, 10, ArenaColor.AOE);
         }
 
-        public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+        public override void DrawArenaForeground(int pcSlot, Actor pc)
         {
-            arena.Actor(module.Bounds.Center, 0.Degrees(), ArenaColor.PC);
+            Arena.Actor(Module.Bounds.Center, 0.Degrees(), ArenaColor.PC);
         }
     }
 
-    public DemoModule(WorldState ws, Actor primary)
-        : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
+    public DemoModule(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
     {
         ActivateComponent<DemoComponent>();
     }

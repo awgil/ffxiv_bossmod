@@ -39,52 +39,32 @@ public enum TetherID : uint
 }
 
 // disallow clipping monoliths
-class Friction : BossComponent
+class Friction(BossModule module) : BossComponent(module)
 {
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
-            foreach (var m in ((T06GarudaH)module).ActiveMonoliths)
+        if (Module.PrimaryActor.CastInfo == null) // don't forbid standing near monoliths while boss is casting to allow avoiding aoes
+            foreach (var m in ((T06GarudaH)Module).ActiveMonoliths)
                 hints.AddForbiddenZone(ShapeDistance.Circle(m.Position, 5));
     }
 }
 
-class Downburst : Components.Cleave
+class Downburst(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 60.Degrees()));
+class Slipstream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees()));
+
+class MistralShriek(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MistralShriek), 24.7f, true)
 {
-    public Downburst() : base(ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 60.Degrees())) { }
+    public override IEnumerable<Actor> BlockerActors() => ((T06GarudaH)Module).ActiveMonoliths;
 }
 
-class Slipstream : Components.SelfTargetedAOEs
+class MistralSong(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MistralSong), 31.7f, true)
 {
-    public Slipstream() : base(ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees())) { }
+    public override IEnumerable<Actor> BlockerActors() => ((T06GarudaH)Module).ActiveMonoliths;
 }
 
-class MistralShriek : Components.CastLineOfSightAOE
-{
-    public MistralShriek() : base(ActionID.MakeSpell(AID.MistralShriek), 24.7f, true) { }
-    public override IEnumerable<Actor> BlockerActors(BossModule module) => ((T06GarudaH)module).ActiveMonoliths;
-}
-
-class MistralSong : Components.CastLineOfSightAOE
-{
-    public MistralSong() : base(ActionID.MakeSpell(AID.MistralSong), 31.7f, true) { }
-    public override IEnumerable<Actor> BlockerActors(BossModule module) => ((T06GarudaH)module).ActiveMonoliths;
-}
-
-class AerialBlast : Components.RaidwideCast
-{
-    public AerialBlast() : base(ActionID.MakeSpell(AID.AerialBlast)) { }
-}
-
-class GreatWhirlwind : Components.LocationTargetedAOEs
-{
-    public GreatWhirlwind() : base(ActionID.MakeSpell(AID.GreatWhirlwind), 8) { }
-}
-
-class EyeOfTheStorm : Components.SelfTargetedAOEs
-{
-    public EyeOfTheStorm() : base(ActionID.MakeSpell(AID.EyeOfTheStorm), new AOEShapeDonut(12, 25)) { }
-}
+class AerialBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AerialBlast));
+class GreatWhirlwind(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GreatWhirlwind), 8);
+class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStorm), new AOEShapeDonut(12, 25));
 
 class T06GarudaHStates : StateMachineBuilder
 {
@@ -105,7 +85,7 @@ class T06GarudaHStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 61, NameID = 1644)]
 public class T06GarudaH : BossModule
 {
-    private IReadOnlyList<Actor> _monoliths;
+    private readonly IReadOnlyList<Actor> _monoliths;
     public IEnumerable<Actor> ActiveMonoliths => _monoliths;
 
     public T06GarudaH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 22))

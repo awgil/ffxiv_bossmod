@@ -32,9 +32,11 @@ class P1SStates : StateMachineBuilder
 
         ShiningCells(id + 0x300000, 11.2f);
 
-        Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new();
-        fork[AID.AetherialShackles] = (1, Fork1);
-        fork[AID.ShacklesOfTime] = (2, Fork2);
+        Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new()
+        {
+            [AID.AetherialShackles] = (1, Fork1),
+            [AID.ShacklesOfTime] = (2, Fork2)
+        };
         CastStartFork(id + 0x310000, fork, 6.2f, "Shackles+Aetherchains -or- ShacklesOfTime+Knockback"); // first branch delay = 7.8
     }
 

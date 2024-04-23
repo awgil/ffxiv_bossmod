@@ -4,7 +4,7 @@ namespace BossMod;
 
 public class BossModulePlanWindow : UIWindow
 {
-    private BossModuleManager _mgr;
+    private readonly BossModuleManager _mgr;
 
     public BossModulePlanWindow(BossModuleManager mgr) : base("Cooldown plan", false, new(400, 400))
     {
@@ -28,7 +28,7 @@ public class BossModulePlanWindow : UIWindow
 
         if (ImGui.Button("Show timeline"))
         {
-            new StateMachineWindow(_mgr.ActiveModule);
+            _ = new StateMachineWindow(_mgr.ActiveModule);
         }
         ImGui.SameLine();
         _mgr.ActiveModule.PlanConfig?.DrawSelectionUI(_mgr.ActiveModule.Raid.Player()?.Class ?? Class.None, _mgr.ActiveModule.StateMachine, _mgr.ActiveModule.Info);

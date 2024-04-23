@@ -15,80 +15,74 @@ public enum AID : uint
     ColdStare = 14692, // 26FF->self, 2,5s cast, range 40+R 90-degree cone
     Stone = 14695, // 25CE->player, 1,0s cast, single-target
     DreadGaze = 14694, // 25CE->self, 3,0s cast, range 6+R ?-degree cone
-
 }
+
 public enum SID : uint
 {
     Blind = 571, // Mandragora->player, extra=0x0
-
 }
-class DemonEye : Components.CastGaze
+
+class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DemonEye))
 {
     private BitMask _blinded;
 
-    public DemonEye() : base(ActionID.MakeSpell(AID.DemonEye)) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override IEnumerable<Eye> ActiveEyes(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(module, slot, actor);
+        return _blinded[slot] ? [] : base.ActiveEyes(slot, actor);
     }
 }
 
-class ColdStare : Components.SelfTargetedAOEs //TODO: cone based gaze
+class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f, 45.Degrees())) //TODO: cone based gaze
 {
     private BitMask _blinded;
 
-    public ColdStare() : base(ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f, 45.Degrees())) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(module, slot, actor);
+        return _blinded[slot] ? [] : base.ActiveAOEs(slot, actor);
     }
 }
 
-class TearyTwirl : Components.StackWithCastTargets
+class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TearyTwirl), 6.3f)
 {
     private BitMask _blinded;
 
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), 6.3f) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_blinded[slot])
             hints.Add("Kill mandragoras last incase you need to get blinded again.", false);
@@ -97,33 +91,31 @@ class TearyTwirl : Components.StackWithCastTargets
     }
 }
 
-class DreadGaze : Components.SelfTargetedAOEs //TODO: cone based gaze
+class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(7.35f, 45.Degrees())) //TODO: cone based gaze
 {
     private BitMask _blinded;
 
-    public DreadGaze() : base(ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(7.35f, 45.Degrees())) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Set(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
-            _blinded.Clear(module.Raid.FindSlot(actor.InstanceID));
+            _blinded.Clear(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(module, slot, actor);
+        return _blinded[slot] ? [] : base.ActiveAOEs(slot, actor);
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("The eyes are weak to lightning spells.");
     }

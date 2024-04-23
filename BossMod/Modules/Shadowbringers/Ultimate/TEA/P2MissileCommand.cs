@@ -1,15 +1,9 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P2EarthMissileBaited : Components.PersistentVoidzoneAtCastTarget
-{
-    public P2EarthMissileBaited() : base(5, ActionID.MakeSpell(AID.EarthMissileBaited), m => m.Enemies(OID.VoidzoneEarthMissileBaited).Where(z => z.EventState != 7), 0.9f) { }
-}
+class P2EarthMissileBaited(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.EarthMissileBaited), m => m.Enemies(OID.VoidzoneEarthMissileBaited).Where(z => z.EventState != 7), 0.9f);
 
-class P2EarthMissileIce : Components.PersistentVoidzoneAtCastTarget
+class P2EarthMissileIce(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 10, ActionID.MakeSpell(AID.EarthMissileIce), Voidzones, 0.8f) // TODO: verify larger radius...
 {
-    // TODO: verify larger radius...
-    public P2EarthMissileIce() : base(10, ActionID.MakeSpell(AID.EarthMissileIce), Voidzones, 0.8f) { }
-
     private static IEnumerable<Actor> Voidzones(BossModule m)
     {
         foreach (var z in m.Enemies(OID.VoidzoneEarthMissileIceSmall).Where(z => z.EventState != 7))
@@ -27,25 +21,23 @@ class P2EarthMissileIce : Components.PersistentVoidzoneAtCastTarget
 
 // note: we use a single spread/stack component for both enumerations and ice missile spreads, since they happen at the same time
 // TODO: add hint for spread target to stay close to tornado...
-class P2Enumeration : Components.UniformStackSpread
+class P2Enumeration(BossModule module) : Components.UniformStackSpread(module, 5, 6, 3, 3, true, false) // TODO: verify enumeration radius
 {
-    public P2Enumeration() : base(5, 6, 3, 3, true, false) { } // TODO: verify enumeration radius
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         switch ((IconID)iconID)
         {
             case IconID.Enumeration:
                 // note: we assume tanks never share enumeration
-                AddStack(actor, module.WorldState.CurrentTime.AddSeconds(5.1f), module.Raid.WithSlot(true).WhereActor(p => p.Role == Role.Tank).Mask());
+                AddStack(actor, WorldState.FutureTime(5.1f), Raid.WithSlot(true).WhereActor(p => p.Role == Role.Tank).Mask());
                 break;
             case IconID.EarthMissileIce:
-                AddSpread(actor, module.WorldState.CurrentTime.AddSeconds(5.1f));
+                AddSpread(actor, WorldState.FutureTime(5.1f));
                 break;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -59,28 +51,26 @@ class P2Enumeration : Components.UniformStackSpread
     }
 }
 
-class P2HiddenMinefield : Components.SelfTargetedAOEs
+class P2HiddenMinefield(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HiddenMinefield), new AOEShapeCircle(5))
 {
-    private List<WPos> _mines = new();
+    private readonly List<WPos> _mines = [];
 
-    public P2HiddenMinefield() : base(ActionID.MakeSpell(AID.HiddenMinefield), new AOEShapeCircle(5)) { }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var m in _mines)
-            arena.Actor(m, default, ArenaColor.Object);
+            Arena.Actor(m, default, ArenaColor.Object);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastStarted(module, caster, spell);
+        base.OnCastStarted(caster, spell);
         if (spell.Action == WatchedAction)
             _mines.Add(caster.Position);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID is AID.HiddenMine or AID.HiddenMineShrapnel)
             _mines.RemoveAll(m => m.AlmostEqual(caster.Position, 1));
     }

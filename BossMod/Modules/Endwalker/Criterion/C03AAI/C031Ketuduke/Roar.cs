@@ -1,46 +1,46 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
-class Roar : Components.GenericBaitAway
+class Roar(BossModule module) : Components.GenericBaitAway(module)
 {
     public bool Active;
     private BitMask _playerBubbles;
-    private List<(Actor actor, bool bubble)> _snakes = new();
+    private readonly List<(Actor actor, bool bubble)> _snakes = [];
     private bool _highlightSnakes;
 
     private static readonly AOEShapeCone _shape = new(60, 90.Degrees());
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
         if (Active)
         {
             foreach (var s in _snakes)
             {
-                var target = module.Raid.WithoutSlot().Closest(s.actor.Position);
+                var target = Raid.WithoutSlot().Closest(s.actor.Position);
                 if (target != null)
                     CurrentBaits.Add(new(s.actor, target, _shape));
             }
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         foreach (var s in _snakes)
         {
-            arena.Actor(s.actor, ArenaColor.Object, true);
+            Arena.Actor(s.actor, ArenaColor.Object, true);
             if (_highlightSnakes && s.bubble != _playerBubbles[pcSlot])
-                arena.AddCircle(s.actor.Position, 1, ArenaColor.Safe);
+                Arena.AddCircle(s.actor.Position, 1, ArenaColor.Safe);
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.NZaratan or OID.SZaratan)
             _snakes.Add((actor, false));
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -51,13 +51,13 @@ class Roar : Components.GenericBaitAway
                 _highlightSnakes = true;
                 break;
             case SID.BubbleWeave:
-                _playerBubbles.Set(module.Raid.FindSlot(actor.InstanceID));
+                _playerBubbles.Set(Raid.FindSlot(actor.InstanceID));
                 _highlightSnakes = true;
                 break;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NHundredLashingsNormal or AID.NHundredLashingsBubble or AID.SHundredLashingsNormal or AID.SHundredLashingsBubble)
         {

@@ -10,7 +10,13 @@ public class ReplayParserLog : ReplayParser
 {
     abstract class Input : IDisposable
     {
-        public abstract void Dispose();
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing) { }
         public abstract string NextEntry();
         public abstract bool CanRead();
         public abstract void ReadVoid();
@@ -37,23 +43,17 @@ public class ReplayParserLog : ReplayParser
         public abstract ulong ReadActorID();
     }
 
-    class TextInput : Input
+    class TextInput(Stream stream) : Input
     {
-        private StreamReader _input;
-        private DateTime _timestamp;
-        private string[] _line = new string[0];
+        public DateTime Timestamp { get; private set; }
+        private readonly StreamReader _input = new(stream);
+        private string[] _line = [];
         private int _nextPayload;
 
-        public DateTime Timestamp => _timestamp;
-
-        public TextInput(Stream stream)
-        {
-            _input = new(stream);
-        }
-
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             _input.Dispose();
+            base.Dispose(disposing);
         }
 
         public override string NextEntry()
@@ -67,7 +67,7 @@ public class ReplayParserLog : ReplayParser
                 if (_line.Length < 2)
                     continue; // invalid string
 
-                _timestamp = DateTime.Parse(_line[0]);
+                Timestamp = DateTime.Parse(_line[0]);
                 _nextPayload = 2;
                 return _line[1];
             }
@@ -105,7 +105,7 @@ public class ReplayParserLog : ReplayParser
         public override ActorStatus ReadStatus()
         {
             var sid = ReadString();
-            int sep = sid.IndexOf(' ');
+            int sep = sid.IndexOf(' ', StringComparison.Ordinal);
             return new()
             {
                 ID = uint.Parse(sep >= 0 ? sid.AsSpan(0, sep) : sid.AsSpan()),
@@ -116,12 +116,11 @@ public class ReplayParserLog : ReplayParser
         }
         public override List<ActorCastEvent.Target> ReadTargets()
         {
-            List<ActorCastEvent.Target> res = new();
+            List<ActorCastEvent.Target> res = [];
             while (CanRead())
             {
                 var parts = ReadString().Split('!');
-                ActorCastEvent.Target target = new();
-                target.ID = ParseActorID(parts[0]);
+                var target = new ActorCastEvent.Target() { ID = ParseActorID(parts[0]) };
                 for (int j = 1; j < parts.Length; ++j)
                     target.Effects[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
                 res.Add(target);
@@ -136,29 +135,25 @@ public class ReplayParserLog : ReplayParser
         public override (DateTime, float) ReadTimePair()
         {
             var parts = ReadString().Split('/');
-            return (_timestamp.AddSeconds(float.Parse(parts[0])), float.Parse(parts[1]));
+            return (Timestamp.AddSeconds(float.Parse(parts[0])), float.Parse(parts[1]));
         }
         public override ulong ReadActorID() => ParseActorID(ReadString());
 
         private ulong ParseActorID(string actor)
         {
-            var sep = actor.IndexOf('/');
+            var sep = actor.IndexOf('/', StringComparison.Ordinal);
             return ulong.Parse(sep >= 0 ? actor.AsSpan(0, sep) : actor.AsSpan(), NumberStyles.HexNumber);
         }
     }
 
-    class BinaryInput : Input
+    class BinaryInput(Stream stream) : Input
     {
-        private BinaryReader _input;
+        private readonly BinaryReader _input = new(stream);
 
-        public BinaryInput(Stream stream)
-        {
-            _input = new(stream);
-        }
-
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             _input.Dispose();
+            base.Dispose(disposing);
         }
 
         public override string NextEntry()
@@ -210,7 +205,7 @@ public class ReplayParserLog : ReplayParser
         public override (float, float) ReadFloatPair() => (_input.ReadSingle(), _input.ReadSingle());
         public override (DateTime, float) ReadTimePair() => (new(_input.ReadInt64()), _input.ReadSingle());
         public override ulong ReadActorID() => _input.ReadUInt64();
-   }
+    }
 
     public static Replay Parse(string path, ref float progress, CancellationToken cancel)
     {
@@ -258,19 +253,16 @@ public class ReplayParserLog : ReplayParser
         }
     }
 
-    private Input _input;
-    private int _version = 0;
+    private readonly Input _input;
+    private int _version;
     private DateTime _tsStart;
     private ulong _qpcStart;
 
-    private ReplayParserLog(Input input)
-    {
-        _input = input;
-    }
+    private ReplayParserLog(Input input) => _input = input;
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        base.Dispose();
+        base.Dispose(true);
         _input.Dispose();
     }
 
@@ -280,7 +272,7 @@ public class ReplayParserLog : ReplayParser
         if (tag.Length < 4)
             return false;
 
-        if (_version is > 0 and < 5 && _input is TextInput ti && (_res.Ops.Count == 0 || _res.Ops.Last().Timestamp < ti.Timestamp))
+        if (_version is > 0 and < 5 && _input is TextInput ti && (_res.Ops.Count == 0 || _res.Ops[^1].Timestamp < ti.Timestamp))
             AddOp(new WorldState.OpFrameStart() { Frame = new() { Timestamp = ti.Timestamp } });
 
         switch (tag)
@@ -347,7 +339,7 @@ public class ReplayParserLog : ReplayParser
     {
         _version = _input.ReadInt();
         if (_version < 2)
-            throw new Exception($"Version {_version} is too old and is no longer supported, sorry");
+            throw new InvalidOperationException($"Version {_version} is too old and is no longer supported, sorry");
         var qpf = _version >= 10 ? _input.ReadULong(false) : TimeSpan.TicksPerSecond; // newer windows versions have 10mhz qpc frequency
         var gameVersion = _version >= 11 ? _input.ReadString() : "old";
         _tsStart = _input is TextInput ti ? ti.Timestamp : new(_input.ReadLong());
@@ -388,32 +380,32 @@ public class ReplayParserLog : ReplayParser
         AddOp(op);
     }
 
-    private void ParseUserMarker()
+    private void ParseUserMarker() => AddOp(new WorldState.OpUserMarker()
     {
-        AddOp(new WorldState.OpUserMarker() { Text = _input.ReadString() });
-    }
+        Text = _input.ReadString()
+    });
 
-    private void ParseRSVData()
+    private void ParseRSVData() => AddOp(new WorldState.OpRSVData()
     {
-        AddOp(new WorldState.OpRSVData() { Key = _input.ReadString(), Value = _input.ReadString() });
-    }
+        Key = _input.ReadString(),
+        Value = _input.ReadString()
+    });
 
-    private void ParseZoneChange()
+    private void ParseZoneChange() => AddOp(new WorldState.OpZoneChange()
     {
-        AddOp(new WorldState.OpZoneChange() { Zone = _input.ReadUShort(false), CFCID = _version >= 13 ? _input.ReadUShort(false) : (ushort)0 });
-    }
+        Zone = _input.ReadUShort(false),
+        CFCID = _version >= 13 ? _input.ReadUShort(false) : (ushort)0
+    });
 
-    private void ParseDirectorUpdate()
+    private void ParseDirectorUpdate() => AddOp(new WorldState.OpDirectorUpdate()
     {
-        AddOp(new WorldState.OpDirectorUpdate() {
-            DirectorID = _input.ReadUInt(true),
-            UpdateID = _input.ReadUInt(true),
-            Param1 = _input.ReadUInt(true),
-            Param2 = _input.ReadUInt(true),
-            Param3 = _input.ReadUInt(true),
-            Param4 = _input.ReadUInt(true),
-        });
-    }
+        DirectorID = _input.ReadUInt(true),
+        UpdateID = _input.ReadUInt(true),
+        Param1 = _input.ReadUInt(true),
+        Param2 = _input.ReadUInt(true),
+        Param3 = _input.ReadUInt(true),
+        Param4 = _input.ReadUInt(true),
+    });
 
     private void ParseEnvControl()
     {
@@ -428,14 +420,11 @@ public class ReplayParserLog : ReplayParser
         });
     }
 
-    private void ParseWaymarkChange(bool set)
+    private void ParseWaymarkChange(bool set) => AddOp(new WaymarkState.OpWaymarkChange()
     {
-        AddOp(new WaymarkState.OpWaymarkChange()
-        {
-            ID = _version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false),
-            Pos = set ? _input.ReadVec3() : null,
-        });
-    }
+        ID = _version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false),
+        Pos = set ? _input.ReadVec3() : null,
+    });
 
     private void ParseActorCreate()
     {
@@ -456,7 +445,7 @@ public class ReplayParserLog : ReplayParser
                 OID = uint.Parse(parts[1], NumberStyles.HexNumber),
                 SpawnIndex = spawnIndex,
                 Name = parts[2],
-                Type = Enum.Parse<ActorType>(parts[3]),
+                Type = parts[3] == "Unknown" ? ActorType.Part : Enum.Parse<ActorType>(parts[3]),
                 Class = cls,
                 PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad),
                 HitboxRadius = radius,
@@ -491,10 +480,10 @@ public class ReplayParserLog : ReplayParser
         AddOp(op);
     }
 
-    private void ParseActorDestroy()
+    private void ParseActorDestroy() => AddOp(new ActorState.OpDestroy()
     {
-        AddOp(new ActorState.OpDestroy() { InstanceID = _input.ReadActorID() });
-    }
+        InstanceID = _input.ReadActorID()
+    });
 
     private void ParseActorRename()
     {
@@ -502,11 +491,20 @@ public class ReplayParserLog : ReplayParser
         if (_version < 10)
         {
             var parts = _input.ReadString().Split('/');
-            op = new() { InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber), Name = parts[2] };
+            op = new()
+            {
+                InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber),
+                Name = parts[2]
+            };
         }
         else
         {
-            op = new() { InstanceID = _input.ReadULong(true), Name = _input.ReadString(), NameID = _version >= 13 ? _input.ReadUInt(false) : 0 };
+            op = new()
+            {
+                InstanceID = _input.ReadULong(true),
+                Name = _input.ReadString(),
+                NameID = _version >= 13 ? _input.ReadUInt(false) : 0
+            };
         }
         AddOp(op);
     }
@@ -515,7 +513,12 @@ public class ReplayParserLog : ReplayParser
     {
         var instanceID = _input.ReadActorID();
         _input.ReadVoid();
-        AddOp(new ActorState.OpClassChange() { InstanceID = instanceID, Class = _input.ReadClass(), Level = _version < 12 ? 0 : _input.ReadInt() });
+        AddOp(new ActorState.OpClassChange()
+        {
+            InstanceID = instanceID,
+            Class = _input.ReadClass(),
+            Level = _version < 12 ? 0 : _input.ReadInt()
+        });
     }
 
     private void ParseActorMove()
@@ -524,19 +527,28 @@ public class ReplayParserLog : ReplayParser
         if (_version < 10)
         {
             var parts = _input.ReadString().Split('/');
-            op = new() { InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber), PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad) };
+            op = new()
+            {
+                InstanceID = ulong.Parse(parts[0], NumberStyles.HexNumber),
+                PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad)
+            };
         }
         else
         {
-            op = new() { InstanceID = _input.ReadULong(true), PosRot = new(_input.ReadVec3(), _input.ReadAngle().Rad) };
+            op = new()
+            {
+                InstanceID = _input.ReadULong(true),
+                PosRot = new(_input.ReadVec3(), _input.ReadAngle().Rad)
+            };
         }
         AddOp(op);
     }
 
-    private void ParseActorSizeChange()
+    private void ParseActorSizeChange() => AddOp(new ActorState.OpSizeChange()
     {
-        AddOp(new ActorState.OpSizeChange() { InstanceID = _input.ReadActorID(), HitboxRadius = _input.ReadFloat() });
-    }
+        InstanceID = _input.ReadActorID(),
+        HitboxRadius = _input.ReadFloat()
+    });
 
     private void ParseActorHPMP()
     {
@@ -547,51 +559,69 @@ public class ReplayParserLog : ReplayParser
         }
         else
         {
-            op.HP = new() { Cur = _input.ReadUInt(false), Max = _input.ReadUInt(false), Shield = _input.ReadUInt(false) };
+            op.HP = new()
+            {
+                Cur = _input.ReadUInt(false),
+                Max = _input.ReadUInt(false),
+                Shield = _input.ReadUInt(false)
+            };
             op.CurMP = _input.ReadUInt(false);
         }
         AddOp(op);
     }
 
-    private void ParseActorTargetable(bool targetable)
+    private void ParseActorTargetable(bool targetable) => AddOp(new ActorState.OpTargetable()
     {
-        AddOp(new ActorState.OpTargetable() { InstanceID = _input.ReadActorID(), Value = targetable });
-    }
+        InstanceID = _input.ReadActorID(),
+        Value = targetable
+    });
 
-    private void ParseActorAlly()
+    private void ParseActorAlly() => AddOp(new ActorState.OpDead()
     {
-        AddOp(new ActorState.OpDead() { InstanceID = _input.ReadActorID(), Value = _input.ReadBool() });
-    }
+        InstanceID = _input.ReadActorID(),
+        Value = _input.ReadBool()
+    });
 
-    private void ParseActorDead(bool dead)
+    private void ParseActorDead(bool dead) => AddOp(new ActorState.OpDead()
     {
-        AddOp(new ActorState.OpDead() { InstanceID = _input.ReadActorID(), Value = dead });
-    }
+        InstanceID = _input.ReadActorID(),
+        Value = dead
+    });
 
-    private void ParseActorCombat(bool value)
+    private void ParseActorCombat(bool value) => AddOp(new ActorState.OpCombat()
     {
-        AddOp(new ActorState.OpCombat() { InstanceID = _input.ReadActorID(), Value = value });
-    }
+        InstanceID = _input.ReadActorID(),
+        Value = value
+    });
 
-    private void ParseActorModelState()
+    private void ParseActorModelState() => AddOp(new ActorState.OpModelState()
     {
-        AddOp(new ActorState.OpModelState() { InstanceID = _input.ReadActorID(), Value = new() { ModelState = _input.ReadByte(false), AnimState1 = _input.CanRead() ? _input.ReadByte(false) : (byte)0, AnimState2 = _input.CanRead() ? _input.ReadByte(false) : (byte)0 } });
-    }
+        InstanceID = _input.ReadActorID(),
+        Value = new()
+        {
+            ModelState = _input.ReadByte(false),
+            AnimState1 = _input.CanRead() ? _input.ReadByte(false) : (byte)0,
+            AnimState2 = _input.CanRead() ? _input.ReadByte(false) : (byte)0
+        }
+    });
 
-    private void ParseActorEventState()
+    private void ParseActorEventState() => AddOp(new ActorState.OpEventState()
     {
-        AddOp(new ActorState.OpEventState() { InstanceID = _input.ReadActorID(), Value = _input.ReadByte(false) });
-    }
+        InstanceID = _input.ReadActorID(),
+        Value = _input.ReadByte(false)
+    });
 
-    private void ParseActorTarget()
+    private void ParseActorTarget() => AddOp(new ActorState.OpTarget()
     {
-        AddOp(new ActorState.OpTarget() { InstanceID = _input.ReadActorID(), Value = _input.ReadActorID() });
-    }
+        InstanceID = _input.ReadActorID(),
+        Value = _input.ReadActorID()
+    });
 
-    private void ParseActorTether(bool tether)
+    private void ParseActorTether(bool tether) => AddOp(new ActorState.OpTether()
     {
-        AddOp(new ActorState.OpTether() { InstanceID = _input.ReadActorID(), Value = tether ? new() { ID = _input.ReadUInt(false), Target = _input.ReadActorID() } : new() });
-    }
+        InstanceID = _input.ReadActorID(),
+        Value = tether ? new() { ID = _input.ReadUInt(false), Target = _input.ReadActorID() } : new()
+    });
 
     private void ParseActorCastInfo(bool start)
     {
@@ -616,104 +646,98 @@ public class ReplayParserLog : ReplayParser
         AddOp(op);
     }
 
-    private void ParseActorCastEvent()
+    private void ParseActorCastEvent() => AddOp(new ActorState.OpCastEvent()
     {
-        AddOp(new ActorState.OpCastEvent()
+        InstanceID = _input.ReadActorID(),
+        Value = new()
         {
-            InstanceID = _input.ReadActorID(),
-            Value = new()
-            {
-                Action = _input.ReadAction(),
-                MainTargetID = _input.ReadActorID(),
-                AnimationLockTime = _input.ReadFloat(),
-                MaxTargets = _input.ReadUInt(false),
-                TargetPos = _version >= 6 ? _input.ReadVec3() : new(),
-                GlobalSequence = _version >= 7 ? _input.ReadUInt(false) : 0,
-                SourceSequence = _version >= 9 ? _input.ReadUInt(false) : 0,
-                Targets = _input.ReadTargets()
-            }
-        });
-    }
+            Action = _input.ReadAction(),
+            MainTargetID = _input.ReadActorID(),
+            AnimationLockTime = _input.ReadFloat(),
+            MaxTargets = _input.ReadUInt(false),
+            TargetPos = _version >= 6 ? _input.ReadVec3() : new(),
+            GlobalSequence = _version >= 7 ? _input.ReadUInt(false) : 0,
+            SourceSequence = _version >= 9 ? _input.ReadUInt(false) : 0,
+            Targets = _input.ReadTargets()
+        }
+    });
 
-    private void ParseActorEffectResult()
+    private void ParseActorEffectResult() => AddOp(new ActorState.OpEffectResult()
     {
-        AddOp(new ActorState.OpEffectResult() { InstanceID = _input.ReadActorID(), Seq = _input.ReadUInt(false), TargetIndex = _input.ReadInt() });
-    }
+        InstanceID = _input.ReadActorID(),
+        Seq = _input.ReadUInt(false),
+        TargetIndex = _input.ReadInt()
+    });
 
-    private void ParseActorStatus(bool gainOrUpdate)
+    private void ParseActorStatus(bool gainOrUpdate) => AddOp(new ActorState.OpStatus()
     {
-        AddOp(new ActorState.OpStatus()
-        {
-            InstanceID = _input.ReadActorID(),
-            Index = _input.ReadInt(),
-            Value = gainOrUpdate ? _input.ReadStatus() : new()
-        });
-    }
+        InstanceID = _input.ReadActorID(),
+        Index = _input.ReadInt(),
+        Value = gainOrUpdate ? _input.ReadStatus() : new()
+    });
 
-    private void ParseActorIcon()
+    private void ParseActorIcon() => AddOp(new ActorState.OpIcon()
     {
-        AddOp(new ActorState.OpIcon() { InstanceID = _input.ReadActorID(), IconID = _input.ReadUInt(false) });
-    }
+        InstanceID = _input.ReadActorID(),
+        IconID = _input.ReadUInt(false)
+    });
 
-    private void ParseActorEventObjectStateChange()
+    private void ParseActorEventObjectStateChange() => AddOp(new ActorState.OpEventObjectStateChange()
     {
-        AddOp(new ActorState.OpEventObjectStateChange() { InstanceID = _input.ReadActorID(), State = _input.ReadUShort(true) });
-    }
+        InstanceID = _input.ReadActorID(),
+        State = _input.ReadUShort(true)
+    });
 
-    private void ParseActorEventObjectAnimation()
+    private void ParseActorEventObjectAnimation() => AddOp(new ActorState.OpEventObjectAnimation()
     {
-        AddOp(new ActorState.OpEventObjectAnimation() { InstanceID = _input.ReadActorID(), Param1 = _input.ReadUShort(true), Param2 = _input.ReadUShort(true) });
-    }
+        InstanceID = _input.ReadActorID(),
+        Param1 = _input.ReadUShort(true),
+        Param2 = _input.ReadUShort(true)
+    });
 
-    private void ParseActorPlayActionTimelineEvent()
+    private void ParseActorPlayActionTimelineEvent() => AddOp(new ActorState.OpPlayActionTimelineEvent()
     {
-        AddOp(new ActorState.OpPlayActionTimelineEvent() { InstanceID = _input.ReadActorID(), ActionTimelineID = _input.ReadUShort(true) });
-    }
+        InstanceID = _input.ReadActorID(),
+        ActionTimelineID = _input.ReadUShort(true)
+    });
 
-    private void ParseActorEventNpcYell()
+    private void ParseActorEventNpcYell() => AddOp(new ActorState.OpEventNpcYell()
     {
-        AddOp(new ActorState.OpEventNpcYell() { InstanceID = _input.ReadActorID(), Message = _input.ReadUShort(false) });
-    }
+        InstanceID = _input.ReadActorID(),
+        Message = _input.ReadUShort(false)
+    });
 
-    private void ParsePartyModify()
+    private void ParsePartyModify() => AddOp(new PartyState.OpModify()
     {
-        AddOp(new PartyState.OpModify()
-        {
-            Slot = _input.ReadInt(),
-            ContentID = _input.ReadULong(true),
-            InstanceID = _input.ReadULong(true),
-        });
-    }
+        Slot = _input.ReadInt(),
+        ContentID = _input.ReadULong(true),
+        InstanceID = _input.ReadULong(true),
+    });
 
-    private void ParsePartyJoin()
+    private void ParsePartyJoin() => AddOp(new PartyState.OpModify()
     {
-        AddOp(new PartyState.OpModify()
-        {
-            Slot = _input.ReadInt(),
-            ContentID = _input.ReadULong(true),
-            InstanceID = _input.ReadULong(true),
-        });
-    }
+        Slot = _input.ReadInt(),
+        ContentID = _input.ReadULong(true),
+        InstanceID = _input.ReadULong(true),
+    });
 
-    private void ParsePartyLeave()
+    private void ParsePartyLeave() => AddOp(new PartyState.OpModify()
     {
-        AddOp(new PartyState.OpModify() { Slot = _input.ReadInt() });
-    }
+        Slot = _input.ReadInt()
+    });
 
-    private void ParsePartyAssign()
+    private void ParsePartyAssign() => AddOp(new PartyState.OpModify()
     {
-        AddOp(new PartyState.OpModify()
-        {
-            Slot = _input.ReadInt(),
-            ContentID = _input.ReadULong(true),
-            InstanceID = _input.ReadULong(true),
-        });
-    }
+        Slot = _input.ReadInt(),
+        ContentID = _input.ReadULong(true),
+        InstanceID = _input.ReadULong(true),
+    });
 
-    private void ParsePartyLimitBreak()
+    private void ParsePartyLimitBreak() => AddOp(new PartyState.OpLimitBreakChange()
     {
-        AddOp(new PartyState.OpLimitBreakChange() { Cur = _input.ReadInt(), Max = _input.ReadInt() });
-    }
+        Cur = _input.ReadInt(),
+        Max = _input.ReadInt()
+    });
 
     private void ParseClientActionRequest()
     {
@@ -742,24 +766,25 @@ public class ReplayParserLog : ReplayParser
         AddOp(new ClientState.OpActionReject() { Value = rej });
     }
 
-    private void ParseClientCountdown(bool start)
+    private void ParseClientCountdown(bool start) => AddOp(new ClientState.OpCountdownChange()
     {
-        AddOp(new ClientState.OpCountdownChange() { Value = start ? _input.ReadFloat() : null });
-    }
+        Value = start ? _input.ReadFloat() : null
+    });
 
     private void ParseCooldown()
     {
         var op = new ClientState.OpCooldown() { Reset = _input.ReadBool() };
         op.Cooldowns.Capacity = _input.ReadByte(false);
         for (int i = 0; i < op.Cooldowns.Capacity; ++i)
-            op.Cooldowns.Add((_input.ReadByte(false), new() { Elapsed = _input.ReadFloat(), Total = _input.ReadFloat() }));
+            op.Cooldowns.Add((_input.ReadByte(false), new(_input.ReadFloat(), _input.ReadFloat())));
         AddOp(op);
     }
 
-    private void ParseClientDutyActions()
+    private void ParseClientDutyActions() => AddOp(new ClientState.OpDutyActionsChange()
     {
-        AddOp(new ClientState.OpDutyActionsChange() { Slot0 = _input.ReadAction(), Slot1 = _input.ReadAction() });
-    }
+        Slot0 = _input.ReadAction(),
+        Slot1 = _input.ReadAction()
+    });
 
     private void ParseClientBozjaHolster()
     {

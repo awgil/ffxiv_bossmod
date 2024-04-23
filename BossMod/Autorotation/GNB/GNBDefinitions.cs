@@ -130,7 +130,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 68802 };
+    public static readonly uint[] UnlockQuests = [68802];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -179,7 +179,6 @@ public static class Definitions
         };
     }
 
-
     public static bool Unlocked(TraitID tid, int level, int questProgress)
     {
         return tid switch
@@ -196,51 +195,51 @@ public static class Definitions
         };
     }
 
-
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
-        SupportedActions.GCD(AID.KeenEdge, 3);
-        SupportedActions.OGCD(AID.NoMercy, 0, CDGroup.NoMercy, 60.0f);
-        SupportedActions.GCD(AID.BrutalShell, 3);
-        SupportedActions.OGCD(AID.Camouflage, 0, CDGroup.Camouflage, 90.0f).EffectDuration = 20;
-        SupportedActions.OGCD(AID.Rampart, 0, CDGroup.Rampart, 90.0f).EffectDuration = 20;
-        SupportedActions.OGCD(AID.RoyalGuard, 0, CDGroup.RoyalGuard, 2.0f);
-        SupportedActions.GCD(AID.DemonSlice, 0);
-        SupportedActions.OGCD(AID.ReleaseRoyalGuard, 0, CDGroup.ReleaseRoyalGuard, 1.0f);
-        SupportedActions.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
-        SupportedActions.OGCD(AID.Provoke, 25, CDGroup.Provoke, 30.0f);
-        SupportedActions.GCD(AID.LightningShot, 20);
-        SupportedActions.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
-        SupportedActions.OGCD(AID.DangerZone, 3, CDGroup.DangerZone, 30.0f);
-        SupportedActions.OGCD(AID.Reprisal, 0, CDGroup.Reprisal, 60.0f).EffectDuration = 10;
-        SupportedActions.GCD(AID.SolidBarrel, 3);
-        SupportedActions.GCD(AID.BurstStrike, 3);
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.OGCD(AID.Nebula, 0, CDGroup.Nebula, 120.0f).EffectDuration = 15;
-        SupportedActions.GCD(AID.DemonSlaughter, 0);
-        SupportedActions.OGCDWithCharges(AID.Aurora, 30, CDGroup.Aurora, 60.0f, 2).EffectDuration = 18;
-        SupportedActions.OGCD(AID.Shirk, 25, CDGroup.Shirk, 120.0f);
-        SupportedActions.OGCD(AID.Superbolide, 0, CDGroup.Superbolide, 360.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.SonicBreak, 3, CDGroup.SonicBreak, 60.0f);
-        SupportedActions.OGCDWithCharges(AID.RoughDivide, 20, CDGroup.RoughDivide, 30.0f, 2);
-        SupportedActions.GCD(AID.WickedTalon, 3, 0.770f);
-        SupportedActions.OGCD(AID.GnashingFang, 3, CDGroup.GnashingFang, 30.0f, 0.700f);
-        SupportedActions.GCD(AID.SavageClaw, 3, 0.500f);
-        SupportedActions.OGCD(AID.BowShock, 0, CDGroup.BowShock, 60.0f);
-        SupportedActions.OGCD(AID.HeartOfLight, 0, CDGroup.HeartOfLight, 90.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.HeartOfStone, 30, CDGroup.HeartOfStone, 25.0f).EffectDuration = 4;
-        SupportedActions.OGCD(AID.EyeGouge, 5, CDGroup.EyeGouge, 1.0f);
-        SupportedActions.OGCD(AID.JugularRip, 5, CDGroup.JugularRip, 1.0f);
-        SupportedActions.OGCD(AID.Continuation, 0, CDGroup.Continuation, 1.0f);
-        SupportedActions.OGCD(AID.AbdomenTear, 5, CDGroup.AbdomenTear, 1.0f);
-        SupportedActions.GCD(AID.FatedCircle, 0);
-        SupportedActions.OGCD(AID.Bloodfest, 25, CDGroup.Bloodfest, 120.0f);
-        SupportedActions.OGCD(AID.BlastingZone, 3, CDGroup.BlastingZone, 30.0f);
-        SupportedActions.OGCD(AID.HeartOfCorundum, 30, CDGroup.HeartOfCorundum, 25.0f).EffectDuration = 4;
-        SupportedActions.OGCD(AID.Hypervelocity, 5, CDGroup.Hypervelocity, 1.0f);
-        SupportedActions.OGCD(AID.DoubleDown, 0, CDGroup.DoubleDown, 60.0f);
-        SupportedActions.OGCD(AID.GunmetalSoul, 0, CDGroup.LimitBreak, 0, 3.86f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+        res.GCD(AID.KeenEdge, 3);
+        res.OGCD(AID.NoMercy, 0, CDGroup.NoMercy, 60.0f);
+        res.GCD(AID.BrutalShell, 3);
+        res.OGCD(AID.Camouflage, 0, CDGroup.Camouflage, 90.0f).EffectDuration = 20;
+        res.OGCD(AID.Rampart, 0, CDGroup.Rampart, 90.0f).EffectDuration = 20;
+        res.OGCD(AID.RoyalGuard, 0, CDGroup.RoyalGuard, 2.0f);
+        res.GCD(AID.DemonSlice, 0);
+        res.OGCD(AID.ReleaseRoyalGuard, 0, CDGroup.ReleaseRoyalGuard, 1.0f);
+        res.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
+        res.OGCD(AID.Provoke, 25, CDGroup.Provoke, 30.0f);
+        res.GCD(AID.LightningShot, 20);
+        res.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
+        res.OGCD(AID.DangerZone, 3, CDGroup.DangerZone, 30.0f);
+        res.OGCD(AID.Reprisal, 0, CDGroup.Reprisal, 60.0f).EffectDuration = 10;
+        res.GCD(AID.SolidBarrel, 3);
+        res.GCD(AID.BurstStrike, 3);
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.OGCD(AID.Nebula, 0, CDGroup.Nebula, 120.0f).EffectDuration = 15;
+        res.GCD(AID.DemonSlaughter, 0);
+        res.OGCDWithCharges(AID.Aurora, 30, CDGroup.Aurora, 60.0f, 2).EffectDuration = 18;
+        res.OGCD(AID.Shirk, 25, CDGroup.Shirk, 120.0f);
+        res.OGCD(AID.Superbolide, 0, CDGroup.Superbolide, 360.0f).EffectDuration = 10;
+        res.OGCD(AID.SonicBreak, 3, CDGroup.SonicBreak, 60.0f);
+        res.OGCDWithCharges(AID.RoughDivide, 20, CDGroup.RoughDivide, 30.0f, 2);
+        res.GCD(AID.WickedTalon, 3, 0.770f);
+        res.OGCD(AID.GnashingFang, 3, CDGroup.GnashingFang, 30.0f, 0.700f);
+        res.GCD(AID.SavageClaw, 3, 0.500f);
+        res.OGCD(AID.BowShock, 0, CDGroup.BowShock, 60.0f);
+        res.OGCD(AID.HeartOfLight, 0, CDGroup.HeartOfLight, 90.0f).EffectDuration = 15;
+        res.OGCD(AID.HeartOfStone, 30, CDGroup.HeartOfStone, 25.0f).EffectDuration = 4;
+        res.OGCD(AID.EyeGouge, 5, CDGroup.EyeGouge, 1.0f);
+        res.OGCD(AID.JugularRip, 5, CDGroup.JugularRip, 1.0f);
+        res.OGCD(AID.Continuation, 0, CDGroup.Continuation, 1.0f);
+        res.OGCD(AID.AbdomenTear, 5, CDGroup.AbdomenTear, 1.0f);
+        res.GCD(AID.FatedCircle, 0);
+        res.OGCD(AID.Bloodfest, 25, CDGroup.Bloodfest, 120.0f);
+        res.OGCD(AID.BlastingZone, 3, CDGroup.BlastingZone, 30.0f);
+        res.OGCD(AID.HeartOfCorundum, 30, CDGroup.HeartOfCorundum, 25.0f).EffectDuration = 4;
+        res.OGCD(AID.Hypervelocity, 5, CDGroup.Hypervelocity, 1.0f);
+        res.OGCD(AID.DoubleDown, 0, CDGroup.DoubleDown, 60.0f);
+        res.OGCD(AID.GunmetalSoul, 0, CDGroup.LimitBreak, 0, 3.86f);
+        return res;
     }
 }

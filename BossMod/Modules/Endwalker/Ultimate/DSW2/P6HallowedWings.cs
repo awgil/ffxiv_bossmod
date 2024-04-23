@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
-class P6HallowedWings : Components.GenericAOEs
+class P6HallowedWings(BossModule module) : Components.GenericAOEs(module)
 {
     public AOEInstance? AOE; // origin is always (122, 100 +- 11), direction -90
 
     private static readonly AOEShapeRect _shape = new(50, 11);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(AOE);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var offset = (AID)spell.Action.ID switch
         {
@@ -22,57 +22,51 @@ class P6HallowedWings : Components.GenericAOEs
         AOE = new(_shape, origin, spell.Rotation, spell.NPCFinishAt.AddSeconds(0.8f));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.HallowedWingsAOELeft or AID.HallowedWingsAOERight or AID.CauterizeN)
             ++NumCasts;
     }
 }
 
+// note: we want to show hint much earlier than cast start - we assume component is created right as hallowed wings starts, meaning nidhogg is already in place
 class P6CauterizeN : Components.GenericAOEs
 {
     public AOEInstance? AOE; // origin is always (100 +- 11, 100 +- 34), direction 0/180
 
     private static readonly AOEShapeRect _shape = new(80, 11);
 
-    public P6CauterizeN() : base(ActionID.MakeSpell(AID.CauterizeN)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(AOE);
-
-    // note: we want to show hint much earlier than cast start - we assume component is created right as hallowed wings starts, meaning nidhogg is already in place
-    public override void Init(BossModule module)
+    public P6CauterizeN(BossModule module) : base(module, ActionID.MakeSpell(AID.CauterizeN))
     {
         var caster = module.Enemies(OID.NidhoggP6).FirstOrDefault();
         if (caster != null)
-            AOE = new(_shape, caster.Position, caster.Rotation, module.WorldState.CurrentTime.AddSeconds(8.6f));
+            AOE = new(_shape, caster.Position, caster.Rotation, WorldState.FutureTime(8.6f));
     }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 }
 
-abstract class P6HallowedPlume : Components.GenericBaitAway
+abstract class P6HallowedPlume(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HallowedPlume), centerAtTarget: true)
 {
-    protected P6HallowedWings? _wings;
+    protected P6HallowedWings? _wings = module.FindComponent<P6HallowedWings>();
     protected bool _far;
     private Actor? _caster;
 
     private static readonly AOEShapeCircle _shape = new(10);
 
-    public P6HallowedPlume() : base(ActionID.MakeSpell(AID.HallowedPlume), centerAtTarget: true) { }
-
-    public override void Init(BossModule module) => _wings = module.FindComponent<P6HallowedWings>();
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
         if (_caster != null)
         {
-            var players = module.Raid.WithoutSlot().SortedByRange(_caster.Position);
+            var players = Raid.WithoutSlot().SortedByRange(_caster.Position);
             var targets = _far ? players.TakeLast(2) : players.Take(2);
             foreach (var t in targets)
                 CurrentBaits.Add(new(_caster, t, _shape));
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         bool shouldBait = actor.Role == Role.Tank;
         bool isBaiting = ActiveBaitsOn(actor).Any();
@@ -83,7 +77,7 @@ abstract class P6HallowedPlume : Components.GenericBaitAway
         {
             if (shouldBait)
             {
-                if (ActiveBaitsOn(actor).Any(b => PlayersClippedBy(module, b).Any()))
+                if (ActiveBaitsOn(actor).Any(b => PlayersClippedBy(b).Any()))
                     hints.Add("Bait away from raid!");
             }
             else
@@ -92,26 +86,28 @@ abstract class P6HallowedPlume : Components.GenericBaitAway
                     hints.Add("GTFO from baited aoe!");
             }
         }
-
-        if (movementHints != null)
-            foreach (var p in SafeSpots(module, actor))
-                movementHints.Add(actor.Position, p, ArenaColor.Safe);
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        foreach (var p in SafeSpots(actor))
+            movementHints.Add(actor.Position, p, ArenaColor.Safe);
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_caster != null)
             hints.Add($"Tankbuster {(_far ? "far" : "near")}");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var p in SafeSpots(module, pc))
-            arena.AddCircle(p, 1, ArenaColor.Safe);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var p in SafeSpots(pc))
+            Arena.AddCircle(p, 1, ArenaColor.Safe);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         bool? far = (AID)spell.Action.ID switch
         {
@@ -126,27 +122,21 @@ abstract class P6HallowedPlume : Components.GenericBaitAway
         }
     }
 
-    protected abstract IEnumerable<WPos> SafeSpots(BossModule module, Actor actor);
+    protected abstract IEnumerable<WPos> SafeSpots(Actor actor);
 }
 
-class P6HallowedPlume1 : P6HallowedPlume
+class P6HallowedPlume1(BossModule module) : P6HallowedPlume(module)
 {
-    private P6CauterizeN? _cauterize;
+    private readonly P6CauterizeN? _cauterize = module.FindComponent<P6CauterizeN>();
 
-    public override void Init(BossModule module)
-    {
-        base.Init(module);
-        _cauterize = module.FindComponent<P6CauterizeN>();
-    }
-
-    protected override IEnumerable<WPos> SafeSpots(BossModule module, Actor actor)
+    protected override IEnumerable<WPos> SafeSpots(Actor actor)
     {
         if (_wings?.AOE == null || _cauterize?.AOE == null)
             yield break;
 
-        var safeSpotCenter = module.Bounds.Center;
-        safeSpotCenter.Z -= _wings.AOE.Value.Origin.Z - module.Bounds.Center.Z;
-        safeSpotCenter.X -= _cauterize.AOE.Value.Origin.X - module.Bounds.Center.X;
+        var safeSpotCenter = Module.Bounds.Center;
+        safeSpotCenter.Z -= _wings.AOE.Value.Origin.Z - Module.Bounds.Center.Z;
+        safeSpotCenter.X -= _cauterize.AOE.Value.Origin.X - Module.Bounds.Center.X;
 
         bool shouldBait = actor.Role == Role.Tank;
         bool stayFar = shouldBait == _far;
@@ -164,17 +154,11 @@ class P6HallowedPlume1 : P6HallowedPlume
     }
 }
 
-class P6HallowedPlume2 : P6HallowedPlume
+class P6HallowedPlume2(BossModule module) : P6HallowedPlume(module)
 {
-    private P6HotWingTail? _wingTail;
+    private readonly P6HotWingTail? _wingTail = module.FindComponent<P6HotWingTail>();
 
-    public override void Init(BossModule module)
-    {
-        base.Init(module);
-        _wingTail = module.FindComponent<P6HotWingTail>();
-    }
-
-    protected override IEnumerable<WPos> SafeSpots(BossModule module, Actor actor)
+    protected override IEnumerable<WPos> SafeSpots(Actor actor)
     {
         if (_wings?.AOE == null || _wingTail == null)
             yield break;
@@ -185,8 +169,8 @@ class P6HallowedPlume2 : P6HallowedPlume
             2 => 4.0f / 11,
             _ => 1
         };
-        var safeSpotCenter = module.Bounds.Center;
-        safeSpotCenter.Z -= zCoeff * (_wings.AOE.Value.Origin.Z - module.Bounds.Center.Z);
+        var safeSpotCenter = Module.Bounds.Center;
+        safeSpotCenter.Z -= zCoeff * (_wings.AOE.Value.Origin.Z - Module.Bounds.Center.Z);
 
         bool shouldBait = actor.Role == Role.Tank;
         bool stayFar = shouldBait == _far;

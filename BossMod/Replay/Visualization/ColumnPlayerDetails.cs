@@ -4,27 +4,26 @@ namespace BossMod.ReplayVisualization;
 
 public class ColumnPlayerDetails : Timeline.ColumnGroup
 {
-    private StateMachineTree _tree;
-    private List<int> _phaseBraches;
-    private Replay _replay;
-    private Replay.Encounter _enc;
-    private Replay.Participant _player;
-    private Class _playerClass;
-    private ModuleRegistry.Info? _moduleInfo;
+    private readonly StateMachineTree _tree;
+    private readonly List<int> _phaseBraches;
+    private readonly Replay _replay;
+    private readonly Replay.Encounter _enc;
+    private readonly Replay.Participant _player;
+    private readonly Class _playerClass;
+    private readonly ModuleRegistry.Info? _moduleInfo;
 
-    private ColumnPlayerActions _actions;
-    private ColumnActorStatuses _statuses;
+    private readonly ColumnPlayerActions _actions;
+    private readonly ColumnActorStatuses _statuses;
 
-    private ColumnActorHP _hp;
-    private ColumnPlayerGauge? _gauge;
-    private ColumnSeparator _resourceSep;
+    private readonly ColumnActorHP _hp;
+    private readonly ColumnPlayerGauge? _gauge;
+    private readonly ColumnSeparator _resourceSep;
 
-    private CooldownPlanningConfigNode? _planConfig;
+    private readonly CooldownPlanningConfigNode? _planConfig;
     private int _selectedPlan = -1;
-    private bool _planModified;
     private CooldownPlannerColumns? _planner;
 
-    public bool PlanModified => _planModified;
+    public bool PlanModified { get; private set; }
 
     public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass)
         : base(timeline)
@@ -61,12 +60,12 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
     public void DrawConfig(UITree tree)
     {
         DrawConfigPlanner(tree);
-        foreach (var n in tree.Node("Actions"))
+        foreach (var _1 in tree.Node("Actions"))
             _actions.DrawConfig(tree);
-        foreach (var n in tree.Node("Statuses"))
+        foreach (var _1 in tree.Node("Statuses"))
             _statuses.DrawConfig(tree);
 
-        foreach (var n in tree.Node("Resources"))
+        foreach (var _1 in tree.Node("Resources"))
         {
             DrawResourceColumnToggle(_hp, "HP");
             if (_gauge != null)
@@ -76,11 +75,11 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
 
     public void SaveChanges()
     {
-        if (_planner != null && _planModified)
+        if (_planner != null && PlanModified)
         {
             _planner.UpdateEditedPlan();
             _planConfig?.NotifyModified();
-            _planModified = false;
+            PlanModified = false;
         }
     }
 
@@ -99,7 +98,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
             return;
         }
 
-        foreach (var n in tree.Node("Planner"))
+        foreach (var _1 in tree.Node("Planner"))
         {
             UpdateSelectedPlan(plans, DrawPlanSelector(plans, _selectedPlan));
             _planner?.DrawConfig();
@@ -136,7 +135,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
             _planConfig?.NotifyModified();
         }
 
-        if (_planner != null && _planModified)
+        if (_planner != null && PlanModified)
         {
             ImGui.SameLine();
             if (ImGui.Button("Save modifications"))
@@ -159,18 +158,16 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
             _planner = null;
         }
         _selectedPlan = newSelection;
-        _planModified = false;
+        PlanModified = false;
         if (_selectedPlan >= 0)
         {
-            _planner = AddBefore(new CooldownPlannerColumns(list.Available[newSelection], () => _planModified = true, Timeline, _tree, _phaseBraches, _moduleInfo, false), _actions);
+            _planner = AddBefore(new CooldownPlannerColumns(list.Available[newSelection], () => PlanModified = true, Timeline, _tree, _phaseBraches, _moduleInfo, false), _actions);
 
             // TODO: this should be reworked...
             var minTime = _enc.Time.Start.AddSeconds(Timeline.MinTime);
             foreach (var a in _replay.Actions.SkipWhile(a => a.Timestamp < minTime).TakeWhile(a => a.Timestamp <= _enc.Time.End).Where(a => a.Source == _player))
             {
-                var track = _planner.TrackForAction(a.ID);
-                if (track != null)
-                    track.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
+                _planner.TrackForAction(a.ID)?.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
             }
         }
     }

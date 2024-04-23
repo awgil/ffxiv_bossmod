@@ -4,34 +4,29 @@ using System.Reflection;
 
 namespace BossMod;
 
-public class ConfigUI : IDisposable
+public sealed class ConfigUI : IDisposable
 {
-    private class UINode
+    private class UINode(ConfigNode node)
     {
-        public ConfigNode Node;
+        public ConfigNode Node = node;
         public string Name = "";
         public int Order;
         public UINode? Parent;
-        public List<UINode> Children = new();
-
-        public UINode(ConfigNode node)
-        {
-            Node = node;
-        }
+        public List<UINode> Children = [];
     }
 
-    private List<UINode> _roots = new();
-    private UITree _tree = new();
-    private ModuleViewer _mv = new();
-    private ConfigRoot _root;
-    private WorldState _ws;
+    private readonly List<UINode> _roots = [];
+    private readonly UITree _tree = new();
+    private readonly ModuleViewer _mv = new();
+    private readonly ConfigRoot _root;
+    private readonly WorldState _ws;
 
     public ConfigUI(ConfigRoot config, WorldState ws)
     {
         _root = config;
         _ws = ws;
 
-        Dictionary<Type, UINode> nodes = new();
+        Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)
         {
             nodes[n.GetType()] = new(n);
@@ -97,7 +92,7 @@ public class ConfigUI : IDisposable
         node.DrawCustom(tree, ws);
     }
 
-    private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config") ? t.Name.Remove(t.Name.Length - "Config".Length) : t.Name;
+    private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config", StringComparison.Ordinal) ? t.Name.Remove(t.Name.Length - "Config".Length) : t.Name;
 
     private void SortByOrder(List<UINode> nodes)
     {

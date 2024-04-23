@@ -1,38 +1,38 @@
 ﻿namespace BossMod.Endwalker.Savage.P4S2Hesperos;
 
 // state related to hell's sting mechanic (part of curtain call sequence)
-class HellsSting : BossComponent
+class HellsSting(BossModule module) : BossComponent(module)
 {
-    public int NumCasts { get; private set; } = 0;
+    public int NumCasts { get; private set; }
 
-    private AOEShapeCone _cone = new(50, 15.Degrees());
-    private List<Angle> _directions = new();
+    private readonly AOEShapeCone _cone = new(50, 15.Degrees());
+    private readonly List<Angle> _directions = [];
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (NumCasts >= _directions.Count * 2)
             return;
 
-        if (ConeDirections().Any(x => actor.Position.InCone(module.PrimaryActor.Position, x, _cone.HalfAngle)))
+        if (ConeDirections().Any(x => actor.Position.InCone(Module.PrimaryActor.Position, x, _cone.HalfAngle)))
             hints.Add("GTFO from cone!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (NumCasts >= _directions.Count * 2)
             return;
 
         foreach (var dir in ConeDirections())
-            _cone.Draw(arena, module.PrimaryActor.Position, dir);
+            _cone.Draw(Arena, Module.PrimaryActor.Position, dir);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.HellsStingAOE1)
             _directions.Add(caster.Rotation);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.HellsStingAOE1 or AID.HellsStingAOE2)
             ++NumCasts;

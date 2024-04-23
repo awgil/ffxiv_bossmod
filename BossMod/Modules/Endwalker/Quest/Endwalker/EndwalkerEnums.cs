@@ -70,10 +70,10 @@ public enum SID : uint
     ThinIce = 1579, // Helpers->player, extra=0xFA
     Petrification = 610, // Helpers->player, extra=0x0
     DownForTheCount = 2961, // Helpers->player, extra=0xEC7
-    _Gen_Unk01 = 2785, // none->ZenosP2, extra=0x0
-    _Gen_Unk02 = 2892, // ZenosP2->player, extra=0x2110
     Unlimited = 2781, // none->player, extra=0x0
-    _Gen_Unk03 = 2850, // none->player, extra=0x0
     SparkOfHope = 2786, // none->player, extra=0x5/0x4/0x3/0x2/0x1
-    _Gen_Unk04 = 2881, // none->player, extra=0x0
+    //_Gen_Unk01 = 2785, // none->ZenosP2, extra=0x0
+    //_Gen_Unk02 = 2892, // ZenosP2->player, extra=0x2110
+    //_Gen_Unk03 = 2850, // none->player, extra=0x0
+    //_Gen_Unk04 = 2881, // none->player, extra=0x0
 }

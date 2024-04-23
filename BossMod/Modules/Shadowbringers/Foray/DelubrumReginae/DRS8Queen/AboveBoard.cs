@@ -1,33 +1,26 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS8Queen;
 
 // note: this is exactly the same as queen's guard component
-class AboveBoard : Components.GenericAOEs
+class AboveBoard(BossModule module) : Components.GenericAOEs(module)
 {
     public enum State { Initial, ThrowUpDone, ShortExplosionsDone, LongExplosionsDone }
 
     public State CurState { get; private set; }
-    private IReadOnlyList<Actor> _smallBombs = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _bigBombs = ActorEnumeration.EmptyList;
+    private readonly IReadOnlyList<Actor> _smallBombs = module.Enemies(OID.AetherialBolt);
+    private readonly IReadOnlyList<Actor> _bigBombs = module.Enemies(OID.AetherialBurst);
     private bool _invertedBombs; // bombs are always either all normal (big=short) or all inverted
     private BitMask _invertedPlayers; // default for player is 'long', short is considered inverted (has visible status)
-    private DateTime _activation;
+    private DateTime _activation = module.WorldState.FutureTime(14.4f);
 
     private static readonly AOEShapeCircle _shape = new(10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var imminentBombs = AreBigBombsDangerous(slot) ? _bigBombs : _smallBombs;
         return imminentBombs.Select(b => new AOEInstance(_shape, b.Position, new(), _activation));
     }
 
-    public override void Init(BossModule module)
-    {
-        _smallBombs = module.Enemies(OID.AetherialBolt);
-        _bigBombs = module.Enemies(OID.AetherialBurst);
-        _activation = module.WorldState.CurrentTime.AddSeconds(14.4f);
-    }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -35,7 +28,7 @@ class AboveBoard : Components.GenericAOEs
                 if ((OID)actor.OID is OID.AetherialBolt or OID.AetherialBurst)
                     _invertedBombs = true;
                 else
-                    _invertedPlayers.Set(module.Raid.FindSlot(actor.InstanceID));
+                    _invertedPlayers.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.AboveBoardPlayerLong:
             case SID.AboveBoardPlayerShort:
@@ -46,7 +39,7 @@ class AboveBoard : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -56,7 +49,7 @@ class AboveBoard : Components.GenericAOEs
                 break;
             case AID.LotsCastLong:
                 AdvanceState(State.LongExplosionsDone);
-                _activation = module.WorldState.CurrentTime.AddSeconds(4.2f);
+                _activation = WorldState.FutureTime(4.2f);
                 break;
         }
     }

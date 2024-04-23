@@ -1,17 +1,11 @@
 ﻿namespace BossMod;
 
 // utility for applying replay operations to world state, accurate scrolling, etc.
-public class ReplayPlayer
+public class ReplayPlayer(Replay r)
 {
-    public Replay Replay;
-    public WorldState WorldState;
-    private int _nextOp = 0; // first unexecuted operation; note that it corresponds to first operation with timestamp > that worldstate's current
-
-    public ReplayPlayer(Replay r)
-    {
-        Replay = r;
-        WorldState = new(r.QPF, r.GameVersion);
-    }
+    public Replay Replay = r;
+    public WorldState WorldState = new(r.QPF, r.GameVersion);
+    private int _nextOp; // first unexecuted operation; note that it corresponds to first operation with timestamp > that worldstate's current
 
     // reset to empty state; note that world state is recreated
     public void Reset()

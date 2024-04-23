@@ -1,17 +1,15 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
-class P3FiendishWail : Components.CastCounter
+class P3FiendishWail(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.FiendishWailAOE))
 {
     private BitMask _physResistMask;
-    private List<Actor> _towers = new();
+    private readonly List<Actor> _towers = [];
 
     public bool Active => _towers.Count > 0;
 
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
-    public P3FiendishWail() : base(ActionID.MakeSpell(AID.FiendishWailAOE)) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (!Active)
             return;
@@ -24,25 +22,25 @@ class P3FiendishWail : Components.CastCounter
             hints.Add("GTFO from tower!", soaking);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var t in _towers)
-            arena.AddCircle(t.Position, _radius, ArenaColor.Danger);
+            Arena.AddCircle(t.Position, _radius, ArenaColor.Danger);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ForceAgainstMight)
-            _physResistMask.Set(module.Raid.FindSlot(actor.InstanceID));
+            _physResistMask.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             _towers.Add(caster);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             _towers.Remove(caster);

@@ -2,7 +2,7 @@
 
 // TODO: consider setting up 'real' bounds to match the borders
 // TODO: consider showing some aoe zone outside bounds?..
-class Border : BossComponent
+class Border(BossModule module) : BossComponent(module)
 {
     private bool _threePlatforms;
     private bool _bridgeN;
@@ -20,57 +20,57 @@ class Border : BossComponent
     public static readonly float BridgeStartOffset = MathF.Sqrt(SmallPlatformRadius * SmallPlatformRadius - BridgeHalfWidth * BridgeHalfWidth);
     public static readonly float BridgeCenterOffset = BridgeHalfWidth / 60.Degrees().Tan();
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (!_threePlatforms)
         {
-            arena.AddCircle(module.Bounds.Center, LargePlatformRadius, ArenaColor.Border);
+            Arena.AddCircle(Module.Bounds.Center, LargePlatformRadius, ArenaColor.Border);
         }
         else
         {
-            var cs = module.Bounds.Center + PlatformSOffset;
-            var ce = module.Bounds.Center + PlatformEOffset;
-            var cw = module.Bounds.Center + PlatformWOffset;
-            arena.AddCircle(cs, SmallPlatformRadius, ArenaColor.Border);
-            arena.AddCircle(ce, SmallPlatformRadius, ArenaColor.Border);
-            arena.AddCircle(cw, SmallPlatformRadius, ArenaColor.Border);
+            var cs = Module.Bounds.Center + PlatformSOffset;
+            var ce = Module.Bounds.Center + PlatformEOffset;
+            var cw = Module.Bounds.Center + PlatformWOffset;
+            Arena.AddCircle(cs, SmallPlatformRadius, ArenaColor.Border);
+            Arena.AddCircle(ce, SmallPlatformRadius, ArenaColor.Border);
+            Arena.AddCircle(cw, SmallPlatformRadius, ArenaColor.Border);
             if (_bridgeN)
             {
-                DrawBridge(arena, ce, cw, false);
+                DrawBridge(ce, cw, false);
             }
             if (_bridgeE)
             {
-                DrawBridge(arena, ce, cs, false);
+                DrawBridge(ce, cs, false);
             }
             if (_bridgeW)
             {
-                DrawBridge(arena, cw, cs, false);
+                DrawBridge(cw, cs, false);
             }
             if (_bridgeCenter)
             {
-                DrawBridge(arena, cs, module.Bounds.Center, true);
-                DrawBridge(arena, ce, module.Bounds.Center, true);
-                DrawBridge(arena, cw, module.Bounds.Center, true);
+                DrawBridge(cs, Module.Bounds.Center, true);
+                DrawBridge(ce, Module.Bounds.Center, true);
+                DrawBridge(cw, Module.Bounds.Center, true);
             }
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         switch (index)
         {
             case 0: // small platforms
                 switch (state)
                 {
+                    // 0x00200010 - large platform disappears?
+                    // 0x00800040 - small platforms appear?
+                    // 0x08000004 - small platforms disappear?
                     case 0x00020001: // this is preparation
                         _threePlatforms = true;
                         break;
                     case 0x02000100: // this is preparation
                         _threePlatforms = false;
                         break;
-                    // 0x00200010 - large platform disappears?
-                    // 0x00800040 - small platforms appear?
-                    // 0x08000004 - small platforms disappear?
                 }
                 break;
             case 1: // bridge N
@@ -88,14 +88,14 @@ class Border : BossComponent
         }
     }
 
-    private void DrawBridge(MiniArena arena, WPos p1, WPos p2, bool p2center)
+    private void DrawBridge(WPos p1, WPos p2, bool p2center)
     {
         var dir = (p2 - p1).Normalized();
         var p1adj = p1 + dir * BridgeStartOffset;
         var p2adj = p2 - dir * (p2center ? BridgeCenterOffset : BridgeStartOffset);
         var ortho = dir.OrthoL() * BridgeHalfWidth;
-        arena.AddLine(p1adj + ortho, p2adj + ortho, ArenaColor.Border);
-        arena.AddLine(p1adj - ortho, p2adj - ortho, ArenaColor.Border);
+        Arena.AddLine(p1adj + ortho, p2adj + ortho, ArenaColor.Border);
+        Arena.AddLine(p1adj - ortho, p2adj - ortho, ArenaColor.Border);
     }
 
     private void BridgeEnvControl(ref bool bridge, uint state)

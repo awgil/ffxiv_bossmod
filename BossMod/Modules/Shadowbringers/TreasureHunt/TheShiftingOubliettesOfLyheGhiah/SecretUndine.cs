@@ -6,13 +6,13 @@ public enum OID : uint
     BossAdd = 0x3013, //R=1.12
     Bubble = 0x3012, //R=1.3, untargetable 
     BossHelper = 0x233C,
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
 }
 
 public enum AID : uint
 {
     AutoAttack = 23186, // Boss/3013->player, no cast, single-target
-    AutoAttack2 = 872, // BonusAdd_TheKeeperOfTheKeys->player, no cast, single-target
+    AutoAttack2 = 872, // BonusAddKeeperOfKeys->player, no cast, single-target
     Hydrowhirl = 21658, // Boss->self, 3,0s cast, range 8 circle
     Hypnowave = 21659, // Boss->self, 3,0s cast, range 30 120-degree cone, causes sleep
     Hydrotaph = 21661, // Boss->self, 4,0s cast, single-target
@@ -28,50 +28,15 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
 }
 
-class Hydrofan : Components.SelfTargetedAOEs
-{
-    public Hydrofan() : base(ActionID.MakeSpell(AID.Hydrofan), new AOEShapeCone(44, 15.Degrees())) { }
-}
-
-class Hypnowave : Components.SelfTargetedAOEs
-{
-    public Hypnowave() : base(ActionID.MakeSpell(AID.Hypnowave), new AOEShapeCone(30, 60.Degrees())) { }
-}
-
-class Hydropins : Components.SelfTargetedAOEs
-{
-    public Hydropins() : base(ActionID.MakeSpell(AID.Hydropins), new AOEShapeRect(12, 2)) { }
-}
-
-class AquaGlobe : Components.LocationTargetedAOEs
-{
-    public AquaGlobe() : base(ActionID.MakeSpell(AID.AquaGlobe), 8) { }
-}
-
-class Hydrowhirl : Components.SelfTargetedAOEs
-{
-    public Hydrowhirl() : base(ActionID.MakeSpell(AID.Hydrowhirl), new AOEShapeCircle(8)) { }
-}
-
-class Hydrotaph : Components.RaidwideCast
-{
-    public Hydrotaph() : base(ActionID.MakeSpell(AID.Hydrotaph2)) { }
-}
-
-class Spin : Components.SelfTargetedAOEs
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
-}
-
-class Mash : Components.SelfTargetedAOEs
-{
-    public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2)) { }
-}
-
-class Scoop : Components.SelfTargetedAOEs
-{
-    public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Hydrofan(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrofan), new AOEShapeCone(44, 15.Degrees()));
+class Hypnowave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hypnowave), new AOEShapeCone(30, 60.Degrees()));
+class Hydropins(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydropins), new AOEShapeRect(12, 2));
+class AquaGlobe(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AquaGlobe), 8);
+class Hydrowhirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrowhirl), new AOEShapeCircle(8));
+class Hydrotaph(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Hydrotaph2));
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class UndineStates : StateMachineBuilder
 {
@@ -87,21 +52,19 @@ class UndineStates : StateMachineBuilder
             .ActivateOnEnter<Spin>()
             .ActivateOnEnter<Mash>()
             .ActivateOnEnter<Scoop>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9790)]
-public class Undine : BossModule
+public class Undine(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public Undine(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -112,7 +75,7 @@ public class Undine : BossModule
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_TheKeeperOfTheKeys => 3,
+                OID.BonusAddKeeperOfKeys => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

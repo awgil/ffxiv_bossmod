@@ -30,20 +30,20 @@ public enum SID : uint
     Doom = 3364, // none->player, extra=0x0
 }
 
-class HexingStaves : Components.GenericAOEs
+class HexingStaves(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<Actor> _staves = new();
+    private readonly List<Actor> _staves = [];
     private static readonly AOEShapeCross cross = new(40, 4);
     private DateTime _activation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (module.FindComponent<Explosion>() != null && !module.FindComponent<Explosion>()!.ActiveAOEs(module, slot, actor).Any())
+        if (Module.FindComponent<Explosion>() is var explosion && explosion != null && !explosion.ActiveAOEs(slot, actor).Any())
             foreach (var c in _staves)
-                yield return new(cross, c.Position, c.Rotation, _activation, risky: _activation.AddSeconds(-5) < module.WorldState.CurrentTime);
+                yield return new(cross, c.Position, c.Rotation, _activation, Risky: _activation.AddSeconds(-5) < WorldState.CurrentTime);
     }
 
-    public override void OnActorModelStateChange(BossModule module, Actor actor, byte modelState, byte animState1, byte animState2)
+    public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
     {
         if ((OID)actor.OID == OID.HexingStaff)
         {
@@ -51,62 +51,47 @@ class HexingStaves : Components.GenericAOEs
             {
                 _staves.Add(actor);
                 if (NumCasts == 0)
-                    _activation = module.WorldState.CurrentTime.AddSeconds(8.1f);
+                    _activation = WorldState.FutureTime(8.1f);
                 if (NumCasts == 1)
-                    _activation = module.WorldState.CurrentTime.AddSeconds(25.9f);
+                    _activation = WorldState.FutureTime(25.9f);
                 if (NumCasts > 1)
-                    _activation = module.WorldState.CurrentTime.AddSeconds(32);
+                    _activation = WorldState.FutureTime(32);
             }
             if (animState2 == 0)
                 _staves.Remove(actor);
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RuinousConfluence)
             ++NumCasts;
     }
 }
 
-class StaffSmite : Components.SingleTargetCast
-{
-    public StaffSmite() : base(ActionID.MakeSpell(AID.StaffSmite)) { }
-}
+class StaffSmite(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.StaffSmite));
+class VoidDarkII(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.VoidDarkII2), 6);
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeRect(4, 4, 4));
+class AbyssalOutburst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AbyssalOutburst));
 
-class VoidDarkII : Components.SpreadFromCastTargets
+class Doom(BossModule module) : BossComponent(module)
 {
-    public VoidDarkII() : base(ActionID.MakeSpell(AID.VoidDarkII2), 6) { }
-}
-
-class Explosion : Components.SelfTargetedAOEs
-{
-    public Explosion() : base(ActionID.MakeSpell(AID.Explosion), new AOEShapeRect(4, 4, 4)) { }
-}
-
-class AbyssalOutburst : Components.RaidwideCast
-{
-    public AbyssalOutburst() : base(ActionID.MakeSpell(AID.AbyssalOutburst)) { }
-}
-
-class Doom : BossComponent
-{
-    private List<Actor> _doomed = new();
+    private readonly List<Actor> _doomed = [];
     public bool Doomed { get; private set; }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _doomed.Add(actor);
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _doomed.Remove(actor);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_doomed.Contains(actor) && !(actor.Role == Role.Healer || actor.Class == Class.BRD))
             hints.Add("You were doomed! Get cleansed fast.");
@@ -117,9 +102,9 @@ class Doom : BossComponent
                 hints.Add($"Cleanse {c.Name} (Doom)");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
         foreach (var c in _doomed)
         {
             if (_doomed.Count > 0 && actor.Role == Role.Healer)
@@ -145,7 +130,4 @@ class D131DarkElfStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12500)]
-public class D131DarkElf : BossModule
-{
-    public D131DarkElf(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-401, -231), 15.5f)) { }
-}
+public class D131DarkElf(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-401, -231), 15.5f));

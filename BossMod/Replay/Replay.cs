@@ -4,10 +4,10 @@ public class Replay
 {
     public record struct TimeRange(DateTime Start = default, DateTime End = default)
     {
-        public float Duration => (float)(End - Start).TotalSeconds;
+        public readonly float Duration => (float)(End - Start).TotalSeconds;
 
-        public override string ToString() => $"{Duration:f2}";
-        public bool Contains(DateTime t) => t >= Start && t <= End;
+        public override readonly string ToString() => $"{Duration:f2}";
+        public readonly bool Contains(DateTime t) => t >= Start && t <= End;
     }
 
     // note: if target is non-null, Location corresponds to target's position at cast start
@@ -26,7 +26,7 @@ public class Replay
     // note: if main target is non-null, TargetPos corresponds to main target's position at cast event
     public record class Action(ActionID ID, DateTime Timestamp, Participant Source, Participant? MainTarget, Vector3 TargetPos, float AnimationLock, uint GlobalSequence)
     {
-        public List<ActionTarget> Targets = new();
+        public List<ActionTarget> Targets = [];
         public ClientAction? ClientAction;
     }
 
@@ -42,13 +42,13 @@ public class Replay
         public uint ZoneID;
         public uint CFCID;
         public TimeRange EffectiveExistence;
-        public List<TimeRange> WorldExistence = new(); // sorted by time, non-overlapping ranges
-        public SortedList<DateTime, (string name, uint id)> NameHistory = new();
-        public SortedList<DateTime, bool> TargetableHistory = new();
-        public SortedList<DateTime, bool> DeadHistory = new();
-        public SortedList<DateTime, Vector4> PosRotHistory = new();
-        public SortedList<DateTime, (ActorHP hp, uint curMP)> HPMPHistory = new();
-        public List<Cast> Casts = new();
+        public List<TimeRange> WorldExistence = []; // sorted by time, non-overlapping ranges
+        public SortedList<DateTime, (string name, uint id)> NameHistory = [];
+        public SortedList<DateTime, bool> TargetableHistory = [];
+        public SortedList<DateTime, bool> DeadHistory = [];
+        public SortedList<DateTime, Vector4> PosRotHistory = [];
+        public SortedList<DateTime, (ActorHP hp, uint curMP)> HPMPHistory = [];
+        public List<Cast> Casts = [];
         public float MinRadius = float.MaxValue;
         public float MaxRadius = float.MinValue;
         public bool HasAnyActions;
@@ -106,12 +106,12 @@ public class Replay
     public record class Encounter(ulong InstanceID, uint OID, ushort Zone)
     {
         public float CountdownOnPull = 10000;
-        public TimeRange Time = new(); // pull to deactivation
-        public List<EncounterPhase> Phases = new();
-        public List<EncounterState> States = new();
-        public List<EncounterError> Errors = new();
-        public Dictionary<uint, List<Participant>> ParticipantsByOID = new(); // key = oid
-        public List<(Participant p, Class cls, int level)> PartyMembers = new();
+        public TimeRange Time; // pull to deactivation
+        public List<EncounterPhase> Phases = [];
+        public List<EncounterState> States = [];
+        public List<EncounterError> Errors = [];
+        public Dictionary<uint, List<Participant>> ParticipantsByOID = []; // key = oid
+        public List<(Participant p, Class cls, int level)> PartyMembers = [];
         public int FirstAction;
         public int FirstStatus;
         public int FirstTether;
@@ -123,17 +123,17 @@ public class Replay
     public string Path = "";
     public ulong QPF = TimeSpan.TicksPerSecond;
     public string GameVersion = "";
-    public List<WorldState.Operation> Ops = new();
-    public List<Participant> Participants = new();
-    public List<Action> Actions = new();
-    public List<Status> Statuses = new();
-    public List<Tether> Tethers = new();
-    public List<Icon> Icons = new();
-    public List<DirectorUpdate> DirectorUpdates = new();
-    public List<EnvControl> EnvControls = new();
-    public List<ClientAction> ClientActions = new();
-    public List<Encounter> Encounters = new();
-    public SortedList<DateTime, string> UserMarkers = new();
+    public List<WorldState.Operation> Ops = [];
+    public List<Participant> Participants = [];
+    public List<Action> Actions = [];
+    public List<Status> Statuses = [];
+    public List<Tether> Tethers = [];
+    public List<Icon> Icons = [];
+    public List<DirectorUpdate> DirectorUpdates = [];
+    public List<EnvControl> EnvControls = [];
+    public List<ClientAction> ClientActions = [];
+    public List<Encounter> Encounters = [];
+    public SortedList<DateTime, string> UserMarkers = [];
 
     public IEnumerable<Action> EncounterActions(Encounter e) => Actions.Skip(e.FirstAction).TakeWhile(a => a.Timestamp <= e.Time.End);
     public IEnumerable<Status> EncounterStatuses(Encounter e) => Statuses.Skip(e.FirstStatus).TakeWhile(s => s.Time.Start <= e.Time.End);

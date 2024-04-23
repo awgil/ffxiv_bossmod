@@ -9,12 +9,12 @@ class Ashplume : BossComponent
 
     public State CurState { get; private set; }
 
-    private static readonly float _stackRadius = 8;
-    private static readonly float _spreadRadius = 6;
+    private const float _stackRadius = 8;
+    private const float _spreadRadius = 6;
 
-    public override void Init(BossModule module)
+    public Ashplume(BossModule module) : base(module)
     {
-        CurState = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
+        CurState = (AID)(Module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
         {
             AID.ExperimentalAshplumeStack => State.Stack,
             AID.ExperimentalAshplumeSpread => State.Spread,
@@ -22,10 +22,10 @@ class Ashplume : BossComponent
             _ => State.Done
         };
         if (CurState == State.Done)
-            module.ReportError(this, $"Failed to initialize ashplume component, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
+            ReportError($"Failed to initialize ashplume component, unexpected cast {Module.PrimaryActor.CastInfo?.Action}");
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (CurState == State.Stack)
         {
@@ -33,7 +33,7 @@ class Ashplume : BossComponent
             int numStacked = 0;
             bool haveTanks = actor.Role == Role.Tank;
             bool haveHealers = actor.Role == Role.Healer;
-            foreach (var pair in module.Raid.WithoutSlot().InRadiusExcluding(actor, _stackRadius))
+            foreach (var pair in Raid.WithoutSlot().InRadiusExcluding(actor, _stackRadius))
             {
                 ++numStacked;
                 haveTanks |= pair.Role == Role.Tank;
@@ -50,14 +50,14 @@ class Ashplume : BossComponent
         }
         else if (CurState == State.Spread)
         {
-            if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any())
+            if (Raid.WithoutSlot().InRadiusExcluding(actor, _spreadRadius).Any())
             {
                 hints.Add("Spread!");
             }
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (CurState == State.Stack)
             hints.Add("Stack!");
@@ -65,23 +65,23 @@ class Ashplume : BossComponent
             hints.Add("Spread!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (CurState == State.UnknownGlory || CurState == State.Done)
+        if (CurState is State.UnknownGlory or State.Done)
             return;
 
         // draw all raid members, to simplify positioning
         float aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
-        foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
+        foreach (var player in Raid.WithoutSlot().Exclude(pc))
         {
-            arena.Actor(player, player.Position.InCircle(pc.Position, aoeRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+            Arena.Actor(player, player.Position.InCircle(pc.Position, aoeRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
         }
 
         // draw circle around pc
-        arena.AddCircle(pc.Position, aoeRadius, ArenaColor.Danger);
+        Arena.AddCircle(pc.Position, aoeRadius, ArenaColor.Danger);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

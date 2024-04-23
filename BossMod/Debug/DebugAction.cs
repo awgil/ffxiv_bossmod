@@ -3,17 +3,11 @@ using ImGuiNET;
 
 namespace BossMod;
 
-public class DebugAction
+public class DebugAction(WorldState ws)
 {
-    private WorldState _ws;
-    private int _customAction = 0;
+    private int _customAction;
 
-    public DebugAction(WorldState ws)
-    {
-        _ws = ws;
-    }
-
-    public unsafe void DrawActionManagerEx()
+    public unsafe void DrawActionManagerExtensions()
     {
         var am = ActionManagerEx.Instance!;
         var amr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
@@ -22,7 +16,7 @@ public class DebugAction
         ImGui.TextUnformatted($"Cast: {am.CastAction} / {am.CastSpell}, progress={am.CastTimeElapsed:f3}/{am.CastTimeTotal:f3}, target={am.CastTargetID:X}/{Utils.Vec3String(am.CastTargetPos)}");
         ImGui.TextUnformatted($"Combo: {new ActionID(ActionType.Spell, am.ComboLastMove)}, {am.ComboTimeLeft:f3}");
         ImGui.TextUnformatted($"Queue: {(am.QueueActive ? "active" : "inactive")}, {am.QueueAction} @ {am.QueueTargetID:X} [{am.QueueCallType}], combo={am.QueueComboRouteID}");
-        ImGui.TextUnformatted($"GT: {am.GTAction} / {am.GTSpell}, arg={am.GTUnkArg}, obj={am.GTUnkObj:X}, a0={am.GT_uA0:X2}, b8={am.GT_uB8:X2}, bc={am.GT_uBC:X}");
+        ImGui.TextUnformatted($"GT: {am.GTAction} / {am.GTSpell}, arg={am.GTUnkArg}, obj={am.GTUnkObj:X}, a0={am.GTUnkA0:X2}, b8={am.GTUnkB8:X2}, bc={am.GTUnkBC:X}");
         ImGui.TextUnformatted($"Last used action sequence: {am.LastUsedActionSequence}");
         if (ImGui.Button("GT complete"))
         {
@@ -36,7 +30,7 @@ public class DebugAction
 
         if (ImGui.Button("Rotate 30 CCW"))
         {
-            am.FaceDirection((_ws.Party.Player()?.Rotation ?? 0.Degrees() + 30.Degrees()).ToDirection());
+            am.FaceDirection((ws.Party.Player()?.Rotation ?? 0.Degrees() + 30.Degrees()).ToDirection());
         }
     }
 
@@ -67,7 +61,7 @@ public class DebugAction
             ImGui.TextUnformatted($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) ({mnemonic}: {rotationType?.GetEnumName(hover.ActionID)})");
 
             Lumina.Text.SeString? name = null;
-            FFXIVClientStructs.FFXIV.Client.Game.ActionType type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.None;
+            var type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.None;
             uint unlockLink = 0;
             if ((int)hover.ActionKind == 24) // action
             {

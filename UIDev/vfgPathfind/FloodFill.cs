@@ -3,9 +3,9 @@
 public class FloodFill
 {
     public int NextT { get; private set; }
-    private Map _map;
-    private BitArray _solutions; // true if voxel is reachable
-    private List<(int dx, int dy)> _moves = new();
+    private readonly Map _map;
+    private readonly BitArray _solutions; // true if voxel is reachable
+    private readonly List<(int dx, int dy)> _moves = [];
 
     public bool Solution(int x, int y, int t) => _map.InBounds(x, y, t) ? _solutions[t * _map.Width * _map.Height + y * _map.Width + x] : false;
     public bool this[int x, int y, int t] => Solution(x, y, t);

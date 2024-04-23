@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P1ProgramLoop : P1CommonAssignments
+class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
 {
     public int NumTowersDone { get; private set; }
     public int NumTethersDone { get; private set; }
-    private List<Actor> _towers = new();
+    private readonly List<Actor> _towers = [];
     private BitMask _tethers;
 
-    private static readonly float _towerRadius = 3;
-    private static readonly float _tetherRadius = 15;
+    private const float _towerRadius = 3;
+    private const float _tetherRadius = 15;
 
     protected override (GroupAssignmentUnique assignment, bool global) Assignments()
     {
@@ -16,9 +16,9 @@ class P1ProgramLoop : P1CommonAssignments
         return (config.P1ProgramLoopAssignments, config.P1ProgramLoopGlobalPriority);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         var order = PlayerStates[slot].Order;
         if (order == 0)
@@ -35,68 +35,66 @@ class P1ProgramLoop : P1CommonAssignments
         {
             if (_tethers[slot])
                 hints.Add("Pass the tether!");
-            if (module.Raid.WithSlot().IncludedInMask(_tethers).InRadiusExcluding(actor, _tetherRadius).Any())
+            if (Raid.WithSlot().IncludedInMask(_tethers).InRadiusExcluding(actor, _tetherRadius).Any())
                 hints.Add("GTFO from tether targets!");
         }
         else if (_tethers.Any())
         {
             if (!_tethers[slot])
                 hints.Add("Grab the tether!");
-            else if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _tetherRadius).Any())
+            else if (Raid.WithoutSlot().InRadiusExcluding(actor, _tetherRadius).Any())
                 hints.Add("GTFO from raid!");
         }
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return PlayerStates[playerSlot].Order == PlayerStates[pcSlot].Order % 4 + 1 ? PlayerPriority.Interesting : base.CalcPriority(module, pcSlot, pc, playerSlot, player, ref customColor);
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+        => PlayerStates[playerSlot].Order == PlayerStates[pcSlot].Order % 4 + 1 ? PlayerPriority.Interesting : base.CalcPriority(pcSlot, pc, playerSlot, player, ref customColor);
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var ps = PlayerStates[pcSlot];
         bool soakTowers = ps.Order == NextTowersOrder();
-        var towerToSoak = soakTowers ? SelectTowerForGroup(module, ps.Group) : null;
+        var towerToSoak = soakTowers ? SelectTowerForGroup(ps.Group) : null;
         foreach (var t in _towers.Skip(NumTowersDone).Take(2))
         {
-            arena.AddCircle(t.Position, _towerRadius, soakTowers && (towerToSoak == null || towerToSoak == t) ? ArenaColor.Safe : ArenaColor.Danger, 2);
+            Arena.AddCircle(t.Position, _towerRadius, soakTowers && (towerToSoak == null || towerToSoak == t) ? ArenaColor.Safe : ArenaColor.Danger, 2);
         }
 
         if (ps.Order == NextTowersOrder(1))
         {
             // show next tower to soak if possible
-            var futureTowerToSoak = SelectTowerForGroup(module, ps.Group, 1);
+            var futureTowerToSoak = SelectTowerForGroup(ps.Group, 1);
             if (futureTowerToSoak != null)
-                arena.AddCircle(futureTowerToSoak.Position, _towerRadius, ArenaColor.Safe);
+                Arena.AddCircle(futureTowerToSoak.Position, _towerRadius, ArenaColor.Safe);
         }
 
         bool grabThisTether = ps.Order == NextTethersOrder();
         bool grabNextTether = ps.Order == NextTethersOrder(1);
-        foreach (var (s, t) in module.Raid.WithSlot().IncludedInMask(_tethers))
+        foreach (var (s, t) in Raid.WithSlot().IncludedInMask(_tethers))
         {
             var ts = PlayerStates[s];
             bool correctSoaker = ts.Order == NextTethersOrder();
-            bool tetherToGrab = ts.Group == ps.Group && (grabNextTether ? correctSoaker : grabThisTether ? NumTethersDone > 0 && ts.Order == NextTethersOrder(-1) : false);
-            arena.AddCircle(t.Position, _tetherRadius, t == pc ? ArenaColor.Safe : ArenaColor.Danger);
-            arena.AddLine(t.Position, module.PrimaryActor.Position, correctSoaker ? ArenaColor.Safe : ArenaColor.Danger, tetherToGrab ? 2 : 1);
+            bool tetherToGrab = ts.Group == ps.Group && (grabNextTether ? correctSoaker : grabThisTether && NumTethersDone > 0 && ts.Order == NextTethersOrder(-1));
+            Arena.AddCircle(t.Position, _tetherRadius, t == pc ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddLine(t.Position, Module.PrimaryActor.Position, correctSoaker ? ArenaColor.Safe : ArenaColor.Danger, tetherToGrab ? 2 : 1);
         }
 
         if (grabThisTether && NumTethersDone == NumTowersDone)
         {
             // show hint for tether position
-            var spot = GetTetherDropSpot(module, ps.Group);
+            var spot = GetTetherDropSpot(ps.Group);
             if (spot != null)
-                arena.AddCircle(spot.Value, 1, ArenaColor.Safe);
+                Arena.AddCircle(spot.Value, 1, ArenaColor.Safe);
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Tower2)
             _towers.Add(actor);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -110,16 +108,16 @@ class P1ProgramLoop : P1CommonAssignments
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Blaster)
-            _tethers.Set(module.Raid.FindSlot(source.InstanceID));
+            _tethers.Set(Raid.FindSlot(source.InstanceID));
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Blaster)
-            _tethers.Clear(module.Raid.FindSlot(source.InstanceID));
+            _tethers.Clear(Raid.FindSlot(source.InstanceID));
     }
 
     private int NextTowersOrder(int skip = 0)
@@ -135,36 +133,36 @@ class P1ProgramLoop : P1CommonAssignments
     }
 
     // 0 = N, 1 = E, ... (CW)
-    private int ClassifyTower(BossModule module, Actor tower)
+    private int ClassifyTower(Actor tower)
     {
-        var offset = tower.Position - module.Bounds.Center;
+        var offset = tower.Position - Module.Bounds.Center;
         if (Math.Abs(offset.Z) > Math.Abs(offset.X))
             return offset.Z < 0 ? 0 : 2;
         else
             return offset.X > 0 ? 1 : 3;
     }
 
-    private Actor? SelectTowerForGroup(BossModule module, int group, int skip = 0)
+    private Actor? SelectTowerForGroup(int group, int skip = 0)
     {
         var firstIndex = NumTowersDone + skip * 2;
         if (group == 0 || _towers.Count < firstIndex + 2)
             return null;
         var t1 = _towers[firstIndex];
         var t2 = _towers[firstIndex + 1];
-        if (ClassifyTower(module, t2) < ClassifyTower(module, t1))
+        if (ClassifyTower(t2) < ClassifyTower(t1))
             Utils.Swap(ref t1, ref t2);
         return group == 1 ? t1 : t2;
     }
 
-    private WPos? GetTetherDropSpot(BossModule module, int group)
+    private WPos? GetTetherDropSpot(int group)
     {
         if (group == 0 || _towers.Count < NumTowersDone + 2)
             return null;
 
         var safeSpots = new BitMask(0xF);
-        safeSpots.Clear(ClassifyTower(module, _towers[NumTowersDone]));
-        safeSpots.Clear(ClassifyTower(module, _towers[NumTowersDone + 1]));
+        safeSpots.Clear(ClassifyTower(_towers[NumTowersDone]));
+        safeSpots.Clear(ClassifyTower(_towers[NumTowersDone + 1]));
         var spot = group == 1 ? safeSpots.LowestSetBit() : safeSpots.HighestSetBit();
-        return module.Bounds.Center + 18 * (180.Degrees() - 90.Degrees() * spot).ToDirection();
+        return Module.Bounds.Center + 18 * (180.Degrees() - 90.Degrees() * spot).ToDirection();
     }
 }

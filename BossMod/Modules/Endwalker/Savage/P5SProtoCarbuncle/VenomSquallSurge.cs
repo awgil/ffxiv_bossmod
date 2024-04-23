@@ -1,63 +1,57 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
-class VenomDrops : Components.LocationTargetedAOEs
-{
-    public VenomDrops() : base(ActionID.MakeSpell(AID.VenomDrops), 5) { }
-}
+class VenomDrops(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VenomDrops), 5);
 
-class VenomSquallSurge : BossComponent
+class VenomSquallSurge(BossModule module) : BossComponent(module)
 {
     public enum Mechanic { None, Rain, Drops, Pool }
 
     public int Progress { get; private set; }
     public bool _reverse;
 
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         switch (NextMechanic)
         {
             case Mechanic.Rain:
-                if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _radius).Any())
+                if (Raid.WithoutSlot().InRadiusExcluding(actor, _radius).Any())
                     hints.Add("Spread!");
                 break;
             case Mechanic.Pool:
-                if (module.Raid.WithoutSlot().InRadius(actor.Position, _radius).Count(p => p.Role == Role.Healer) != 1)
+                if (Raid.WithoutSlot().InRadius(actor.Position, _radius).Count(p => p.Role == Role.Healer) != 1)
                     hints.Add("Stack with healer!");
                 break;
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add(_reverse ? "Order: stack -> mid -> spread" : "Order: spread -> mid -> stack");
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        return NextMechanic == Mechanic.Pool && player.Role == Role.Healer ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => NextMechanic == Mechanic.Pool && player.Role == Role.Healer ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         switch (NextMechanic)
         {
             case Mechanic.Rain: // spreads
-                arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
+                Arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
                 break;
             case Mechanic.Drops: // bait
-                foreach (var p in module.Raid.WithoutSlot())
-                    arena.AddCircle(p.Position, _radius, ArenaColor.Danger);
+                foreach (var p in Raid.WithoutSlot())
+                    Arena.AddCircle(p.Position, _radius, ArenaColor.Danger);
                 break;
             case Mechanic.Pool: // party stacks
-                foreach (var p in module.Raid.WithoutSlot().Where(p => p.Role == Role.Healer))
-                    arena.AddCircle(p.Position, _radius, ArenaColor.Danger);
+                foreach (var p in Raid.WithoutSlot().Where(p => p.Role == Role.Healer))
+                    Arena.AddCircle(p.Position, _radius, ArenaColor.Danger);
                 break;
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -71,7 +65,7 @@ class VenomSquallSurge : BossComponent
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

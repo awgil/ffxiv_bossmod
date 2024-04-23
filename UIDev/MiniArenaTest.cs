@@ -5,14 +5,14 @@ namespace UIDev;
 
 class MiniArenaTest : TestWindow
 {
-    private MiniArena _arena = new(new(), new ArenaBoundsSquare(new(100, 100), 20));
-    private bool _arenaIsCircle = false;
+    private readonly MiniArena _arena = new(new(), new ArenaBoundsSquare(new(100, 100), 20));
+    private bool _arenaIsCircle;
     private float _azimuth = -72;
     private float _altitude = 90;
     private bool _lineEnabled;
     private bool _coneEnabled = true;
     private bool _kbContourEnabled = true;
-    private List<Vector3> _shapeVertices = new();
+    private readonly List<Vector3> _shapeVertices = [];
     private Vector4 _lineEnds = new(90, 90, 110, 110);
     private Vector2 _playerPos = new(100, 90);
     private Vector2 _conePos = new(100, 80);

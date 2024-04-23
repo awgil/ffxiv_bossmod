@@ -3,7 +3,7 @@
 // list of disjoint segments (defined by min/max values)
 public class DisjointSegmentList
 {
-    private List<(float Min, float Max)> _segments = new();
+    private readonly List<(float Min, float Max)> _segments = [];
     public IReadOnlyList<(float Min, float Max)> Segments => _segments;
 
     public void Add(float min, float max)

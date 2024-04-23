@@ -7,11 +7,11 @@ class Actions : CommonActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private DNCConfig _config;
-    private Rotation.State _state;
-    private Rotation.Strategy _strategy;
+    private readonly DNCConfig _config;
+    private readonly Rotation.State _state;
+    private readonly Rotation.Strategy _strategy;
 
-    private bool _predictedTechFinish = false; // TODO: find a way to remove that
+    private bool _predictedTechFinish; // TODO: find a way to remove that
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
@@ -28,9 +28,10 @@ class Actions : CommonActions
         OnConfigModified();
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         _config.Modified -= OnConfigModified;
+        base.Dispose(disposing);
     }
 
     public override CommonRotation.PlayerState GetState() => _state;
@@ -134,7 +135,7 @@ class Actions : CommonActions
         _strategy.ApplyStrategyOverrides(
             Autorot
                 .Bossmods.ActiveModule?.PlanExecution
-                ?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? new uint[0]
+                ?.ActiveStrategyOverrides(Autorot.Bossmods.ActiveModule.StateMachine) ?? []
         );
     }
 
@@ -188,7 +189,8 @@ class Actions : CommonActions
         // cascading buff that is applied to self last? anyway, the delay can cause the rotation to skip the
         // devilment weave window that occurs right after tech finish since it doesn't think we have tech finish yet
         // TODO: this is not very robust (eg player could die between action and buff application), investigate why StatusDetail doesn't pick it up from pending statuses...
-        if (_predictedTechFinish) {
+        if (_predictedTechFinish)
+        {
             if (_state.TechFinishLeft == 0)
                 _state.TechFinishLeft = 1000f;
             else
@@ -237,20 +239,6 @@ class Actions : CommonActions
     private float StatusLeft(SID status) => StatusDetails(Player, status, Player.InstanceID).Left;
 
     private int NumAOETargets(Actor origin) => Autorot.Hints.NumPriorityTargetsInAOECircle(origin.Position, 5);
-
-    private int NumFan4Targets(Actor primary) =>
-        Autorot.Hints.NumPriorityTargetsInAOECone(
-            Player.Position,
-            15,
-            (primary.Position - Player.Position).Normalized(),
-            60.Degrees()
-        );
-
-    private int NumStarfallTargets(Actor primary) =>
-        Autorot.Hints.NumPriorityTargetsInAOERect(
-            Player.Position,
-            (primary.Position - Player.Position).Normalized(),
-            25,
-            4
-        );
+    private int NumFan4Targets(Actor primary) => Autorot.Hints.NumPriorityTargetsInAOECone(Player.Position, 15, (primary.Position - Player.Position).Normalized(), 60.Degrees());
+    private int NumStarfallTargets(Actor primary) => Autorot.Hints.NumPriorityTargetsInAOERect(Player.Position, (primary.Position - Player.Position).Normalized(), 25, 4);
 }

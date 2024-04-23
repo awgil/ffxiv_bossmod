@@ -2,7 +2,7 @@
 
 class C023MokoStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C023MokoStates(BossModule module, bool savage) : base(module)
     {
@@ -49,11 +49,11 @@ class C023MokoStates : StateMachineBuilder
     private State TripleKasumiGiri(uint id, float delay)
     {
         AID[] firstCasts = _savage
-            ? new[] { AID.STripleKasumiGiriOutFrontFirst, AID.STripleKasumiGiriOutRightFirst, AID.STripleKasumiGiriOutBackFirst, AID.STripleKasumiGiriOutLeftFirst, AID.STripleKasumiGiriInFrontFirst, AID.STripleKasumiGiriInRightFirst, AID.STripleKasumiGiriInBackFirst, AID.STripleKasumiGiriInLeftFirst }
-            : new[] { AID.NTripleKasumiGiriOutFrontFirst, AID.NTripleKasumiGiriOutRightFirst, AID.NTripleKasumiGiriOutBackFirst, AID.NTripleKasumiGiriOutLeftFirst, AID.NTripleKasumiGiriInFrontFirst, AID.NTripleKasumiGiriInRightFirst, AID.NTripleKasumiGiriInBackFirst, AID.NTripleKasumiGiriInLeftFirst };
+            ? [AID.STripleKasumiGiriOutFrontFirst, AID.STripleKasumiGiriOutRightFirst, AID.STripleKasumiGiriOutBackFirst, AID.STripleKasumiGiriOutLeftFirst, AID.STripleKasumiGiriInFrontFirst, AID.STripleKasumiGiriInRightFirst, AID.STripleKasumiGiriInBackFirst, AID.STripleKasumiGiriInLeftFirst]
+            : [AID.NTripleKasumiGiriOutFrontFirst, AID.NTripleKasumiGiriOutRightFirst, AID.NTripleKasumiGiriOutBackFirst, AID.NTripleKasumiGiriOutLeftFirst, AID.NTripleKasumiGiriInFrontFirst, AID.NTripleKasumiGiriInRightFirst, AID.NTripleKasumiGiriInBackFirst, AID.NTripleKasumiGiriInLeftFirst];
         AID[] restCasts = _savage
-            ? new[] { AID.STripleKasumiGiriOutFrontRest, AID.STripleKasumiGiriOutRightRest, AID.STripleKasumiGiriOutBackRest, AID.STripleKasumiGiriOutLeftRest, AID.STripleKasumiGiriInFrontRest, AID.STripleKasumiGiriInRightRest, AID.STripleKasumiGiriInBackRest, AID.STripleKasumiGiriInLeftRest }
-            : new[] { AID.NTripleKasumiGiriOutFrontRest, AID.NTripleKasumiGiriOutRightRest, AID.NTripleKasumiGiriOutBackRest, AID.NTripleKasumiGiriOutLeftRest, AID.NTripleKasumiGiriInFrontRest, AID.NTripleKasumiGiriInRightRest, AID.NTripleKasumiGiriInBackRest, AID.NTripleKasumiGiriInLeftRest };
+            ? [AID.STripleKasumiGiriOutFrontRest, AID.STripleKasumiGiriOutRightRest, AID.STripleKasumiGiriOutBackRest, AID.STripleKasumiGiriOutLeftRest, AID.STripleKasumiGiriInFrontRest, AID.STripleKasumiGiriInRightRest, AID.STripleKasumiGiriInBackRest, AID.STripleKasumiGiriInLeftRest]
+            : [AID.NTripleKasumiGiriOutFrontRest, AID.NTripleKasumiGiriOutRightRest, AID.NTripleKasumiGiriOutBackRest, AID.NTripleKasumiGiriOutLeftRest, AID.NTripleKasumiGiriInFrontRest, AID.NTripleKasumiGiriInRightRest, AID.NTripleKasumiGiriInBackRest, AID.NTripleKasumiGiriInLeftRest];
         CastMulti(id, firstCasts, delay, 12, "Cleave 1")
             .ActivateOnEnter<TripleKasumiGiri>()
             .SetHint(StateMachine.StateHint.PositioningStart);
@@ -169,5 +169,5 @@ class C023MokoStates : StateMachineBuilder
     }
 }
 
-class C023NMokoStates : C023MokoStates { public C023NMokoStates(BossModule module) : base(module, false) { } }
-class C023SMokoStates : C023MokoStates { public C023SMokoStates(BossModule module) : base(module, true) { } }
+class C023NMokoStates(BossModule module) : C023MokoStates(module, false);
+class C023SMokoStates(BossModule module) : C023MokoStates(module, true);

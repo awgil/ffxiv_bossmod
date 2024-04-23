@@ -15,10 +15,10 @@ public class UIPlot
     public Vector2 TickOrigin = new(0, 0);
     public Vector2 TickAdvance = new(0.1f, 0.2f);
 
-    private List<string> _tooltips = new();
+    private readonly List<string> _tooltips = [];
     private Vector2 _blScreen;
-    private uint _colCursor = 0x80808080;
-    private uint _colAxis = 0xffffffff;
+    private readonly uint _colCursor = 0x80808080;
+    private readonly uint _colAxis = 0xffffffff;
 
     public void Begin()
     {

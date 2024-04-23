@@ -1,20 +1,14 @@
 ﻿namespace BossMod.Components;
 
 // generic component that shows line-of-sight cones for arbitrary origin and blocking shapes
-public abstract class GenericLineOfSightAOE : CastCounter
+public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, float maxRange, bool blockersImpassable) : CastCounter(module, aid)
 {
     public DateTime NextExplosion;
-    public bool BlockersImpassable;
-    public float MaxRange { get; private set; }
+    public bool BlockersImpassable = blockersImpassable;
+    public float MaxRange { get; private set; } = maxRange;
     public WPos? Origin { get; private set; } // inactive if null
-    public List<(WPos Center, float Radius)> Blockers { get; private set; } = new();
-    public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility { get; private set; } = new();
-
-    public GenericLineOfSightAOE(ActionID aid, float maxRange, bool blockersImpassable) : base(aid)
-    {
-        BlockersImpassable = blockersImpassable;
-        MaxRange = maxRange;
-    }
+    public List<(WPos Center, float Radius)> Blockers { get; private set; } = [];
+    public List<(float Distance, Angle Dir, Angle HalfWidth)> Visibility { get; private set; } = [];
 
     public void Modify(WPos? origin, IEnumerable<(WPos Center, float Radius)> blockers, DateTime nextExplosion = default)
     {
@@ -34,7 +28,7 @@ public abstract class GenericLineOfSightAOE : CastCounter
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Origin != null
             && actor.Position.InCircle(Origin.Value, MaxRange)
@@ -44,13 +38,13 @@ public abstract class GenericLineOfSightAOE : CastCounter
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Origin != null)
         {
             // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
             var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
-            Func<WPos, float> invertedDistanceToSafe = p =>
+            float invertedDistanceToSafe(WPos p)
             {
                 var off = p - Origin.Value;
                 var distOrigin = off.Length();
@@ -64,7 +58,7 @@ public abstract class GenericLineOfSightAOE : CastCounter
                     distanceToSafe = Math.Min(distanceToSafe, distCone);
                 }
                 return -distanceToSafe;
-            };
+            }
             hints.AddForbiddenZone(invertedDistanceToSafe, NextExplosion);
         }
         if (BlockersImpassable)
@@ -74,14 +68,14 @@ public abstract class GenericLineOfSightAOE : CastCounter
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         // TODO: reconsider, this looks like shit...
         if (Origin != null)
         {
-            arena.ZoneDonut(Origin.Value, MaxRange, 1000, ArenaColor.SafeFromAOE);
+            Arena.ZoneDonut(Origin.Value, MaxRange, 1000, ArenaColor.SafeFromAOE);
             foreach (var v in Visibility)
-                arena.ZoneCone(Origin.Value, v.Distance, 1000, v.Dir, v.HalfWidth, ArenaColor.SafeFromAOE);
+                Arena.ZoneCone(Origin.Value, v.Distance, 1000, v.Dir, v.HalfWidth, ArenaColor.SafeFromAOE);
         }
     }
 }
@@ -89,40 +83,38 @@ public abstract class GenericLineOfSightAOE : CastCounter
 // simple line-of-sight aoe that happens at the end of the cast
 public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
     public Actor? ActiveCaster => _casters.MinBy(c => c.CastInfo!.NPCFinishAt);
 
-    public CastLineOfSightAOE(ActionID aid, float maxRange, bool blockersImpassable) : base(aid, maxRange, blockersImpassable) { }
-
-    public abstract IEnumerable<Actor> BlockerActors(BossModule module);
-
-    public override void Init(BossModule module)
+    protected CastLineOfSightAOE(BossModule module, ActionID aid, float maxRange, bool blockersImpassable) : base(module, aid, maxRange, blockersImpassable)
     {
-        Refresh(module);
+        Refresh();
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public abstract IEnumerable<Actor> BlockerActors();
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
             _casters.Add(caster);
-            Refresh(module);
+            Refresh();
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
             _casters.Remove(caster);
-            Refresh(module);
+            Refresh();
         }
     }
 
-    private void Refresh(BossModule module)
+    private void Refresh()
     {
         var caster = ActiveCaster;
-        WPos? position = caster != null ? (module.WorldState.Actors.Find(caster.CastInfo!.TargetID)?.Position ?? caster.CastInfo!.LocXZ) : null;
-        Modify(position, BlockerActors(module).Select(b => (b.Position, b.HitboxRadius)), caster?.CastInfo?.NPCFinishAt ?? default);
+        WPos? position = caster != null ? (WorldState.Actors.Find(caster.CastInfo!.TargetID)?.Position ?? caster.CastInfo!.LocXZ) : null;
+        Modify(position, BlockerActors().Select(b => (b.Position, b.HitboxRadius)), caster?.CastInfo?.NPCFinishAt ?? default);
     }
 }

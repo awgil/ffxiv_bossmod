@@ -10,9 +10,9 @@ class Actions : HealerActions
     public const int AutoActionSTHeal = AutoActionFirstCustom + 2;
     public const int AutoActionAOEHeal = AutoActionFirstCustom + 3;
 
-    private WHMConfig _config;
-    private Rotation.State _state;
-    private Rotation.Strategy _strategy;
+    private readonly WHMConfig _config;
+    private readonly Rotation.State _state;
+    private readonly Rotation.Strategy _strategy;
     private bool _allowDelayingNextGCD;
 
     public Actions(Autorotation autorot, Actor player)
@@ -34,10 +34,10 @@ class Actions : HealerActions
         OnConfigModified();
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         _config.Modified -= OnConfigModified;
-        base.Dispose();
+        base.Dispose(disposing);
     }
 
     public override CommonRotation.PlayerState GetState() => _state;

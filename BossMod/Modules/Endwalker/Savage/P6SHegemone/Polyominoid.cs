@@ -5,26 +5,24 @@
 // 4  5  6  7
 // 8  9  A  B
 // C  D  E  F
-class Polyominoid : Components.GenericAOEs
+class Polyominoid(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.PolyominousDark))
 {
     public enum State { None, Plus, Cross }
 
-    private State[] _states = new State[16];
-    private List<(Actor, Actor)> _tethers = new();
+    private readonly State[] _states = new State[16];
+    private readonly List<(Actor, Actor)> _tethers = [];
     private BitMask _dangerCells;
     private bool _dangerDirty;
 
     private static readonly AOEShape _shape = new AOEShapeRect(5, 5, 5);
 
-    public Polyominoid() : base(ActionID.MakeSpell(AID.PolyominousDark)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // TODO: timing...
         return _dangerCells.SetBits().Select(index => new AOEInstance(_shape, IndexToPosition(index)));
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (!_dangerDirty)
             return;
@@ -34,9 +32,7 @@ class Polyominoid : Components.GenericAOEs
         {
             var i1 = PositionToIndex(from.Position);
             var i2 = PositionToIndex(to.Position);
-            var t = effStates[i1];
-            effStates[i1] = effStates[i2];
-            effStates[i2] = t;
+            (effStates[i2], effStates[i1]) = (effStates[i1], effStates[i2]);
         }
 
         _dangerDirty = false;
@@ -55,11 +51,11 @@ class Polyominoid : Components.GenericAOEs
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PolyExchange)
         {
-            var target = module.WorldState.Actors.Find(tether.Target);
+            var target = WorldState.Actors.Find(tether.Target);
             if (target != null)
             {
                 _tethers.Add((source, target));
@@ -68,7 +64,7 @@ class Polyominoid : Components.GenericAOEs
         }
     }
 
-    //public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    //public override void OnUntethered(Actor source, ActorTetherInfo tether)
     //{
     //    if (tether.ID == (uint)TetherID.PolyExchange)
     //    {
@@ -77,7 +73,7 @@ class Polyominoid : Components.GenericAOEs
     //    }
     //}
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         int square = index switch
         {
@@ -105,17 +101,17 @@ class Polyominoid : Components.GenericAOEs
 
         switch (state)
         {
-            case 0x00020001: // +
             //case 0x00100001: // x to +
-                _states[square] = State.Plus;
-                break;
-            case 0x00400020: // x
             //case 0x00800020: // + to x
-                _states[square] = State.Cross;
-                break;
             //case 0x00080004:
             //    _states[square] = State.None;
             //    break;
+            case 0x00020001: // +
+                _states[square] = State.Plus;
+                break;
+            case 0x00400020: // x
+                _states[square] = State.Cross;
+                break;
         }
         _dangerDirty = true;
     }

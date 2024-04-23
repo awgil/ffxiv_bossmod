@@ -5,13 +5,13 @@ public enum OID : uint
     Boss = 0x300F, //R=3.48
     BossAdd = 0x3010, //R=1.32
     BossHelper = 0x233C,
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
 }
 
 public enum AID : uint
 {
     AutoAttack = 23185, // Boss->player, no cast, single-target
-    AutoAttack2 = 872, // BossAdd/BonusAdd_TheKeeperOfTheKeys->player, no cast, single-target
+    AutoAttack2 = 872, // BossAdd/BonusAddKeeperOfKeys->player, no cast, single-target
     Gust = 21655, // Boss->location, 3,0s cast, range 6 circle
     ChangelessWinds = 21657, // Boss->self, 3,0s cast, range 40 width 8 rect, knockback 10, source forward
     WhirlingGaol = 21654, // Boss->self, 4,0s cast, range 40 circle, knockback 25 away from source
@@ -25,69 +25,17 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
 }
 
-class Gust : Components.LocationTargetedAOEs
-{
-    public Gust() : base(ActionID.MakeSpell(AID.Gust), 6) { }
-}
-
-class ChangelessWinds : Components.SelfTargetedAOEs
-{
-    public ChangelessWinds() : base(ActionID.MakeSpell(AID.ChangelessWinds), new AOEShapeRect(40, 4)) { }
-}
-
-class ChangelessWindsKB : Components.KnockbackFromCastTarget
-{
-    public ChangelessWindsKB() : base(ActionID.MakeSpell(AID.ChangelessWinds), 10, shape: new AOEShapeRect(40, 4), kind: Kind.DirForward)
-    {
-        StopAtWall = true;
-    }
-}
-
-class Whipwind : Components.SelfTargetedAOEs
-{
-    public Whipwind() : base(ActionID.MakeSpell(AID.Whipwind), new AOEShapeRect(55, 20)) { }
-}
-
-class WhipwindKB : Components.KnockbackFromCastTarget
-{
-    public WhipwindKB() : base(ActionID.MakeSpell(AID.Whipwind), 25, shape: new AOEShapeRect(55, 20), kind: Kind.DirForward)
-    {
-        StopAtWall = true;
-    }
-}
-
-class GentleBreeze : Components.SelfTargetedAOEs
-{
-    public GentleBreeze() : base(ActionID.MakeSpell(AID.GentleBreeze), new AOEShapeRect(15, 2)) { }
-}
-
-class WhirlingGaol : Components.RaidwideCast
-{
-    public WhirlingGaol() : base(ActionID.MakeSpell(AID.WhirlingGaol), "Raidwide + Knockback") { }
-}
-
-class WhirlingGaolKB : Components.KnockbackFromCastTarget
-{
-    public WhirlingGaolKB() : base(ActionID.MakeSpell(AID.WhirlingGaol), 25)
-    {
-        StopAtWall = true;
-    }
-}
-
-class Spin : Components.SelfTargetedAOEs
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
-}
-
-class Mash : Components.SelfTargetedAOEs
-{
-    public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2)) { }
-}
-
-class Scoop : Components.SelfTargetedAOEs
-{
-    public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Gust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Gust), 6);
+class ChangelessWinds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ChangelessWinds), new AOEShapeRect(40, 4));
+class ChangelessWindsKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.ChangelessWinds), 10, shape: new AOEShapeRect(40, 4), kind: Kind.DirForward, stopAtWall: true);
+class Whipwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Whipwind), new AOEShapeRect(55, 20));
+class WhipwindKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Whipwind), 25, shape: new AOEShapeRect(55, 20), kind: Kind.DirForward, stopAtWall: true);
+class GentleBreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GentleBreeze), new AOEShapeRect(15, 2));
+class WhirlingGaol(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WhirlingGaol), "Raidwide + Knockback");
+class WhirlingGaolKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WhirlingGaol), 25, stopAtWall: true);
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class DjinnStates : StateMachineBuilder
 {
@@ -105,21 +53,19 @@ class DjinnStates : StateMachineBuilder
             .ActivateOnEnter<Spin>()
             .ActivateOnEnter<Mash>()
             .ActivateOnEnter<Scoop>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9788)]
-public class Djinn : BossModule
+public class Djinn(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public Djinn(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -130,7 +76,7 @@ public class Djinn : BossModule
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdd_TheKeeperOfTheKeys => 3,
+                OID.BonusAddKeeperOfKeys => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

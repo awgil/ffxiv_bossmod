@@ -2,7 +2,7 @@
 
 // generic 'directional parry' component that shows actors and sides it's forbidden to attack them from
 // uses common status + custom prediction
-public class DirectionalParry : Adds
+public class DirectionalParry(BossModule module, uint actorOID) : Adds(module, actorOID)
 {
     [Flags]
     public enum Side
@@ -11,18 +11,16 @@ public class DirectionalParry : Adds
         Front = 0x1,
         Back = 0x2,
         Left = 0x4,
-        Right =0x8,
+        Right = 0x8,
         All = 0xF
     }
 
     public const uint ParrySID = 680; // common 'directional parry' status
 
-    private Dictionary<ulong, int> _actorStates = new(); // value == active-side | (imminent-side << 4)
+    private readonly Dictionary<ulong, int> _actorStates = []; // value == active-side | (imminent-side << 4)
     public bool Active => _actorStates.Values.Any(s => ActiveSides(s) != Side.None);
 
-    public DirectionalParry(uint actorOID) : base(actorOID) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var target = Actors.FirstOrDefault(w => w.InstanceID == actor.TargetID);
         if (target != null && _actorStates.TryGetValue(actor.TargetID, out var targetState))
@@ -43,24 +41,24 @@ public class DirectionalParry : Adds
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         foreach (var a in ActiveActors)
         {
             if (_actorStates.TryGetValue(a.InstanceID, out var aState))
             {
                 var active = ActiveSides(aState);
                 var imminent = ImminentSides(aState);
-                DrawParry(arena, a, 0.Degrees(), active, imminent, Side.Front);
-                DrawParry(arena, a, 180.Degrees(), active, imminent, Side.Back);
-                DrawParry(arena, a, 90.Degrees(), active, imminent, Side.Left);
-                DrawParry(arena, a, 270.Degrees(), active, imminent, Side.Right);
+                DrawParry(a, 0.Degrees(), active, imminent, Side.Front);
+                DrawParry(a, 180.Degrees(), active, imminent, Side.Back);
+                DrawParry(a, 90.Degrees(), active, imminent, Side.Left);
+                DrawParry(a, 270.Degrees(), active, imminent, Side.Right);
             }
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if (status.ID == ParrySID)
         {
@@ -70,7 +68,7 @@ public class DirectionalParry : Adds
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if (status.ID == ParrySID)
         {
@@ -83,19 +81,19 @@ public class DirectionalParry : Adds
         UpdateState(instanceID, ((int)sides << 4) | ActorState(instanceID) & 0xF);
     }
 
-    private void DrawParry(MiniArena arena, Actor actor, Angle offset, Side active, Side imminent, Side check)
+    private void DrawParry(Actor actor, Angle offset, Side active, Side imminent, Side check)
     {
         if (active.HasFlag(check))
-            DrawParry(arena, actor, offset, ArenaColor.Enemy);
+            DrawParry(actor, offset, ArenaColor.Enemy);
         else if (imminent.HasFlag(check))
-            DrawParry(arena, actor, offset, ArenaColor.Danger);
+            DrawParry(actor, offset, ArenaColor.Danger);
     }
 
-    private void DrawParry(MiniArena arena, Actor actor, Angle offset, uint color)
+    private void DrawParry(Actor actor, Angle offset, uint color)
     {
         var dir = actor.Rotation + offset;
-        arena.PathArcTo(actor.Position, 1.5f, (dir - 45.Degrees()).Rad, (dir + 45.Degrees()).Rad);
-        arena.PathStroke(false, color);
+        Arena.PathArcTo(actor.Position, 1.5f, (dir - 45.Degrees()).Rad, (dir + 45.Degrees()).Rad);
+        Arena.PathStroke(false, color);
     }
 
     private int ActorState(ulong instanceID) => _actorStates.GetValueOrDefault(instanceID, 0);

@@ -6,20 +6,20 @@ namespace BossMod;
 // a set of action-use columns that represent cooldown plan
 public class CooldownPlannerColumns : Timeline.ColumnGroup
 {
-    private CooldownPlan _plan;
-    private Action _onModified;
-    private StateMachineTree _tree;
-    private List<int> _phaseBranches;
-    private ModuleRegistry.Info? _moduleInfo;
-    private bool _syncTimings;
+    private readonly CooldownPlan _plan;
+    private readonly Action _onModified;
+    private readonly StateMachineTree _tree;
+    private readonly List<int> _phaseBranches;
+    private readonly ModuleRegistry.Info? _moduleInfo;
+    private readonly bool _syncTimings;
     private string _name = "";
     private StateMachineTimings _timings = new();
-    private List<ColumnPlannerTrackCooldown> _colCooldowns = new();
-    private List<ColumnPlannerTrackStrategy> _colStrategy = new();
-    private ColumnPlannerTrackTarget _colTarget;
-    private Dictionary<ActionID, int> _aidToColCooldown = new();
+    private readonly List<ColumnPlannerTrackCooldown> _colCooldowns = [];
+    private readonly List<ColumnPlannerTrackStrategy> _colStrategy = [];
+    private readonly ColumnPlannerTrackTarget _colTarget;
+    private readonly Dictionary<ActionID, int> _aidToColCooldown = [];
 
-    private float _trackWidth = 50;
+    private readonly float _trackWidth = 50;
 
     public Class PlanClass => _plan.Class;
 
@@ -235,8 +235,10 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
     private CooldownPlan BuildPlan()
     {
-        var res = new CooldownPlan(_plan.Class, _plan.Level, _name);
-        res.Timings = _timings.Clone();
+        var res = new CooldownPlan(_plan.Class, _plan.Level, _name)
+        {
+            Timings = _timings.Clone()
+        };
         foreach (var col in _colCooldowns)
         {
             foreach (var e in col.Elements)

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Components;
 
 // generic 'concentric aoes' component - a sequence of aoes (typically cone then donuts) with same origin and increasing size
-public class ConcentricAOEs : GenericAOEs
+public class ConcentricAOEs(BossModule module, AOEShape[] shapes) : GenericAOEs(module)
 {
     public struct Sequence
     {
@@ -11,15 +11,10 @@ public class ConcentricAOEs : GenericAOEs
         public int NumCastsDone;
     }
 
-    public AOEShape[] Shapes;
-    public List<Sequence> Sequences = new();
+    public AOEShape[] Shapes = shapes;
+    public List<Sequence> Sequences = [];
 
-    public ConcentricAOEs(AOEShape[] shapes)
-    {
-        Shapes = shapes;
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Sequences.Where(s => s.NumCastsDone < Shapes.Length).Select(s => new AOEInstance(Shapes[s.NumCastsDone], s.Origin, s.Rotation, s.NextActivation));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Sequences.Where(s => s.NumCastsDone < Shapes.Length).Select(s => new AOEInstance(Shapes[s.NumCastsDone], s.Origin, s.Rotation, s.NextActivation));
 
     public void AddSequence(WPos origin, DateTime activation = default, Angle rotation = default) => Sequences.Add(new() { Origin = origin, Rotation = rotation, NextActivation = activation });
 

@@ -1,19 +1,19 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie;
 
-class PuffTracker : BossComponent
+class PuffTracker(BossModule module) : BossComponent(module)
 {
-    public List<Actor> BracingPuffs = new();
-    public List<Actor> ChillingPuffs = new();
-    public List<Actor> FizzlingPuffs = new();
+    public List<Actor> BracingPuffs = [];
+    public List<Actor> ChillingPuffs = [];
+    public List<Actor> FizzlingPuffs = [];
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.Actors(BracingPuffs, 0xff80ff80, true);
-        arena.Actors(ChillingPuffs, 0xffff8040, true);
-        arena.Actors(FizzlingPuffs, 0xff40c0c0, true);
+        Arena.Actors(BracingPuffs, 0xff80ff80, true);
+        Arena.Actors(ChillingPuffs, 0xffff8040, true);
+        Arena.Actors(FizzlingPuffs, 0xff40c0c0, true);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -35,7 +35,7 @@ class PuffTracker : BossComponent
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {

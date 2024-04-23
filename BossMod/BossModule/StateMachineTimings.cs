@@ -4,7 +4,7 @@
 // this is used for e.g. cooldown planning
 public class StateMachineTimings
 {
-    public List<float> PhaseDurations = new();
+    public List<float> PhaseDurations = [];
 
     public StateMachineTimings Clone()
     {

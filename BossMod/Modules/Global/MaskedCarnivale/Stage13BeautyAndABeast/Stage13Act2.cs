@@ -25,54 +25,19 @@ public enum AID : uint
     BloodRain = 14882, // 26F8->location, 3,0s cast, range 50 circle
 }
 
-class VoidFireII : Components.LocationTargetedAOEs
-{
-    public VoidFireII() : base(ActionID.MakeSpell(AID.VoidFireII), 5) { }
-}
+class VoidFireII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireII), 5);
+class VoidFireIV(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireIV), 10);
+class VoidFireIV3(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireIV3), 6);
+class VoidAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VoidAero), new AOEShapeRect(42, 4));
+class DarkSabbath(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DarkSabbath));
+class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(10));
+class CircleOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CircleOfBlood2), new AOEShapeDonut(10, 20));
+class BeguilingMist(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BeguilingMist), "Interrupt or run around uncontrollably!");
+class BloodRain(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BloodRain), "Harmless raidwide unless you failed to kill succubus in time");
 
-class VoidFireIV : Components.LocationTargetedAOEs
+class Hints(BossModule module) : BossComponent(module)
 {
-    public VoidFireIV() : base(ActionID.MakeSpell(AID.VoidFireIV), 10) { }
-}
-
-class VoidFireIV3 : Components.LocationTargetedAOEs
-{
-    public VoidFireIV3() : base(ActionID.MakeSpell(AID.VoidFireIV3), 6) { }
-}
-
-class VoidAero : Components.SelfTargetedAOEs
-{
-    public VoidAero() : base(ActionID.MakeSpell(AID.VoidAero), new AOEShapeRect(42, 4)) { }
-}
-
-class DarkSabbath : Components.CastGaze
-{
-    public DarkSabbath() : base(ActionID.MakeSpell(AID.DarkSabbath)) { }
-}
-
-class DarkMist : Components.SelfTargetedAOEs
-{
-    public DarkMist() : base(ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(10)) { }
-}
-
-class CircleOfBlood : Components.SelfTargetedAOEs
-{
-    public CircleOfBlood() : base(ActionID.MakeSpell(AID.CircleOfBlood2), new AOEShapeDonut(10, 20)) { }
-}
-
-class BeguilingMist : Components.CastHint
-{
-    public BeguilingMist() : base(ActionID.MakeSpell(AID.BeguilingMist), "Interrupt or run around uncontrollably!") { }
-}
-
-class BloodRain : Components.RaidwideCast
-{
-    public BloodRain() : base(ActionID.MakeSpell(AID.BloodRain), "Harmless raidwide unless you failed to kill succubus in time") { }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Camilla will cast various AOEs and summons adds.\nInterrupt the adds with Flying Sardine and kill them fast.\nIf the add is still alive during the next Black Sabbath, you will be wiped.");
     }

@@ -1,22 +1,16 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash2;
 
-class GravityForce : Components.StackWithCastTargets
-{
-    public GravityForce(AID aid) : base(ActionID.MakeSpell(aid), 6, 4) { }
-}
-class NGravityForce : GravityForce { public NGravityForce() : base(AID.NGravityForce) { } }
-class SGravityForce : GravityForce { public SGravityForce() : base(AID.SGravityForce) { } }
+class GravityForce(BossModule module, AID aid) : Components.StackWithCastTargets(module, ActionID.MakeSpell(aid), 6, 4);
+class NGravityForce(BossModule module) : GravityForce(module, AID.NGravityForce);
+class SGravityForce(BossModule module) : GravityForce(module, AID.SGravityForce);
 
-class IsleDrop : Components.LocationTargetedAOEs
-{
-    public IsleDrop(AID aid) : base(ActionID.MakeSpell(aid), 6) { }
-}
-class NIsleDrop : IsleDrop { public NIsleDrop() : base(AID.NIsleDrop) { } }
-class SIsleDrop : IsleDrop { public SIsleDrop() : base(AID.SIsleDrop) { } }
+class IsleDrop(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 6);
+class NIsleDrop(BossModule module) : IsleDrop(module, AID.NIsleDrop);
+class SIsleDrop(BossModule module) : IsleDrop(module, AID.SIsleDrop);
 
 class C030IslekeeperStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030IslekeeperStates(BossModule module, bool savage) : base(module)
     {
@@ -55,17 +49,11 @@ class C030IslekeeperStates : StateMachineBuilder
             .DeactivateOnExit<IsleDrop>();
     }
 }
-class C030NIslekeeperStates : C030IslekeeperStates { public C030NIslekeeperStates(BossModule module) : base(module, false) { } }
-class C030SIslekeeperStates : C030IslekeeperStates { public C030SIslekeeperStates(BossModule module) : base(module, true) { } }
+class C030NIslekeeperStates(BossModule module) : C030IslekeeperStates(module, false);
+class C030SIslekeeperStates(BossModule module) : C030IslekeeperStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12561, SortOrder = 7)]
-public class C030NIslekeeper : C030Trash2
-{
-    public C030NIslekeeper(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class C030NIslekeeper(WorldState ws, Actor primary) : C030Trash2(ws, primary);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12561, SortOrder = 7)]
-public class C030SIslekeeper : C030Trash2
-{
-    public C030SIslekeeper(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class C030SIslekeeper(WorldState ws, Actor primary) : C030Trash2(ws, primary);

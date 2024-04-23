@@ -18,36 +18,17 @@ public enum AID : uint
     Trounce = 7098, // Boss->self, 2.5s cast, range 40+R 60-degree cone
 }
 
-class Charybdis : Components.LocationTargetedAOEs
-{
-    public Charybdis() : base(ActionID.MakeSpell(AID.Charybdis), 6) { }
-}
+class Charybdis(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Charybdis), 6);
+class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.Tornado));
+class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(51.6f, 30.Degrees()));
+class EclipticMeteor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EclipticMeteor), "Kill him before he kills you! 80% max HP damage incoming!");
+class Thunderbolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Thunderbolt), new AOEShapeCone(16.6f, 60.Degrees()));
 
-class Maelstrom : Components.PersistentVoidzone
+class Hints(BossModule module) : BossComponent(module)
 {
-    public Maelstrom() : base(10, m => m.Enemies(OID.Tornado)) { }
-}
-
-class Trounce : Components.SelfTargetedAOEs
-{
-    public Trounce() : base(ActionID.MakeSpell(AID.Trounce), new AOEShapeCone(51.6f, 30.Degrees())) { }
-}
-
-class EclipticMeteor : Components.RaidwideCast
-{
-    public EclipticMeteor() : base(ActionID.MakeSpell(AID.EclipticMeteor), "Kill him before he kills you! 80% max HP damage incoming!") { }
-}
-
-class Thunderbolt : Components.SelfTargetedAOEs
-{
-    public Thunderbolt() : base(ActionID.MakeSpell(AID.Thunderbolt), new AOEShapeCone(16.6f, 60.Degrees())) { }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"{module.PrimaryActor.Name} will use Ecliptic Meteor.\nYou must either kill him before he cast it multiple times, or heal through it.");
+        hints.Add($"{Module.PrimaryActor.Name} will use Ecliptic Meteor.\nYou must either kill him before he cast it multiple times, or heal through it.");
     }
 }
 

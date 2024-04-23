@@ -1,7 +1,7 @@
 ﻿namespace BossMod.AI;
 
 // utility that determines safe orientation based on ai hints
-class AvoidGaze
+static class AvoidGaze
 {
     public static WDir? Update(Actor player, WPos? targetPos, AIHints hints, DateTime deadline)
     {
@@ -37,8 +37,8 @@ class AvoidGaze
         }
 
         // select midpoint of largest allowed segment
-        float bestWidth = list.Segments.First().Min + 2 * MathF.PI - list.Segments.Last().Max;
-        float bestMidpoint = (list.Segments.First().Min + 2 * MathF.PI + list.Segments.Last().Max) / 2;
+        float bestWidth = list.Segments[0].Min + 2 * MathF.PI - list.Segments[^1].Max;
+        float bestMidpoint = (list.Segments[0].Min + 2 * MathF.PI + list.Segments[^1].Max) / 2;
         for (int i = 1; i < list.Segments.Count; ++i)
         {
             float width = list.Segments[i].Min - list.Segments[i - 1].Max;

@@ -24,46 +24,31 @@ public enum SID : uint
     Doom = 910, // Boss->player, extra=0x0
 }
 
-class ApocalypticBolt : Components.SelfTargetedAOEs
-{
-    public ApocalypticBolt() : base(ActionID.MakeSpell(AID.ApocalypticBolt), new AOEShapeRect(51.2f, 4)) { }
-}
+class ApocalypticBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticBolt), new AOEShapeRect(51.2f, 4));
+class ApocalypticRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticRoar), new AOEShapeCone(36.2f, 60.Degrees()));
+class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(8));
+class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(6, 30));
 
-class ApocalypticRoar : Components.SelfTargetedAOEs
+class Hints(BossModule module) : BossComponent(module)
 {
-    public ApocalypticRoar() : base(ActionID.MakeSpell(AID.ApocalypticRoar), new AOEShapeCone(36.2f, 60.Degrees())) { }
-}
-
-class TheRamsVoice : Components.SelfTargetedAOEs
-{
-    public TheRamsVoice() : base(ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(8)) { }
-}
-
-class TheDragonsVoice : Components.SelfTargetedAOEs
-{
-    public TheDragonsVoice() : base(ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(6, 30)) { }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"In this act {module.PrimaryActor.Name} will reflect all magic attacks.\nHe will also spawn adds that need to be dealed with swiftly\nsince they will spam raidwides. The adds are immune against magic\nand fire attacks.");
+        hints.Add($"In this act {Module.PrimaryActor.Name} will reflect all magic attacks.\nHe will also spawn adds that need to be dealed with swiftly\nsince they will spam raidwides. The adds are immune against magic\nand fire attacks.");
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!module.Enemies(OID.BlazingAngon).All(e => e.IsDead))
-            hints.Add($"Kill {module.Enemies(OID.BlazingAngon).FirstOrDefault()!.Name}! Use physical attacks except fire aspected.");
-        var magicreflect = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.RepellingSpray) != null).FirstOrDefault();
+        if (!Module.Enemies(OID.BlazingAngon).All(e => e.IsDead))
+            hints.Add($"Kill {Module.Enemies(OID.BlazingAngon).FirstOrDefault()!.Name}! Use physical attacks except fire aspected.");
+        var magicreflect = Module.Enemies(OID.Boss).FirstOrDefault(x => x.FindStatus(SID.RepellingSpray) != null);
         if (magicreflect != null)
-            hints.Add($"{module.PrimaryActor.Name} will reflect all magic damage!");
+            hints.Add($"{Module.PrimaryActor.Name} will reflect all magic damage!");
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var doomed = actor.FindStatus(SID.Doom);
         if (doomed != null)
@@ -113,5 +98,4 @@ public class Stage25Act2 : BossModule
         foreach (var s in Enemies(OID.BlazingAngon))
             Arena.Actor(s, ArenaColor.Object);
     }
-
 }

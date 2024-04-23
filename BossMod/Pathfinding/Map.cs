@@ -19,11 +19,11 @@ public class Map
     public float Resolution { get; private init; } // pixel size, in world units
     public int Width { get; private init; } // always even
     public int Height { get; private init; } // always even
-    public Pixel[] Pixels { get; private set; }
+    public Pixel[] Pixels;
 
     public WPos Center { get; private init; } // position of map center in world units
     public Angle Rotation { get; private init; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
-    private WDir _localZDivRes { get; init; }
+    private WDir LocalZDivRes { get; init; }
 
     public float MaxG { get; private set; } // maximal 'maxG' value of all blocked pixels
     public int MaxPriority { get; private set; } // maximal 'priority' value of all goal pixels
@@ -41,7 +41,7 @@ public class Map
 
         Center = center;
         Rotation = rotation;
-        _localZDivRes = rotation.ToDirection() / Resolution;
+        LocalZDivRes = rotation.ToDirection() / Resolution;
     }
 
     public Map Clone()
@@ -55,8 +55,8 @@ public class Map
     public Vector2 WorldToGridFrac(WPos world)
     {
         var offset = world - Center;
-        var x = offset.Dot(_localZDivRes.OrthoL());
-        var y = offset.Dot(_localZDivRes);
+        var x = offset.Dot(LocalZDivRes.OrthoL());
+        var y = offset.Dot(LocalZDivRes);
         return new(Width / 2 + x, Height / 2 + y);
     }
 
@@ -70,7 +70,7 @@ public class Map
         var rsq = Resolution * Resolution; // since we then multiply by _localZDivRes, end result is same as * res * rotation.ToDir()
         float ax = (gx - Width / 2 + fx) * rsq;
         float az = (gy - Height / 2 + fy) * rsq;
-        return Center + ax * _localZDivRes.OrthoL() + az * _localZDivRes;
+        return Center + ax * LocalZDivRes.OrthoL() + az * LocalZDivRes;
     }
 
     // block all pixels for which function returns value smaller than threshold ('inside' shape + extra cushion)
@@ -131,8 +131,8 @@ public class Map
     public IEnumerable<(int x, int y, WPos center)> EnumeratePixels()
     {
         var rsq = Resolution * Resolution; // since we then multiply by _localZDivRes, end result is same as * res * rotation.ToDir()
-        var dx = _localZDivRes.OrthoL() * rsq;
-        var dy = _localZDivRes * rsq;
+        var dx = LocalZDivRes.OrthoL() * rsq;
+        var dy = LocalZDivRes * rsq;
         var cy = Center + (-Width / 2 + 0.5f) * dx + (-Height / 2 + 0.5f) * dy;
         for (int y = 0; y < Height; y++)
         {

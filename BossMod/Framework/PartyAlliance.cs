@@ -7,7 +7,7 @@ class PartyAlliance
 {
     public static int MaxAllianceMembers = 20;
 
-    private unsafe GroupManager* _groupManager = GroupManager.Instance();
+    private readonly unsafe GroupManager* _groupManager = GroupManager.Instance();
 
     public unsafe int NumPartyMembers => _groupManager->MemberCount;
     public unsafe bool IsAlliance => (_groupManager->AllianceFlags & 1) != 0;

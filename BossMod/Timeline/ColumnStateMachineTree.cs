@@ -1,14 +1,8 @@
 ﻿namespace BossMod;
 
-public class ColumnStateMachineTree : ColumnStateMachine
+public class ColumnStateMachineTree(Timeline timeline, StateMachineTree tree, StateMachine? controlledSM) : ColumnStateMachine(timeline, tree)
 {
-    public StateMachine? ControlledSM;
-
-    public ColumnStateMachineTree(Timeline timeline, StateMachineTree tree, StateMachine? controlledSM)
-        : base(timeline, tree)
-    {
-        ControlledSM = controlledSM;
-    }
+    public StateMachine? ControlledSM = controlledSM;
 
     public override void Update()
     {

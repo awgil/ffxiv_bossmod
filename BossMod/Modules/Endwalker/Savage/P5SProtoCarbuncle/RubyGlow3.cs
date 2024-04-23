@@ -1,14 +1,12 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
 // note: currently we use visual casts to determine all safespots, these happen much earlier than animation changes...
-class RubyGlow3 : RubyGlowCommon
+// note: it's somewhat simpler to count casts rather than activating/deactivating stones
+class RubyGlow3(BossModule module) : RubyGlowCommon(module, ActionID.MakeSpell(AID.RubyReflectionQuarter))
 {
-    private BitMask[] _aoeQuadrants = new BitMask[4]; // [i] = danger quardants at explosion #i, bits: 0=NW, 1=NE, 2=SW, 3=SE
+    private readonly BitMask[] _aoeQuadrants = new BitMask[4]; // [i] = danger quardants at explosion #i, bits: 0=NW, 1=NE, 2=SW, 3=SE
 
-    // note: it's somewhat simpler to count casts rather than activating/deactivating stones
-    public RubyGlow3() : base(ActionID.MakeSpell(AID.RubyReflectionQuarter)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var aoeQuadrants = NumCasts switch
         {
@@ -20,15 +18,15 @@ class RubyGlow3 : RubyGlowCommon
         };
         // TODO: correct explosion time
         foreach (var q in aoeQuadrants.SetBits())
-            yield return new(ShapeQuadrant, QuadrantCenter(module, q));
+            yield return new(ShapeQuadrant, QuadrantCenter(q));
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_aoeQuadrants[2].Any())
         {
             var safe = (~_aoeQuadrants[2]).LowestSetBit();
-            var safeWaymark = safe < 4 ? WaymarkForQuadrant(module, safe) : Waymark.Count;
+            var safeWaymark = safe < 4 ? WaymarkForQuadrant(safe) : Waymark.Count;
             if (safeWaymark != Waymark.Count)
             {
                 hints.Add($"Safespot for third: {safeWaymark}");
@@ -36,7 +34,7 @@ class RubyGlow3 : RubyGlowCommon
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         int order = (AID)spell.Action.ID switch
         {
@@ -48,6 +46,6 @@ class RubyGlow3 : RubyGlowCommon
         };
 
         if (order >= 0)
-            _aoeQuadrants[order].Set(QuadrantForPosition(module, caster.Position));
+            _aoeQuadrants[order].Set(QuadrantForPosition(caster.Position));
     }
 }

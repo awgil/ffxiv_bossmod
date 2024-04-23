@@ -2,7 +2,7 @@
 
 class Un2SephirotStates : StateMachineBuilder
 {
-    private Un2Sephirot _module;
+    private readonly Un2Sephirot _module;
 
     public Un2SephirotStates(Un2Sephirot module) : base(module)
     {

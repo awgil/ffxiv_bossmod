@@ -26,102 +26,67 @@ public enum AID : uint
     Wallop = 33346, // MammothTentacle->self, 3.0s cast, range 22 width 8 rect
 }
 
-class Border : BossComponent
+class Border(BossModule module) : BossComponent(module)
 {
-    private static readonly float _platformOffset = 25;
-    private static readonly float _platformRadius = 8;
+    private const float _platformOffset = 25;
+    private const float _platformRadius = 8;
     private static readonly Angle[] _platformDirections = [-90.Degrees(), -45.Degrees(), 0.Degrees(), 45.Degrees(), 90.Degrees()];
     private static readonly WDir[] _platformCenters = _platformDirections.Select(d => _platformOffset * d.ToDirection()).ToArray();
 
-    private static readonly float _bridgeInner = 22;
-    private static readonly float _bridgeOuter = 26;
+    private const float _bridgeInner = 22;
+    private const float _bridgeOuter = 26;
     private static readonly Angle _offInner = DirToPointAtDistance(_bridgeInner);
     private static readonly Angle _offOuter = DirToPointAtDistance(_bridgeOuter);
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         hints.AddForbiddenZone(p =>
         {
             // union of platforms
-            var res = _platformCenters.Select(off => ShapeDistance.Circle(module.Bounds.Center + off, _platformRadius)(p)).Min();
+            var res = _platformCenters.Select(off => ShapeDistance.Circle(Module.Bounds.Center + off, _platformRadius)(p)).Min();
             // union of bridges
             for (int i = 1; i < 5; ++i)
-                res = Math.Min(res, ShapeDistance.Rect(module.Bounds.Center + _platformCenters[i - 1], module.Bounds.Center + _platformCenters[i], 3)(p));
+                res = Math.Min(res, ShapeDistance.Rect(Module.Bounds.Center + _platformCenters[i - 1], Module.Bounds.Center + _platformCenters[i], 3)(p));
             // invert
             return -res;
         });
 
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw platforms
         foreach (var c in _platformCenters)
-            arena.AddCircle(module.Bounds.Center + c, _platformRadius, ArenaColor.Border);
+            Arena.AddCircle(Module.Bounds.Center + c, _platformRadius, ArenaColor.Border);
 
         // draw bridges
         for (int i = 1; i < 5; ++i)
         {
-            DrawBridgeLine(arena, module.Bounds.Center, _platformDirections[i - 1], _platformDirections[i], _offInner, _bridgeInner);
-            DrawBridgeLine(arena, module.Bounds.Center, _platformDirections[i - 1], _platformDirections[i], _offOuter, _bridgeOuter);
+            DrawBridgeLine(_platformDirections[i - 1], _platformDirections[i], _offInner, _bridgeInner);
+            DrawBridgeLine(_platformDirections[i - 1], _platformDirections[i], _offOuter, _bridgeOuter);
         }
     }
 
     private static Angle DirToPointAtDistance(float d) => Angle.Acos((_platformOffset * _platformOffset + d * d - _platformRadius * _platformRadius) / (2 * _platformOffset * d));
 
-    private void DrawBridgeLine(MiniArena arena, WPos center, Angle from, Angle to, Angle offset, float distance)
+    private void DrawBridgeLine(Angle from, Angle to, Angle offset, float distance)
     {
-        var p1 = center + distance * (from + offset).ToDirection();
-        var p2 = center + distance * (to - offset).ToDirection();
-        arena.AddLine(p1, p2, ArenaColor.Border);
+        var p1 = Module.Bounds.Center + distance * (from + offset).ToDirection();
+        var p2 = Module.Bounds.Center + distance * (to - offset).ToDirection();
+        Arena.AddLine(p1, p2, ArenaColor.Border);
     }
 }
 
-class Wallop : Components.SelfTargetedAOEs
-{
-    public Wallop() : base(ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(22, 4)) { }
-}
-
-class VividEyes : Components.SelfTargetedAOEs
-{
-    public VividEyes() : base(ActionID.MakeSpell(AID.VividEyes), new AOEShapeDonut(20, 26)) { }
-}
-
-class Clearout : Components.SelfTargetedAOEs
-{
-    public Clearout() : base(ActionID.MakeSpell(AID.Clearout), new AOEShapeCone(16, 60.Degrees())) { }
-}
-
-class TidalBreath : Components.SelfTargetedAOEs
-{
-    public TidalBreath() : base(ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(35, 90.Degrees())) { }
-}
-
-class Breathstroke : Components.SelfTargetedAOEs
-{
-    public Breathstroke() : base(ActionID.MakeSpell(AID.Breathstroke), new AOEShapeCone(35, 90.Degrees())) { }
-}
-
-class TidalRoar : Components.RaidwideCast
-{
-    public TidalRoar() : base(ActionID.MakeSpell(AID.TidalRoar)) { }
-}
-
-class WaterDrop : Components.SpreadFromCastTargets
-{
-    public WaterDrop() : base(ActionID.MakeSpell(AID.WaterDrop), 6) { }
-}
-
-class SalineSpit : Components.SelfTargetedAOEs
-{
-    public SalineSpit() : base(ActionID.MakeSpell(AID.SalineSpit2), new AOEShapeCircle(8)) { }
-}
-
-class Telekinesis : Components.SelfTargetedAOEs
-{
-    public Telekinesis() : base(ActionID.MakeSpell(AID.Telekinesis2), new AOEShapeCircle(12)) { }
-}
+class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(22, 4));
+class VividEyes(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VividEyes), new AOEShapeDonut(20, 26));
+class Clearout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Clearout), new AOEShapeCone(16, 60.Degrees()));
+class TidalBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(35, 90.Degrees()));
+class Breathstroke(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Breathstroke), new AOEShapeCone(35, 90.Degrees()));
+class TidalRoar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TidalRoar));
+class WaterDrop(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.WaterDrop), 6);
+class SalineSpit(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SalineSpit2), new AOEShapeCircle(8));
+class Telekinesis(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Telekinesis2), new AOEShapeCircle(12));
 
 class D123OctomammothStates : StateMachineBuilder
 {

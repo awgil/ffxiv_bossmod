@@ -1,16 +1,14 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
 
-class SealOfScurryingSparks : Components.UniformStackSpread
+class SealOfScurryingSparks(BossModule module) : Components.UniformStackSpread(module, 6, 10, alwaysShowSpreads: true)
 {
     public int NumMechanics { get; private set; }
-    private List<Actor> _spreadTargets = new();
-    private List<Actor> _stackTargets = new();
+    private readonly List<Actor> _spreadTargets = [];
+    private readonly List<Actor> _stackTargets = [];
     private DateTime _spreadResolve;
     private DateTime _stackResolve;
 
-    public SealOfScurryingSparks() : base(6, 10, alwaysShowSpreads: true) { }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_spreadResolve == default || _stackResolve == default)
             return;
@@ -18,7 +16,7 @@ class SealOfScurryingSparks : Components.UniformStackSpread
         hints.Add($"Debuff order: {orderHint}");
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -35,7 +33,7 @@ class SealOfScurryingSparks : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

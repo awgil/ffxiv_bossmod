@@ -16,14 +16,11 @@ public enum AID : uint
     GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5,0s cast, single-target
 }
 
-class GoldenTongue : Components.CastHint
-{
-    public GoldenTongue() : base(ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increases its magic damage.") { }
-}
+class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increases its magic damage.");
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Gelato is weak to fire spells.\nFlan is weak to lightning spells.\nLicorice is weak to water spells.");
     }

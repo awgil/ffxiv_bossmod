@@ -1,35 +1,22 @@
 ﻿namespace BossMod;
 
 // extra utilities for tanks
-abstract class TankActions : CommonActions
+abstract class TankActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions) : CommonActions(autorot, player, unlockData, supportedActions)
 {
     protected bool IsOfftank { get; private set; }
     protected DateTime LastStanceSwap { get; private set; }
 
-    protected TankActions(Autorotation autorot, Actor player, uint[] unlockData, Dictionary<ActionID, ActionDefinition> supportedActions)
-        : base(autorot, player, unlockData, supportedActions)
-    {
-    }
-
-    public override void Dispose()
-    {
-    }
-
     public override Targeting SelectBetterTarget(AIHints.Enemy initial)
     {
-        var enemiesToTank = Autorot.Hints.PotentialTargets.Where(e => e.ShouldBeTanked);
-        if (!enemiesToTank.Any())
-            return new(initial); // there is no one to tank...
-
         // note: most enemies have 'autoattack range' of 2 (compared to player's 3), so staying at max melee can cause enemy movement
         // 1. select closest target that should be tanked but is currently not
-        var closestNeedOveraggro = enemiesToTank.Where(e => e.Actor.TargetID != Player.InstanceID).MinBy(e => (e.Actor.Position - Player.Position).LengthSq());
+        var closestNeedOveraggro = Autorot.Hints.PotentialTargets.Where(e => e.ShouldBeTanked && e.Actor.TargetID != Player.InstanceID).MinBy(e => (e.Actor.Position - Player.Position).LengthSq());
         if (closestNeedOveraggro != null)
             return new(closestNeedOveraggro, closestNeedOveraggro.TankDistance, Positional.Front, true);
 
         // 2. if initial target is not to be tanked, select any that is to be
-        if (!initial.ShouldBeTanked)
-            return new(enemiesToTank.First(), enemiesToTank.First().TankDistance, Positional.Front, true);
+        if (!initial.ShouldBeTanked && Autorot.Hints.PotentialTargets.FirstOrDefault(e => e.ShouldBeTanked) is var enemyToTank && enemyToTank != null)
+            return new(enemyToTank, enemyToTank.TankDistance, Positional.Front, true);
 
         return new(initial, initial.TankDistance, Positional.Front, true);
     }

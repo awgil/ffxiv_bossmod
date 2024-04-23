@@ -1,22 +1,17 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P1JagdDolls : BossComponent
+class P1JagdDolls(BossModule module) : BossComponent(module)
 {
     public int NumExhausts { get; private set; }
-    private IReadOnlyList<Actor> _dolls = ActorEnumeration.EmptyList;
-    private HashSet<ulong> _exhaustsDone = new();
+    private readonly IReadOnlyList<Actor> _dolls = module.Enemies(OID.JagdDoll);
+    private readonly HashSet<ulong> _exhaustsDone = [];
 
-    private static readonly float _exhaustRadius = 8.8f;
+    private const float _exhaustRadius = 8.8f;
 
     private IEnumerable<Actor> ActiveDolls => _dolls.Where(d => d.IsTargetable && !d.IsDead);
     public bool Active => ActiveDolls.Any();
 
-    public override void Init(BossModule module)
-    {
-        _dolls = module.Enemies(OID.JagdDoll);
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (NumExhausts < 2 && ActiveDolls.InRadius(actor.Position, _exhaustRadius).Count() > 1)
         {
@@ -24,32 +19,32 @@ class P1JagdDolls : BossComponent
         }
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var t in hints.PotentialTargets.Where(t => (OID)t.Actor.OID == OID.JagdDoll))
             t.ForbidDOTs = true;
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var doll in ActiveDolls)
         {
-            arena.Actor(doll, doll.HP.Cur < doll.HP.Max / 4 ? ArenaColor.Enemy : ArenaColor.Vulnerable);
+            Arena.Actor(doll, doll.HP.Cur < doll.HP.Max / 4 ? ArenaColor.Enemy : ArenaColor.Vulnerable);
 
-            var tether = module.WorldState.Actors.Find(doll.Tether.Target);
+            var tether = WorldState.Actors.Find(doll.Tether.Target);
             if (tether != null)
             {
-                arena.AddLine(doll.Position, tether.Position, ArenaColor.Danger);
+                Arena.AddLine(doll.Position, tether.Position, ArenaColor.Danger);
             }
 
             if (NumExhausts < 2)
             {
-                arena.AddCircle(doll.Position, _exhaustRadius, ArenaColor.Safe);
+                Arena.AddCircle(doll.Position, _exhaustRadius, ArenaColor.Safe);
             }
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Exhaust && NumExhausts < 2)
         {

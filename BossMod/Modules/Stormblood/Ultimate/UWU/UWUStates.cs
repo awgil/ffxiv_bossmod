@@ -2,7 +2,7 @@
 
 class UWUStates : StateMachineBuilder
 {
-    private UWU _module;
+    private readonly UWU _module;
 
     public UWUStates(UWU module) : base(module)
     {
@@ -641,10 +641,12 @@ class UWUStates : StateMachineBuilder
         P5Ultima(id + 0x10000, 6.3f);
         P5AethericBoom(id + 0x20000, 6.2f);
 
-        Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new();
-        fork[AID.PrepareGaruda] = ((id >> 24) + 1, Phase5GarudaIfritTitan);
-        fork[AID.PrepareIfrit] = ((id >> 24) + 2, Phase5IfritGarudaTitan);
-        fork[AID.PrepareTitan] = ((id >> 24) + 3, Phase5TitanIfritGaruda);
+        Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new()
+        {
+            [AID.PrepareGaruda] = ((id >> 24) + 1, Phase5GarudaIfritTitan),
+            [AID.PrepareIfrit] = ((id >> 24) + 2, Phase5IfritGarudaTitan),
+            [AID.PrepareTitan] = ((id >> 24) + 3, Phase5TitanIfritGaruda)
+        };
         ActorCastStartFork(id + 0x30000, _module.Ultima, fork, 23.3f, true, "Primal roulette")
             .ActivateOnEnter<P5ViscousAetheroplasmTriple>();
     }

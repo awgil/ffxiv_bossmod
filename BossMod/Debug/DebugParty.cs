@@ -6,7 +6,7 @@ namespace BossMod;
 
 class DebugParty
 {
-    PartyAlliance _alliance = new();
+    readonly PartyAlliance _alliance = new();
 
     public void DrawPartyDalamud()
     {

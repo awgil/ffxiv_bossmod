@@ -5,9 +5,9 @@ namespace BossMod;
 
 public class BossModuleMainWindow : UIWindow
 {
-    private BossModuleManager _mgr;
+    private readonly BossModuleManager _mgr;
 
-    private static string _windowID = "###Boss module";
+    private const string _windowID = "###Boss module";
 
     public BossModuleMainWindow(BossModuleManager mgr) : base(_windowID, false, new(400, 400))
     {
@@ -57,9 +57,9 @@ public class BossModuleMainWindow : UIWindow
         {
             try
             {
-                BossComponent.MovementHints? movementHints = _mgr.WindowConfig.ShowWorldArrows ? new() : null;
-                _mgr.ActiveModule.Draw(_mgr.WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, movementHints, !_mgr.WindowConfig.HintsInSeparateWindow, true);
-                DrawMovementHints(movementHints, _mgr.WorldState.Party.Player()?.PosRot.Y ?? 0);
+                _mgr.ActiveModule.Draw(_mgr.WindowConfig.RotateArena ? (Camera.Instance?.CameraAzimuth ?? 0) : 0, PartyState.PlayerSlot, !_mgr.WindowConfig.HintsInSeparateWindow, true);
+                if (_mgr.WindowConfig.ShowWorldArrows && _mgr.WorldState.Party[PartyState.PlayerSlot] is var pc && pc != null)
+                    DrawMovementHints(_mgr.ActiveModule.CalculateMovementHintsForRaidMember(PartyState.PlayerSlot, pc), pc.PosRot.Y);
             }
             catch (Exception ex)
             {
@@ -100,6 +100,6 @@ public class BossModuleMainWindow : UIWindow
     private void OpenModuleConfig()
     {
         if (_mgr.ActiveModule?.Info?.ConfigType != null)
-            new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
+            _ = new BossModuleConfigWindow(_mgr.ActiveModule.Info, _mgr.WorldState);
     }
 }

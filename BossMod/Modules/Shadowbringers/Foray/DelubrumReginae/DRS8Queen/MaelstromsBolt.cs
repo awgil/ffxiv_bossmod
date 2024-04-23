@@ -1,29 +1,21 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS8Queen;
 
 // TODO: show reflect hints, show stay under dome hints
-class MaelstromsBolt : Components.CastCounter
+class MaelstromsBolt(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MaelstromsBoltAOE))
 {
-    private IReadOnlyList<Actor> _ballLightnings = ActorEnumeration.EmptyList;
-    private IReadOnlyList<Actor> _domes = ActorEnumeration.EmptyList;
+    private readonly IReadOnlyList<Actor> _ballLightnings = module.Enemies(OID.BallLightning);
+    private readonly IReadOnlyList<Actor> _domes = module.Enemies(OID.ProtectiveDome);
 
-    public MaelstromsBolt() : base(ActionID.MakeSpell(AID.MaelstromsBoltAOE)) { }
-
-    public override void Init(BossModule module)
-    {
-        _ballLightnings = module.Enemies(OID.BallLightning);
-        _domes = module.Enemies(OID.ProtectiveDome);
-    }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var b in _ballLightnings.Where(b => !b.IsDead))
         {
-            arena.Actor(b, ArenaColor.Object, true);
-            arena.AddCircle(b.Position, 8, ArenaColor.Object);
+            Arena.Actor(b, ArenaColor.Object, true);
+            Arena.AddCircle(b.Position, 8, ArenaColor.Object);
         }
         foreach (var d in _domes)
         {
-            arena.AddCircle(d.Position, 8, ArenaColor.Safe);
+            Arena.AddCircle(d.Position, 8, ArenaColor.Safe);
         }
     }
 }

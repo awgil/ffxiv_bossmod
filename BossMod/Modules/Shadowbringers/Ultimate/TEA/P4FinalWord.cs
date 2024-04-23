@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P4FinalWordDebuffs : P4ForcedMarchDebuffs
+class P4FinalWordDebuffs(BossModule module) : P4ForcedMarchDebuffs(module)
 {
     protected override WDir SafeSpotDirection(int slot) => Debuffs[slot] switch
     {
@@ -9,22 +9,22 @@ class P4FinalWordDebuffs : P4ForcedMarchDebuffs
         _ => new(0, 10), // slightly N of dark beacon
     };
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.FinalWordContactProhibition:
-                AssignDebuff(module, actor, Debuff.LightFollow);
+                AssignDebuff(actor, Debuff.LightFollow);
                 break;
             case SID.FinalWordContactRegulation:
-                AssignDebuff(module, actor, Debuff.LightBeacon);
+                AssignDebuff(actor, Debuff.LightBeacon);
                 LightBeacon = actor;
                 break;
             case SID.FinalWordEscapeProhibition:
-                AssignDebuff(module, actor, Debuff.DarkFollow);
+                AssignDebuff(actor, Debuff.DarkFollow);
                 break;
             case SID.FinalWordEscapeDetection:
-                AssignDebuff(module, actor, Debuff.DarkBeacon);
+                AssignDebuff(actor, Debuff.DarkBeacon);
                 DarkBeacon = actor;
                 break;
             case SID.ContactProhibitionOrdained:
@@ -36,19 +36,19 @@ class P4FinalWordDebuffs : P4ForcedMarchDebuffs
         }
     }
 
-    private void AssignDebuff(BossModule module, Actor actor, Debuff debuff)
+    private void AssignDebuff(Actor actor, Debuff debuff)
     {
-        var slot = module.Raid.FindSlot(actor.InstanceID);
+        var slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0)
             Debuffs[slot] = debuff;
     }
 }
 
-class P4FinalWordStillnessMotion : Components.StayMove
+class P4FinalWordStillnessMotion(BossModule module) : Components.StayMove(module)
 {
     private Requirement _first;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (_first != Requirement.None)
             return; // we've already seen first cast, so we no longer care - we assume stillness is always followed by motion and vice versa
@@ -66,11 +66,11 @@ class P4FinalWordStillnessMotion : Components.StayMove
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.OrdainedMotionSuccess or AID.OrdainedMotionFail or AID.OrdainedStillnessSuccess or AID.OrdainedStillnessFail)
         {
-            var slot = module.Raid.FindSlot(spell.MainTargetID);
+            var slot = Raid.FindSlot(spell.MainTargetID);
             if (slot >= 0)
             {
                 Requirements[slot] = Requirements[slot] != _first ? Requirement.None : _first == Requirement.Move ? Requirement.Stay : Requirement.Move;

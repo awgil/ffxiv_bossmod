@@ -1,68 +1,58 @@
 ﻿namespace BossMod.RealmReborn.Raid.T05Twintania;
 
 // P4 mechanics
-class P4Twisters : BossComponent
+class P4Twisters(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _twisters = ActorEnumeration.EmptyList;
-    private List<WPos> _predictedPositions = new();
+    private readonly IReadOnlyList<Actor> _twisters = module.Enemies(OID.Twister);
+    private readonly List<WPos> _predictedPositions = [];
     private IEnumerable<Actor> ActiveTwisters => _twisters.Where(t => t.EventState != 7);
 
     private const float PredictBeforeCastFinish = 0; // 0.5f
     private const float PredictAvoidRadius = 2; // 5
     private const float TwisterCushion = 1; // 1
 
-    public override void Init(BossModule module)
+    public override void Update()
     {
-        _twisters = module.Enemies(OID.Twister);
-    }
-
-    public override void Update(BossModule module)
-    {
-        if (_predictedPositions.Count == 0 && (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && (module.PrimaryActor.CastInfo.NPCFinishAt - module.WorldState.CurrentTime).TotalSeconds <= PredictBeforeCastFinish)
-            _predictedPositions.AddRange(module.Raid.WithoutSlot().Select(a => a.Position));
+        if (_predictedPositions.Count == 0 && (Module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false) && (Module.PrimaryActor.CastInfo.NPCFinishAt - WorldState.CurrentTime).TotalSeconds <= PredictBeforeCastFinish)
+            _predictedPositions.AddRange(Raid.WithoutSlot().Select(a => a.Position));
         if (_twisters.Count > 0)
             _predictedPositions.Clear();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false)
+        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.Twister) ?? false)
             hints.Add("Move!");
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var p in _predictedPositions)
-            hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictAvoidRadius), module.PrimaryActor.CastInfo?.NPCFinishAt ?? new());
+            hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictAvoidRadius), Module.PrimaryActor.CastInfo?.NPCFinishAt ?? new());
         foreach (var t in ActiveTwisters)
             hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.HitboxRadius + TwisterCushion));
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var twister in ActiveTwisters)
-            arena.AddCircle(twister.Position, twister.HitboxRadius, ArenaColor.Danger);
+            Arena.AddCircle(twister.Position, twister.HitboxRadius, ArenaColor.Danger);
     }
 }
 
-class P4Dreadknights : BossComponent
+class P4Dreadknights(BossModule module) : BossComponent(module)
 {
     private Actor? _target;
-    private IReadOnlyList<Actor> _dreadknights = ActorEnumeration.EmptyList;
+    private readonly IReadOnlyList<Actor> _dreadknights = module.Enemies(OID.Dreadknight);
     public IEnumerable<Actor> ActiveDreadknights => _dreadknights.Where(a => !a.IsDead);
 
-    public override void Init(BossModule module)
-    {
-        _dreadknights = module.Enemies(OID.Dreadknight);
-    }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (!ActiveDreadknights.Any())
             _target = null;
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_target == null)
         {
@@ -84,33 +74,28 @@ class P4Dreadknights : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var a in ActiveDreadknights)
         {
-            arena.Actor(a, ArenaColor.Enemy);
+            Arena.Actor(a, ArenaColor.Enemy);
             if (_target != null)
-                arena.AddLine(a.Position, _target.Position, ArenaColor.Danger);
+                Arena.AddLine(a.Position, _target.Position, ArenaColor.Danger);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.UnwovenWill)
-            _target = module.WorldState.Actors.Find(spell.MainTargetID);
+            _target = WorldState.Actors.Find(spell.MainTargetID);
     }
 }
 
-class P4AI : BossComponent
+class P4AI(BossModule module) : BossComponent(module)
 {
-    private DeathSentence? _deathSentence;
+    private readonly DeathSentence? _deathSentence = module.FindComponent<DeathSentence>();
 
-    public override void Init(BossModule module)
-    {
-        _deathSentence = module.FindComponent<DeathSentence>();
-    }
-
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var e in hints.PotentialTargets)
         {

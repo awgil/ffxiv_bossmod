@@ -5,7 +5,7 @@ namespace UIDev;
 
 class PlotTest : TestWindow
 {
-    private UIPlot _plot = new();
+    private readonly UIPlot _plot = new();
 
     public PlotTest() : base("Plot test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {

@@ -1,15 +1,13 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
-class Spectrum : Components.CastCounter
+class Spectrum(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.BrightSpectrum))
 {
-    private static readonly float _radius = 5;
+    private const float _radius = 5;
 
-    public Spectrum() : base(ActionID.MakeSpell(AID.BrightSpectrum)) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         int tanksInRange = 0, nonTanksInRange = 0;
-        foreach (var other in module.Raid.WithoutSlot().InRadiusExcluding(actor, _radius))
+        foreach (var other in Raid.WithoutSlot().InRadiusExcluding(actor, _radius))
         {
             if (other.Role == Role.Tank)
                 ++tanksInRange;
@@ -24,10 +22,10 @@ class Spectrum : Components.CastCounter
             hints.Add("Stack with co-tank");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
-        foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-            arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+        Arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
+        foreach (var player in Raid.WithoutSlot().Exclude(pc))
+            Arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
     }
 }

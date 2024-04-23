@@ -20,20 +20,9 @@ public enum AID : uint
     unknown2 = 14533, // Boss->self, no cast, single-target
 }
 
-class Chainsaw : Components.SelfTargetedAOEs
-{
-    public Chainsaw() : base(ActionID.MakeSpell(AID.Chainsaw), new AOEShapeCone(10, 45.Degrees())) { }
-}
-
-class Shock : Components.SelfTargetedAOEs
-{
-    public Shock() : base(ActionID.MakeSpell(AID.Shock), new AOEShapeCircle(10)) { }
-}
-
-class MagitekMissile : Components.LocationTargetedAOEs
-{
-    public MagitekMissile() : base(ActionID.MakeSpell(AID.MagitekMissile2), 5) { }
-}
+class Chainsaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Chainsaw), new AOEShapeCone(10, 45.Degrees()));
+class Shock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shock), new AOEShapeCircle(10));
+class MagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekMissile2), 5);
 
 class MAxStates : StateMachineBuilder
 {
@@ -47,10 +36,8 @@ class MAxStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68694, NameID = 7898)] // also: fate 1409
-public class MAx : BossModule
+public class MAx(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(295, -22), 25))
 {
-    public MAx(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(295, -22), 25)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

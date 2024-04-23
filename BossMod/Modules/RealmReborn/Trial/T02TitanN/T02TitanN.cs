@@ -22,43 +22,28 @@ public enum AID : uint
     WeightOfTheLandAOE = 973, // Helper->location, 3.5s cast, range 6 puddle
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
     private DateTime _heartSpawn;
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        var heartExists = ((T02TitanN)module).ActiveHeart.Any();
+        var heartExists = ((T02TitanN)Module).ActiveHeart.Any();
         if (_heartSpawn == default && heartExists)
         {
-            _heartSpawn = module.WorldState.CurrentTime;
+            _heartSpawn = WorldState.CurrentTime;
         }
         if (_heartSpawn != default && heartExists)
         {
-            hints.Add($"Heart enrage in: {Math.Max(62 - (module.WorldState.CurrentTime - _heartSpawn).TotalSeconds, 0.0f):f1}s");
+            hints.Add($"Heart enrage in: {Math.Max(62 - (WorldState.CurrentTime - _heartSpawn).TotalSeconds, 0.0f):f1}s");
         }
     }
 }
 
-class RockBuster : Components.Cleave
-{
-    public RockBuster() : base(ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(11.25f, 60.Degrees())) { } // TODO: verify angle
-}
-
-class Geocrush : Components.SelfTargetedAOEs
-{
-    public Geocrush() : base(ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(18)) { } // TODO: verify falloff
-}
-
-class Landslide : Components.SelfTargetedLegacyRotationAOEs
-{
-    public Landslide() : base(ActionID.MakeSpell(AID.Landslide), new AOEShapeRect(40, 3)) { }
-}
-
-class WeightOfTheLand : Components.LocationTargetedAOEs
-{
-    public WeightOfTheLand() : base(ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6) { }
-}
+class RockBuster(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(11.25f, 60.Degrees())); // TODO: verify angle
+class Geocrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geocrush), new AOEShapeCircle(18)); // TODO: verify falloff
+class Landslide(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Landslide), new AOEShapeRect(40, 3));
+class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6);
 
 class T02TitanNStates : StateMachineBuilder
 {
@@ -76,7 +61,7 @@ class T02TitanNStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 57, NameID = 1801)]
 public class T02TitanN : BossModule
 {
-    private IReadOnlyList<Actor> _heart;
+    private readonly IReadOnlyList<Actor> _heart;
     public IEnumerable<Actor> ActiveHeart => _heart.Where(h => h.IsTargetable && !h.IsDead);
 
     public T02TitanN(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-0, 0), 20)) // note: initial area is size 25, but it becomes smaller at 75%

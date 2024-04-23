@@ -1,18 +1,13 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P4MagitekBits : BossComponent
+class P4MagitekBits(BossModule module) : BossComponent(module)
 {
-    private IReadOnlyList<Actor> _bits = ActorEnumeration.EmptyList;
+    private readonly IReadOnlyList<Actor> _bits = module.Enemies(OID.MagitekBit);
 
     public bool Active => _bits.Any(b => b.IsTargetable);
 
-    public override void Init(BossModule module)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        _bits = module.Enemies(OID.MagitekBit);
-    }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
-    {
-        arena.Actors(_bits, ArenaColor.Enemy);
+        Arena.Actors(_bits, ArenaColor.Enemy);
     }
 }

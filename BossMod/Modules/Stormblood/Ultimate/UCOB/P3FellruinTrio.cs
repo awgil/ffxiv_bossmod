@@ -1,26 +1,19 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3AethericProfusion : Components.CastCounter
+class P3AethericProfusion(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AethericProfusion))
 {
     public bool Active;
-    private IReadOnlyList<Actor> _neurolinks = ActorEnumeration.EmptyList;
+    private readonly IReadOnlyList<Actor> _neurolinks = module.Enemies(OID.Neurolink);
 
-    public P3AethericProfusion() : base(ActionID.MakeSpell(AID.AethericProfusion)) { }
-
-    public override void Init(BossModule module)
-    {
-        _neurolinks = module.Enemies(OID.Neurolink);
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Active)
             hints.Add("Go to neurolink!", !_neurolinks.InRadius(actor.Position, 2).Any());
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var neurolink in _neurolinks)
-            arena.AddCircle(neurolink.Position, 2, ArenaColor.Safe);
+            Arena.AddCircle(neurolink.Position, 2, ArenaColor.Safe);
     }
 }

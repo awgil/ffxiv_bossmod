@@ -1,19 +1,17 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 // TODO: consider using envcontrols instead
-class UnnaturalEnchainment : Components.GenericAOEs
+class UnnaturalEnchainment(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Sample))
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape = new(5, 10, 5);
 
-    public UnnaturalEnchainment() : base(ActionID.MakeSpell(AID.Sample)) { }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
-
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.UnnaturalEnchainment)
-            _aoes.Add(new(_shape, source.Position, default, module.WorldState.CurrentTime.AddSeconds(8.2f)));
+            _aoes.Add(new(_shape, source.Position, default, WorldState.FutureTime(8.2f)));
     }
 }

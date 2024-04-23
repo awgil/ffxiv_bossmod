@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
 
-class SpatialTactics : Components.GenericAOEs
+class SpatialTactics(BossModule module) : Components.GenericAOEs(module)
 {
-    private ArcaneArray? _array;
-    private List<Actor> _fonts = new();
-    private int[] _remainingStacks = new int[4];
+    private readonly ArcaneArray? _array = module.FindComponent<ArcaneArray>();
+    private readonly List<Actor> _fonts = [];
+    private readonly int[] _remainingStacks = new int[4];
 
     private static readonly AOEShapeCross _shape = new(50, 4);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_array == null)
             yield break;
@@ -18,37 +18,32 @@ class SpatialTactics : Components.GenericAOEs
                 yield return new(ArcaneArrayPlot.Shape, p, default, f.activation, wantMore ? ArenaColor.SafeFromAOE : ArenaColor.AOE, !wantMore);
     }
 
-    public override void Init(BossModule module)
-    {
-        _array = module.FindComponent<ArcaneArray>();
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_remainingStacks[slot] > 0)
             hints.Add($"Remaining stacks: {_remainingStacks[slot]}", false);
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.NArcaneFont or OID.SArcaneFont)
             _fonts.Add(actor);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.SubtractiveSuppressorBeta && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _remainingStacks.Length)
+        if ((SID)status.ID == SID.SubtractiveSuppressorBeta && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _remainingStacks.Length)
             _remainingStacks[slot] = status.Extra;
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.SubtractiveSuppressorBeta && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _remainingStacks.Length)
+        if ((SID)status.ID == SID.SubtractiveSuppressorBeta && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _remainingStacks.Length)
             _remainingStacks[slot] = 0;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {

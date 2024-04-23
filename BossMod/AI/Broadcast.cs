@@ -3,24 +3,20 @@ using System.Runtime.InteropServices;
 
 namespace BossMod.AI;
 
-class Broadcast
+internal sealed partial class Broadcast
 {
-    private AIConfig _config;
-    private List<(VirtualKey, bool)> _broadcasts = new();
-
-    public Broadcast()
-    {
-        _config = Service.Config.Get<AIConfig>();
-        _broadcasts.Add((VirtualKey.F10, false)); // target focus
-        _broadcasts.Add((VirtualKey.T, false)); // target target's target
-        _broadcasts.Add((VirtualKey.G, false)); // mount
-        _broadcasts.Add((VirtualKey.SPACE, false)); // jump
-        _broadcasts.Add((VirtualKey.NUMPAD0, false)); // interact
-        _broadcasts.Add((VirtualKey.NUMPAD2, false)); // menu navigation
-        _broadcasts.Add((VirtualKey.NUMPAD4, false)); // menu navigation
-        _broadcasts.Add((VirtualKey.NUMPAD6, false)); // menu navigation
-        _broadcasts.Add((VirtualKey.NUMPAD8, false)); // menu navigation
-    }
+    private readonly AIConfig _config = Service.Config.Get<AIConfig>();
+    private readonly List<(VirtualKey, bool)> _broadcasts = [
+        (VirtualKey.F10, false), // target focus
+        (VirtualKey.T, false), // target target's target
+        (VirtualKey.G, false), // mount
+        (VirtualKey.SPACE, false), // jump
+        (VirtualKey.NUMPAD0, false), // interact
+        (VirtualKey.NUMPAD2, false), // menu navigation
+        (VirtualKey.NUMPAD4, false), // menu navigation
+        (VirtualKey.NUMPAD6, false), // menu navigation
+        (VirtualKey.NUMPAD8, false), // menu navigation
+    ];
 
     public void Update()
     {
@@ -57,12 +53,13 @@ class Broadcast
 
     private static List<IntPtr> EnumerateSlaves()
     {
-        List<IntPtr> res = new();
+        List<IntPtr> res = [];
         var active = GetActiveWindow();
         var name = WindowName(active);
         if (name.Length == 0)
             return res;
-        EnumWindows((hwnd, lparam) => {
+        _ = EnumWindows((hwnd, lparam) =>
+        {
             if (hwnd != active && !IsIconic(hwnd) && WindowName(hwnd) == name)
                 res.Add(hwnd);
             return true;
@@ -79,31 +76,34 @@ class Broadcast
         var buffer = new char[size + 1];
         fixed (char* pbuf = &buffer[0])
         {
-            GetWindowTextW(hwnd, pbuf, size + 1);
+            size = GetWindowTextW(hwnd, pbuf, size + 1);
             return new(pbuf);
         }
     }
 
     private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
-    [DllImport("user32.dll")]
-    private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
 
-    [DllImport("user32.dll")]
-    private static extern bool IsIconic(IntPtr hWnd);
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsIconic(IntPtr hWnd);
 
-    [DllImport("user32.dll", ExactSpelling = true)]
-    private unsafe static extern int GetWindowTextW(IntPtr hWnd, char* strText, int maxCount);
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static unsafe partial int GetWindowTextW(IntPtr hWnd, char* strText, int maxCount);
 
-    [DllImport("user32.dll", ExactSpelling = true)]
-    private static extern int GetWindowTextLengthW(IntPtr hWnd);
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial int GetWindowTextLengthW(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetActiveWindow();
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial IntPtr GetActiveWindow();
 
-    [DllImport("user32.dll", ExactSpelling = true)]
-    private static extern bool PostMessageW(IntPtr hWnd, uint msg, ulong wparam, ulong lparam);
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool PostMessageW(IntPtr hWnd, uint msg, ulong wparam, ulong lparam);
 
-    [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-    private static extern short GetKeyState(int keyCode);
+    [LibraryImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial short GetKeyState(int keyCode);
 }

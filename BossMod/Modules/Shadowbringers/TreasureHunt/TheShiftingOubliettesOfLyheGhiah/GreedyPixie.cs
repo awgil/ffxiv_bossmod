@@ -12,8 +12,8 @@ public enum OID : uint
     SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
     SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-    BonusAdd_TheKeeperOfTheKeys = 0x3034, // R3.230
-    BonusAdd_FuathTrickster = 0x3033, // R0.750
+    BonusAddKeeperOfKeys = 0x3034, // R3.230
+    BonusAddFuathTrickster = 0x3033, // R0.750
 }
 
 public enum AID : uint
@@ -40,80 +40,21 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
 }
 
-class Windrune : Components.SelfTargetedAOEs
-{
-    public Windrune() : base(ActionID.MakeSpell(AID.WindRune), new AOEShapeRect(40, 4)) { }
-}
-
-class SongRune : Components.LocationTargetedAOEs
-{
-    public SongRune() : base(ActionID.MakeSpell(AID.SongRune), 6) { }
-}
-
-class StormRune : Components.RaidwideCast
-{
-    public StormRune() : base(ActionID.MakeSpell(AID.StormRune)) { }
-}
-
-class BushBash : Components.SelfTargetedAOEs
-{
-    public BushBash() : base(ActionID.MakeSpell(AID.BushBash), new AOEShapeCircle(12)) { }
-}
-
-class BushBash2 : Components.SelfTargetedAOEs
-{
-    public BushBash2() : base(ActionID.MakeSpell(AID.BushBash2), new AOEShapeCircle(12)) { }
-}
-
-class NatureCall : Components.SelfTargetedAOEs
-{
-    public NatureCall() : base(ActionID.MakeSpell(AID.NatureCall), new AOEShapeCone(30, 60.Degrees())) { }
-}
-
-class NatureCall2 : Components.SelfTargetedAOEs
-{
-    public NatureCall2() : base(ActionID.MakeSpell(AID.NatureCall2), new AOEShapeCone(30, 60.Degrees())) { }
-}
-
-class PluckAndPrune : Components.SelfTargetedAOEs
-{
-    public PluckAndPrune() : base(ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f)) { }
-}
-
-class TearyTwirl : Components.SelfTargetedAOEs
-{
-    public TearyTwirl() : base(ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f)) { }
-}
-
-class HeirloomScream : Components.SelfTargetedAOEs
-{
-    public HeirloomScream() : base(ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f)) { }
-}
-
-class PungentPirouette : Components.SelfTargetedAOEs
-{
-    public PungentPirouette() : base(ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f)) { }
-}
-
-class Pollen : Components.SelfTargetedAOEs
-{
-    public Pollen() : base(ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f)) { }
-}
-
-class Spin : Components.SelfTargetedAOEs
-{
-    public Spin() : base(ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11)) { }
-}
-
-class Mash : Components.SelfTargetedAOEs
-{
-    public Mash() : base(ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2)) { }
-}
-
-class Scoop : Components.SelfTargetedAOEs
-{
-    public Scoop() : base(ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees())) { }
-}
+class Windrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindRune), new AOEShapeRect(40, 4));
+class SongRune(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SongRune), 6);
+class StormRune(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StormRune));
+class BushBash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BushBash), new AOEShapeCircle(12));
+class BushBash2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BushBash2), new AOEShapeCircle(12));
+class NatureCall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NatureCall), new AOEShapeCone(30, 60.Degrees()));
+class NatureCall2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NatureCall2), new AOEShapeCone(30, 60.Degrees()));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
 
 class GreedyPixieStates : StateMachineBuilder
 {
@@ -135,15 +76,13 @@ class GreedyPixieStates : StateMachineBuilder
             .ActivateOnEnter<Spin>()
             .ActivateOnEnter<Mash>()
             .ActivateOnEnter<Scoop>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.SecretEgg).All(e => e.IsDead) && module.Enemies(OID.SecretQueen).All(e => e.IsDead) && module.Enemies(OID.SecretOnion).All(e => e.IsDead) && module.Enemies(OID.SecretGarlic).All(e => e.IsDead) && module.Enemies(OID.SecretTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_TheKeeperOfTheKeys).All(e => e.IsDead) && module.Enemies(OID.BonusAdd_FuathTrickster).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.SecretEgg).All(e => e.IsDead) && module.Enemies(OID.SecretQueen).All(e => e.IsDead) && module.Enemies(OID.SecretOnion).All(e => e.IsDead) && module.Enemies(OID.SecretGarlic).All(e => e.IsDead) && module.Enemies(OID.SecretTomato).All(e => e.IsDead) && module.Enemies(OID.BonusAddKeeperOfKeys).All(e => e.IsDead) && module.Enemies(OID.BonusAddFuathTrickster).All(e => e.IsDead);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9797)]
-public class GreedyPixie : BossModule
+public class GreedyPixie(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 19))
 {
-    public GreedyPixie(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 19)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
@@ -159,9 +98,9 @@ public class GreedyPixie : BossModule
             Arena.Actor(s, ArenaColor.Vulnerable);
         foreach (var s in Enemies(OID.SecretOnion))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_TheKeeperOfTheKeys))
+        foreach (var s in Enemies(OID.BonusAddKeeperOfKeys))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdd_FuathTrickster))
+        foreach (var s in Enemies(OID.BonusAddFuathTrickster))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -175,8 +114,8 @@ public class GreedyPixie : BossModule
                 OID.SecretOnion => 7,
                 OID.SecretEgg => 6,
                 OID.SecretGarlic => 5,
-                OID.SecretTomato or OID.BonusAdd_FuathTrickster => 4,
-                OID.SecretQueen or OID.BonusAdd_TheKeeperOfTheKeys => 3,
+                OID.SecretTomato or OID.BonusAddFuathTrickster => 4,
+                OID.SecretQueen or OID.BonusAddKeeperOfKeys => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

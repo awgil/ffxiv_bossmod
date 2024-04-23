@@ -1,36 +1,30 @@
 namespace BossMod.Components;
 
 // generic component that is 'active' when any actor casts specific spell
-public class CastHint : CastCounter
+public class CastHint(BossModule module, ActionID aid, string hint, bool showCastTimeLeft = false) : CastCounter(module, aid)
 {
-    public string Hint;
-    public bool ShowCastTimeLeft; // if true, show cast time left until next instance
-    private List<Actor> _casters = new();
-    public IReadOnlyList<Actor> Casters => _casters;
-    public bool Active => _casters.Count > 0;
+    public string Hint = hint;
+    public bool ShowCastTimeLeft = showCastTimeLeft; // if true, show cast time left until next instance
+    public readonly List<Actor> Casters = [];
 
-    public CastHint(ActionID action, string hint, bool showCastTimeLeft = false) : base(action)
-    {
-        Hint = hint;
-        ShowCastTimeLeft = showCastTimeLeft;
-    }
+    public bool Active => Casters.Count > 0;
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (Active && Hint.Length > 0)
-            hints.Add(ShowCastTimeLeft ? $"{Hint} {((Casters.First().CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime) - module.WorldState.CurrentTime).TotalSeconds:f1}s left" : Hint);
+            hints.Add(ShowCastTimeLeft ? $"{Hint} {((Casters[0].CastInfo?.NPCFinishAt ?? WorldState.CurrentTime) - WorldState.CurrentTime).TotalSeconds:f1}s left" : Hint);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            _casters.Add(caster);
+            Casters.Add(caster);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            _casters.Remove(caster);
+            Casters.Remove(caster);
     }
 }
 
@@ -38,10 +32,10 @@ public class CastInterruptHint : CastHint
 {
     public bool CanBeInterrupted { get; init; }
     public bool CanBeStunned { get; init; }
-    public bool ShowNameInHint { get ; init; } // important if there are several targets
+    public bool ShowNameInHint { get; init; } // important if there are several targets
     public string HintExtra { get; init; }
 
-    public CastInterruptHint(ActionID aid, bool canBeInterrupted = true, bool canBeStunned = false, string hintExtra = "", bool showNameInHint = false) : base(aid, "")
+    public CastInterruptHint(BossModule module, ActionID aid, bool canBeInterrupted = true, bool canBeStunned = false, string hintExtra = "", bool showNameInHint = false) : base(module, aid, "")
     {
         CanBeInterrupted = canBeInterrupted;
         CanBeStunned = canBeStunned;
@@ -50,7 +44,7 @@ public class CastInterruptHint : CastHint
         UpdateHint();
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var c in Casters)
         {
@@ -63,16 +57,16 @@ public class CastInterruptHint : CastHint
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastStarted(module, caster, spell);
+        base.OnCastStarted(caster, spell);
         if (ShowNameInHint && spell.Action == WatchedAction)
             UpdateHint();
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        base.OnCastFinished(module, caster, spell);
+        base.OnCastFinished(caster, spell);
         if (ShowNameInHint && spell.Action == WatchedAction)
             UpdateHint();
     }

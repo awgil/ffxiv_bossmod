@@ -18,11 +18,15 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <ReportAnalyzer>true</ReportAnalyzer>
   </PropertyGroup>
 
-<!--  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <OutputPath>$(AppData)\XIVLauncher\devPlugins\BossMod\</OutputPath>
-  </PropertyGroup>-->
+  <!-- run analyzers only for release builds, since they are too expensive to run every build when iterating (1-2 mins) -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AnalysisMode>All</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
 
   <ItemGroup>
     <Content Include="BossMod.json">
@@ -34,6 +38,7 @@
     <Using Include="System" />
     <Using Include="System.Collections" />
     <Using Include="System.Collections.Generic" />
+    <Using Include="System.Collections.Immutable" />
     <Using Include="System.Linq" />
     <Using Include="System.Numerics" />
   </ItemGroup>
@@ -49,6 +54,10 @@
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.12" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+    <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
     <Reference Include="FFXIVClientStructs">
       <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
       <Private>false</Private>

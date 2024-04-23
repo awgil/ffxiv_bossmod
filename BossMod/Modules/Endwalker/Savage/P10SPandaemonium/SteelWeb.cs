@@ -1,54 +1,52 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class SteelWebStack : Components.UniformStackSpread
+class SteelWebStack(BossModule module) : Components.UniformStackSpread(module, 6, 0, 3)
 {
     private BitMask _forbidden;
 
-    public SteelWebStack() : base(6, 0, 3) { }
-
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.DividingWings)
-            _forbidden.Set(module.Raid.FindSlot(tether.Target));
+            _forbidden.Set(Raid.FindSlot(tether.Target));
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         switch ((IconID)iconID)
         {
             case IconID.SteelWeb:
-                AddStack(actor, module.WorldState.CurrentTime.AddSeconds(6.1f), _forbidden);
+                AddStack(actor, WorldState.FutureTime(6.1f), _forbidden);
                 break;
             case IconID.EntanglingWeb:
-                _forbidden.Set(module.Raid.FindSlot(actor.InstanceID));
+                _forbidden.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SteelWebAOE)
             Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
     }
 }
 
-class SteelWebTethers : BossComponent
+class SteelWebTethers(BossModule module) : BossComponent(module)
 {
-    private List<(Actor from, Actor to, uint color)> _webs = new();
+    private readonly List<(Actor from, Actor to, uint color)> _webs = [];
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var w in _webs)
-            arena.AddLine(w.from.Position, w.to.Position, w.color);
+            Arena.AddLine(w.from.Position, w.to.Position, w.color);
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID is TetherID.Web or TetherID.WebFail && module.WorldState.Actors.Find(tether.Target) is var target && target != null)
+        if ((TetherID)tether.ID is TetherID.Web or TetherID.WebFail && WorldState.Actors.Find(tether.Target) is var target && target != null)
             _webs.Add((source, target, (TetherID)tether.ID == TetherID.Web ? ArenaColor.Danger : ArenaColor.Enemy));
     }
 
-    public override void OnUntethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.Web or TetherID.WebFail)
             _webs.RemoveAll(w => w.from == source);

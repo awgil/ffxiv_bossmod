@@ -1,25 +1,25 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
-class Parhelion : BossComponent
+class Parhelion(BossModule module) : BossComponent(module)
 {
-    private List<Actor> _completedParhelions = new();
+    private readonly List<Actor> _completedParhelions = [];
     private bool _subparhelions;
 
     private static readonly AOEShapeRect _beacon = new(45, 3);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (ActiveParhelions(module).Any(p => _beacon.Check(actor.Position, p)))
+        if (ActiveParhelions().Any(p => _beacon.Check(actor.Position, p)))
             hints.Add("GTFO from aoe!");
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        foreach (var p in ActiveParhelions(module))
-            _beacon.Draw(arena, p);
+        foreach (var p in ActiveParhelions())
+            _beacon.Draw(Arena, p);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -33,11 +33,11 @@ class Parhelion : BossComponent
         }
     }
 
-    private IEnumerable<Actor> ActiveParhelions(BossModule module)
+    private IEnumerable<Actor> ActiveParhelions()
     {
         if (_subparhelions)
             return _completedParhelions.Take(10);
         else
-            return module.Enemies(OID.Parhelion).Where(p => p.CastInfo != null);
+            return Module.Enemies(OID.Parhelion).Where(p => p.CastInfo != null);
     }
 }

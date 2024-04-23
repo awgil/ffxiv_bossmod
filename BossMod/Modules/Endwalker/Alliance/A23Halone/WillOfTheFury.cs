@@ -1,33 +1,33 @@
 ﻿namespace BossMod.Endwalker.Alliance.A23Halone;
 
-class WillOfTheFury : Components.GenericAOEs
+class WillOfTheFury(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;
 
-    private static readonly float _impactRadiusIncrement = 6;
+    private const float _impactRadiusIncrement = 6;
 
     public bool Active => _aoe != null;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WillOfTheFuryAOE1)
         {
-            UpdateAOE(module.Bounds.Center, spell.NPCFinishAt);
+            UpdateAOE(spell.NPCFinishAt);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.WillOfTheFuryAOE1 or AID.WillOfTheFuryAOE2 or AID.WillOfTheFuryAOE3 or AID.WillOfTheFuryAOE4 or AID.WillOfTheFuryAOE5)
         {
             ++NumCasts;
-            UpdateAOE(module.Bounds.Center, module.WorldState.CurrentTime.AddSeconds(2));
+            UpdateAOE(WorldState.FutureTime(2));
         }
     }
 
-    private void UpdateAOE(WPos origin, DateTime activation)
+    private void UpdateAOE(DateTime activation)
     {
         var outerRadius = (5 - NumCasts) * _impactRadiusIncrement;
         AOEShape? shape = NumCasts switch
@@ -36,6 +36,6 @@ class WillOfTheFury : Components.GenericAOEs
             4 => new AOEShapeCircle(outerRadius),
             _ => null
         };
-        _aoe = shape != null ? new(shape, origin, default, activation) : null;
+        _aoe = shape != null ? new(shape, Module.Bounds.Center, default, activation) : null;
     }
 }

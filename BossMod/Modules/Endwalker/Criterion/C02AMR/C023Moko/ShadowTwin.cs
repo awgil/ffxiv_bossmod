@@ -1,19 +1,19 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
 // TODO: cast start/end?
-class Clearout : Components.GenericAOEs
+class Clearout(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
 
     private static readonly AOEShapeCone _shape = new(27, 90.Degrees()); // TODO: verify range, it's definitely bigger than what table suggests... maybe origin is wrong?
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (id == 0x1E43 && (OID)actor.OID is OID.NOniClaw or OID.SOniClaw)
         {
-            AOEs.Add(new(_shape, actor.Position, actor.Rotation, module.WorldState.CurrentTime.AddSeconds(8.3f)));
+            AOEs.Add(new(_shape, actor.Position, actor.Rotation, WorldState.FutureTime(8.3f)));
         }
     }
 }
@@ -23,42 +23,40 @@ class AccursedEdge : Components.GenericBaitAway
     public enum Mechanic { None, Far, Near }
 
     private Mechanic _curMechanic;
-    private Clearout? _clearout;
+    private readonly Clearout? _clearout;
 
     private static readonly AOEShapeCircle _shape = new(6);
-    private static readonly WDir[] _safespotDirections = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+    private static readonly WDir[] _safespotDirections = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
 
-    public AccursedEdge() : base(centerAtTarget: true) { }
-
-    public override void Init(BossModule module)
+    public AccursedEdge(BossModule module) : base(module, centerAtTarget: true)
     {
         _clearout = module.FindComponent<Clearout>();
         var baits = module.FindComponent<IaiGiriBait>();
         if (baits != null)
             foreach (var i in baits.Instances)
-                ForbiddenPlayers.Set(module.Raid.FindSlot(i.Target?.InstanceID ?? 0));
+                ForbiddenPlayers.Set(Raid.FindSlot(i.Target?.InstanceID ?? 0));
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
         if (_curMechanic != Mechanic.None)
         {
-            var players = module.Raid.WithoutSlot().SortedByRange(module.PrimaryActor.Position).ToList();
+            var players = Raid.WithoutSlot().SortedByRange(Module.PrimaryActor.Position).ToList();
             foreach (var p in _curMechanic == Mechanic.Far ? players.TakeLast(2) : players.Take(2))
-                CurrentBaits.Add(new(module.PrimaryActor, p, _shape));
+                CurrentBaits.Add(new(Module.PrimaryActor, p, _shape));
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_curMechanic != Mechanic.None)
             hints.Add($"Untethered bait: {_curMechanic}");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
         // draw safespots (TODO: consider assigning specific side)
         if (_curMechanic != Mechanic.None && _clearout != null)
@@ -69,14 +67,14 @@ class AccursedEdge : Components.GenericBaitAway
             var baitDistance = stayClose ? 12 : 19;
             foreach (var dir in _safespotDirections)
             {
-                var potentialSafespot = module.Bounds.Center + baitDistance * dir;
+                var potentialSafespot = Module.Bounds.Center + baitDistance * dir;
                 if (!_clearout.AOEs.Any(aoe => aoe.Check(potentialSafespot)))
-                    arena.AddCircle(potentialSafespot, 1, ArenaColor.Safe);
+                    Arena.AddCircle(potentialSafespot, 1, ArenaColor.Safe);
             }
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var mechanic = (AID)spell.Action.ID switch
         {
@@ -88,7 +86,7 @@ class AccursedEdge : Components.GenericBaitAway
             _curMechanic = mechanic;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NAccursedEdge or AID.SAccursedEdge)
         {

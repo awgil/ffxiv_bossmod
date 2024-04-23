@@ -9,35 +9,35 @@ class NearFarSight : BossComponent
     private BitMask _targets;
     private BitMask _inAOE;
 
-    private static readonly float _aoeRadius = 5;
+    private const float _aoeRadius = 5;
 
-    public override void Init(BossModule module)
+    public NearFarSight(BossModule module) : base(module)
     {
-        CurState = (AID)(module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
+        CurState = (AID)(Module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
         {
             AID.Nearsight => State.Near,
             AID.Farsight => State.Far,
             _ => State.Done
         };
         if (CurState == State.Done)
-            module.ReportError(this, $"Failed to initialize near/far sight, unexpected cast {module.PrimaryActor.CastInfo?.Action}");
+            ReportError($"Failed to initialize near/far sight, unexpected cast {Module.PrimaryActor.CastInfo?.Action}");
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         _targets = _inAOE = new();
         if (CurState == State.Done)
             return;
 
-        var playersByRange = module.Raid.WithSlot().SortedByRange(module.PrimaryActor.Position);
+        var playersByRange = Raid.WithSlot().SortedByRange(Module.PrimaryActor.Position);
         foreach ((int i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
         {
             _targets.Set(i);
-            _inAOE |= module.Raid.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
+            _inAOE |= Raid.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_targets.None())
             return;
@@ -53,26 +53,26 @@ class NearFarSight : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_targets.None())
             return;
 
-        foreach ((int i, var player) in module.Raid.WithSlot())
+        foreach ((int i, var player) in Raid.WithSlot())
         {
             if (_targets[i])
             {
-                arena.Actor(player, ArenaColor.Danger);
-                arena.AddCircle(player.Position, _aoeRadius, ArenaColor.Danger);
+                Arena.Actor(player, ArenaColor.Danger);
+                Arena.AddCircle(player.Position, _aoeRadius, ArenaColor.Danger);
             }
             else
             {
-                arena.Actor(player, _inAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+                Arena.Actor(player, _inAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
             }
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NearsightAOE or AID.FarsightAOE)
             CurState = State.Done;

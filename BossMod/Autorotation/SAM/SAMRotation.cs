@@ -37,8 +37,7 @@ public static class Rotation
         public float CastTime => Unlocked(TraitID.EnhancedIaijutsu) ? 1.3f : 1.8f;
 
         public bool HasCombatBuffs => FukaLeft > GCD && FugetsuLeft > GCD;
-        public bool InCombo =>
-            ComboTimeLeft > GCD && ComboLastMove is AID.Fuko or AID.Fuga or AID.Hakaze or AID.Jinpu or AID.Shifu;
+        public bool InCombo => ComboTimeLeft > GCD && ComboLastMove is AID.Fuko or AID.Fuga or AID.Hakaze or AID.Jinpu or AID.Shifu;
 
         public float NextMeikyoCharge => CD(CDGroup.MeikyoShisui) - 55;
         public float NextTsubameCharge => CD(CDGroup.TsubameGaeshi) - 60;
@@ -53,14 +52,13 @@ public static class Rotation
 
         public AID AOEStarter => Unlocked(AID.Fuko) ? AID.Fuko : AID.Fuga;
 
-        public AID BestIai =>
-            SenCount switch
-            {
-                0 => AID.Iaijutsu,
-                1 => AID.Higanbana,
-                2 => AID.TenkaGoken,
-                _ => AID.MeikyoShisui
-            };
+        public AID BestIai => SenCount switch
+        {
+            0 => AID.Iaijutsu,
+            1 => AID.Higanbana,
+            2 => AID.TenkaGoken,
+            _ => AID.MeikyoShisui
+        };
 
         public override string ToString()
         {
@@ -227,7 +225,7 @@ public static class Rotation
 
     public static AID GetNextBestGCD(State state, Strategy strategy)
     {
-        if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
+        if (strategy.CombatTimer is > -100 and < -0.7f)
             return AID.None;
 
         var canCast = CanCast(state, strategy);
@@ -357,7 +355,7 @@ public static class Rotation
 
     public static ActionID GetNextBestOGCD(State state, Strategy strategy, float deadline)
     {
-        if (strategy.CombatTimer > -100 && strategy.CombatTimer < -0.7f)
+        if (strategy.CombatTimer is > -100 and < -0.7f)
         {
             if (strategy.CombatTimer > -9 && state.MeikyoLeft == 0)
                 return ActionID.MakeSpell(AID.MeikyoShisui);
@@ -500,8 +498,7 @@ public static class Rotation
         };
     }
 
-    private static bool ShouldUseHagakure(State state, Strategy strategy) =>
-        state.SenCount == 1 && !state.InCombo && state.GCDsUntilNextTsubame is 18 or 20;
+    private static bool ShouldUseHagakure(State state, Strategy strategy) => state.SenCount == 1 && !state.InCombo && state.GCDsUntilNextTsubame is 18 or 20;
 
     private static AID GetHakazeComboAction(State state)
     {

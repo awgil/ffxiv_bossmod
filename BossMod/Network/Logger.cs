@@ -6,21 +6,16 @@ using System.Text;
 
 namespace BossMod.Network;
 
-public class Logger : IDisposable
+public sealed class Logger : IDisposable
 {
-    class TextNode
+    class TextNode(string text)
     {
-        public string Text;
+        public string Text = text;
         public List<TextNode>? Children;
-
-        public TextNode(string text)
-        {
-            Text = text;
-        }
 
         public TextNode AddChild(TextNode child)
         {
-            Children ??= new();
+            Children ??= [];
             Children.Add(child);
             return child;
         }
@@ -28,9 +23,9 @@ public class Logger : IDisposable
         public TextNode AddChild(string text) => AddChild(new TextNode(text));
     }
 
-    private OpcodeMap _opcodeMap = new();
-    private PacketInterceptor _interceptor = new();
-    private ReplayManagementConfig _config;
+    private readonly OpcodeMap _opcodeMap = new();
+    private readonly PacketInterceptor _interceptor = new();
+    private readonly ReplayManagementConfig _config;
 
     public Logger(DirectoryInfo logDir)
     {
@@ -248,7 +243,7 @@ public class Logger : IDisposable
             var resTarget = res.AddChild($"target {i} == {Utils.ObjectString(targetId)}");
             for (int j = 0; j < 8; ++j)
             {
-                ActionEffect* eff = effects + (i * 8) + j;
+                var eff = effects + i * 8 + j;
                 if (eff->Type == ActionEffectType.Nothing)
                     continue;
                 resTarget.AddChild($"effect {j} == {eff->Type}, params={eff->Param0:X2} {eff->Param1:X2} {eff->Param2:X2} {eff->Param3:X2} {eff->Param4:X2} {eff->Value:X4}");
@@ -349,7 +344,7 @@ public class Logger : IDisposable
             res.AddChild($"{(Waymark)i}: {(p->Mask & (1 << i)) != 0} at {Utils.Vec3String(new(p->PosX[i] * 0.001f, p->PosY[i] * 0.001f, p->PosZ[i] * 0.001f))}");
         return res;
     }
-    private unsafe TextNode DecodeWaymark(ServerIPC.Waymark* p) => new TextNode($"{p->ID}: {p->Active != 0} at {Utils.Vec3String(new(p->PosX * 0.001f, p->PosY * 0.001f, p->PosZ * 0.001f))}, pad={p->pad2:X4}");
+    private unsafe TextNode DecodeWaymark(ServerIPC.Waymark* p) => new($"{p->ID}: {p->Active != 0} at {Utils.Vec3String(new(p->PosX * 0.001f, p->PosY * 0.001f, p->PosZ * 0.001f))}, pad={p->pad2:X4}");
 
     private static Vector3 IntToFloatCoords(ushort x, ushort y, ushort z)
     {

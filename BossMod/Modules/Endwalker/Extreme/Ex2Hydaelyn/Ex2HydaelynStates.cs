@@ -18,9 +18,11 @@ class Ex2HydaelynStates : StateMachineBuilder
 
     private void ForkByWeapon(uint id, uint secondOffset, Action<uint> forkStaff, Action<uint> forkChakram)
     {
-        Dictionary<WeaponTracker.Stance, (uint seqID, Action<uint> buildState)> dispatch = new();
-        dispatch[WeaponTracker.Stance.Staff] = ((id >> 24) + 1, forkStaff);
-        dispatch[WeaponTracker.Stance.Chakram] = ((id >> 24) + secondOffset, forkChakram);
+        Dictionary<WeaponTracker.Stance, (uint seqID, Action<uint> buildState)> dispatch = new()
+        {
+            [WeaponTracker.Stance.Staff] = ((id >> 24) + 1, forkStaff),
+            [WeaponTracker.Stance.Chakram] = ((id >> 24) + secondOffset, forkChakram)
+        };
         ComponentConditionFork<WeaponTracker, WeaponTracker.Stance>(id, 0, _ => true, comp => comp.CurStance, dispatch);
     }
 
@@ -104,7 +106,7 @@ class Ex2HydaelynStates : StateMachineBuilder
             .ActivateOnEnter<PureCrystal>()
             .DeactivateOnExit<PureCrystal>()
             .SetHint(StateMachine.StateHint.DowntimeEnd); // crystals become targetable ~0.1s before, echoes ~0.1s after
-        Condition(id + 0x20000, 60, () => !echoes.Where(e => e.IsTargetable && !e.IsDead).Any(), "Adds down", 10000, 1) // note that time is arbitrary
+        Condition(id + 0x20000, 60, () => !echoes.Any(e => e.IsTargetable && !e.IsDead), "Adds down", 10000, 1) // note that time is arbitrary
             .ActivateOnEnter<IntermissionAdds>()
             .DeactivateOnExit<IntermissionAdds>()
             .SetHint(StateMachine.StateHint.DowntimeStart);

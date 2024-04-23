@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Components;
 
 // generic 'rotating aoes' component - a sequence of aoes (typically cones) with same origin and increasing rotation
-public class GenericRotatingAOE : GenericAOEs
+public class GenericRotatingAOE(BossModule module) : GenericAOEs(module)
 {
     public record struct Sequence
     (
@@ -15,18 +15,18 @@ public class GenericRotatingAOE : GenericAOEs
         int MaxShownAOEs = 2
     );
 
-    public List<Sequence> Sequences = new();
+    public List<Sequence> Sequences = [];
     public uint ImminentColor = ArenaColor.Danger;
     public uint FutureColor = ArenaColor.AOE;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // future AOEs
         foreach (var s in Sequences)
         {
             int num = Math.Min(s.NumRemainingCasts, s.MaxShownAOEs);
             var rot = s.Rotation;
-            var time = s.NextActivation > module.WorldState.CurrentTime ? s.NextActivation : module.WorldState.CurrentTime;
+            var time = s.NextActivation > WorldState.CurrentTime ? s.NextActivation : WorldState.CurrentTime;
             for (int i = 1; i < num; ++i)
             {
                 rot += s.Increment;

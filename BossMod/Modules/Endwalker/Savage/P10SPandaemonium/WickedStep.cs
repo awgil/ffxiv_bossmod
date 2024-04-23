@@ -1,23 +1,21 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class WickedStep : Components.Knockback
+class WickedStep(BossModule module) : Components.Knockback(module, ignoreImmunes: true)
 {
-    private Actor?[] _towers = { null, null };
+    private readonly Actor?[] _towers = [null, null];
 
-    private static readonly float _towerRadius = 4;
-    private static readonly float _knockbackRadius = 36;
+    private const float _towerRadius = 4;
+    private const float _knockbackRadius = 36;
 
-    public WickedStep() : base(ignoreImmunes: true) { }
-
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         foreach (var s in _towers.Where(s => s?.Position.InCircle(actor.Position, _towerRadius) ?? false))
             yield return new(s!.Position, _knockbackRadius, s!.CastInfo!.NPCFinishAt);
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
 
         bool soaking = _towers.Any(t => t?.Position.InCircle(actor.Position, _towerRadius) ?? false);
         bool shouldSoak = actor.Role == Role.Tank;
@@ -25,22 +23,22 @@ class WickedStep : Components.Knockback
             hints.Add(shouldSoak ? "Soak the tower!" : "GTFO from tower!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         foreach (var t in _towers)
             if (t != null)
-                Components.GenericTowers.DrawTower(arena, t.Position, _towerRadius, pc.Role == Role.Tank);
+                Components.GenericTowers.DrawTower(Arena, t.Position, _towerRadius, pc.Role == Role.Tank);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var index = ActionToIndex(spell.Action);
         if (index >= 0)
             _towers[index] = caster;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         var index = ActionToIndex(spell.Action);
         if (index >= 0)

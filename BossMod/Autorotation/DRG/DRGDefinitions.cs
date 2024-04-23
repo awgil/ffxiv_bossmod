@@ -115,7 +115,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 65591, 65975, 66603, 66604, 66605, 66607, 66608, 67226, 67228, 67229, 67230, 67231, 68450 };
+    public static readonly uint[] UnlockQuests = [65591, 65975, 66603, 66604, 66605, 66607, 66608, 67226, 67228, 67229, 67230, 67231, 68450];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -178,44 +178,45 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
-        SupportedActions.GCD(AID.TrueThrust, 3);
-        SupportedActions.GCD(AID.VorpalThrust, 3);
-        SupportedActions.GCD(AID.Disembowel, 3);
-        SupportedActions.GCD(AID.FullThrust, 3);
-        SupportedActions.GCD(AID.ChaosThrust, 3);
-        SupportedActions.GCD(AID.FangAndClaw, 3);
-        SupportedActions.GCD(AID.WheelingThrust, 3);
-        SupportedActions.GCD(AID.RaidenThrust, 3);
-        SupportedActions.GCD(AID.HeavensThrust, 3);
-        SupportedActions.GCD(AID.ChaoticSpring, 3);
-        SupportedActions.GCD(AID.DoomSpike, 10);
-        SupportedActions.GCD(AID.SonicThrust, 10);
-        SupportedActions.GCD(AID.CoerthanTorment, 10);
-        SupportedActions.GCD(AID.DraconianFury, 10);
-        SupportedActions.OGCD(AID.Jump, 20, CDGroup.Jump, 30.0f, 0.800f);
-        SupportedActions.OGCD(AID.HighJump, 20, CDGroup.HighJump, 30.0f, 0.800f);
-        SupportedActions.OGCDWithCharges(AID.SpineshatterDive, 20, CDGroup.SpineshatterDive, 60.0f, 2);
-        SupportedActions.OGCD(AID.DragonfireDive, 20, CDGroup.DragonfireDive, 120.0f);
-        SupportedActions.OGCD(AID.Geirskogul, 15, CDGroup.Geirskogul, 30.0f);
-        SupportedActions.OGCD(AID.Nastrond, 15, CDGroup.Nastrond, 10.0f);
-        SupportedActions.OGCD(AID.MirageDive, 20, CDGroup.MirageDive, 1.0f);
-        SupportedActions.OGCD(AID.Stardiver, 20, CDGroup.Stardiver, 30.0f);
-        SupportedActions.OGCD(AID.WyrmwindThrust, 15, CDGroup.WyrmwindThrust, 10.0f);
-        SupportedActions.OGCDWithCharges(AID.LifeSurge, 0, CDGroup.LifeSurge, 45.0f, 2);
-        SupportedActions.OGCD(AID.LanceCharge, 0, CDGroup.LanceCharge, 60.0f);
-        SupportedActions.OGCD(AID.BattleLitany, 0, CDGroup.BattleLitany, 120.0f);
-        SupportedActions.OGCD(AID.DragonSight, 30, CDGroup.DragonSight, 120.0f);
-        SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
-        SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
-        SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.GCD(AID.PiercingTalon, 20);
-        SupportedActions.OGCD(AID.ElusiveJump, 0, CDGroup.ElusiveJump, 30.0f);
-        SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
-        SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+        res.GCD(AID.TrueThrust, 3);
+        res.GCD(AID.VorpalThrust, 3);
+        res.GCD(AID.Disembowel, 3);
+        res.GCD(AID.FullThrust, 3);
+        res.GCD(AID.ChaosThrust, 3);
+        res.GCD(AID.FangAndClaw, 3);
+        res.GCD(AID.WheelingThrust, 3);
+        res.GCD(AID.RaidenThrust, 3);
+        res.GCD(AID.HeavensThrust, 3);
+        res.GCD(AID.ChaoticSpring, 3);
+        res.GCD(AID.DoomSpike, 10);
+        res.GCD(AID.SonicThrust, 10);
+        res.GCD(AID.CoerthanTorment, 10);
+        res.GCD(AID.DraconianFury, 10);
+        res.OGCD(AID.Jump, 20, CDGroup.Jump, 30.0f, 0.800f);
+        res.OGCD(AID.HighJump, 20, CDGroup.HighJump, 30.0f, 0.800f);
+        res.OGCDWithCharges(AID.SpineshatterDive, 20, CDGroup.SpineshatterDive, 60.0f, 2);
+        res.OGCD(AID.DragonfireDive, 20, CDGroup.DragonfireDive, 120.0f);
+        res.OGCD(AID.Geirskogul, 15, CDGroup.Geirskogul, 30.0f);
+        res.OGCD(AID.Nastrond, 15, CDGroup.Nastrond, 10.0f);
+        res.OGCD(AID.MirageDive, 20, CDGroup.MirageDive, 1.0f);
+        res.OGCD(AID.Stardiver, 20, CDGroup.Stardiver, 30.0f);
+        res.OGCD(AID.WyrmwindThrust, 15, CDGroup.WyrmwindThrust, 10.0f);
+        res.OGCDWithCharges(AID.LifeSurge, 0, CDGroup.LifeSurge, 45.0f, 2);
+        res.OGCD(AID.LanceCharge, 0, CDGroup.LanceCharge, 60.0f);
+        res.OGCD(AID.BattleLitany, 0, CDGroup.BattleLitany, 120.0f);
+        res.OGCD(AID.DragonSight, 30, CDGroup.DragonSight, 120.0f);
+        res.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
+        res.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
+        res.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.GCD(AID.PiercingTalon, 20);
+        res.OGCD(AID.ElusiveJump, 0, CDGroup.ElusiveJump, 30.0f);
+        res.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
+        res.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
+        return res;
     }
 }

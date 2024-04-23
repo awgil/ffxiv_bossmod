@@ -2,7 +2,7 @@
 
 class TOPStates : StateMachineBuilder
 {
-    private TOP _module;
+    private readonly TOP _module;
 
     private bool IsEffectivelyDead(Actor? actor) => actor != null && !actor.IsTargetable && actor.HP.Cur <= 1;
 
@@ -153,7 +153,7 @@ class TOPStates : StateMachineBuilder
 
         ComponentCondition<P2PartySynergyOptimizedFire>(id + 0x30, 6.4f, comp => !comp.Active, "Spreads")
             .ActivateOnEnter<P2PartySynergyOptimizedFire>()
-            .ExecOnEnter<P2PartySynergyOpticalLaser>(comp => comp.Show(_module))
+            .ExecOnEnter<P2PartySynergyOpticalLaser>(comp => comp.Show())
             .ExecOnEnter<P2PartySynergy>(comp => comp.EnableDistanceHints = true)
             .ActivateOnEnter<P2PartySynergyEfficientBladework>() // PATEs happen 0.8s after double aoes
             .DeactivateOnExit<P2PartySynergyOptimizedFire>();
@@ -287,7 +287,7 @@ class TOPStates : StateMachineBuilder
         ComponentCondition<P4WaveCannonStack>(id + 0x40, 0.2f, comp => !comp.Active, "Stacks 1");
         // +2.1s: targets for stacks 2
         ComponentCondition<P3WaveRepeater>(id + 0x50, 2.5f, comp => comp.NumCasts > 0)
-            .ExecOnEnter<P4WaveCannonProtean>(comp => comp.Show(Module));
+            .ExecOnEnter<P4WaveCannonProtean>(comp => comp.Show());
         ComponentCondition<P3WaveRepeater>(id + 0x51, 2.1f, comp => comp.NumCasts > 1);
         ComponentCondition<P4WaveCannonProtean>(id + 0x52, 0.7f, comp => comp.NumCasts > 0, "Proteans 2");
         ComponentCondition<P3WaveRepeater>(id + 0x53, 1.4f, comp => comp.NumCasts > 2)
@@ -299,7 +299,7 @@ class TOPStates : StateMachineBuilder
         ComponentCondition<P4WaveCannonStack>(id + 0x56, 0.2f, comp => !comp.Active, "Stack 2");
         // +2.2s: targets for stacks 3
         ComponentCondition<P4WaveCannonProtean>(id + 0x60, 5.3f, comp => comp.NumCasts > 0, "Proteans 3")
-            .ExecOnEnter<P4WaveCannonProtean>(comp => comp.Show(Module))
+            .ExecOnEnter<P4WaveCannonProtean>(comp => comp.Show())
             .DeactivateOnExit<P4WaveCannonProtean>();
         ComponentCondition<P3WaveRepeater>(id + 0x61, 4.5f, comp => comp.NumCasts > 4)
             .ActivateOnEnter<P4WaveCannonProteanAOE>()
@@ -447,7 +447,7 @@ class TOPStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ComponentCondition<P5OmegaOversampledWaveCannon>(id + 0x100, 0.2f, comp => comp.IsActive)
-            .ExecOnEnter<P5OmegaNearDistantWorld>(comp => comp.ShowFirst(_module))
+            .ExecOnEnter<P5OmegaNearDistantWorld>(comp => comp.ShowFirst())
             .ActivateOnEnter<P5OmegaOversampledWaveCannon>();
         ComponentCondition<P5OmegaNearDistantWorld>(id + 0x110, 9.6f, comp => comp.NumNearJumpsDone > 0, "Near/far 1");
         ComponentCondition<P5OmegaNearDistantWorld>(id + 0x112, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 2");
@@ -455,7 +455,7 @@ class TOPStates : StateMachineBuilder
             .DeactivateOnExit<P5OmegaOversampledWaveCannon>(); // note: resolves between first and second jumps
 
         ComponentCondition<P5OmegaBlaster>(id + 0x200, 2.1f, comp => comp.CurrentBaits.Count > 0)
-            .ExecOnEnter<P5OmegaNearDistantWorld>(comp => comp.ShowSecond(_module))
+            .ExecOnEnter<P5OmegaNearDistantWorld>(comp => comp.ShowSecond())
             .ActivateOnEnter<P5OmegaBlaster>();
         ComponentCondition<P5OmegaBlaster>(id + 0x210, 12.2f, comp => comp.NumCasts > 0, "Tethers")
             .DeactivateOnExit<P5OmegaBlaster>();

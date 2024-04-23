@@ -49,6 +49,10 @@
 #define use_lines
 
 #pragma warning disable CS8767, CS8618, CS8765, CS8625, CS8603, CS8601, CS8600, CS8604
+#pragma warning disable CA1024, CA1032, CA1051, CA1064, CA1066, CA1725, CA1815
+#pragma warning disable IDE0001, IDE0002, IDE0003, IDE0004, IDE0007, IDE0011, IDE0017, IDE0018, IDE0020, IDE0022, IDE0024, IDE0025, IDE0028
+#pragma warning disable IDE0041, IDE0045, IDE0046, IDE0047, IDE0049, IDE0051, IDE0054, IDE0055, IDE0059, IDE0065, IDE0066
+#pragma warning disable IDE0074, IDE0078, IDE0083, IDE0090, IDE0180, IDE0251, IDE2001, IDE0290, IDE1006, IDE2000, IDE2002
 
 //using System.Text;          //for Int128.AsString() & StringBuilder
 //using System.IO;            //debugging with streamReader & StreamWriter
@@ -1363,13 +1367,13 @@ public class Clipper : ClipperBase
   private ClipType m_ClipType;
   private Maxima m_Maxima;
   private TEdge m_SortedEdges;
-  private List<IntersectNode> m_IntersectList;
-  IComparer<IntersectNode> m_IntersectNodeComparer;
+  private readonly List<IntersectNode> m_IntersectList;
+    readonly IComparer<IntersectNode> m_IntersectNodeComparer;
   private bool m_ExecuteLocked;
   private PolyFillType m_ClipFillType;
   private PolyFillType m_SubjFillType;
-  private List<Join> m_Joins;
-  private List<Join> m_GhostJoins;
+  private readonly List<Join> m_Joins;
+  private readonly List<Join> m_GhostJoins;
   private bool m_UsingPolyTree;
 #if use_xyz
   public delegate void ZFillCallback(IntPoint bot1, IntPoint top1, 
@@ -4433,12 +4437,12 @@ public class ClipperOffset
 private Paths m_destPolys;
 private Path m_srcPoly;
 private Path m_destPoly;
-private List<DoublePoint> m_normals = new List<DoublePoint>();
+private readonly List<DoublePoint> m_normals = new List<DoublePoint>();
 private double m_delta, m_sinA, m_sin, m_cos;
 private double m_miterLim, m_StepsPerRad;
 
 private IntPoint m_lowest;
-private PolyNode m_polyNodes = new PolyNode();
+private readonly PolyNode m_polyNodes = new PolyNode();
 
 public double ArcTolerance { get; set; }
 public double MiterLimit { get; set; }

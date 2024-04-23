@@ -13,14 +13,14 @@ public unsafe struct VfxInstance
 {
 }
 
-public unsafe class DebugVfx : IDisposable
+public unsafe sealed class DebugVfx : IDisposable
 {
     private delegate VfxInitData* VfxInitDataCtorDelegate(VfxInitData* self);
-    private VfxInitDataCtorDelegate VfxInitDataCtor;
+    private readonly VfxInitDataCtorDelegate VfxInitDataCtor;
 
     // StartOmen: a3=2, a4=0, a13=-1
     private delegate VfxInstance* CreateVfxDelegate(byte* path, VfxInitData* init, byte a3, byte a4, float originX, float originY, float originZ, float sizeX, float sizeY, float sizeZ, float angle, float duration, int a13);
-    private CreateVfxDelegate CreateVfx;
+    private readonly CreateVfxDelegate CreateVfx;
 
     public DebugVfx()
     {

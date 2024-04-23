@@ -1,21 +1,18 @@
 ﻿namespace BossMod.Endwalker.Savage.P4S2Hesperos;
 
 // state related to curtain call mechanic
-class CurtainCall : BossComponent
+class CurtainCall(BossModule module) : BossComponent(module)
 {
-    private int[] _playerOrder = new int[8];
+    private readonly int[] _playerOrder = new int[8];
     private List<Actor>? _playersInBreakOrder;
-    private int _numCasts = 0;
+    private int _numCasts;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
-        if (_playersInBreakOrder == null)
-        {
-            _playersInBreakOrder = module.Raid.Members.Zip(_playerOrder).Where(po => po.Item1 != null && po.Item2 != 0).OrderBy(po => po.Item2).Select(po => po.Item1!).ToList();
-        }
+        _playersInBreakOrder ??= Raid.Members.Zip(_playerOrder).Where(po => po.First != null && po.Second != 0).OrderBy(po => po.Second).Select(po => po.First!).ToList();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_playerOrder[slot] > _numCasts)
         {
@@ -24,32 +21,32 @@ class CurtainCall : BossComponent
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_playersInBreakOrder != null)
-            hints.Add($"Order: {string.Join(" -> ", _playersInBreakOrder.Skip(_numCasts).Select(a => OrderTextForPlayer(module, a)))}");
+            hints.Add($"Order: {string.Join(" -> ", _playersInBreakOrder.Skip(_numCasts).Select(OrderTextForPlayer))}");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw other players
-        foreach ((int slot, var player) in module.Raid.WithSlot().Exclude(pc))
-            arena.Actor(player, _playerOrder[slot] == _numCasts + 1 ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+        foreach ((int slot, var player) in Raid.WithSlot().Exclude(pc))
+            Arena.Actor(player, _playerOrder[slot] == _numCasts + 1 ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
 
         // tether
-        var tetherTarget = module.WorldState.Actors.Find(pc.Tether.Target);
+        var tetherTarget = WorldState.Actors.Find(pc.Tether.Target);
         if (tetherTarget != null)
-            arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
+            Arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Thornpricked)
         {
-            int slot = module.Raid.FindSlot(actor.InstanceID);
+            int slot = Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
             {
-                _playerOrder[slot] = 2 * (int)((status.ExpireAt - module.WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
+                _playerOrder[slot] = 2 * (int)((status.ExpireAt - WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
                 bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
                 if (ddFirst != actor.Role is Role.Tank or Role.Healer)
                     --_playerOrder[slot];
@@ -58,17 +55,17 @@ class CurtainCall : BossComponent
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Thornpricked)
             ++_numCasts;
     }
 
-    private string OrderTextForPlayer(BossModule module, Actor player)
+    private string OrderTextForPlayer(Actor player)
     {
         //return player.Name;
         var status = player.FindStatus((uint)SID.Thornpricked);
-        var remaining = status != null ? (status.Value.ExpireAt - module.WorldState.CurrentTime).TotalSeconds : 0;
+        var remaining = status != null ? (status.Value.ExpireAt - WorldState.CurrentTime).TotalSeconds : 0;
         return $"{player.Name} ({remaining:f1}s)";
     }
 }

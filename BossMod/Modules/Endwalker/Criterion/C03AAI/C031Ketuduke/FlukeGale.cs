@@ -1,45 +1,40 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C031Ketuduke;
 
-class FlukeGale : Components.Knockback
+class FlukeGale(BossModule module) : Components.Knockback(module)
 {
     public enum Debuff { None, BubbleWeave, FoamyFetters }
     public enum Resolve { None, Stack, Spread }
 
-    public List<Source> Gales = new();
-    private SpringCrystalsRect? _crystals;
-    private Debuff[] _debuffs = new Debuff[PartyState.MaxPartySize];
+    public List<Source> Gales = [];
+    private readonly SpringCrystalsRect? _crystals = module.FindComponent<SpringCrystalsRect>();
+    private readonly Debuff[] _debuffs = new Debuff[PartyState.MaxPartySize];
     private Resolve _resolution;
 
     private static readonly AOEShapeRect _shape = new(20, 10);
     private static readonly AOEShapeRect _safeZone = new(5, 5, 5);
 
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor) => _debuffs[slot] != Debuff.FoamyFetters ? Gales : Enumerable.Empty<Source>();
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => _debuffs[slot] != Debuff.FoamyFetters ? Gales : Enumerable.Empty<Source>();
 
-    public override void Init(BossModule module)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        _crystals = module.FindComponent<SpringCrystalsRect>();
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-    {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (_debuffs[slot] != Debuff.None)
             hints.Add($"Debuff: {(_debuffs[slot] == Debuff.BubbleWeave ? "bubble" : "bind")}", false);
         if (_resolution != Resolve.None && _debuffs[slot] != Debuff.None && Gales.Count == 4 && _crystals != null)
         {
-            var finalPos = CalculateMovements(module, slot, actor).LastOrDefault((actor.Position, actor.Position)).Item2;
+            var finalPos = CalculateMovements(slot, actor).LastOrDefault((actor.Position, actor.Position)).Item2;
             if (!SafeZones(slot).Any(c => _safeZone.Check(finalPos, c, default)))
                 hints.Add("Aim towards safe zone!");
         }
     }
 
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var c in SafeZones(pcSlot))
-            _safeZone.Draw(arena, c, default, ArenaColor.SafeFromAOE);
+            _safeZone.Draw(Arena, c, default, ArenaColor.SafeFromAOE);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var debuff = (SID)status.ID switch
         {
@@ -47,11 +42,11 @@ class FlukeGale : Components.Knockback
             SID.FoamyFetters => Debuff.FoamyFetters,
             _ => Debuff.None
         };
-        if (debuff != Debuff.None && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (debuff != Debuff.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
             _debuffs[slot] = debuff;
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -69,7 +64,7 @@ class FlukeGale : Components.Knockback
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FlukeGaleAOE1 or AID.FlukeGaleAOE2)
         {

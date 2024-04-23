@@ -3,7 +3,8 @@ using System.Reflection;
 
 namespace BossMod;
 
-public class ColumnPlannerTrackStrategy : ColumnPlannerTrack
+public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, PlanDefinitions.ClassData classDef, PlanDefinitions.StrategyTrack trackDef)
+    : ColumnPlannerTrack(timeline, tree, phaseBranches, name)
 {
     public class OverrideElement : Element
     {
@@ -18,15 +19,8 @@ public class ColumnPlannerTrackStrategy : ColumnPlannerTrack
         }
     }
 
-    public PlanDefinitions.ClassData ClassDef;
-    public PlanDefinitions.StrategyTrack TrackDef;
-
-    public ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, string name, PlanDefinitions.ClassData classDef, PlanDefinitions.StrategyTrack trackDef)
-        : base(timeline, tree, phaseBranches, name)
-    {
-        ClassDef = classDef;
-        TrackDef = trackDef;
-    }
+    public PlanDefinitions.ClassData ClassDef = classDef;
+    public PlanDefinitions.StrategyTrack TrackDef = trackDef;
 
     public void AddElement(StateMachineTree.Node attachNode, float delay, float windowLength, uint value, string comment)
     {
@@ -43,8 +37,7 @@ public class ColumnPlannerTrackStrategy : ColumnPlannerTrack
     protected override List<string> DescribeElement(Element e)
     {
         var cast = (OverrideElement)e;
-        List<string> res = new();
-        res.Add($"Comment: {cast.Comment}");
+        List<string> res = [$"Comment: {cast.Comment}"];
         if (TrackDef.Values != null)
         {
             res.Add($"Value: {ValueString(cast.Value)}");

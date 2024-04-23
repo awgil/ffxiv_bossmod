@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 // common assignments for multiple mechanics in the fight
-abstract class CommonAssignments : BossComponent
+abstract class CommonAssignments(BossModule module) : BossComponent(module)
 {
     public struct PlayerState
     {
@@ -12,14 +12,14 @@ abstract class CommonAssignments : BossComponent
     public PlayerState[] PlayerStates = new PlayerState[PartyState.MaxPartySize];
     private int _numOrdersAssigned;
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var ps = PlayerStates[slot];
         if (ps.Order != 0)
             hints.Add($"Order: {ps.Order}, group: {ps.Group}", false);
     }
 
-    public override PlayerPriority CalcPriority(BossModule module, int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         var playerOrder = PlayerStates[playerSlot].Order;
         return playerOrder == 0 ? PlayerPriority.Irrelevant : playerOrder == PlayerStates[pcSlot].Order ? PlayerPriority.Danger : PlayerPriority.Normal;
@@ -27,23 +27,23 @@ abstract class CommonAssignments : BossComponent
 
     protected abstract (GroupAssignmentUnique assignment, bool global) Assignments();
 
-    protected void Assign(BossModule module, Actor player, int order)
+    protected void Assign(Actor player, int order)
     {
         if (order > 0)
         {
-            var slot = module.Raid.FindSlot(player.InstanceID);
+            var slot = Raid.FindSlot(player.InstanceID);
             if (slot >= 0)
                 PlayerStates[slot].Order = order;
             if (++_numOrdersAssigned == PartyState.MaxPartySize)
-                InitAssignments(module);
+                InitAssignments();
         }
     }
 
-    private void InitAssignments(BossModule module)
+    private void InitAssignments()
     {
         var (ca, global) = Assignments();
-        List<(int slot, int group, int priority, int order)> assignments = new();
-        foreach (var a in ca.Resolve(module.Raid))
+        List<(int slot, int group, int priority, int order)> assignments = [];
+        foreach (var a in ca.Resolve(Raid))
             assignments.Add((a.slot, global ? 0 : a.group >> 2, global ? a.group : a.group & 3, PlayerStates[a.slot].Order));
         if (assignments.Count == 0)
             return; // invalid assignments
@@ -67,9 +67,9 @@ abstract class CommonAssignments : BossComponent
 }
 
 // common assignments for program loop & pantokrator
-abstract class P1CommonAssignments : CommonAssignments
+abstract class P1CommonAssignments(BossModule module) : CommonAssignments(module)
 {
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         int order = (SID)status.ID switch
         {
@@ -79,6 +79,6 @@ abstract class P1CommonAssignments : CommonAssignments
             SID.InLine4 => 4,
             _ => 0
         };
-        Assign(module, actor, order);
+        Assign(actor, order);
     }
 }

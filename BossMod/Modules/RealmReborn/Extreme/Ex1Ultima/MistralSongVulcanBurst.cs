@@ -1,6 +1,6 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-class MistralSongVulcanBurst : Components.GenericAOEs
+class MistralSongVulcanBurst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MistralSong))
 {
     public bool Active { get; private set; }
     private Actor? _garuda; // non-null while mechanic is active
@@ -8,20 +8,18 @@ class MistralSongVulcanBurst : Components.GenericAOEs
     private bool _burstImminent;
     private static readonly AOEShapeCone _shape = new(23.4f, 75.Degrees());
 
-    public MistralSongVulcanBurst() : base(ActionID.MakeSpell(AID.MistralSong)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (Active)
             yield return new(_shape, _garuda!.Position, _garuda!.Rotation, _resolve);
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
-        Active = _garuda != null && (_resolve - module.WorldState.CurrentTime).TotalSeconds <= 6; // note that garuda continues rotating for next ~0.5s
+        Active = _garuda != null && (_resolve - WorldState.CurrentTime).TotalSeconds <= 6; // note that garuda continues rotating for next ~0.5s
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (!Active)
             return;
@@ -29,13 +27,13 @@ class MistralSongVulcanBurst : Components.GenericAOEs
         // we have custom shape before burst - we try to make it so that post-knockback position is safe
         if (_burstImminent)
         {
-            var p1 = module.Bounds.Center + module.Bounds.HalfSize * (_garuda!.Rotation + _shape.HalfAngle).ToDirection();
-            var p2 = module.Bounds.Center + module.Bounds.HalfSize * (_garuda!.Rotation - _shape.HalfAngle).ToDirection();
-            var a1 = Angle.FromDirection(p1 - module.PrimaryActor.Position);
-            var a2 = Angle.FromDirection(p2 - module.PrimaryActor.Position);
+            var p1 = Module.Bounds.Center + Module.Bounds.HalfSize * (_garuda!.Rotation + _shape.HalfAngle).ToDirection();
+            var p2 = Module.Bounds.Center + Module.Bounds.HalfSize * (_garuda!.Rotation - _shape.HalfAngle).ToDirection();
+            var a1 = Angle.FromDirection(p1 - Module.PrimaryActor.Position);
+            var a2 = Angle.FromDirection(p2 - Module.PrimaryActor.Position);
             if (a2.Rad > a1.Rad)
                 a2 -= 360.Degrees();
-            hints.AddForbiddenZone(ShapeDistance.Cone(module.PrimaryActor.Position, 40, (a1 + a2) / 2, (a1 - a2) / 2), _resolve);
+            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 40, (a1 + a2) / 2, (a1 - a2) / 2), _resolve);
         }
         else
         {
@@ -43,15 +41,15 @@ class MistralSongVulcanBurst : Components.GenericAOEs
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
 
-        var adjPos = _burstImminent ? arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, module.PrimaryActor, 30)) : pc.Position;
-        Components.Knockback.DrawKnockback(pc, adjPos, arena);
+        var adjPos = _burstImminent ? Arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, Module.PrimaryActor, 30)) : pc.Position;
+        Components.Knockback.DrawKnockback(pc, adjPos, Arena);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
@@ -61,25 +59,25 @@ class MistralSongVulcanBurst : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             _garuda = null;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.VulcanBurst)
             _burstImminent = false;
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.UltimaGaruda && id == 0x0588)
         {
             _garuda = actor;
-            _resolve = module.WorldState.CurrentTime.AddSeconds(6.6f);
+            _resolve = WorldState.FutureTime(6.6f);
             _burstImminent = true;
         }
     }

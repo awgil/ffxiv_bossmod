@@ -2,7 +2,7 @@
 
 class C022GoraiStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C022GoraiStates(BossModule module, bool savage) : base(module)
     {
@@ -170,5 +170,5 @@ class C022GoraiStates : StateMachineBuilder
     }
 }
 
-class C022NGoraiStates : C022GoraiStates { public C022NGoraiStates(BossModule module) : base(module, false) { } }
-class C022SGoraiStates : C022GoraiStates { public C022SGoraiStates(BossModule module) : base(module, true) { } }
+class C022NGoraiStates(BossModule module) : C022GoraiStates(module, false);
+class C022SGoraiStates(BossModule module) : C022GoraiStates(module, true);

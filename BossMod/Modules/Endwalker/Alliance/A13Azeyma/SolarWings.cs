@@ -1,32 +1,25 @@
 ﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
-class SolarWingsL : Components.SelfTargetedAOEs
-{
-    public SolarWingsL() : base(ActionID.MakeSpell(AID.SolarWingsL), new AOEShapeCone(30, 75.Degrees())) { }
-}
+class SolarWingsL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SolarWingsL), new AOEShapeCone(30, 75.Degrees()));
+class SolarWingsR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SolarWingsR), new AOEShapeCone(30, 75.Degrees()));
 
-class SolarWingsR : Components.SelfTargetedAOEs
+class SolarFlair(BossModule module) : Components.GenericAOEs(module)
 {
-    public SolarWingsR() : base(ActionID.MakeSpell(AID.SolarWingsR), new AOEShapeCone(30, 75.Degrees())) { }
-}
-
-class SolarFlair : Components.GenericAOEs
-{
-    private List<WPos> _sunstorms = new();
+    private readonly List<WPos> _sunstorms = [];
     private BitMask _adjusted;
 
-    private static readonly float _kickDistance = 18;
+    private const float _kickDistance = 18;
     private static readonly AOEShapeCircle _shape = new(15);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _sunstorms.Select(p => new AOEInstance(_shape, p));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _sunstorms.Select(p => new AOEInstance(_shape, p));
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Sunstorm)
             _sunstorms.Add(actor.Position);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -42,18 +35,18 @@ class SolarFlair : Components.GenericAOEs
                     }
                     else
                     {
-                        module.ReportError(this, $"Unexpected teleport location: {spell.TargetXZ}, closest sunstorm at {closestSunstorm.p}");
+                        ReportError($"Unexpected teleport location: {spell.TargetXZ}, closest sunstorm at {closestSunstorm.p}");
                     }
                 }
                 else
                 {
-                    module.ReportError(this, "Unexpected teleport, no sunstorms active");
+                    ReportError("Unexpected teleport, no sunstorms active");
                 }
                 break;
             case AID.SolarFlair:
                 ++NumCasts;
                 if (_sunstorms.RemoveAll(p => p.AlmostEqual(caster.Position, 1)) != 1)
-                    module.ReportError(this, $"Unexpected solar flair position {caster.Position}");
+                    ReportError($"Unexpected solar flair position {caster.Position}");
                 break;
         }
     }

@@ -2,46 +2,25 @@
 
 namespace BossMod.ReplayAnalysis;
 
-class AnalysisManager : IDisposable
+sealed class AnalysisManager : IDisposable
 {
-    private class Lazy<T>
+    private class Lazy<T>(Func<T> init)
     {
-        private Func<T> _init;
+        private readonly Func<T> _init = init;
         private T? _impl;
 
-        public Lazy(Func<T> init)
-        {
-            _init = init;
-        }
-
-        public T Get()
-        {
-            if (_impl == null)
-                _impl = _init();
-            return _impl;
-        }
+        public T Get() => _impl ??= _init();
     }
 
-    private class Global
+    private class Global(List<Replay> replays)
     {
-        private Lazy<UnknownActionEffects> _unkEffects;
-        private Lazy<ParticipantInfo> _participantInfo;
-        private Lazy<AbilityInfo> _abilityInfo;
-        private Lazy<ClientActions> _clientActions;
-        private Lazy<EffectResultMispredict> _effectResultMissing;
-        private Lazy<EffectResultMispredict> _effectResultUnexpected;
-        private Lazy<EffectResultReorder> _effectResultReorder;
-
-        public Global(List<Replay> replays)
-        {
-            _unkEffects = new(() => new(replays));
-            _participantInfo = new(() => new(replays));
-            _abilityInfo = new(() => new(replays));
-            _clientActions = new(() => new(replays));
-            _effectResultMissing = new(() => new(replays, true));
-            _effectResultUnexpected = new(() => new(replays, false));
-            _effectResultReorder = new(() => new(replays));
-        }
+        private readonly Lazy<UnknownActionEffects> _unkEffects = new(() => new(replays));
+        private readonly Lazy<ParticipantInfo> _participantInfo = new(() => new(replays));
+        private readonly Lazy<AbilityInfo> _abilityInfo = new(() => new(replays));
+        private readonly Lazy<ClientActions> _clientActions = new(() => new(replays));
+        private readonly Lazy<EffectResultMispredict> _effectResultMissing = new(() => new(replays, true));
+        private readonly Lazy<EffectResultMispredict> _effectResultUnexpected = new(() => new(replays, false));
+        private readonly Lazy<EffectResultReorder> _effectResultReorder = new(() => new(replays));
 
         public void Draw(UITree tree)
         {
@@ -70,15 +49,15 @@ class AnalysisManager : IDisposable
 
     private class PerEncounter
     {
-        private Lazy<StateTransitionTimings> _transitionTimings;
-        private Lazy<ParticipantInfo> _participantInfo;
-        private Lazy<AbilityInfo> _abilityInfo;
-        private Lazy<StatusInfo> _statusInfo;
-        private Lazy<IconInfo> _iconInfo;
-        private Lazy<TetherInfo> _tetherInfo;
-        private Lazy<ArenaBounds> _arenaBounds;
-        private Lazy<TEASpecific>? _teaSpecific;
-        private Lazy<TOPSpecific>? _topSpecific;
+        private readonly Lazy<StateTransitionTimings> _transitionTimings;
+        private readonly Lazy<ParticipantInfo> _participantInfo;
+        private readonly Lazy<AbilityInfo> _abilityInfo;
+        private readonly Lazy<StatusInfo> _statusInfo;
+        private readonly Lazy<IconInfo> _iconInfo;
+        private readonly Lazy<TetherInfo> _tetherInfo;
+        private readonly Lazy<ArenaBounds> _arenaBounds;
+        private readonly Lazy<TEASpecific>? _teaSpecific;
+        private readonly Lazy<TOPSpecific>? _topSpecific;
 
         public PerEncounter(List<Replay> replays, uint oid)
         {
@@ -89,9 +68,9 @@ class AnalysisManager : IDisposable
             _iconInfo = new(() => new(replays, oid));
             _tetherInfo = new(() => new(replays, oid));
             _arenaBounds = new(() => new(replays, oid));
-            if (oid == (uint)BossMod.Shadowbringers.Ultimate.TEA.OID.BossP1)
+            if (oid == (uint)Shadowbringers.Ultimate.TEA.OID.BossP1)
                 _teaSpecific = new(() => new(replays, oid));
-            if (oid == (uint)BossMod.Endwalker.Ultimate.TOP.OID.Boss)
+            if (oid == (uint)Endwalker.Ultimate.TOP.OID.Boss)
                 _topSpecific = new(() => new(replays, oid));
         }
 
@@ -128,10 +107,10 @@ class AnalysisManager : IDisposable
         }
     }
 
-    private List<Replay> _replays;
-    private Global _global;
-    private Dictionary<uint, PerEncounter> _perEncounter = new(); // key = encounter OID
-    private UITree _tree = new();
+    private readonly List<Replay> _replays;
+    private readonly Global _global;
+    private readonly Dictionary<uint, PerEncounter> _perEncounter = []; // key = encounter OID
+    private readonly UITree _tree = new();
 
     public AnalysisManager(List<Replay> replays)
     {

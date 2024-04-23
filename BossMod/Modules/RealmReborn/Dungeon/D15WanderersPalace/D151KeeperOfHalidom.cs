@@ -15,12 +15,9 @@ public enum AID : uint
     MoldyPhlegm = 941, // Boss->location, 2.5s cast, range 6 circle
 }
 
-class MoldySneeze : Components.Cleave
-{
-    public MoldySneeze() : base(ActionID.MakeSpell(AID.MoldySneeze), new AOEShapeCone(8.85f, 45.Degrees())) { }
-}
+class MoldySneeze(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.MoldySneeze), new AOEShapeCone(8.85f, 45.Degrees()));
 
-class InhaleGoobbuesGrief : Components.GenericAOEs
+class InhaleGoobbuesGrief(BossModule module) : Components.GenericAOEs(module)
 {
     private bool _showInhale;
     private bool _showGrief;
@@ -29,15 +26,15 @@ class InhaleGoobbuesGrief : Components.GenericAOEs
     private static readonly AOEShapeCone _shapeInhale = new(22.85f, 45.Degrees());
     private static readonly AOEShapeCircle _shapeGrief = new(8.85f);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_showInhale)
-            yield return new(_shapeInhale, module.PrimaryActor.Position, module.PrimaryActor.CastInfo!.Rotation, module.PrimaryActor.CastInfo.NPCFinishAt);
+            yield return new(_shapeInhale, Module.PrimaryActor.Position, Module.PrimaryActor.CastInfo!.Rotation, Module.PrimaryActor.CastInfo.NPCFinishAt);
         if (_showGrief)
-            yield return new(_shapeGrief, module.PrimaryActor.Position, new(), _griefActivation);
+            yield return new(_shapeGrief, Module.PrimaryActor.Position, new(), _griefActivation);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -51,7 +48,7 @@ class InhaleGoobbuesGrief : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -65,10 +62,7 @@ class InhaleGoobbuesGrief : Components.GenericAOEs
     }
 }
 
-class MoldyPhlegm : Components.LocationTargetedAOEs
-{
-    public MoldyPhlegm() : base(ActionID.MakeSpell(AID.MoldyPhlegm), 6) { }
-}
+class MoldyPhlegm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MoldyPhlegm), 6);
 
 class D151KeeperOfHalidomStates : StateMachineBuilder
 {
@@ -82,7 +76,4 @@ class D151KeeperOfHalidomStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1548)]
-public class D151KeeperOfHalidom : BossModule
-{
-    public D151KeeperOfHalidom(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(125, 108), 20)) { }
-}
+public class D151KeeperOfHalidom(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(125, 108), 20));

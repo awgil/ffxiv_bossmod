@@ -2,25 +2,23 @@
 
 class P6FlashGale : Components.GenericBaitAway
 {
-    private Actor? _source;
+    private readonly Actor? _source;
 
     private static readonly AOEShapeCircle _shape = new(5);
 
-    public P6FlashGale() : base(centerAtTarget: true) { }
-
-    public override void Init(BossModule module)
+    public P6FlashGale(BossModule module) : base(module, centerAtTarget: true)
     {
         _source = module.Enemies(OID.BossP6).FirstOrDefault();
-        ForbiddenPlayers = module.Raid.WithSlot(true).WhereActor(p => p.Role != Role.Tank).Mask();
+        ForbiddenPlayers = Raid.WithSlot(true).WhereActor(p => p.Role != Role.Tank).Mask();
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         CurrentBaits.Clear();
         if (_source != null)
         {
-            var mainTarget = module.WorldState.Actors.Find(_source.TargetID);
-            var farTarget = module.Raid.WithoutSlot().Farthest(_source.Position);
+            var mainTarget = WorldState.Actors.Find(_source.TargetID);
+            var farTarget = Raid.WithoutSlot().Farthest(_source.Position);
             if (mainTarget != null)
                 CurrentBaits.Add(new(_source, mainTarget, _shape));
             if (farTarget != null)
@@ -28,7 +26,7 @@ class P6FlashGale : Components.GenericBaitAway
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.FlashGale)
             ++NumCasts;

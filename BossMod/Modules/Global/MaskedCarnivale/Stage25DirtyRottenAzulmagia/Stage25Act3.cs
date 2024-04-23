@@ -33,104 +33,63 @@ public enum SID : uint
     Doom = 910, // Boss->player, extra=0x0
 }
 
-class Charybdis : Components.SelfTargetedAOEs
-{
-    public Charybdis() : base(ActionID.MakeSpell(AID.Charybdis2), new AOEShapeCircle(8)) { }
-}
+class Charybdis(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Charybdis2), new AOEShapeCircle(8));
 
-class Web : BossComponent
+class Web(BossModule module) : BossComponent(module)
 {
     private bool casting;
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Web)
             casting = true;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.Web)
             casting = false;
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (casting)
             hints.Add("Bait the Meteor to the edge of the arena!\nUse Loom to escape or Diamondback to survive.");
     }
 }
 
-class Plaincracker : Components.SelfTargetedAOEs
-{
-    public Plaincracker() : base(ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(7.2f)) { }
-}
+class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(7.2f));
+class TremblingEarth(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TremblingEarth), new AOEShapeDonut(10, 20));
+class TremblingEarth2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TremblingEarth2), new AOEShapeDonut(20, 30));
+class ApocalypticBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticBolt), new AOEShapeRect(51.2f, 4));
+class ApocalypticRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticRoar), new AOEShapeCone(36.2f, 60.Degrees()));
+class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(8));
+class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(6, 30));
+class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Maelstrom));
+class Meteor(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Meteor), 15);
+class MeteorVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 10, ActionID.MakeSpell(AID.Meteor), m => m.Enemies(OID.LavaVoidzone).Where(z => z.EventState != 7), 0);
 
-class TremblingEarth : Components.SelfTargetedAOEs
+class Hints(BossModule module) : BossComponent(module)
 {
-    public TremblingEarth() : base(ActionID.MakeSpell(AID.TremblingEarth), new AOEShapeDonut(10, 20)) { }
-}
-
-class TremblingEarth2 : Components.SelfTargetedAOEs
-{
-    public TremblingEarth2() : base(ActionID.MakeSpell(AID.TremblingEarth2), new AOEShapeDonut(20, 30)) { }
-}
-
-class ApocalypticBolt : Components.SelfTargetedAOEs
-{
-    public ApocalypticBolt() : base(ActionID.MakeSpell(AID.ApocalypticBolt), new AOEShapeRect(51.2f, 4)) { }
-}
-
-class ApocalypticRoar : Components.SelfTargetedAOEs
-{
-    public ApocalypticRoar() : base(ActionID.MakeSpell(AID.ApocalypticRoar), new AOEShapeCone(36.2f, 60.Degrees())) { }
-}
-
-class TheRamsVoice : Components.SelfTargetedAOEs
-{
-    public TheRamsVoice() : base(ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(8)) { }
-}
-
-class TheDragonsVoice : Components.SelfTargetedAOEs
-{
-    public TheDragonsVoice() : base(ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(6, 30)) { }
-}
-
-class Maelstrom : Components.PersistentVoidzone
-{
-    public Maelstrom() : base(8, m => m.Enemies(OID.Maelstrom)) { }
-}
-
-class Meteor : Components.LocationTargetedAOEs
-{
-    public Meteor() : base(ActionID.MakeSpell(AID.Meteor), 15) { }
-}
-
-class MeteorVoidzone : Components.PersistentVoidzoneAtCastTarget
-{
-    public MeteorVoidzone() : base(10, ActionID.MakeSpell(AID.Meteor), m => m.Enemies(OID.LavaVoidzone).Where(z => z.EventState != 7), 0) { }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"In this act {module.PrimaryActor.Name} will switch between magic and physical reflects.\nSpend attention to that so you don't accidently kill yourself.\nAs soon as he starts casting Web go to the edge to bait Meteor, then use Loom\nto escape. You can start the Final Sting combination at about 50% health left.\n(Off-guard->Bristle->Moonflute->Final Sting)");
+        hints.Add($"In this act {Module.PrimaryActor.Name} will switch between magic and physical reflects.\nSpend attention to that so you don't accidently kill yourself.\nAs soon as he starts casting Web go to the edge to bait Meteor, then use Loom\nto escape. You can start the Final Sting combination at about 50% health left.\n(Off-guard->Bristle->Moonflute->Final Sting)");
     }
 }
 
-class Hints2 : BossComponent
+class Hints2(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        var magicreflect = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.RepellingSpray) != null).FirstOrDefault();
-        var physicalreflect = module.Enemies(OID.Boss).Where(x => x.FindStatus(SID.IceSpikes) != null).FirstOrDefault();
+        var magicreflect = Module.Enemies(OID.Boss).FirstOrDefault(x => x.FindStatus(SID.RepellingSpray) != null);
+        var physicalreflect = Module.Enemies(OID.Boss).FirstOrDefault(x => x.FindStatus(SID.IceSpikes) != null);
         if (magicreflect != null)
-            hints.Add($"{module.PrimaryActor.Name} will reflect all magic damage!");
+            hints.Add($"{Module.PrimaryActor.Name} will reflect all magic damage!");
         if (physicalreflect != null)
-            hints.Add($"{module.PrimaryActor.Name} will reflect all physical damage!");
+            hints.Add($"{Module.PrimaryActor.Name} will reflect all physical damage!");
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var doomed = actor.FindStatus(SID.Doom);
         if (doomed != null)

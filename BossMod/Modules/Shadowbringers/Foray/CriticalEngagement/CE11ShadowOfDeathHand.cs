@@ -48,60 +48,17 @@ public enum AID : uint
     PiercingBarrageCrow = 20191, // TamedCarrionCrow->self, 3.0s cast, range 40 width 8 rect
 }
 
-class BestialLoyalty : Components.CastHint
-{
-    public BestialLoyalty() : base(ActionID.MakeSpell(AID.BestialLoyalty), "Summon crows") { }
-}
-
-class RunWild : Components.CastHint
-{
-    public RunWild() : base(ActionID.MakeSpell(AID.RunWild), "Interrupt beastmaster") { }
-}
-
-class HardBeak : Components.SingleTargetCast
-{
-    public HardBeak() : base(ActionID.MakeSpell(AID.HardBeak)) { }
-}
-
-class PiercingBarrageBoss : Components.SelfTargetedAOEs
-{
-    public PiercingBarrageBoss() : base(ActionID.MakeSpell(AID.PiercingBarrageBoss), new AOEShapeRect(40, 4)) { }
-}
-
-class Helldive : Components.StackWithCastTargets
-{
-    public Helldive() : base(ActionID.MakeSpell(AID.Helldive), 6) { }
-}
-
-class BroadsideBarrage : Components.SelfTargetedAOEs
-{
-    public BroadsideBarrage() : base(ActionID.MakeSpell(AID.BroadsideBarrage), new AOEShapeRect(40, 20)) { }
-}
-
-class BlindsideBarrage : Components.RaidwideCast
-{
-    public BlindsideBarrage() : base(ActionID.MakeSpell(AID.BlindsideBarrage), "Raidwide + deathwall appears") { }
-}
-
-class RollingBarrage : Components.SelfTargetedAOEs
-{
-    public RollingBarrage() : base(ActionID.MakeSpell(AID.RollingBarrageAOE), new AOEShapeCircle(8)) { }
-}
-
-class Whirlwind : Components.PersistentVoidzone
-{
-    public Whirlwind() : base(4, m => m.Enemies(OID.Whirlwind)) { }
-}
-
-class Wind : Components.KnockbackFromCastTarget
-{
-    public Wind() : base(ActionID.MakeSpell(AID.WindVisual), 30, kind: Kind.DirForward) { }
-}
-
-class PiercingBarrageCrow : Components.SelfTargetedAOEs
-{
-    public PiercingBarrageCrow() : base(ActionID.MakeSpell(AID.PiercingBarrageCrow), new AOEShapeRect(40, 4)) { }
-}
+class BestialLoyalty(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BestialLoyalty), "Summon crows");
+class RunWild(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.RunWild), "Interrupt beastmaster");
+class HardBeak(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HardBeak));
+class PiercingBarrageBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingBarrageBoss), new AOEShapeRect(40, 4));
+class Helldive(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Helldive), 6);
+class BroadsideBarrage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BroadsideBarrage), new AOEShapeRect(40, 20));
+class BlindsideBarrage(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BlindsideBarrage), "Raidwide + deathwall appears");
+class RollingBarrage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RollingBarrageAOE), new AOEShapeCircle(8));
+class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind));
+class Wind(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WindVisual), 30, kind: Kind.DirForward);
+class PiercingBarrageCrow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingBarrageCrow), new AOEShapeRect(40, 4));
 
 class CE11ShadowOfDeathHandStates : StateMachineBuilder
 {
@@ -123,10 +80,8 @@ class CE11ShadowOfDeathHandStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 5)] // bnpcname=9400
-public class CE11ShadowOfDeathHand : BossModule
+public class CE11ShadowOfDeathHand(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(825, 640), 20))
 {
-    public CE11ShadowOfDeathHand(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(825, 640), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         base.DrawEnemies(pcSlot, pc);

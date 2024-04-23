@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5Phantom;
 
 // TODO: improve hints, currently they are not good... we probably don't need a fully generic implementation, since there are few possible patterns
-class Miasma : Components.GenericAOEs
+class Miasma(BossModule module) : Components.GenericAOEs(module)
 {
     public enum Order { Unknown, LowHigh, HighLow }
 
@@ -14,14 +14,14 @@ class Miasma : Components.GenericAOEs
     }
 
     public int NumLanesFinished { get; private set; }
-    private LaneState[,] _laneStates = new LaneState[4, 2];
+    private readonly LaneState[,] _laneStates = new LaneState[4, 2];
     private Order _order;
 
     private static readonly AOEShapeRect _shapeRect = new(50, 6);
     private static readonly AOEShapeCircle _shapeCircle = new(8);
     private static readonly AOEShapeDonut _shapeDonut = new(5, 19);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_order == Order.Unknown)
             yield break;
@@ -38,13 +38,13 @@ class Miasma : Components.GenericAOEs
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_order != Order.Unknown)
             hints.Add($"Order: {(_order == Order.HighLow ? "high > low" : "low > high")}");
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var order = (AID)spell.Action.ID switch
         {
@@ -56,7 +56,7 @@ class Miasma : Components.GenericAOEs
             _order = order;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         AOEShape? shape = (AID)spell.Action.ID switch
         {
@@ -68,7 +68,7 @@ class Miasma : Components.GenericAOEs
         if (shape == null)
             return;
 
-        int laneIndex = LaneIndex(module, shape == _shapeRect ? caster.Position : spell.TargetXZ);
+        int laneIndex = LaneIndex(shape == _shapeRect ? caster.Position : spell.TargetXZ);
         if ((AID)spell.Action.ID is AID.CreepingMiasmaFirst or AID.LingeringMiasmaFirst or AID.SwirlingMiasmaFirst)
         {
             int heightIndex = (_laneStates[laneIndex, 0].NumCasts, _laneStates[laneIndex, 1].NumCasts) switch
@@ -81,11 +81,11 @@ class Miasma : Components.GenericAOEs
             ref var l = ref _laneStates[laneIndex, heightIndex];
             if (l.Shape != shape || l.NumCasts != 0)
             {
-                module.ReportError(this, $"Unexpected state at first-cast end");
+                ReportError($"Unexpected state at first-cast end");
             }
             else
             {
-                AdvanceLane(module, ref l);
+                AdvanceLane(ref l);
             }
         }
         else
@@ -99,16 +99,16 @@ class Miasma : Components.GenericAOEs
             ref var l = ref _laneStates[laneIndex, heightIndex];
             if (l.Shape != shape)
             {
-                module.ReportError(this, $"Unexpected state at rest-cast end");
+                ReportError($"Unexpected state at rest-cast end");
             }
             else
             {
-                AdvanceLane(module, ref l);
+                AdvanceLane(ref l);
             }
         }
     }
 
-    public override void OnActorEAnim(BossModule module, Actor actor, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state != 0x00010002)
             return; // other states: 00080010 - start glowing, 00040020 - disappear
@@ -122,11 +122,11 @@ class Miasma : Components.GenericAOEs
         if (shape == null)
             return;
         int heightIndex = (OID)actor.OID is OID.MiasmaLowRect or OID.MiasmaLowCircle or OID.MiasmaLowDonut ? 0 : 1;
-        int laneIndex = LaneIndex(module, actor.Position);
-        _laneStates[laneIndex, heightIndex] = new() { Shape = shape, Activation = module.WorldState.CurrentTime.AddSeconds(16.1f), NextOrigin = new(actor.Position.X, module.Bounds.Center.Z - module.Bounds.HalfSize + (shape == _shapeRect ? 0 : 5)) };
+        int laneIndex = LaneIndex(actor.Position);
+        _laneStates[laneIndex, heightIndex] = new() { Shape = shape, Activation = WorldState.FutureTime(16.1f), NextOrigin = new(actor.Position.X, Module.Bounds.Center.Z - Module.Bounds.HalfSize + (shape == _shapeRect ? 0 : 5)) };
     }
 
-    private int LaneIndex(BossModule module, WPos pos) => (pos.X - module.Bounds.Center.X) switch
+    private int LaneIndex(WPos pos) => (pos.X - Module.Bounds.Center.X) switch
     {
         < -10 => 0,
         < 0 => 1,
@@ -134,9 +134,9 @@ class Miasma : Components.GenericAOEs
         _ => 3,
     };
 
-    private void AdvanceLane(BossModule module, ref LaneState lane)
+    private void AdvanceLane(ref LaneState lane)
     {
-        lane.Activation = module.WorldState.CurrentTime.AddSeconds(1.6f);
+        lane.Activation = WorldState.FutureTime(1.6f);
         ++lane.NumCasts;
         if (lane.Shape == _shapeRect)
         {

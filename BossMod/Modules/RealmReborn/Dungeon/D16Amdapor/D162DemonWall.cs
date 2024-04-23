@@ -15,40 +15,31 @@ public enum AID : uint
     Repel = 1047, // Boss->self, 3.0s cast, range 40+R 180?-degree cone knockback 20 (non-immunable)
 }
 
-class LiquefyCenter : Components.SelfTargetedAOEs
-{
-    public LiquefyCenter() : base(ActionID.MakeSpell(AID.LiquefyCenter), new AOEShapeRect(50, 4)) { }
-}
+class LiquefyCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LiquefyCenter), new AOEShapeRect(50, 4));
+class LiquefySides(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LiquefySides), new AOEShapeRect(50, 3.5f));
 
-class LiquefySides : Components.SelfTargetedAOEs
+class Repel(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Repel), 20, true)
 {
-    public LiquefySides() : base(ActionID.MakeSpell(AID.LiquefySides), new AOEShapeRect(50, 3.5f)) { }
-}
-
-class Repel : Components.KnockbackFromCastTarget
-{
-    public Repel() : base(ActionID.MakeSpell(AID.Repel), 20, true) { }
-
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // custom hint: stay in narrow zone in center
         if (Casters.Count > 0)
         {
-            var safe = ShapeDistance.Rect(module.PrimaryActor.Position, 0.Degrees(), 50, -2, 1);
+            var safe = ShapeDistance.Rect(Module.PrimaryActor.Position, 0.Degrees(), 50, -2, 1);
             hints.AddForbiddenZone(p => -safe(p));
         }
     }
 }
 
-class ForbiddenZones : Components.GenericAOEs
+class ForbiddenZones(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect _shape = new(50, 10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        yield return new(_shape, module.PrimaryActor.Position, 180.Degrees()); // area behind boss
+        yield return new(_shape, Module.PrimaryActor.Position, 180.Degrees()); // area behind boss
 
-        var pollen = module.Enemies(OID.Pollen).FirstOrDefault();
+        var pollen = Module.Enemies(OID.Pollen).FirstOrDefault();
         if (pollen != null && pollen.EventState == 0)
             yield return new(_shape, new(200, -122));
     }
@@ -68,7 +59,4 @@ class D162DemonWallStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1694)]
-public class D162DemonWall : BossModule
-{
-    public D162DemonWall(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsRect(new(200, -131), 10, 21)) { }
-}
+public class D162DemonWall(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(200, -131), 10, 21));

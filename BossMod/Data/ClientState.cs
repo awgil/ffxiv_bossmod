@@ -22,19 +22,11 @@ public struct ClientActionReject
     public uint LogMessageID;
 }
 
-public struct Cooldown : IEquatable<Cooldown>
+public record struct Cooldown(float Elapsed, float Total)
 {
-    public float Elapsed;
-    public float Total;
+    public readonly float Remaining => Total - Elapsed;
 
-    public float Remaining => Total - Elapsed;
-
-    public static bool operator ==(Cooldown l, Cooldown r) => l.Elapsed == r.Elapsed && l.Total == r.Total;
-    public static bool operator !=(Cooldown l, Cooldown r) => l.Elapsed != r.Elapsed || l.Total != r.Total;
-    public override bool Equals(object? obj) => obj is Cooldown && this == (Cooldown)obj;
-    public override int GetHashCode() => Elapsed.GetHashCode() ^ Total.GetHashCode();
-    public override string ToString() => $"{Elapsed:f3}/{Total:f3}";
-    public bool Equals(Cooldown other) => this == other;
+    public override readonly string ToString() => $"{Elapsed:f3}/{Total:f3}";
 }
 
 // client-specific state and events (action requests, gauge, etc)
@@ -53,14 +45,14 @@ public class ClientState
         if (CountdownRemaining != null)
             yield return new OpCountdownChange() { Value = CountdownRemaining };
 
-        var cooldowns = Cooldowns.Select((v, i) => (i, v)).Where(iv => iv.Item2.Total > 0).ToList();
+        var cooldowns = Cooldowns.Select((v, i) => (i, v)).Where(iv => iv.v.Total > 0).ToList();
         if (cooldowns.Count > 0)
             yield return new OpCooldown() { Cooldowns = cooldowns };
 
         if (DutyActions.Any(a => a))
             yield return new OpDutyActionsChange() { Slot0 = DutyActions[0], Slot1 = DutyActions[1] };
 
-        var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.Item2 > 0).ToList();
+        var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.v > 0).ToList();
         if (BozjaHolster.Any(count => count != 0))
             yield return new OpBozjaHolsterChange() { Contents = bozjaHolster };
     }
@@ -85,10 +77,7 @@ public class ClientState
     {
         public ClientActionRequest Request;
 
-        protected override void Exec(WorldState ws)
-        {
-            ws.Client.ActionRequested?.Invoke(this);
-        }
+        protected override void Exec(WorldState ws) => ws.Client.ActionRequested?.Invoke(this);
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLAR")
             .Emit(Request.Action)
@@ -105,10 +94,7 @@ public class ClientState
     {
         public ClientActionReject Value;
 
-        protected override void Exec(WorldState ws)
-        {
-            ws.Client.ActionRejected?.Invoke(this);
-        }
+        protected override void Exec(WorldState ws) => ws.Client.ActionRejected?.Invoke(this);
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLRJ")
             .Emit(Value.Action)
@@ -141,7 +127,7 @@ public class ClientState
     public class OpCooldown : WorldState.Operation
     {
         public bool Reset;
-        public List<(int group, Cooldown value)> Cooldowns = new();
+        public List<(int group, Cooldown value)> Cooldowns = [];
 
         protected override void Exec(WorldState ws)
         {
@@ -181,7 +167,7 @@ public class ClientState
     public event Action<OpBozjaHolsterChange>? BozjaHolsterChanged;
     public class OpBozjaHolsterChange : WorldState.Operation
     {
-        public List<(BozjaHolsterID entry, byte count)> Contents = new();
+        public List<(BozjaHolsterID entry, byte count)> Contents = [];
 
         protected override void Exec(WorldState ws)
         {

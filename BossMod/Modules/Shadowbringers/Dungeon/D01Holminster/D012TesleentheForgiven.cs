@@ -33,47 +33,33 @@ public enum IconID : uint
     Stackmarker = 62, // player
 }
 
-class TheTickler : Components.SingleTargetDelayableCast
-{
-    public TheTickler() : base(ActionID.MakeSpell(AID.TheTickler)) { }
-}
+class TheTickler(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.TheTickler));
+class ScoldsBridle(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ScoldsBridle));
 
-class ScoldsBridle : Components.RaidwideCast
+class FeveredFlagellation(BossModule module) : Components.GenericBaitAway(module)
 {
-    public ScoldsBridle() : base(ActionID.MakeSpell(AID.ScoldsBridle)) { }
-}
-
-class FeveredFlagellation : Components.GenericBaitAway
-{
-    public override void Update(BossModule module)
+    public override void Update()
     {
         foreach (var b in CurrentBaits)
             ((AOEShapeRect)b.Shape).LengthFront = (b.Target.Position - b.Source.Position).Length();
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.FeveredFlagellation2)
             CurrentBaits.RemoveAt(0);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         var icon = (IconID)iconID;
-        if (icon >= IconID.Icon1 && icon <= IconID.Icon4)
-            CurrentBaits.Add(new(module.PrimaryActor, actor, new AOEShapeRect(0, 2)));
+        if (icon is >= IconID.Icon1 and <= IconID.Icon4)
+            CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeRect(0, 2)));
     }
 }
 
-class Exorcise : Components.StackWithCastTargets
-{
-    public Exorcise() : base(ActionID.MakeSpell(AID.ExorciseA), 6) { }
-}
-
-class HolyWater : Components.PersistentVoidzoneAtCastTarget
-{
-    public HolyWater() : base(6, ActionID.MakeSpell(AID.HolyWater), m => m.Enemies(OID.HolyWaterVoidzone).Where(z => z.EventState != 7), 0.8f) { }
-}
+class Exorcise(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ExorciseA), 6);
+class HolyWater(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.HolyWater), m => m.Enemies(OID.HolyWaterVoidzone).Where(z => z.EventState != 7), 0.8f);
 
 class D012TesleentheForgivenStates : StateMachineBuilder
 {
@@ -89,7 +75,4 @@ class D012TesleentheForgivenStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8300)]
-public class D012TesleentheForgiven : BossModule
-{
-    public D012TesleentheForgiven(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(78, -82), 19.5f)) { }
-}
+public class D012TesleentheForgiven(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(78, -82), 19.5f));

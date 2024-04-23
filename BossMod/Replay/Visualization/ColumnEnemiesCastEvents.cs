@@ -6,13 +6,12 @@ namespace BossMod.ReplayVisualization;
 // by default contains a single column showing all actions from all sources, but extra columns can be added and per-column filters can be assigned
 public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
 {
-    private StateMachineTree _tree;
-    private List<int> _phaseBranches;
-    private Replay _replay;
-    private Replay.Encounter _encounter;
-    private ModuleRegistry.Info? _moduleInfo;
-    private List<Replay.Action> _actions;
-    private Dictionary<ActionID, List<(Replay.Participant source, BitMask cols)>> _filters = new(); // [action][sourceid]
+    private readonly StateMachineTree _tree;
+    private readonly List<int> _phaseBranches;
+    private readonly Replay.Encounter _encounter;
+    private readonly ModuleRegistry.Info? _moduleInfo;
+    private readonly List<Replay.Action> _actions;
+    private readonly Dictionary<ActionID, List<(Replay.Participant source, BitMask cols)>> _filters = []; // [action][sourceid]
 
     public ColumnEnemiesCastEvents(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
         : base(timeline)
@@ -20,10 +19,9 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
         //Name = "Enemy cast events";
         _tree = tree;
         _phaseBranches = phaseBranches;
-        _replay = replay;
         _encounter = enc;
         _moduleInfo = ModuleRegistry.FindByOID(enc.OID);
-        _actions = replay.EncounterActions(enc).Where(a => !(a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
+        _actions = replay.EncounterActions(enc).Where(a => a.Source.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo)).ToList();
         foreach (var a in _actions)
         {
             var f = _filters.GetOrAdd(a.ID);

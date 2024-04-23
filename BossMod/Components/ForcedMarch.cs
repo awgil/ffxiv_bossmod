@@ -3,39 +3,39 @@
 // generic component dealing with 'forced march' mechanics
 // these mechanics typically feature 'march left/right/forward/backward' debuffs, which rotate player and apply 'forced march' on expiration
 // if there are several active march debuffs, we assume they are chained together
-public class GenericForcedMarch : BossComponent
+public class GenericForcedMarch(BossModule module, float activationLimit = float.MaxValue) : BossComponent(module)
 {
     public class PlayerState
     {
-        public List<(Angle dir, float duration, DateTime activation)> PendingMoves = new();
+        public List<(Angle dir, float duration, DateTime activation)> PendingMoves = [];
         public DateTime ForcedEnd; // zero if forced march not active
 
         public bool Active(BossModule module) => ForcedEnd > module.WorldState.CurrentTime || PendingMoves.Count > 0;
     }
 
     public int NumActiveForcedMarches { get; private set; }
-    public Dictionary<ulong, PlayerState> State = new(); // key = instance ID
+    public Dictionary<ulong, PlayerState> State = []; // key = instance ID
     public float MovementSpeed = 6; // default movement speed, can be overridden if necessary
-    public float ActivationLimit = float.MaxValue; // do not show pending moves that activate later than this limit
+    public float ActivationLimit = activationLimit; // do not show pending moves that activate later than this limit
 
     // called to determine whether we need to show hint
-    public virtual bool DestinationUnsafe(BossModule module, int slot, Actor actor, WPos pos) => !module.Bounds.Contains(pos);
+    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos);
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var last = ForcedMovements(module, actor).LastOrDefault();
-        if (last.from != last.to && DestinationUnsafe(module, slot, actor, last.to))
+        var last = ForcedMovements(actor).LastOrDefault();
+        if (last.from != last.to && DestinationUnsafe(slot, actor, last.to))
             hints.Add("Aim for safe spot!");
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var m in ForcedMovements(module, pc))
+        foreach (var m in ForcedMovements(pc))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddLine(m.from, m.to, 0xFF000000, 2);
-            arena.AddLine(m.from, m.to, ArenaColor.Danger);
-            arena.Actor(m.to, m.dir, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddLine(m.from, m.to, 0xFF000000, 2);
+            Arena.AddLine(m.from, m.to, ArenaColor.Danger);
+            Arena.Actor(m.to, m.dir, ArenaColor.Danger);
         }
     }
 
@@ -46,7 +46,7 @@ public class GenericForcedMarch : BossComponent
         moves.SortBy(e => e.activation);
     }
 
-    public bool HasForcedMovements(BossModule module, Actor player) => State.GetValueOrDefault(player.InstanceID)?.Active(module) ?? false;
+    public bool HasForcedMovements(Actor player) => State.GetValueOrDefault(player.InstanceID)?.Active(Module) ?? false;
 
     public void ActivateForcedMovement(Actor player, DateTime expiration)
     {
@@ -60,7 +60,7 @@ public class GenericForcedMarch : BossComponent
         --NumActiveForcedMarches;
     }
 
-    public IEnumerable<(WPos from, WPos to, Angle dir)> ForcedMovements(BossModule module, Actor player)
+    public IEnumerable<(WPos from, WPos to, Angle dir)> ForcedMovements(Actor player)
     {
         var state = State.GetValueOrDefault(player.InstanceID);
         if (state == null)
@@ -68,16 +68,16 @@ public class GenericForcedMarch : BossComponent
 
         var from = player.Position;
         var dir = player.Rotation;
-        if (state.ForcedEnd > module.WorldState.CurrentTime)
+        if (state.ForcedEnd > WorldState.CurrentTime)
         {
             // note: as soon as player starts marching, he turns to desired direction
             // TODO: would be nice to use non-interpolated rotation here...
-            var to = from + MovementSpeed * (float)(state.ForcedEnd - module.WorldState.CurrentTime).TotalSeconds * dir.ToDirection();
+            var to = from + MovementSpeed * (float)(state.ForcedEnd - WorldState.CurrentTime).TotalSeconds * dir.ToDirection();
             yield return (from, to, dir);
             from = to;
         }
 
-        var limit = ActivationLimit < float.MaxValue ? module.WorldState.CurrentTime.AddSeconds(ActivationLimit) : DateTime.MaxValue;
+        var limit = ActivationLimit < float.MaxValue ? WorldState.FutureTime(ActivationLimit) : DateTime.MaxValue;
         foreach (var move in state.PendingMoves.TakeWhile(move => move.activation <= limit))
         {
             dir += move.dir;
@@ -89,18 +89,12 @@ public class GenericForcedMarch : BossComponent
 }
 
 // typical forced march is driven by statuses
-public class StatusDrivenForcedMarch : GenericForcedMarch
+public class StatusDrivenForcedMarch(BossModule module, float duration, uint statusForward, uint statusBackward, uint statusLeft, uint statusRight, uint statusForced = 1257, float activationLimit = float.MaxValue) : GenericForcedMarch(module, activationLimit)
 {
-    public float Duration;
-    public uint[] Statuses; // 5 elements: fwd, left, back, right, forced
+    public float Duration = duration;
+    public readonly uint[] Statuses = [statusForward, statusLeft, statusBackward, statusRight, statusForced]; // 5 elements: fwd, left, back, right, forced
 
-    public StatusDrivenForcedMarch(float duration, uint statusForward, uint statusBackward, uint statusLeft, uint statusRight, uint statusForced = 1257)
-    {
-        Duration = duration;
-        Statuses = new[] { statusForward, statusLeft, statusBackward, statusRight, statusForced };
-    }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var statusKind = Array.IndexOf(Statuses, status.ID);
         if (statusKind == 4)
@@ -113,7 +107,7 @@ public class StatusDrivenForcedMarch : GenericForcedMarch
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         var statusKind = Array.IndexOf(Statuses, status.ID);
         if (statusKind == 4)

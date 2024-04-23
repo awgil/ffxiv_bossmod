@@ -2,14 +2,14 @@
 
 class TEAStates : StateMachineBuilder
 {
-    private TEA _module;
+    private readonly TEA _module;
 
     public TEAStates(TEA module) : base(module)
     {
         _module = module;
         SimplePhase(0, Phase1LivingLiquid, "P1: Living Liquid")
             .ActivateOnEnter<P1HandOfPain>()
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead; // phase 1 ends either with wipe (everything destroyed) or success (boss dies, then is destroyed few seconds into next phase)
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed; // phase 1 ends either with wipe (everything destroyed) or success (boss dies, then is destroyed few seconds into next phase)
         SimplePhase(1, Phase2BruteJusticeCruiseChaser, "P2: BJ+CC")
             .Raw.Update = () =>
             {
@@ -683,7 +683,7 @@ class TEAStates : StateMachineBuilder
             .DeactivateOnExit<P4FateCalibrationBetaDebuffs>() // tethers & shared sentence resolve ~1s before jumps
             .DeactivateOnExit<P4FateCalibrationBetaJJump>();
         ComponentCondition<P4FateCalibrationBetaOpticalSight>(id + 0x130, 6, comp => comp.Done, "Stack/spread")
-            .ExecOnEnter<P4FateCalibrationBetaOpticalSight>(comp => comp.Show(Module))
+            .ExecOnEnter<P4FateCalibrationBetaOpticalSight>(comp => comp.Show())
             .DeactivateOnExit<P4FateCalibrationBetaOpticalSight>();
         ComponentCondition<P4FateCalibrationBetaRadiantSacrament>(id + 0x140, 5, comp => comp.NumCasts > 0, "Donut")
             .ExecOnEnter<P4FateCalibrationBetaRadiantSacrament>(comp => comp.Show())

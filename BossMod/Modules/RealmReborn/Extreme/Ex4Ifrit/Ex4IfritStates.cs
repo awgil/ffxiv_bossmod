@@ -8,7 +8,7 @@
 // TODO: biggest improvement to do would be to specify incinerate timings (these seem to be pretty consistent, at least with decent dps) and replace hardcoded cooldowns with planned
 class Ex4IfritStates : StateMachineBuilder
 {
-    Ex4Ifrit _module;
+    readonly Ex4Ifrit _module;
 
     public Ex4IfritStates(Ex4Ifrit module) : base(module)
     {
@@ -31,8 +31,8 @@ class Ex4IfritStates : StateMachineBuilder
     }
 
     private void NailsSubphase<AINails, AIHellfire>(uint id, string name, bool withFetters, bool startWithOT, float nailEnrage)
-        where AINails : Ex4IfritAINails, new()
-        where AIHellfire : Ex4IfritAIHellfire, new()
+        where AINails : Ex4IfritAINails
+        where AIHellfire : Ex4IfritAIHellfire
     {
         Condition(id, 1000, () => _module.SmallNails.Any(a => a.IsTargetable && !a.IsDead), name)
             .ActivateOnEnter<Incinerate>()

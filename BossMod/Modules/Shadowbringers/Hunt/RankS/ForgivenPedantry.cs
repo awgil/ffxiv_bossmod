@@ -7,7 +7,7 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttack_SanctifiedScathe = 17439, // 298A->player, no cast, single-target
+    AutoAttackSanctifiedScathe = 17439, // 298A->player, no cast, single-target
     LeftCheek = 17446, // 298A->self, 5,0s cast, range 60 180-degree cone
     LeftCheek2 = 17447, // 298A->self, no cast, range 60 180-degree cone
     RightCheek = 17448, // 298A->self, 5,0s cast, range 60 180-degree cone
@@ -22,27 +22,27 @@ public enum AID : uint
     WitchHunt2 = 17445, // 298A->players, no cast, width 10 rect charge, targets main tank
 }
 
-class LeftRightCheek : Components.GenericAOEs
+class LeftRightCheek(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCone cone = new(60, 90.Degrees());
     private DateTime _activation;
     private Angle _rotation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
         {
             if (NumCasts == 0)
             {
-                yield return new(cone, module.PrimaryActor.Position, _rotation, _activation, ArenaColor.Danger);
-                yield return new(cone, module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(3.1f), risky: false);
+                yield return new(cone, Module.PrimaryActor.Position, _rotation, _activation, ArenaColor.Danger);
+                yield return new(cone, Module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(3.1f), Risky: false);
             }
             if (NumCasts == 1)
-                yield return new(cone, module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(3.1f), ArenaColor.Danger);
+                yield return new(cone, Module.PrimaryActor.Position, _rotation + 180.Degrees(), _activation.AddSeconds(3.1f), ArenaColor.Danger);
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.LeftCheek or AID.RightCheek)
         {
@@ -51,13 +51,13 @@ class LeftRightCheek : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.LeftCheek or AID.RightCheek)
             ++NumCasts;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.LeftCheek2 or AID.RightCheek2)
         {
@@ -67,64 +67,44 @@ class LeftRightCheek : Components.GenericAOEs
     }
 }
 
-class TerrifyingGlance : Components.CastGaze
-{
-    public TerrifyingGlance() : base(ActionID.MakeSpell(AID.TerrifyingGlance)) { }
-}
+class TerrifyingGlance(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.TerrifyingGlance));
+class TheStake(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheStake), new AOEShapeCircle(18));
+class SecondCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SecondCircle), new AOEShapeRect(40, 4));
+class CleansingFire(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CleansingFire));
 
-class TheStake : Components.SelfTargetedAOEs
+class FeveredFlagellation(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.FeveredFlagellation), new AOEShapeCone(15, 45.Degrees()))
 {
-    public TheStake() : base(ActionID.MakeSpell(AID.TheStake), new AOEShapeCircle(18)) { }
-}
-
-class SecondCircle : Components.SelfTargetedAOEs
-{
-    public SecondCircle() : base(ActionID.MakeSpell(AID.SecondCircle), new AOEShapeRect(40, 4)) { }
-}
-
-class CleansingFire : Components.CastGaze
-{
-    public CleansingFire() : base(ActionID.MakeSpell(AID.CleansingFire)) { }
-}
-
-class FeveredFlagellation : Components.BaitAwayCast
-{
-    public FeveredFlagellation() : base(ActionID.MakeSpell(AID.FeveredFlagellation), new AOEShapeCone(15, 45.Degrees())) { }
-
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell) { }
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell) //tankbuster resolves on cast event, which can be delayed by moving out of tankbuster range
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell) { }
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) //tankbuster resolves on cast event, which can be delayed by moving out of tankbuster range
     {
         if (spell.Action == WatchedAction)
             CurrentBaits.RemoveAll(b => b.Source == caster);
     }
 }
 
-class FeveredFlagellationHint : Components.SingleTargetCast
-{
-    public FeveredFlagellationHint() : base(ActionID.MakeSpell(AID.FeveredFlagellation), "Cleave tankbuster") { }
-}
+class FeveredFlagellationHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FeveredFlagellation), "Cleave tankbuster");
 
-class WitchHunt : Components.GenericBaitAway
+class WitchHunt(BossModule module) : Components.GenericBaitAway(module)
 {
-    private static readonly AOEShapeRect rect = new AOEShapeRect(0, 5);
+    private static readonly AOEShapeRect rect = new(0, 5);
     private bool witchHunt1done;
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         foreach (var b in CurrentBaits)
             ((AOEShapeRect)b.Shape).LengthFront = (b.Target.Position - b.Source.Position).Length();
         if (CurrentBaits.Count > 0 && witchHunt1done) //updating WitchHunt2 target incase of sudden tank swap
         {
             var Target = CurrentBaits[0];
-            Target.Target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID)!;
+            Target.Target = WorldState.Actors.Find(Module.PrimaryActor.TargetID)!;
             CurrentBaits[0] = Target;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SanctifiedShock)
-            CurrentBaits.Add(new(module.PrimaryActor, module.WorldState.Actors.Find(spell.MainTargetID)!, rect));
+            CurrentBaits.Add(new(Module.PrimaryActor, WorldState.Actors.Find(spell.MainTargetID)!, rect));
         if ((AID)spell.Action.ID == AID.WitchHunt2)
         {
             CurrentBaits.Clear();
@@ -132,12 +112,12 @@ class WitchHunt : Components.GenericBaitAway
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WitchHunt)
         {
             CurrentBaits.Clear();
-            CurrentBaits.Add(new(module.PrimaryActor, module.WorldState.Actors.Find(module.PrimaryActor.TargetID)!, rect));
+            CurrentBaits.Add(new(Module.PrimaryActor, WorldState.Actors.Find(Module.PrimaryActor.TargetID)!, rect));
         }
     }
 }
@@ -159,7 +139,4 @@ class ForgivenPedantryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8910)]
-public class ForgivenPedantry : SimpleBossModule
-{
-    public ForgivenPedantry(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class ForgivenPedantry(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

@@ -1,23 +1,14 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex4Ifrit;
 
 // common ai features for whole fight
-class Ex4IfritAICommon : BossComponent
+class Ex4IfritAICommon(BossModule module) : BossComponent(module)
 {
-    private Incinerate? _incinerate;
-    private Eruption? _eruption;
-    private SearingWind? _searingWind;
-    private InfernalFetters? _infernalFetters;
-    protected DateTime CreatedAt;
+    private readonly Incinerate? _incinerate = module.FindComponent<Incinerate>();
+    private readonly Eruption? _eruption = module.FindComponent<Eruption>();
+    private readonly SearingWind? _searingWind = module.FindComponent<SearingWind>();
+    private readonly InfernalFetters? _infernalFetters = module.FindComponent<InfernalFetters>();
+    protected DateTime CreatedAt = module.WorldState.CurrentTime;
     public PartyRolesConfig.Assignment BossTankRole = PartyRolesConfig.Assignment.Unassigned;
-
-    public override void Init(BossModule module)
-    {
-        _incinerate = module.FindComponent<Incinerate>();
-        _eruption = module.FindComponent<Eruption>();
-        _searingWind = module.FindComponent<SearingWind>();
-        _infernalFetters = module.FindComponent<InfernalFetters>();
-        CreatedAt = module.WorldState.CurrentTime;
-    }
 
     protected bool IsInvincible(Actor actor) => actor.FindStatus(SID.Invincibility) != null;
     protected int TankVulnStacks(Actor? tank) => tank?.FindStatus(SID.Suppuration)?.Extra ?? 0;
@@ -27,12 +18,12 @@ class Ex4IfritAICommon : BossComponent
     protected bool IsFettered(int slot) => _infernalFetters != null && _infernalFetters.Fetters[slot];
     protected int IncinerateCount => _incinerate?.NumCasts ?? 0;
 
-    protected void UpdateBossTankingProperties(BossModule module, AIHints.Enemy boss, Actor player, PartyRolesConfig.Assignment assignment)
+    protected void UpdateBossTankingProperties(AIHints.Enemy boss, Actor player, PartyRolesConfig.Assignment assignment)
     {
         boss.AttackStrength = 0.35f;
-        boss.DesiredRotation = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center); // point to the wall
-        if (!module.PrimaryActor.Position.InCircle(module.Bounds.Center, 13)) // 13 == radius (20) - tank distance (2) - hitbox (5)
-            boss.DesiredPosition = module.Bounds.Center + 13 * boss.DesiredRotation.ToDirection();
+        boss.DesiredRotation = Angle.FromDirection(Module.PrimaryActor.Position - Module.Bounds.Center); // point to the wall
+        if (!Module.PrimaryActor.Position.InCircle(Module.Bounds.Center, 13)) // 13 == radius (20) - tank distance (2) - hitbox (5)
+            boss.DesiredPosition = Module.Bounds.Center + 13 * boss.DesiredRotation.ToDirection();
         if (player.Role == Role.Tank)
         {
             if (player.InstanceID == boss.Actor.TargetID)
@@ -41,11 +32,11 @@ class Ex4IfritAICommon : BossComponent
                 boss.ShouldBeTanked = true;
             }
             else if (assignment == BossTankRole)
-            //else if (TankVulnStacks(player) == 0 && TankVulnStacks(module.WorldState.Actors.Find(boss.Actor.TargetID)) >= 2)
+            //else if (TankVulnStacks(player) == 0 && TankVulnStacks(WorldState.Actors.Find(boss.Actor.TargetID)) >= 2)
             {
                 // taunt if safe
-                var dirIfTaunted = Angle.FromDirection(player.Position - module.PrimaryActor.Position);
-                boss.PreferProvoking = boss.ShouldBeTanked = !module.Raid.WithoutSlot().Any(a => a.Role != Role.Tank && Incinerate.CleaveShape.Check(a.Position, module.PrimaryActor.Position, dirIfTaunted));
+                var dirIfTaunted = Angle.FromDirection(player.Position - Module.PrimaryActor.Position);
+                boss.PreferProvoking = boss.ShouldBeTanked = !Raid.WithoutSlot().Any(a => a.Role != Role.Tank && Incinerate.CleaveShape.Check(a.Position, Module.PrimaryActor.Position, dirIfTaunted));
             }
         }
     }
@@ -55,11 +46,11 @@ class Ex4IfritAICommon : BossComponent
         hints.AddForbiddenZone(ShapeDistance.InvertedCircle(target, radius), asap ? new() : DateTime.MaxValue);
     }
 
-    protected void AddDefaultEruptionBaiterHints(BossModule module, AIHints hints)
+    protected void AddDefaultEruptionBaiterHints(AIHints hints)
     {
         // avoid non-baiters (TODO: should this be done by eruption component itself?)
         if (_eruption != null)
-            foreach (var (i, p) in module.Raid.WithSlot().ExcludedFromMask(_eruption.Baiters))
+            foreach (var (i, p) in Raid.WithSlot().ExcludedFromMask(_eruption.Baiters))
                 hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, _eruption.Shape.Radius));
     }
 
@@ -100,19 +91,19 @@ class Ex4IfritAICommon : BossComponent
 // - non-caster dd stand in a clump near right leg (45 degrees, to allow both types of positionals for melees)
 // - casters (typically 1) stand farther away - this way they are out of vulcan burst range and won't have to move if not targeted by eruptions
 // - for dd eruption baiters, we provide a defined bait spot for second eruption, same distance away from both caster and non-caster locations
-class Ex4IfritAINormal : Ex4IfritAICommon
+class Ex4IfritAINormal(BossModule module) : Ex4IfritAICommon(module)
 {
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var bossAngle = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center);
+        var bossAngle = Angle.FromDirection(Module.PrimaryActor.Position - Module.Bounds.Center);
         var toBoss = bossAngle.ToDirection();
 
-        var boss = hints.PotentialTargets.Find(e => e.Actor == module.PrimaryActor);
+        var boss = hints.PotentialTargets.Find(e => e.Actor == Module.PrimaryActor);
         if (boss != null)
         {
             boss.Priority = 1;
             boss.StayAtLongRange = true;
-            UpdateBossTankingProperties(module, boss, actor, assignment);
+            UpdateBossTankingProperties(boss, actor, assignment);
         }
 
         // position hints
@@ -121,18 +112,18 @@ class Ex4IfritAINormal : Ex4IfritAICommon
             // eruption bait hints
             if (IsEruptionBaiter(slot))
             {
-                if (actor.Role is Role.Melee or Role.Ranged && module.PrimaryActor.CastInfo != null)
+                if (actor.Role is Role.Melee or Role.Ranged && Module.PrimaryActor.CastInfo != null)
                 {
                     // specific spot for first baits
-                    AddPositionHint(hints, module.PrimaryActor.Position - 11.5f * toBoss + 11 * toBoss.OrthoR());
+                    AddPositionHint(hints, Module.PrimaryActor.Position - 11.5f * toBoss + 11 * toBoss.OrthoR());
                 }
                 else
                 {
-                    AddDefaultEruptionBaiterHints(module, hints);
+                    AddDefaultEruptionBaiterHints(hints);
                 }
             }
         }
-        else if (module.PrimaryActor.TargetID != actor.InstanceID)
+        else if (Module.PrimaryActor.TargetID != actor.InstanceID)
         {
             // default positions:
             // - MT assumed to point boss along radius (both to avoid own knockbacks and to simplify positioning); others position relative to direction to boss (this will fail if MT positions boss incorrectly, but oh well)
@@ -147,27 +138,27 @@ class Ex4IfritAINormal : Ex4IfritAICommon
                 // - at +135 degrees - gives lots of space to OT eruption baits, but can't heal MT
                 // - at +80 degrees - can heal MT, but tight for OT (eruptions, knockbacks...)
                 // - at +100-110 degrees - can heal MT, decent space for OT, but can't possibly fit two targets - that's actually fine?..
-                var dir = !actor.Position.InCircle(module.Bounds.Center, 10) ? Angle.FromDirection(actor.Position - module.Bounds.Center)
+                var dir = !actor.Position.InCircle(Module.Bounds.Center, 10) ? Angle.FromDirection(actor.Position - Module.Bounds.Center)
                     : bossAngle + 105.Degrees();
-                AddPositionHint(hints, module.Bounds.Center + 18 * dir.ToDirection());
+                AddPositionHint(hints, Module.Bounds.Center + 18 * dir.ToDirection());
             }
             else if (IsFettered(slot))
             {
                 var dir = bossAngle + (actor.Role == Role.Tank ? 75 : -135).Degrees();
-                AddPositionHint(hints, module.PrimaryActor.Position + 3 * dir.ToDirection());
+                AddPositionHint(hints, Module.PrimaryActor.Position + 3 * dir.ToDirection());
             }
             else if (actor.Role == Role.Tank)
             {
-                AddPositionHint(hints, module.PrimaryActor.Position + 7.5f * (bossAngle + 75.Degrees()).ToDirection());
+                AddPositionHint(hints, Module.PrimaryActor.Position + 7.5f * (bossAngle + 75.Degrees()).ToDirection());
             }
             else if (actor.Role == Role.Healer)
             {
-                //AddPositionHint(hints, module.PrimaryActor.Position - 11.5f * toBoss);
-                AddPositionHint(hints, module.Bounds.Center);
+                //AddPositionHint(hints, Module.PrimaryActor.Position - 11.5f * toBoss);
+                AddPositionHint(hints, Module.Bounds.Center);
             }
             else
             {
-                var pos = module.PrimaryActor.Position + 6 * (bossAngle - 135.Degrees()).ToDirection();
+                var pos = Module.PrimaryActor.Position + 6 * (bossAngle - 135.Degrees()).ToDirection();
                 if (actor.Class.GetClassCategory() == ClassCategory.Caster)
                     pos -= 15 * toBoss;
                 AddPositionHint(hints, pos);
@@ -175,12 +166,12 @@ class Ex4IfritAINormal : Ex4IfritAICommon
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (module.PrimaryActor.TargetID == pc.InstanceID)
+        if (Module.PrimaryActor.TargetID == pc.InstanceID)
         {
             // cone to help mt with proper positioning
-            arena.AddCone(module.PrimaryActor.Position, 2, Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center), Incinerate.CleaveShape.HalfAngle, ArenaColor.Safe);
+            Arena.AddCone(Module.PrimaryActor.Position, 2, Angle.FromDirection(Module.PrimaryActor.Position - Module.Bounds.Center), Incinerate.CleaveShape.HalfAngle, ArenaColor.Safe);
         }
     }
 }
@@ -194,46 +185,42 @@ class Ex4IfritAINormal : Ex4IfritAICommon
 // - dd stay anywhere outside cleave range and center (so that not to bait eruptions on healers)
 class Ex4IfritAINails : Ex4IfritAINormal
 {
-    private List<Actor> NailKillOrder = new();
-    private int MinNailsForCWSearingWinds;
+    private readonly List<Actor> NailKillOrder = [];
+    private readonly int MinNailsForCWSearingWinds;
     private BitMask OTTankAtIncinerateCounts;
 
-    public Ex4IfritAINails(int minNailsForCWSearingWinds, ulong otTankAtIncinerateCounts)
+    public Ex4IfritAINails(BossModule module, int minNailsForCWSearingWinds, ulong otTankAtIncinerateCounts) : base(module)
     {
         MinNailsForCWSearingWinds = minNailsForCWSearingWinds;
         OTTankAtIncinerateCounts = new(otTankAtIncinerateCounts);
-    }
 
-    public override void Init(BossModule module)
-    {
-        base.Init(module);
         var smallNails = module.Enemies(OID.InfernalNailSmall);
-        var startingNail = smallNails.Closest(module.Bounds.Center + new WDir(15, 0));
+        var startingNail = smallNails.Closest(Module.Bounds.Center + new WDir(15, 0));
         if (startingNail != null)
         {
             NailKillOrder.Add(startingNail);
-            var startingDir = Angle.FromDirection(startingNail.Position - module.Bounds.Center);
-            NailKillOrder.AddRange(smallNails.Exclude(startingNail).Select(n => (n, NailDirDist(n.Position - module.Bounds.Center, startingDir))).OrderBy(t => t.Item2.Item1).ThenBy(t => t.Item2.Item2).Select(t => t.Item1));
+            var startingDir = Angle.FromDirection(startingNail.Position - Module.Bounds.Center);
+            NailKillOrder.AddRange(smallNails.Exclude(startingNail).Select(n => (n, NailDirDist(n.Position - Module.Bounds.Center, startingDir))).OrderBy(t => t.Item2.Item1).ThenBy(t => t.Item2.Item2).Select(t => t.n));
         }
         NailKillOrder.AddRange(module.Enemies(OID.InfernalNailLarge));
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         NailKillOrder.RemoveAll(a => a.IsDestroyed || a.IsDead);
         BossTankRole = OTTankAtIncinerateCounts[IncinerateCount] ? PartyRolesConfig.Assignment.OT : PartyRolesConfig.Assignment.MT;
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var nextNail = NailKillOrder.FirstOrDefault();
         if (nextNail == null)
         {
-            base.AddAIHints(module, slot, actor, assignment, hints);
+            base.AddAIHints(slot, actor, assignment, hints);
         }
         else
         {
-            var bossAngle = Angle.FromDirection(module.PrimaryActor.Position - module.Bounds.Center);
+            var bossAngle = Angle.FromDirection(Module.PrimaryActor.Position - Module.Bounds.Center);
             foreach (var e in hints.PotentialTargets)
             {
                 e.StayAtLongRange = true;
@@ -241,7 +228,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
                 {
                     case OID.Boss:
                         e.Priority = 1; // attack only if it's the only thing to do...
-                        UpdateBossTankingProperties(module, e, actor, assignment);
+                        UpdateBossTankingProperties(e, actor, assignment);
                         if (nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation, Incinerate.CleaveShape.HalfAngle))
                         {
                             var bossToNail = Angle.FromDirection(nextNail.Position - e.Actor.Position);
@@ -261,46 +248,46 @@ class Ex4IfritAINails : Ex4IfritAINormal
             // position hints
             if (IsEruptionBaiter(slot))
             {
-                AddDefaultEruptionBaiterHints(module, hints);
+                AddDefaultEruptionBaiterHints(hints);
             }
-            else if (module.PrimaryActor.TargetID != actor.InstanceID)
+            else if (Module.PrimaryActor.TargetID != actor.InstanceID)
             {
                 bool invertedSW = NailKillOrder.Count <= MinNailsForCWSearingWinds;
                 if (IsSearingWindTarget(actor))
                 {
-                    var dir = !actor.Position.InCircle(module.Bounds.Center, 10) ? Angle.FromDirection(actor.Position - module.Bounds.Center)
+                    var dir = !actor.Position.InCircle(Module.Bounds.Center, 10) ? Angle.FromDirection(actor.Position - Module.Bounds.Center)
                         : bossAngle + (invertedSW ? -105 : 105).Degrees();
-                    AddPositionHint(hints, module.Bounds.Center + 18 * dir.ToDirection());
+                    AddPositionHint(hints, Module.Bounds.Center + 18 * dir.ToDirection());
                 }
                 else if (assignment == BossTankRole)
                 {
                     var dir = bossAngle + (invertedSW ? 75 : -75).Degrees();
-                    AddPositionHint(hints, module.PrimaryActor.Position + 7.5f * dir.ToDirection());
+                    AddPositionHint(hints, Module.PrimaryActor.Position + 7.5f * dir.ToDirection());
                 }
                 else if (actor.Role == Role.Healer)
                 {
-                    AddPositionHint(hints, module.Bounds.Center);
+                    AddPositionHint(hints, Module.Bounds.Center);
                 }
                 else
                 {
                     // in addition to usual hints, we want to avoid center (so that we don't bait eruption there)
                     if (!EruptionActive)
-                        hints.AddForbiddenZone(ShapeDistance.Circle(module.Bounds.Center, Eruption.Radius));
+                        hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, Eruption.Radius));
                 }
             }
 
             // heavy raidwide on large nail death
             if ((OID)nextNail.OID == OID.InfernalNailLarge && nextNail.HP.Cur < 0.5f * nextNail.HP.Max)
-                hints.PredictedDamage.Add((module.Raid.WithSlot().Mask(), new()));
+                hints.PredictedDamage.Add((Raid.WithSlot().Mask(), new()));
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         var nextNail = NailKillOrder.FirstOrDefault();
         if (nextNail != null)
-            arena.AddCircle(nextNail.Position, 2, ArenaColor.Safe);
+            Arena.AddCircle(nextNail.Position, 2, ArenaColor.Safe);
     }
 
     private (float, float) NailDirDist(WDir offset, Angle startingDir)
@@ -312,49 +299,43 @@ class Ex4IfritAINails : Ex4IfritAINormal
     }
 }
 
-class Ex4IfritAINails1 : Ex4IfritAINails
+class Ex4IfritAINails1(BossModule module) : Ex4IfritAINails(module, 1, 0x8)
 {
-    public Ex4IfritAINails1() : base(1, 0x8) { }
-
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
 
-        if (module.PrimaryActor.TargetID == actor.InstanceID)
+        if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {
-            var phaseTime = (float)(module.WorldState.CurrentTime - CreatedAt).TotalSeconds;
+            var phaseTime = (float)(WorldState.CurrentTime - CreatedAt).TotalSeconds;
             PlanRampart(hints, actor, phaseTime, 10, 20);
         }
     }
 }
 
-class Ex4IfritAINails2 : Ex4IfritAINails
+class Ex4IfritAINails2(BossModule module) : Ex4IfritAINails(module, 4, 0x7)
 {
-    public Ex4IfritAINails2() : base(4, 0x7) { }
-
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
 
-        if (module.PrimaryActor.TargetID == actor.InstanceID)
+        if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {
-            var phaseTime = (float)(module.WorldState.CurrentTime - CreatedAt).TotalSeconds;
+            var phaseTime = (float)(WorldState.CurrentTime - CreatedAt).TotalSeconds;
             PlanRampart(hints, actor, phaseTime, 8, 13);
         }
     }
 }
 
-class Ex4IfritAINails3 : Ex4IfritAINails
+class Ex4IfritAINails3(BossModule module) : Ex4IfritAINails(module, 7, 0x3C70)
 {
-    public Ex4IfritAINails3() : base(7, 0x3C70) { }
-
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(module, slot, actor, assignment, hints);
+        base.AddAIHints(slot, actor, assignment, hints);
 
-        if (module.PrimaryActor.TargetID == actor.InstanceID)
+        if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {
-            var phaseTime = (float)(module.WorldState.CurrentTime - CreatedAt).TotalSeconds;
+            var phaseTime = (float)(WorldState.CurrentTime - CreatedAt).TotalSeconds;
             PlanRampart(hints, actor, phaseTime, 9, 13);
             PlanReprisal(hints, actor, phaseTime, 20, 25);
             PlanStrongCooldown(hints, actor, phaseTime, 35, 40);
@@ -371,43 +352,43 @@ class Ex4IfritAIHellfire : Ex4IfritAICommon
 {
     private WDir _safespotOffset;
 
-    public Ex4IfritAIHellfire(Angle safeSpotDir, PartyRolesConfig.Assignment tankRole)
+    public Ex4IfritAIHellfire(BossModule module, Angle safeSpotDir, PartyRolesConfig.Assignment tankRole) : base(module)
     {
         _safespotOffset = 18 * safeSpotDir.ToDirection();
         BossTankRole = tankRole;
     }
 
-    public override void AddAIHints(BossModule module, int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var boss = hints.PotentialTargets.Find(e => e.Actor == module.PrimaryActor);
+        var boss = hints.PotentialTargets.Find(e => e.Actor == Module.PrimaryActor);
         if (boss != null)
         {
             boss.Priority = 1;
             boss.StayAtLongRange = true;
             boss.DesiredRotation = Angle.FromDirection(_safespotOffset);
-            boss.DesiredPosition = module.Bounds.Center + 13 * boss.DesiredRotation.ToDirection();
+            boss.DesiredPosition = Module.Bounds.Center + 13 * boss.DesiredRotation.ToDirection();
             boss.PreferProvoking = boss.ShouldBeTanked = assignment == BossTankRole;
         }
 
         if (IsSearingWindTarget(actor))
         {
-            AddPositionHint(hints, module.Bounds.Center - _safespotOffset);
+            AddPositionHint(hints, Module.Bounds.Center - _safespotOffset);
         }
         else if (BossTankRole == assignment)
         {
-            AddPositionHint(hints, module.Bounds.Center + _safespotOffset);
+            AddPositionHint(hints, Module.Bounds.Center + _safespotOffset);
         }
         else
         {
-            AddPositionHint(hints, module.Bounds.Center);
+            AddPositionHint(hints, Module.Bounds.Center);
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        arena.AddCircle(module.Bounds.Center + _safespotOffset, 2, ArenaColor.Safe);
+        Arena.AddCircle(Module.Bounds.Center + _safespotOffset, 2, ArenaColor.Safe);
     }
 }
-class Ex4IfritAIHellfire1 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire1() : base(150.Degrees(), PartyRolesConfig.Assignment.MT) { } }
-class Ex4IfritAIHellfire2 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire2() : base(110.Degrees(), PartyRolesConfig.Assignment.OT) { } }
-class Ex4IfritAIHellfire3 : Ex4IfritAIHellfire { public Ex4IfritAIHellfire3() : base(70.Degrees(), PartyRolesConfig.Assignment.MT) { } }
+class Ex4IfritAIHellfire1(BossModule module) : Ex4IfritAIHellfire(module, 150.Degrees(), PartyRolesConfig.Assignment.MT);
+class Ex4IfritAIHellfire2(BossModule module) : Ex4IfritAIHellfire(module, 110.Degrees(), PartyRolesConfig.Assignment.OT);
+class Ex4IfritAIHellfire3(BossModule module) : Ex4IfritAIHellfire(module, 70.Degrees(), PartyRolesConfig.Assignment.MT);

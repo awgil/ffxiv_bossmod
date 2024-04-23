@@ -5,11 +5,11 @@ namespace BossMod.ReplayVisualization;
 // a set of columns describing various properties of a single enemy (casts, target, statuses, etc.)
 public class ColumnEnemyDetails : Timeline.ColumnGroup
 {
-    private Replay.Participant _enemy;
-    private ColumnEnemyCasts _casts;
-    private ColumnActorStatuses _statuses;
-    private ColumnActorHP _hp;
-    private ColumnSeparator _separator;
+    private readonly Replay.Participant _enemy;
+    private readonly ColumnEnemyCasts _casts;
+    private readonly ColumnActorStatuses _statuses;
+    private readonly ColumnActorHP _hp;
+    private readonly ColumnSeparator _separator;
 
     public bool AnyVisible => _casts.Visible || _statuses.Visible || _hp.Visible;
 
@@ -30,7 +30,7 @@ public class ColumnEnemyDetails : Timeline.ColumnGroup
         {
             DrawColumnToggle(_casts, "Casts");
             DrawColumnToggle(_hp, "HP");
-            foreach (var nn in tree.Node("Statuses"))
+            foreach (var _1 in tree.Node("Statuses"))
                 _statuses.DrawConfig(tree);
         }
         _separator.Width = AnyVisible ? 1 : 0;

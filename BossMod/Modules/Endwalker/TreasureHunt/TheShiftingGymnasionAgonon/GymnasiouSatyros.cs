@@ -6,14 +6,14 @@ public enum OID : uint
     BossAdd = 0x3D2E, //R=2.08
     BossHelper = 0x233C,
     StormsGrip = 0x3D2F, //R=1.0
-    BonusAdds_Lyssa = 0x3D4E, //R=3.75, bonus loot adds
-    BonusAdds_Lampas = 0x3D4D, //R=2.001, bonus loot adds
+    BonusAddLyssa = 0x3D4E, //R=3.75, bonus loot adds
+    BonusAddLampas = 0x3D4D, //R=2.001, bonus loot adds
 }
 
 public enum AID : uint
 {
     AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
-    AutoAttack2 = 870, // BonusAdd_Lyssa->player, no cast, single-target
+    AutoAttack2 = 870, // BonusAddLyssa->player, no cast, single-target
     StormWingA = 32220, // Boss->self, 5,0s cast, single-target
     StormWingB = 32219, // Boss->self, 5,0s cast, single-target
     StormWing2 = 32221, // BossHelper->self, 5,0s cast, range 40 90-degree cone
@@ -29,35 +29,12 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 
-class HeavySmash : Components.LocationTargetedAOEs
-{
-    public HeavySmash() : base(ActionID.MakeSpell(AID.HeavySmash), 6) { }
-}
-
-class StormWing : Components.SelfTargetedAOEs
-{
-    public StormWing() : base(ActionID.MakeSpell(AID.StormWing2), new AOEShapeCone(40, 45.Degrees())) { }
-}
-
-class FlashGale : Components.LocationTargetedAOEs
-{
-    public FlashGale() : base(ActionID.MakeSpell(AID.FlashGale), 6) { }
-}
-
-class WindCutter : Components.PersistentVoidzone
-{
-    public WindCutter() : base(4, m => m.Enemies(OID.StormsGrip)) { }
-}
-
-class Wingblow : Components.SelfTargetedAOEs
-{
-    public Wingblow() : base(ActionID.MakeSpell(AID.Wingblow2), new AOEShapeCircle(15)) { }
-}
-
-class DreadDive : Components.SingleTargetCast
-{
-    public DreadDive() : base(ActionID.MakeSpell(AID.DreadDive)) { }
-}
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class StormWing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormWing2), new AOEShapeCone(40, 45.Degrees()));
+class FlashGale(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlashGale), 6);
+class WindCutter(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.StormsGrip));
+class Wingblow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wingblow2), new AOEShapeCircle(15));
+class DreadDive(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DreadDive));
 
 class SatyrosStates : StateMachineBuilder
 {
@@ -70,23 +47,21 @@ class SatyrosStates : StateMachineBuilder
             .ActivateOnEnter<Wingblow>()
             .ActivateOnEnter<DreadDive>()
             .ActivateOnEnter<HeavySmash>()
-            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAdds_Lampas).All(e => e.IsDead);
+            .Raw.Update = () => module.Enemies(OID.Boss).All(e => e.IsDead) && module.Enemies(OID.BossAdd).All(e => e.IsDead) && module.Enemies(OID.BonusAddLyssa).All(e => e.IsDead) && module.Enemies(OID.BonusAddLampas).All(e => e.IsDead);
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12003)]
-public class Satyros : BossModule
+public class Satyros(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20))
 {
-    public Satyros(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 20)) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.BossAdd))
             Arena.Actor(s, ArenaColor.Object);
-        foreach (var s in Enemies(OID.BonusAdds_Lyssa))
+        foreach (var s in Enemies(OID.BonusAddLyssa))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.BonusAdds_Lampas))
+        foreach (var s in Enemies(OID.BonusAddLampas))
             Arena.Actor(s, ArenaColor.Vulnerable);
     }
 
@@ -97,8 +72,8 @@ public class Satyros : BossModule
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.BonusAdds_Lampas => 4,
-                OID.BonusAdds_Lyssa => 3,
+                OID.BonusAddLampas => 4,
+                OID.BonusAddLyssa => 3,
                 OID.BossAdd => 2,
                 OID.Boss => 1,
                 _ => 0

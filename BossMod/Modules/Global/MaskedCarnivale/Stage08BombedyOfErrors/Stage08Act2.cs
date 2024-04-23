@@ -16,49 +16,43 @@ public enum AID : uint
     Burst = 14680, // 270B->self, 6,0s cast, range 50 circle
 }
 
-class Sap : Components.LocationTargetedAOEs
-{
-    public Sap() : base(ActionID.MakeSpell(AID.Sap), 8) { }
-}
+class Sap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Sap), 8);
+class Burst(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Burst), "Interrupt or wipe!");
 
-class Burst : Components.CastHint
+class Selfdetonations(BossModule module) : BossComponent(module)
 {
-    public Burst() : base(ActionID.MakeSpell(AID.Burst), "Interrupt or wipe!") { }
-}
+    private const string hint = "In bomb explosion radius!";
 
-class Selfdetonations : BossComponent
-{
-    private static readonly string hint = "In bomb explosion radius!";
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Bomb).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 10, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 10, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 10, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 10, ArenaColor.Danger);
         }
-        foreach (var p in module.Enemies(OID.Snoll).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Snoll).Where(x => !x.IsDead))
         {
-            if (arena.Config.ShowOutlinesAndShadows)
-                arena.AddCircle(p.Position, 6, 0xFF000000, 2);
-            arena.AddCircle(p.Position, 6, ArenaColor.Danger);
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(p.Position, 6, 0xFF000000, 2);
+            Arena.AddCircle(p.Position, 6, ArenaColor.Danger);
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        foreach (var p in module.Enemies(OID.Bomb).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Bomb).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 10))
                 hints.Add(hint);
-        foreach (var p in module.Enemies(OID.Snoll).Where(x => !x.IsDead))
+        foreach (var p in Module.Enemies(OID.Snoll).Where(x => !x.IsDead))
             if (actor.Position.InCircle(p.Position, 6))
                 hints.Add(hint);
     }
 }
 
-class Hints : BossComponent
+class Hints(BossModule module) : BossComponent(module)
 {
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Clever activation of cherry bombs will freeze the Progenitrix.\nInterrupt its burst skill or wipe. The Progenitrix is weak to wind spells.");
     }

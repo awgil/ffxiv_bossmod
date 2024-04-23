@@ -33,10 +33,8 @@ class D153TonberryKingStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1547)]
-public class D153TonberryKing : BossModule
+public class D153TonberryKing(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(73, -435), 30))
 {
-    public D153TonberryKing(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(73, -435), 30)) { }
-
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.CalculateAIHints(slot, actor, assignment, hints);

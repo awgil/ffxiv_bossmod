@@ -1,15 +1,13 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
-abstract class GigaTempest : Components.Exaflare
+abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, AID aidRest) : Components.Exaflare(module, shape)
 {
-    public GigaTempest(AOEShapeRect shape) : base(shape) { }
+    private readonly AID _aidStart = aidFirst;
+    private readonly AID _aidRest = aidRest;
 
-    public abstract bool IsStart(AID aid);
-    public abstract bool IsMove(AID aid);
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (IsStart((AID)spell.Action.ID))
+        if ((AID)spell.Action.ID == _aidStart)
         {
             WDir? advance = GetExaDirection(caster);
             if (advance == null) return;
@@ -26,13 +24,14 @@ abstract class GigaTempest : Components.Exaflare
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (Lines.Count > 0 && IsStart((AID)spell.Action.ID) || IsMove((AID)spell.Action.ID))
+        if (Lines.Count > 0 && (AID)spell.Action.ID == _aidStart || (AID)spell.Action.ID == _aidRest)
         {
             int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
-            if (index < 0) return;
-            AdvanceLine(module, Lines[index], caster.Position);
+            if (index < 0)
+                return;
+            AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);
         }
@@ -67,35 +66,5 @@ abstract class GigaTempest : Components.Exaflare
     }
 }
 
-class SmallGigaTempest : GigaTempest
-{
-    private static readonly AOEShapeRect _aoeShapeSmall = new(10, 6.5f, 0);
-
-    public SmallGigaTempest() : base(_aoeShapeSmall) { }
-
-    public override bool IsStart(AID aid)
-    {
-        return aid is AID.GigaTempestSmallStart;
-    }
-    public override bool IsMove(AID aid)
-    {
-        return aid is AID.GigaTempestSmallMove;
-    }
-
-}
-
-class LargeGigaTempest : GigaTempest
-{
-    private static readonly AOEShapeRect _aoeShapeLarge = new(35, 6.5f, 0);
-
-    public LargeGigaTempest() : base(_aoeShapeLarge) { }
-
-    public override bool IsStart(AID aid)
-    {
-        return aid is AID.GigaTempestLargeStart;
-    }
-    public override bool IsMove(AID aid)
-    {
-        return aid is AID.GigaTempestLargeMove;
-    }
-}
+class SmallGigaTempest(BossModule module) : GigaTempest(module, new AOEShapeRect(10, 6.5f), AID.GigaTempestSmallStart, AID.GigaTempestSmallMove);
+class LargeGigaTempest(BossModule module) : GigaTempest(module, new AOEShapeRect(35, 6.5f), AID.GigaTempestLargeStart, AID.GigaTempestLargeMove);

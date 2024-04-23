@@ -27,45 +27,14 @@ public enum AID : uint
     Plaincracker = 1087, // MegalithMarionette->self, 7.0s cast, range 25+R circle
 }
 
-class VoidFireCleave : Components.Cleave
-{
-    public VoidFireCleave() : base(ActionID.MakeSpell(AID.VoidFireCleave), new AOEShapeCircle(5), originAtTarget: true) { }
-}
-
-class VoidFireAOE : Components.LocationTargetedAOEs
-{
-    public VoidFireAOE() : base(ActionID.MakeSpell(AID.VoidFireAOE), 5) { }
-}
-
-class VoidThunder : Components.SingleTargetCast
-{
-    public VoidThunder() : base(ActionID.MakeSpell(AID.VoidThunder), "Interruptible tankbuster") { }
-}
-
-class MindMelt : Components.RaidwideCast
-{
-    public MindMelt() : base(ActionID.MakeSpell(AID.MindMelt), "Interruptible raidwide") { }
-}
-
-class Canker : Components.CastHint
-{
-    public Canker() : base(ActionID.MakeSpell(AID.Canker), "Interruptible debuff") { }
-}
-
-class Rockslide : Components.SelfTargetedAOEs
-{
-    public Rockslide() : base(ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(12.76f, 4)) { }
-}
-
-class Obliterate : Components.RaidwideCast
-{
-    public Obliterate() : base(ActionID.MakeSpell(AID.Obliterate)) { }
-}
-
-class Plaincracker : Components.SelfTargetedAOEs
-{
-    public Plaincracker() : base(ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(30.5f)) { }
-}
+class VoidFireCleave(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.VoidFireCleave), new AOEShapeCircle(5), originAtTarget: true);
+class VoidFireAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireAOE), 5);
+class VoidThunder(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.VoidThunder), "Interruptible tankbuster");
+class MindMelt(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MindMelt), "Interruptible raidwide");
+class Canker(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Canker), "Interruptible debuff");
+class Rockslide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(12.76f, 4));
+class Obliterate(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Obliterate));
+class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(30.5f));
 
 class D161PsycheflayerStates : StateMachineBuilder
 {
@@ -85,12 +54,10 @@ class D161PsycheflayerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1689)]
-public class D161Psycheflayer : BossModule
+public class D161Psycheflayer(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-29, 0), 40))
 {
     private Actor? _bossP2;
     public Actor MainBoss() => _bossP2 ?? PrimaryActor;
-
-    public D161Psycheflayer(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-29, 0), 40)) { }
 
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

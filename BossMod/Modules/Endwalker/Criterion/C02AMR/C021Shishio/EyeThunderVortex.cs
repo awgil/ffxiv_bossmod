@@ -1,15 +1,15 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
-class EyeThunderVortex : Components.GenericAOEs
+class EyeThunderVortex(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCircle _shapeCircle = new(15);
     private static readonly AOEShapeDonut _shapeDonut = new(8, 30);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes.Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -26,7 +26,7 @@ class EyeThunderVortex : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NEyeOfTheThunderVortexFirst or AID.NEyeOfTheThunderVortexSecond or AID.NVortexOfTheThunderEyeFirst or AID.NVortexOfTheThunderEyeSecond
             or AID.SEyeOfTheThunderVortexFirst or AID.SEyeOfTheThunderVortexSecond or AID.SVortexOfTheThunderEyeFirst or AID.SVortexOfTheThunderEyeSecond)

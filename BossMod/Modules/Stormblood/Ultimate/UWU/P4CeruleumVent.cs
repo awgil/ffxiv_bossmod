@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P4CeruleumVent : Components.GenericAOEs
+class P4CeruleumVent(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CeruleumVent))
 {
     private Actor? _source;
     private DateTime _activation;
@@ -9,20 +9,18 @@ class P4CeruleumVent : Components.GenericAOEs
 
     public bool Active => _source != null;
 
-    public P4CeruleumVent() : base(ActionID.MakeSpell(AID.CeruleumVent)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_source != null)
             yield return new(_shape, _source.Position, _source.Rotation, _activation);
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.UltimaWeapon && id == 0x1E43)
         {
             _source = actor;
-            _activation = module.WorldState.CurrentTime.AddSeconds(10.1f);
+            _activation = WorldState.FutureTime(10.1f);
         }
     }
 }

@@ -2,21 +2,21 @@
 
 class ArcaneArrayPlot : Components.GenericAOEs
 {
-    public List<AOEInstance> AOEs = new();
-    public List<WPos> SafeZoneCenters = new();
+    public List<AOEInstance> AOEs = [];
+    public List<WPos> SafeZoneCenters = [];
 
     public static readonly AOEShapeRect Shape = new(4, 4, 4);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs;
-
-    public override void Init(BossModule module)
+    public ArcaneArrayPlot(BossModule module) : base(module)
     {
         for (int z = -16; z <= 16; z += 8)
             for (int x = -16; x <= 16; x += 8)
-                SafeZoneCenters.Add(module.Bounds.Center + new WDir(x, z));
+                SafeZoneCenters.Add(Module.Bounds.Center + new WDir(x, z));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NBrightPulseFirst or AID.NBrightPulseRest or AID.SBrightPulseFirst or AID.SBrightPulseRest)
             ++NumCasts;
@@ -36,13 +36,13 @@ class ArcaneArrayPlot : Components.GenericAOEs
     }
 }
 
-class ArcaneArray : ArcaneArrayPlot
+class ArcaneArray(BossModule module) : ArcaneArrayPlot(module)
 {
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.ArrowBright)
         {
-            var activation = module.WorldState.CurrentTime.AddSeconds(4.6f);
+            var activation = WorldState.FutureTime(4.6f);
             var pos = actor.Position;
             var offset = 8 * actor.Rotation.ToDirection();
             for (int i = 0; i < 5; ++i)
@@ -50,7 +50,7 @@ class ArcaneArray : ArcaneArrayPlot
                 Advance(ref pos, ref activation, offset);
             }
             pos -= offset;
-            pos += module.Bounds.Contains(pos + offset.OrthoL()) ? offset.OrthoL() : offset.OrthoR();
+            pos += Module.Bounds.Contains(pos + offset.OrthoL()) ? offset.OrthoL() : offset.OrthoR();
             for (int i = 0; i < 5; ++i)
             {
                 Advance(ref pos, ref activation, -offset);
@@ -62,22 +62,22 @@ class ArcaneArray : ArcaneArrayPlot
     }
 }
 
-class ArcanePlot : ArcaneArrayPlot
+class ArcanePlot(BossModule module) : ArcaneArrayPlot(module)
 {
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         switch ((OID)actor.OID)
         {
             case OID.ArrowBright:
-                AddLine(module, actor, module.WorldState.CurrentTime.AddSeconds(4.6f), false);
+                AddLine(actor, WorldState.FutureTime(4.6f), false);
                 break;
             case OID.ArrowDim:
-                AddLine(module, actor, module.WorldState.CurrentTime.AddSeconds(8.2f), true);
+                AddLine(actor, WorldState.FutureTime(8.2f), true);
                 break;
         }
     }
 
-    private void AddLine(BossModule module, Actor actor, DateTime activation, bool preAdvance)
+    private void AddLine(Actor actor, DateTime activation, bool preAdvance)
     {
         var pos = actor.Position;
         var offset = 8 * actor.Rotation.ToDirection();
@@ -88,7 +88,7 @@ class ArcanePlot : ArcaneArrayPlot
         {
             Advance(ref pos, ref activation, offset);
         }
-        while (module.Bounds.Contains(pos));
+        while (Module.Bounds.Contains(pos));
 
         AOEs.SortBy(aoe => aoe.Activation);
     }

@@ -2,8 +2,8 @@
 
 class ArenaBounds
 {
-    private List<(Replay, Replay.Participant, DateTime, Vector3, uint)> _points = new();
-    private UIPlot _plot = new();
+    private readonly List<(Replay, Replay.Participant, DateTime, Vector3, uint)> _points = [];
+    private readonly UIPlot _plot = new();
 
     public ArenaBounds(List<Replay> replays, uint oid)
     {
@@ -31,7 +31,7 @@ class ArenaBounds
                             var pos = p.PosRotHistory.Values[i].XYZ();
                             if (iNextDead < p.DeadHistory.Count && p.DeadHistory.Keys[iNextDead] <= t)
                                 ++iNextDead;
-                            bool dead = iNextDead > 0 ? p.DeadHistory.Values[iNextDead - 1] : false;
+                            bool dead = iNextDead > 0 && p.DeadHistory.Values[iNextDead - 1];
                             uint color = dead ? 0xff404040 : p.Type is ActorType.Enemy ? 0xff00ffff : 0xff808080;
                             _points.Add((replay, p, t, pos, color));
                             _plot.DataMin.X = Math.Min(_plot.DataMin.X, pos.X);

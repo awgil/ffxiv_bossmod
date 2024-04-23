@@ -11,8 +11,8 @@ class TOPSpecific
         public Angle Difference;
     }
 
-    private List<FlamethrowerData> _flamethrowers = new();
-    private UIPlot _plotFlamethrowers = new();
+    private readonly List<FlamethrowerData> _flamethrowers = [];
+    private readonly UIPlot _plotFlamethrowers = new();
 
     public TOPSpecific(List<Replay> replays, uint oid)
     {

@@ -23,20 +23,20 @@ public enum AID : uint
     StygianVapor = 26882, // Boss->self, 5.0s cast, range 40 circle
 }
 
-class ChitinousTrace : Components.GenericAOEs
+class ChitinousTrace(BossModule module) : Components.GenericAOEs(module)
 {
     private bool _active;
     private readonly List<AOEShape> _pendingShapes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_active && _pendingShapes.Count > 0)
-            yield return new(_pendingShapes.First(), module.PrimaryActor.Position); // TODO: activation
+            yield return new(_pendingShapes[0], Module.PrimaryActor.Position); // TODO: activation
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (caster != module.PrimaryActor)
+        if (caster != Module.PrimaryActor)
             return;
         switch ((AID)spell.Action.ID)
         {
@@ -58,9 +58,9 @@ class ChitinousTrace : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (caster == module.PrimaryActor && _pendingShapes.Count > 0 &&
+        if (caster == Module.PrimaryActor && _pendingShapes.Count > 0 &&
             (AID)spell.Action.ID is AID.ChitinousAdvanceCircleFirst or AID.ChitinousAdvanceCircleRest or AID.ChitinousAdvanceDonutFirst or AID.ChitinousAdvanceDonutRest
                                  or AID.ChitinousReversalCircleFirst or AID.ChitinousReversalCircleRest or AID.ChitinousReversalDonutFirst or AID.ChitinousReversalDonutRest)
         {
@@ -70,10 +70,7 @@ class ChitinousTrace : Components.GenericAOEs
     }
 }
 
-class StygianVapor : Components.RaidwideCast
-{
-    public StygianVapor() : base(ActionID.MakeSpell(AID.StygianVapor)) { }
-}
+class StygianVapor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StygianVapor));
 
 class RuminatorStates : StateMachineBuilder
 {
@@ -86,7 +83,4 @@ class RuminatorStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10620)]
-public class Ruminator : SimpleBossModule
-{
-    public Ruminator(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Ruminator(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

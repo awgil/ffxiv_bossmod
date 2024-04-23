@@ -16,19 +16,19 @@ public enum AID : uint
     AutoAttack = 25952, // Boss->player, no cast, single-target
     AssaultCarapace = 25954, // Boss->self, 5,0s cast, range 120 width 32 rect
     AssaultCarapace2 = 25173, // Boss->self, 8,0s cast, range 120 width 32 rect
-    Carapace_RearGuns2dot0A = 25958, // Boss->self, 8,0s cast, range 120 width 32 rect
-    Carapace_ForeArms2dot0A = 25957, // Boss->self, 8,0s cast, range 120 width 32 rect
+    CarapaceRearGuns2dot0A = 25958, // Boss->self, 8,0s cast, range 120 width 32 rect
+    CarapaceForeArms2dot0A = 25957, // Boss->self, 8,0s cast, range 120 width 32 rect
     AssaultCarapace3 = 25953, // Boss->self, 5,0s cast, range 16-60 donut
-    Carapace_ForeArms2dot0B = 25955, // Boss->self, 8,0s cast, range 16-60 donut
-    Carapace_RearGuns2dot0B = 25956, // Boss->self, 8,0s cast, range 16-60 donut
+    CarapaceForeArms2dot0B = 25955, // Boss->self, 8,0s cast, range 16-60 donut
+    CarapaceRearGuns2dot0B = 25956, // Boss->self, 8,0s cast, range 16-60 donut
     ForeArms = 25959, // Boss->self, 6,0s cast, range 45 180-degree cone
     ForeArms2 = 26523, // Boss->self, 6,0s cast, range 45 180-degree cone
     ForeArms2dot0 = 25961, // Boss->self, no cast, range 45 180-degree cone
     RearGuns2dot0 = 25964, // Boss->self, no cast, range 45 180-degree cone
     RearGuns = 25962, // Boss->self, 6,0s cast, range 45 180-degree cone
     RearGuns2 = 26524, // Boss->self, 6,0s cast, range 45 180-degree cone
-    RearGuns_ForeArms2dot0 = 25963, // Boss->self, 6,0s cast, range 45 180-degree cone
-    ForeArms_RearGuns2dot0 = 25960, // Boss->self, 6,0s cast, range 45 180-degree cone
+    RearGunsForeArms2dot0 = 25963, // Boss->self, 6,0s cast, range 45 180-degree cone
+    ForeArmsRearGuns2dot0 = 25960, // Boss->self, 6,0s cast, range 45 180-degree cone
     Hellburner = 25971, // Boss->self, no cast, single-target, circle tankbuster
     Hellburner2 = 25972, // Helper1->players, 5,0s cast, range 5 circle
     FreeFallBombs = 25967, // Boss->self, no cast, single-target
@@ -46,7 +46,7 @@ public enum AID : uint
     ThermobaricExplosive2 = 25966, // Helper1->location, 10,0s cast, range 55 circle, damage fall off AOE
 }
 
-class Bunkerbuster : Components.GenericAOEs
+class Bunkerbuster(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _casters = [];
     private DateTime _activation;
@@ -54,7 +54,7 @@ class Bunkerbuster : Components.GenericAOEs
 
     private static readonly AOEShapeRect rect = new(10, 10, 10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count >= 3)
             for (int i = 0; i < 3; ++i)
@@ -64,7 +64,7 @@ class Bunkerbuster : Components.GenericAOEs
                 yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(1.9f));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BunkerBuster2 && NumCastsStarted == 0)
         {
@@ -78,7 +78,7 @@ class Bunkerbuster : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BunkerBuster2 or AID.BunkerBuster3)
         {
@@ -95,18 +95,18 @@ class Bunkerbuster : Components.GenericAOEs
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.Helper3 or OID.Helper6)
         {
             _casters.Add(actor);
             if (_casters.Count == 1)
-                _activation = module.WorldState.CurrentTime.AddSeconds(20); //placeholder value that gets overwritten when cast actually starts
+                _activation = WorldState.FutureTime(20); //placeholder value that gets overwritten when cast actually starts
         }
     }
 }
 
-class BouncingBomb : Components.GenericAOEs
+class BouncingBomb(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _casters = [];
     private DateTime _activation;
@@ -114,7 +114,7 @@ class BouncingBomb : Components.GenericAOEs
 
     private static readonly AOEShapeRect rect = new(10, 10, 10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (bombcount == 1)
         {
@@ -140,37 +140,37 @@ class BouncingBomb : Components.GenericAOEs
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 7 && NumCasts == 0)
                 for (int i = 2; i < 7; ++i)
-                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky: false);
+                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), Risky: false);
             if (_casters.Count >= 5 && NumCasts == 2)
                 for (int i = 0; i < 5; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 13 && NumCasts == 2)
                 for (int i = 5; i < 13; ++i)
-                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), risky: false);
+                    yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), Risky: false);
             if (_casters.Count >= 8 && NumCasts == 7)
                 for (int i = 0; i < 8; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
         }
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Helper4)
         {
-            _activation = module.WorldState.CurrentTime.AddSeconds(10);  //placeholder value that gets overwritten when cast actually starts
+            _activation = WorldState.FutureTime(10);  //placeholder value that gets overwritten when cast actually starts
             ++bombcount;
         }
         if ((OID)actor.OID is OID.Helper4 or OID.Helper5)
             _casters.Add(actor);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BouncingBomb2)
             _activation = spell.NPCFinishAt;
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.BouncingBomb2 or AID.BouncingBomb3)
         {
@@ -188,65 +188,65 @@ class BouncingBomb : Components.GenericAOEs
     }
 }
 
-class Combos : Components.GenericAOEs
+class Combos(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCone cone = new(45, 90.Degrees());
     private static readonly AOEShapeDonut donut = new(16, 60);
     private static readonly AOEShapeRect rect = new(60, 16, 60);
     private (AOEShape shape1, AOEShape shape2, DateTime activation1, DateTime activation2, bool offset, Angle rotation) combo;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (combo != default)
         {
             if (NumCasts == 0)
             {
-                yield return new(combo.shape1, module.PrimaryActor.Position, combo.rotation, combo.activation1, ArenaColor.Danger);
+                yield return new(combo.shape1, Module.PrimaryActor.Position, combo.rotation, combo.activation1, ArenaColor.Danger);
                 if (!combo.offset)
-                    yield return new(combo.shape2, module.PrimaryActor.Position, combo.rotation, combo.activation2, risky: combo.shape1 != combo.shape2);
+                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation, combo.activation2, Risky: combo.shape1 != combo.shape2);
                 else
-                    yield return new(combo.shape2, module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, risky: combo.shape1 != combo.shape2);
+                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, Risky: combo.shape1 != combo.shape2);
             }
             if (NumCasts == 1)
             {
                 if (!combo.offset)
-                    yield return new(combo.shape2, module.PrimaryActor.Position, combo.rotation, combo.activation2, ArenaColor.Danger);
+                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation, combo.activation2, ArenaColor.Danger);
                 else
-                    yield return new(combo.shape2, module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, ArenaColor.Danger);
+                    yield return new(combo.shape2, Module.PrimaryActor.Position, combo.rotation + 180.Degrees(), combo.activation2, ArenaColor.Danger);
             }
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID.Carapace_ForeArms2dot0A:
+            case AID.CarapaceForeArms2dot0A:
                 combo = (rect, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), false, spell.Rotation);
                 break;
-            case AID.Carapace_ForeArms2dot0B:
+            case AID.CarapaceForeArms2dot0B:
                 combo = (donut, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), false, spell.Rotation);
                 break;
-            case AID.Carapace_RearGuns2dot0A:
+            case AID.CarapaceRearGuns2dot0A:
                 combo = (rect, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
                 break;
-            case AID.Carapace_RearGuns2dot0B:
+            case AID.CarapaceRearGuns2dot0B:
                 combo = (donut, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
                 break;
-            case AID.RearGuns_ForeArms2dot0:
-            case AID.ForeArms_RearGuns2dot0:
+            case AID.RearGunsForeArms2dot0:
+            case AID.ForeArmsRearGuns2dot0:
                 combo = (cone, cone, spell.NPCFinishAt, spell.NPCFinishAt.AddSeconds(3.1f), true, spell.Rotation);
                 break;
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.Carapace_ForeArms2dot0A or AID.Carapace_ForeArms2dot0B or AID.Carapace_RearGuns2dot0A or AID.Carapace_RearGuns2dot0B or AID.RearGuns_ForeArms2dot0 or AID.ForeArms_RearGuns2dot0)
+        if ((AID)spell.Action.ID is AID.CarapaceForeArms2dot0A or AID.CarapaceForeArms2dot0B or AID.CarapaceRearGuns2dot0A or AID.CarapaceRearGuns2dot0B or AID.RearGunsForeArms2dot0 or AID.ForeArmsRearGuns2dot0)
             ++NumCasts;
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.RearGuns2dot0 or AID.ForeArms2dot0)
         {
@@ -256,65 +256,18 @@ class Combos : Components.GenericAOEs
     }
 }
 
-class Hellburner : Components.BaitAwayCast
-{
-    public Hellburner() : base(ActionID.MakeSpell(AID.Hellburner2), new AOEShapeCircle(5), true) { }
-}
-
-class HellburnerHint : Components.SingleTargetCast
-{
-    public HellburnerHint() : base(ActionID.MakeSpell(AID.Hellburner2)) { }
-}
-
-class MissileShower : Components.SingleTargetCast
-{
-    public MissileShower() : base(ActionID.MakeSpell(AID.MissileShower), "Raidwide x2") { }
-}
-
-class ThermobaricExplosive : Components.LocationTargetedAOEs
-{
-    public ThermobaricExplosive() : base(ActionID.MakeSpell(AID.ThermobaricExplosive2), 25) { }
-}
-
-class AssaultCarapace : Components.SelfTargetedAOEs
-{
-    public AssaultCarapace() : base(ActionID.MakeSpell(AID.AssaultCarapace), new AOEShapeRect(60, 16, 60)) { }
-}
-
-class AssaultCarapace2 : Components.SelfTargetedAOEs
-{
-    public AssaultCarapace2() : base(ActionID.MakeSpell(AID.AssaultCarapace2), new AOEShapeRect(60, 16, 60)) { }
-}
-
-class AssaultCarapace3 : Components.SelfTargetedAOEs
-{
-    public AssaultCarapace3() : base(ActionID.MakeSpell(AID.AssaultCarapace3), new AOEShapeDonut(16, 60)) { }
-}
-
-class ForeArms : Components.SelfTargetedAOEs
-{
-    public ForeArms() : base(ActionID.MakeSpell(AID.ForeArms), new AOEShapeCone(45, 90.Degrees())) { }
-}
-
-class ForeArms2 : Components.SelfTargetedAOEs
-{
-    public ForeArms2() : base(ActionID.MakeSpell(AID.ForeArms2), new AOEShapeCone(45, 90.Degrees())) { }
-}
-
-class RearGuns : Components.SelfTargetedAOEs
-{
-    public RearGuns() : base(ActionID.MakeSpell(AID.RearGuns), new AOEShapeCone(45, 90.Degrees())) { }
-}
-
-class RearGuns2 : Components.SelfTargetedAOEs
-{
-    public RearGuns2() : base(ActionID.MakeSpell(AID.RearGuns2), new AOEShapeCone(45, 90.Degrees())) { }
-}
-
-class FreeFallBombs : Components.LocationTargetedAOEs
-{
-    public FreeFallBombs() : base(ActionID.MakeSpell(AID.FreeFallBombs2), 6) { }
-}
+class Hellburner(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Hellburner2), new AOEShapeCircle(5), true);
+class HellburnerHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Hellburner2));
+class MissileShower(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.MissileShower), "Raidwide x2");
+class ThermobaricExplosive(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ThermobaricExplosive2), 25);
+class AssaultCarapace(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCarapace), new AOEShapeRect(60, 16, 60));
+class AssaultCarapace2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCarapace2), new AOEShapeRect(60, 16, 60));
+class AssaultCarapace3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCarapace3), new AOEShapeDonut(16, 60));
+class ForeArms(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForeArms), new AOEShapeCone(45, 90.Degrees()));
+class ForeArms2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForeArms2), new AOEShapeCone(45, 90.Degrees()));
+class RearGuns(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RearGuns), new AOEShapeCone(45, 90.Degrees()));
+class RearGuns2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RearGuns2), new AOEShapeCone(45, 90.Degrees()));
+class FreeFallBombs(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FreeFallBombs2), 6);
 
 class ChiStates : StateMachineBuilder
 {
@@ -340,7 +293,4 @@ class ChiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
-public class Chi : BossModule
-{
-    public Chi(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(650, 0), 30)) { }
-}
+public class Chi(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(650, 0), 30));

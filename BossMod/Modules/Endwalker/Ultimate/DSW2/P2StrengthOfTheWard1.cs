@@ -3,14 +3,12 @@
 // spreads
 class P2StrengthOfTheWard1LightningStorm : Components.UniformStackSpread
 {
-    public P2StrengthOfTheWard1LightningStorm() : base(0, 5) { }
-
-    public override void Init(BossModule module)
+    public P2StrengthOfTheWard1LightningStorm(BossModule module) : base(module, 0, 5)
     {
-        AddSpreads(module.Raid.WithoutSlot(true));
+        AddSpreads(Raid.WithoutSlot(true));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.LightningStormAOE)
             Spreads.Clear();
@@ -18,27 +16,25 @@ class P2StrengthOfTheWard1LightningStorm : Components.UniformStackSpread
 }
 
 // charges
-class P2StrengthOfTheWard1SpiralThrust : Components.GenericAOEs
+class P2StrengthOfTheWard1SpiralThrust(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SpiralThrust), "GTFO from charge aoe!")
 {
-    private List<Actor> _knights = new();
+    private readonly List<Actor> _knights = [];
 
     private static readonly AOEShapeRect _shape = new(52, 8);
 
-    public P2StrengthOfTheWard1SpiralThrust() : base(ActionID.MakeSpell(AID.SpiralThrust), "GTFO from charge aoe!") { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var k in _knights)
             yield return new(_shape, k.Position, k.Rotation); // TODO: activation
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (id == 0x1E43 && (OID)actor.OID is OID.SerVellguine or OID.SerPaulecrain or OID.SerIgnasse)
             _knights.Add(actor);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
         {
@@ -49,7 +45,4 @@ class P2StrengthOfTheWard1SpiralThrust : Components.GenericAOEs
 }
 
 // rings
-class P2StrengthOfTheWard1HeavyImpact : HeavyImpact
-{
-    public P2StrengthOfTheWard1HeavyImpact() : base(8.2f) { }
-}
+class P2StrengthOfTheWard1HeavyImpact(BossModule module) : HeavyImpact(module, 8.2f);

@@ -1,44 +1,42 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
-class Tilt : Components.Knockback
+class Tilt(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.QuasarTilt))
 {
-    public static readonly float DistanceShort = 28;
-    public static readonly float DistanceLong = 37;
+    public const float DistanceShort = 28;
+    public const float DistanceLong = 37;
 
     public float Distance;
     public Angle Direction;
     public DateTime Activation;
 
-    public Tilt() : base(ActionID.MakeSpell(AID.QuasarTilt)) { }
-
-    public override IEnumerable<Source> Sources(BossModule module, int slot, Actor actor)
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (Distance > 0)
             yield return new(new(), Distance, Activation, null, Direction, Kind.DirForward);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction)
             Distance = 0;
     }
 }
 
-class ScalesOfWisdom : Tilt
+class ScalesOfWisdom(BossModule module) : Tilt(module)
 {
     public bool RaidwideDone;
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(module, caster, spell);
+        base.OnEventCast(caster, spell);
         switch ((AID)spell.Action.ID)
         {
             case AID.ScalesOfWisdomStart:
                 // prepare for first tilt
                 Distance = DistanceShort;
                 Direction = -90.Degrees();
-                Activation = module.WorldState.CurrentTime.AddSeconds(8);
+                Activation = WorldState.FutureTime(8);
                 break;
             case AID.QuasarTilt:
                 if (NumCasts == 1)
@@ -46,7 +44,7 @@ class ScalesOfWisdom : Tilt
                     // prepare for second tilt
                     Distance = DistanceShort;
                     Direction = 90.Degrees();
-                    Activation = module.WorldState.CurrentTime.AddSeconds(4.9f);
+                    Activation = WorldState.FutureTime(4.9f);
                 }
                 break;
             case AID.ScalesOfWisdomRaidwide:
@@ -56,12 +54,12 @@ class ScalesOfWisdom : Tilt
     }
 }
 
-class Quasar : Tilt
+class Quasar(BossModule module) : Tilt(module)
 {
     public int WeightLeft;
     public int WeightRight;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var weight = (AID)spell.Action.ID switch
         {

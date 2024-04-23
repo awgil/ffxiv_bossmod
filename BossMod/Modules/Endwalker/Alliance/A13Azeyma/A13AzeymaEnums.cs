@@ -39,7 +39,7 @@ public enum AID : uint
     TeleportFlame = 28818, // WardensFlame->location, no cast
     RadiantFinish = 28817, // Boss->self, 3.0s cast, visual
     RadiantFlourish = 28820, // WardensFlame->self, 3.0s cast, range 25 aoe
-    FinishFans  = 29360, // Boss->self, no cast, visual
+    FinishFans = 29360, // Boss->self, no cast, visual
 
     FleetingSpark = 28828, // Boss->self, 5.5s cast, range 60 270-degree cone
 

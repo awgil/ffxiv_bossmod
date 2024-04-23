@@ -1,38 +1,33 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C012Gladiator;
 
-class SunderedRemains : Components.SelfTargetedAOEs
-{
-    public SunderedRemains(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(10)) { } // TODO: max-casts...
-}
-class NSunderedRemains : SunderedRemains { public NSunderedRemains() : base(AID.NSunderedRemains) { } }
-class SSunderedRemains : SunderedRemains { public SSunderedRemains() : base(AID.SSunderedRemains) { } }
+class SunderedRemains(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(10)); // TODO: max-casts...
+class NSunderedRemains(BossModule module) : SunderedRemains(module, AID.NSunderedRemains);
+class SSunderedRemains(BossModule module) : SunderedRemains(module, AID.SSunderedRemains);
 
-class ScreamOfTheFallen : Components.UniformStackSpread
+class ScreamOfTheFallen(BossModule module) : Components.UniformStackSpread(module, 0, 15, alwaysShowSpreads: true)
 {
     public int NumCasts { get; private set; }
     private BitMask _second;
-    private List<Actor> _towers = new();
+    private readonly List<Actor> _towers = [];
 
-    private static readonly float _towerRadius = 3;
+    private const float _towerRadius = 3;
 
-    public ScreamOfTheFallen() : base(0, 15, alwaysShowSpreads: true) { }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        base.AddHints(module, slot, actor, hints, movementHints);
+        base.AddHints(slot, actor, hints);
         if (!IsSpreadTarget(actor))
             hints.Add("Soak the tower!", !ActiveTowers(_second[slot]).Any(t => t.Position.InCircle(actor.Position, _towerRadius)));
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
+        base.DrawArenaForeground(pcSlot, pc);
         if (!IsSpreadTarget(pc))
             foreach (var t in ActiveTowers(_second[pcSlot]))
-                arena.AddCircle(t.Position, _towerRadius, ArenaColor.Safe, 2);
+                Arena.AddCircle(t.Position, _towerRadius, ArenaColor.Safe, 2);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -40,18 +35,18 @@ class ScreamOfTheFallen : Components.UniformStackSpread
                 AddSpread(actor);
                 break;
             case SID.SecondInLine:
-                _second.Set(module.Raid.FindSlot(actor.InstanceID));
+                _second.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NExplosion or AID.SExplosion)
             _towers.Add(caster);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NExplosion or AID.SExplosion)
         {
@@ -59,7 +54,7 @@ class ScreamOfTheFallen : Components.UniformStackSpread
             {
                 case 2:
                     Spreads.Clear();
-                    AddSpreads(module.Raid.WithSlot().IncludedInMask(_second).Actors());
+                    AddSpreads(Raid.WithSlot().IncludedInMask(_second).Actors());
                     break;
                 case 4:
                     Spreads.Clear();

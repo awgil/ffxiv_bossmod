@@ -1,30 +1,28 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 // TODO: implement!
-class ForbiddenFruit10 : ForbiddenFruitCommon
+class ForbiddenFruit10(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.BronzeBellows))
 {
     private BitMask _minotaurPlaforms = ValidPlatformsMask;
     private BitMask _bullPlatforms;
 
-    public ForbiddenFruit10() : base(ActionID.MakeSpell(AID.BronzeBellows)) { }
-
-    public override void DrawArenaBackground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        base.DrawArenaBackground(module, pcSlot, pc, arena);
-        foreach (var (slot, target) in module.Raid.WithSlot(true))
+        base.DrawArenaBackground(pcSlot, pc);
+        foreach (var (slot, target) in Raid.WithSlot(true))
         {
             var source = TetherSources[slot];
             if (source != null)
             {
                 AOEShape shape = (OID)source.OID == OID.ImmatureMinotaur ? ShapeMinotaurTethered : ShapeBullBirdTethered;
-                shape.Draw(arena, source.Position, Angle.FromDirection(target.Position - source.Position));
+                shape.Draw(Arena, source.Position, Angle.FromDirection(target.Position - source.Position));
             }
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        var slot = TryAssignTether(module, source, tether);
+        var slot = TryAssignTether(source, tether);
         if (slot < 0)
             return;
         var safe = (TetherID)tether.ID switch
@@ -36,16 +34,16 @@ class ForbiddenFruit10 : ForbiddenFruitCommon
         SafePlatforms[slot] = safe;
     }
 
-    protected override System.DateTime? PredictUntetheredCastStart(BossModule module, Actor fruit)
+    protected override DateTime? PredictUntetheredCastStart(Actor fruit)
     {
         switch ((OID)fruit.OID)
         {
             case OID.ForbiddenFruitMinotaur:
                 // minotaurs spawn on bridges, minotaur platform is adjacent => their opposite platform is never minotaur one
-                _minotaurPlaforms.Clear(PlatformIDFromOffset(module.Bounds.Center - fruit.Position));
+                _minotaurPlaforms.Clear(PlatformIDFromOffset(Module.Bounds.Center - fruit.Position));
                 break;
             case OID.ForbiddenFruitBull:
-                _bullPlatforms.Set(PlatformIDFromOffset(fruit.Position - module.Bounds.Center));
+                _bullPlatforms.Set(PlatformIDFromOffset(fruit.Position - Module.Bounds.Center));
                 break;
         }
         return null;

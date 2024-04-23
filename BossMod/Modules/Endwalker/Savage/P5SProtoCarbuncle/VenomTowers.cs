@@ -1,25 +1,25 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
-class VenomTowers : BossComponent
+class VenomTowers(BossModule module) : BossComponent(module)
 {
-    private List<WDir> _activeTowerOffsets = new();
+    private readonly List<WDir> _activeTowerOffsets = [];
 
-    private static readonly float _radius = 3; // not sure...
-    private static readonly float _meleeOffset = 7;
-    private static readonly float _rangedOffset = 11; // not sure...
+    private const float _radius = 3; // not sure...
+    private const float _meleeOffset = 7;
+    private const float _rangedOffset = 11; // not sure...
 
     public bool Active => _activeTowerOffsets.Count > 0;
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var t in _activeTowerOffsets)
         {
-            var origin = module.Bounds.Center + t;
-            arena.AddCircle(origin, _radius, module.Raid.WithoutSlot().InRadius(origin, _radius).Any() ? ArenaColor.Safe : ArenaColor.Danger);
+            var origin = Module.Bounds.Center + t;
+            Arena.AddCircle(origin, _radius, Raid.WithoutSlot().InRadius(origin, _radius).Any() ? ArenaColor.Safe : ArenaColor.Danger);
         }
     }
 
-    public override void OnEventEnvControl(BossModule module, byte index, uint state)
+    public override void OnEventEnvControl(byte index, uint state)
     {
         WDir offset = index switch
         {
@@ -38,7 +38,7 @@ class VenomTowers : BossComponent
 
         if (state == 0x00020001)
             _activeTowerOffsets.Add(offset);
-        else if (state == 0x00080004 || state == 0x00100004) // soaked or unsoaked
+        else if (state is 0x00080004 or 0x00100004) // soaked or unsoaked
             _activeTowerOffsets.Remove(offset);
     }
 }

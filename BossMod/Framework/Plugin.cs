@@ -12,23 +12,23 @@ public sealed class Plugin : IDalamudPlugin
 {
     public string Name => "Boss Mod";
 
-    private ICommandManager _commandManager { get; init; }
+    private ICommandManager CommandManager { get; init; }
 
-    private Network.Logger _network;
-    private WorldStateGame _ws;
-    private BossModuleManager _bossmod;
-    private Autorotation _autorotation;
-    private AI.AIManager _ai;
-    private AI.Broadcast _broadcast;
-    private IPCProvider _ipc;
+    private readonly Network.Logger _network;
+    private readonly WorldStateGame _ws;
+    private readonly BossModuleManager _bossmod;
+    private readonly Autorotation _autorotation;
+    private readonly AI.AIManager _ai;
+    private readonly AI.Broadcast _broadcast;
+    private readonly IPCProvider _ipc;
     private TimeSpan _prevUpdateTime;
 
     // windows
-    private BossModuleMainWindow _wndBossmod;
-    private BossModulePlanWindow _wndBossmodPlan;
-    private BossModuleHintsWindow _wndBossmodHints;
-    private ReplayManagementWindow _wndReplay;
-    private MainDebugWindow _wndDebug;
+    private readonly BossModuleMainWindow _wndBossmod;
+    private readonly BossModulePlanWindow _wndBossmodPlan;
+    private readonly BossModuleHintsWindow _wndBossmodHints;
+    private readonly ReplayManagementWindow _wndReplay;
+    private readonly MainDebugWindow _wndDebug;
 
     public Plugin(
         [RequiredVersion("1.0")] DalamudPluginInterface dalamud,
@@ -36,7 +36,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         var dalamudRoot = dalamud.GetType().Assembly.
                 GetType("Dalamud.Service`1", true)!.MakeGenericType(dalamud.GetType().Assembly.GetType("Dalamud.Dalamud", true)!).
-                GetMethod("Get")!.Invoke(null, BindingFlags.Default, null, Array.Empty<object>(), null);
+                GetMethod("Get")!.Invoke(null, BindingFlags.Default, null, [], null);
         var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
 
         dalamud.Create<Service>();
@@ -56,8 +56,8 @@ public sealed class Plugin : IDalamudPlugin
         BozjaInterop.Instance = new();
         ActionManagerEx.Instance = new(); // needs config
 
-        _commandManager = commandManager;
-        _commandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
+        CommandManager = commandManager;
+        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
         _network = new(dalamud.ConfigDirectory);
         _ws = new(dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
@@ -70,7 +70,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmod = new(_bossmod);
         _wndBossmodPlan = new(_bossmod);
         _wndBossmodHints = new(_bossmod);
-        _wndReplay = new(_ws, new(dalamud.ConfigDirectory.FullName +  "/replays"));
+        _wndReplay = new(_ws, new(dalamud.ConfigDirectory.FullName + "/replays"));
         _wndDebug = new(_ws, _autorotation);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
@@ -94,7 +94,7 @@ public sealed class Plugin : IDalamudPlugin
         _ws.Dispose();
         ActionManagerEx.Instance?.Dispose();
         BozjaInterop.Instance?.Dispose();
-        _commandManager.RemoveHandler("/vbm");
+        CommandManager.RemoveHandler("/vbm");
     }
 
     private void OnCommand(string cmd, string args)
@@ -131,7 +131,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OpenConfigUI()
     {
-        new UISimpleWindow("Boss mod config", new ConfigUI(Service.Config, _ws).Draw, true, new(300, 300));
+        _ = new UISimpleWindow("Boss mod config", new ConfigUI(Service.Config, _ws).Draw, true, new(300, 300));
     }
 
     private void DrawUI()

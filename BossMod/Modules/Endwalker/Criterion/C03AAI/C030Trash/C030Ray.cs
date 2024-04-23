@@ -1,29 +1,22 @@
-﻿namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
+﻿using BossMod;
 
-class Hydrocannon : Components.SelfTargetedAOEs
-{
-    public Hydrocannon(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeRect(15, 3)) { }
-}
-class NHydrocannon : Hydrocannon { public NHydrocannon() : base(AID.NHydrocannon) { } }
-class SHydrocannon : Hydrocannon { public SHydrocannon() : base(AID.SHydrocannon) { } }
+namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
 
-class Expulsion : Components.SelfTargetedAOEs
-{
-    public Expulsion(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeCircle(8)) { }
-}
-class NExpulsion : Expulsion { public NExpulsion() : base(AID.NExpulsion) { } }
-class SExpulsion : Expulsion { public SExpulsion() : base(AID.SExpulsion) { } }
+class Hydrocannon(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(15, 3));
+class NHydrocannon(BossModule module) : Hydrocannon(module, AID.NHydrocannon);
+class SHydrocannon(BossModule module) : Hydrocannon(module, AID.SHydrocannon);
 
-class ElectricWhorl : Components.SelfTargetedAOEs
-{
-    public ElectricWhorl(AID aid) : base(ActionID.MakeSpell(aid), new AOEShapeDonut(8, 60)) { }
-}
-class NElectricWhorl : ElectricWhorl { public NElectricWhorl() : base(AID.NElectricWhorl) { } }
-class SElectricWhorl : ElectricWhorl { public SElectricWhorl() : base(AID.SElectricWhorl) { } }
+class Expulsion(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(8));
+class NExpulsion(BossModule module) : Expulsion(module, AID.NExpulsion);
+class SExpulsion(BossModule module) : Expulsion(module, AID.SExpulsion);
+
+class ElectricWhorl(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeDonut(8, 60));
+class NElectricWhorl(BossModule module) : ElectricWhorl(module, AID.NElectricWhorl);
+class SElectricWhorl(BossModule module) : ElectricWhorl(module, AID.SElectricWhorl);
 
 class C030RayStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C030RayStates(BossModule module, bool savage) : base(module)
     {
@@ -56,14 +49,12 @@ class C030RayStates : StateMachineBuilder
         Cast(id + 0x10, _savage ? AID.SExpulsion : AID.NExpulsion, 2.1f, 5, "In");
     }
 }
-class C030NRayStates : C030RayStates { public C030NRayStates(BossModule module) : base(module, false) { } }
-class C030SRayStates : C030RayStates { public C030SRayStates(BossModule module) : base(module, true) { } }
+class C030NRayStates(BossModule module) : C030RayStates(module, false);
+class C030SRayStates(BossModule module) : C030RayStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NRay, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12541, SortOrder = 3)]
-public class C030NRay : C030Trash1
+public class C030NRay(WorldState ws, Actor primary) : C030Trash1(ws, primary)
 {
-    public C030NRay(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
@@ -72,10 +63,8 @@ public class C030NRay : C030Trash1
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SRay, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12541, SortOrder = 3)]
-public class C030SRay : C030Trash1
+public class C030SRay(WorldState ws, Actor primary) : C030Trash1(ws, primary)
 {
-    public C030SRay(WorldState ws, Actor primary) : base(ws, primary) { }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

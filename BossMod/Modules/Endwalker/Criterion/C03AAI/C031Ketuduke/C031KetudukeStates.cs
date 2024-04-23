@@ -2,7 +2,7 @@
 
 class C031KetudukeStates : StateMachineBuilder
 {
-    private bool _savage;
+    private readonly bool _savage;
 
     public C031KetudukeStates(BossModule module, bool savage) : base(module)
     {
@@ -59,7 +59,7 @@ class C031KetudukeStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.PositioningStart);
         ComponentCondition<FlukeGale>(id + 0x50, 8, comp => comp.NumCasts >= 2, "Knockbacks 1");
         ComponentCondition<FlukeGale>(id + 0x51, 2, comp => comp.NumCasts >= 4, "Knockbacks 2")
-            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(Module, 0)) // TODO: consider activating earlier?..
+            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(0)) // TODO: consider activating earlier?..
             .DeactivateOnExit<FlukeGale>()
             .SetHint(StateMachine.StateHint.PositioningEnd);
         ComponentCondition<SpringCrystalsRect>(id + 0x60, 3.1f, comp => comp.NumCasts > 0)
@@ -72,7 +72,7 @@ class C031KetudukeStates : StateMachineBuilder
     {
         CastMulti(id, [AID.Hydrofall, AID.Hydrobullet], delay, 4)
             .ActivateOnEnter<HydrofallHydrobullet>()
-            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(Module, 0));
+            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(0));
         ComponentCondition<HydrofallHydrobullet>(id + 0x10, 3.1f, comp => comp.Mechanics.Count > 1);
         Cast(id + 0x20, AID.BlowingBubbles, 3.1f, 4.2f)
             .ActivateOnEnter<BlowingBubbles>();
@@ -94,7 +94,7 @@ class C031KetudukeStates : StateMachineBuilder
     {
         Cast(id, AID.Hydrofall, delay, 4)
             .ActivateOnEnter<HydrofallHydrobullet>()
-            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(Module, 0));
+            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(0));
         Cast(id + 0x10, AID.StrewnBubbles, 3.2f, 2.2f)
             .ActivateOnEnter<StrewnBubbles>(); // first set appears ~1.4s after cast end
         CastStartMulti(id + 0x20, [_savage ? AID.SRecedingTwintides : AID.NRecedingTwintides, _savage ? AID.SEncroachingTwintides : AID.NEncroachingTwintides], 6.5f)
@@ -115,7 +115,7 @@ class C031KetudukeStates : StateMachineBuilder
     {
         Cast(id, AID.Hydrobullet, delay, 4)
             .ActivateOnEnter<HydrofallHydrobullet>()
-            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(Module, 0));
+            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(0));
         Cast(id + 0x10, AID.Roar, 3.2f, 3)
             .ActivateOnEnter<Roar>(); // zaratans spawn ~1.2s after cast ends
         Cast(id + 0x20, AID.SpringCrystals, 2.6f, 2.2f)
@@ -137,7 +137,7 @@ class C031KetudukeStates : StateMachineBuilder
     {
         CastMulti(id, [AID.Hydrofall, AID.Hydrobullet], delay, 4)
             .ActivateOnEnter<HydrofallHydrobullet>()
-            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(Module, 0));
+            .ExecOnEnter<HydrofallHydrobullet>(comp => comp.Activate(0));
         ComponentCondition<HydrofallHydrobullet>(id + 0x10, 3.1f, comp => comp.Mechanics.Count > 1);
         Cast(id + 0x20, AID.AngrySeas, 3.1f, 4.2f)
             .ActivateOnEnter<AngrySeasAOE>()
@@ -166,5 +166,5 @@ class C031KetudukeStates : StateMachineBuilder
             .DeactivateOnExit<AngrySeasAOE>();
     }
 }
-class C031NKetudukeStates : C031KetudukeStates { public C031NKetudukeStates(BossModule module) : base(module, false) { } }
-class C031SKetudukeStates : C031KetudukeStates { public C031SKetudukeStates(BossModule module) : base(module, true) { } }
+class C031NKetudukeStates(BossModule module) : C031KetudukeStates(module, false);
+class C031SKetudukeStates(BossModule module) : C031KetudukeStates(module, true);

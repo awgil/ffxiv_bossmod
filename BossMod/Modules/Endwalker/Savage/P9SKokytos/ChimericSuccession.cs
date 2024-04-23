@@ -1,32 +1,30 @@
 ﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
-class ChimericSuccession : Components.UniformStackSpread
+class ChimericSuccession(BossModule module) : Components.UniformStackSpread(module, 6, 20, 4, alwaysShowSpreads: true)
 {
     public int NumCasts { get; private set; }
-    private Actor?[] _baitOrder = { null, null, null, null };
+    private readonly Actor?[] _baitOrder = [null, null, null, null];
     private BitMask _forbiddenStack;
     private DateTime _jumpActivation;
 
     public bool JumpActive => _jumpActivation != default;
 
-    public ChimericSuccession() : base(6, 20, 4, alwaysShowSpreads: true) { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         Stacks.Clear();
-        var target = JumpActive ? module.Raid.WithSlot().ExcludedFromMask(_forbiddenStack).Actors().Farthest(module.PrimaryActor.Position) : null;
+        var target = JumpActive ? Raid.WithSlot().ExcludedFromMask(_forbiddenStack).Actors().Farthest(Module.PrimaryActor.Position) : null;
         if (target != null)
             AddStack(target, _jumpActivation, _forbiddenStack);
-        base.Update(module);
+        base.Update();
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FrontFirestrikes or AID.RearFirestrikes)
             _jumpActivation = spell.NPCFinishAt.AddSeconds(0.4f);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -35,7 +33,7 @@ class ChimericSuccession : Components.UniformStackSpread
             case AID.Icemeld3:
             case AID.Icemeld4:
                 ++NumCasts;
-                InitBaits(module);
+                InitBaits();
                 break;
             case AID.PyremeldFront:
             case AID.PyremeldRear:
@@ -44,7 +42,7 @@ class ChimericSuccession : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         int order = (IconID)iconID switch
         {
@@ -57,26 +55,20 @@ class ChimericSuccession : Components.UniformStackSpread
         if (order < 0)
             return;
         _baitOrder[order] = actor;
-        _forbiddenStack.Set(module.Raid.FindSlot(actor.InstanceID));
+        _forbiddenStack.Set(Raid.FindSlot(actor.InstanceID));
         if (order == 0)
-            InitBaits(module);
+            InitBaits();
     }
 
-    private void InitBaits(BossModule module)
+    private void InitBaits()
     {
         Spreads.Clear();
         var target = NumCasts < _baitOrder.Length ? _baitOrder[NumCasts] : null;
         if (target != null)
-            AddSpread(target, module.WorldState.CurrentTime.AddSeconds(NumCasts == 0 ? 10.1f : 3));
+            AddSpread(target, WorldState.FutureTime(NumCasts == 0 ? 10.1f : 3));
     }
 }
 
 // TODO: think of a way to show baits before cast start to help aiming outside...
-class SwingingKickFront : Components.SelfTargetedAOEs
-{
-    public SwingingKickFront() : base(ActionID.MakeSpell(AID.SwingingKickFront), new AOEShapeCone(40, 90.Degrees())) { }
-}
-class SwingingKickRear : Components.SelfTargetedAOEs
-{
-    public SwingingKickRear() : base(ActionID.MakeSpell(AID.SwingingKickRear), new AOEShapeCone(40, 90.Degrees())) { }
-}
+class SwingingKickFront(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SwingingKickFront), new AOEShapeCone(40, 90.Degrees()));
+class SwingingKickRear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SwingingKickRear), new AOEShapeCone(40, 90.Degrees()));

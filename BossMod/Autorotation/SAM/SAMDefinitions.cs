@@ -111,7 +111,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 68101, 68106 };
+    public static readonly uint[] UnlockQuests = [68101, 68106];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -178,50 +178,50 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
-        SupportedActions.GCD(AID.Hakaze, 3);
-        SupportedActions.GCD(AID.Jinpu, 3);
-        SupportedActions.OGCD(AID.ThirdEye, 0, CDGroup.ThirdEye, 15.0f).EffectDuration = 4;
-        SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
-        SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
-        SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f).EffectDuration = 20;
-        SupportedActions.GCD(AID.Enpi, 20);
-        SupportedActions.GCD(AID.Shifu, 3);
-        SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
-        SupportedActions.GCD(AID.Fuga, 8);
-        SupportedActions.GCDCast(AID.Iaijutsu, 0, 1.8f);
-        SupportedActions.GCDCast(AID.Higanbana, 6, 1.8f);
-        SupportedActions.GCD(AID.Gekko, 3);
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.GCD(AID.Mangetsu, 0);
-        SupportedActions.GCD(AID.Kasha, 3);
-        SupportedActions.GCDCast(AID.TenkaGoken, 0, 1.8f);
-        SupportedActions.GCD(AID.Oka, 0);
-        SupportedActions.GCDCast(AID.MidareSetsugekka, 6, 1.8f);
-        SupportedActions.OGCDWithCharges(AID.MeikyoShisui, 0, CDGroup.MeikyoShisui, 55.0f, 2).EffectDuration = 15;
-        SupportedActions.GCD(AID.Yukikaze, 3);
-        SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2).EffectDuration = 10;
-        SupportedActions.OGCD(AID.HissatsuShinten, 3, CDGroup.HissatsuShinten, 1.0f);
-        SupportedActions.OGCD(AID.HissatsuGyoten, 20, CDGroup.HissatsuGyoten, 10.0f);
-        SupportedActions.OGCD(AID.HissatsuYaten, 5, CDGroup.HissatsuYaten, 10.0f, 0.800f);
-        SupportedActions.OGCD(AID.Meditate, 0, CDGroup.Meditate, 60.0f);
-        SupportedActions.OGCD(AID.HissatsuKyuten, 0, CDGroup.HissatsuKyuten, 1.0f);
-        SupportedActions.OGCD(AID.Hagakure, 0, CDGroup.Hagakure, 5.0f);
-        SupportedActions.OGCD(AID.Ikishoten, 0, CDGroup.Ikishoten, 120.0f);
-        SupportedActions.OGCD(AID.HissatsuGuren, 10, CDGroup.HissatsuGuren, 120.0f);
-        SupportedActions.OGCD(AID.HissatsuSenei, 3, CDGroup.HissatsuGuren, 120.0f);
-        SupportedActions.OGCDWithCharges(AID.TsubameGaeshi, 0, CDGroup.TsubameGaeshi, 60.0f, 2);
-        SupportedActions.OGCDWithCharges(AID.KaeshiHiganbana, 6, CDGroup.TsubameGaeshi, 60.0f, 2);
-        SupportedActions.OGCDWithCharges(AID.KaeshiGoken, 0, CDGroup.TsubameGaeshi, 60.0f, 2);
-        SupportedActions.OGCDWithCharges(AID.KaeshiSetsugekka, 6, CDGroup.TsubameGaeshi, 60.0f, 2);
-        SupportedActions.OGCD(AID.Shoha, 3, CDGroup.Shoha, 15.0f);
-        SupportedActions.OGCD(AID.Shoha2, 0, CDGroup.Shoha, 15.0f);
-        SupportedActions.GCD(AID.Fuko, 0);
-        SupportedActions.GCDCast(AID.OgiNamikiri, 8, 1.8f);
-        SupportedActions.OGCD(AID.KaeshiNamikiri, 8, CDGroup.KaeshiNamikiri, 1.0f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+        res.GCD(AID.Hakaze, 3);
+        res.GCD(AID.Jinpu, 3);
+        res.OGCD(AID.ThirdEye, 0, CDGroup.ThirdEye, 15.0f).EffectDuration = 4;
+        res.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
+        res.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
+        res.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f).EffectDuration = 20;
+        res.GCD(AID.Enpi, 20);
+        res.GCD(AID.Shifu, 3);
+        res.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
+        res.GCD(AID.Fuga, 8);
+        res.GCDCast(AID.Iaijutsu, 0, 1.8f);
+        res.GCDCast(AID.Higanbana, 6, 1.8f);
+        res.GCD(AID.Gekko, 3);
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.GCD(AID.Mangetsu, 0);
+        res.GCD(AID.Kasha, 3);
+        res.GCDCast(AID.TenkaGoken, 0, 1.8f);
+        res.GCD(AID.Oka, 0);
+        res.GCDCast(AID.MidareSetsugekka, 6, 1.8f);
+        res.OGCDWithCharges(AID.MeikyoShisui, 0, CDGroup.MeikyoShisui, 55.0f, 2).EffectDuration = 15;
+        res.GCD(AID.Yukikaze, 3);
+        res.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2).EffectDuration = 10;
+        res.OGCD(AID.HissatsuShinten, 3, CDGroup.HissatsuShinten, 1.0f);
+        res.OGCD(AID.HissatsuGyoten, 20, CDGroup.HissatsuGyoten, 10.0f);
+        res.OGCD(AID.HissatsuYaten, 5, CDGroup.HissatsuYaten, 10.0f, 0.800f);
+        res.OGCD(AID.Meditate, 0, CDGroup.Meditate, 60.0f);
+        res.OGCD(AID.HissatsuKyuten, 0, CDGroup.HissatsuKyuten, 1.0f);
+        res.OGCD(AID.Hagakure, 0, CDGroup.Hagakure, 5.0f);
+        res.OGCD(AID.Ikishoten, 0, CDGroup.Ikishoten, 120.0f);
+        res.OGCD(AID.HissatsuGuren, 10, CDGroup.HissatsuGuren, 120.0f);
+        res.OGCD(AID.HissatsuSenei, 3, CDGroup.HissatsuGuren, 120.0f);
+        res.OGCDWithCharges(AID.TsubameGaeshi, 0, CDGroup.TsubameGaeshi, 60.0f, 2);
+        res.OGCDWithCharges(AID.KaeshiHiganbana, 6, CDGroup.TsubameGaeshi, 60.0f, 2);
+        res.OGCDWithCharges(AID.KaeshiGoken, 0, CDGroup.TsubameGaeshi, 60.0f, 2);
+        res.OGCDWithCharges(AID.KaeshiSetsugekka, 6, CDGroup.TsubameGaeshi, 60.0f, 2);
+        res.OGCD(AID.Shoha, 3, CDGroup.Shoha, 15.0f);
+        res.OGCD(AID.Shoha2, 0, CDGroup.Shoha, 15.0f);
+        res.GCD(AID.Fuko, 0);
+        res.GCDCast(AID.OgiNamikiri, 8, 1.8f);
+        res.OGCD(AID.KaeshiNamikiri, 8, CDGroup.KaeshiNamikiri, 1.0f);
+        return res;
     }
 }

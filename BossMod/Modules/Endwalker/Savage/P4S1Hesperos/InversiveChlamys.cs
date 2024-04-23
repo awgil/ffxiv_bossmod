@@ -2,32 +2,32 @@
 
 // state related to inversive chlamys mechanic (tethers)
 // note that forbidden targets are selected either from bloodrake tethers (first instance of mechanic) or from tower types (second instance of mechanic)
-class InversiveChlamys : BossComponent
+class InversiveChlamys(BossModule module) : BossComponent(module)
 {
-    private bool _assigned = false;
+    private bool _assigned;
     private BitMask _tetherForbidden;
     private BitMask _tetherTargets;
     private BitMask _tetherInAOE;
 
-    private static readonly float _aoeRange = 5;
+    private const float _aoeRange = 5;
 
     public bool TethersActive => _tetherTargets.Any();
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (!_assigned)
         {
-            var coils = module.FindComponent<BeloneCoils>();
+            var coils = Module.FindComponent<BeloneCoils>();
             if (coils == null)
             {
                 // assign from bloodrake tethers
-                _tetherForbidden = module.Raid.WithSlot().Tethered(TetherID.Bloodrake).Mask();
+                _tetherForbidden = Raid.WithSlot().Tethered(TetherID.Bloodrake).Mask();
                 _assigned = true;
             }
             else if (coils.ActiveSoakers != BeloneCoils.Soaker.Unknown)
             {
                 // assign from coils (note that it happens with some delay)
-                _tetherForbidden = module.Raid.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
+                _tetherForbidden = Raid.WithSlot().WhereActor(coils.IsValidSoaker).Mask();
                 _assigned = true;
             }
         }
@@ -36,14 +36,14 @@ class InversiveChlamys : BossComponent
         if (_tetherForbidden.None())
             return;
 
-        foreach ((int i, var player) in module.Raid.WithSlot().Tethered(TetherID.Chlamys))
+        foreach ((int i, var player) in Raid.WithSlot().Tethered(TetherID.Chlamys))
         {
             _tetherTargets.Set(i);
-            _tetherInAOE |= module.Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
+            _tetherInAOE |= Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_tetherForbidden.None())
             return;
@@ -59,7 +59,7 @@ class InversiveChlamys : BossComponent
             {
                 hints.Add("Tethers: intercept!");
             }
-            else if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
+            else if (Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRange).Any())
             {
                 hints.Add("Tethers: GTFO from others!");
             }
@@ -90,31 +90,31 @@ class InversiveChlamys : BossComponent
         }
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        var forbidden = module.Raid.WithSlot(true).IncludedInMask(_tetherForbidden).FirstOrDefault().Item2;
+        var forbidden = Raid.WithSlot(true).IncludedInMask(_tetherForbidden).FirstOrDefault().Item2;
         if (forbidden != null)
         {
             hints.Add($"Intercept: {(forbidden.Role is Role.Tank or Role.Healer ? "DD" : "Tanks/Healers")}");
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_tetherTargets.None())
             return;
 
         var failingPlayers = _tetherForbidden & _tetherTargets;
-        foreach ((int i, var player) in module.Raid.WithSlot())
+        foreach ((int i, var player) in Raid.WithSlot())
         {
             bool failing = failingPlayers[i];
             bool inAOE = _tetherInAOE[i];
-            arena.Actor(player, failing ? ArenaColor.Danger : (inAOE ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
+            Arena.Actor(player, failing ? ArenaColor.Danger : (inAOE ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
 
             if (player.Tether.ID == (uint)TetherID.Chlamys)
             {
-                arena.AddLine(player.Position, module.PrimaryActor.Position, failing ? ArenaColor.Danger : ArenaColor.Safe);
-                arena.AddCircle(player.Position, _aoeRange, ArenaColor.Danger);
+                Arena.AddLine(player.Position, Module.PrimaryActor.Position, failing ? ArenaColor.Danger : ArenaColor.Safe);
+                Arena.AddCircle(player.Position, _aoeRange, ArenaColor.Danger);
             }
         }
     }

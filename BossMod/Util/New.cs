@@ -53,7 +53,7 @@ public static class New<T>
 
     private static (NewExpression, ParameterExpression[]) CreateExpressions(Type builtType, params Type[] argsTypes)
     {
-        var constructorInfo = builtType.GetConstructor(argsTypes) ?? throw new Exception($"{builtType} is not constructible from ({string.Join(", ", argsTypes.Select(t => t))})");
+        var constructorInfo = builtType.GetConstructor(argsTypes) ?? throw new ArgumentException($"{builtType} is not constructible from ({string.Join(", ", argsTypes.Select(t => t))})");
         var constructorParameters = argsTypes.Select(Expression.Parameter).ToArray();
         var expression = Expression.New(constructorInfo, constructorParameters);
         return (expression, constructorParameters);

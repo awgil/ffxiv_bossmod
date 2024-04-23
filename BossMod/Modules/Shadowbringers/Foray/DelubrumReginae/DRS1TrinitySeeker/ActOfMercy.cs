@@ -1,16 +1,12 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
-class ActOfMercy : Components.GenericAOEs
+class ActOfMercy(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ActOfMercy))
 {
-    private DateTime _activation;
+    private readonly DateTime _activation = module.WorldState.FutureTime(7.6f); // from verdant path cast start
     private static readonly AOEShapeCross _shape = new(50, 4);
 
-    public ActOfMercy() : base(ActionID.MakeSpell(AID.ActOfMercy)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
+        yield return new(_shape, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
     }
-
-    public override void Init(BossModule module) => _activation = module.WorldState.CurrentTime.AddSeconds(7.6f); // from verdant path cast start
 }

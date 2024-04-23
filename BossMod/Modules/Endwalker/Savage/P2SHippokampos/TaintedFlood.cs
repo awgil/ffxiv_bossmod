@@ -5,20 +5,18 @@ class TaintedFlood : Components.CastCounter
 {
     private BitMask _ignoredTargets;
 
-    private static readonly float _radius = 6;
+    private const float _radius = 6;
 
-    public TaintedFlood() : base(ActionID.MakeSpell(AID.TaintedFloodAOE)) { }
-
-    public override void Init(BossModule module)
+    public TaintedFlood(BossModule module) : base(module, ActionID.MakeSpell(AID.TaintedFloodAOE))
     {
         var flow = module.FindComponent<ChannelingFlow>();
         if (flow != null)
         {
-            _ignoredTargets = module.Raid.WithSlot().WhereSlot(s => flow.SlotActive(module, s)).Mask();
+            _ignoredTargets = Raid.WithSlot().WhereSlot(flow.SlotActive).Mask();
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (NumCasts > 0)
             return;
@@ -26,35 +24,35 @@ class TaintedFlood : Components.CastCounter
         if (_ignoredTargets[slot])
         {
             // player is not a target of flood, so just make sure he is not clipped by others
-            if (module.Raid.WithSlot().ExcludedFromMask(_ignoredTargets).InRadius(actor.Position, _radius).Any())
+            if (Raid.WithSlot().ExcludedFromMask(_ignoredTargets).InRadius(actor.Position, _radius).Any())
                 hints.Add("GTFO from flood!");
         }
         else
         {
             // player is target of flood => make sure no one is in range
-            if (module.Raid.WithoutSlot().InRadiusExcluding(actor, _radius).Any())
+            if (Raid.WithoutSlot().InRadiusExcluding(actor, _radius).Any())
                 hints.Add("Spread!");
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (NumCasts > 0)
             return;
 
         if (_ignoredTargets[pcSlot])
         {
-            foreach ((_, var actor) in module.Raid.WithSlot().ExcludedFromMask(_ignoredTargets))
+            foreach ((_, var actor) in Raid.WithSlot().ExcludedFromMask(_ignoredTargets))
             {
-                arena.Actor(actor, ArenaColor.Danger);
-                arena.AddCircle(actor.Position, _radius, ArenaColor.Danger);
+                Arena.Actor(actor, ArenaColor.Danger);
+                Arena.AddCircle(actor.Position, _radius, ArenaColor.Danger);
             }
         }
         else
         {
-            arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
-            foreach (var player in module.Raid.WithoutSlot().Exclude(pc))
-                arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
+            Arena.AddCircle(pc.Position, _radius, ArenaColor.Danger);
+            foreach (var player in Raid.WithoutSlot().Exclude(pc))
+                Arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
         }
     }
 }

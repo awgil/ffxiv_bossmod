@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW1;
 
 [ConfigDisplay(Order = 0x200, Parent = typeof(EndwalkerConfig))]
-public class DSW1Config : CooldownPlanningConfigNode
+public class DSW1Config() : CooldownPlanningConfigNode(90)
 {
     public enum HeavensflameHints
     {
@@ -17,6 +17,4 @@ public class DSW1Config : CooldownPlanningConfigNode
 
     [PropertyDisplay("Heavensflame resolution hints")]
     public HeavensflameHints Heavensflame = HeavensflameHints.None;
-
-    public DSW1Config() : base(90) { }
 }

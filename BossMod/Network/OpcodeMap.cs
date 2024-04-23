@@ -3,8 +3,8 @@
 // map betweek network message opcodes (which are randomized every build) to more-or-less stable indices
 public class OpcodeMap
 {
-    private List<int> _opcodeToID = new();
-    private List<int> _idToOpcode = new();
+    private readonly List<int> _opcodeToID = [];
+    private readonly List<int> _idToOpcode = [];
 
     public IReadOnlyList<int> OpcodeToID => _opcodeToID;
     public IReadOnlyList<int> IDToOpcode => _idToOpcode;
@@ -52,7 +52,7 @@ public class OpcodeMap
     // mov rax, [rcx]
     // lea r9, [r10+10h]
     // jmp qword ptr [rax+<vfoff>]
-    private static byte[] BodyPrefix = { 0x48, 0x8B, 0x01, 0x4D, 0x8D, 0x4A, 0x10, 0x48, 0xFF };
+    private static readonly byte[] BodyPrefix = [0x48, 0x8B, 0x01, 0x4D, 0x8D, 0x4A, 0x10, 0x48, 0xFF];
     private static unsafe int ReadIndexForCaseBody(byte* bodyAddr)
     {
         for (int i = 0; i < BodyPrefix.Length; ++i)

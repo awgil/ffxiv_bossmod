@@ -2,7 +2,7 @@
 
 class DSW1States : StateMachineBuilder
 {
-    private DSW1 _module;
+    private readonly DSW1 _module;
 
     public DSW1States(DSW1 module) : base(module)
     {

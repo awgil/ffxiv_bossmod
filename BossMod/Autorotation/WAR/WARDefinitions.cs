@@ -134,7 +134,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 65852, 65855, 66586, 66587, 66589, 66590, 66124, 66132, 66134, 66137, 68440 };
+    public static readonly uint[] UnlockQuests = [65852, 65855, 66586, 66587, 66589, 66590, 66124, 66132, 66134, 66137, 68440];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -202,49 +202,50 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
-        SupportedActions.GCD(AID.HeavySwing, 3);
-        SupportedActions.GCD(AID.Maim, 3);
-        SupportedActions.GCD(AID.StormPath, 3);
-        SupportedActions.GCD(AID.StormEye, 3);
-        SupportedActions.GCD(AID.InnerBeast, 3);
-        SupportedActions.GCD(AID.FellCleave, 3);
-        SupportedActions.GCD(AID.InnerChaos, 3);
-        SupportedActions.GCD(AID.PrimalRend, 20, 1.15f);
-        SupportedActions.GCD(AID.Overpower, 0);
-        SupportedActions.GCD(AID.MythrilTempest, 0);
-        SupportedActions.GCD(AID.SteelCyclone, 0);
-        SupportedActions.GCD(AID.Decimate, 0);
-        SupportedActions.GCD(AID.ChaoticCyclone, 0);
-        SupportedActions.OGCDWithCharges(AID.Infuriate, 0, CDGroup.Infuriate, 60.0f, 2);
-        SupportedActions.OGCDWithCharges(AID.Onslaught, 20, CDGroup.Onslaught, 30.0f, 3);
-        SupportedActions.OGCD(AID.Upheaval, 3, CDGroup.Upheaval, 30.0f);
-        SupportedActions.OGCD(AID.Orogeny, 0, CDGroup.Upheaval, 30.0f);
-        SupportedActions.OGCD(AID.Berserk, 0, CDGroup.Berserk, 60.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.InnerRelease, 0, CDGroup.InnerRelease, 60.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.Rampart, 0, CDGroup.Rampart, 90.0f).EffectDuration = 20;
-        SupportedActions.OGCD(AID.Vengeance, 0, CDGroup.Vengeance, 120.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.ThrillOfBattle, 0, CDGroup.ThrillOfBattle, 90.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.Holmgang, 6, CDGroup.Holmgang, 240.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.Equilibrium, 0, CDGroup.Equilibrium, 60.0f).EffectDuration = 0;
-        SupportedActions.OGCD(AID.Reprisal, 0, CDGroup.Reprisal, 60.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.ShakeItOff, 0, CDGroup.ShakeItOff, 90.0f).EffectDuration = 30;
-        SupportedActions.OGCD(AID.RawIntuition, 0, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
-        SupportedActions.OGCD(AID.NascentFlash, 30, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
-        SupportedActions.OGCD(AID.Bloodwhetting, 0, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.GCD(AID.Tomahawk, 20);
-        SupportedActions.OGCD(AID.Defiance, 0, CDGroup.Defiance, 2.0f);
-        SupportedActions.OGCD(AID.ReleaseDefiance, 0, CDGroup.Defiance, 1.0f);
-        SupportedActions.OGCD(AID.Provoke, 25, CDGroup.Provoke, 30.0f);
-        SupportedActions.OGCD(AID.Shirk, 25, CDGroup.Shirk, 120.0f);
-        SupportedActions.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
-        SupportedActions.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
-        SupportedActions.OGCD(AID.ShieldWall, 0, CDGroup.LimitBreak, 0, 3.86f);
-        SupportedActions.OGCD(AID.Stronghold, 0, CDGroup.LimitBreak, 0, 3.86f);
-        SupportedActions.OGCD(AID.LandWaker, 0, CDGroup.LimitBreak, 0, 3.86f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+        res.GCD(AID.HeavySwing, 3);
+        res.GCD(AID.Maim, 3);
+        res.GCD(AID.StormPath, 3);
+        res.GCD(AID.StormEye, 3);
+        res.GCD(AID.InnerBeast, 3);
+        res.GCD(AID.FellCleave, 3);
+        res.GCD(AID.InnerChaos, 3);
+        res.GCD(AID.PrimalRend, 20, 1.15f);
+        res.GCD(AID.Overpower, 0);
+        res.GCD(AID.MythrilTempest, 0);
+        res.GCD(AID.SteelCyclone, 0);
+        res.GCD(AID.Decimate, 0);
+        res.GCD(AID.ChaoticCyclone, 0);
+        res.OGCDWithCharges(AID.Infuriate, 0, CDGroup.Infuriate, 60.0f, 2);
+        res.OGCDWithCharges(AID.Onslaught, 20, CDGroup.Onslaught, 30.0f, 3);
+        res.OGCD(AID.Upheaval, 3, CDGroup.Upheaval, 30.0f);
+        res.OGCD(AID.Orogeny, 0, CDGroup.Upheaval, 30.0f);
+        res.OGCD(AID.Berserk, 0, CDGroup.Berserk, 60.0f).EffectDuration = 15;
+        res.OGCD(AID.InnerRelease, 0, CDGroup.InnerRelease, 60.0f).EffectDuration = 15;
+        res.OGCD(AID.Rampart, 0, CDGroup.Rampart, 90.0f).EffectDuration = 20;
+        res.OGCD(AID.Vengeance, 0, CDGroup.Vengeance, 120.0f).EffectDuration = 15;
+        res.OGCD(AID.ThrillOfBattle, 0, CDGroup.ThrillOfBattle, 90.0f).EffectDuration = 10;
+        res.OGCD(AID.Holmgang, 6, CDGroup.Holmgang, 240.0f).EffectDuration = 10;
+        res.OGCD(AID.Equilibrium, 0, CDGroup.Equilibrium, 60.0f).EffectDuration = 0;
+        res.OGCD(AID.Reprisal, 0, CDGroup.Reprisal, 60.0f).EffectDuration = 10;
+        res.OGCD(AID.ShakeItOff, 0, CDGroup.ShakeItOff, 90.0f).EffectDuration = 30;
+        res.OGCD(AID.RawIntuition, 0, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
+        res.OGCD(AID.NascentFlash, 30, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
+        res.OGCD(AID.Bloodwhetting, 0, CDGroup.Bloodwhetting, 25.0f).EffectDuration = 4;
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.GCD(AID.Tomahawk, 20);
+        res.OGCD(AID.Defiance, 0, CDGroup.Defiance, 2.0f);
+        res.OGCD(AID.ReleaseDefiance, 0, CDGroup.Defiance, 1.0f);
+        res.OGCD(AID.Provoke, 25, CDGroup.Provoke, 30.0f);
+        res.OGCD(AID.Shirk, 25, CDGroup.Shirk, 120.0f);
+        res.OGCD(AID.LowBlow, 3, CDGroup.LowBlow, 25.0f);
+        res.OGCD(AID.Interject, 3, CDGroup.Interject, 30.0f);
+        res.OGCD(AID.ShieldWall, 0, CDGroup.LimitBreak, 0, 3.86f);
+        res.OGCD(AID.Stronghold, 0, CDGroup.LimitBreak, 0, 3.86f);
+        res.OGCD(AID.LandWaker, 0, CDGroup.LimitBreak, 0, 3.86f);
+        return res;
     }
 }

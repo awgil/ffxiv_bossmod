@@ -1,32 +1,20 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P3WormholeLimitCut : LimitCut
-{
-    public P3WormholeLimitCut() : base(2.7f) { }
-}
+class P3WormholeLimitCut(BossModule module) : LimitCut(module, 2.7f);
+class P3WormholeSacrament(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SacramentWormhole), new AOEShapeCross(100, 8));
 
-class P3WormholeSacrament : Components.SelfTargetedAOEs
-{
-    public P3WormholeSacrament() : base(ActionID.MakeSpell(AID.SacramentWormhole), new AOEShapeCross(100, 8)) { }
-}
-
-class P3WormholeRepentance : BossComponent
+class P3WormholeRepentance(BossModule module) : BossComponent(module)
 {
     public int NumSoaks { get; private set; }
     private bool _chakramsDone;
-    private LimitCut? _limitCut;
-    private List<WPos> _wormholes = new();
+    private readonly LimitCut? _limitCut = module.FindComponent<LimitCut>();
+    private readonly List<WPos> _wormholes = [];
 
-    private static readonly float[] _radiuses = { 8, 6, 3 };
+    private static readonly float[] _radiuses = [8, 6, 3];
 
-    public override void Init(BossModule module)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        _limitCut = module.FindComponent<LimitCut>();
-    }
-
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
-    {
-        var alex = ((TEA)module).AlexPrime();
+        var alex = ((TEA)Module).AlexPrime();
         if (alex == null || NumSoaks >= 3)
             return;
 
@@ -34,7 +22,7 @@ class P3WormholeRepentance : BossComponent
         if (order == 0)
             return;
 
-        var dirToAlex = (alex.Position - module.Bounds.Center).Normalized();
+        var dirToAlex = (alex.Position - Module.Bounds.Center).Normalized();
         var dirToSide = SelectSide(order, dirToAlex);
         bool shouldSoak = ShouldSoakWormhole(order);
 
@@ -45,14 +33,29 @@ class P3WormholeRepentance : BossComponent
             if (soakingWormhole != shouldSoak)
                 hints.Add(shouldSoak ? "Soak the wormhole!" : "GTFO from wormhole!");
         }
-
-        if (movementHints != null && (!shouldSoak || !_chakramsDone))
-            movementHints.Add(actor.Position, module.Bounds.Center + SafeSpotOffset(order, dirToAlex, dirToSide), ArenaColor.Safe);
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        var alex = ((TEA)module).AlexPrime();
+        var alex = ((TEA)Module).AlexPrime();
+        if (alex == null || NumSoaks >= 3)
+            return;
+
+        var order = _limitCut?.PlayerOrder[slot] ?? 0;
+        if (order == 0)
+            return;
+
+        if (!ShouldSoakWormhole(order) || !_chakramsDone)
+        {
+            var dirToAlex = (alex.Position - Module.Bounds.Center).Normalized();
+            var dirToSide = SelectSide(order, dirToAlex);
+            movementHints.Add(actor.Position, Module.Bounds.Center + SafeSpotOffset(order, dirToAlex, dirToSide), ArenaColor.Safe);
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        var alex = ((TEA)Module).AlexPrime();
         if (alex == null || NumSoaks >= 3)
             return;
 
@@ -60,24 +63,24 @@ class P3WormholeRepentance : BossComponent
         if (pcOrder == 0)
             return;
 
-        var dirToAlex = (alex.Position - module.Bounds.Center).Normalized();
+        var dirToAlex = (alex.Position - Module.Bounds.Center).Normalized();
         var dirToSide = SelectSide(pcOrder, dirToAlex);
         var shouldSoak = ShouldSoakWormhole(pcOrder);
 
         foreach (var w in _wormholes)
-            arena.AddCircle(w, _radiuses[NumSoaks], shouldSoak && dirToSide.Dot(w - module.Bounds.Center) > 0 ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(w, _radiuses[NumSoaks], shouldSoak && dirToSide.Dot(w - Module.Bounds.Center) > 0 ? ArenaColor.Safe : ArenaColor.Danger);
 
         if (!shouldSoak || !_chakramsDone)
-            arena.AddCircle(module.Bounds.Center + SafeSpotOffset(pcOrder, dirToAlex, dirToSide), 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Bounds.Center + SafeSpotOffset(pcOrder, dirToAlex, dirToSide), 1, ArenaColor.Safe);
     }
 
-    public override void OnActorCreated(BossModule module, Actor actor)
+    public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Wormhole1)
             _wormholes.Add(actor.Position);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -131,28 +134,23 @@ class P3WormholeRepentance : BossComponent
     }
 }
 
-class P3WormholeIncineratingHeat : Components.StackWithCastTargets
-{
-    public P3WormholeIncineratingHeat() : base(ActionID.MakeSpell(AID.IncineratingHeat), 5, 8) { }
-}
+class P3WormholeIncineratingHeat(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.IncineratingHeat), 5, 8);
 
-class P3WormholeEnumeration : Components.UniformStackSpread
+class P3WormholeEnumeration(BossModule module) : Components.UniformStackSpread(module, 5, 0, 3, 3, raidwideOnResolve: false) // TODO: verify enumeration radius
 {
     private BitMask _targets; // we start showing stacks only after incinerating heat is resolved
     private DateTime _activation;
 
-    public P3WormholeEnumeration() : base(5, 0, 3, 3, raidwideOnResolve: false) { } // TODO: verify enumeration radius
-
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.Enumeration)
         {
-            _targets.Set(module.Raid.FindSlot(actor.InstanceID));
-            _activation = module.WorldState.CurrentTime.AddSeconds(5.1f);
+            _targets.Set(Raid.FindSlot(actor.InstanceID));
+            _activation = WorldState.FutureTime(5.1f);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
@@ -160,7 +158,7 @@ class P3WormholeEnumeration : Components.UniformStackSpread
                 Stacks.Clear();
                 break;
             case AID.IncineratingHeat:
-                AddStacks(module.Raid.WithSlot(true).IncludedInMask(_targets).Actors(), _activation);
+                AddStacks(Raid.WithSlot(true).IncludedInMask(_targets).Actors(), _activation);
                 break;
         }
     }

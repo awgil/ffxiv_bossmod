@@ -11,7 +11,7 @@ public class FloodFillVisualizer
     public float ScreenPixelSize = 2.0f;
     public float CurrT;
     public float MaxT;
-    public List<Vector4> Path = new(); // x/y/z/t
+    public List<Vector4> Path = []; // x/y/z/t
     public int ScrollY;
 
     public FloodFillVisualizer(Map map, Vector3 startPos, float endZ, int maxDeltaZ)

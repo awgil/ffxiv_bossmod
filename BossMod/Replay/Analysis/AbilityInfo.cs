@@ -8,8 +8,8 @@ class AbilityInfo : CommonEnumInfo
 {
     class SourcePositionAnalysis
     {
-        private UIPlot _plot = new();
-        private List<(Replay Replay, Replay.Action Action, Vector2 SourcePos)> _points = new();
+        private readonly UIPlot _plot = new();
+        private readonly List<(Replay Replay, Replay.Action Action, Vector2 SourcePos)> _points = [];
 
         public SourcePositionAnalysis(List<(Replay, Replay.Action)> infos)
         {
@@ -40,8 +40,8 @@ class AbilityInfo : CommonEnumInfo
     {
         public enum Targeting { SourcePosRot, TargetPosSourceRot, SourcePosDirToTarget }
 
-        private UIPlot _plot = new();
-        private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, float Range, bool Hit)> _points = new();
+        private readonly UIPlot _plot = new();
+        private readonly List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Angle, float Range, bool Hit)> _points = [];
 
         public ConeAnalysis(List<(Replay, Replay.Action)> infos, Targeting targeting)
         {
@@ -55,7 +55,7 @@ class AbilityInfo : CommonEnumInfo
                 var targetPos = new WPos(a.TargetPos.XZ());
                 if (targetPos == sourcePos && a.Targets.Count > 0)
                     targetPos = new(a.Targets[0].Target.PosRotAt(a.Timestamp).XZ());
-                var origin = targeting != Targeting.TargetPosSourceRot ? sourcePos: targetPos;
+                var origin = targeting != Targeting.TargetPosSourceRot ? sourcePos : targetPos;
                 var dir = targeting != Targeting.SourcePosDirToTarget ? sourcePosRot.W.Radians().ToDirection() : (targetPos - origin).Normalized();
                 var left = dir.OrthoL();
                 foreach (var target in AlivePlayersAt(r, a.Timestamp))
@@ -85,8 +85,8 @@ class AbilityInfo : CommonEnumInfo
 
     class RectAnalysis
     {
-        private UIPlot _plot = new();
-        private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Normal, float Length, bool Hit)> _points = new();
+        private readonly UIPlot _plot = new();
+        private readonly List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Normal, float Length, bool Hit)> _points = [];
 
         public RectAnalysis(List<(Replay, Replay.Action)> infos, bool originAtSource)
         {
@@ -121,8 +121,8 @@ class AbilityInfo : CommonEnumInfo
 
     class DamageFalloffAnalysis
     {
-        private UIPlot _plot = new();
-        private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Range, int Damage)> _points = new();
+        private readonly UIPlot _plot = new();
+        private readonly List<(Replay Replay, Replay.Action Action, Replay.Participant Target, float Range, int Damage)> _points = [];
 
         public DamageFalloffAnalysis(List<(Replay, Replay.Action)> infos, bool useMaxComp, bool fromSource)
         {
@@ -152,8 +152,8 @@ class AbilityInfo : CommonEnumInfo
 
     class GazeAnalysis
     {
-        private UIPlot _plot = new();
-        private List<(Replay Replay, Replay.Action Action, Replay.Participant Target, Angle Angle, bool Hit)> _points = new();
+        private readonly UIPlot _plot = new();
+        private readonly List<(Replay Replay, Replay.Action Action, Replay.Participant Target, Angle Angle, bool Hit)> _points = [];
 
         public GazeAnalysis(List<(Replay, Replay.Action)> infos)
         {
@@ -191,13 +191,13 @@ class AbilityInfo : CommonEnumInfo
     {
         private record struct Point(Replay Replay, Replay.Action Action, Replay.ActionTarget Target);
 
-        private Dictionary<int, List<Point>> _byDistance = new();
-        private Dictionary<Knockback.Kind, List<Point>> _byKind = new();
-        private List<Point> _immuneIgnores = new();
-        private List<Point> _immuneMisses = new();
-        private List<Point> _transcendentIgnores = new();
-        private List<Point> _transcendentMisses = new();
-        private List<Point> _otherMisses = new();
+        private readonly Dictionary<int, List<Point>> _byDistance = [];
+        private readonly Dictionary<Knockback.Kind, List<Point>> _byKind = [];
+        private readonly List<Point> _immuneIgnores = [];
+        private readonly List<Point> _immuneMisses = [];
+        private readonly List<Point> _transcendentIgnores = [];
+        private readonly List<Point> _transcendentMisses = [];
+        private readonly List<Point> _otherMisses = [];
 
         public KnockbackAnalysis(List<(Replay, Replay.Action)> infos)
         {
@@ -295,7 +295,7 @@ class AbilityInfo : CommonEnumInfo
 
     class CasterLinkAnalysis
     {
-        private List<(Replay Replay, Replay.Action Action, float MinDistance)> _points = new();
+        private readonly List<(Replay Replay, Replay.Action Action, float MinDistance)> _points = [];
 
         public CasterLinkAnalysis(List<(Replay, Replay.Action)> infos)
         {
@@ -315,18 +315,15 @@ class AbilityInfo : CommonEnumInfo
             _points.SortByReverse(e => e.MinDistance);
         }
 
-        public void Draw(UITree tree)
-        {
-            tree.LeafNodes(_points, p => $"{p.MinDistance:f3}: {p.Replay.Path} @ {p.Action.Timestamp:O}");
-        }
+        public void Draw(UITree tree) => tree.LeafNodes(_points, p => $"{p.MinDistance:f3}: {p.Replay.Path} @ {p.Action.Timestamp:O}");
     }
 
     class ActionData
     {
-        public List<(Replay, Replay.Action)> Instances = new();
-        public List<(Replay, Replay.Participant, Replay.Cast)> Casts = new();
-        public HashSet<uint> CasterOIDs = new();
-        public HashSet<uint> TargetOIDs = new();
+        public List<(Replay, Replay.Action)> Instances = [];
+        public List<(Replay, Replay.Participant, Replay.Cast)> Casts = [];
+        public HashSet<uint> CasterOIDs = [];
+        public HashSet<uint> TargetOIDs = [];
         public bool SeenTargetSelf;
         public bool SeenTargetOtherEnemy;
         public bool SeenTargetPlayer;
@@ -346,8 +343,8 @@ class AbilityInfo : CommonEnumInfo
         public CasterLinkAnalysis? CasterLinkAnalysis;
     }
 
-    private Type? _aidType;
-    private Dictionary<ActionID, ActionData> _data = new();
+    private readonly Type? _aidType;
+    private readonly Dictionary<ActionID, ActionData> _data = [];
 
     public AbilityInfo(List<Replay> replays, uint oid)
     {
@@ -382,11 +379,11 @@ class AbilityInfo : CommonEnumInfo
 
     public void Draw(UITree tree)
     {
-        Func<KeyValuePair<ActionID, ActionData>, UITree.NodeProperties> map = kv =>
+        UITree.NodeProperties map(KeyValuePair<ActionID, ActionData> kv)
         {
             var name = kv.Key.Type == ActionType.Spell ? _aidType?.GetEnumName(kv.Key.ID) : null;
             return new($"{kv.Key:X} ({name})", false, name == null ? 0xff00ffff : 0xffffffff);
-        };
+        }
         foreach (var (aid, data) in tree.Nodes(_data, map))
         {
             tree.LeafNode($"Caster IDs: {OIDListString(data.CasterOIDs)}");
@@ -425,68 +422,57 @@ class AbilityInfo : CommonEnumInfo
             }
             foreach (var an in tree.Node("Source position analysis"))
             {
-                if (data.SrcPosAnalysis == null)
-                    data.SrcPosAnalysis = new(data.Instances);
+                data.SrcPosAnalysis ??= new(data.Instances);
                 data.SrcPosAnalysis.Draw();
             }
             foreach (var an in tree.Node("Cone analysis (origin & rotation at source)"))
             {
-                if (data.ConeAnalysisSourcePosRot == null)
-                    data.ConeAnalysisSourcePosRot = new(data.Instances, ConeAnalysis.Targeting.SourcePosRot);
+                data.ConeAnalysisSourcePosRot ??= new(data.Instances, ConeAnalysis.Targeting.SourcePosRot);
                 data.ConeAnalysisSourcePosRot.Draw();
             }
             foreach (var an in tree.Node("Cone analysis (origin at target, rotation from source)"))
             {
-                if (data.ConeAnalysisTargetPosSourceRot == null)
-                    data.ConeAnalysisTargetPosSourceRot = new(data.Instances, ConeAnalysis.Targeting.TargetPosSourceRot);
+                data.ConeAnalysisTargetPosSourceRot ??= new(data.Instances, ConeAnalysis.Targeting.TargetPosSourceRot);
                 data.ConeAnalysisTargetPosSourceRot.Draw();
             }
             foreach (var an in tree.Node("Cone analysis (origin at source, directed at target)"))
             {
-                if (data.ConeAnalysisSourcePosDirToTarget == null)
-                    data.ConeAnalysisSourcePosDirToTarget = new(data.Instances, ConeAnalysis.Targeting.SourcePosDirToTarget);
+                data.ConeAnalysisSourcePosDirToTarget ??= new(data.Instances, ConeAnalysis.Targeting.SourcePosDirToTarget);
                 data.ConeAnalysisSourcePosDirToTarget.Draw();
             }
             foreach (var an in tree.Node("Rect analysis"))
             {
-                if (data.RectAnalysis == null)
-                    data.RectAnalysis = new(data.Instances, true);
+                data.RectAnalysis ??= new(data.Instances, true);
                 data.RectAnalysis.Draw();
             }
             foreach (var an in tree.Node("Damage falloff analysis (by distance)"))
             {
-                if (data.DamageFalloffAnalysisDist == null)
-                    data.DamageFalloffAnalysisDist = new(data.Instances, false, false);
+                data.DamageFalloffAnalysisDist ??= new(data.Instances, false, false);
                 data.DamageFalloffAnalysisDist.Draw();
             }
             foreach (var an in tree.Node("Damage falloff analysis (by distance from source)"))
             {
-                if (data.DamageFalloffAnalysisDistFromSource == null)
-                    data.DamageFalloffAnalysisDistFromSource = new(data.Instances, false, true);
+                data.DamageFalloffAnalysisDistFromSource ??= new(data.Instances, false, true);
                 data.DamageFalloffAnalysisDistFromSource.Draw();
             }
             foreach (var an in tree.Node("Damage falloff analysis (by max coord)"))
             {
-                if (data.DamageFalloffAnalysisMinCoord == null)
-                    data.DamageFalloffAnalysisMinCoord = new(data.Instances, true, false);
+                data.DamageFalloffAnalysisMinCoord ??= new(data.Instances, true, false);
                 data.DamageFalloffAnalysisMinCoord.Draw();
             }
             foreach (var an in tree.Node("Gaze analysis"))
             {
-                if (data.GazeAnalysis == null)
-                    data.GazeAnalysis = new(data.Instances);
+                data.GazeAnalysis ??= new(data.Instances);
                 data.GazeAnalysis.Draw();
             }
             foreach (var an in tree.Node("Knockback analysis"))
             {
-                if (data.KnockbackAnalysis == null)
-                    data.KnockbackAnalysis = new(data.Instances);
+                data.KnockbackAnalysis ??= new(data.Instances);
                 data.KnockbackAnalysis.Draw(tree);
             }
             foreach (var an in tree.Node("Caster link analysis"))
             {
-                if (data.CasterLinkAnalysis == null)
-                    data.CasterLinkAnalysis = new(data.Instances);
+                data.CasterLinkAnalysis ??= new(data.Instances);
                 data.CasterLinkAnalysis.Draw(tree);
             }
         }
@@ -552,9 +538,7 @@ class AbilityInfo : CommonEnumInfo
     }
 
     private static IEnumerable<Replay.Participant> AlivePlayersAt(Replay r, DateTime t)
-    {
-        return r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.ExistsInWorldAt(t) && !p.DeadAt(t));
-    }
+        => r.Participants.Where(p => p.Type is ActorType.Player or ActorType.Chocobo && p.ExistsInWorldAt(t) && !p.DeadAt(t));
 
     private IEnumerable<string> ActionTargetStrings(ActionData data)
     {
@@ -578,23 +562,20 @@ class AbilityInfo : CommonEnumInfo
         return $"{name} = {aid.ID}, // {OIDListString(data.CasterOIDs)}->{JoinStrings(ActionTargetStrings(data))}, {CastTimeString(data)}, {DescribeShape(ldata)}";
     }
 
-    private string DescribeShape(Lumina.Excel.GeneratedSheets.Action? data)
+    private string DescribeShape(Lumina.Excel.GeneratedSheets.Action? data) => data != null ? data.CastType switch
     {
-        return data != null ? data.CastType switch
-        {
-            1 => "single-target",
-            2 => $"range {data.EffectRange} circle",
-            3 => $"range {data.EffectRange}+R {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
-            4 => $"range {data.EffectRange}+R width {data.XAxisModifier} rect",
-            5 => $"range {data.EffectRange}+R circle",
-            8 => $"width {data.XAxisModifier} rect charge",
-            10 => $"range ?-{data.EffectRange} donut",
-            11 => $"range {data.EffectRange} width {data.XAxisModifier} cross",
-            12 => $"range {data.EffectRange} width {data.XAxisModifier} rect",
-            13 => $"range {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
-            _ => "???"
-        } : "???";
-    }
+        1 => "single-target",
+        2 => $"range {data.EffectRange} circle",
+        3 => $"range {data.EffectRange}+R {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
+        4 => $"range {data.EffectRange}+R width {data.XAxisModifier} rect",
+        5 => $"range {data.EffectRange}+R circle",
+        8 => $"width {data.XAxisModifier} rect charge",
+        10 => $"range ?-{data.EffectRange} donut",
+        11 => $"range {data.EffectRange} width {data.XAxisModifier} cross",
+        12 => $"range {data.EffectRange} width {data.XAxisModifier} rect",
+        13 => $"range {data.EffectRange} {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
+        _ => "???"
+    } : "???";
 
     private Angle? DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
     {
@@ -603,14 +584,7 @@ class AbilityInfo : CommonEnumInfo
             return null;
 
         var path = omen.Path.ToString();
-        var pos = path.IndexOf("fan");
-        if (pos < 0 || pos + 6 > path.Length)
-            return null;
-
-        int angle;
-        if (!int.TryParse(path.Substring(pos + 3, 3), out angle))
-            return null;
-
-        return angle.Degrees();
+        var pos = path.IndexOf("fan", StringComparison.Ordinal);
+        return pos >= 0 && pos + 6 <= path.Length && int.TryParse(path.AsSpan(pos + 3, 3), out var angle) ? angle.Degrees() : null;
     }
 }

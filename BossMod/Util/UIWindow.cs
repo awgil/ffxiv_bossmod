@@ -17,7 +17,7 @@ public abstract class UIWindow : Window, IDisposable
 {
     public bool DisposeOnClose; // defaults to true for detached windows, false for normal windows
 
-    public UIWindow(string name, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None) : base(name, flags)
+    protected UIWindow(string name, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None) : base(name, flags)
     {
         DisposeOnClose = detached;
         Size = initialSize;
@@ -40,7 +40,7 @@ public abstract class UIWindow : Window, IDisposable
         else
         {
             // this is an error
-            throw new Exception($"Failed to register window {name} due to name conflict");
+            throw new InvalidOperationException($"Failed to register window {name} due to name conflict");
         }
     }
 
@@ -48,7 +48,6 @@ public abstract class UIWindow : Window, IDisposable
     {
         Dispose(true);
         GC.SuppressFinalize(this);
-        Service.WindowSystem!.RemoveWindow(this);
     }
 
     public override void OnClose()
@@ -57,18 +56,15 @@ public abstract class UIWindow : Window, IDisposable
             Dispose();
     }
 
-    protected virtual void Dispose(bool disposing) { } // note: it won't be called for a detached window that was never registered...
+    // note: it won't be called for a detached window that was never registered...
+    protected virtual void Dispose(bool disposing) => Service.WindowSystem?.RemoveWindow(this);
 }
 
 // utility: window that uses custom delegate to perform drawing - allows avoiding creating derived classes in simple cases
-public class UISimpleWindow : UIWindow
+public class UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
+    : UIWindow(name, detached, initialSize, flags)
 {
-    private Action _draw;
-
-    public UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None) : base(name, detached, initialSize, flags)
-    {
-        _draw = draw;
-    }
+    private readonly Action _draw = draw;
 
     public override void Draw() => _draw();
 }

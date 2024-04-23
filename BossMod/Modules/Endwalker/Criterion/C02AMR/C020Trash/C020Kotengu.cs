@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash2;
 
-class BladeOfTheTengu : Components.GenericAOEs
+class BladeOfTheTengu(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeCone _shape = new(50, 45.Degrees()); // TODO: verify angle
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var secondAngle = (AID)spell.Action.ID switch
         {
@@ -25,7 +25,7 @@ class BladeOfTheTengu : Components.GenericAOEs
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.NBladeOfTheTengu or AID.SBladeOfTheTengu)
         {
@@ -36,27 +36,18 @@ class BladeOfTheTengu : Components.GenericAOEs
     }
 }
 
-class WrathOfTheTengu : Components.RaidwideCast
-{
-    public WrathOfTheTengu(AID aid) : base(ActionID.MakeSpell(aid), "Raidwide with bleed") { }
-}
-class NWrathOfTheTengu : WrathOfTheTengu { public NWrathOfTheTengu() : base(AID.NWrathOfTheTengu) { } }
-class SWrathOfTheTengu : WrathOfTheTengu { public SWrathOfTheTengu() : base(AID.SWrathOfTheTengu) { } }
+class WrathOfTheTengu(BossModule module, AID aid) : Components.RaidwideCast(module, ActionID.MakeSpell(aid), "Raidwide with bleed");
+class NWrathOfTheTengu(BossModule module) : WrathOfTheTengu(module, AID.NWrathOfTheTengu);
+class SWrathOfTheTengu(BossModule module) : WrathOfTheTengu(module, AID.SWrathOfTheTengu);
 
-class GazeOfTheTengu : Components.CastGaze
-{
-    public GazeOfTheTengu(AID aid) : base(ActionID.MakeSpell(aid)) { }
-}
-class NGazeOfTheTengu : GazeOfTheTengu { public NGazeOfTheTengu() : base(AID.NGazeOfTheTengu) { } }
-class SGazeOfTheTengu : GazeOfTheTengu { public SGazeOfTheTengu() : base(AID.SGazeOfTheTengu) { } }
+class GazeOfTheTengu(BossModule module, AID aid) : Components.CastGaze(module, ActionID.MakeSpell(aid));
+class NGazeOfTheTengu(BossModule module) : GazeOfTheTengu(module, AID.NGazeOfTheTengu);
+class SGazeOfTheTengu(BossModule module) : GazeOfTheTengu(module, AID.SGazeOfTheTengu);
 
 class C020KotenguStates : StateMachineBuilder
 {
-    private bool _savage;
-
     public C020KotenguStates(BossModule module, bool savage) : base(module)
     {
-        _savage = savage;
         TrivialPhase()
             .ActivateOnEnter<BladeOfTheTengu>()
             .ActivateOnEnter<NWrathOfTheTengu>(!savage)
@@ -68,11 +59,11 @@ class C020KotenguStates : StateMachineBuilder
             .ActivateOnEnter<SMountainBreeze>(savage);
     }
 }
-class C020NKotenguStates : C020KotenguStates { public C020NKotenguStates(BossModule module) : base(module, false) { } }
-class C020SKotenguStates : C020KotenguStates { public C020SKotenguStates(BossModule module) : base(module, true) { } }
+class C020NKotenguStates(BossModule module) : C020KotenguStates(module, false);
+class C020SKotenguStates(BossModule module) : C020KotenguStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NKotengu, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12410, SortOrder = 6)]
-public class C020NKotengu : C020Trash2 { public C020NKotengu(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C020NKotengu(WorldState ws, Actor primary) : C020Trash2(ws, primary);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SKotengu, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12410, SortOrder = 6)]
-public class C020SKotengu : C020Trash2 { public C020SKotengu(WorldState ws, Actor primary) : base(ws, primary) { } }
+public class C020SKotengu(WorldState ws, Actor primary) : C020Trash2(ws, primary);

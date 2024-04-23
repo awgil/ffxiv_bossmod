@@ -4,8 +4,8 @@ namespace BossMod;
 
 public class StateMachineWindow : UIWindow
 {
-    private Timeline _timeline = new();
-    private ColumnStateMachineTree _col;
+    private readonly Timeline _timeline = new();
+    private readonly ColumnStateMachineTree _col;
 
     public StateMachineWindow(BossModule module) : base($"{module.GetType().Name} timeline", true, new(600, 600))
     {

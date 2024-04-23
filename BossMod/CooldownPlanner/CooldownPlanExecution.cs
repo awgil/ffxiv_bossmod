@@ -6,11 +6,7 @@ namespace BossMod;
 // for each action defined by a plan, we define start/end times on that timeline (plus a range of branches in which it might be executed)
 public class CooldownPlanExecution
 {
-    public struct StateFlag
-    {
-        public bool Active;
-        public float TransitionIn;
-    }
+    public record struct StateFlag(bool Active, float TransitionIn);
 
     public class StateData
     {
@@ -18,78 +14,51 @@ public class CooldownPlanExecution
         public float Duration;
         public int BranchID;
         public int NumBranches;
-        public StateFlag Downtime = new() { TransitionIn = float.MaxValue };
-        public StateFlag Positioning = new() { TransitionIn = float.MaxValue };
-        public StateFlag Vulnerable = new() { TransitionIn = float.MaxValue };
+        public StateFlag Downtime = new(false, float.MaxValue);
+        public StateFlag Positioning = new(false, float.MaxValue);
+        public StateFlag Vulnerable = new(false, float.MaxValue);
     }
 
-    public class ElementData
+    public class ElementData(float windowStart, float windowEnd, int branchID, int numBranches)
     {
-        public float WindowStart;
-        public float WindowEnd;
-        public int BranchID;
-        public int NumBranches;
+        public float WindowStart = windowStart;
+        public float WindowEnd = windowEnd;
+        public int BranchID = branchID;
+        public int NumBranches = numBranches;
 
         public bool IntersectBranchRange(int branchID, int numBranches) => BranchID < branchID + numBranches && branchID < BranchID + NumBranches;
         public bool IsActive(float t, StateData s) => t >= WindowStart && t <= WindowEnd && IntersectBranchRange(s.BranchID, s.NumBranches);
-
-        public ElementData(float windowStart, float windowEnd, int branchID, int numBranches)
-        {
-            WindowStart = windowStart;
-            WindowEnd = windowEnd;
-            BranchID = branchID;
-            NumBranches = numBranches;
-        }
     }
 
-    public class ActionData : ElementData
+    public class ActionData(ActionID id, float windowStart, float windowEnd, int branchID, int numBranches, bool lowPriority, PlanTarget.ISelector target)
+        : ElementData(windowStart, windowEnd, branchID, numBranches)
     {
-        public ActionID ID;
-        public bool LowPriority;
+        public ActionID ID = id;
+        public bool LowPriority = lowPriority;
         public bool Executed;
-        public PlanTarget.ISelector Target;
-        // TODO: condition, etc.
-
-        public ActionData(ActionID id, float windowStart, float windowEnd, int branchID, int numBranches, bool lowPriority, PlanTarget.ISelector target)
-            : base(windowStart, windowEnd, branchID, numBranches)
-        {
-            ID = id;
-            LowPriority = lowPriority;
-            Target = target;
-        }
+        public PlanTarget.ISelector Target = target;
     }
 
-    public class StrategyData : ElementData
+    public class StrategyData(int index, uint value, float windowStart, float windowEnd, int branchID, int numBranches)
+        : ElementData(windowStart, windowEnd, branchID, numBranches)
     {
-        public int Index;
-        public uint Value;
-
-        public StrategyData(int index, uint value, float windowStart, float windowEnd, int branchID, int numBranches)
-            : base(windowStart, windowEnd, branchID, numBranches)
-        {
-            Index = index;
-            Value = value;
-        }
+        public int Index = index;
+        public uint Value = value;
     }
 
-    public class ForcedTargetData : ElementData
+    public class ForcedTargetData(uint oid, float windowStart, float windowEnd, int branchID, int numBranches)
+        : ElementData(windowStart, windowEnd, branchID, numBranches)
     {
-        public uint OID;
-
-        public ForcedTargetData(uint oid, float windowStart, float windowEnd, int branchID, int numBranches)
-            : base(windowStart, windowEnd, branchID, numBranches)
-        {
-            OID = oid;
-        }
+        public uint OID = oid;
     }
 
     public CooldownPlan? Plan { get; private init; }
-    private StateData Pull;
-    private Dictionary<uint, StateData> States = new();
-    private List<ActionData> Actions = new();
-    private List<StrategyData> Strategies = new();
-    private List<ForcedTargetData> ForcedTargets = new();
-    private int _numStrategyTracks;
+    private readonly StateData Pull;
+    private readonly Dictionary<uint, StateData> States = [];
+    private readonly List<ActionData> Actions = [];
+    private readonly List<StrategyData> Strategies = [];
+    private readonly List<ForcedTargetData> ForcedTargets = [];
+    private readonly int _numStrategyTracks;
 
     public IReadOnlyList<StrategyData> Strats => Strategies;
 
@@ -275,9 +244,9 @@ public class CooldownPlanExecution
 
     private void UpdateTransitions(StateData s, StateData? next)
     {
-        UpdateFlagTransition(ref s.Downtime, next?.Downtime ?? new() { Active = true, TransitionIn = 10000 }, s.Duration);
-        UpdateFlagTransition(ref s.Positioning, next?.Positioning ?? new() { Active = false, TransitionIn = 10000 }, s.Duration);
-        UpdateFlagTransition(ref s.Vulnerable, next?.Vulnerable ?? new() { Active = false, TransitionIn = 10000 }, s.Duration);
+        UpdateFlagTransition(ref s.Downtime, next?.Downtime ?? new(true, 10000), s.Duration);
+        UpdateFlagTransition(ref s.Positioning, next?.Positioning ?? new(false, 10000), s.Duration);
+        UpdateFlagTransition(ref s.Vulnerable, next?.Vulnerable ?? new(false, 10000), s.Duration);
     }
 
     private void UpdateFlagTransition(ref StateFlag curFlag, StateFlag nextFlag, float curDuration)

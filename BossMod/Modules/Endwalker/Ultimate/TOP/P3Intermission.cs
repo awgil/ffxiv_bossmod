@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P3SniperCannon : Components.UniformStackSpread
+class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 6, 6, alwaysShowSpreads: true)
 {
     enum PlayerRole { None, Stack, Spread }
 
@@ -10,36 +10,34 @@ class P3SniperCannon : Components.UniformStackSpread
         public int Order;
     }
 
-    private TOPConfig _config = Service.Config.Get<TOPConfig>();
-    private PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
     private bool _haveSafeSpots;
 
-    public P3SniperCannon() : base(6, 6, alwaysShowSpreads: true) { }
-
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(module, pcSlot, pc, arena);
-        foreach (var s in EnumerateSafeSpots(module, pcSlot))
-            arena.AddCircle(s, 1, ArenaColor.Safe);
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var s in EnumerateSafeSpots(pcSlot))
+            Arena.AddCircle(s, 1, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
             case SID.SniperCannonFodder:
                 AddSpread(actor, status.ExpireAt);
-                Assign(module, module.Raid.FindSlot(actor.InstanceID), PlayerRole.Spread);
+                Assign(Raid.FindSlot(actor.InstanceID), PlayerRole.Spread);
                 break;
             case SID.HighPoweredSniperCannonFodder:
                 AddStack(actor, status.ExpireAt);
-                Assign(module, module.Raid.FindSlot(actor.InstanceID), PlayerRole.Stack);
+                Assign(Raid.FindSlot(actor.InstanceID), PlayerRole.Stack);
                 break;
         }
     }
 
     // note: if player dies, stack/spread immediately hits random target, so we use status loss to end stack/spread
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -52,7 +50,7 @@ class P3SniperCannon : Components.UniformStackSpread
         }
     }
 
-    private void Assign(BossModule module, int slot, PlayerRole role)
+    private void Assign(int slot, PlayerRole role)
     {
         if (slot < 0)
             return;
@@ -64,15 +62,15 @@ class P3SniperCannon : Components.UniformStackSpread
         _haveSafeSpots = true;
 
         int[] slotsInPriorityOrder = Utils.MakeArray(PartyState.MaxPartySize, -1);
-        foreach (var a in _config.P3IntermissionAssignments.Resolve(module.Raid))
+        foreach (var a in _config.P3IntermissionAssignments.Resolve(Raid))
             slotsInPriorityOrder[a.group] = a.slot;
 
-        int[] assignedRoles = { 0, 0, 0 };
+        int[] assignedRoles = [0, 0, 0];
         foreach (var s in slotsInPriorityOrder.Where(s => s >= 0))
             _playerStates[s].Order = ++assignedRoles[(int)_playerStates[s].Role];
     }
 
-    private IEnumerable<WPos> EnumerateSafeSpots(BossModule module, int slot)
+    private IEnumerable<WPos> EnumerateSafeSpots(int slot)
     {
         if (!_haveSafeSpots)
             yield break;
@@ -81,39 +79,37 @@ class P3SniperCannon : Components.UniformStackSpread
         if (ps.Role == PlayerRole.Spread)
         {
             if (ps.Order is 0 or 1)
-                yield return SafeSpotAt(module, -90.Degrees());
+                yield return SafeSpotAt(-90.Degrees());
             if (ps.Order is 0 or 2)
-                yield return SafeSpotAt(module, -45.Degrees());
+                yield return SafeSpotAt(-45.Degrees());
             if (ps.Order is 0 or 3)
-                yield return SafeSpotAt(module, 45.Degrees());
+                yield return SafeSpotAt(45.Degrees());
             if (ps.Order is 0 or 4)
-                yield return SafeSpotAt(module, 90.Degrees());
+                yield return SafeSpotAt(90.Degrees());
         }
         else
         {
             if (ps.Order is 0 or 1)
-                yield return SafeSpotAt(module, -135.Degrees());
+                yield return SafeSpotAt(-135.Degrees());
             if (ps.Order is 0 or 2)
-                yield return SafeSpotAt(module, 135.Degrees());
+                yield return SafeSpotAt(135.Degrees());
         }
     }
 
-    private WPos SafeSpotAt(BossModule module, Angle dirIfStacksNorth) => module.Bounds.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
+    private WPos SafeSpotAt(Angle dirIfStacksNorth) => Module.Bounds.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
 }
 
-class P3WaveRepeater : Components.ConcentricAOEs
+class P3WaveRepeater(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
-    private static readonly AOEShape[] _shapes = { new AOEShapeCircle(6), new AOEShapeDonut(6, 12), new AOEShapeDonut(12, 18), new AOEShapeDonut(18, 24) };
+    private static readonly AOEShape[] _shapes = [new AOEShapeCircle(6), new AOEShapeDonut(6, 12), new AOEShapeDonut(12, 18), new AOEShapeDonut(18, 24)];
 
-    public P3WaveRepeater() : base(_shapes) { }
-
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaveRepeater1)
             AddSequence(caster.Position, spell.NPCFinishAt);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         var order = (AID)spell.Action.ID switch
         {
@@ -123,31 +119,28 @@ class P3WaveRepeater : Components.ConcentricAOEs
             AID.WaveRepeater4 => 3,
             _ => -1
         };
-        if (!AdvanceSequence(order, caster.Position, module.WorldState.CurrentTime.AddSeconds(2.1f)))
-            module.ReportError(this, $"Unexpected ring {order}");
+        if (!AdvanceSequence(order, caster.Position, WorldState.FutureTime(2.1f)))
+            ReportError($"Unexpected ring {order}");
     }
 }
 
-class P3IntermissionVoidzone : Components.PersistentVoidzone
-{
-    public P3IntermissionVoidzone() : base(6, m => m.Enemies(OID.P3IntermissionVoidzone).Where(z => z.EventState != 7)) { }
-}
+class P3IntermissionVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.P3IntermissionVoidzone).Where(z => z.EventState != 7));
 
-class P3ColossalBlow : Components.GenericAOEs
+class P3ColossalBlow(BossModule module) : Components.GenericAOEs(module)
 {
-    public List<AOEInstance> AOEs = new();
+    public List<AOEInstance> AOEs = [];
 
     private static readonly AOEShapeCircle _shape = new(11);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => AOEs.Take(3);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs.Take(3);
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID is OID.LeftArmUnit or OID.RightArmUnit && id is 0x1E43 or 0x1E44)
-            AOEs.Add(new(_shape, actor.Position, default, module.WorldState.CurrentTime.AddSeconds(13.5f)));
+            AOEs.Add(new(_shape, actor.Position, default, WorldState.FutureTime(13.5f)));
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.ColossalBlow)
         {

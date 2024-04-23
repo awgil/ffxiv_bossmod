@@ -20,24 +20,24 @@ public enum AID : uint
     BallisticMissileDonutWarning = 27518, // Boss->player, 6.5s cast, single-target
 }
 
-class BallisticMissile : Components.GenericAOEs
+class BallisticMissile(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEShape? _activeMissile;
     private Actor? _activeTarget;
-    private WPos _activeLocation = new();
+    private WPos _activeLocation;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activeMissile != null)
             yield return new(_activeMissile, _activeTarget?.Position ?? _activeLocation);
     }
 
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!(module.PrimaryActor.CastInfo?.IsSpell() ?? false))
+        if (!(Module.PrimaryActor.CastInfo?.IsSpell() ?? false))
             return;
 
-        string hint = (AID)module.PrimaryActor.CastInfo.Action.ID switch
+        string hint = (AID)Module.PrimaryActor.CastInfo.Action.ID switch
         {
             AID.AntiPersonnelBuild or AID.RingBuild => "Select next AOE type",
             AID.BallisticMissileCircleWarning or AID.BallisticMissileDonutWarning => "Select next AOE target",
@@ -47,19 +47,19 @@ class BallisticMissile : Components.GenericAOEs
             hints.Add(hint);
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (caster != module.PrimaryActor)
+        if (caster != Module.PrimaryActor)
             return;
         switch ((AID)spell.Action.ID)
         {
             case AID.BallisticMissileCircleWarning:
                 _activeMissile = new AOEShapeCircle(6);
-                _activeTarget = module.WorldState.Actors.Find(spell.TargetID);
+                _activeTarget = WorldState.Actors.Find(spell.TargetID);
                 break;
             case AID.BallisticMissileDonutWarning:
                 _activeMissile = new AOEShapeDonut(6, 20);
-                _activeTarget = module.WorldState.Actors.Find(spell.TargetID);
+                _activeTarget = WorldState.Actors.Find(spell.TargetID);
                 break;
             case AID.BallisticMissileCircle:
             case AID.BallisticMissileDonut:
@@ -68,9 +68,9 @@ class BallisticMissile : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (caster != module.PrimaryActor)
+        if (caster != Module.PrimaryActor)
             return;
         switch ((AID)spell.Action.ID)
         {
@@ -87,20 +87,9 @@ class BallisticMissile : Components.GenericAOEs
     }
 }
 
-class Hyperflame : Components.SelfTargetedAOEs
-{
-    public Hyperflame() : base(ActionID.MakeSpell(AID.Hyperflame), new AOEShapeCone(60, 30.Degrees())) { }
-}
-
-class SonicAmplifier : Components.RaidwideCast
-{
-    public SonicAmplifier() : base(ActionID.MakeSpell(AID.SonicAmplifier)) { }
-}
-
-class HammerKnuckles : Components.SingleTargetCast
-{
-    public HammerKnuckles() : base(ActionID.MakeSpell(AID.HammerKnuckles)) { }
-}
+class Hyperflame(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hyperflame), new AOEShapeCone(60, 30.Degrees()));
+class SonicAmplifier(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SonicAmplifier));
+class HammerKnuckles(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HammerKnuckles));
 
 class MinervaStates : StateMachineBuilder
 {
@@ -115,7 +104,4 @@ class MinervaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10627)]
-public class Minerva : SimpleBossModule
-{
-    public Minerva(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class Minerva(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

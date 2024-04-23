@@ -1,23 +1,23 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
-class HauntingCrySwipes : Components.GenericAOEs
+class HauntingCrySwipes(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _casters = [];
 
     private static readonly AOEShapeCone _shape = new(40, 90.Degrees());
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         return _casters.Take(4).Select(c => new AOEInstance(_shape, c.Position, c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt));
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NRightSwipe or AID.NLeftSwipe or AID.SRightSwipe or AID.SLeftSwipe)
             _casters.Add(caster);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.NRightSwipe or AID.NLeftSwipe or AID.SRightSwipe or AID.SLeftSwipe)
         {
@@ -27,57 +27,51 @@ class HauntingCrySwipes : Components.GenericAOEs
     }
 }
 
-class HauntingCryReisho : Components.GenericAOEs
+class HauntingCryReisho(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _ghosts = new();
+    private readonly List<Actor> _ghosts = [];
     private DateTime _activation;
     private DateTime _ignoreBefore;
 
     private static readonly AOEShapeCircle _shape = new(6);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor) => _ghosts.Select(g => new AOEInstance(_shape, g.Position, default, _activation));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _ghosts.Select(g => new AOEInstance(_shape, g.Position, default, _activation));
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var g in _ghosts)
         {
-            arena.Actor(g, ArenaColor.Object, true);
-            var target = module.WorldState.Actors.Find(g.Tether.Target);
+            Arena.Actor(g, ArenaColor.Object, true);
+            var target = WorldState.Actors.Find(g.Tether.Target);
             if (target != null)
-                arena.AddLine(g.Position, target.Position, ArenaColor.Danger);
+                Arena.AddLine(g.Position, target.Position, ArenaColor.Danger);
         }
     }
 
-    public override void OnTethered(BossModule module, Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if ((OID)source.OID is OID.NHauntingThrall or OID.SHauntingThrall)
         {
             _ghosts.Add(source);
-            _activation = module.WorldState.CurrentTime.AddSeconds(5.1f);
+            _activation = WorldState.FutureTime(5.1f);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.NReisho or AID.SReisho && module.WorldState.CurrentTime > _ignoreBefore)
+        if ((AID)spell.Action.ID is AID.NReisho or AID.SReisho && WorldState.CurrentTime > _ignoreBefore)
         {
             ++NumCasts;
-            _activation = module.WorldState.CurrentTime.AddSeconds(2.1f);
-            _ignoreBefore = module.WorldState.CurrentTime.AddSeconds(1);
+            _activation = WorldState.FutureTime(2.1f);
+            _ignoreBefore = WorldState.FutureTime(1);
         }
     }
 }
 
-class HauntingCryVermilionAura : Components.CastTowers
-{
-    public HauntingCryVermilionAura(AID aid) : base(ActionID.MakeSpell(aid), 4) { }
-}
-class NHauntingCryVermilionAura : HauntingCryVermilionAura { public NHauntingCryVermilionAura() : base(AID.NVermilionAura) { } }
-class SHauntingCryVermilionAura : HauntingCryVermilionAura { public SHauntingCryVermilionAura() : base(AID.SVermilionAura) { } }
+class HauntingCryVermilionAura(BossModule module, AID aid) : Components.CastTowers(module, ActionID.MakeSpell(aid), 4);
+class NHauntingCryVermilionAura(BossModule module) : HauntingCryVermilionAura(module, AID.NVermilionAura);
+class SHauntingCryVermilionAura(BossModule module) : HauntingCryVermilionAura(module, AID.SVermilionAura);
 
-class HauntingCryStygianAura : Components.SpreadFromCastTargets
-{
-    public HauntingCryStygianAura(AID aid) : base(ActionID.MakeSpell(aid), 15, true) { }
-}
-class NHauntingCryStygianAura : HauntingCryStygianAura { public NHauntingCryStygianAura() : base(AID.NStygianAura) { } }
-class SHauntingCryStygianAura : HauntingCryStygianAura { public SHauntingCryStygianAura() : base(AID.SStygianAura) { } }
+class HauntingCryStygianAura(BossModule module, AID aid) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(aid), 15, true);
+class NHauntingCryStygianAura(BossModule module) : HauntingCryStygianAura(module, AID.NStygianAura);
+class SHauntingCryStygianAura(BossModule module) : HauntingCryStygianAura(module, AID.SStygianAura);

@@ -7,14 +7,14 @@ class P2Nisi : BossComponent
     public int ShowPassHint; // show hints for Nth pass
     public int NumActiveNisi { get; private set; }
     private int _numNisiApplications;
-    private int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
-    private Nisi[] _current = new Nisi[PartyState.MaxPartySize];
-    private Nisi[] _judgments = new Nisi[PartyState.MaxPartySize];
+    private readonly int[] _partners = Utils.MakeArray(PartyState.MaxPartySize, -1);
+    private readonly Nisi[] _current = new Nisi[PartyState.MaxPartySize];
+    private readonly Nisi[] _judgments = new Nisi[PartyState.MaxPartySize];
 
-    public override void Init(BossModule module)
+    public P2Nisi(BossModule module) : base(module)
     {
-        int[] firstMembersOfGroup = { -1, -1, -1, -1 };
-        foreach (var p in Service.Config.Get<TEAConfig>().P2NisiPairs.Resolve(module.Raid))
+        int[] firstMembersOfGroup = [-1, -1, -1, -1];
+        foreach (var p in Service.Config.Get<TEAConfig>().P2NisiPairs.Resolve(Raid))
         {
             ref var partner = ref firstMembersOfGroup[p.group];
             if (partner < 0)
@@ -29,7 +29,7 @@ class P2Nisi : BossComponent
         }
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (PassPartnerSlot(slot) >= 0)
         {
@@ -37,19 +37,19 @@ class P2Nisi : BossComponent
         }
     }
 
-    public override void DrawArenaForeground(BossModule module, int pcSlot, Actor pc, MiniArena arena)
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var partner = module.Raid[PassPartnerSlot(pcSlot)];
+        var partner = Raid[PassPartnerSlot(pcSlot)];
         if (partner != null)
         {
-            arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
+            Arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
         }
     }
 
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var nisi = NisiForSID((SID)status.ID);
-        if (nisi != Nisi.None && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (nisi != Nisi.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
         {
             if (_current[slot] != nisi) // sometimes same nisi is reapplied, which is weird...
                 ++_numNisiApplications;
@@ -66,16 +66,16 @@ class P2Nisi : BossComponent
             SID.FinalJudgmentNisiDelta => Nisi.Delta,
             _ => Nisi.None
         };
-        if (judgment != Nisi.None && module.Raid.FindSlot(actor.InstanceID) is var judgmentSlot && judgmentSlot >= 0)
+        if (judgment != Nisi.None && Raid.FindSlot(actor.InstanceID) is var judgmentSlot && judgmentSlot >= 0)
         {
             _judgments[judgmentSlot] = judgment;
         }
     }
 
-    public override void OnStatusLose(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         var nisi = NisiForSID((SID)status.ID);
-        if (nisi != Nisi.None && module.Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && nisi == _current[slot])
+        if (nisi != Nisi.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && nisi == _current[slot])
         {
             _current[slot] = Nisi.None;
             --NumActiveNisi;

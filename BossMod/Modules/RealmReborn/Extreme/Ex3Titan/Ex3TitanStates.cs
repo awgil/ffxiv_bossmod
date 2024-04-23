@@ -2,7 +2,7 @@
 
 class Ex3TitanStates : StateMachineBuilder
 {
-    Ex3Titan _module;
+    readonly Ex3Titan _module;
 
     public Ex3TitanStates(Ex3Titan module) : base(module)
     {
@@ -11,27 +11,27 @@ class Ex3TitanStates : StateMachineBuilder
             .ActivateOnEnter<LandslideBurst>()
             .ActivateOnEnter<WeightOfTheLand>() // note that these have to be activated before AI
             .ActivateOnEnter<Ex3TitanAI>()
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || !module.PrimaryActor.IsTargetable; // lasts until first untargetable
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable; // lasts until first untargetable
         SimplePhase(1, Intermission1, "Intermission 1")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsTargetable;
         SimplePhase(2, Phase2, "Phase 2")
             .ActivateOnEnter<LandslideBurst>()
             .ActivateOnEnter<WeightOfTheLand>()
             .ActivateOnEnter<GraniteGaol>()
             .ActivateOnEnter<Upheaval>()
             .ActivateOnEnter<Ex3TitanAI>()
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || !module.PrimaryActor.IsTargetable; // lasts until second untargetable
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable; // lasts until second untargetable
         SimplePhase(3, Intermission2, "Intermission 2")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || (module.Heart()?.IsTargetable ?? false);
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || (module.Heart()?.IsTargetable ?? false);
         SimplePhase(4, Phase3, "Phase 3")
             .ActivateOnEnter<LandslideBurst>()
             .ActivateOnEnter<WeightOfTheLand>()
             .ActivateOnEnter<GraniteGaol>()
             .ActivateOnEnter<Upheaval>()
             .ActivateOnEnter<Ex3TitanAI>()
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || !(module.Heart()?.IsTargetable ?? false);
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !(module.Heart()?.IsTargetable ?? false);
         SimplePhase(5, Intermission3, "Intermission 3")
-            .Raw.Update = () => module.PrimaryActor.IsDestroyed || module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsTargetable;
         DeathPhase(6, Phase4)
             .ActivateOnEnter<LandslideBurst>()
             .ActivateOnEnter<WeightOfTheLand>()
@@ -184,7 +184,7 @@ class Ex3TitanStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
-    private void Geocrush<Crush>(uint id, float delay, float newRadius = 0) where Crush : Geocrush, new()
+    private void Geocrush<Crush>(uint id, float delay, float newRadius = 0) where Crush : Geocrush
     {
         Targetable(id, false, delay, "Disappear")
             .ActivateOnEnter<Crush>();

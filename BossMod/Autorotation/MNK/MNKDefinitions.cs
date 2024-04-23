@@ -120,7 +120,7 @@ public enum SID : uint
 
 public static class Definitions
 {
-    public static uint[] UnlockQuests = { 66094, 66103, 66597, 66598, 66599, 66600, 66602, 67563, 67564, 67567, 67966 };
+    public static readonly uint[] UnlockQuests = [66094, 66103, 66597, 66598, 66599, 66600, 66602, 67563, 67564, 67567, 67966];
 
     public static bool Unlocked(AID aid, int level, int questProgress)
     {
@@ -189,47 +189,48 @@ public static class Definitions
         };
     }
 
-    public static Dictionary<ActionID, ActionDefinition> SupportedActions;
-    static Definitions()
+    public static readonly Dictionary<ActionID, ActionDefinition> SupportedActions = BuildSupportedActions();
+    private static Dictionary<ActionID, ActionDefinition> BuildSupportedActions()
     {
-        SupportedActions = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
-        SupportedActions.GCD(AID.Bootshine, 3);
-        SupportedActions.GCD(AID.DragonKick, 3);
-        SupportedActions.GCD(AID.TrueStrike, 3);
-        SupportedActions.GCD(AID.TwinSnakes, 3);
-        SupportedActions.GCD(AID.SnapPunch, 3);
-        SupportedActions.GCD(AID.Demolish, 3);
-        SupportedActions.GCD(AID.SixSidedStar, 3);
-        SupportedActions.GCD(AID.ArmOfTheDestroyer, 0);
-        SupportedActions.GCD(AID.ShadowOfTheDestroyer, 0);
-        SupportedActions.GCD(AID.FourPointFury, 0);
-        SupportedActions.GCD(AID.Rockbreaker, 0);
-        SupportedActions.GCD(AID.MasterfulBlitz, 0);
-        SupportedActions.GCD(AID.ElixirField, 0);
-        SupportedActions.GCD(AID.FlintStrike, 0);
-        SupportedActions.GCD(AID.RisingPhoenix, 0);
-        SupportedActions.GCD(AID.CelestialRevolution, 3);
-        SupportedActions.GCD(AID.TornadoKick, 3);
-        SupportedActions.GCD(AID.PhantomRush, 3);
-        SupportedActions.OGCD(AID.SteelPeak, 3, CDGroup.SteelPeak, 1.0f);
-        SupportedActions.OGCD(AID.ForbiddenChakra, 3, CDGroup.SteelPeak, 1.0f);
-        SupportedActions.OGCD(AID.HowlingFist, 10, CDGroup.SteelPeak, 1.0f);
-        SupportedActions.OGCD(AID.Enlightenment, 10, CDGroup.SteelPeak, 1.0f);
-        SupportedActions.OGCDWithCharges(AID.PerfectBalance, 0, CDGroup.PerfectBalance, 40.0f, 2);
-        SupportedActions.OGCD(AID.RiddleOfFire, 0, CDGroup.RiddleOfFire, 60.0f);
-        SupportedActions.OGCD(AID.Brotherhood, 0, CDGroup.Brotherhood, 120.0f);
-        SupportedActions.OGCD(AID.RiddleOfWind, 0, CDGroup.RiddleOfWind, 90.0f);
-        SupportedActions.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
-        SupportedActions.OGCD(AID.Mantra, 0, CDGroup.Mantra, 90.0f).EffectDuration = 15;
-        SupportedActions.OGCD(AID.RiddleOfEarth, 0, CDGroup.RiddleOfEarth, 120.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
-        SupportedActions.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
-        SupportedActions.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
-        SupportedActions.GCD(AID.Meditation, 0);
-        SupportedActions.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
-        SupportedActions.OGCDWithCharges(AID.Thunderclap, 20, CDGroup.Thunderclap, 30.0f, 3);
-        SupportedActions.GCD(AID.FormShift, 0);
-        SupportedActions.OGCD(AID.Anatman, 0, CDGroup.Anatman, 60.0f);
-        SupportedActions.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
+        var res = CommonDefinitions.CommonActionData(CommonDefinitions.IDPotionStr);
+        res.GCD(AID.Bootshine, 3);
+        res.GCD(AID.DragonKick, 3);
+        res.GCD(AID.TrueStrike, 3);
+        res.GCD(AID.TwinSnakes, 3);
+        res.GCD(AID.SnapPunch, 3);
+        res.GCD(AID.Demolish, 3);
+        res.GCD(AID.SixSidedStar, 3);
+        res.GCD(AID.ArmOfTheDestroyer, 0);
+        res.GCD(AID.ShadowOfTheDestroyer, 0);
+        res.GCD(AID.FourPointFury, 0);
+        res.GCD(AID.Rockbreaker, 0);
+        res.GCD(AID.MasterfulBlitz, 0);
+        res.GCD(AID.ElixirField, 0);
+        res.GCD(AID.FlintStrike, 0);
+        res.GCD(AID.RisingPhoenix, 0);
+        res.GCD(AID.CelestialRevolution, 3);
+        res.GCD(AID.TornadoKick, 3);
+        res.GCD(AID.PhantomRush, 3);
+        res.OGCD(AID.SteelPeak, 3, CDGroup.SteelPeak, 1.0f);
+        res.OGCD(AID.ForbiddenChakra, 3, CDGroup.SteelPeak, 1.0f);
+        res.OGCD(AID.HowlingFist, 10, CDGroup.SteelPeak, 1.0f);
+        res.OGCD(AID.Enlightenment, 10, CDGroup.SteelPeak, 1.0f);
+        res.OGCDWithCharges(AID.PerfectBalance, 0, CDGroup.PerfectBalance, 40.0f, 2);
+        res.OGCD(AID.RiddleOfFire, 0, CDGroup.RiddleOfFire, 60.0f);
+        res.OGCD(AID.Brotherhood, 0, CDGroup.Brotherhood, 120.0f);
+        res.OGCD(AID.RiddleOfWind, 0, CDGroup.RiddleOfWind, 90.0f);
+        res.OGCD(AID.SecondWind, 0, CDGroup.SecondWind, 120.0f);
+        res.OGCD(AID.Mantra, 0, CDGroup.Mantra, 90.0f).EffectDuration = 15;
+        res.OGCD(AID.RiddleOfEarth, 0, CDGroup.RiddleOfEarth, 120.0f).EffectDuration = 10;
+        res.OGCD(AID.Bloodbath, 0, CDGroup.Bloodbath, 90.0f);
+        res.OGCD(AID.Feint, 10, CDGroup.Feint, 90.0f).EffectDuration = 10;
+        res.OGCD(AID.ArmsLength, 0, CDGroup.ArmsLength, 120.0f).EffectDuration = 6;
+        res.GCD(AID.Meditation, 0);
+        res.OGCDWithCharges(AID.TrueNorth, 0, CDGroup.TrueNorth, 45.0f, 2);
+        res.OGCDWithCharges(AID.Thunderclap, 20, CDGroup.Thunderclap, 30.0f, 3);
+        res.GCD(AID.FormShift, 0);
+        res.OGCD(AID.Anatman, 0, CDGroup.Anatman, 60.0f);
+        res.OGCD(AID.LegSweep, 3, CDGroup.LegSweep, 40.0f);
+        return res;
     }
 }

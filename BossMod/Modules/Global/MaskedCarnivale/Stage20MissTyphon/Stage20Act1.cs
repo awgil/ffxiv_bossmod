@@ -13,32 +13,18 @@ public enum AID : uint
     Fireball2 = 14707, // 272A->player, no cast, range 8 circle, 3 casts after snort
 }
 
-class Fireball : Components.LocationTargetedAOEs
-{
-    public Fireball() : base(ActionID.MakeSpell(AID.Fireball), 8) { }
-}
+class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 8);
+class Snort(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Snort), "Use Diamondback!");
+class SnortKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin, stopAtWall: true); // knockback actually delayed by 0.7s
 
-class Snort : Components.CastHint
+class Hints(BossModule module) : BossComponent(module)
 {
-    public Snort() : base(ActionID.MakeSpell(AID.Snort), "Use Diamondback!") { }
-}
-
-class SnortKB : Components.KnockbackFromCastTarget
-{    //knockback actually delayed by 0.7s
-    public SnortKB() : base(ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin)
-    {
-        StopAtWall = true;
-    }
-}
-
-class Hints : BossComponent
-{
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
         hints.Add("Diamondback and Flying Sardine are essential for this stage. The Final\nSting combo (Off-guard->Bristle->Moonflute->Final Sting) can make act 3\nincluding the achievement much easier. Ultros in act 2 and 3 is weak to\nfire.");
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         hints.Add("Requirement for achievement: Don't kill any tentacles in act 3", false);
     }

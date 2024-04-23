@@ -2,19 +2,11 @@
 
 namespace BossMod.ReplayVisualization;
 
-class EventList
+class EventList(Replay r, Action<DateTime> scrollTo)
 {
-    private Replay _replay;
-    private Action<DateTime> _scrollTo;
-    private UITree _tree = new();
+    private readonly UITree _tree = new();
     private OpList? _opListRaw;
-    private Dictionary<Replay.Encounter, OpList> _opListsFiltered = new();
-
-    public EventList(Replay r, Action<DateTime> scrollTo)
-    {
-        _replay = r;
-        _scrollTo = scrollTo;
-    }
+    private readonly Dictionary<Replay.Encounter, OpList> _opListsFiltered = [];
 
     public void Draw()
     {
@@ -22,21 +14,20 @@ class EventList
         {
             foreach (var no in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_opListRaw)))
             {
-                if (_opListRaw == null)
-                    _opListRaw = new(_replay, null, _replay.Ops, _scrollTo);
-                _opListRaw.Draw(_tree, _replay.Ops.First().Timestamp);
+                _opListRaw ??= new(r, null, r.Ops, scrollTo);
+                _opListRaw.Draw(_tree, r.Ops[0].Timestamp);
             }
 
             DrawContents(null, null);
             DrawUserMarkers();
         }
-        foreach (var e in _tree.Nodes(_replay.Encounters, e => new($"{ModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}, countdown on pull={e.CountdownOnPull:f3}")))
+        foreach (var e in _tree.Nodes(r.Encounters, e => new($"{ModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}, countdown on pull={e.CountdownOnPull:f3}")))
         {
             var moduleInfo = ModuleRegistry.FindByOID(e.OID);
             foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_opListsFiltered.GetValueOrDefault(e))))
             {
                 if (!_opListsFiltered.ContainsKey(e))
-                    _opListsFiltered[e] = new(_replay, moduleInfo, _replay.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), _scrollTo);
+                    _opListsFiltered[e] = new(r, moduleInfo, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
                 _opListsFiltered[e].Draw(_tree, e.Time.Start);
             }
 
@@ -53,19 +44,19 @@ class EventList
         var sidType = moduleInfo?.StatusIDType;
         var tidType = moduleInfo?.TetherIDType;
         var iidType = moduleInfo?.IconIDType;
-        var reference = filter?.Time.Start ?? _replay.Ops.First().Timestamp;
+        var reference = filter?.Time.Start ?? r.Ops[0].Timestamp;
         var tp = TimePrinter(reference);
-        var actions = filter != null ? _replay.EncounterActions(filter) : _replay.Actions;
-        var statuses = filter != null ? _replay.EncounterStatuses(filter) : _replay.Statuses;
-        var tethers = filter != null ? _replay.EncounterTethers(filter) : _replay.Tethers;
-        var icons = filter != null ? _replay.EncounterIcons(filter) : _replay.Icons;
-        var envControls = filter != null ? _replay.EncounterEnvControls(filter) : _replay.EnvControls;
+        var actions = filter != null ? r.EncounterActions(filter) : r.Actions;
+        var statuses = filter != null ? r.EncounterStatuses(filter) : r.Statuses;
+        var tethers = filter != null ? r.EncounterTethers(filter) : r.Tethers;
+        var icons = filter != null ? r.EncounterIcons(filter) : r.Icons;
+        var envControls = filter != null ? r.EncounterEnvControls(filter) : r.EnvControls;
 
         foreach (var n in _tree.Node("Participants"))
         {
             if (filter == null)
             {
-                DrawParticipants(_replay.Participants, actions, statuses, tp, reference, filter, aidType, sidType);
+                DrawParticipants(r.Participants, actions, statuses, tp, reference, filter, aidType, sidType);
             }
             else
             {
@@ -86,7 +77,7 @@ class EventList
         }
 
         bool haveActions = actions.Any();
-        Func<Replay.Action, bool> actionIsCrap = a => a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
+        bool actionIsCrap(Replay.Action a) => a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo;
         foreach (var n in _tree.Node("Interesting actions", !haveActions))
         {
             DrawActions(actions.Where(a => !actionIsCrap(a)), tp, aidType);
@@ -97,7 +88,7 @@ class EventList
         }
 
         bool haveStatuses = statuses.Any();
-        Func<Replay.Status, bool> statusIsCrap = s => (s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo) || (s.Target.Type is ActorType.Pet or ActorType.Chocobo);
+        bool statusIsCrap(Replay.Status s) => s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo || s.Target.Type is ActorType.Pet or ActorType.Chocobo;
         foreach (var n in _tree.Node("Interesting statuses", !haveStatuses))
         {
             DrawStatuses(statuses.Where(s => !statusIsCrap(s)), tp, sidType);
@@ -213,8 +204,8 @@ class EventList
 
     private void DrawUserMarkers()
     {
-        foreach (var n in _tree.Node("User markers", _replay.UserMarkers.Count == 0))
-            _tree.LeafNodes(_replay.UserMarkers, kv => $"{kv.Key:O}: {kv.Value}");
+        foreach (var n in _tree.Node("User markers", r.UserMarkers.Count == 0))
+            _tree.LeafNodes(r.UserMarkers, kv => $"{kv.Key:O}: {kv.Value}");
     }
 
     private Func<DateTime, string> TimePrinter(DateTime start)
@@ -224,7 +215,7 @@ class EventList
 
     private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
     {
-        new ReplayTimelineWindow(_replay, enc, showPlayers);
+        _ = new ReplayTimelineWindow(r, enc, showPlayers);
     }
 
     private void DrawTimelines(Replay.Encounter enc)

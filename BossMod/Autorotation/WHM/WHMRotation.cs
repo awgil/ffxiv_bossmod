@@ -3,7 +3,7 @@
 public static class Rotation
 {
     // full state needed for determining next action
-    public class State : CommonRotation.PlayerState
+    public class State(WorldState ws) : CommonRotation.PlayerState(ws)
     {
         public int NormalLilies;
         public int BloodLilies;
@@ -32,8 +32,6 @@ public static class Rotation
         public bool CanCastCure2 => Unlocked(AID.Cure2) && (EnoughMPForGCD(1000) || FreecureLeft > GCD);
         public bool CanCastCure3 => Unlocked(AID.Cure3) && EnoughMPForGCD(1500);
 
-        public State(WorldState ws) : base(ws) { }
-
         public bool Unlocked(AID aid) => Definitions.Unlocked(aid, Level, UnlockProgress);
         public bool Unlocked(TraitID tid) => Definitions.Unlocked(tid, Level, UnlockProgress);
 
@@ -57,7 +55,7 @@ public static class Rotation
 
         public override string ToString()
         {
-            return $"AOE={NumHolyTargets}, SH={BestSTHeal.Target?.Name.Substring(0, 4)}={BestSTHeal.HPRatio:f2}, AH={NumRaptureMedica2Targets}/{NumCure3Targets}/{NumAssizeMedica1Targets}, no-dots={ForbidDOTs}, movement-in={ForceMovementIn:f3}";
+            return $"AOE={NumHolyTargets}, SH={BestSTHeal.Target?.Name[..4]}={BestSTHeal.HPRatio:f2}, AH={NumRaptureMedica2Targets}/{NumCure3Targets}/{NumAssizeMedica1Targets}, no-dots={ForbidDOTs}, movement-in={ForceMovementIn:f3}";
         }
     }
 

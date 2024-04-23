@@ -33,22 +33,22 @@ public enum SID : uint
     ForcedMarch = 1257, // Boss->player, extra=1 (forward) / 2 (backward) / 4 (left) / 8 (right)
 }
 
-class EmptyPromise : Components.GenericAOEs
+class EmptyPromise(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEShape> _pendingShapes = [];
 
     private static readonly AOEShapeCircle _shapeCircle = new(10);
     private static readonly AOEShapeDonut _shapeDonut = new(6, 40);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_pendingShapes.Count > 0)
-            yield return new(_pendingShapes.First(), module.PrimaryActor.Position, new(), module.PrimaryActor.CastInfo?.NPCFinishAt ?? module.WorldState.CurrentTime); // TODO: activation
+            yield return new(_pendingShapes[0], Module.PrimaryActor.Position, new(), Module.PrimaryActor.CastInfo?.NPCFinishAt ?? WorldState.CurrentTime); // TODO: activation
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (caster != module.PrimaryActor)
+        if (caster != Module.PrimaryActor)
             return;
         switch ((AID)spell.Action.ID)
         {
@@ -66,35 +66,35 @@ class EmptyPromise : Components.GenericAOEs
                 _pendingShapes.Add(_shapeDonut);
                 _pendingShapes.Add(_shapeCircle);
                 break;
-        };
+        }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (caster == module.PrimaryActor && _pendingShapes.Count > 0)
+        if (caster == Module.PrimaryActor && _pendingShapes.Count > 0)
             _pendingShapes.RemoveAt(0);
     }
 }
 
-class VanishingRay : Components.GenericAOEs
+class VanishingRay(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
     private static readonly AOEShapeRect _shape = new(50, 4);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(_shape, module.PrimaryActor.Position, module.PrimaryActor.Rotation, _activation);
+            yield return new(_shape, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (caster != module.PrimaryActor)
+        if (caster != Module.PrimaryActor)
             return;
         switch ((AID)spell.Action.ID)
         {
             case AID.VanishingRayStart:
-                _activation = module.WorldState.CurrentTime.AddSeconds(4);
+                _activation = WorldState.FutureTime(4);
                 break;
             case AID.VanishingRay:
                 _activation = new();
@@ -103,13 +103,11 @@ class VanishingRay : Components.GenericAOEs
     }
 }
 
-class ContinualMeddling : Components.StatusDrivenForcedMarch
+class ContinualMeddling(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
-    public ContinualMeddling() : base(2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) { }
-
-    public override void AddGlobalHints(BossModule module, GlobalHints hints)
+    public override void AddGlobalHints(GlobalHints hints)
     {
-        if (module.PrimaryActor.CastInfo != null && module.PrimaryActor.CastInfo.IsSpell() && (AID)module.PrimaryActor.CastInfo.Action.ID is AID.ContinualMeddlingFR or AID.ContinualMeddlingFL or AID.ContinualMeddlingBL or AID.ContinualMeddlingBR)
+        if (Module.PrimaryActor.CastInfo != null && Module.PrimaryActor.CastInfo.IsSpell() && (AID)Module.PrimaryActor.CastInfo.Action.ID is AID.ContinualMeddlingFR or AID.ContinualMeddlingFL or AID.ContinualMeddlingBL or AID.ContinualMeddlingBR)
             hints.Add("Apply march debuffs");
     }
 }
@@ -126,7 +124,4 @@ class NarrowRiftStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10622)]
-public class NarrowRift : SimpleBossModule
-{
-    public NarrowRift(WorldState ws, Actor primary) : base(ws, primary) { }
-}
+public class NarrowRift(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

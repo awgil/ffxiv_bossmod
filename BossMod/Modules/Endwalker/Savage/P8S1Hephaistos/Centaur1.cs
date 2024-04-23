@@ -1,14 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
-class RearingRampageSecond : Components.CastCounter
-{
-    public RearingRampageSecond() : base(ActionID.MakeSpell(AID.RearingRampageSecond)) { }
-}
-
-class RearingRampageLast : Components.CastCounter
-{
-    public RearingRampageLast() : base(ActionID.MakeSpell(AID.RearingRampageLast)) { }
-}
+class RearingRampageSecond(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RearingRampageSecond));
+class RearingRampageLast(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RearingRampageLast));
 
 class UpliftStompDead : Components.UniformStackSpread
 {
@@ -16,25 +9,23 @@ class UpliftStompDead : Components.UniformStackSpread
     public int NumStomps { get; private set; }
     public int[] OrderPerSlot = new int[PartyState.MaxPartySize]; // 0 means not yet known
 
-    public UpliftStompDead() : base(6, 6, 2, 2, true) { }
-
-    public override void Init(BossModule module)
+    public UpliftStompDead(BossModule module) : base(module, 6, 6, 2, 2, true)
     {
-        AddSpreads(module.Raid.WithoutSlot(true));
+        AddSpreads(Raid.WithoutSlot(true));
     }
 
-    public override void Update(BossModule module)
+    public override void Update()
     {
         if (Spreads.Count == 0)
         {
             Stacks.Clear();
-            if (module.Raid.WithoutSlot().Farthest(module.PrimaryActor.Position) is var target && target != null)
+            if (Raid.WithoutSlot().Farthest(Module.PrimaryActor.Position) is var target && target != null)
                 AddStack(target);
         }
-        base.Update(module);
+        base.Update();
     }
 
-    public override void AddHints(BossModule module, int slot, Actor actor, TextHints hints, MovementHints? movementHints)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (OrderPerSlot[slot] > 0)
         {
@@ -44,7 +35,7 @@ class UpliftStompDead : Components.UniformStackSpread
         if (Spreads.Count > 0)
         {
             // default implementation is fine during uplifts
-            base.AddHints(module, slot, actor, hints, movementHints);
+            base.AddHints(slot, actor, hints);
         }
         else
         {
@@ -55,13 +46,13 @@ class UpliftStompDead : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
             case AID.Uplift:
                 Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
-                int slot = module.Raid.FindSlot(spell.MainTargetID);
+                int slot = Raid.FindSlot(spell.MainTargetID);
                 if (slot >= 0)
                 {
                     OrderPerSlot[slot] = 4 - Spreads.Count / 2;

@@ -1,15 +1,13 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P3Burst : Components.GenericAOEs
+class P3Burst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Burst))
 {
-    private IReadOnlyList<Actor> _bombs = ActorEnumeration.EmptyList;
-    private Dictionary<ulong, DateTime?> _bombActivation = new();
+    private readonly IReadOnlyList<Actor> _bombs = module.Enemies(OID.BombBoulder);
+    private readonly Dictionary<ulong, DateTime?> _bombActivation = [];
 
     private static readonly AOEShape _shape = new AOEShapeCircle(6.3f);
 
-    public P3Burst() : base(ActionID.MakeSpell(AID.Burst)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var b in _bombs)
         {
@@ -19,18 +17,13 @@ class P3Burst : Components.GenericAOEs
         }
     }
 
-    public override void Init(BossModule module)
-    {
-        _bombs = module.Enemies(OID.BombBoulder);
-    }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         foreach (var b in _bombs.Where(b => !_bombActivation.ContainsKey(b.InstanceID)))
-            _bombActivation[b.InstanceID] = module.WorldState.CurrentTime.AddSeconds(6.5f);
+            _bombActivation[b.InstanceID] = WorldState.FutureTime(6.5f);
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             _bombActivation[caster.InstanceID] = null;

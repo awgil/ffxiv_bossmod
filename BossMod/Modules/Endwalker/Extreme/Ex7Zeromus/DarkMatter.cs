@@ -1,16 +1,14 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
-class DarkMatter : Components.GenericBaitAway
+class DarkMatter(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private List<int> _remainingCasts = new();
+    private readonly List<int> _remainingCasts = [];
 
     private static readonly AOEShapeCircle _shape = new(8);
 
     public int RemainingCasts => _remainingCasts.Count > 0 ? _remainingCasts.Min() : 0;
 
-    public DarkMatter() : base(centerAtTarget: true) { }
-
-    public override void Update(BossModule module)
+    public override void Update()
     {
         for (int i = CurrentBaits.Count - 1; i >= 0; i--)
         {
@@ -22,16 +20,16 @@ class DarkMatter : Components.GenericBaitAway
         }
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         if (iconID == (uint)IconID.DarkMatter)
         {
-            CurrentBaits.Add(new(module.PrimaryActor, actor, _shape));
+            CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape));
             _remainingCasts.Add(3);
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.DarkMatterAOE)
         {
@@ -45,31 +43,29 @@ class DarkMatter : Components.GenericBaitAway
     }
 }
 
-class ForkedLightningDarkBeckons : Components.UniformStackSpread
+class ForkedLightningDarkBeckons(BossModule module) : Components.UniformStackSpread(module, 6, 5, 4, alwaysShowSpreads: true)
 {
-    public ForkedLightningDarkBeckons() : base(6, 5, 4, alwaysShowSpreads: true) { }
-
-    public override void OnStatusGain(BossModule module, Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ForkedLightning)
             AddSpread(actor, status.ExpireAt);
     }
 
-    public override void OnEventIcon(BossModule module, Actor actor, uint iconID)
+    public override void OnEventIcon(Actor actor, uint iconID)
     {
         switch ((IconID)iconID)
         {
             case IconID.DarkBeckonsUmbralRays:
-                AddStack(actor, module.WorldState.CurrentTime.AddSeconds(5.1f));
+                AddStack(actor, WorldState.FutureTime(5.1f));
                 break;
             case IconID.DarkMatter:
                 foreach (ref var s in Stacks.AsSpan())
-                    s.ForbiddenPlayers.Set(module.Raid.FindSlot(actor.InstanceID));
+                    s.ForbiddenPlayers.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 
-    public override void OnEventCast(BossModule module, Actor caster, ActorCastEvent spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.ForkedLightning or AID.DarkBeckons)
         {

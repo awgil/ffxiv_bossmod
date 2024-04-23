@@ -1,14 +1,12 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S2;
 
-class EndOfDays : Components.GenericAOEs
+class EndOfDays(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.EndOfDays))
 {
-    public List<(Actor caster, DateTime finish)> Casters = new();
+    public List<(Actor caster, DateTime finish)> Casters = [];
 
     private static readonly AOEShapeRect _shape = new(60, 5);
 
-    public EndOfDays() : base(ActionID.MakeSpell(AID.EndOfDays)) { }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var c in Casters.Take(3))
         {
@@ -19,15 +17,15 @@ class EndOfDays : Components.GenericAOEs
         }
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
             Casters.RemoveAll(c => c.caster == caster);
     }
 
-    public override void OnActorPlayActionTimelineEvent(BossModule module, Actor actor, ushort id)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.IllusoryHephaistosLanes && id == 0x11D3)
-            Casters.Add((actor, module.WorldState.CurrentTime.AddSeconds(8))); // ~2s before cast start
+            Casters.Add((actor, WorldState.FutureTime(8))); // ~2s before cast start
     }
 }

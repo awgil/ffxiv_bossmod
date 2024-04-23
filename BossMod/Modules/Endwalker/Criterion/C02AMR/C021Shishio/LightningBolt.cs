@@ -1,15 +1,12 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
-class LightningBolt : Components.LocationTargetedAOEs
-{
-    public LightningBolt(AID aid) : base(ActionID.MakeSpell(aid), 6) { }
-}
-class NLightningBolt : LightningBolt { public NLightningBolt() : base(AID.NLightningBoltAOE) { } }
-class SLightningBolt : LightningBolt { public SLightningBolt() : base(AID.SLightningBoltAOE) { } }
+class LightningBolt(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 6);
+class NLightningBolt(BossModule module) : LightningBolt(module, AID.NLightningBoltAOE);
+class SLightningBolt(BossModule module) : LightningBolt(module, AID.SLightningBoltAOE);
 
-class CloudToCloud : Components.GenericAOEs
+class CloudToCloud(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<AOEInstance> _aoes = new();
+    private readonly List<AOEInstance> _aoes = [];
 
     private static readonly AOEShapeRect _shape1 = new(100, 1);
     private static readonly AOEShapeRect _shape2 = new(100, 3);
@@ -17,7 +14,7 @@ class CloudToCloud : Components.GenericAOEs
 
     public bool Active => _aoes.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(BossModule module, int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_aoes.Count > 0)
         {
@@ -27,21 +24,21 @@ class CloudToCloud : Components.GenericAOEs
         }
     }
 
-    public override void OnCastStarted(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var shape = ShapeForAction(spell.Action);
         if (shape != null)
             _aoes.Add(new(shape, caster.Position, spell.Rotation, spell.NPCFinishAt));
     }
 
-    public override void OnCastFinished(BossModule module, Actor caster, ActorCastInfo spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (ShapeForAction(spell.Action) != null)
         {
             ++NumCasts;
             var numRemoved = _aoes.RemoveAll(aoe => aoe.Origin.AlmostEqual(caster.Position, 1));
             if (numRemoved != 1)
-                module.ReportError(this, $"Unexpected number of matching aoes: {numRemoved}");
+                ReportError($"Unexpected number of matching aoes: {numRemoved}");
         }
     }
 
