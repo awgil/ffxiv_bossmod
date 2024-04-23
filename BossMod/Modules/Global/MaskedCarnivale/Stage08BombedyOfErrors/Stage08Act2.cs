@@ -17,11 +17,11 @@ public enum AID : uint
 }
 
 class Sap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Sap), 8);
-class Burst(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Burst), "Interrupt or wipe!");
+class Burst(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.Burst));
 
 class Selfdetonations(BossModule module) : BossComponent(module)
 {
-    private static readonly string hint = "In bomb explosion radius!";
+    private const string hint = "In bomb explosion radius!";
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -79,7 +79,7 @@ public class Stage08Act2 : BossModule
         ActivateComponent<Selfdetonations>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

@@ -51,5 +51,5 @@ class NavigatorsTridentKnockback(BossModule module) : Components.Knockback(modul
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<SerpentsTide>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false || !Module.Bounds.Contains(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<SerpentsTide>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.Bounds.Contains(pos);
 }

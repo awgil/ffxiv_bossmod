@@ -29,7 +29,6 @@ public enum AID : uint
 public enum SID : uint
 {
     Pyretic = 960, // Boss->player, extra=0x0
-
 }
 
 class FluidSwing(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.FluidSwing));
@@ -68,7 +67,7 @@ class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"For this act Excuviation and Diamondback are mandatory.\nBringing Flying Sardine, lightning and wind spells is higly recommended.");
+        hints.Add($"For this act Exuviation and Diamondback are mandatory.\nBringing Flying Sardine, lightning and wind spells is higly recommended.");
     }
 }
 

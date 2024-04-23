@@ -5,7 +5,6 @@ public enum OID : uint
     Boss = 0x25C1, //R1.8
     Flan = 0x25C5, //R1.8
     Licorice = 0x25C3, //R=1.8
-
 }
 
 public enum AID : uint
@@ -16,7 +15,7 @@ public enum AID : uint
     GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5,0s cast, single-target
 }
 
-class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increases its magic damage.");
+class GoldenTongue(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.GoldenTongue));
 
 class Hints(BossModule module) : BossComponent(module)
 {
@@ -40,7 +39,7 @@ class Stage02Act2States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 612, NameID = 8079, SortOrder = 2)]
 public class Stage02Act2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 25))
 {
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Flan).Any(e => e.InCombat) || Enemies(OID.Licorice).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Flan).Any(e => e.InCombat) || Enemies(OID.Licorice).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

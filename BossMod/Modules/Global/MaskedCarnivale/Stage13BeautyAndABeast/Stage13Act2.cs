@@ -32,14 +32,14 @@ class VoidAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID
 class DarkSabbath(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DarkSabbath));
 class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(10));
 class CircleOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CircleOfBlood2), new AOEShapeDonut(10, 20));
-class BeguilingMist(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BeguilingMist), "Interrupt or run around uncontrollably!");
+class BeguilingMist(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.BeguilingMist));
 class BloodRain(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BloodRain), "Harmless raidwide unless you failed to kill succubus in time");
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Camilla will cast various AOEs and summons adds.\nInterrupt the adds with Flying Sardine and kill them fast.\nIf the add is still alive during the next Black Sabbath, you will be wiped.");
+        hints.Add($"{Module.PrimaryActor.Name} will cast various AOEs and summons adds.\nInterrupt the adds with Flying Sardine and kill them fast.\nIf the add is still alive during the next Black Sabbath, you will be wiped.");
     }
 }
 

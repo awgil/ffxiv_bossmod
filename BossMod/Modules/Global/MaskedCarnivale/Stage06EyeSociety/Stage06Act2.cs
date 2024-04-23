@@ -24,7 +24,7 @@ public enum SID : uint
 
 class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DemonEye))
 {
-    private BitMask _blinded;
+    private readonly BitMask _blinded;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -40,13 +40,13 @@ class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpe
 
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<Eye>() : base.ActiveEyes(slot, actor);
+        return _blinded[slot] ? [] : base.ActiveEyes(slot, actor);
     }
 }
 
 class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f, 45.Degrees())) //TODO: cone based gaze
 {
-    private BitMask _blinded;
+    private readonly BitMask _blinded;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -62,13 +62,13 @@ class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(slot, actor);
+        return _blinded[slot] ? [] : base.ActiveAOEs(slot, actor);
     }
 }
 
 class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TearyTwirl), 6.3f)
 {
-    private BitMask _blinded;
+    private readonly BitMask _blinded;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -93,7 +93,7 @@ class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, Ac
 
 class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(7.35f, 45.Degrees())) //TODO: cone based gaze
 {
-    private BitMask _blinded;
+    private readonly BitMask _blinded;
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -109,7 +109,7 @@ class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        return _blinded[slot] ? Enumerable.Empty<AOEInstance>() : base.ActiveAOEs(slot, actor);
+        return _blinded[slot] ? [] : base.ActiveAOEs(slot, actor);
     }
 }
 
@@ -142,7 +142,7 @@ public class Stage06Act2 : BossModule
         ActivateComponent<Hints>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat) || Enemies(OID.Eye).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Mandragora).Any(e => e.InCombat) || Enemies(OID.Eye).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

@@ -26,7 +26,7 @@ public enum AID : uint
     Disseminate = 14899, // 26FB->self, 2,0s cast, range 6+R circle, casts on death of serpents
 }
 
-class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interrupt!");
+class HighVoltage(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.HighVoltage));
 
 class Ballast(BossModule module) : Components.GenericAOEs(module)
 {
@@ -34,9 +34,7 @@ class Ballast(BossModule module) : Components.GenericAOEs(module)
     private bool casting3;
     private bool casting4;
     private Angle _rotation;
-    private DateTime _activation1;
-    private DateTime _activation2;
-    private DateTime _activation3;
+    private DateTime _activation;
 
     private static readonly AOEShapeCone cone1 = new(5.5f, 135.Degrees());
     private static readonly AOEShapeDonutSector cone2 = new(5.5f, 10.5f, 135.Degrees());
@@ -46,17 +44,17 @@ class Ballast(BossModule module) : Components.GenericAOEs(module)
     {
         if (casting2)
         {
-            yield return new(cone1, Module.PrimaryActor.Position, _rotation, _activation1, ArenaColor.Danger);
-            yield return new(cone2, Module.PrimaryActor.Position, _rotation, _activation2);
-            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation3);
+            yield return new(cone1, Module.PrimaryActor.Position, _rotation, _activation, ArenaColor.Danger);
+            yield return new(cone2, Module.PrimaryActor.Position, _rotation, _activation.AddSeconds(1.6f));
+            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation.AddSeconds(3.2f));
         }
         if (casting3 && !casting2)
         {
-            yield return new(cone2, Module.PrimaryActor.Position, _rotation, _activation2, ArenaColor.Danger);
-            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation3);
+            yield return new(cone2, Module.PrimaryActor.Position, _rotation, _activation.AddSeconds(1.6f), ArenaColor.Danger);
+            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation.AddSeconds(3.2f));
         }
         if (casting4 && !casting3)
-            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation3, ArenaColor.Danger);
+            yield return new(cone3, Module.PrimaryActor.Position, _rotation, _activation.AddSeconds(3.2f), ArenaColor.Danger);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -67,9 +65,7 @@ class Ballast(BossModule module) : Components.GenericAOEs(module)
             casting3 = true;
             casting4 = true;
             _rotation = Module.PrimaryActor.Rotation;
-            _activation1 = WorldState.FutureTime(4.6f);
-            _activation2 = WorldState.FutureTime(5.2f);
-            _activation3 = WorldState.FutureTime(5.8f);
+            _activation = WorldState.FutureTime(4.6f);
         }
     }
 
@@ -95,9 +91,7 @@ class BallastKB(BossModule module) : Components.Knockback(module) //actual knock
     private bool casting2;
     private bool casting3;
     private bool casting4;
-    private DateTime _activation1;
-    private DateTime _activation2;
-    private DateTime _activation3;
+    private DateTime _activation;
     private Angle _rotation;
 
     private static readonly AOEShapeCone cone1 = new(5.5f, 135.Degrees());
@@ -107,11 +101,11 @@ class BallastKB(BossModule module) : Components.Knockback(module) //actual knock
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (casting2)
-            yield return new(Module.PrimaryActor.Position, 20, _activation1, cone1, _rotation);
+            yield return new(Module.PrimaryActor.Position, 20, _activation, cone1, _rotation);
         if (casting3)
-            yield return new(Module.PrimaryActor.Position, 20, _activation2, cone2, _rotation);
+            yield return new(Module.PrimaryActor.Position, 20, _activation.AddSeconds(1.6f), cone2, _rotation);
         if (casting4)
-            yield return new(Module.PrimaryActor.Position, 20, _activation3, cone3, _rotation);
+            yield return new(Module.PrimaryActor.Position, 20, _activation.AddSeconds(3.2f), cone3, _rotation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -122,9 +116,7 @@ class BallastKB(BossModule module) : Components.Knockback(module) //actual knock
             casting3 = true;
             casting4 = true;
             _rotation = Module.PrimaryActor.Rotation;
-            _activation1 = WorldState.FutureTime(4.6f);
-            _activation2 = WorldState.FutureTime(5.2f);
-            _activation3 = WorldState.FutureTime(5.8f);
+            _activation = WorldState.FutureTime(4.6f);
         }
     }
 

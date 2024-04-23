@@ -23,13 +23,13 @@ public enum SID : uint
 
 class Gust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Gust), 3);
 class AlternatePlumage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.AlternatePlumage), "Prepare to dispel buff");
-class CaberToss(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.CaberToss), "Interrupt or wipe!");
+class CaberToss(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.CaberToss));
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"{Module.PrimaryActor.Name} will cast Alternate Plumage, which makes him almost\nimmune to damage. Use Eerie Soundwave to dispel it. Caber Toss must be\ninterrupted or you wipe.\nAdditionally Exuviation and earth spells are recommended for act 2.");
+        hints.Add($"{Module.PrimaryActor.Name} will cast Alternate Plumage, which makes him almost\nimmune to damage. Use Eerie Soundwave to dispel it. Caber Toss must be\ninterrupted or you will wipe.\nAdditionally Exuviation and earth spells are recommended for act 2.");
     }
 }
 

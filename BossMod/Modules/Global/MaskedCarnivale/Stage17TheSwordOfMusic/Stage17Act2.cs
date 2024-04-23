@@ -20,8 +20,8 @@ public enum AID : uint
 }
 
 class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2));
-class MagitekField(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses");
-class MagitekRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.MagitekRay), m => m.Enemies(OID.MagitekRayVoidzone), 0);
+class MagitekField(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.MagitekField));
+class MagitekRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.MagitekRay), m => m.Enemies(OID.MagitekRayVoidzone).Where(e => e.EventState != 7), 1.1f);
 class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees()));
 class Shred(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2));
 class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0,9s after snapshot

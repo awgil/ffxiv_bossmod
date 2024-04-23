@@ -43,7 +43,7 @@ class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Hit the Lava Slime from a safe distance to win this act.");
+        hints.Add($"Hit the {Module.PrimaryActor.Name} from a safe distance to win this act.");
     }
 }
 
@@ -67,7 +67,7 @@ public class Stage07Act1 : BossModule
         ActivateComponent<SlimeExplosion>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Sprite).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Sprite).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

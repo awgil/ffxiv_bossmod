@@ -16,7 +16,7 @@ public enum AID : uint
 
 class Selfdetonations(BossModule module) : BossComponent(module)
 {
-    private static readonly string hint = "In bomb explosion radius!";
+    private const string hint = "In bomb explosion radius!";
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -89,7 +89,7 @@ public class Stage08Act1 : BossModule
         ActivateComponent<Selfdetonations>();
     }
 
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat); }
+    protected override bool CheckPull() => PrimaryActor.IsTargetable && PrimaryActor.InCombat || Enemies(OID.Bomb).Any(e => e.InCombat) || Enemies(OID.Snoll).Any(e => e.InCombat);
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

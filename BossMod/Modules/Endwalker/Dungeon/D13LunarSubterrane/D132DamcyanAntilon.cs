@@ -63,15 +63,7 @@ class Landslip(BossModule module) : Components.Knockback(module)
             _casters.Remove(caster);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (Module.FindComponent<Towerfall>() is var towerfall && towerfall != null && towerfall.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
-            return true;
-        if (!Module.Bounds.Contains(pos))
-            return true;
-        else
-            return false;
-    }
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<Towerfall>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.Bounds.Contains(pos);
 }
 
 class EarthenGeyser(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.EarthenGeyser2), 10);

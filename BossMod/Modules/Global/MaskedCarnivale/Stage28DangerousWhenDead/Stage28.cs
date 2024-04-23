@@ -65,7 +65,7 @@ class Cackle(BossModule module) : Components.CastInterruptHint(module, ActionID.
 
 class Brainstorm(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) 
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<BilrostSquall>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false || !Module.Bounds.Contains(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<BilrostSquall>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.Bounds.Contains(pos);
 }
 
 class Hints(BossModule module) : BossComponent(module)

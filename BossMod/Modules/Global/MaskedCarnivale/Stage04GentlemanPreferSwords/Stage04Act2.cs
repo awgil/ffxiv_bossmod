@@ -20,13 +20,13 @@ class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, Actio
 
 class MagitekRay(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRay), 6);
 
-class MagitekField(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MagitekField), "Interruptible, increases its defenses");
+class MagitekField(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.MagitekField));
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Kreios is weak to lightning spells.\nDuring the fight he will spawn 6 beetles.\nIf available use the Ram's Voice + Ultravibration combo for the instant kill.");
+        hints.Add($"{Module.PrimaryActor.Name} is weak to lightning spells.\nDuring the fight he will spawn 6 beetles.\nIf available use the Ram's Voice + Ultravibration combo for the instant kill.");
     }
 }
 
@@ -34,7 +34,7 @@ class Hints2(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Kreios is weak against lightning spells and can be frozen.");
+        hints.Add($"{Module.PrimaryActor.Name} is weak against lightning spells and can be frozen.");
     }
 }
 

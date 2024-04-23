@@ -73,7 +73,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     public abstract IEnumerable<Source> Sources(int slot, Actor actor);
 
     // called to determine whether we need to show hint
-    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => StopAtWall ? false : !Module.Bounds.Contains(pos);
+    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !StopAtWall && !Module.Bounds.Contains(pos);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

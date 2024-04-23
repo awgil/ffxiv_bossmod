@@ -74,7 +74,7 @@ class KnockbackPull(BossModule module) : Components.Knockback(module)
             _knockback = null;
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<FluidConvectionDynamic>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false || !Module.Bounds.Contains(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<FluidConvectionDynamic>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.Bounds.Contains(pos);
 }
 
 class Unwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Unwind), new AOEShapeCircle(10));

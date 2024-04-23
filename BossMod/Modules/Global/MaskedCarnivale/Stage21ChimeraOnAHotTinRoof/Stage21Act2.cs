@@ -19,18 +19,18 @@ public enum AID : uint
 
 }
 
-class TheRamsKeeper(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, ActionID.MakeSpell(AID.TheRamsKeeper), m => m.Enemies(OID.Voidzone), 0);
-class TheRamsKeeperHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TheRamsKeeper), "Interrupt");
+class TheRamsKeeper(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, ActionID.MakeSpell(AID.TheRamsKeeper), m => m.Enemies(OID.Voidzone).Where(e => e.EventState != 7), 0.9f);
+class TheRamsKeeperHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TheRamsKeeper));
 class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9));
 class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30));
 class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Icefall), 5);
-class VoidBlizzard(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidBlizzard), "Interrupt");
+class VoidBlizzard(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.VoidBlizzard));
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Interrupt The Rams Keeper with Spitting Sardine. You can start the\nFinal Sting combination at about 50% health left.\n(Off-guard->Bristle->Moonflute->Final Sting).\nThe boss will sometimes spawn an Arena Imp during the fight.");
+        hints.Add("Interrupt The Rams Keeper with Flying Sardine. You can start the\nFinal Sting combination at about 50% health left.\n(Off-guard->Bristle->Moonflute->Final Sting).\nThe boss will sometimes spawn an Arena Imp during the fight.");
     }
 }
 

@@ -25,7 +25,7 @@ class Snort(BossModule module) : Components.KnockbackFromCastTarget(module, Acti
 class Fungah(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
     private DateTime _activation;
-    private List<Actor> _bombs = new();
+    private readonly List<Actor> _bombs = [];
     private bool otherpatterns;
     private static readonly AOEShapeCone cone = new(12.5f, 45.Degrees());
 
@@ -37,12 +37,13 @@ class Fungah(BossModule module) : Components.Knockback(module, stopAtWall: true)
 
     public override void OnActorCreated(Actor actor)
     {
+        var MagitekExplosive = Module.Enemies(OID.MagitekExplosive).FirstOrDefault();
         if ((OID)actor.OID == OID.Bomb)
             _bombs.Add(actor);
         if (_bombs.Count == 8)
             _activation = WorldState.FutureTime(5);
-        if (Module.Enemies(OID.MagitekExplosive).FirstOrDefault() != null)
-            if (Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(96, 94), 3) || Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(92, 100), 3) || Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(96, 106), 3) || Module.Enemies(OID.MagitekExplosive).FirstOrDefault()!.Position.AlmostEqual(new(108, 100), 3))
+        if (MagitekExplosive != null)
+            if (MagitekExplosive.Position.AlmostEqual(new(96, 94), 3) || MagitekExplosive.Position.AlmostEqual(new(92, 100), 3) || MagitekExplosive.Position.AlmostEqual(new(96, 106), 3) || MagitekExplosive.Position.AlmostEqual(new(108, 100), 3))
             {
                 _activation = WorldState.FutureTime(5.3f);
                 otherpatterns = true;
@@ -65,8 +66,8 @@ class Fungah(BossModule module) : Components.Knockback(module, stopAtWall: true)
 
 class Explosion(BossModule module) : Components.GenericAOEs(module)
 {
-    private List<Actor> _bombs = new();
-    private List<Actor> _casters = new();
+    private readonly List<Actor> _bombs = [];
+    private List<Actor> _casters = [];
     private static readonly AOEShapeCircle circle = new(8);
     private DateTime _activation;
     private DateTime _snortingeffectends;

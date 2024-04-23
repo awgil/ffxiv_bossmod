@@ -53,15 +53,7 @@ class DadJoke(BossModule module) : Components.Knockback(module)
             _activation = default;
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (Module.FindComponent<Thunderhead>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        if (!Module.Bounds.Contains(pos))
-            return true;
-        else
-            return false;
-    }
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<Thunderhead>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.Bounds.Contains(pos);
 }
 
 class VoidThunderII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidThunderII), 4);

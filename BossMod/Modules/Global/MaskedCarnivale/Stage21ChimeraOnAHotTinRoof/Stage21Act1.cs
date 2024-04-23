@@ -13,13 +13,13 @@ public enum AID : uint
 }
 
 class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Icefall), 5);
-class VoidBlizzard(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidBlizzard), "Interrupt");
+class VoidBlizzard(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.VoidBlizzard));
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("The first act is fairly easy. Interrupt the Void Blizzards with Spitting\nSardine and most of the danger is gone. The Imps are weak against fire spells.\nIn the 2nd act you can start the Final Sting combination at about 50%\nhealth left. (Off-guard->Bristle->Moonflute->Final Sting)");
+        hints.Add("The first act is fairly easy. Interrupt the Void Blizzards with Flying\nSardine and most of the danger is gone. The Imps are weak against fire spells.\nIn the 2nd act you can start the Final Sting combination at about 50%\nhealth left. (Off-guard->Bristle->Moonflute->Final Sting)");
     }
 }
 

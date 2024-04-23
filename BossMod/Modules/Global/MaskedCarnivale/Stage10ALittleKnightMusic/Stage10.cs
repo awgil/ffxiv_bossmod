@@ -24,22 +24,22 @@ class IronJustice1(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 class IronJustice2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IronJustice2), new AOEShapeCone(9.5f, 60.Degrees()));
 class IronJustice3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IronJustice3), new AOEShapeCone(10, 60.Degrees()));
 class IronJustice4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IronJustice4), new AOEShapeCone(10.5f, 60.Degrees()));
-class BlackNebula(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BlackNebula), "Interrupt or wipe!");
+class BlackNebula(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.BlackNebula));
 class Cloudcover1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Cloudcover1), 6);
-class KingsWill1(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.KingsWill), "Interrupt if not going for the achievement");
-class KingsWill2(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.KingsWill2), "Interrupt if not going for the achievement");
-class KingsWill3(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.KingsWill3), "Interrupt if not going for the achievement");
+class KingsWill1(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.KingsWill));
+class KingsWill2(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.KingsWill2));
+class KingsWill3(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.KingsWill3));
 
 class Hints(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add("Crom Dubh will cast King's Will during the fight. Interrupt it with\nFlying Sardine or he will become stronger each time. After 3 casts he\nstarts using the interruptible enrage Black Nebula.");
+        hints.Add($"{Module.PrimaryActor.Name} will cast King's Will during the fight. Interrupt it with\nFlying Sardine or he will become stronger each time. After 3 casts he\nstarts using the interruptible enrage Black Nebula.");
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        hints.Add("Requirement for achievement: Let Crom Dubh cast King's Will 3 times.", false);
+        hints.Add("Requirement for achievement: Let {Module.PrimaryActor.Name} cast King's Will 3 times.", false);
     }
 }
 

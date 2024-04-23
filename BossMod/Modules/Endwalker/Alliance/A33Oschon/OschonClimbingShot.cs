@@ -18,5 +18,5 @@ class ClimbingShot(BossModule module) : Components.Knockback(module)
             _knockback = null;
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<DownhillP1>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false || !Module.Bounds.Contains(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<DownhillP1>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.Bounds.Contains(pos);
 }

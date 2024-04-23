@@ -27,7 +27,7 @@ class WanderingVolley(BossModule module) : Components.Knockback(module)
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<DownhillBig>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false || !Module.Bounds.Contains(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<DownhillBig>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.Bounds.Contains(pos);
 }
 
 class WanderingVolleyAOE(BossModule module) : Components.GenericAOEs(module)
