@@ -14,33 +14,23 @@ public abstract class ArenaBounds(WPos center, float halfSize)
 
     private readonly Clip2D _clipper = new();
     public IEnumerable<WPos> ClipPoly => _clipper.ClipPoly;
-    private readonly Dictionary<ClipperLib.PolyTree, List<(WPos, WPos, WPos)>> _polyCache = [];
-    private readonly Dictionary<IEnumerable<WPos>, List<(WPos, WPos, WPos)>> _polyCache2 = [];
-    private readonly Dictionary<(WPos, float), List<(WPos, WPos, WPos)>> _triangulateCircle = [];
-    private readonly Dictionary<(WPos, float, float, Angle, Angle), List<(WPos, WPos, WPos)>> _triangulateCone = [];
-    private readonly Dictionary<(WPos, float, float), List<(WPos, WPos, WPos)>> _triangulateDonut = [];
-    private readonly Dictionary<(WPos, WPos, WPos), List<(WPos, WPos, WPos)>> _triangulateTri = [];
-    private readonly Dictionary<(WPos, WDir, WDir), List<(WPos, WPos, WPos)>> _triangulateTri2 = [];
-    private readonly Dictionary<(WPos, Angle, Angle, float), List<(WPos, WPos, WPos)>> _triangulateTri3 = [];
-    private readonly Dictionary<(WPos, WDir, float, float, float), List<(WPos, WPos, WPos)>> _triangulateRect = [];
-    private readonly Dictionary<(WPos, Angle, float, float, float), List<(WPos, WPos, WPos)>> _triangulateRect2 = [];
-    private readonly Dictionary<(WPos, WPos, float), List<(WPos, WPos, WPos)>> _triangulateRect3 = [];
+    private readonly Dictionary<object, List<(WPos, WPos, WPos)>> cache = [];
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulate(ClipperLib.PolyTree poly)
     {
-        if (_polyCache.TryGetValue(poly, out var cachedResult))
+        if (cache.TryGetValue(poly, out var cachedResult))
             return cachedResult;
         var result = _clipper.ClipAndTriangulate(poly);
-        _polyCache[poly] = result;
+        cache[poly] = result;
         return result;
-    } 
+    }
     public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> poly)
     {
-        if (_polyCache2.TryGetValue(poly, out var cachedResult))
+        if (cache.TryGetValue(poly, out var cachedResult))
             return cachedResult;
         var result = _clipper.ClipAndTriangulate(poly);
-        _polyCache2[poly] = result;
-        return result;  
+        cache[poly] = result;
+        return result;
     }
 
     private float _screenHalfSize;
@@ -73,7 +63,7 @@ public abstract class ArenaBounds(WPos center, float halfSize)
         // TODO: think of a better way to do that (analytical clipping?)
         if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle.Rad <= 0)
             return [];
-        if (_triangulateCone.TryGetValue((center, innerRadius, outerRadius, centerDirection, halfAngle), out var cachedResult))
+        if (cache.TryGetValue((center, innerRadius, outerRadius, centerDirection, halfAngle), out var cachedResult))
             return cachedResult;
         bool fullCircle = halfAngle.Rad >= MathF.PI;
         bool donut = innerRadius > 0;
@@ -85,16 +75,16 @@ public abstract class ArenaBounds(WPos center, float halfSize)
             (true, true) => CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError),
         };
         var result = ClipAndTriangulate(points);
-        _triangulateCone[(center, innerRadius, outerRadius, centerDirection, halfAngle)] = result;
+        cache[(center, innerRadius, outerRadius, centerDirection, halfAngle)] = result;
         return result;
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateCircle(WPos center, float radius)
     {
-        if (_triangulateCircle.TryGetValue((center, radius), out var cachedResult))
+        if (cache.TryGetValue((center, radius), out var cachedResult))
             return cachedResult;
         var result = ClipAndTriangulate(CurveApprox.Circle(center, radius, MaxApproxError));
-        _triangulateCircle[(center, radius)] = result;
+        cache[(center, radius)] = result;
         return result;
     }
 
@@ -102,71 +92,71 @@ public abstract class ArenaBounds(WPos center, float halfSize)
     {
         if (innerRadius >= outerRadius || innerRadius < 0)
             return [];
-        if (_triangulateDonut.TryGetValue((center, innerRadius, outerRadius), out var cachedResult))
+        if (cache.TryGetValue((center, innerRadius, outerRadius), out var cachedResult))
             return cachedResult;
         var result = ClipAndTriangulate(CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError));
-        _triangulateDonut[(center, innerRadius, outerRadius)] = result;
+        cache[(center, innerRadius, outerRadius)] = result;
         return result;
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateTri(WPos a, WPos b, WPos c)
     {
-        if (_triangulateTri.TryGetValue((a, b, c), out var cachedResult))
+        if (cache.TryGetValue((a, b, c), out var cachedResult))
             return cachedResult;
         var result = ClipAndTriangulate([a, b, c]);
-        _triangulateTri[(a, b, c)] = result;
+        cache[(a, b, c)] = result;
         return result;
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateIsoscelesTri(WPos apex, WDir height, WDir halfBase)
     {
-        if (_triangulateTri2.TryGetValue((apex, height, halfBase), out var cachedResult))
+        if (cache.TryGetValue((apex, height, halfBase), out var cachedResult))
             return cachedResult;
         var result = ClipAndTriangulateTri(apex, apex + height + halfBase, apex + height - halfBase);
-        _triangulateTri2[(apex, height, halfBase)] = result;
+        cache[(apex, height, halfBase)] = result;
         return result;
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height)
     {
-        if (_triangulateTri3.TryGetValue((apex, direction, halfAngle, height), out var cachedResult))
+        if (cache.TryGetValue((apex, direction, halfAngle, height), out var cachedResult))
             return cachedResult;
         var dir = direction.ToDirection();
         var normal = dir.OrthoL();
         var result = ClipAndTriangulateIsoscelesTri(apex, height * dir, height * halfAngle.Tan() * normal);
-        _triangulateTri3[(apex, direction, halfAngle, height)] = result;
+        cache[(apex, direction, halfAngle, height)] = result;
         return result;
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth)
     {
-        if (_triangulateRect.TryGetValue((origin, direction, lenFront, lenBack, halfWidth), out var cachedResult))
+        if (cache.TryGetValue((origin, direction, lenFront, lenBack, halfWidth), out var cachedResult))
             return cachedResult;
         var side = halfWidth * direction.OrthoR();
         var front = origin + lenFront * direction;
         var back = origin - lenBack * direction;
         var result = ClipAndTriangulate([front + side, front - side, back - side, back + side]);
-        _triangulateRect[(origin, direction, lenFront, lenBack, halfWidth)] = result;
+        cache[(origin, direction, lenFront, lenBack, halfWidth)] = result;
         return result;
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
     {
-        if (_triangulateRect2.TryGetValue((origin, direction, lenFront, lenBack, halfWidth), out var cachedResult))
+        if (cache.TryGetValue((origin, direction, lenFront, lenBack, halfWidth), out var cachedResult))
             return cachedResult;
         var result = ClipAndTriangulateRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
-        _triangulateRect2[(origin, direction, lenFront, lenBack, halfWidth)] = result;
+        cache[(origin, direction, lenFront, lenBack, halfWidth)] = result;
         return result;
     }
 
     public List<(WPos, WPos, WPos)> ClipAndTriangulateRect(WPos start, WPos end, float halfWidth)
     {
-        if (_triangulateRect3.TryGetValue((start, end, halfWidth), out var cachedResult))
+        if (cache.TryGetValue((start, end, halfWidth), out var cachedResult))
             return cachedResult;
         var dir = (end - start).Normalized();
         var side = halfWidth * dir.OrthoR();
         var result = ClipAndTriangulate([start + side, start - side, end - side, end + side]);
-        _triangulateRect3[(start, end, halfWidth)] = result;
+        cache[(start, end, halfWidth)] = result;
         return result;
     }
 }
@@ -258,12 +248,23 @@ public class ArenaBoundsRect(WPos center, float halfWidth, float halfHeight, Ang
 public class ArenaBoundsPolygon : ArenaBounds
 {
     private (WPos Center, float HalfHeight, float HalfWidth)? _cachedPolygonProperties;
-    private readonly Dictionary<WPos, bool> _containsCache = [];
-    private readonly Dictionary<(WPos, WDir), float> _intersectRayCache = [];
-    private static readonly Dictionary<IEnumerable<WPos>, Pathfinding.Map> _buildMapCache = [];
-    private readonly Dictionary<(WPos, WDir), WDir> _clampToBoundsCache = [];
+    private static readonly Dictionary<object, object> staticCache = [];
+    private readonly Dictionary<object, object> cache = [];
 
-    public readonly IEnumerable<WPos> Points;
+    public IEnumerable<WPos> Points;
+    public IEnumerable<WPos> Points2
+    {
+        get => Points;
+        set
+        {
+            if (!ReferenceEquals(Points, value))
+            {
+                Points = value;
+                cache.Clear();
+                _cachedPolygonProperties = null;
+            }
+        }
+    }
 
     public ArenaBoundsPolygon(IEnumerable<WPos> points) : base(default, default)
     {
@@ -308,28 +309,28 @@ public class ArenaBoundsPolygon : ArenaBounds
 
     public override bool Contains(WPos position)
     {
-        if (_containsCache.TryGetValue(position, out var cachedResult))
-            return cachedResult;
+        if (cache.TryGetValue(position, out var cachedResult))
+            return (bool)cachedResult;
         var result = position.InPolygon(Points);
-        _containsCache[position] = result;
+        cache[position] = result;
         return result;
     }
 
     public override Pathfinding.Map BuildMap(float resolution)
     {
-        if (_buildMapCache.TryGetValue(Points, out var cachedResult))
-            return cachedResult;
+        if (staticCache.TryGetValue(Points, out var cachedResult))
+            return (Pathfinding.Map)cachedResult;
         var unionProperties = CalculatePolygonProperties();
         var map = new Pathfinding.Map(resolution, unionProperties.Center, unionProperties.HalfWidth, unionProperties.HalfHeight);
         map.BlockPixelsInside(ShapeDistance.InvertedPolygon(Points), 0, 0);
-        _buildMapCache[Points] = map;
+        staticCache[Points] = map;
         return map;
     }
 
     public override float IntersectRay(WPos origin, WDir dir)
     {
-        if (_intersectRayCache.TryGetValue((origin, dir), out var cachedResult))
-            return cachedResult;
+        if (cache.TryGetValue((origin, dir), out var cachedResult))
+            return (float)cachedResult;
         float minDistance = float.MaxValue;
         int i = 0;
         foreach (var point in Points)
@@ -342,15 +343,17 @@ public class ArenaBoundsPolygon : ArenaBounds
                 minDistance = distance;
             ++i;
         }
-        _intersectRayCache[(origin, dir)] = minDistance;
+        cache[(origin, dir)] = minDistance;
         return minDistance;
     }
 
     public override WDir ClampToBounds(WDir offset, float scale)
     {
         WPos position = Center + offset;
-        if (_clampToBoundsCache.TryGetValue((position, offset), out var cachedResult))
-            return cachedResult;
+        if (Contains(position))
+            return offset;
+        if (cache.TryGetValue((position, offset), out var cachedResult))
+            return (WDir)cachedResult;
         float minDistance = float.MaxValue;
         WPos closestPoint = default;
 
@@ -371,7 +374,7 @@ public class ArenaBoundsPolygon : ArenaBounds
             ++i;
         }
         var result = closestPoint - Center;
-        _clampToBoundsCache[(position, offset)] = result;
+        cache[(position, offset)] = result;
         return result;
     }
 }
@@ -398,11 +401,21 @@ public class ArenaBoundsDonut(WPos center, float innerRadius, float outerRadius)
 
     public override float IntersectRay(WPos origin, WDir dir)
     {
-        float outerIntersection = Intersect.RayCircle(origin, dir, Center, OuterRadius);
-        float innerIntersection = Intersect.RayCircle(origin, dir, Center, InnerRadius);
-        float minOuter = outerIntersection >= 0 ? outerIntersection : float.MaxValue;
-        float minInner = innerIntersection >= 0 ? innerIntersection : float.MaxValue;
-        return Math.Min(minOuter, minInner);
+        dir = dir.Normalized();
+
+        float intersectOuter = Intersect.RayCircle(origin, dir, Center, OuterRadius);
+        float intersectInner = Intersect.RayCircle(origin, dir, Center, InnerRadius);
+
+        bool isValidOuter = intersectOuter >= 0;
+        bool isValidInner = intersectInner >= 0;
+
+        if (isValidOuter && isValidInner)
+            return Math.Min(intersectOuter, intersectInner);
+        else if (isValidOuter)
+            return intersectOuter;
+        else if (isValidInner)
+            return intersectInner;
+        return -1;
     }
 
     public override WDir ClampToBounds(WDir offset, float scale = 1)
@@ -433,9 +446,7 @@ public class ArenaBoundsUnion : ArenaBounds
             if (!ReferenceEquals(_boundsList, value)) //clear caches for clamptobounds, intersectray and contains if union composition gets modified, BuildClipPolygon and BuildMap stays incase map gets reverted later
             {
                 _boundsList = value;
-                _containsCache.Clear();
-                _intersectRayCache.Clear();
-                _clampToBoundsCache.Clear();
+                cache.Clear();
                 _cachedUnionProperties = null;
             }
         }
@@ -452,11 +463,8 @@ public class ArenaBoundsUnion : ArenaBounds
     }
 
     private (WPos Center, float HalfHeight, float HalfWidth)? _cachedUnionProperties;
-    private static readonly Dictionary<List<ArenaBounds>, IEnumerable<WPos>> _polyCache = [];
-    private readonly Dictionary<WPos, bool> _containsCache = [];
-    private readonly Dictionary<(WPos, WDir), float> _intersectRayCache = [];
-    private static readonly Dictionary<List<ArenaBounds>, Pathfinding.Map> _buildMapCache = [];
-    private readonly Dictionary<(WPos, WDir), WDir> _clampToBoundsCache = [];
+    private static readonly Dictionary<object, object> staticCache = [];
+    private readonly Dictionary<object, object> cache = [];
 
     private (WPos Center, float HalfHeight, float HalfWidth) CalculateUnionProperties()
     {
@@ -496,8 +504,8 @@ public class ArenaBoundsUnion : ArenaBounds
 
     public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
     {
-        if (_polyCache.TryGetValue(_boundsList, out var cachedResult))
-            return cachedResult;
+        if (staticCache.TryGetValue(_boundsList, out var cachedResult))
+            return (IEnumerable<WPos>)cachedResult;
 
         var result = new List<WPos>();
         var clipper = new ClipperLib.Clipper(0);
@@ -526,14 +534,14 @@ public class ArenaBoundsUnion : ArenaBounds
             result.Add(polyResult.First());
         }
 
-        _polyCache[_boundsList] = result;
+        staticCache[_boundsList] = result;
         return result;
     }
 
     public override Pathfinding.Map BuildMap(float resolution)
     {
-        if (_buildMapCache.TryGetValue(_boundsList, out var cachedResult))
-            return cachedResult;
+        if (staticCache.TryGetValue(_boundsList, out var cachedResult))
+            return (Pathfinding.Map)cachedResult;
         var unionProperties = CalculateUnionProperties();
         var map = new Pathfinding.Map(resolution, unionProperties.Center, unionProperties.HalfWidth, unionProperties.HalfHeight);
 
@@ -550,23 +558,23 @@ public class ArenaBoundsUnion : ArenaBounds
             }
             map.Pixels[y * map.Width + x].MaxG = isInside ? float.MaxValue : 0;
         }
-        _buildMapCache[_boundsList] = map;
+        staticCache[_boundsList] = map;
         return map;
     }
 
     public override bool Contains(WPos position)
     {
-        if (_containsCache.TryGetValue(position, out var cachedResult))
-            return cachedResult;
+        if (cache.TryGetValue(position, out var cachedResult))
+            return (bool)cachedResult;
         var result = _boundsList.Any(bound => bound.Contains(position));
-        _containsCache[position] = result;
+        cache[position] = result;
         return result;
     }
 
     public override float IntersectRay(WPos origin, WDir dir)
     {
-        if (_intersectRayCache.TryGetValue((origin, dir), out var cachedResult))
-            return cachedResult;
+        if (cache.TryGetValue((origin, dir), out var cachedResult))
+            return (float)cachedResult;
 
         float nearestIntersection = float.MaxValue;
 
@@ -598,15 +606,17 @@ public class ArenaBoundsUnion : ArenaBounds
             }
         }
 
-        _intersectRayCache[(origin, dir)] = nearestIntersection;
+        cache[(origin, dir)] = nearestIntersection;
         return nearestIntersection;
     }
 
     public override WDir ClampToBounds(WDir offset, float scale = 1)
     {
         WPos position = Center + offset;
-        if (_clampToBoundsCache.TryGetValue((position, offset), out var cachedResult))
-            return cachedResult;
+        if (Contains(position))
+            return offset;
+        if (cache.TryGetValue((position, offset), out var cachedResult))
+            return (WDir)cachedResult;
 
         var clipper = new ClipperLib.Clipper(0);
         foreach (var bound in _boundsList)
@@ -620,34 +630,30 @@ public class ArenaBoundsUnion : ArenaBounds
         var solution = new ClipperLib.PolyTree();
         clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
 
-        if (!Contains(position))
+
+        float closestDist = float.MaxValue;
+        WPos closestPoint = default;
+
+        var polygons = ClipperLib.Clipper.ClosedPathsFromPolyTree(solution);
+        foreach (var poly in polygons)
         {
-            float closestDist = float.MaxValue;
-            WPos closestPoint = default;
-
-            var polygons = ClipperLib.Clipper.ClosedPathsFromPolyTree(solution);
-            foreach (var poly in polygons)
+            for (int i = 0; i < poly.Count; i++)
             {
-                for (int i = 0; i < poly.Count; i++)
+                WPos p1 = new(poly[i].X / ScalingFactor, poly[i].Y / ScalingFactor);
+                WPos p2 = new(poly[(i + 1) % poly.Count].X / ScalingFactor, poly[(i + 1) % poly.Count].Y / ScalingFactor);
+
+                WPos currentClosest = Intersect.ClosestPointOnSegment(p1, p2, position);
+                float currentDist = (currentClosest - position).Length();
+
+                if (currentDist < closestDist)
                 {
-                    WPos p1 = new(poly[i].X / ScalingFactor, poly[i].Y / ScalingFactor);
-                    WPos p2 = new(poly[(i + 1) % poly.Count].X / ScalingFactor, poly[(i + 1) % poly.Count].Y / ScalingFactor);
-
-                    WPos currentClosest = Intersect.ClosestPointOnSegment(p1, p2, position);
-                    float currentDist = (currentClosest - position).Length();
-
-                    if (currentDist < closestDist)
-                    {
-                        closestDist = currentDist;
-                        closestPoint = currentClosest;
-                    }
+                    closestDist = currentDist;
+                    closestPoint = currentClosest;
                 }
             }
-            _clampToBoundsCache[(position, offset)] = closestPoint - Center;
-            return closestPoint - Center;
         }
-        _clampToBoundsCache[(position, offset)] = offset;
-        return offset;
+        cache[(position, offset)] = closestPoint - Center;
+        return closestPoint - Center;
     }
 }
 
@@ -662,12 +668,10 @@ public class ArenaBoundsDifference : ArenaBounds
         get => _baseBound;
         set
         {
-            if (!ReferenceEquals(_baseBound, value)) //clear caches for clamptobounds, intersectray and contains if base bound gets modified, BuildClipPolygon and BuildMap stays incase map gets reverted later
+            if (!ReferenceEquals(_baseBound, value))
             {
                 _baseBound = value;
-                _containsCache.Clear();
-                _intersectRayCache.Clear();
-                _clampToBoundsCache.Clear();
+                cache.Clear();
                 _cachedDifferenceProperties = null;
             }
         }
@@ -677,22 +681,17 @@ public class ArenaBoundsDifference : ArenaBounds
         get => _subtractBounds;
         set
         {
-            if (!ReferenceEquals(_subtractBounds, value)) //clear caches for clamptobounds, intersectray and contains if subtracted bounds gets modified, BuildClipPolygon and BuildMap stays incase map gets reverted later
+            if (!ReferenceEquals(_subtractBounds, value))
             {
                 _subtractBounds = value;
-                _containsCache.Clear();
-                _intersectRayCache.Clear();
-                _clampToBoundsCache.Clear();
+                cache.Clear();
                 _cachedDifferenceProperties = null;
             }
         }
     }
     private (WPos Center, float HalfHeight, float HalfWidth)? _cachedDifferenceProperties;
-    private static readonly Dictionary<(ArenaBounds, List<ArenaBounds>), IEnumerable<WPos>> _polyCache = [];
-    private readonly Dictionary<WPos, bool> _containsCache = [];
-    private readonly Dictionary<(WPos, WDir), float> _intersectRayCache = [];
-    private static readonly Dictionary<(ArenaBounds, List<ArenaBounds>), Pathfinding.Map> _buildMapCache = [];
-    private readonly Dictionary<(WPos, WDir), WDir> _clampToBoundsCache = [];
+    private static readonly Dictionary<object, object> staticCache = [];
+    private readonly Dictionary<object, object> cache = [];
 
     public ArenaBoundsDifference(ArenaBounds baseBound, IEnumerable<ArenaBounds> subtractBounds) : base(default, default)
     {
@@ -739,8 +738,8 @@ public class ArenaBoundsDifference : ArenaBounds
 
     public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
     {
-        if (_polyCache.TryGetValue((BaseBound, _subtractBounds), out var cachedResult))
-            return cachedResult;
+        if (staticCache.TryGetValue((BaseBound, _subtractBounds), out var cachedResult))
+            return (IEnumerable<WPos>)cachedResult;
 
         var clipperBase = new ClipperLib.Clipper();
         var basePoly = _baseBound.BuildClipPoly(offset).Select(p => new ClipperLib.IntPoint(p.X * ScalingFactor, p.Z * ScalingFactor)).ToList();
@@ -767,20 +766,20 @@ public class ArenaBoundsDifference : ArenaBounds
         foreach (var polygon in resultPolygons)
         {
             var polyResult = polygon.Select(pt => new WPos(pt.X / ScalingFactor, pt.Y / ScalingFactor)).ToList();
-            if (polyResult.Any())
+            if (polyResult.Count != 0)
             {
                 polyResult.Add(polyResult.First());
                 finalResult.AddRange(polyResult);
             }
         }
-        _polyCache[(BaseBound, _subtractBounds)] = finalResult;
+        staticCache[(BaseBound, _subtractBounds)] = finalResult;
         return finalResult;
     }
 
     public override Pathfinding.Map BuildMap(float resolution = 0.5f)
     {
-        if (_buildMapCache.TryGetValue((BaseBound, _subtractBounds), out var cachedResult))
-            return cachedResult;
+        if (staticCache.TryGetValue((BaseBound, _subtractBounds), out var cachedResult))
+            return (Pathfinding.Map)cachedResult;
         var props = CalculateDifferenceProperties();
 
         var map = new Pathfinding.Map(resolution, props.Center, props.HalfWidth, props.HalfHeight);
@@ -791,25 +790,23 @@ public class ArenaBoundsDifference : ArenaBounds
             bool insideSubtract = _subtractBounds.Any(sub => sub.Contains(pos));
             map.Pixels[y * map.Width + x].MaxG = insideBase && !insideSubtract ? float.MaxValue : 0;
         }
-        _buildMapCache[(BaseBound, _subtractBounds)] = map;
+        staticCache[(BaseBound, _subtractBounds)] = map;
         return map;
     }
 
     public override bool Contains(WPos position)
     {
-        if (_containsCache.TryGetValue(position, out var cachedResult))
-            return cachedResult;
+        if (cache.TryGetValue(position, out var cachedResult))
+            return (bool)cachedResult;
         var result = _baseBound.Contains(position) && !_subtractBounds.Any(bound => bound.Contains(position));
-        _containsCache[position] = result;
+        cache[position] = result;
         return result;
     }
 
     public override float IntersectRay(WPos origin, WDir dir)
     {
-        if (_intersectRayCache.TryGetValue((origin, dir), out var cachedResult))
-            return cachedResult;
-
-        var props = CalculateDifferenceProperties();
+        if (cache.TryGetValue((origin, dir), out var cachedResult))
+            return (float)cachedResult;
 
         var clipperBase = new ClipperLib.Clipper();
         var basePoly = _baseBound.BuildClipPoly().Select(p => new ClipperLib.IntPoint(p.X * ScalingFactor, p.Z * ScalingFactor)).ToList();
@@ -847,15 +844,17 @@ public class ArenaBoundsDifference : ArenaBounds
                     nearestIntersection = distance;
             }
         }
-        _intersectRayCache[(origin, dir)] = nearestIntersection;
+        cache[(origin, dir)] = nearestIntersection;
         return nearestIntersection;
     }
 
     public override WDir ClampToBounds(WDir offset, float scale = 1)
     {
         WPos position = Center + offset;
-        if (_clampToBoundsCache.TryGetValue((position, offset), out var cachedResult))
-            return cachedResult;
+        if (Contains(position))
+            return offset;
+        if (cache.TryGetValue((position, offset), out var cachedResult))
+            return (WDir)cachedResult;
         var clipperBase = new ClipperLib.Clipper();
         var basePoly = _baseBound.BuildClipPoly().Select(p => new ClipperLib.IntPoint(p.X * ScalingFactor, p.Z * ScalingFactor)).ToList();
         clipperBase.AddPath(basePoly, ClipperLib.PolyType.ptSubject, true);
@@ -897,7 +896,7 @@ public class ArenaBoundsDifference : ArenaBounds
             }
         }
         var result = closestPoint - Center;
-        _clampToBoundsCache[(position, offset)] = result;
+        cache[(position, offset)] = result;
         return result;
     }
 }

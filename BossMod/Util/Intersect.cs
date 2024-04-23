@@ -6,13 +6,22 @@ public static class Intersect
     public static float RayCircle(WPos rayOrigin, WDir rayDir, WPos circleCenter, float circleRadius)
     {
         var ccToRO = rayOrigin - circleCenter;
-        // (ccToRO + t * rayDir) ^ 2 = R^2 => t^2 + 2 * t * ccToRO dot rayDir + ccToRO^2 - R^2 = 0
         var halfB = ccToRO.Dot(rayDir);
         var halfDSq = halfB * halfB - ccToRO.LengthSq() + circleRadius * circleRadius;
         if (halfDSq < 0)
             return float.MaxValue; // never intersects
-        var t = -halfB + MathF.Sqrt(halfDSq);
-        return t >= 0 ? t : float.MaxValue;
+
+        var sqrtHalfDSq = MathF.Sqrt(halfDSq);
+        var t1 = -halfB + sqrtHalfDSq;
+        var t2 = -halfB - sqrtHalfDSq;
+        if (t1 >= 0 && t2 >= 0)
+            return Math.Min(t1, t2);
+        else if (t1 >= 0)
+            return t1;
+        else if (t2 >= 0)
+            return t2;
+        else
+            return float.MaxValue;
     }
 
     public static float RaySegment(WPos rayOrigin, WDir rayDir, WPos a, WPos b)
