@@ -9,7 +9,8 @@ class DRGConfig : ConfigNode
     [PropertyDisplay("Smart targeting for Dragon Sight (target if friendly, otherwise mouseover if friendly, otherwise best player by class ranking)")]
     public bool SmartDragonSightTarget = true;
 
-    public enum ElusiveJumpBehavior : uint {
+    public enum ElusiveJumpBehavior : uint
+    {
         [PropertyDisplay("Unchanged (character-relative, backwards)")]
         Default = 0,
         [PropertyDisplay("Character-relative, forwards")]
