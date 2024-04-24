@@ -15,7 +15,8 @@ public sealed class Plugin : IDalamudPlugin
     private ICommandManager CommandManager { get; init; }
 
     private readonly Network.Logger _network;
-    private readonly WorldStateGame _ws;
+    private readonly WorldState _ws;
+    private readonly WorldStateGameSync _wsSync;
     private readonly BossModuleManager _bossmod;
     private readonly Autorotation _autorotation;
     private readonly AI.AIManager _ai;
@@ -60,7 +61,8 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
         _network = new(dalamud.ConfigDirectory);
-        _ws = new(dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
+        _ws = new(Utils.FrameQPF(), dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
+        _wsSync = new(_ws);
         _bossmod = new(_ws);
         _autorotation = new(_bossmod);
         _ai = new(_autorotation);
@@ -91,7 +93,7 @@ public sealed class Plugin : IDalamudPlugin
         _network.Dispose();
         _ai.Dispose();
         _autorotation.Dispose();
-        _ws.Dispose();
+        _wsSync.Dispose();
         ActionManagerEx.Instance?.Dispose();
         BozjaInterop.Instance?.Dispose();
         CommandManager.RemoveHandler("/vbm");
@@ -139,7 +141,7 @@ public sealed class Plugin : IDalamudPlugin
         var tsStart = DateTime.Now;
 
         Camera.Instance?.Update();
-        _ws.Update(_prevUpdateTime);
+        _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
         _autorotation.Update();
         _ai.Update();

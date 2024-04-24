@@ -43,7 +43,7 @@ public class ReplayParserLog : ReplayParser
         public abstract ulong ReadActorID();
     }
 
-    class TextInput(Stream stream) : Input
+    sealed class TextInput(Stream stream) : Input
     {
         public DateTime Timestamp { get; private set; }
         private readonly StreamReader _input = new(stream);
@@ -140,7 +140,7 @@ public class ReplayParserLog : ReplayParser
         }
     }
 
-    class BinaryInput(Stream stream) : Input
+    sealed class BinaryInput(Stream stream) : Input
     {
         private readonly BinaryReader _input = new(stream);
 

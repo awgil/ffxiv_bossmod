@@ -3,7 +3,7 @@
 // this class represents parts of a world state that are interesting to boss modules
 // it does not know anything about dalamud, so it can be used for UI test - there is a separate utility that updates it based on game state every frame
 // world state is supposed to be modified using "operations" - this provides opportunity to listen and react to state changes
-public class WorldState
+public sealed class WorldState
 {
     // state access
     public ulong QPF;
@@ -73,7 +73,7 @@ public class WorldState
 
     // implementation of operations
     public Event<OpFrameStart> FrameStarted = new();
-    public record class OpFrameStart(FrameState Frame, TimeSpan PrevUpdateTime, ulong GaugePayload) : Operation
+    public sealed record class OpFrameStart(FrameState Frame, TimeSpan PrevUpdateTime, ulong GaugePayload) : Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -93,14 +93,14 @@ public class WorldState
     }
 
     public Event<OpUserMarker> UserMarkerAdded = new();
-    public record class OpUserMarker(string Text) : Operation
+    public sealed record class OpUserMarker(string Text) : Operation
     {
         protected override void Exec(WorldState ws) => ws.UserMarkerAdded.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "UMRK").Emit(Text);
     }
 
     public Event<OpRSVData> RSVDataReceived = new();
-    public record class OpRSVData(string Key, string Value) : Operation
+    public sealed record class OpRSVData(string Key, string Value) : Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -112,7 +112,7 @@ public class WorldState
     }
 
     public Event<OpZoneChange> CurrentZoneChanged = new();
-    public record class OpZoneChange(ushort Zone, ushort CFCID) : Operation
+    public sealed record class OpZoneChange(ushort Zone, ushort CFCID) : Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -125,14 +125,14 @@ public class WorldState
 
     // global events
     public Event<OpDirectorUpdate> DirectorUpdate = new();
-    public record class OpDirectorUpdate(uint DirectorID, uint UpdateID, uint Param1, uint Param2, uint Param3, uint Param4) : Operation
+    public sealed record class OpDirectorUpdate(uint DirectorID, uint UpdateID, uint Param1, uint Param2, uint Param3, uint Param4) : Operation
     {
         protected override void Exec(WorldState ws) => ws.DirectorUpdate.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
     }
 
     public Event<OpEnvControl> EnvControl = new();
-    public record class OpEnvControl(byte Index, uint State) : Operation
+    public sealed record class OpEnvControl(byte Index, uint State) : Operation
     {
         protected override void Exec(WorldState ws) => ws.EnvControl.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ENVC").Emit(Index, "X2").Emit(State, "X8");

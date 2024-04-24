@@ -8,7 +8,7 @@ namespace BossMod;
 // note that player could be in party without having actor in world (e.g. if he is in different zone)
 // if player does not exist in world, party is always empty; otherwise player is always in slot 0
 // in alliance, two 'other' groups use slots 8-15 and 16-23; alliance members don't have content-ID, but always have actor-ID
-public class PartyState
+public sealed class PartyState
 {
     public const int PlayerSlot = 0;
     public const int MaxPartySize = 8;
@@ -81,7 +81,7 @@ public class PartyState
 
     // implementation of operations
     public Event<OpModify> Modified = new();
-    public record class OpModify(int Slot, ulong ContentID, ulong InstanceID) : WorldState.Operation
+    public sealed record class OpModify(int Slot, ulong ContentID, ulong InstanceID) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -106,7 +106,7 @@ public class PartyState
     }
 
     public Event<OpLimitBreakChange> LimitBreakChanged = new();
-    public record class OpLimitBreakChange(int Cur, int Max) : WorldState.Operation
+    public sealed record class OpLimitBreakChange(int Cur, int Max) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {

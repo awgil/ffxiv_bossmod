@@ -7,9 +7,9 @@
 // TODO: refactor:
 // - move out of worldstate, it has no business being here; things like replays handle this better anyway
 // - handle things we care about (hp, statuses, knockbacks) independently, taking into account how game handles all that stuff (no ER for buff reapplication or instant buffs, no ER for 100% overheals or holmgang 'overkills', etc etc)
-public class PendingEffects
+public sealed class PendingEffects
 {
-    public class Entry
+    public sealed class Entry
     {
         public DateTime Timestamp;
         public ulong Source;

@@ -6,7 +6,7 @@ public enum Waymark : byte
 }
 
 // waymark positions in world; part of the world state structure
-public class WaymarkState
+public sealed class WaymarkState
 {
     private BitMask _setMarkers;
     private readonly Vector3[] _positions = new Vector3[(int)Waymark.Count];
@@ -35,7 +35,7 @@ public class WaymarkState
 
     // implementation of operations
     public Event<OpWaymarkChange> Changed = new();
-    public record class OpWaymarkChange(Waymark ID, Vector3? Pos) : WorldState.Operation
+    public sealed record class OpWaymarkChange(Waymark ID, Vector3? Pos) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {

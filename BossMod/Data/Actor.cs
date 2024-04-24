@@ -23,7 +23,7 @@ public enum ActorType : ushort
     CardStand = 0xE00,
 }
 
-public class ActorCastInfo
+public sealed class ActorCastInfo
 {
     public static readonly TimeSpan NPCFinishDelay = TimeSpan.FromSeconds(0.3); // for whatever reason, npc spells have reported remaining cast time consistently 0.3s smaller than reality
 
@@ -43,7 +43,7 @@ public class ActorCastInfo
     public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
 }
 
-public class ActorCastEvent
+public sealed class ActorCastEvent
 {
     public readonly record struct Target(ulong ID, ActionEffects Effects);
 
@@ -72,7 +72,7 @@ public record struct ActorStatus(uint ID, ushort Extra, DateTime ExpireAt, ulong
 
 public record struct ActorModelState(byte ModelState, byte AnimState1, byte AnimState2);
 
-public class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHPMP hpmp = default, bool targetable = true, bool ally = false, ulong ownerID = 0)
+public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHPMP hpmp = default, bool targetable = true, bool ally = false, ulong ownerID = 0)
 {
     public ulong InstanceID = instanceID; // 'uuid'
     public uint OID = oid;

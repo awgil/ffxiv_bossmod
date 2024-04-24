@@ -30,7 +30,7 @@ public record struct Cooldown(float Elapsed, float Total)
 
 // client-specific state and events (action requests, gauge, etc)
 // this is generally not available for non-player party members, but we can try to guess
-public class ClientState
+public sealed class ClientState
 {
     public const int NumCooldownGroups = 82;
 
@@ -72,7 +72,7 @@ public class ClientState
 
     // implementation of operations
     public Event<OpActionRequest> ActionRequested = new();
-    public record class OpActionRequest(ClientActionRequest Request) : WorldState.Operation
+    public sealed record class OpActionRequest(ClientActionRequest Request) : WorldState.Operation
     {
         protected override void Exec(WorldState ws) => ws.Client.ActionRequested.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLAR")
@@ -86,7 +86,7 @@ public class ClientState
     }
 
     public Event<OpActionReject> ActionRejected = new();
-    public record class OpActionReject(ClientActionReject Value) : WorldState.Operation
+    public sealed record class OpActionReject(ClientActionReject Value) : WorldState.Operation
     {
         protected override void Exec(WorldState ws) => ws.Client.ActionRejected.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLRJ")
@@ -97,7 +97,7 @@ public class ClientState
     }
 
     public Event<OpCountdownChange> CountdownChanged = new();
-    public record class OpCountdownChange(float? Value) : WorldState.Operation
+    public sealed record class OpCountdownChange(float? Value) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -114,7 +114,7 @@ public class ClientState
     }
 
     public Event<OpCooldown> CooldownsChanged = new();
-    public record class OpCooldown(bool Reset, List<(int group, Cooldown value)> Cooldowns) : WorldState.Operation
+    public sealed record class OpCooldown(bool Reset, List<(int group, Cooldown value)> Cooldowns) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -135,7 +135,7 @@ public class ClientState
     }
 
     public Event<OpDutyActionsChange> DutyActionsChanged = new();
-    public record class OpDutyActionsChange(ActionID Slot0, ActionID Slot1) : WorldState.Operation
+    public sealed record class OpDutyActionsChange(ActionID Slot0, ActionID Slot1) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
@@ -147,7 +147,7 @@ public class ClientState
     }
 
     public Event<OpBozjaHolsterChange> BozjaHolsterChanged = new();
-    public record class OpBozjaHolsterChange(List<(BozjaHolsterID entry, byte count)> Contents) : WorldState.Operation
+    public sealed record class OpBozjaHolsterChange(List<(BozjaHolsterID entry, byte count)> Contents) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
