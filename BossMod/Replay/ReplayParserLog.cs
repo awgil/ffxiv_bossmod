@@ -557,7 +557,7 @@ public class ReplayParserLog : ReplayParser
         Value = targetable
     });
 
-    private void ParseActorAlly() => AddOp(new ActorState.OpDead()
+    private void ParseActorAlly() => AddOp(new ActorState.OpAlly()
     {
         InstanceID = _input.ReadActorID(),
         Value = _input.ReadBool()
