@@ -75,21 +75,22 @@ sealed class WorldStateGame : WorldState, IDisposable
 
     public unsafe void Update(TimeSpan prevFramePerf)
     {
-        Execute(new OpFrameStart()
-        {
-            Frame = new(
+        Execute(new OpFrameStart
+        (
+            new(
                 _startTime.AddSeconds((double)(Utils.FrameQPC() - _startQPC) / QPF),
                 Utils.FrameQPC(),
                 Utils.FrameIndex(),
                 Utils.FrameDurationRaw(),
                 Utils.FrameDuration(),
-                Utils.TickSpeedMultiplier()),
-            PrevUpdateTime = prevFramePerf,
-            GaugePayload = GaugeData()
-        });
+                Utils.TickSpeedMultiplier()
+            ),
+            prevFramePerf,
+            GaugeData()
+        ));
         if (CurrentZone != Service.ClientState.TerritoryType || CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
         {
-            Execute(new OpZoneChange() { Zone = Service.ClientState.TerritoryType, CFCID = GameMain.Instance()->CurrentContentFinderConditionId });
+            Execute(new OpZoneChange(Service.ClientState.TerritoryType, GameMain.Instance()->CurrentContentFinderConditionId));
         }
 
         foreach (var c in _confirms)
@@ -119,7 +120,7 @@ sealed class WorldStateGame : WorldState, IDisposable
         {
             Vector3? pos = marker.Active ? new(marker.X / 1000.0f, marker.Y / 1000.0f, marker.Z / 1000.0f) : null;
             if (Waymarks[wm] != pos)
-                Execute(new WaymarkState.OpWaymarkChange() { ID = wm, Pos = pos });
+                Execute(new WaymarkState.OpWaymarkChange(wm, pos));
             ++wm;
         }
     }
@@ -165,7 +166,7 @@ sealed class WorldStateGame : WorldState, IDisposable
     private void RemoveActor(Actor actor)
     {
         DispatchActorEvents(actor.InstanceID);
-        Execute(new ActorState.OpDestroy() { InstanceID = actor.InstanceID });
+        Execute(new ActorState.OpDestroy(actor.InstanceID));
     }
 
     private void UpdateActor(GameObject obj, int index, Actor? act)
@@ -196,58 +197,43 @@ sealed class WorldStateGame : WorldState, IDisposable
 
         if (act == null)
         {
-            Execute(new ActorState.OpCreate()
-            {
-                InstanceID = obj.ObjectId,
-                OID = obj.DataId,
-                SpawnIndex = index,
-                Name = name,
-                NameID = nameID,
-                Type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind),
-                Class = classID,
-                Level = level,
-                PosRot = posRot,
-                HitboxRadius = radius,
-                HPMP = hpmp,
-                IsTargetable = targetable,
-                IsAlly = friendly,
-                OwnerID = SanitizedObjectID(obj.OwnerId)
-            });
+            var type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind);
+            Execute(new ActorState.OpCreate(obj.ObjectId, obj.DataId, index, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj.OwnerId)));
             act = _actorsByIndex[index] = Actors.Find(obj.ObjectId)!;
 
             // note: for now, we continue relying on network messages for tether changes, since sometimes multiple changes can happen in a single frame, and some components rely on seeing all of them...
             var tether = character != null ? new ActorTetherInfo(Utils.CharacterTetherID(character), Utils.CharacterTetherTargetID(character)) : default;
             if (tether.ID != 0)
-                Execute(new ActorState.OpTether() { InstanceID = act.InstanceID, Value = tether });
+                Execute(new ActorState.OpTether(act.InstanceID, tether));
         }
         else
         {
             if (act.NameID != nameID || act.Name != name)
-                Execute(new ActorState.OpRename() { InstanceID = act.InstanceID, Name = name, NameID = nameID });
+                Execute(new ActorState.OpRename(act.InstanceID, name, nameID));
             if (act.Class != classID || act.Level != level)
-                Execute(new ActorState.OpClassChange() { InstanceID = act.InstanceID, Class = classID, Level = level });
+                Execute(new ActorState.OpClassChange(act.InstanceID, classID, level));
             if (act.PosRot != posRot)
-                Execute(new ActorState.OpMove() { InstanceID = act.InstanceID, PosRot = posRot });
+                Execute(new ActorState.OpMove(act.InstanceID, posRot));
             if (act.HitboxRadius != radius)
-                Execute(new ActorState.OpSizeChange() { InstanceID = act.InstanceID, HitboxRadius = radius });
+                Execute(new ActorState.OpSizeChange(act.InstanceID, radius));
             if (act.HPMP != hpmp)
-                Execute(new ActorState.OpHPMP() { InstanceID = act.InstanceID, HPMP = hpmp });
+                Execute(new ActorState.OpHPMP(act.InstanceID, hpmp));
             if (act.IsTargetable != targetable)
-                Execute(new ActorState.OpTargetable() { InstanceID = act.InstanceID, Value = targetable });
+                Execute(new ActorState.OpTargetable(act.InstanceID, targetable));
             if (act.IsAlly != friendly)
-                Execute(new ActorState.OpAlly() { InstanceID = act.InstanceID, Value = friendly });
+                Execute(new ActorState.OpAlly(act.InstanceID, friendly));
         }
 
         if (act.IsDead != isDead)
-            Execute(new ActorState.OpDead() { InstanceID = act.InstanceID, Value = isDead });
+            Execute(new ActorState.OpDead(act.InstanceID, isDead));
         if (act.InCombat != inCombat)
-            Execute(new ActorState.OpCombat() { InstanceID = act.InstanceID, Value = inCombat });
-        if (act.ModelState.ModelState != modelState.ModelState || act.ModelState.AnimState1 != modelState.AnimState1 || act.ModelState.AnimState2 != modelState.AnimState2)
-            Execute(new ActorState.OpModelState() { InstanceID = act.InstanceID, Value = modelState });
+            Execute(new ActorState.OpCombat(act.InstanceID, inCombat));
+        if (act.ModelState != modelState)
+            Execute(new ActorState.OpModelState(act.InstanceID, modelState));
         if (act.EventState != eventState)
-            Execute(new ActorState.OpEventState() { InstanceID = act.InstanceID, Value = eventState });
+            Execute(new ActorState.OpEventState(act.InstanceID, eventState));
         if (act.TargetID != target)
-            Execute(new ActorState.OpTarget() { InstanceID = act.InstanceID, Value = target });
+            Execute(new ActorState.OpTarget(act.InstanceID, target));
         DispatchActorEvents(act.InstanceID);
 
         var chara = obj as BattleChara;
@@ -300,7 +286,7 @@ sealed class WorldStateGame : WorldState, IDisposable
         }
 
         // update cast info
-        Execute(new ActorState.OpCastInfo() { InstanceID = act.InstanceID, Value = cast });
+        Execute(new ActorState.OpCastInfo(act.InstanceID, cast));
     }
 
     private void UpdateActorStatus(Actor act, int index, ActorStatus value)
@@ -315,7 +301,7 @@ sealed class WorldStateGame : WorldState, IDisposable
         }
 
         // update status info
-        Execute(new ActorState.OpStatus() { InstanceID = act.InstanceID, Index = index, Value = value });
+        Execute(new ActorState.OpStatus(act.InstanceID, index, value));
     }
 
     private unsafe void UpdateParty()
@@ -367,39 +353,39 @@ sealed class WorldStateGame : WorldState, IDisposable
         var lb = LimitBreakController.Instance();
         var lbMax = (ushort)lb->BarValue; // CS is incorrect here, two high bytes are some other fields
         if (Party.LimitBreakCur != lb->CurrentValue || Party.LimitBreakMax != lbMax)
-            Execute(new PartyState.OpLimitBreakChange() { Cur = lb->CurrentValue, Max = lbMax });
+            Execute(new PartyState.OpLimitBreakChange(lb->CurrentValue, lbMax));
     }
 
     private void UpdatePartySlot(int slot, ulong contentID, ulong instanceID)
     {
         if (contentID != (slot < PartyState.MaxPartySize ? Party.ContentIDs[slot] : 0) || instanceID != Party.ActorIDs[slot])
-            Execute(new PartyState.OpModify() { Slot = slot, ContentID = contentID, InstanceID = instanceID });
+            Execute(new PartyState.OpModify(slot, contentID, instanceID));
     }
 
     private void UpdateClient()
     {
         var countdown = Countdown.TimeRemaining();
         if (Client.CountdownRemaining != countdown)
-            Execute(new ClientState.OpCountdownChange() { Value = countdown });
+            Execute(new ClientState.OpCountdownChange(countdown));
 
         Span<Cooldown> cooldowns = stackalloc Cooldown[Client.Cooldowns.Length];
         ActionManagerEx.Instance!.GetCooldowns(cooldowns);
         if (!MemoryExtensions.SequenceEqual(Client.Cooldowns.AsSpan(), cooldowns))
         {
             if (cooldowns.IndexOfAnyExcept(default(Cooldown)) < 0)
-                Execute(new ClientState.OpCooldown() { Reset = true });
+                Execute(new ClientState.OpCooldown(true, []));
             else
-                Execute(new ClientState.OpCooldown() { Cooldowns = CalcCooldownDifference(cooldowns, Client.Cooldowns.AsSpan()) });
+                Execute(new ClientState.OpCooldown(false, CalcCooldownDifference(cooldowns, Client.Cooldowns.AsSpan())));
         }
 
         var (dutyAction0, dutyAction1) = ActionManagerEx.Instance!.GetDutyActions();
         if (Client.DutyActions[0] != dutyAction0 || Client.DutyActions[1] != dutyAction1)
-            Execute(new ClientState.OpDutyActionsChange() { Slot0 = dutyAction0, Slot1 = dutyAction1 });
+            Execute(new ClientState.OpDutyActionsChange(dutyAction0, dutyAction1));
 
         Span<byte> bozjaHolster = stackalloc byte[Client.BozjaHolster.Length];
         BozjaInterop.FetchHolster(bozjaHolster);
         if (!MemoryExtensions.SequenceEqual(Client.BozjaHolster.AsSpan(), bozjaHolster))
-            Execute(new ClientState.OpBozjaHolsterChange() { Contents = CalcBozjaHolster(bozjaHolster) });
+            Execute(new ClientState.OpBozjaHolsterChange(CalcBozjaHolster(bozjaHolster)));
     }
 
     private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
@@ -441,18 +427,18 @@ sealed class WorldStateGame : WorldState, IDisposable
 
     private void OnActionRequested(ClientActionRequest arg)
     {
-        _globalOps.Add(new ClientState.OpActionRequest() { Request = arg });
+        _globalOps.Add(new ClientState.OpActionRequest(arg));
     }
 
     private void OnActionEffect(ulong casterID, ActorCastEvent info)
     {
-        _actorOps.GetOrAdd(casterID).Add(new ActorState.OpCastEvent() { InstanceID = casterID, Value = info });
+        _actorOps.GetOrAdd(casterID).Add(new ActorState.OpCastEvent(casterID, info));
         _castEvents.Add((casterID, info));
     }
 
     private void OnEffectResult(ulong targetID, uint seq, int targetIndex)
     {
-        _actorOps.GetOrAdd(targetID).Add(new ActorState.OpEffectResult() { InstanceID = targetID, Seq = seq, TargetIndex = targetIndex });
+        _actorOps.GetOrAdd(targetID).Add(new ActorState.OpEffectResult(targetID, seq, targetIndex));
         _confirms.Add((seq, targetID, targetIndex));
     }
 
@@ -462,30 +448,30 @@ sealed class WorldStateGame : WorldState, IDisposable
         switch ((Network.ServerIPC.ActorControlCategory)category)
         {
             case Network.ServerIPC.ActorControlCategory.TargetIcon:
-                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpIcon() { InstanceID = actorID, IconID = p1 - Network.IDScramble.Delta });
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpIcon(actorID, p1 - Network.IDScramble.Delta));
                 break;
             case Network.ServerIPC.ActorControlCategory.Tether:
-                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether() { InstanceID = actorID, Value = new(p2, p3) });
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether(actorID, new(p2, p3)));
                 break;
             case Network.ServerIPC.ActorControlCategory.TetherCancel:
                 // note: this seems to clear tether only if existing matches p2
-                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether() { InstanceID = actorID, Value = default });
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether(actorID, default));
                 break;
             case Network.ServerIPC.ActorControlCategory.EObjSetState:
                 // p2 is unused (seems to be director id?), p3==1 means housing (?) item instead of event obj, p4 is housing item id
-                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventObjectStateChange() { InstanceID = actorID, State = (ushort)p1 });
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventObjectStateChange(actorID, (ushort)p1));
                 break;
             case Network.ServerIPC.ActorControlCategory.EObjAnimation:
-                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventObjectAnimation() { InstanceID = actorID, Param1 = (ushort)p1, Param2 = (ushort)p2 });
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventObjectAnimation(actorID, (ushort)p1, (ushort)p2));
                 break;
             case Network.ServerIPC.ActorControlCategory.PlayActionTimeline:
-                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpPlayActionTimelineEvent() { InstanceID = actorID, ActionTimelineID = (ushort)p1 });
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpPlayActionTimelineEvent(actorID, (ushort)p1));
                 break;
             case Network.ServerIPC.ActorControlCategory.ActionRejected:
-                _globalOps.Add(new ClientState.OpActionReject() { Value = new(new((ActionType)p2, p3), p6, p4 * 0.01f, p5 * 0.01f, p1) });
+                _globalOps.Add(new ClientState.OpActionReject(new(new((ActionType)p2, p3), p6, p4 * 0.01f, p5 * 0.01f, p1)));
                 break;
             case Network.ServerIPC.ActorControlCategory.DirectorUpdate:
-                _globalOps.Add(new OpDirectorUpdate() { DirectorID = p1, UpdateID = p2, Param1 = p3, Param2 = p4, Param3 = p5, Param4 = p6 });
+                _globalOps.Add(new OpDirectorUpdate(p1, p2, p3, p4, p5, p6));
                 break;
         }
     }
@@ -493,19 +479,19 @@ sealed class WorldStateGame : WorldState, IDisposable
     private unsafe void ProcessPacketNpcYellDetour(Network.ServerIPC.NpcYell* packet)
     {
         _processPacketNpcYellHook.Original(packet);
-        _actorOps.GetOrAdd(packet->SourceID).Add(new ActorState.OpEventNpcYell() { InstanceID = packet->SourceID, Message = packet->Message });
+        _actorOps.GetOrAdd(packet->SourceID).Add(new ActorState.OpEventNpcYell(packet->SourceID, packet->Message));
     }
 
     private unsafe void ProcessEnvControlDetour(void* self, uint index, ushort s1, ushort s2)
     {
         // note: this function is only executed for incoming packets that pass some checks (validation that currently active director is what is expected) - don't think it's a big deal?
         _processEnvControlHook.Original(self, index, s1, s2);
-        _globalOps.Add(new OpEnvControl() { Index = (byte)index, State = s1 | ((uint)s2 << 16) });
+        _globalOps.Add(new OpEnvControl((byte)index, s1 | ((uint)s2 << 16)));
     }
 
     private unsafe void ProcessPacketRSVDataDetour(byte* packet)
     {
         _processPacketRSVDataHook.Original(packet);
-        _globalOps.Add(new OpRSVData() { Key = MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), Value = MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet) });
+        _globalOps.Add(new OpRSVData(MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet)));
     }
 }

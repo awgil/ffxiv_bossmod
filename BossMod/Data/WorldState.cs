@@ -30,7 +30,7 @@ public class WorldState
 
     // state modification
     public Event<Operation> Modified = new();
-    public abstract class Operation
+    public abstract record class Operation
     {
         public DateTime Timestamp; // TODO: reconsider this field; it's very convenient for replays, but not really needed for operations themselves, and is filled late
 
@@ -56,11 +56,11 @@ public class WorldState
     public IEnumerable<Operation> CompareToInitial()
     {
         if (CurrentTime != default)
-            yield return new OpFrameStart() { Frame = Frame };
+            yield return new OpFrameStart(Frame, default, 0);
         if (CurrentZone != 0 || CurrentCFCID != 0)
-            yield return new OpZoneChange() { Zone = CurrentZone, CFCID = CurrentCFCID };
+            yield return new OpZoneChange(CurrentZone, CurrentCFCID);
         foreach (var (k, v) in RSVEntries)
-            yield return new OpRSVData() { Key = k, Value = v };
+            yield return new OpRSVData(k, v);
         foreach (var o in Waymarks.CompareToInitial())
             yield return o;
         foreach (var o in Actors.CompareToInitial())
@@ -73,19 +73,14 @@ public class WorldState
 
     // implementation of operations
     public Event<OpFrameStart> FrameStarted = new();
-    public class OpFrameStart : Operation
+    public record class OpFrameStart(FrameState Frame, TimeSpan PrevUpdateTime, ulong GaugePayload) : Operation
     {
-        public FrameState Frame;
-        public TimeSpan PrevUpdateTime;
-        public ulong GaugePayload;
-
         protected override void Exec(WorldState ws)
         {
             ws.Frame = Frame;
             ws.Client.Tick(Frame.Duration);
             ws.FrameStarted.Fire(this);
         }
-
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "FRAM")
             .Emit(PrevUpdateTime.TotalMilliseconds, "f3")
             .Emit()
@@ -98,67 +93,47 @@ public class WorldState
     }
 
     public Event<OpUserMarker> UserMarkerAdded = new();
-    public class OpUserMarker : Operation
+    public record class OpUserMarker(string Text) : Operation
     {
-        public string Text = "";
-
         protected override void Exec(WorldState ws) => ws.UserMarkerAdded.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "UMRK").Emit(Text);
     }
 
     public Event<OpRSVData> RSVDataReceived = new();
-    public class OpRSVData : Operation
+    public record class OpRSVData(string Key, string Value) : Operation
     {
-        public string Key = "";
-        public string Value = "";
-
         protected override void Exec(WorldState ws)
         {
             Service.LuminaGameData?.Excel.RsvProvider.Add(Key, Value);
             ws.RSVEntries[Key] = Value;
             ws.RSVDataReceived.Fire(this);
         }
-
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "RSV ").Emit(Key).Emit(Value);
     }
 
     public Event<OpZoneChange> CurrentZoneChanged = new();
-    public class OpZoneChange : Operation
+    public record class OpZoneChange(ushort Zone, ushort CFCID) : Operation
     {
-        public ushort Zone;
-        public ushort CFCID;
-
         protected override void Exec(WorldState ws)
         {
             ws.CurrentZone = Zone;
             ws.CurrentCFCID = CFCID;
             ws.CurrentZoneChanged.Fire(this);
         }
-
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ZONE").Emit(Zone).Emit(CFCID);
     }
 
     // global events
     public Event<OpDirectorUpdate> DirectorUpdate = new();
-    public class OpDirectorUpdate : Operation
+    public record class OpDirectorUpdate(uint DirectorID, uint UpdateID, uint Param1, uint Param2, uint Param3, uint Param4) : Operation
     {
-        public uint DirectorID;
-        public uint UpdateID;
-        public uint Param1;
-        public uint Param2;
-        public uint Param3;
-        public uint Param4;
-
         protected override void Exec(WorldState ws) => ws.DirectorUpdate.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
     }
 
     public Event<OpEnvControl> EnvControl = new();
-    public class OpEnvControl : Operation
+    public record class OpEnvControl(byte Index, uint State) : Operation
     {
-        public byte Index;
-        public uint State;
-
         protected override void Exec(WorldState ws) => ws.EnvControl.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ENVC").Emit(Index, "X2").Emit(State, "X8");
     }

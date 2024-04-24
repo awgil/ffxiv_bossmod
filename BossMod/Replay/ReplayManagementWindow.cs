@@ -72,7 +72,7 @@ public class ReplayManagementWindow : UIWindow
             ImGui.SameLine();
             if (ImGui.Button("Add log marker") && _message.Length > 0)
             {
-                _ws.Execute(new WorldState.OpUserMarker() { Text = _message });
+                _ws.Execute(new WorldState.OpUserMarker(_message));
                 _message = "";
             }
         }

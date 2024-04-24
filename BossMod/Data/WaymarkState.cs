@@ -30,22 +30,18 @@ public class WaymarkState
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
         foreach (var i in _setMarkers.SetBits())
-            yield return new OpWaymarkChange() { ID = (Waymark)i, Pos = _positions[i] };
+            yield return new OpWaymarkChange((Waymark)i, _positions[i]);
     }
 
     // implementation of operations
     public Event<OpWaymarkChange> Changed = new();
-    public class OpWaymarkChange : WorldState.Operation
+    public record class OpWaymarkChange(Waymark ID, Vector3? Pos) : WorldState.Operation
     {
-        public Waymark ID;
-        public Vector3? Pos;
-
         protected override void Exec(WorldState ws)
         {
             ws.Waymarks[ID] = Pos;
             ws.Waymarks.Changed.Fire(this);
         }
-
         public override void Write(ReplayRecorder.Output output)
         {
             if (Pos != null)

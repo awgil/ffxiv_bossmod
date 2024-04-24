@@ -74,19 +74,15 @@ public class PartyState
     {
         for (int i = 0; i < MaxAllianceSize; ++i)
             if (i < MaxPartySize && _contentIDs[i] != 0 || _actorIDs[i] != 0)
-                yield return new OpModify() { Slot = i, ContentID = i < MaxPartySize ? _contentIDs[i] : 0, InstanceID = _actorIDs[i] };
+                yield return new OpModify(i, i < MaxPartySize ? _contentIDs[i] : 0, _actorIDs[i]);
         if (LimitBreakCur != 0 || LimitBreakMax != 10000)
-            yield return new OpLimitBreakChange() { Cur = LimitBreakCur, Max = LimitBreakMax };
+            yield return new OpLimitBreakChange(LimitBreakCur, LimitBreakMax);
     }
 
     // implementation of operations
     public Event<OpModify> Modified = new();
-    public class OpModify : WorldState.Operation
+    public record class OpModify(int Slot, ulong ContentID, ulong InstanceID) : WorldState.Operation
     {
-        public int Slot;
-        public ulong ContentID;
-        public ulong InstanceID;
-
         protected override void Exec(WorldState ws)
         {
             if (Slot is < 0 or >= MaxAllianceSize)
@@ -106,23 +102,18 @@ public class PartyState
             ws.Party._actors[Slot] = ws.Actors.Find(InstanceID);
             ws.Party.Modified.Fire(this);
         }
-
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "PAR ").Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
     }
 
     public Event<OpLimitBreakChange> LimitBreakChanged = new();
-    public class OpLimitBreakChange : WorldState.Operation
+    public record class OpLimitBreakChange(int Cur, int Max) : WorldState.Operation
     {
-        public int Cur;
-        public int Max;
-
         protected override void Exec(WorldState ws)
         {
             ws.Party.LimitBreakCur = Cur;
             ws.Party.LimitBreakMax = Max;
             ws.Party.LimitBreakChanged.Fire(this);
         }
-
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "LB  ").Emit(Cur).Emit(Max);
     }
 }

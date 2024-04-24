@@ -179,7 +179,7 @@ sealed class Autorotation : IDisposable
 
     private void OnActionRequested(ClientState.OpActionRequest op)
     {
-        ClassActions?.NotifyActionExecuted(in op.Request);
+        ClassActions?.NotifyActionExecuted(op.Request);
     }
 
     private void OnCastEvent(Actor actor, ActorCastEvent cast)
