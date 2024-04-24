@@ -35,13 +35,10 @@ class PerfectContrition(BossModule module) : Components.SelfTargetedAOEs(module,
 
 class JudgmentDay(BossModule module) : Components.GenericTowers(module)
 {
-    public override void OnActorEState(Actor actor, ushort state)
+    public override void OnActorCreated(Actor actor)
     {
-        if (state is 0x01C or 0x02C)
-        {
-            if (!Towers.Any(t => t.Position.AlmostEqual(actor.Position, 1)))
-                Towers.Add(new(actor.Position, 5, 1, 1));
-        }
+        if ((OID)actor.OID is OID.Towers)
+            Towers.Add(new(actor.Position, 5, 1, 1));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
