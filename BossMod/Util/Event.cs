@@ -25,18 +25,21 @@ public sealed class EventSubscriptions : IDisposable
 // this also has a few cons:
 // - there is an extra indirection (small class) both on producer and consumer sides (TODO: consider turning Event into struct?)
 // unlike standard event, there is nothing that prevents firing an event from outside owning class (if that is desired, consider making event private and exposing Subscribe wrapper)
-// for zero-argument event, there is an optional argument that calls the subscriber immediately - this is useful if eg. you use the same callback to make initial configuration and react to changes
+// there is a convenience ExecuteAndSubscribe function, useful when you need to execute the callback for initial state
 // feel free to add variants with more arguments when needed
 public sealed class Event
 {
     private Action? _ev;
 
-    public EventSubscription Subscribe(Action a, bool executeImmediately = false)
+    public EventSubscription Subscribe(Action a)
     {
         _ev += a;
-        if (executeImmediately)
-            a();
         return new(() => _ev -= a);
+    }
+    public EventSubscription ExecuteAndSubscribe(Action a)
+    {
+        a();
+        return Subscribe(a);
     }
     public void Fire() => _ev?.Invoke();
     public bool HaveSubscribers() => _ev != null;
@@ -51,6 +54,11 @@ public sealed class Event<T1>
         _ev += a;
         return new(() => _ev -= a);
     }
+    public EventSubscription ExecuteAndSubscribe(Action<T1> a, T1 a1)
+    {
+        a(a1);
+        return Subscribe(a);
+    }
     public void Fire(T1 a1) => _ev?.Invoke(a1);
     public bool HaveSubscribers() => _ev != null;
 }
@@ -64,6 +72,11 @@ public sealed class Event<T1, T2>
         _ev += a;
         return new(() => _ev -= a);
     }
+    public EventSubscription ExecuteAndSubscribe(Action<T1, T2> a, T1 a1, T2 a2)
+    {
+        a(a1, a2);
+        return Subscribe(a);
+    }
     public void Fire(T1 a1, T2 a2) => _ev?.Invoke(a1, a2);
     public bool HaveSubscribers() => _ev != null;
 }
@@ -76,6 +89,11 @@ public sealed class Event<T1, T2, T3>
     {
         _ev += a;
         return new(() => _ev -= a);
+    }
+    public EventSubscription ExecuteAndSubscribe(Action<T1, T2, T3> a, T1 a1, T2 a2, T3 a3)
+    {
+        a(a1, a2, a3);
+        return Subscribe(a);
     }
     public void Fire(T1 a1, T2 a2, T3 a3) => _ev?.Invoke(a1, a2, a3);
     public bool HaveSubscribers() => _ev != null;

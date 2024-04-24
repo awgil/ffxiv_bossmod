@@ -30,7 +30,7 @@ public class ConfigRoot
     public T Get<T>() where T : ConfigNode => (T)_nodes[typeof(T)];
     public T Get<T>(Type derived) where T : ConfigNode => (T)_nodes[derived];
 
-    public ConfigListener<T> GetAndSubscribe<T>(Action<T> modified, bool executeImmediately = true) where T : ConfigNode => new(Get<T>(), modified, executeImmediately);
+    public ConfigListener<T> GetAndSubscribe<T>(Action<T> modified) where T : ConfigNode => new(Get<T>(), modified);
 
     public void LoadFromFile(FileInfo file)
     {

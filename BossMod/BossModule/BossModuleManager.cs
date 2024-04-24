@@ -36,7 +36,7 @@ public sealed class BossModuleManager : IDisposable
         _subsciptions = new
         (
             WorldState.Actors.Added.Subscribe(ActorAdded),
-            Config.Modified.Subscribe(ConfigChanged, true)
+            Config.Modified.ExecuteAndSubscribe(ConfigChanged)
         );
 
         foreach (var a in WorldState.Actors)

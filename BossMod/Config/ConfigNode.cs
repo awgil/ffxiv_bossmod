@@ -64,11 +64,11 @@ public abstract class ConfigNode
     }
 }
 
-// utility to simplify listening for config modifications
-public sealed class ConfigListener<T>(T data, Action<T> modified, bool executeImmediately = true) : IDisposable where T : ConfigNode
+// utility to simplify listening for config modifications; callback is executed immediately for initial state
+public sealed class ConfigListener<T>(T data, Action<T> modified) : IDisposable where T : ConfigNode
 {
     public readonly T Data = data;
-    private readonly EventSubscription _listener = data.Modified.Subscribe(() => modified(data), executeImmediately);
+    private readonly EventSubscription _listener = data.Modified.ExecuteAndSubscribe(() => modified(data));
 
     public void Dispose() => _listener.Dispose();
 }

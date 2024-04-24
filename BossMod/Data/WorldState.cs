@@ -32,7 +32,7 @@ public class WorldState
     public Event<Operation> Modified = new();
     public abstract class Operation
     {
-        public DateTime Timestamp; // TODO: reconsider this field?..
+        public DateTime Timestamp; // TODO: reconsider this field; it's very convenient for replays, but not really needed for operations themselves, and is filled late
 
         internal void Execute(WorldState ws)
         {

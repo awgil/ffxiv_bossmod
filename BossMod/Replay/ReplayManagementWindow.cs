@@ -24,7 +24,7 @@ public class ReplayManagementWindow : UIWindow
         _manager = new(logDir.FullName);
         _subscriptions = new
         (
-            _config.Modified.Subscribe(() => IsOpen = _config.ShowUI, true),
+            _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI),
             _ws.CurrentZoneChanged.Subscribe(op => UpdateAutoRecord(op.CFCID))
         );
 
