@@ -16,7 +16,6 @@ network rework:
 - utility to inject custom ipcs to the stream for debugging?
 
 general:
-- replayparserlog should not be derived
 - refactor window system to dispose stuff properly and avoid CS1806 and `_ = new...` pattern
 - diagnostic to detect readonly mutable collections
 - introduce 'Game' class that would contain dalamud services and stuff like AMEx/IDScramble, instead of statics, to avoid uncontrolled access to game state (won't help with CS tho)

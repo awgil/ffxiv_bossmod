@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace BossMod;
 
-public class ReplayParserLog : ReplayParser
+public sealed class ReplayParserLog : IDisposable
 {
     abstract class Input : IDisposable
     {
@@ -229,7 +229,8 @@ public class ReplayParserLog : ReplayParser
 
             var streamInvLength = 1.0f / rawStream.Length;
             int curOp = 0;
-            using ReplayParserLog parser = new(input);
+            using ReplayBuilder builder = new(path);
+            using ReplayParserLog parser = new(input, builder);
             while (parser.ParseLine())
             {
                 if ((++curOp & 0x3ff) == 0)
@@ -239,7 +240,7 @@ public class ReplayParserLog : ReplayParser
                         break;
                 }
             }
-            return cancel.IsCancellationRequested ? new() : parser.Finish(path);
+            return cancel.IsCancellationRequested ? new() : builder.Finish();
         }
         catch (Exception e)
         {
@@ -249,17 +250,21 @@ public class ReplayParserLog : ReplayParser
     }
 
     private readonly Input _input;
+    private readonly ReplayBuilder _builder;
     private int _version;
     private DateTime _tsStart;
     private ulong _qpcStart;
+    private uint _legacyFrameIndex;
+    private DateTime _legacyPrevTS;
+    private double _invQPF = 1.0 / TimeSpan.TicksPerSecond;
 
-    private ReplayParserLog(Input input) => _input = input;
-
-    protected override void Dispose(bool disposing)
+    private ReplayParserLog(Input input, ReplayBuilder builder)
     {
-        base.Dispose(true);
-        _input.Dispose();
+        _input = input;
+        _builder = builder;
     }
+
+    public void Dispose() => _input.Dispose();
 
     private bool ParseLine()
     {
@@ -267,8 +272,11 @@ public class ReplayParserLog : ReplayParser
         if (tag.Length < 4)
             return false;
 
-        if (_version is > 0 and < 5 && _input is TextInput ti && (_res.Ops.Count == 0 || _res.Ops[^1].Timestamp < ti.Timestamp))
-            AddOp(new WorldState.OpFrameStart(new() { Timestamp = ti.Timestamp }, default, 0));
+        if (_version is > 0 and < 5 && _input is TextInput ti && _legacyPrevTS < ti.Timestamp)
+        {
+            _builder.AddOp(new WorldState.OpFrameStart(new() { Timestamp = ti.Timestamp }, default, 0));
+            _legacyPrevTS = ti.Timestamp;
+        }
 
         switch (tag)
         {
@@ -338,7 +346,8 @@ public class ReplayParserLog : ReplayParser
         var qpf = _version >= 10 ? _input.ReadULong(false) : TimeSpan.TicksPerSecond; // newer windows versions have 10mhz qpc frequency
         var gameVersion = _version >= 11 ? _input.ReadString() : "old";
         _tsStart = _input is TextInput ti ? ti.Timestamp : new(_input.ReadLong());
-        Start(_tsStart, qpf, gameVersion);
+        _invQPF = 1.0 / qpf;
+        _builder.Start(qpf, gameVersion);
     }
 
     private void ParseFrameStart()
@@ -356,7 +365,7 @@ public class ReplayParserLog : ReplayParser
             frame.TickSpeedMultiplier = _input.ReadFloat();
             if (_qpcStart != 0)
             {
-                frame.Timestamp = _tsStart.AddSeconds((double)(frame.QPC - _qpcStart) / _res.QPF);
+                frame.Timestamp = _tsStart.AddSeconds((frame.QPC - _qpcStart) * _invQPF);
             }
             else
             {
@@ -368,17 +377,18 @@ public class ReplayParserLog : ReplayParser
         {
             frame.Timestamp = ti.Timestamp;
             frame.QPC = (ulong)(ti.Timestamp - _tsStart).Ticks;
-            frame.Index = _ws.Frame.Index + 1;
-            frame.Duration = frame.DurationRaw = (float)(ti.Timestamp - _ws.CurrentTime).TotalSeconds;
+            frame.Index = ++_legacyFrameIndex;
+            frame.Duration = frame.DurationRaw = (float)(ti.Timestamp - _legacyPrevTS).TotalSeconds;
             frame.TickSpeedMultiplier = 1;
+            _legacyPrevTS = ti.Timestamp;
         }
-        AddOp(new WorldState.OpFrameStart(frame, prevUpdateTime, gauge));
+        _builder.AddOp(new WorldState.OpFrameStart(frame, prevUpdateTime, gauge));
     }
 
-    private void ParseUserMarker() => AddOp(new WorldState.OpUserMarker(_input.ReadString()));
-    private void ParseRSVData() => AddOp(new WorldState.OpRSVData(_input.ReadString(), _input.ReadString()));
-    private void ParseZoneChange() => AddOp(new WorldState.OpZoneChange(_input.ReadUShort(false), _version >= 13 ? _input.ReadUShort(false) : (ushort)0));
-    private void ParseDirectorUpdate() => AddOp(new WorldState.OpDirectorUpdate(
+    private void ParseUserMarker() => _builder.AddOp(new WorldState.OpUserMarker(_input.ReadString()));
+    private void ParseRSVData() => _builder.AddOp(new WorldState.OpRSVData(_input.ReadString(), _input.ReadString()));
+    private void ParseZoneChange() => _builder.AddOp(new WorldState.OpZoneChange(_input.ReadUShort(false), _version >= 13 ? _input.ReadUShort(false) : (ushort)0));
+    private void ParseDirectorUpdate() => _builder.AddOp(new WorldState.OpDirectorUpdate(
         _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true)));
 
     private void ParseEnvControl()
@@ -386,10 +396,10 @@ public class ReplayParserLog : ReplayParser
         // director id field is removed in v11
         if (_version < 11)
             _input.ReadUInt(true);
-        AddOp(new WorldState.OpEnvControl(_input.ReadByte(true), _input.ReadUInt(true)));
+        _builder.AddOp(new WorldState.OpEnvControl(_input.ReadByte(true), _input.ReadUInt(true)));
     }
 
-    private void ParseWaymarkChange(bool set) => AddOp(new WaymarkState.OpWaymarkChange(
+    private void ParseWaymarkChange(bool set) => _builder.AddOp(new WaymarkState.OpWaymarkChange(
         _version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false),
         set ? _input.ReadVec3() : null));
 
@@ -444,10 +454,10 @@ public class ReplayParserLog : ReplayParser
                 _input.ReadActorID()
             );
         }
-        AddOp(op);
+        _builder.AddOp(op);
     }
 
-    private void ParseActorDestroy() => AddOp(new ActorState.OpDestroy(_input.ReadActorID()));
+    private void ParseActorDestroy() => _builder.AddOp(new ActorState.OpDestroy(_input.ReadActorID()));
 
     private void ParseActorRename()
     {
@@ -461,14 +471,14 @@ public class ReplayParserLog : ReplayParser
         {
             op = new(_input.ReadULong(true), _input.ReadString(), _version >= 13 ? _input.ReadUInt(false) : 0);
         }
-        AddOp(op);
+        _builder.AddOp(op);
     }
 
     private void ParseActorClassChange()
     {
         var instanceID = _input.ReadActorID();
         _input.ReadVoid();
-        AddOp(new ActorState.OpClassChange(instanceID, _input.ReadClass(), _version < 12 ? 0 : _input.ReadInt()));
+        _builder.AddOp(new ActorState.OpClassChange(instanceID, _input.ReadClass(), _version < 12 ? 0 : _input.ReadInt()));
     }
 
     private void ParseActorMove()
@@ -483,20 +493,20 @@ public class ReplayParserLog : ReplayParser
         {
             op = new(_input.ReadULong(true), new(_input.ReadVec3(), _input.ReadAngle().Rad));
         }
-        AddOp(op);
+        _builder.AddOp(op);
     }
 
-    private void ParseActorSizeChange() => AddOp(new ActorState.OpSizeChange(_input.ReadActorID(), _input.ReadFloat()));
-    private void ParseActorHPMP() => AddOp(new ActorState.OpHPMP(_input.ReadActorID(), ReadActorHPMP()));
-    private void ParseActorTargetable(bool targetable) => AddOp(new ActorState.OpTargetable(_input.ReadActorID(), targetable));
-    private void ParseActorAlly() => AddOp(new ActorState.OpAlly(_input.ReadActorID(), _input.ReadBool()));
-    private void ParseActorDead(bool dead) => AddOp(new ActorState.OpDead(_input.ReadActorID(), dead));
-    private void ParseActorCombat(bool value) => AddOp(new ActorState.OpCombat(_input.ReadActorID(), value));
-    private void ParseActorModelState() => AddOp(new ActorState.OpModelState(_input.ReadActorID(),
+    private void ParseActorSizeChange() => _builder.AddOp(new ActorState.OpSizeChange(_input.ReadActorID(), _input.ReadFloat()));
+    private void ParseActorHPMP() => _builder.AddOp(new ActorState.OpHPMP(_input.ReadActorID(), ReadActorHPMP()));
+    private void ParseActorTargetable(bool targetable) => _builder.AddOp(new ActorState.OpTargetable(_input.ReadActorID(), targetable));
+    private void ParseActorAlly() => _builder.AddOp(new ActorState.OpAlly(_input.ReadActorID(), _input.ReadBool()));
+    private void ParseActorDead(bool dead) => _builder.AddOp(new ActorState.OpDead(_input.ReadActorID(), dead));
+    private void ParseActorCombat(bool value) => _builder.AddOp(new ActorState.OpCombat(_input.ReadActorID(), value));
+    private void ParseActorModelState() => _builder.AddOp(new ActorState.OpModelState(_input.ReadActorID(),
         new(_input.ReadByte(false), _input.CanRead() ? _input.ReadByte(false) : (byte)0, _input.CanRead() ? _input.ReadByte(false) : (byte)0)));
-    private void ParseActorEventState() => AddOp(new ActorState.OpEventState(_input.ReadActorID(), _input.ReadByte(false)));
-    private void ParseActorTarget() => AddOp(new ActorState.OpTarget(_input.ReadActorID(), _input.ReadActorID()));
-    private void ParseActorTether(bool tether) => AddOp(new ActorState.OpTether(_input.ReadActorID(), tether ? new(_input.ReadUInt(false), _input.ReadActorID()) : default));
+    private void ParseActorEventState() => _builder.AddOp(new ActorState.OpEventState(_input.ReadActorID(), _input.ReadByte(false)));
+    private void ParseActorTarget() => _builder.AddOp(new ActorState.OpTarget(_input.ReadActorID(), _input.ReadActorID()));
+    private void ParseActorTether(bool tether) => _builder.AddOp(new ActorState.OpTether(_input.ReadActorID(), tether ? new(_input.ReadUInt(false), _input.ReadActorID()) : default));
 
     private void ParseActorCastInfo(bool start)
     {
@@ -519,10 +529,10 @@ public class ReplayParserLog : ReplayParser
                 Rotation = _input.CanRead() ? _input.ReadAngle() : default,
             };
         }
-        AddOp(new ActorState.OpCastInfo(instanceID, cast));
+        _builder.AddOp(new ActorState.OpCastInfo(instanceID, cast));
     }
 
-    private void ParseActorCastEvent() => AddOp(new ActorState.OpCastEvent(_input.ReadActorID(), new()
+    private void ParseActorCastEvent() => _builder.AddOp(new ActorState.OpCastEvent(_input.ReadActorID(), new()
     {
         Action = _input.ReadAction(),
         MainTargetID = _input.ReadActorID(),
@@ -534,16 +544,16 @@ public class ReplayParserLog : ReplayParser
         Targets = _input.ReadTargets()
     }));
 
-    private void ParseActorEffectResult() => AddOp(new ActorState.OpEffectResult(_input.ReadActorID(), _input.ReadUInt(false), _input.ReadInt()));
-    private void ParseActorStatus(bool gainOrUpdate) => AddOp(new ActorState.OpStatus(_input.ReadActorID(), _input.ReadInt(), gainOrUpdate ? _input.ReadStatus() : default));
-    private void ParseActorIcon() => AddOp(new ActorState.OpIcon(_input.ReadActorID(), _input.ReadUInt(false)));
-    private void ParseActorEventObjectStateChange() => AddOp(new ActorState.OpEventObjectStateChange(_input.ReadActorID(), _input.ReadUShort(true)));
-    private void ParseActorEventObjectAnimation() => AddOp(new ActorState.OpEventObjectAnimation(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true)));
-    private void ParseActorPlayActionTimelineEvent() => AddOp(new ActorState.OpPlayActionTimelineEvent(_input.ReadActorID(), _input.ReadUShort(true)));
-    private void ParseActorEventNpcYell() => AddOp(new ActorState.OpEventNpcYell(_input.ReadActorID(), _input.ReadUShort(false)));
-    private void ParsePartyModify() => AddOp(new PartyState.OpModify(_input.ReadInt(), _input.ReadULong(true), _input.ReadULong(true)));
-    private void ParsePartyLeave() => AddOp(new PartyState.OpModify(_input.ReadInt(), 0, 0));
-    private void ParsePartyLimitBreak() => AddOp(new PartyState.OpLimitBreakChange(_input.ReadInt(), _input.ReadInt()));
+    private void ParseActorEffectResult() => _builder.AddOp(new ActorState.OpEffectResult(_input.ReadActorID(), _input.ReadUInt(false), _input.ReadInt()));
+    private void ParseActorStatus(bool gainOrUpdate) => _builder.AddOp(new ActorState.OpStatus(_input.ReadActorID(), _input.ReadInt(), gainOrUpdate ? _input.ReadStatus() : default));
+    private void ParseActorIcon() => _builder.AddOp(new ActorState.OpIcon(_input.ReadActorID(), _input.ReadUInt(false)));
+    private void ParseActorEventObjectStateChange() => _builder.AddOp(new ActorState.OpEventObjectStateChange(_input.ReadActorID(), _input.ReadUShort(true)));
+    private void ParseActorEventObjectAnimation() => _builder.AddOp(new ActorState.OpEventObjectAnimation(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true)));
+    private void ParseActorPlayActionTimelineEvent() => _builder.AddOp(new ActorState.OpPlayActionTimelineEvent(_input.ReadActorID(), _input.ReadUShort(true)));
+    private void ParseActorEventNpcYell() => _builder.AddOp(new ActorState.OpEventNpcYell(_input.ReadActorID(), _input.ReadUShort(false)));
+    private void ParsePartyModify() => _builder.AddOp(new PartyState.OpModify(_input.ReadInt(), _input.ReadULong(true), _input.ReadULong(true)));
+    private void ParsePartyLeave() => _builder.AddOp(new PartyState.OpModify(_input.ReadInt(), 0, 0));
+    private void ParsePartyLimitBreak() => _builder.AddOp(new PartyState.OpLimitBreakChange(_input.ReadInt(), _input.ReadInt()));
 
     private void ParseClientActionRequest()
     {
@@ -557,7 +567,7 @@ public class ReplayParserLog : ReplayParser
         };
         (req.InitialCastTimeElapsed, req.InitialCastTimeTotal) = _input.ReadFloatPair();
         (req.InitialRecastElapsed, req.InitialRecastTotal) = _input.ReadFloatPair();
-        AddOp(new ClientState.OpActionRequest(req));
+        _builder.AddOp(new ClientState.OpActionRequest(req));
     }
 
     private void ParseClientActionReject()
@@ -569,10 +579,10 @@ public class ReplayParserLog : ReplayParser
         };
         (rej.RecastElapsed, rej.RecastTotal) = _input.ReadFloatPair();
         rej.LogMessageID = _input.ReadUInt(false);
-        AddOp(new ClientState.OpActionReject(rej));
+        _builder.AddOp(new ClientState.OpActionReject(rej));
     }
 
-    private void ParseClientCountdown(bool start) => AddOp(new ClientState.OpCountdownChange(start ? _input.ReadFloat() : null));
+    private void ParseClientCountdown(bool start) => _builder.AddOp(new ClientState.OpCountdownChange(start ? _input.ReadFloat() : null));
 
     private void ParseCooldown()
     {
@@ -581,10 +591,10 @@ public class ReplayParserLog : ReplayParser
         cooldowns.Capacity = _input.ReadByte(false);
         for (int i = 0; i < cooldowns.Capacity; ++i)
             cooldowns.Add((_input.ReadByte(false), new(_input.ReadFloat(), _input.ReadFloat())));
-        AddOp(new ClientState.OpCooldown(reset, cooldowns));
+        _builder.AddOp(new ClientState.OpCooldown(reset, cooldowns));
     }
 
-    private void ParseClientDutyActions() => AddOp(new ClientState.OpDutyActionsChange(_input.ReadAction(), _input.ReadAction()));
+    private void ParseClientDutyActions() => _builder.AddOp(new ClientState.OpDutyActionsChange(_input.ReadAction(), _input.ReadAction()));
 
     private void ParseClientBozjaHolster()
     {
@@ -592,7 +602,7 @@ public class ReplayParserLog : ReplayParser
         contents.Capacity = _input.ReadByte(false);
         for (int i = 0; i < contents.Capacity; ++i)
             contents.Add(((BozjaHolsterID)_input.ReadByte(false), _input.ReadByte(false)));
-        AddOp(new ClientState.OpBozjaHolsterChange(contents));
+        _builder.AddOp(new ClientState.OpBozjaHolsterChange(contents));
     }
 
     private ActorHPMP ReadActorHPMP()

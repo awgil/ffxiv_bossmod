@@ -1,7 +1,7 @@
 ﻿namespace BossMod;
 
-// TODO: make it sealed 'parser context' or 'replay builder' or smth...
-public class ReplayParser : IDisposable
+// utility for building a replay by executing a series of recorded operations (eg. taken from a log) using private worldstate/module manager/etc
+public sealed class ReplayBuilder : IDisposable
 {
     private sealed class LoadedModuleData(BossModule module, Replay.Encounter enc) : IDisposable
     {
@@ -14,8 +14,8 @@ public class ReplayParser : IDisposable
         public void Dispose() => _onError.Dispose();
     }
 
-    protected readonly Replay _res = new();
-    protected readonly WorldState _ws = new(TimeSpan.TicksPerSecond, "pending");
+    private readonly Replay _res;
+    private readonly WorldState _ws;
     private readonly BossModuleManager _mgr;
     private readonly EventSubscriptions _subscribers;
     private readonly Dictionary<ulong, LoadedModuleData> _modules = [];
@@ -24,8 +24,10 @@ public class ReplayParser : IDisposable
     private readonly Dictionary<ulong, Replay.Tether> _tethers = [];
     private readonly List<Replay.ClientAction> _pendingClientActions = [];
 
-    protected ReplayParser()
+    public ReplayBuilder(string path)
     {
+        _res = new() { Path = path };
+        _ws = new(TimeSpan.TicksPerSecond, "pending");
         _mgr = new(_ws);
         _subscribers = new
         (
@@ -59,24 +61,20 @@ public class ReplayParser : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        _modules.Clear();
+        // note: it's not really necessary here, since we ultimately only remove internal subscriptions
+        foreach (var m in _modules.Values)
+            m.Dispose();
         _subscribers.Dispose();
         _mgr.Dispose();
     }
 
-    protected void Start(DateTime timestamp, ulong qpf, string gameVersion)
+    public void Start(ulong qpf, string gameVersion)
     {
         _res.QPF = _ws.QPF = qpf;
         _res.GameVersion = _ws.GameVersion = gameVersion;
     }
 
-    protected void AddOp(WorldState.Operation op)
+    public void AddOp(WorldState.Operation op)
     {
         if (op is WorldState.OpFrameStart && _res.Ops.Count > 0)
             FinishFrame();
@@ -84,10 +82,9 @@ public class ReplayParser : IDisposable
         _res.Ops.Add(op);
     }
 
-    protected Replay Finish(string path = "")
+    public Replay Finish()
     {
         FinishFrame();
-        _res.Path = path;
         foreach (var enc in _modules.Values)
         {
             if (enc.ActiveState != null)
