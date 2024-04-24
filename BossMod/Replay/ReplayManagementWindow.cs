@@ -10,6 +10,7 @@ public class ReplayManagementWindow : UIWindow
     private readonly DirectoryInfo _logDir;
     private readonly ReplayManagementConfig _config;
     private readonly ReplayManager _manager;
+    private readonly EventSubscriptions _subscriptions;
     private ReplayRecorder? _recorder;
     private string _message = "";
 
@@ -21,21 +22,22 @@ public class ReplayManagementWindow : UIWindow
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
         _manager = new(logDir.FullName);
+        _subscriptions = new
+        (
+            _config.Modified.Subscribe(() => IsOpen = _config.ShowUI, true),
+            _ws.CurrentZoneChanged.Subscribe(op => UpdateAutoRecord(op.CFCID))
+        );
 
-        _ws.CurrentZoneChanged += OnZoneChanged;
-        _config.Modified += OnConfigChanged;
         if (!UpdateAutoRecord(_ws.CurrentCFCID))
             UpdateTitle();
 
         RespectCloseHotkey = false;
-        IsOpen = _config.ShowUI;
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigChanged;
-        _ws.CurrentZoneChanged -= OnZoneChanged;
         _recorder?.Dispose();
+        _subscriptions.Dispose();
         _manager.Dispose();
         base.Dispose(disposing);
     }
@@ -45,7 +47,7 @@ public class ReplayManagementWindow : UIWindow
         if (_config.ShowUI != vis)
         {
             _config.ShowUI = vis;
-            _config.NotifyModified();
+            _config.Modified.Fire();
         }
     }
 
@@ -144,9 +146,6 @@ public class ReplayManagementWindow : UIWindow
 
         return false;
     }
-
-    private void OnConfigChanged() => IsOpen = _config.ShowUI;
-    private void OnZoneChanged(WorldState.OpZoneChange op) => UpdateAutoRecord(op.CFCID);
 
     private unsafe string GetPrefix()
     {

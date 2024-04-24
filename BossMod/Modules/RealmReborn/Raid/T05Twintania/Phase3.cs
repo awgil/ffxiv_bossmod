@@ -54,13 +54,13 @@ class P3Adds(BossModule module) : BossComponent(module)
             switch ((OID)e.Actor.OID)
             {
                 case OID.Hygieia:
-                    var predictedHP = e.Actor.HP.Cur + WorldState.PendingEffects.PendingHPDifference(e.Actor.InstanceID);
-                    e.Priority = e.Actor.HP.Cur == 1 ? 0
+                    var predictedHP = e.Actor.HPMP.CurHP + WorldState.PendingEffects.PendingHPDifference(e.Actor.InstanceID);
+                    e.Priority = e.Actor.HPMP.CurHP == 1 ? 0
                         : killHygieia && e.Actor == nextHygieia ? 2
-                        : predictedHP < 0.3f * e.Actor.HP.Max ? -1
+                        : predictedHP < 0.3f * e.Actor.HPMP.MaxHP ? -1
                         : 1;
                     e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
-                    bool gtfo = predictedHP <= (e.ShouldBeTanked ? 1 : 0.1f * e.Actor.HP.Max);
+                    bool gtfo = predictedHP <= (e.ShouldBeTanked ? 1 : 0.1f * e.Actor.HPMP.MaxHP);
                     if (gtfo)
                         hints.AddForbiddenZone(ShapeDistance.Circle(e.Actor.Position, 9));
                     break;

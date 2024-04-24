@@ -7,14 +7,13 @@ class Actions : CommonActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private readonly BRDConfig _config;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
+    private readonly ConfigListener<BRDConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<BRDConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
 
@@ -30,13 +29,12 @@ class Actions : CommonActions
         SupportedSpell(AID.Peloton).Condition = _ => !Player.InCombat;
         SupportedSpell(AID.HeadGraze).Condition = target => target?.CastInfo?.Interruptible ?? false;
 
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<BRDConfig>(OnConfigModified);
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigModified;
+        _config.Dispose();
         base.Dispose(disposing);
     }
 
@@ -72,7 +70,7 @@ class Actions : CommonActions
             SimulateManualActionForAI(ActionID.MakeSpell(AID.HeadGraze), interruptibleEnemy?.Actor, interruptibleEnemy != null);
         }
         if (_state.Unlocked(AID.SecondWind))
-            SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
+            SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.5f);
         if (_state.Unlocked(AID.WardensPaean))
         {
             var esunableTarget = FindEsunableTarget();
@@ -130,16 +128,16 @@ class Actions : CommonActions
         _state.TargetStormbiteLeft = StatusDetails(Autorot.PrimaryTarget, _state.ExpectedStormbite, Player.InstanceID, 45).Left;
     }
 
-    private void OnConfigModified()
+    private void OnConfigModified(BRDConfig config)
     {
         // placeholders
-        SupportedSpell(AID.HeavyShot).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-        SupportedSpell(AID.BurstShot).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-        SupportedSpell(AID.QuickNock).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
-        SupportedSpell(AID.Ladonsbite).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+        SupportedSpell(AID.HeavyShot).PlaceholderForAuto = config.FullRotation ? AutoActionST : AutoActionNone;
+        SupportedSpell(AID.BurstShot).PlaceholderForAuto = config.FullRotation ? AutoActionST : AutoActionNone;
+        SupportedSpell(AID.QuickNock).PlaceholderForAuto = config.FullRotation ? AutoActionAOE : AutoActionNone;
+        SupportedSpell(AID.Ladonsbite).PlaceholderForAuto = config.FullRotation ? AutoActionAOE : AutoActionNone;
 
         // smart targets
-        SupportedSpell(AID.WardensPaean).TransformTarget = _config.SmartWardensPaeanTarget ? SmartTargetEsunable : null;
+        SupportedSpell(AID.WardensPaean).TransformTarget = config.SmartWardensPaeanTarget ? SmartTargetEsunable : null;
     }
 
     private int NumTargetsHitByLadonsbite(Actor primary) => Autorot.Hints.NumPriorityTargetsInAOECone(Player.Position, 12, (primary.Position - Player.Position).Normalized(), 45.Degrees());

@@ -6,12 +6,4 @@
 // this means that raw dt is slightly smaller than d(QPC)/QPF
 // then there is a frame duration override logic, which can modify dt used for further calculations (not sure when is it used)
 // finally, there is additional multiplier for cooldown/status/etc. calculations (used by duty recorder replays)
-public struct FrameState
-{
-    public DateTime Timestamp;
-    public ulong QPC;
-    public uint Index;
-    public float DurationRaw;
-    public float Duration;
-    public float TickSpeedMultiplier;
-}
+public record struct FrameState(DateTime Timestamp, ulong QPC, uint Index, float DurationRaw, float Duration, float TickSpeedMultiplier);

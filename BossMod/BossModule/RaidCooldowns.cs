@@ -4,22 +4,24 @@
 public sealed class RaidCooldowns : IDisposable
 {
     private readonly WorldState _ws;
+    private readonly EventSubscriptions _subscriptions;
     private readonly List<(int Slot, ActionID Action, DateTime AvailableAt)> _damageCooldowns = []; // TODO: this should be improved - determine available cooldowns by class?..
     private readonly DateTime[] _interruptCooldowns = new DateTime[PartyState.MaxPartySize];
 
     public RaidCooldowns(WorldState ws)
     {
         _ws = ws;
-        _ws.Party.Modified += HandlePartyUpdate;
-        _ws.Actors.CastEvent += HandleCast;
-        _ws.DirectorUpdate += HandleDirectorUpdate;
+        _subscriptions = new
+        (
+            _ws.Party.Modified.Subscribe(HandlePartyUpdate),
+            _ws.Actors.CastEvent.Subscribe(HandleCast),
+            _ws.DirectorUpdate.Subscribe(HandleDirectorUpdate)
+        );
     }
 
     public void Dispose()
     {
-        _ws.Party.Modified -= HandlePartyUpdate;
-        _ws.Actors.CastEvent -= HandleCast;
-        _ws.DirectorUpdate -= HandleDirectorUpdate;
+        _subscriptions.Dispose();
     }
 
     public float NextDamageBuffIn(DateTime now)

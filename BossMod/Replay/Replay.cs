@@ -47,7 +47,7 @@ public class Replay
         public SortedList<DateTime, bool> TargetableHistory = [];
         public SortedList<DateTime, bool> DeadHistory = [];
         public SortedList<DateTime, Vector4> PosRotHistory = [];
-        public SortedList<DateTime, (ActorHP hp, uint curMP)> HPMPHistory = [];
+        public SortedList<DateTime, ActorHPMP> HPMPHistory = [];
         public List<Cast> Casts = [];
         public float MinRadius = float.MaxValue;
         public float MaxRadius = float.MinValue;
@@ -60,9 +60,7 @@ public class Replay
         public bool TargetableAt(DateTime t) => HistoryEntryAt(TargetableHistory, t);
         public bool DeadAt(DateTime t) => HistoryEntryAt(DeadHistory, t);
         public Vector4 PosRotAt(DateTime t) => HistoryEntryAt(PosRotHistory, t);
-        public (ActorHP hp, uint curMP) HPMPAt(DateTime t) => HistoryEntryAt(HPMPHistory, t);
-        public ActorHP HPAt(DateTime t) => HPMPAt(t).hp;
-        public uint MPAt(DateTime t) => HPMPAt(t).curMP;
+        public ActorHPMP HPMPAt(DateTime t) => HistoryEntryAt(HPMPHistory, t);
 
         private T? HistoryEntryAt<T>(SortedList<DateTime, T> history, DateTime t)
         {

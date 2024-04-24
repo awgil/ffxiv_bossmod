@@ -106,13 +106,7 @@ public class ReplayParserLog : ReplayParser
         {
             var sid = ReadString();
             int sep = sid.IndexOf(' ', StringComparison.Ordinal);
-            return new()
-            {
-                ID = uint.Parse(sep >= 0 ? sid.AsSpan(0, sep) : sid.AsSpan()),
-                Extra = ushort.Parse(ReadString(), NumberStyles.HexNumber),
-                ExpireAt = Timestamp.AddSeconds(ReadFloat()),
-                SourceID = ReadActorID()
-            };
+            return new(uint.Parse(sep >= 0 ? sid.AsSpan(0, sep) : sid.AsSpan()), ushort.Parse(ReadString(), NumberStyles.HexNumber), Timestamp.AddSeconds(ReadFloat()), ReadActorID());
         }
         public override List<ActorCastEvent.Target> ReadTargets()
         {
@@ -120,10 +114,10 @@ public class ReplayParserLog : ReplayParser
             while (CanRead())
             {
                 var parts = ReadString().Split('!');
-                var target = new ActorCastEvent.Target() { ID = ParseActorID(parts[0]) };
+                var effects = new ActionEffects();
                 for (int j = 1; j < parts.Length; ++j)
-                    target.Effects[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
-                res.Add(target);
+                    effects[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
+                res.Add(new(ParseActorID(parts[0]), effects));
             }
             return res;
         }
@@ -188,17 +182,18 @@ public class ReplayParserLog : ReplayParser
         public override ulong ReadULong(bool hex) => _input.ReadUInt64();
         public override ActionID ReadAction() => new(_input.ReadUInt32());
         public override Class ReadClass() => (Class)_input.ReadByte();
-        public override ActorStatus ReadStatus() => new() { ID = _input.ReadUInt32(), Extra = _input.ReadUInt16(), ExpireAt = new(_input.ReadInt64()), SourceID = _input.ReadUInt64() };
+        public override ActorStatus ReadStatus() => new(_input.ReadUInt32(), _input.ReadUInt16(), new(_input.ReadInt64()), _input.ReadUInt64());
         public override List<ActorCastEvent.Target> ReadTargets()
         {
             var count = _input.ReadInt32();
             List<ActorCastEvent.Target> res = new(count);
             for (int i = 0; i < count; ++i)
             {
-                var t = new ActorCastEvent.Target() { ID = _input.ReadUInt64() };
-                for (int j = 0; j < 8; ++j)
-                    t.Effects[j] = _input.ReadUInt64();
-                res.Add(t);
+                var id = _input.ReadUInt64();
+                var effects = new ActionEffects();
+                for (int j = 0; j < ActionEffects.MaxCount; ++j)
+                    effects[j] = _input.ReadUInt64();
+                res.Add(new(id, effects));
             }
             return res;
         }
@@ -436,7 +431,7 @@ public class ReplayParserLog : ReplayParser
             var targetable = _input.ReadBool();
             var radius = _input.ReadFloat();
             var owner = _input.CanRead() ? _input.ReadActorID() : 0;
-            var hpmp = _input.CanRead() ? ActorHPMP(_input.ReadString()) : new();
+            var hpmp = _input.CanRead() ? ActorHPMPLegacy(_input.ReadString()) : default;
             var ally = _input.CanRead() && _input.ReadBool();
             var spawnIndex = _input.CanRead() ? _input.ReadInt() : -1;
             op = new()
@@ -449,8 +444,7 @@ public class ReplayParserLog : ReplayParser
                 Class = cls,
                 PosRot = new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad),
                 HitboxRadius = radius,
-                HP = hpmp.hp,
-                CurMP = hpmp.curMP,
+                HPMP = hpmp,
                 IsTargetable = targetable,
                 IsAlly = ally,
                 OwnerID = owner,
@@ -470,8 +464,7 @@ public class ReplayParserLog : ReplayParser
                 Level = _version < 12 ? 0 : _input.ReadInt(),
                 PosRot = new(_input.ReadVec3(), _input.ReadAngle().Rad),
                 HitboxRadius = _input.ReadFloat(),
-                HP = new() { Cur = _input.ReadUInt(false), Max = _input.ReadUInt(false), Shield = _input.ReadUInt(false) },
-                CurMP = _input.ReadUInt(false),
+                HPMP = new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false)),
                 IsTargetable = _input.ReadBool(),
                 IsAlly = _input.ReadBool(),
                 OwnerID = _input.ReadActorID(),
@@ -550,25 +543,13 @@ public class ReplayParserLog : ReplayParser
         HitboxRadius = _input.ReadFloat()
     });
 
-    private void ParseActorHPMP()
+    private void ParseActorHPMP() => AddOp(new ActorState.OpHPMP()
     {
-        ActorState.OpHPMP op = new() { InstanceID = _input.ReadActorID() };
-        if (_version < 10)
-        {
-            (op.HP, op.CurMP) = ActorHPMP(_input.ReadString());
-        }
-        else
-        {
-            op.HP = new()
-            {
-                Cur = _input.ReadUInt(false),
-                Max = _input.ReadUInt(false),
-                Shield = _input.ReadUInt(false)
-            };
-            op.CurMP = _input.ReadUInt(false);
-        }
-        AddOp(op);
-    }
+        InstanceID = _input.ReadActorID(),
+        HPMP = _version < 10
+            ? ActorHPMPLegacy(_input.ReadString())
+            : new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false))
+    });
 
     private void ParseActorTargetable(bool targetable) => AddOp(new ActorState.OpTargetable()
     {
@@ -597,12 +578,7 @@ public class ReplayParserLog : ReplayParser
     private void ParseActorModelState() => AddOp(new ActorState.OpModelState()
     {
         InstanceID = _input.ReadActorID(),
-        Value = new()
-        {
-            ModelState = _input.ReadByte(false),
-            AnimState1 = _input.CanRead() ? _input.ReadByte(false) : (byte)0,
-            AnimState2 = _input.CanRead() ? _input.ReadByte(false) : (byte)0
-        }
+        Value = new(_input.ReadByte(false), _input.CanRead() ? _input.ReadByte(false) : (byte)0, _input.CanRead() ? _input.ReadByte(false) : (byte)0)
     });
 
     private void ParseActorEventState() => AddOp(new ActorState.OpEventState()
@@ -620,7 +596,7 @@ public class ReplayParserLog : ReplayParser
     private void ParseActorTether(bool tether) => AddOp(new ActorState.OpTether()
     {
         InstanceID = _input.ReadActorID(),
-        Value = tether ? new() { ID = _input.ReadUInt(false), Target = _input.ReadActorID() } : new()
+        Value = tether ? new(_input.ReadUInt(false), _input.ReadActorID()) : default
     });
 
     private void ParseActorCastInfo(bool start)
@@ -673,7 +649,7 @@ public class ReplayParserLog : ReplayParser
     {
         InstanceID = _input.ReadActorID(),
         Index = _input.ReadInt(),
-        Value = gainOrUpdate ? _input.ReadStatus() : new()
+        Value = gainOrUpdate ? _input.ReadStatus() : default
     });
 
     private void ParseActorIcon() => AddOp(new ActorState.OpIcon()
@@ -795,11 +771,9 @@ public class ReplayParserLog : ReplayParser
         AddOp(op);
     }
 
-    private static (ActorHP hp, uint curMP) ActorHPMP(string repr)
+    private static ActorHPMP ActorHPMPLegacy(string repr)
     {
         var parts = repr.Split('/');
-        var hp = new ActorHP() { Cur = uint.Parse(parts[0]), Max = uint.Parse(parts[1]), Shield = parts.Length > 2 ? uint.Parse(parts[2]) : 0 };
-        uint curMP = parts.Length > 3 ? uint.Parse(parts[3]) : 0;
-        return (hp, curMP);
+        return new(uint.Parse(parts[0]), uint.Parse(parts[1]), parts.Length > 2 ? uint.Parse(parts[2]) : 0, parts.Length > 3 ? uint.Parse(parts[3]) : 0);
     }
 }

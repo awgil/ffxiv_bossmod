@@ -8,7 +8,7 @@ public class ConfigRoot
 {
     private const int _version = 7;
 
-    public event Action? Modified;
+    public Event Modified = new();
     private readonly Dictionary<Type, ConfigNode> _nodes = [];
 
     public IEnumerable<ConfigNode> Nodes => _nodes.Values;
@@ -22,13 +22,15 @@ public class ConfigRoot
                 Service.Log($"[Config] Failed to create an instance of {t}");
                 continue;
             }
-            inst.Modified += () => Modified?.Invoke();
+            inst.Modified.Subscribe(Modified.Fire);
             _nodes[t] = inst;
         }
     }
 
     public T Get<T>() where T : ConfigNode => (T)_nodes[typeof(T)];
     public T Get<T>(Type derived) where T : ConfigNode => (T)_nodes[derived];
+
+    public ConfigListener<T> GetAndSubscribe<T>(Action<T> modified, bool executeImmediately = true) where T : ConfigNode => new(Get<T>(), modified, executeImmediately);
 
     public void LoadFromFile(FileInfo file)
     {
@@ -155,7 +157,7 @@ public class ConfigRoot
                         else
                         {
                             matchingFields[0].SetValue(matchingNodes[0], val);
-                            matchingNodes[0].NotifyModified();
+                            matchingNodes[0].Modified.Fire();
                         }
                     }
                     catch (Exception e)

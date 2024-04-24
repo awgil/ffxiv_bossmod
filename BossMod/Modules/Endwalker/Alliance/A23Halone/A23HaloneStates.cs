@@ -5,7 +5,7 @@ class A23HaloneStates : StateMachineBuilder
     public A23HaloneStates(BossModule module) : base(module)
     {
         SimplePhase(0, Phase1, "Before adds")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur < 1 || !Module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HPMP.CurHP < 1 || !Module.PrimaryActor.IsTargetable;
         DeathPhase(1, Phase2);
     }
 

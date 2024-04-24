@@ -56,7 +56,7 @@ public class LowestHPPartyMember : ISelector
 {
     public bool AllowSelf;
 
-    public override Actor? Select(BossModule module, int playerSlot, Actor player) => module.Raid.WithoutSlot().Exclude(AllowSelf ? null : player).MinBy(a => a.HP.Cur);
+    public override Actor? Select(BossModule module, int playerSlot, Actor player) => module.Raid.WithoutSlot().Exclude(AllowSelf ? null : player).MinBy(a => a.HPMP.CurHP);
     public override string Describe(ModuleRegistry.Info? moduleInfo) => $"Allow self: {AllowSelf}";
     public override bool Edit(ModuleRegistry.Info? moduleInfo) => ImGui.Checkbox("Allow self", ref AllowSelf);
 }

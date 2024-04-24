@@ -12,10 +12,6 @@ public static class ActorEnumeration
         return mask;
     }
 
-    // empty actor list utility
-    private static readonly List<Actor> _emptyList = [];
-    public static IReadOnlyList<Actor> EmptyList => _emptyList;
-
     // convert slot+actor range into actor range
     public static IEnumerable<Actor> Actors(this IEnumerable<(int, Actor)> range) => range.Select(indexActor => indexActor.Item2);
 

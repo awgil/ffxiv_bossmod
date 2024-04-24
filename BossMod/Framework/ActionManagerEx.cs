@@ -89,13 +89,9 @@ unsafe sealed class ActionManagerEx : IDisposable
     public float EffectiveAnimationLock => AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends
     public float EffectiveAnimationLockDelay => AnimationLockDelayMax <= 0.5f ? AnimationLockDelayMax : MathF.Min(AnimationLockDelayAverage, 0.1f); // this is a conservative estimate
 
-    public event Action<ClientActionRequest>? ActionRequested;
-
-    public delegate void ActionEffectReceivedDelegate(ulong sourceID, ActorCastEvent info);
-    public event ActionEffectReceivedDelegate? ActionEffectReceived;
-
-    public delegate void EffectResultReceivedDelegate(ulong targetID, uint seq, int targetIndex);
-    public event EffectResultReceivedDelegate? EffectResultReceived;
+    public Event<ClientActionRequest> ActionRequested = new();
+    public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
+    public Event<ulong, uint, int> EffectResultReceived = new();
 
     public InputOverride InputOverride;
     public ActionManagerConfig Config;
@@ -394,31 +390,29 @@ unsafe sealed class ActionManagerEx : IDisposable
     {
         var packetAnimLock = header->animationLockTime;
         var action = new ActionID(header->actionType, header->actionId);
-        if (ActionEffectReceived != null)
+
+        // note: there's a slight difference with dispatching event from here rather than from packet processing (ActionEffectN) functions
+        // 1. action id is already unscrambled
+        // 2. this function won't be called if caster object doesn't exist
+        // the last point is deemed to be minor enough for us to not care, as it simplifies things (no need to hook 5 functions)
+        var info = new ActorCastEvent
         {
-            // note: there's a slight difference with dispatching event from here rather than from packet processing (ActionEffectN) functions
-            // 1. action id is already unscrambled
-            // 2. this function won't be called if caster object doesn't exist
-            // the last point is deemed to be minor enough for us to not care, as it simplifies things (no need to hook 5 functions)
-            var info = new ActorCastEvent
-            {
-                Action = action,
-                MainTargetID = header->animationTargetId,
-                AnimationLockTime = header->animationLockTime,
-                MaxTargets = header->NumTargets,
-                TargetPos = *targetPos,
-                SourceSequence = header->SourceSequence,
-                GlobalSequence = header->globalEffectCounter,
-            };
-            for (int i = 0; i < header->NumTargets; ++i)
-            {
-                var target = new ActorCastEvent.Target() { ID = targets[i] };
-                for (int j = 0; j < 8; ++j)
-                    target.Effects[j] = effects[i * 8 + j];
-                info.Targets.Add(target);
-            }
-            ActionEffectReceived.Invoke(casterID, info);
+            Action = action,
+            MainTargetID = header->animationTargetId,
+            AnimationLockTime = header->animationLockTime,
+            MaxTargets = header->NumTargets,
+            TargetPos = *targetPos,
+            SourceSequence = header->SourceSequence,
+            GlobalSequence = header->globalEffectCounter,
+        };
+        for (int i = 0; i < header->NumTargets; ++i)
+        {
+            var targetEffects = new ActionEffects();
+            for (int j = 0; j < ActionEffects.MaxCount; ++j)
+                targetEffects[j] = effects[i * 8 + j];
+            info.Targets.Add(new(targets[i], targetEffects));
         }
+        ActionEffectReceived.Fire(casterID, info);
 
         var prevAnimLock = AnimationLock;
         _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
@@ -473,30 +467,24 @@ unsafe sealed class ActionManagerEx : IDisposable
 
     private void ProcessPacketEffectResultDetour(uint targetID, byte* packet, byte replaying)
     {
-        if (EffectResultReceived != null)
+        var count = packet[0];
+        var p = (Network.ServerIPC.EffectResultEntry*)(packet + 4);
+        for (int i = 0; i < count; ++i)
         {
-            var count = packet[0];
-            var p = (Network.ServerIPC.EffectResultEntry*)(packet + 4);
-            for (int i = 0; i < count; ++i)
-            {
-                EffectResultReceived.Invoke(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
-                ++p;
-            }
+            EffectResultReceived.Fire(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
+            ++p;
         }
         _processPacketEffectResultHook.Original(targetID, packet, replaying);
     }
 
     private void ProcessPacketEffectResultBasicDetour(uint targetID, byte* packet, byte replaying)
     {
-        if (EffectResultReceived != null)
+        var count = packet[0];
+        var p = (Network.ServerIPC.EffectResultBasicEntry*)(packet + 4);
+        for (int i = 0; i < count; ++i)
         {
-            var count = packet[0];
-            var p = (Network.ServerIPC.EffectResultBasicEntry*)(packet + 4);
-            for (int i = 0; i < count; ++i)
-            {
-                EffectResultReceived.Invoke(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
-                ++p;
-            }
+            EffectResultReceived.Fire(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
+            ++p;
         }
         _processPacketEffectResultBasicHook.Original(targetID, packet, replaying);
     }
@@ -528,17 +516,6 @@ unsafe sealed class ActionManagerEx : IDisposable
         var recastElapsed = recast != null ? recast->Elapsed : 0;
         var recastTotal = recast != null ? recast->Total : 0;
         Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
-        ActionRequested?.Invoke(new()
-        {
-            Action = action,
-            TargetID = targetID,
-            TargetPos = targetPos,
-            SourceSequence = (uint)seq,
-            InitialAnimationLock = AnimationLock,
-            InitialCastTimeElapsed = CastSpellID != 0 ? CastTimeElapsed : 0,
-            InitialCastTimeTotal = CastSpellID != 0 ? CastTimeTotal : 0,
-            InitialRecastElapsed = recastElapsed,
-            InitialRecastTotal = recastTotal,
-        });
+        ActionRequested.Fire(new(action, targetID, targetPos, (uint)seq, AnimationLock, CastSpellID != 0 ? CastTimeElapsed : 0, CastSpellID != 0 ? CastTimeTotal : 0, recastElapsed, recastTotal));
     }
 }

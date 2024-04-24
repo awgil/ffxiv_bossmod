@@ -29,11 +29,12 @@ namespace BossMod;
 // 3. when there are pending actions, we don't update internal state, leaving same next-best recommendation
 sealed class Autorotation : IDisposable
 {
-    public AutorotationConfig Config { get; } = Service.Config.Get<AutorotationConfig>();
-    public BossModuleManager Bossmods { get; init; }
+    public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
+    public readonly BossModuleManager Bossmods;
     public WorldState WorldState => Bossmods.WorldState;
     private readonly AutoHints _autoHints;
     private readonly UISimpleWindow _ui;
+    private readonly EventSubscriptions _subscriptions;
 
     public CommonActions? ClassActions { get; private set; }
 
@@ -43,7 +44,7 @@ sealed class Autorotation : IDisposable
     public float EffAnimLock => ActionManagerEx.Instance!.EffectiveAnimationLock;
     public float AnimLockDelay => ActionManagerEx.Instance!.EffectiveAnimationLockDelay;
 
-    private static ActionID IDSprintGeneral = new(ActionType.General, 4);
+    private static readonly ActionID IDSprintGeneral = new(ActionType.General, 4);
 
     private unsafe delegate bool UseActionDelegate(FFXIVClientStructs.FFXIV.Client.Game.ActionManager* self, ActionType actionType, uint actionID, ulong targetID, uint itemLocation, uint callType, uint comboRouteID, bool* outOptGTModeStarted);
     private readonly Hook<UseActionDelegate> _useActionHook;
@@ -53,9 +54,11 @@ sealed class Autorotation : IDisposable
         Bossmods = bossmods;
         _autoHints = new(bossmods.WorldState);
         _ui = new("Autorotation", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
-
-        ActionManagerEx.Instance!.ActionRequested += OnActionRequested;
-        WorldState.Actors.CastEvent += OnCastEvent;
+        _subscriptions = new
+        (
+            WorldState.Client.ActionRequested.Subscribe(OnActionRequested),
+            WorldState.Actors.CastEvent.Subscribe(OnCastEvent)
+        );
 
         _useActionHook = Service.Hook.HookFromSignature<UseActionDelegate>("E8 ?? ?? ?? ?? EB 64 B1 01", UseActionDetour);
         _useActionHook.Enable();
@@ -63,9 +66,7 @@ sealed class Autorotation : IDisposable
 
     public void Dispose()
     {
-        ActionManagerEx.Instance!.ActionRequested -= OnActionRequested;
-        WorldState.Actors.CastEvent -= OnCastEvent;
-
+        _subscriptions.Dispose();
         _ui.Dispose();
         _useActionHook.Dispose();
         ClassActions?.Dispose();
@@ -176,9 +177,9 @@ sealed class Autorotation : IDisposable
         ImGui.TextUnformatted($"GCD={WorldState.Client.Cooldowns[CommonDefinitions.GCDGroup].Remaining:f3}, AnimLock={EffAnimLock:f3}+{AnimLockDelay:f3}, Combo={state.ComboTimeLeft:f3}");
     }
 
-    private void OnActionRequested(ClientActionRequest request)
+    private void OnActionRequested(ClientState.OpActionRequest op)
     {
-        ClassActions?.NotifyActionExecuted(request);
+        ClassActions?.NotifyActionExecuted(in op.Request);
     }
 
     private void OnCastEvent(Actor actor, ActorCastEvent cast)

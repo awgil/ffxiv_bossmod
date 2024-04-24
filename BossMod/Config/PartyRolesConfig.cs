@@ -92,7 +92,7 @@ public class PartyRolesConfig : ConfigNode
                             Assignments[contentID] = r;
                         else
                             Assignments.Remove(contentID);
-                        NotifyModified();
+                        Modified.Fire();
                     }
                 }
                 ImGui.TableNextColumn();

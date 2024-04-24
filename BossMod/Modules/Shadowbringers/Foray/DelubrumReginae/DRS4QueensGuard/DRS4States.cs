@@ -11,9 +11,9 @@ class DRS4States : StateMachineBuilder
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !(_module.Knight()?.IsTargetable ?? true) && !(_module.Warrior()?.IsTargetable ?? true) && !(_module.Soldier()?.IsTargetable ?? true) && !(_module.Gunner()?.IsTargetable ?? true);
         SimplePhase(1, Phase1, "P1: knight+warrior")
             .ActivateOnEnter<SpellforgeSteelstingHint>()
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !(_module.Knight()?.IsTargetable ?? true) && module.Knight()?.HP.Cur <= 1 && !(_module.Warrior()?.IsTargetable ?? true) && module.Warrior()?.HP.Cur <= 1;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !(_module.Knight()?.IsTargetable ?? true) && module.Knight()?.HPMP.CurHP <= 1 && !(_module.Warrior()?.IsTargetable ?? true) && module.Warrior()?.HPMP.CurHP <= 1;
         SimplePhase(2, Phase2, "P2: soldier+gunner")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !(_module.Gunner()?.IsTargetable ?? true) && module.Gunner()?.HP.Cur <= 1 && !(_module.Soldier()?.IsTargetable ?? true) && module.Soldier()?.HP.Cur <= 1;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !(_module.Gunner()?.IsTargetable ?? true) && module.Gunner()?.HPMP.CurHP <= 1 && !(_module.Soldier()?.IsTargetable ?? true) && module.Soldier()?.HPMP.CurHP <= 1;
         SimplePhase(3, Phase3, "P3: wards")
             .ActivateOnEnter<CoatOfArms>()
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed;

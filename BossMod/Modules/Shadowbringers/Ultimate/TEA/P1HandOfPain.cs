@@ -8,7 +8,7 @@ class P1HandOfPain(BossModule module) : Components.CastCounter(module, ActionID.
         var hand = Module.Enemies(OID.LiquidHand).FirstOrDefault();
         if (boss != null && hand != null)
         {
-            var diff = (int)(hand.HP.Cur - boss.HP.Cur) * 100.0f / boss.HP.Max;
+            var diff = (int)(hand.HPMP.CurHP - boss.HPMP.CurHP) * 100.0f / boss.HPMP.MaxHP;
             hints.Add($"Hand HP: {(diff > 0 ? "+" : "")}{diff:f1}%");
         }
     }

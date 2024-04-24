@@ -5,7 +5,7 @@ class P12S1AthenaStates : StateMachineBuilder
     public P12S1AthenaStates(BossModule module) : base(module)
     {
         SimplePhase(0, SinglePhase, "Single phase")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1 && !Module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HPMP.CurHP <= 1 && !Module.PrimaryActor.IsTargetable;
     }
 
     private void SinglePhase(uint id)

@@ -5,7 +5,7 @@ class Phases(BossModule module) : BossComponent(module)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var hint = ((float)Module.PrimaryActor.HP.Cur / Module.PrimaryActor.HP.Max) switch
+        var hint = ((float)Module.PrimaryActor.HPMP.CurHP / Module.PrimaryActor.HPMP.MaxHP) switch
         {
             > 0.8f => "Garuda -> 80% Titan",
             > 0.65f => "Titan -> 65% Ifrit",

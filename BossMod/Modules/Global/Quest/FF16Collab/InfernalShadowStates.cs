@@ -21,6 +21,6 @@ class InfernalShadowStates : StateMachineBuilder
             .ActivateOnEnter<Eruption2>()
             .ActivateOnEnter<BurningStrike>()
             .ActivateOnEnter<SearingStomp>()
-            .Raw.Update = () => Module.PrimaryActor.HP.Cur == 1;
+            .Raw.Update = () => Module.PrimaryActor.HPMP.CurHP == 1;
     }
 }

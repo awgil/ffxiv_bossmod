@@ -7,25 +7,22 @@ class Actions : CommonActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private readonly SMNConfig _config;
     private bool _aoe;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
+    private readonly ConfigListener<SMNConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<SMNConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
-
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<SMNConfig>(OnConfigModified);
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigModified;
+        _config.Dispose();
         base.Dispose(disposing);
     }
 
@@ -109,14 +106,14 @@ class Actions : CommonActions
         }
     }
 
-    private void OnConfigModified()
+    private void OnConfigModified(SMNConfig config)
     {
         // placeholders
-        SupportedSpell(AID.Ruin1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-        SupportedSpell(AID.Outburst).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+        SupportedSpell(AID.Ruin1).PlaceholderForAuto = config.FullRotation ? AutoActionST : AutoActionNone;
+        SupportedSpell(AID.Outburst).PlaceholderForAuto = config.FullRotation ? AutoActionAOE : AutoActionNone;
 
         // smart targets
-        SupportedSpell(AID.Physick).TransformTarget = _config.MouseoverFriendly ? SmartTargetFriendly : null;
+        SupportedSpell(AID.Physick).TransformTarget = config.MouseoverFriendly ? SmartTargetFriendly : null;
     }
 
     //private AID SmartResurrectAction()

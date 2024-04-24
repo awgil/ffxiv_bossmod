@@ -15,9 +15,9 @@ public class BossModulePlanWindow : UIWindow
 
     public override void PreOpenCheck()
     {
-        IsOpen = _mgr.WindowConfig.EnableTimerWindow && _mgr.ActiveModule?.PlanConfig != null;
+        IsOpen = _mgr.Config.EnableTimerWindow && _mgr.ActiveModule?.PlanConfig != null;
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-        if (_mgr.WindowConfig.Lock)
+        if (_mgr.Config.Lock)
             Flags |= ImGuiWindowFlags.NoMove;
     }
 

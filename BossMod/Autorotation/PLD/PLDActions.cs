@@ -5,28 +5,26 @@ class Actions : TankActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private readonly PLDConfig _config;
     private bool _aoe;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
+    private readonly ConfigListener<PLDConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<PLDConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
 
         SupportedSpell(AID.Reprisal).Condition = _ => Autorot.Hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(Player.Position, 5 + e.Actor.HitboxRadius)); // TODO: consider checking only target?..
         SupportedSpell(AID.Interject).Condition = target => target?.CastInfo?.Interruptible ?? false;
 
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<PLDConfig>(OnConfigModified);
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigModified;
+        _config.Dispose();
         base.Dispose(disposing);
     }
 
@@ -96,20 +94,20 @@ class Actions : TankActions
         _state.FightOrFlightLeft = StatusDetails(Player, SID.FightOrFlight, Player.InstanceID).Left;
     }
 
-    private void OnConfigModified()
+    private void OnConfigModified(PLDConfig config)
     {
         // placeholders
-        SupportedSpell(AID.FastBlade).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-        SupportedSpell(AID.TotalEclipse).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+        SupportedSpell(AID.FastBlade).PlaceholderForAuto = config.FullRotation ? AutoActionST : AutoActionNone;
+        SupportedSpell(AID.TotalEclipse).PlaceholderForAuto = config.FullRotation ? AutoActionAOE : AutoActionNone;
 
         // combo replacement
-        SupportedSpell(AID.RiotBlade).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextRiotBladeComboAction(ComboLastMove)) : null;
-        SupportedSpell(AID.RageOfHalone).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.RageOfHalone)) : null;
-        SupportedSpell(AID.GoringBlade).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.GoringBlade)) : null;
+        SupportedSpell(AID.RiotBlade).TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextRiotBladeComboAction(ComboLastMove)) : null;
+        SupportedSpell(AID.RageOfHalone).TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.RageOfHalone)) : null;
+        SupportedSpell(AID.GoringBlade).TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.GoringBlade)) : null;
 
         // smart targets
-        SupportedSpell(AID.Shirk).TransformTarget = _config.SmartShirkTarget ? SmartTargetCoTank : null;
-        SupportedSpell(AID.Provoke).TransformTarget = _config.ProvokeMouseover ? SmartTargetHostile : null; // TODO: also interject/low-blow
+        SupportedSpell(AID.Shirk).TransformTarget = config.SmartShirkTarget ? SmartTargetCoTank : null;
+        SupportedSpell(AID.Provoke).TransformTarget = config.ProvokeMouseover ? SmartTargetHostile : null; // TODO: also interject/low-blow
     }
 
     private AID ComboLastMove => (AID)ActionManagerEx.Instance!.ComboLastMove;

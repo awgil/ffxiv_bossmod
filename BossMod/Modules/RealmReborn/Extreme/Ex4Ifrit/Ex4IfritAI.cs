@@ -277,7 +277,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
             }
 
             // heavy raidwide on large nail death
-            if ((OID)nextNail.OID == OID.InfernalNailLarge && nextNail.HP.Cur < 0.5f * nextNail.HP.Max)
+            if ((OID)nextNail.OID == OID.InfernalNailLarge && nextNail.HPMP.CurHP < 0.5f * nextNail.HPMP.MaxHP)
                 hints.PredictedDamage.Add((Raid.WithSlot().Mask(), new()));
         }
     }

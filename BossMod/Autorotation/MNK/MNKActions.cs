@@ -8,14 +8,13 @@ class Actions : CommonActions
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
     public const int AutoActionFiller = AutoActionFirstCustom + 2;
 
-    private readonly MNKConfig _config;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
+    private readonly ConfigListener<MNKConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<MNKConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
 
@@ -27,13 +26,12 @@ class Actions : CommonActions
         SupportedSpell(AID.MasterfulBlitz).TransformAction = () => ActionID.MakeSpell(_state.BestBlitz);
         SupportedSpell(AID.PerfectBalance).Condition = _ => _state.PerfectBalanceLeft == 0;
 
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<MNKConfig>(OnConfigModified);
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigModified;
+        _config.Dispose();
         base.Dispose(disposing);
     }
 
@@ -75,9 +73,9 @@ class Actions : CommonActions
         if (_state.Unlocked(AID.SteelPeak))
             SimulateManualActionForAI(ActionID.MakeSpell(AID.Meditation), Player, !Player.InCombat && _state.Chakra < 5);
         if (_state.Unlocked(AID.SecondWind))
-            SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f);
+            SimulateManualActionForAI(ActionID.MakeSpell(AID.SecondWind), Player, Player.InCombat && Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.5f);
         if (_state.Unlocked(AID.Bloodbath))
-            SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f);
+            SimulateManualActionForAI(ActionID.MakeSpell(AID.Bloodbath), Player, Player.InCombat && Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.8f);
     }
 
     protected override NextAction CalculateAutomaticGCD()
@@ -135,23 +133,23 @@ class Actions : CommonActions
         return (Rotation.Form.None, 0);
     }
 
-    private void OnConfigModified()
+    private void OnConfigModified(MNKConfig config)
     {
         // placeholders
-        SupportedSpell(AID.Bootshine).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-        SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = SupportedSpell(AID.ShadowOfTheDestroyer).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
-        SupportedSpell(AID.TrueStrike).PlaceholderForAuto = _config.FillerRotation ? AutoActionFiller : AutoActionNone;
+        SupportedSpell(AID.Bootshine).PlaceholderForAuto = config.FullRotation ? AutoActionST : AutoActionNone;
+        SupportedSpell(AID.ArmOfTheDestroyer).PlaceholderForAuto = SupportedSpell(AID.ShadowOfTheDestroyer).PlaceholderForAuto = config.FullRotation ? AutoActionAOE : AutoActionNone;
+        SupportedSpell(AID.TrueStrike).PlaceholderForAuto = config.FillerRotation ? AutoActionFiller : AutoActionNone;
 
         // combo replacement
-        SupportedSpell(AID.FourPointFury).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, _strategy)) : null;
+        SupportedSpell(AID.FourPointFury).TransformAction = config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, _strategy)) : null;
 
-        SupportedSpell(AID.Thunderclap).Condition = _config.PreventCloseDash
+        SupportedSpell(AID.Thunderclap).Condition = config.PreventCloseDash
             ? ((act) => act == null || !act.Position.InCircle(Player.Position, 3))
             : null;
 
-        SupportedSpell(AID.Thunderclap).TransformTarget = _config.SmartThunderclap ? (act) => Autorot.SecondaryTarget ?? act : null;
+        SupportedSpell(AID.Thunderclap).TransformTarget = config.SmartThunderclap ? (act) => Autorot.SecondaryTarget ?? act : null;
 
-        _strategy.PreCombatFormShift = _config.AutoFormShift;
+        _strategy.PreCombatFormShift = config.AutoFormShift;
 
         // smart targets
     }

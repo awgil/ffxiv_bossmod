@@ -7,15 +7,14 @@ class Actions : TankActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private readonly GNBConfig _config;
     private bool _aoe;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
+    private readonly ConfigListener<GNBConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<GNBConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
 
@@ -30,21 +29,19 @@ class Actions : TankActions
         SupportedSpell(AID.Continuation).Condition = _ => _state.ReadyToGouge ? ActionID.MakeSpell(AID.EyeGouge) : ActionID.MakeSpell(AID.None);
         SupportedSpell(AID.Continuation).Condition = _ => _state.ReadyToBlast ? ActionID.MakeSpell(AID.Hypervelocity) : ActionID.MakeSpell(AID.None);
 
-        SupportedSpell(AID.Aurora).Condition = _ => Player.HP.Cur < Player.HP.Max;
+        SupportedSpell(AID.Aurora).Condition = _ => Player.HPMP.CurHP < Player.HPMP.MaxHP;
         SupportedSpell(AID.Reprisal).Condition = _ => Autorot.Hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(Player.Position, 5 + e.Actor.HitboxRadius)); // TODO: consider checking only target?..
         SupportedSpell(AID.Interject).Condition = target => target?.CastInfo?.Interruptible ?? false;
-        SupportedSpell(AID.LightningShot).Condition = _ => !_config.ForbidEarlyLightningShot || _strategy.CombatTimer == float.MinValue || _strategy.CombatTimer >= -0.7f;
         // TODO: SIO - check that raid is in range?..
         // TODO: Provoke - check that not already MT?
         // TODO: Shirk - check that hate is close to MT?..
 
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<GNBConfig>(OnConfigModified);
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigModified;
+        _config.Dispose();
         base.Dispose(disposing);
     }
 
@@ -125,21 +122,23 @@ class Actions : TankActions
         _state.NumTargetsHitByAOE = NumTargetsHitByAOE();
     }
 
-    private void OnConfigModified()
+    private void OnConfigModified(GNBConfig config)
     {
         // placeholders
-        SupportedSpell(AID.KeenEdge).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-        SupportedSpell(AID.DemonSlice).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+        SupportedSpell(AID.KeenEdge).PlaceholderForAuto = config.FullRotation ? AutoActionST : AutoActionNone;
+        SupportedSpell(AID.DemonSlice).PlaceholderForAuto = config.FullRotation ? AutoActionAOE : AutoActionNone;
 
         // combo replacement
-        SupportedSpell(AID.BrutalShell).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextBrutalShellComboAction(ComboLastMove)) : null;
-        SupportedSpell(AID.SolidBarrel).TransformAction = _config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.SolidBarrel)) : null;
-        SupportedSpell(AID.DemonSlaughter).TransformAction = _config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(ComboLastMove)) : null;
+        SupportedSpell(AID.BrutalShell).TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextBrutalShellComboAction(ComboLastMove)) : null;
+        SupportedSpell(AID.SolidBarrel).TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.SolidBarrel)) : null;
+        SupportedSpell(AID.DemonSlaughter).TransformAction = config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(ComboLastMove)) : null;
 
         // smart targets
-        SupportedSpell(AID.HeartOfCorundum).TransformTarget = SupportedSpell(AID.HeartOfStone).TransformTarget = _config.SmartHeartofCorundumShirkTarget ? SmartTargetFriendly : null;
-        SupportedSpell(AID.Shirk).TransformTarget = _config.SmartHeartofCorundumShirkTarget ? SmartTargetCoTank : null;
-        SupportedSpell(AID.Provoke).TransformTarget = _config.ProvokeMouseover ? SmartTargetHostile : null; // TODO: also interject/low-blow
+        SupportedSpell(AID.HeartOfCorundum).TransformTarget = SupportedSpell(AID.HeartOfStone).TransformTarget = config.SmartHeartofCorundumShirkTarget ? SmartTargetFriendly : null;
+        SupportedSpell(AID.Shirk).TransformTarget = config.SmartHeartofCorundumShirkTarget ? SmartTargetCoTank : null;
+        SupportedSpell(AID.Provoke).TransformTarget = config.ProvokeMouseover ? SmartTargetHostile : null; // TODO: also interject/low-blow
+
+        SupportedSpell(AID.LightningShot).Condition = config.ForbidEarlyLightningShot ? _ => _strategy.CombatTimer is float.MinValue or >= -0.7f : null;
     }
 
     private AID ComboLastMove => (AID)ActionManagerEx.Instance!.ComboLastMove;

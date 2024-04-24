@@ -110,6 +110,7 @@ sealed class DebugClassDefinitions : IDisposable
     }
 
     private readonly WorldState _ws;
+    private readonly EventSubscription _onCast;
     private readonly ClassData?[] _classes = new ClassData?[41];
     private readonly Dictionary<ActionID, float> _seenActionLocks = [];
     private readonly Dictionary<uint, StatusData> _seenStatuses = [];
@@ -118,13 +119,10 @@ sealed class DebugClassDefinitions : IDisposable
     public DebugClassDefinitions(WorldState ws)
     {
         _ws = ws;
-        _ws.Actors.CastEvent += OnCast;
+        _onCast = ws.Actors.CastEvent.Subscribe(OnCast);
     }
 
-    public void Dispose()
-    {
-        _ws.Actors.CastEvent -= OnCast;
-    }
+    public void Dispose() => _onCast.Dispose();
 
     public unsafe void Draw()
     {

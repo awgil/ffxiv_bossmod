@@ -118,7 +118,7 @@ public sealed class ConfigUI : IDisposable
             if (UICombo.Bool(props.Label, combo.Values, ref v))
             {
                 member.SetValue(node, v);
-                node.NotifyModified();
+                node.Modified.Fire();
             }
         }
         else
@@ -126,7 +126,7 @@ public sealed class ConfigUI : IDisposable
             if (ImGui.Checkbox(props.Label, ref v))
             {
                 member.SetValue(node, v);
-                node.NotifyModified();
+                node.Modified.Fire();
             }
         }
         return true;
@@ -137,7 +137,7 @@ public sealed class ConfigUI : IDisposable
         if (UICombo.Enum(props.Label, ref v))
         {
             member.SetValue(node, v);
-            node.NotifyModified();
+            node.Modified.Fire();
         }
         return true;
     }
@@ -153,7 +153,7 @@ public sealed class ConfigUI : IDisposable
             if (ImGui.DragFloat(props.Label, ref v, slider.Speed, slider.Min, slider.Max, "%.3f", flags))
             {
                 member.SetValue(node, v);
-                node.NotifyModified();
+                node.Modified.Fire();
             }
         }
         else
@@ -161,7 +161,7 @@ public sealed class ConfigUI : IDisposable
             if (ImGui.InputFloat(props.Label, ref v))
             {
                 member.SetValue(node, v);
-                node.NotifyModified();
+                node.Modified.Fire();
             }
         }
         return true;
@@ -178,7 +178,7 @@ public sealed class ConfigUI : IDisposable
             if (ImGui.DragInt(props.Label, ref v, slider.Speed, (int)slider.Min, (int)slider.Max, "%d", flags))
             {
                 member.SetValue(node, v);
-                node.NotifyModified();
+                node.Modified.Fire();
             }
         }
         else
@@ -186,7 +186,7 @@ public sealed class ConfigUI : IDisposable
             if (ImGui.InputInt(props.Label, ref v))
             {
                 member.SetValue(node, v);
-                node.NotifyModified();
+                node.Modified.Fire();
             }
         }
         return true;
@@ -218,14 +218,14 @@ public sealed class ConfigUI : IDisposable
                         if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
                         {
                             v[r] = c;
-                            node.NotifyModified();
+                            node.Modified.Fire();
                         }
                     }
                     ImGui.TableNextColumn();
                     if (ImGui.RadioButton($"###{r}:---", v[r] < 0 || v[r] >= group.Names.Length))
                     {
                         v[r] = -1;
-                        node.NotifyModified();
+                        node.Modified.Fire();
                     }
 
                     string name = r.ToString();
@@ -248,7 +248,7 @@ public sealed class ConfigUI : IDisposable
             {
                 for (int i = 0; i < preset.Preset.Length; ++i)
                     v.Assignments[i] = preset.Preset[i];
-                node.NotifyModified();
+                node.Modified.Fire();
             }
         }
     }

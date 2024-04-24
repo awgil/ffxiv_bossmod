@@ -34,7 +34,7 @@ class EndwalkerStates : StateMachineBuilder
             .ActivateOnEnter<WyrmsTongue>()
             .ActivateOnEnter<UnmovingDvenadkatik>()
             .ActivateOnEnter<TheEdgeUnbound2>()
-            .Raw.Update = () => module.ZenosP2() is var ZenosP2 && ZenosP2 != null && !ZenosP2.IsTargetable && ZenosP2.HP.Cur <= 1;
+            .Raw.Update = () => module.ZenosP2() is var ZenosP2 && ZenosP2 != null && !ZenosP2.IsTargetable && ZenosP2.HPMP.CurHP <= 1;
     }
 }
 

@@ -264,12 +264,12 @@ abstract class CommonActions : IDisposable
         return nextGCD;
     }
 
-    public void NotifyActionExecuted(ClientActionRequest request)
+    public void NotifyActionExecuted(in ClientActionRequest request)
     {
         Log($"Exec #{request.SourceSequence} {request.Action} @ {request.TargetID:X} [{GetState()}]");
         _mq.Pop(request.Action);
         Autorot.Bossmods.ActiveModule?.PlanExecution?.NotifyActionExecuted(Autorot.Bossmods.ActiveModule.StateMachine, request.Action);
-        OnActionExecuted(request);
+        OnActionExecuted(in request);
     }
 
     public void NotifyActionSucceeded(ActorCastEvent ev)
@@ -286,7 +286,7 @@ abstract class CommonActions : IDisposable
     protected abstract void QueueAIActions();
     protected abstract NextAction CalculateAutomaticGCD();
     protected abstract NextAction CalculateAutomaticOGCD(float deadline);
-    protected virtual void OnActionExecuted(ClientActionRequest request) { }
+    protected virtual void OnActionExecuted(in ClientActionRequest request) { }
     protected virtual void OnActionSucceeded(ActorCastEvent ev) { }
 
     protected NextAction MakeResult(ActionID action, Actor? target)
@@ -321,7 +321,7 @@ abstract class CommonActions : IDisposable
         var am = ActionManagerEx.Instance!;
         s.Level = Player.Level;
         s.UnlockProgress = _lock.Progress();
-        s.CurMP = Player.CurMP;
+        s.CurMP = Player.HPMP.CurMP;
         s.TargetingEnemy = Autorot.PrimaryTarget != null && Autorot.PrimaryTarget.Type is ActorType.Enemy or ActorType.Part && !Autorot.PrimaryTarget.IsAlly;
         s.RangeToTarget = Autorot.PrimaryTarget != null ? (Autorot.PrimaryTarget.Position - Player.Position).Length() - Autorot.PrimaryTarget.HitboxRadius - Player.HitboxRadius : float.MaxValue;
         s.AnimationLock = am.EffectiveAnimationLock;

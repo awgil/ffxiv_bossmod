@@ -29,22 +29,15 @@ public enum ActionType : byte
 
 public enum Positional { Any, Flank, Rear, Front }
 
-public struct ActionID : IEquatable<ActionID>
+// high byte is type, low 3 bytes is ID
+public readonly record struct ActionID(uint Raw)
 {
-    public uint Raw; // high byte is type, low 3 bytes is ID
-
     public readonly ActionType Type => (ActionType)(Raw >> 24);
     public readonly uint ID => Raw & 0x00FFFFFFu;
 
-    public ActionID(uint raw = 0) { Raw = raw; }
-    public ActionID(ActionType type, uint id) { Raw = ((uint)type << 24) | id; }
+    public ActionID(ActionType type, uint id) : this(((uint)type << 24) | id) { }
 
     public static implicit operator bool(ActionID x) => x.Raw != 0;
-    public static bool operator ==(ActionID l, ActionID r) => l.Raw == r.Raw;
-    public static bool operator !=(ActionID l, ActionID r) => l.Raw != r.Raw;
-    public readonly bool Equals(ActionID other) => this == other;
-    public override readonly bool Equals(object? obj) => obj is ActionID other && this == other;
-    public override readonly int GetHashCode() => Raw.GetHashCode();
     public override readonly string ToString() => $"{Type} {ID} '{Name()}'";
 
     public readonly AID As<AID>() where AID : Enum => (AID)(object)ID;

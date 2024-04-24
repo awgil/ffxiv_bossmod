@@ -38,7 +38,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
         if (newSelected != plans.SelectedIndex)
         {
             plans.SelectedIndex = newSelected;
-            NotifyModified();
+            Modified.Fire();
         }
         ImGui.SameLine();
         if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit plan" : "Create new plan"))
@@ -47,7 +47,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
             {
                 plans.Available.Add(new(c, SyncLevel, $"New {plans.Available.Count + 1}"));
                 plans.SelectedIndex = plans.Available.Count - 1;
-                NotifyModified();
+                Modified.Fire();
             }
             StartPlanEditor(plans.Available[plans.SelectedIndex], sm, moduleInfo);
         }
@@ -93,7 +93,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
                         var plan = plans.Available[i].Clone();
                         plan.Name += " Copy";
                         plans.Available.Add(plan);
-                        NotifyModified();
+                        Modified.Fire();
                         StartPlanEditor(plan);
                     }
                     ImGui.SameLine();
@@ -105,14 +105,14 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
                             plans.SelectedIndex--;
                         plans.Available.RemoveAt(i);
                         --i;
-                        NotifyModified();
+                        Modified.Fire();
                     }
                     ImGui.SameLine();
                     bool selected = plans.SelectedIndex == i;
                     if (ImGui.Checkbox($"{c} '{plans.Available[i].Name}'", ref selected))
                     {
                         plans.SelectedIndex = selected ? i : -1;
-                        NotifyModified();
+                        Modified.Fire();
                     }
                     ImGui.PopID();
                 }
@@ -125,7 +125,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
                 {
                     var plan = new CooldownPlan(c, SyncLevel, $"New {plans.Available.Count}");
                     plans.Available.Add(plan);
-                    NotifyModified();
+                    Modified.Fire();
                     StartPlanEditor(plan);
                 }
             }
@@ -169,7 +169,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
     {
         if (sm == null)
             return;
-        _ = new CooldownPlanEditorWindow(plan, sm, moduleInfo, NotifyModified);
+        _ = new CooldownPlanEditorWindow(plan, sm, moduleInfo, Modified.Fire);
     }
 
     private void StartPlanEditor(CooldownPlan plan)

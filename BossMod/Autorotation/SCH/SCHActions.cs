@@ -5,15 +5,14 @@ namespace BossMod.SCH;
 // TODO: this is shit, like all healer modules...
 class Actions : HealerActions
 {
-    private readonly SCHConfig _config;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
     private bool _allowDelayingNextGCD;
+    private readonly ConfigListener<SCHConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<SCHConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
 
@@ -22,13 +21,12 @@ class Actions : HealerActions
         SupportedSpell(AID.Bio1).TransformAction = SupportedSpell(AID.Bio2).TransformAction = SupportedSpell(AID.Biolysis).TransformAction = () => ActionID.MakeSpell(_state.BestBio);
         SupportedSpell(AID.ArtOfWar1).TransformAction = SupportedSpell(AID.ArtOfWar2).TransformAction = () => ActionID.MakeSpell(_state.BestArtOfWar);
 
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<SCHConfig>(OnConfigModified);
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigModified;
+        _config.Dispose();
         base.Dispose(disposing);
     }
 
@@ -69,7 +67,7 @@ class Actions : HealerActions
     {
         // TODO: rework, implement non-ai...
         if (_state.Unlocked(AID.SummonSelene) && _state.Fairy == null)
-            return MakeResult(_config.PreferSelene ? AID.SummonSelene : AID.SummonEos, Player);
+            return MakeResult(_config.Data.PreferSelene ? AID.SummonSelene : AID.SummonEos, Player);
 
         // AI: aoe heals > st heals > esuna > damage
         // i don't really think 'rotation/actions' split is particularly good fit for healers AI...
@@ -176,7 +174,7 @@ class Actions : HealerActions
 
     private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, _state.ExpectedBio, Player.InstanceID).Left);
 
-    private void OnConfigModified()
+    private void OnConfigModified(SCHConfig config)
     {
         // placeholders
         //SupportedSpell(AID.Ruin1).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
@@ -186,6 +184,6 @@ class Actions : HealerActions
         SupportedSpell(AID.Physick).TransformTarget = SupportedSpell(AID.Adloquium).TransformTarget = SupportedSpell(AID.Lustrate).TransformTarget
             = SupportedSpell(AID.DeploymentTactics).TransformTarget = SupportedSpell(AID.Excogitation).TransformTarget = SupportedSpell(AID.Aetherpact).TransformTarget
             = SupportedSpell(AID.Resurrection).TransformTarget = SupportedSpell(AID.Esuna).TransformTarget = SupportedSpell(AID.Rescue).TransformTarget
-            = _config.MouseoverFriendly ? SmartTargetFriendly : null;
+            = config.MouseoverFriendly ? SmartTargetFriendly : null;
     }
 }

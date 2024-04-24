@@ -145,7 +145,7 @@ public class T07TitanH : BossModule
                 OID.Boss => 1,
                 _ => 0
             };
-            enemy.AttackStrength = (OID)enemy.Actor.OID == OID.Boss ? enemy.Actor.HP.Cur < 0.6f * enemy.Actor.HP.Max ? 0.3f : 0.1f : 0;
+            enemy.AttackStrength = (OID)enemy.Actor.OID == OID.Boss ? enemy.Actor.HPMP.CurHP < 0.6f * enemy.Actor.HPMP.MaxHP ? 0.3f : 0.1f : 0;
         }
     }
 }

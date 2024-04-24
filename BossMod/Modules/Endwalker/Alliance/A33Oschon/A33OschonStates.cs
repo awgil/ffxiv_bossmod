@@ -43,6 +43,6 @@ class A33OschonStates : StateMachineBuilder
             .ActivateOnEnter<WanderingVolleyRaidwide2>()
             .ActivateOnEnter<TheArrowP2>()
             .ActivateOnEnter<FlintedFoehnP2>()
-            .Raw.Update = () => _module.OschonP2 != null && _module.OschonP2()?.HP.Cur == 1;
+            .Raw.Update = () => _module.OschonP2 != null && _module.OschonP2()?.HPMP.CurHP == 1;
     }
 }

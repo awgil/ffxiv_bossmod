@@ -29,7 +29,7 @@ class P1JagdDolls(BossModule module) : BossComponent(module)
     {
         foreach (var doll in ActiveDolls)
         {
-            Arena.Actor(doll, doll.HP.Cur < doll.HP.Max / 4 ? ArenaColor.Enemy : ArenaColor.Vulnerable);
+            Arena.Actor(doll, doll.HPMP.CurHP < doll.HPMP.MaxHP / 4 ? ArenaColor.Enemy : ArenaColor.Vulnerable);
 
             var tether = WorldState.Actors.Find(doll.Tether.Target);
             if (tether != null)

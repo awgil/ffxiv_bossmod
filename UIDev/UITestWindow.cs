@@ -10,6 +10,7 @@ class UITestWindow : UIWindow
     private readonly SimpleImGuiScene _scene;
     private readonly List<Type> _testTypes;
     private readonly ReplayManager _replayManager = new(".");
+    private readonly EventSubscription _onConfigModified;
     private string _configPath;
 
     // don't allow closing window by esc while there are any config modifications
@@ -27,11 +28,12 @@ class UITestWindow : UIWindow
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(new(configPath));
-        Service.Config.Modified += () => ConfigModified = true;
+        _onConfigModified = Service.Config.Modified.Subscribe(() => ConfigModified = true);
     }
 
     protected override void Dispose(bool disposing)
     {
+        _onConfigModified.Dispose();
         _replayManager.Dispose();
         base.Dispose(disposing);
     }

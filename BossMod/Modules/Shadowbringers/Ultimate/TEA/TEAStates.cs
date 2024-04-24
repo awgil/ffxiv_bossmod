@@ -22,7 +22,7 @@ class TEAStates : StateMachineBuilder
                 // BJ/CC start untargetable, then both become targetable after intermission and stay targetable until the end
                 // when either reaches 1hp, it becomes untargetable, and the remaining one starts casting enrage
                 // some time after becoming untargetable, BJ/CC get healed to full - so the pass condition is: both untargetable and at least one at non-full hp (this prevents triggering during intermission)
-                return !bj.IsTargetable && !cc.IsTargetable && (bj.HP.Cur < bj.HP.Max || cc.HP.Cur < cc.HP.Max);
+                return !bj.IsTargetable && !cc.IsTargetable && (bj.HPMP.CurHP < bj.HPMP.MaxHP || cc.HPMP.CurHP < cc.HPMP.MaxHP);
             };
         SimplePhase(2, Phase3AlexanderPrime, "P3: Alex Prime")
             .Raw.Update = () =>
@@ -33,7 +33,7 @@ class TEAStates : StateMachineBuilder
                 if (Module.PrimaryActor.IsDestroyed && alex.IsDestroyed)
                     return true; // wipe in p1/p2/p3 => all actors are destroyed; alex is not destroyed otherwise
                 // alex swaps between targetable and untargetable state; consider that state transition happens at 1hp when enrage cast is interrupted
-                return alex.HP.Cur <= 1 && alex.CastInfo == null;
+                return alex.HPMP.CurHP <= 1 && alex.CastInfo == null;
             };
         SimplePhase(3, Phase4PerfectAlexander, "P4: Perfect Alex")
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed && (_module.PerfectAlex()?.IsDestroyed ?? true) || (_module.PerfectAlex()?.IsDead ?? false); // perfect alex should not be destroyed until either wipe or kill

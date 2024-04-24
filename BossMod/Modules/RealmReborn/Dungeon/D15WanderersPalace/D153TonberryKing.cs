@@ -43,7 +43,7 @@ public class D153TonberryKing(WorldState ws, Actor primary) : BossModule(ws, pri
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                //OID.Tonberry => a.HP.Cur > 1 && rancorStacks < 3 ? 0 : AIHints.Enemy.PriorityForbidAI, // note: we don't bother with them - let tank aoe them when they reach center and invuln high stacks...
+                //OID.Tonberry => a.HPMP.CurHP > 1 && rancorStacks < 3 ? 0 : AIHints.Enemy.PriorityForbidAI, // note: we don't bother with them - let tank aoe them when they reach center and invuln high stacks...
                 OID.Boss => 1,
                 _ => 0
             };

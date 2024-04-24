@@ -6,17 +6,19 @@ namespace BossMod;
 // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
 public abstract class BossModule : IDisposable
 {
-    public WorldState WorldState { get; init; }
-    public Actor PrimaryActor { get; init; }
-    public BossModuleConfig WindowConfig { get; init; }
-    public MiniArena Arena { get; init; }
-    public StateMachine StateMachine { get; private init; }
-    public ModuleRegistry.Info? Info { get; private init; }
+    public readonly WorldState WorldState;
+    public readonly Actor PrimaryActor;
+    public readonly BossModuleConfig WindowConfig;
+    public readonly MiniArena Arena;
+    public readonly ModuleRegistry.Info? Info;
+    public readonly StateMachine StateMachine;
     // TODO: this should be moved outside...
-    public CooldownPlanningConfigNode? PlanConfig { get; init; }
+    public readonly CooldownPlanningConfigNode? PlanConfig;
     public CooldownPlanExecution? PlanExecution;
 
-    public event Action<BossModule, BossComponent?, string>? Error;
+    private readonly EventSubscriptions _subscriptions;
+
+    public Event<BossModule, BossComponent?, string> Error = new();
 
     public PartyState Raid => WorldState.Party;
     public ArenaBounds Bounds => Arena.Bounds;
@@ -80,33 +82,41 @@ public abstract class BossModule : IDisposable
         PrimaryActor = primary;
         WindowConfig = Service.Config.Get<BossModuleConfig>();
         Arena = new(WindowConfig, bounds);
-
         Info = ModuleRegistry.FindByOID(primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
+
+        _subscriptions = new
+        (
+            WorldState.Actors.Added.Subscribe(OnActorCreated),
+            WorldState.Actors.Removed.Subscribe(OnActorDestroyed),
+            WorldState.Actors.CastStarted.Subscribe(OnActorCastStarted),
+            WorldState.Actors.CastFinished.Subscribe(OnActorCastFinished),
+            WorldState.Actors.Tethered.Subscribe(OnActorTethered),
+            WorldState.Actors.Untethered.Subscribe(OnActorUntethered),
+            WorldState.Actors.StatusGain.Subscribe(OnActorStatusGain),
+            WorldState.Actors.StatusLose.Subscribe(OnActorStatusLose),
+            WorldState.Actors.IconAppeared.Subscribe(OnActorIcon),
+            WorldState.Actors.CastEvent.Subscribe(OnActorCastEvent),
+            WorldState.Actors.EventObjectStateChange.Subscribe(OnActorEState),
+            WorldState.Actors.EventObjectAnimation.Subscribe(OnActorEAnim),
+            WorldState.Actors.PlayActionTimelineEvent.Subscribe(OnActorPlayActionTimelineEvent),
+            WorldState.Actors.EventNpcYell.Subscribe(OnActorNpcYell),
+            WorldState.Actors.ModelStateChanged.Subscribe(OnActorModelStateChange),
+            WorldState.EnvControl.Subscribe(OnEnvControl)
+        );
+
+        foreach (var v in WorldState.Actors)
+            OnActorCreated(v);
+
         if (Info?.CooldownPlanningSupported ?? false)
         {
             PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(Info.ConfigType!);
-            PlanConfig.Modified += OnPlanModified;
+            _subscriptions.Add(PlanConfig.Modified.Subscribe(() =>
+            {
+                Service.Log($"[BM] Detected plan modification for '{GetType()}', resetting execution");
+                PlanExecution = null;
+            }));
         }
-
-        WorldState.Actors.Added += OnActorCreated;
-        WorldState.Actors.Removed += OnActorDestroyed;
-        WorldState.Actors.CastStarted += OnActorCastStarted;
-        WorldState.Actors.CastFinished += OnActorCastFinished;
-        WorldState.Actors.Tethered += OnActorTethered;
-        WorldState.Actors.Untethered += OnActorUntethered;
-        WorldState.Actors.StatusGain += OnActorStatusGain;
-        WorldState.Actors.StatusLose += OnActorStatusLose;
-        WorldState.Actors.IconAppeared += OnActorIcon;
-        WorldState.Actors.CastEvent += OnActorCastEvent;
-        WorldState.Actors.EventObjectStateChange += OnActorEState;
-        WorldState.Actors.EventObjectAnimation += OnActorEAnim;
-        WorldState.Actors.PlayActionTimelineEvent += OnActorPlayActionTimelineEvent;
-        WorldState.Actors.EventNpcYell += OnActorNpcYell;
-        WorldState.Actors.ModelStateChanged += OnActorModelStateChange;
-        WorldState.EnvControl += OnEnvControl;
-        foreach (var v in WorldState.Actors)
-            OnActorCreated(v);
     }
 
     public void Dispose()
@@ -117,31 +127,10 @@ public abstract class BossModule : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
-        {
-            StateMachine.Reset();
-            ClearComponents(_ => true);
+        StateMachine.Reset();
+        ClearComponents(_ => true);
 
-            if (PlanConfig != null)
-                PlanConfig.Modified -= OnPlanModified;
-
-            WorldState.Actors.Added -= OnActorCreated;
-            WorldState.Actors.Removed -= OnActorDestroyed;
-            WorldState.Actors.CastStarted -= OnActorCastStarted;
-            WorldState.Actors.CastFinished -= OnActorCastFinished;
-            WorldState.Actors.Tethered -= OnActorTethered;
-            WorldState.Actors.Untethered -= OnActorUntethered;
-            WorldState.Actors.StatusGain -= OnActorStatusGain;
-            WorldState.Actors.StatusLose -= OnActorStatusLose;
-            WorldState.Actors.IconAppeared -= OnActorIcon;
-            WorldState.Actors.CastEvent -= OnActorCastEvent;
-            WorldState.Actors.EventObjectStateChange -= OnActorEState;
-            WorldState.Actors.EventObjectAnimation -= OnActorEAnim;
-            WorldState.Actors.PlayActionTimelineEvent -= OnActorPlayActionTimelineEvent;
-            WorldState.Actors.EventNpcYell -= OnActorNpcYell;
-            WorldState.Actors.ModelStateChanged -= OnActorModelStateChange;
-            WorldState.EnvControl -= OnEnvControl;
-        }
+        _subscriptions.Dispose();
     }
 
     public void Update()
@@ -260,7 +249,7 @@ public abstract class BossModule : IDisposable
     public void ReportError(BossComponent? comp, string message)
     {
         Service.Log($"[ModuleError] [{GetType().Name}] [{comp?.GetType().Name}] {message}");
-        Error?.Invoke(this, comp, message);
+        Error.Fire(this, comp, message);
     }
 
     // called during update if module is not yet active, should return true if it is to be activated
@@ -360,12 +349,6 @@ public abstract class BossModule : IDisposable
             }
         }
         return (highestPrio, color);
-    }
-
-    private void OnPlanModified()
-    {
-        Service.Log($"[BM] Detected plan modification for '{GetType()}', resetting execution");
-        PlanExecution = null;
     }
 
     private void OnActorCreated(Actor actor)

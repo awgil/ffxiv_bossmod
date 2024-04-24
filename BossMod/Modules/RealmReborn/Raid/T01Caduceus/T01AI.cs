@@ -16,9 +16,9 @@ class T01AI(BossModule module) : BossComponent(module)
         // 4. before clone is spawned, R2 (assumed to be caster) stays on platform #0 and spawns slime there
         // 5. healers stand on platform #5 to be in range of everyone
         var cloneSpawned = _clone?.Clone != null;
-        bool cloneSpawningSoon = !cloneSpawned && Module.PrimaryActor.HP.Cur < 0.73f * Module.PrimaryActor.HP.Max;
+        bool cloneSpawningSoon = !cloneSpawned && Module.PrimaryActor.HPMP.CurHP < 0.73f * Module.PrimaryActor.HPMP.MaxHP;
         var clone = _clone?.CloneIfValid;
-        var hpDiff = clone != null ? (int)(clone.HP.Cur - Module.PrimaryActor.HP.Cur) * 100.0f / Module.PrimaryActor.HP.Max : 0;
+        var hpDiff = clone != null ? (int)(clone.HPMP.CurHP - Module.PrimaryActor.HPMP.CurHP) * 100.0f / Module.PrimaryActor.HPMP.MaxHP : 0;
 
         var activePlatforms = _platforms?.ActivePlatforms ?? new BitMask();
         if (Module.StateMachine.TimeSincePhaseEnter < 10)
@@ -40,7 +40,7 @@ class T01AI(BossModule module) : BossComponent(module)
             {
                 // kiting a slime: bring it near boss until low hp, then into boss
                 var dest = Module.PrimaryActor.Position;
-                if (kitedSlime.HP.Cur > 0.2f * kitedSlime.HP.Max)
+                if (kitedSlime.HPMP.CurHP > 0.2f * kitedSlime.HPMP.MaxHP)
                     dest += (kitedSlime.Position - Module.PrimaryActor.Position).Normalized() * (Module.PrimaryActor.HitboxRadius + kitedSlime.HitboxRadius + 6); // 6 to avoid triggering whip back
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 2), DateTime.MaxValue);
             }
@@ -97,7 +97,7 @@ class T01AI(BossModule module) : BossComponent(module)
                         PartyRolesConfig.Assignment.OT => 2,
                         _ => (WorldState.CurrentTime - _clone!.CloneSpawnTime).TotalSeconds < 3 || hpDiff < -5 ? 0
                             : hpDiff > 5 ? 2
-                            : Math.Min(e.Actor.HP.Cur, Module.PrimaryActor.HP.Cur) <= 0.3f * e.Actor.HP.Max ? 1
+                            : Math.Min(e.Actor.HPMP.CurHP, Module.PrimaryActor.HPMP.CurHP) <= 0.3f * e.Actor.HPMP.MaxHP ? 1
                             : assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.R2 ? 2 : 0
                     };
                     e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
@@ -112,10 +112,10 @@ class T01AI(BossModule module) : BossComponent(module)
             else if ((OID)e.Actor.OID == OID.DarkMatterSlime)
             {
                 // for now, let kiter damage it until 20%
-                var predictedHP = (int)e.Actor.HP.Cur + WorldState.PendingEffects.PendingHPDifference(e.Actor.InstanceID);
+                var predictedHP = (int)e.Actor.HPMP.CurHP + WorldState.PendingEffects.PendingHPDifference(e.Actor.InstanceID);
                 e.Priority =
-                    //predictedHP > 0.7f * e.Actor.HP.Max ? (actor.Role is Role.Ranged or Role.Melee ? 3 : AIHints.Enemy.PriorityForbidAI) :
-                    predictedHP > 0.2f * e.Actor.HP.Max ? (e.Actor.TargetID == actor.InstanceID ? 3 : AIHints.Enemy.PriorityForbidAI) :
+                    //predictedHP > 0.7f * e.Actor.HPMP.MaxHP ? (actor.Role is Role.Ranged or Role.Melee ? 3 : AIHints.Enemy.PriorityForbidAI) :
+                    predictedHP > 0.2f * e.Actor.HPMP.MaxHP ? (e.Actor.TargetID == actor.InstanceID ? 3 : AIHints.Enemy.PriorityForbidAI) :
                     AIHints.Enemy.PriorityForbidAI;
                 e.ShouldBeTanked = false;
                 e.ForbidDOTs = true;

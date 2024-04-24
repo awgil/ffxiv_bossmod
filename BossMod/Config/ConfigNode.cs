@@ -44,12 +44,9 @@ public sealed class PropertySliderAttribute(float min, float max) : Attribute
 // base class for configuration nodes
 public abstract class ConfigNode
 {
-    public event Action? Modified;
-
-    // notify that configuration node was modified; should be called by derived classes whenever they make any modifications
-    // implementation dispatches modification event and forwards request to parent
-    // root should subscribe to modification event to save updated configuration
-    public void NotifyModified() => Modified?.Invoke();
+    // event fired when configuration node was modified; should be fired by anyone making any modifications
+    // root subscribes to modification event to save updated configuration
+    public Event Modified = new();
 
     // draw custom contents; override this for complex config nodes
     public virtual void DrawCustom(UITree tree, WorldState ws) { }
@@ -65,4 +62,13 @@ public abstract class ConfigNode
     {
         return JObject.FromObject(this, ser);
     }
+}
+
+// utility to simplify listening for config modifications
+public sealed class ConfigListener<T>(T data, Action<T> modified, bool executeImmediately = true) : IDisposable where T : ConfigNode
+{
+    public readonly T Data = data;
+    private readonly EventSubscription _listener = data.Modified.Subscribe(() => modified(data), executeImmediately);
+
+    public void Dispose() => _listener.Dispose();
 }

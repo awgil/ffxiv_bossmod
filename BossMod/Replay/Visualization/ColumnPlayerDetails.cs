@@ -78,7 +78,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         if (_planner != null && PlanModified)
         {
             _planner.UpdateEditedPlan();
-            _planConfig?.NotifyModified();
+            _planConfig?.Modified.Fire();
             PlanModified = false;
         }
     }
@@ -114,7 +114,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         if (ImGui.Checkbox("Default", ref isDefault))
         {
             list.SelectedIndex = isDefault ? selection : -1;
-            _planConfig?.NotifyModified();
+            _planConfig?.Modified.Fire();
         }
         ImGui.SameLine();
 
@@ -132,7 +132,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
             }
             selection = list.Available.Count;
             list.Available.Add(plan);
-            _planConfig?.NotifyModified();
+            _planConfig?.Modified.Fire();
         }
 
         if (_planner != null && PlanModified)

@@ -34,7 +34,7 @@ class ClientActions
                         }
                         if (pendingRequests.Count > 0)
                         {
-                            _warnings.Add((r, op.Timestamp, $"New action request {StrReq(o.Request)} while {pendingRequests.Count} are pending (first = {StrReq(pendingRequests[0].Request)}, {(op.Timestamp - pendingRequests[0].Timestamp).TotalSeconds:f3}s ago)"));
+                            _warnings.Add((r, op.Timestamp, $"New action request {o.Request} while {pendingRequests.Count} are pending (first = {pendingRequests[0].Request}, {(op.Timestamp - pendingRequests[0].Timestamp).TotalSeconds:f3}s ago)"));
                         }
                         pendingRequests.Add(o);
                         break;
@@ -45,22 +45,22 @@ class ClientActions
                             : pendingRequests.FindIndex(a => a.Request.Action == o.Value.Action);
                         if (rejIndex < 0)
                         {
-                            _warnings.Add((r, op.Timestamp, $"Reject {StrReject(o.Value)}: unexpected (not found); currently {pendingRequests.Count} are pending"));
+                            _warnings.Add((r, op.Timestamp, $"Reject {o.Value}: unexpected (not found); currently {pendingRequests.Count} are pending"));
                             pendingRequests.Clear();
                         }
                         else if (rejIndex > 0)
                         {
-                            _warnings.Add((r, op.Timestamp, $"Reject {StrReject(o.Value)}: unexpected (index {rejIndex}); currently {pendingRequests.Count} are pending, first={StrReq(pendingRequests[0].Request)}"));
+                            _warnings.Add((r, op.Timestamp, $"Reject {o.Value}: unexpected (index {rejIndex}); currently {pendingRequests.Count} are pending, first={pendingRequests[0].Request}"));
                             pendingRequests.RemoveRange(0, rejIndex + 1);
                         }
                         else if (pendingRequests[0].Request.SourceSequence != o.Value.SourceSequence || pendingRequests[0].Request.Action != o.Value.Action)
                         {
-                            _warnings.Add((r, op.Timestamp, $"Reject {StrReject(o.Value)}: mismatched, expected {StrReq(pendingRequests[0].Request)}"));
+                            _warnings.Add((r, op.Timestamp, $"Reject {o.Value}: mismatched, expected {pendingRequests[0].Request}"));
                             pendingRequests.RemoveAt(0);
                         }
                         else
                         {
-                            _warnings.Add((r, op.Timestamp, $"Reject {StrReject(o.Value)}: all good, but still"));
+                            _warnings.Add((r, op.Timestamp, $"Reject {o.Value}: all good, but still"));
                             pendingRequests.RemoveAt(0);
                         }
                         pendingCast = null; // TODO: right?
@@ -77,11 +77,11 @@ class ClientActions
                             }
                             else if (rqIndex > 0)
                             {
-                                _warnings.Add((r, op.Timestamp, $"Unexpected action-effect {StrEvt(o.Value)}: index={rqIndex}, first={StrReq(pendingRequests[0].Request)}, count={pendingRequests.Count}"));
+                                _warnings.Add((r, op.Timestamp, $"Unexpected action-effect {StrEvt(o.Value)}: index={rqIndex}, first={pendingRequests[0].Request}, count={pendingRequests.Count}"));
                             }
                             else if (pendingRequests[0].Request.Action != o.Value.Action)
                             {
-                                _warnings.Add((r, op.Timestamp, $"Request/response action mismatch: requested {StrReq(pendingRequests[0].Request)}, got {StrEvt(o.Value)}"));
+                                _warnings.Add((r, op.Timestamp, $"Request/response action mismatch: requested {pendingRequests[0].Request}, got {StrEvt(o.Value)}"));
                             }
                             else if ((op.Timestamp - pendingRequests[0].Timestamp).TotalSeconds >= pendingRequests[0].Request.InitialAnimationLock + pendingRequests[0].Request.InitialCastTimeTotal)
                             {
@@ -104,7 +104,7 @@ class ClientActions
                                 }
                                 else if (pendingRequests[0].Request.Action != o.Value.Action)
                                 {
-                                    _warnings.Add((r, op.Timestamp, $"Player cast {StrCast(o.Value)} started with different request ({StrReq(pendingRequests[0].Request)}, count={pendingRequests.Count}"));
+                                    _warnings.Add((r, op.Timestamp, $"Player cast {StrCast(o.Value)} started with different request ({pendingRequests[0].Request}, count={pendingRequests.Count}"));
                                 }
                                 if (pendingCast != null)
                                 {
@@ -122,7 +122,7 @@ class ClientActions
                                 }
                                 else if (index > 0)
                                 {
-                                    _warnings.Add((r, op.Timestamp, $"Player cast {StrCast(pendingCast)} ended with index={index} request; first={StrReq(pendingRequests[0].Request)}, count={pendingRequests.Count}"));
+                                    _warnings.Add((r, op.Timestamp, $"Player cast {StrCast(pendingCast)} ended with index={index} request; first={pendingRequests[0].Request}, count={pendingRequests.Count}"));
                                     pendingRequests.RemoveRange(0, index + 1);
                                 }
                                 else
@@ -144,8 +144,6 @@ class ClientActions
         tree.LeafNodes(_warnings, w => $"{w.r.Path} {w.ts:O}: {w.warning}");
     }
 
-    private string StrReq(ClientActionRequest r) => $"#{r.SourceSequence} {r.Action} @ {r.TargetID:X8}";
     private string StrEvt(ActorCastEvent e) => $"#{e.SourceSequence} {e.Action} @ {e.MainTargetID:X8}";
     private string StrCast(ActorCastInfo e) => $"{e.Action} @ {e.TargetID:X8}";
-    private string StrReject(ClientActionReject r) => $"#{r.SourceSequence} {r.Action} ({r.LogMessageID})";
 }

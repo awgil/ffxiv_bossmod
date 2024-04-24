@@ -61,7 +61,7 @@ class CloneMerge(BossModule module) : BossComponent(module)
 
     public override void Update()
     {
-        if (Clone != null || Module.PrimaryActor.HP.Cur > Module.PrimaryActor.HP.Max / 2)
+        if (Clone != null || Module.PrimaryActor.HPMP.CurHP > Module.PrimaryActor.HPMP.MaxHP / 2)
             return;
         Clone = Module.Enemies(OID.Boss).FirstOrDefault(a => a != Module.PrimaryActor);
         if (Clone != null)
@@ -73,7 +73,7 @@ class CloneMerge(BossModule module) : BossComponent(module)
         var clone = CloneIfValid;
         if (clone != null && !Module.PrimaryActor.IsDestroyed && !Module.PrimaryActor.IsDead && Module.PrimaryActor.IsTargetable)
         {
-            var hpDiff = (int)(clone.HP.Cur - Module.PrimaryActor.HP.Cur) * 100.0f / Module.PrimaryActor.HP.Max;
+            var hpDiff = (int)(clone.HPMP.CurHP - Module.PrimaryActor.HPMP.CurHP) * 100.0f / Module.PrimaryActor.HPMP.MaxHP;
             var checkIn = Math.Max(0, 20 - (WorldState.CurrentTime - CloneSpawnTime).TotalSeconds);
             hints.Add($"Clone HP: {(hpDiff > 0 ? "+" : "")}{hpDiff:f1}%, distance: {(clone.Position - Module.PrimaryActor.Position).Length():f2}, check in {checkIn:f1}s");
         }
@@ -114,5 +114,5 @@ public class T01Caduceus : BossModule
     public override bool NeedToJump(WPos from, WDir dir) => Platforms.IntersectJumpEdge(from, dir, 2.5f);
 
     // don't activate module created for clone (this is a hack...)
-    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat && PrimaryActor.HP.Cur > PrimaryActor.HP.Max / 2; }
+    protected override bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat && PrimaryActor.HPMP.CurHP > PrimaryActor.HPMP.MaxHP / 2; }
 }

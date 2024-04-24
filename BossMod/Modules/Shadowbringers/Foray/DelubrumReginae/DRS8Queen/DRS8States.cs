@@ -5,7 +5,7 @@ class DRS8States : StateMachineBuilder
     public DRS8States(BossModule module) : base(module)
     {
         SimplePhase(0, Phase1, "P1")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HP.Cur <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.GodsSaveTheQueen) ?? false);
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HPMP.CurHP <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.GodsSaveTheQueen) ?? false);
         DeathPhase(1, Phase2);
     }
 

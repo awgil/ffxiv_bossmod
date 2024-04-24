@@ -202,8 +202,8 @@ class Shackles(BossModule module) : BossComponent(module)
 
     private void AssignOrder(Actor actor, int order, bool far)
     {
-        var way1 = WorldState.Waymarks[(Waymark)((int)Waymark.A + order)];
-        var way2 = WorldState.Waymarks[(Waymark)((int)Waymark.N1 + order)];
+        var way1 = WorldState.Waymarks[(int)Waymark.A + order];
+        var way2 = WorldState.Waymarks[(int)Waymark.N1 + order];
         if (way1 == null || way2 == null)
             return;
 

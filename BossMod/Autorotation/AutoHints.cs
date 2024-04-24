@@ -7,20 +7,20 @@ public sealed class AutoHints : IDisposable
     private const float RaidwideSize = 30;
 
     private readonly WorldState _ws;
+    private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
 
     public AutoHints(WorldState ws)
     {
         _ws = ws;
-        _ws.Actors.CastStarted += OnCastStarted;
-        _ws.Actors.CastFinished += OnCastFinished;
+        _subscriptions = new
+        (
+            ws.Actors.CastStarted.Subscribe(OnCastStarted),
+            ws.Actors.CastFinished.Subscribe(OnCastFinished)
+        );
     }
 
-    public void Dispose()
-    {
-        _ws.Actors.CastStarted -= OnCastStarted;
-        _ws.Actors.CastFinished -= OnCastFinished;
-    }
+    public void Dispose() => _subscriptions.Dispose();
 
     public void CalculateAIHints(AIHints hints, WPos playerPos)
     {

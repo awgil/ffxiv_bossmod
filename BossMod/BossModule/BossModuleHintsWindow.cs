@@ -14,9 +14,9 @@ public class BossModuleHintsWindow : UIWindow
 
     public override void PreOpenCheck()
     {
-        IsOpen = _mgr.WindowConfig.HintsInSeparateWindow && _mgr.ActiveModule != null;
+        IsOpen = _mgr.Config.HintsInSeparateWindow && _mgr.ActiveModule != null;
         Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-        if (_mgr.WindowConfig.Lock)
+        if (_mgr.Config.Lock)
             Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
     }
 

@@ -82,7 +82,7 @@ public sealed class ReplayRecorder : IDisposable
             foreach (var t in v)
             {
                 EmitActor(t.ID);
-                for (int i = 0; i < 8; ++i)
+                for (int i = 0; i < ActionEffects.MaxCount; ++i)
                     if (t.Effects[i] != 0)
                         _dest.Write($"!{t.Effects[i]:X16}");
             }
@@ -152,7 +152,7 @@ public sealed class ReplayRecorder : IDisposable
             foreach (var t in v)
             {
                 _dest.Write(t.ID);
-                for (int i = 0; i < 8; ++i)
+                for (int i = 0; i < ActionEffects.MaxCount; ++i)
                     _dest.Write(t.Effects[i]);
             }
             return this;
@@ -166,6 +166,7 @@ public sealed class ReplayRecorder : IDisposable
 
     private readonly WorldState _ws;
     private readonly Output _logger;
+    private readonly EventSubscription _subscription;
 
     public const int Version = 13;
 
@@ -210,12 +211,12 @@ public sealed class ReplayRecorder : IDisposable
         }
 
         // log changes
-        _ws.Modified += Log;
+        _subscription = _ws.Modified.Subscribe(Log);
     }
 
     public void Dispose()
     {
-        _ws.Modified -= Log;
+        _subscription.Dispose();
         _logger.Dispose();
     }
 

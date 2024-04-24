@@ -7,25 +7,28 @@ class Actions : CommonActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private readonly SAMConfig _config;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
-
     private DateTime _lastTsubame;
     private float _tsubameCooldown;
+    private readonly ConfigListener<SAMConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<SAMConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
 
         SupportedSpell(AID.Iaijutsu).TransformAction = () => ActionID.MakeSpell(_state.BestIai);
         SupportedSpell(AID.MeikyoShisui).Condition = _ => _state.MeikyoLeft == 0;
 
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<SAMConfig>(OnConfigModified);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        _config.Dispose();
+        base.Dispose(disposing);
     }
 
     public override CommonRotation.PlayerState GetState() => _state;
@@ -55,17 +58,10 @@ class Actions : CommonActions
         );
     }
 
-    private void OnConfigModified()
+    private void OnConfigModified(SAMConfig config)
     {
-        SupportedSpell(AID.Hakaze).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-        SupportedSpell(AID.Fuga).PlaceholderForAuto = SupportedSpell(AID.Fuko).PlaceholderForAuto =
-            _config.FullRotation ? AutoActionAOE : AutoActionNone;
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        _config.Modified -= OnConfigModified;
-        base.Dispose(disposing);
+        SupportedSpell(AID.Hakaze).PlaceholderForAuto = config.FullRotation ? AutoActionST : AutoActionNone;
+        SupportedSpell(AID.Fuga).PlaceholderForAuto = SupportedSpell(AID.Fuko).PlaceholderForAuto = config.FullRotation ? AutoActionAOE : AutoActionNone;
     }
 
     protected override NextAction CalculateAutomaticGCD()
@@ -97,13 +93,13 @@ class Actions : CommonActions
             SimulateManualActionForAI(
                 ActionID.MakeSpell(AID.SecondWind),
                 Player,
-                Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f
+                Player.InCombat && Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.5f
             );
         if (_state.Unlocked(AID.Bloodbath))
             SimulateManualActionForAI(
                 ActionID.MakeSpell(AID.Bloodbath),
                 Player,
-                Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.8f
+                Player.InCombat && Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.8f
             );
         if (_state.Unlocked(AID.MeikyoShisui))
             SimulateManualActionForAI(

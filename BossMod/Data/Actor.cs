@@ -45,11 +45,7 @@ public class ActorCastInfo
 
 public class ActorCastEvent
 {
-    public struct Target
-    {
-        public ulong ID;
-        public ActionEffects Effects;
-    }
+    public readonly record struct Target(ulong ID, ActionEffects Effects);
 
     public ActionID Action;
     public ulong MainTargetID; // note that actual affected targets could be completely different
@@ -66,36 +62,17 @@ public class ActorCastEvent
     public bool IsSpell<AID>(AID aid) where AID : Enum => Action == ActionID.MakeSpell(aid);
 }
 
-public struct ActorHP
-{
-    public uint Cur;
-    public uint Max;
-    public uint Shield;
-}
+public record struct ActorHPMP(uint CurHP, uint MaxHP, uint Shield, uint CurMP);
 
 // note on tethers - it is N:1 type of relation, actor can be tethered to 0 or 1 actors, but can itself have multiple actors tethering themselves to itself
-public struct ActorTetherInfo
-{
-    public ulong Target; // instance id
-    public uint ID;
-}
+// target is an instance id
+public record struct ActorTetherInfo(uint ID, ulong Target);
 
-public struct ActorStatus
-{
-    public uint ID;
-    public ulong SourceID;
-    public ushort Extra;
-    public DateTime ExpireAt;
-}
+public record struct ActorStatus(uint ID, ushort Extra, DateTime ExpireAt, ulong SourceID);
 
-public struct ActorModelState
-{
-    public byte ModelState;
-    public byte AnimState1;
-    public byte AnimState2;
-}
+public record struct ActorModelState(byte ModelState, byte AnimState1, byte AnimState2);
 
-public class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHP hp = new(), uint mp = 0, bool targetable = true, bool ally = false, ulong ownerID = 0)
+public class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHPMP hpmp = default, bool targetable = true, bool ally = false, ulong ownerID = 0)
 {
     public ulong InstanceID = instanceID; // 'uuid'
     public uint OID = oid;
@@ -107,8 +84,7 @@ public class Actor(ulong instanceID, uint oid, int spawnIndex, string name, uint
     public int Level = level;
     public Vector4 PosRot = posRot; // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
     public float HitboxRadius = hitboxRadius;
-    public ActorHP HP = hp;
-    public uint CurMP = mp;
+    public ActorHPMP HPMP = hpmp;
     public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
     public bool IsTargetable = targetable;
     public bool IsAlly = ally;

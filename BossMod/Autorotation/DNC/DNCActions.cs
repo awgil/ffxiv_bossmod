@@ -7,16 +7,15 @@ class Actions : CommonActions
     public const int AutoActionST = AutoActionFirstCustom + 0;
     public const int AutoActionAOE = AutoActionFirstCustom + 1;
 
-    private readonly DNCConfig _config;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
+    private readonly ConfigListener<DNCConfig> _config;
 
     private bool _predictedTechFinish; // TODO: find a way to remove that
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<DNCConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
 
@@ -24,13 +23,12 @@ class Actions : CommonActions
         SupportedSpell(AID.TechnicalStep).TransformAction = () => ActionID.MakeSpell(_state.BestTechStep);
         SupportedSpell(AID.Improvisation).TransformAction = () => ActionID.MakeSpell(_state.BestImprov);
 
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<DNCConfig>(OnConfigModified);
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigModified;
+        _config.Dispose();
         base.Dispose(disposing);
     }
 
@@ -38,13 +36,13 @@ class Actions : CommonActions
 
     public override CommonRotation.Strategy GetStrategy() => _strategy;
 
-    private void OnConfigModified()
+    private void OnConfigModified(DNCConfig config)
     {
-        SupportedSpell(AID.Cascade).PlaceholderForAuto = _config.FullRotation ? AutoActionST : AutoActionNone;
-        SupportedSpell(AID.Windmill).PlaceholderForAuto = _config.FullRotation ? AutoActionAOE : AutoActionNone;
+        SupportedSpell(AID.Cascade).PlaceholderForAuto = config.FullRotation ? AutoActionST : AutoActionNone;
+        SupportedSpell(AID.Windmill).PlaceholderForAuto = config.FullRotation ? AutoActionAOE : AutoActionNone;
 
-        _strategy.PauseDuringImprov = _config.PauseDuringImprov;
-        _strategy.AutoPartner = _config.AutoPartner;
+        _strategy.PauseDuringImprov = config.PauseDuringImprov;
+        _strategy.AutoPartner = config.AutoPartner;
     }
 
     protected override NextAction CalculateAutomaticGCD()
@@ -106,7 +104,7 @@ class Actions : CommonActions
             SimulateManualActionForAI(
                 ActionID.MakeSpell(AID.CuringWaltz),
                 Player,
-                Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.75f
+                Player.InCombat && Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.75f
             );
         }
         if (_state.Unlocked(AID.SecondWind))
@@ -114,7 +112,7 @@ class Actions : CommonActions
             SimulateManualActionForAI(
                 ActionID.MakeSpell(AID.SecondWind),
                 Player,
-                Player.InCombat && Player.HP.Cur < Player.HP.Max * 0.5f
+                Player.InCombat && Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.5f
             );
         }
     }

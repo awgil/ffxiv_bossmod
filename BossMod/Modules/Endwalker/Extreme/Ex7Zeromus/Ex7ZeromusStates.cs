@@ -5,7 +5,7 @@ class Ex7ZeromusStates : StateMachineBuilder
     public Ex7ZeromusStates(BossModule module) : base(module)
     {
         SimplePhase(0, Phase1, "P1")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HP.Cur <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.RendTheRift) ?? false);
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead || Module.PrimaryActor.HPMP.CurHP <= 1 || (Module.PrimaryActor.CastInfo?.IsSpell(AID.RendTheRift) ?? false);
         DeathPhase(1, Phase2); // starts at around 25%
     }
 

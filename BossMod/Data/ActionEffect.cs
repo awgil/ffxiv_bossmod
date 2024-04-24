@@ -118,9 +118,12 @@ public unsafe struct ActionEffect
     public readonly int DamageHealValue => Value + ((Param4 & 0x40) != 0 ? Param3 * 0x10000 : 0); // for damage/heal effects
 }
 
+// TODO: convert to inline array
 public unsafe struct ActionEffects : IEnumerable<ActionEffect>
 {
-    private fixed ulong _effects[8];
+    public const int MaxCount = 8;
+
+    private fixed ulong _effects[MaxCount];
 
     public ulong this[int index]
     {

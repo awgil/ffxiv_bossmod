@@ -27,7 +27,7 @@ abstract class TankActions(Autorotation autorot, Actor player, uint[] unlockData
         IsOfftank = assignments[Autorot.WorldState.Party.ContentIDs[PartyState.PlayerSlot]] == PartyRolesConfig.Assignment.OT && Autorot.WorldState.Party.WithoutSlot().Any(a => a != Player && a.Role == Role.Tank);
     }
 
-    protected override void OnActionExecuted(ClientActionRequest request)
+    protected override void OnActionExecuted(in ClientActionRequest request)
     {
         if (request.Action.Type == ActionType.Spell && request.Action.ID is (uint)WAR.AID.Defiance or (uint)PLD.AID.IronWill)
             LastStanceSwap = Autorot.WorldState.CurrentTime;

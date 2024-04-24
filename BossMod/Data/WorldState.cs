@@ -11,12 +11,12 @@ public class WorldState
     public FrameState Frame;
     public ushort CurrentZone { get; private set; }
     public ushort CurrentCFCID { get; private set; }
-    public Dictionary<string, string> RSVEntries { get; init; } = [];
-    public WaymarkState Waymarks { get; init; } = new();
-    public ActorState Actors { get; init; } = new();
-    public PartyState Party { get; init; }
-    public ClientState Client { get; init; } = new();
-    public PendingEffects PendingEffects { get; init; } = new();
+    public readonly Dictionary<string, string> RSVEntries = [];
+    public readonly WaymarkState Waymarks = new();
+    public readonly ActorState Actors = new();
+    public readonly PartyState Party;
+    public readonly ClientState Client = new();
+    public readonly PendingEffects PendingEffects = new();
 
     public DateTime CurrentTime => Frame.Timestamp;
     public DateTime FutureTime(float deltaSeconds) => Frame.Timestamp.AddSeconds(deltaSeconds);
@@ -29,10 +29,10 @@ public class WorldState
     }
 
     // state modification
-    public event Action<Operation>? Modified;
+    public Event<Operation> Modified = new();
     public abstract class Operation
     {
-        public DateTime Timestamp; // TODO: this should be removed...
+        public DateTime Timestamp; // TODO: reconsider this field?..
 
         internal void Execute(WorldState ws)
         {
@@ -49,7 +49,7 @@ public class WorldState
     public void Execute(Operation op)
     {
         op.Execute(this);
-        Modified?.Invoke(op);
+        Modified.Fire(op);
     }
 
     // generate a set of operations that would turn default-constructed state into current state
@@ -72,7 +72,7 @@ public class WorldState
     }
 
     // implementation of operations
-    public event Action<OpFrameStart>? FrameStarted;
+    public Event<OpFrameStart> FrameStarted = new();
     public class OpFrameStart : Operation
     {
         public FrameState Frame;
@@ -83,7 +83,7 @@ public class WorldState
         {
             ws.Frame = Frame;
             ws.Client.Tick(Frame.Duration);
-            ws.FrameStarted?.Invoke(this);
+            ws.FrameStarted.Fire(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "FRAM")
@@ -97,20 +97,16 @@ public class WorldState
             .Emit(Frame.TickSpeedMultiplier);
     }
 
-    public event Action<OpUserMarker>? UserMarkerAdded;
+    public Event<OpUserMarker> UserMarkerAdded = new();
     public class OpUserMarker : Operation
     {
         public string Text = "";
 
-        protected override void Exec(WorldState ws)
-        {
-            ws.UserMarkerAdded?.Invoke(this);
-        }
-
+        protected override void Exec(WorldState ws) => ws.UserMarkerAdded.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "UMRK").Emit(Text);
     }
 
-    public event Action<OpRSVData>? RSVDataReceived;
+    public Event<OpRSVData> RSVDataReceived = new();
     public class OpRSVData : Operation
     {
         public string Key = "";
@@ -120,13 +116,13 @@ public class WorldState
         {
             Service.LuminaGameData?.Excel.RsvProvider.Add(Key, Value);
             ws.RSVEntries[Key] = Value;
-            ws.RSVDataReceived?.Invoke(this);
+            ws.RSVDataReceived.Fire(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "RSV ").Emit(Key).Emit(Value);
     }
 
-    public event Action<OpZoneChange>? CurrentZoneChanged;
+    public Event<OpZoneChange> CurrentZoneChanged = new();
     public class OpZoneChange : Operation
     {
         public ushort Zone;
@@ -136,14 +132,14 @@ public class WorldState
         {
             ws.CurrentZone = Zone;
             ws.CurrentCFCID = CFCID;
-            ws.CurrentZoneChanged?.Invoke(this);
+            ws.CurrentZoneChanged.Fire(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ZONE").Emit(Zone).Emit(CFCID);
     }
 
     // global events
-    public event Action<OpDirectorUpdate>? DirectorUpdate;
+    public Event<OpDirectorUpdate> DirectorUpdate = new();
     public class OpDirectorUpdate : Operation
     {
         public uint DirectorID;
@@ -153,25 +149,17 @@ public class WorldState
         public uint Param3;
         public uint Param4;
 
-        protected override void Exec(WorldState ws)
-        {
-            ws.DirectorUpdate?.Invoke(this);
-        }
-
+        protected override void Exec(WorldState ws) => ws.DirectorUpdate.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
     }
 
-    public event Action<OpEnvControl>? EnvControl;
+    public Event<OpEnvControl> EnvControl = new();
     public class OpEnvControl : Operation
     {
         public byte Index;
         public uint State;
 
-        protected override void Exec(WorldState ws)
-        {
-            ws.EnvControl?.Invoke(this);
-        }
-
+        protected override void Exec(WorldState ws) => ws.EnvControl.Fire(this);
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ENVC").Emit(Index, "X2").Emit(State, "X8");
     }
 }

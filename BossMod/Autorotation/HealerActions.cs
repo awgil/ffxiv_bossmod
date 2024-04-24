@@ -30,16 +30,16 @@ abstract class HealerActions(Autorotation autorot, Actor player, uint[] unlockDa
             var actor = Autorot.WorldState.Party[i];
             ref var state = ref PartyMemberStates[i];
             state.HaveRemovableDebuffs = false;
-            if (actor == null || actor.IsDead || actor.HP.Max == 0)
+            if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0)
             {
                 state.PredictedHPCur = state.PredictedHPDeficit = 0;
                 state.PredictedHPRatio = 1;
             }
             else
             {
-                state.PredictedHPCur = (int)actor.HP.Cur + Autorot.WorldState.PendingEffects.PendingHPDifference(actor.InstanceID);
-                state.PredictedHPDeficit = (int)actor.HP.Max - state.PredictedHPCur;
-                state.PredictedHPRatio = (float)state.PredictedHPCur / actor.HP.Max;
+                state.PredictedHPCur = (int)actor.HPMP.CurHP + Autorot.WorldState.PendingEffects.PendingHPDifference(actor.InstanceID);
+                state.PredictedHPDeficit = (int)actor.HPMP.MaxHP - state.PredictedHPCur;
+                state.PredictedHPRatio = (float)state.PredictedHPCur / actor.HPMP.MaxHP;
                 bool actorValidForEsuna = actor.IsTargetable && !incomingEsunas[i];
                 foreach (var s in actor.Statuses)
                 {

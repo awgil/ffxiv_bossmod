@@ -51,7 +51,7 @@ public sealed class Plugin : IDalamudPlugin
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
-        Service.Config.Modified += () => Service.Config.SaveToFile(dalamud.ConfigFile);
+        Service.Config.Modified.Subscribe(() => Service.Config.SaveToFile(dalamud.ConfigFile));
 
         BozjaInterop.Instance = new();
         ActionManagerEx.Instance = new(); // needs config

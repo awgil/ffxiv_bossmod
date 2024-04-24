@@ -10,15 +10,14 @@ class Actions : HealerActions
     public const int AutoActionSTHeal = AutoActionFirstCustom + 2;
     public const int AutoActionAOEHeal = AutoActionFirstCustom + 3;
 
-    private readonly WHMConfig _config;
     private readonly Rotation.State _state;
     private readonly Rotation.Strategy _strategy;
     private bool _allowDelayingNextGCD;
+    private readonly ConfigListener<WHMConfig> _config;
 
     public Actions(Autorotation autorot, Actor player)
         : base(autorot, player, Definitions.UnlockQuests, Definitions.SupportedActions)
     {
-        _config = Service.Config.Get<WHMConfig>();
         _state = new(autorot.WorldState);
         _strategy = new();
 
@@ -30,13 +29,12 @@ class Actions : HealerActions
 
         SupportedSpell(AID.DivineBenison).Condition = target => target != null && target.FindStatus(SID.DivineBenison, Player.InstanceID) == null; // check whether potential divine benison target doesn't already have it applied
 
-        _config.Modified += OnConfigModified;
-        OnConfigModified();
+        _config = Service.Config.GetAndSubscribe<WHMConfig>(OnConfigModified);
     }
 
     protected override void Dispose(bool disposing)
     {
-        _config.Modified -= OnConfigModified;
+        _config.Dispose();
         base.Dispose(disposing);
     }
 
@@ -68,7 +66,7 @@ class Actions : HealerActions
         _strategy.NumCure3Targets = _state.Unlocked(AID.Cure3) ? SmartCure3Target().Item2 : 0;
         _strategy.NumHolyTargets = _state.Unlocked(AID.Holy1) ? Autorot.Hints.NumPriorityTargetsInAOECircle(Player.Position, 8) : 0;
         _strategy.EnableAssize = AllowAssize(); // note: should be plannable...
-        _strategy.AllowReplacingHealWithMisery = _config.NeverOvercapBloodLilies && Autorot.PrimaryTarget?.Type == ActorType.Enemy;
+        _strategy.AllowReplacingHealWithMisery = _config.Data.NeverOvercapBloodLilies && Autorot.PrimaryTarget?.Type == ActorType.Enemy;
         _strategy.Heal = _strategy.AOE = false;
         _strategy.BestSTHeal = FindBestSTHealTarget();
         if (autoAction >= AutoActionFirstCustom)
@@ -92,7 +90,7 @@ class Actions : HealerActions
             case AutoActionAOE:
                 return Autorot.PrimaryTarget != null ? MakeResult(Rotation.GetNextBestAOEDamageGCD(_state, _strategy), Autorot.PrimaryTarget) : new();
             case AutoActionSTHeal:
-                return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), (_config.MouseoverFriendly ? SmartTargetFriendly(Autorot.PrimaryTarget) : Autorot.PrimaryTarget) ?? Player);
+                return MakeResult(Rotation.GetNextBestSTHealGCD(_state, _strategy), (_config.Data.MouseoverFriendly ? SmartTargetFriendly(Autorot.PrimaryTarget) : Autorot.PrimaryTarget) ?? Player);
             case AutoActionAOEHeal:
                 return MakeResult(Rotation.GetNextBestAOEHealGCD(_state, _strategy), SmartCure3Target().Item1 ?? Player);
             default:
@@ -206,7 +204,7 @@ class Actions : HealerActions
 
     private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, _state.ExpectedDia, Player.InstanceID).Left);
 
-    private void OnConfigModified()
+    private void OnConfigModified(WHMConfig config)
     {
         // placeholders
         //SupportedSpell(AID.Stone1).PlaceholderForAuto = SupportedSpell(AID.Stone2).PlaceholderForAuto = SupportedSpell(AID.Stone3).PlaceholderForAuto = SupportedSpell(AID.Stone4).PlaceholderForAuto
@@ -216,15 +214,15 @@ class Actions : HealerActions
         //SupportedSpell(AID.Medica1).PlaceholderForAuto = _config.FullRotation ? AutoActionAOEHeal : AutoActionNone;
 
         // raise replacement
-        SupportedSpell(AID.Raise).TransformAction = _config.SwiftFreeRaise ? () => ActionID.MakeSpell(SmartRaiseAction()) : null;
+        SupportedSpell(AID.Raise).TransformAction = config.SwiftFreeRaise ? () => ActionID.MakeSpell(SmartRaiseAction()) : null;
 
         // smart targets
         SupportedSpell(AID.Cure1).TransformTarget = SupportedSpell(AID.Cure2).TransformTarget = SupportedSpell(AID.Regen).TransformTarget
             = SupportedSpell(AID.AfflatusSolace).TransformTarget = SupportedSpell(AID.Raise).TransformTarget = SupportedSpell(AID.Esuna).TransformTarget
             = SupportedSpell(AID.Rescue).TransformTarget = SupportedSpell(AID.DivineBenison).TransformTarget = SupportedSpell(AID.Tetragrammaton).TransformTarget
             = SupportedSpell(AID.Benediction).TransformTarget = SupportedSpell(AID.Aquaveil).TransformTarget
-            = _config.MouseoverFriendly ? SmartTargetFriendly : null;
-        SupportedSpell(AID.Cure3).TransformTarget = _config.SmartCure3Target ? _ => SmartCure3Target().Item1 : _config.MouseoverFriendly ? SmartTargetFriendly : null;
+            = config.MouseoverFriendly ? SmartTargetFriendly : null;
+        SupportedSpell(AID.Cure3).TransformTarget = config.SmartCure3Target ? _ => SmartCure3Target().Item1 : config.MouseoverFriendly ? SmartTargetFriendly : null;
     }
 
     private AID SmartRaiseAction()

@@ -30,18 +30,14 @@ public class PartyState
 
     public PartyState(ActorState actorState)
     {
-        actorState.Added += actor =>
+        void assign(ulong instanceID, Actor? actor)
         {
-            var slot = FindSlot(actor.InstanceID);
+            var slot = FindSlot(instanceID);
             if (slot >= 0)
                 _actors[slot] = actor;
-        };
-        actorState.Removed += actor =>
-        {
-            var slot = FindSlot(actor.InstanceID);
-            if (slot >= 0)
-                _actors[slot] = null;
-        };
+        }
+        actorState.Added.Subscribe(actor => assign(actor.InstanceID, actor));
+        actorState.Removed.Subscribe(actor => assign(actor.InstanceID, null));
     }
 
     // select non-null and optionally alive raid members
@@ -84,7 +80,7 @@ public class PartyState
     }
 
     // implementation of operations
-    public event Action<OpModify>? Modified;
+    public Event<OpModify> Modified = new();
     public class OpModify : WorldState.Operation
     {
         public int Slot;
@@ -108,13 +104,13 @@ public class PartyState
                 ws.Party._contentIDs[Slot] = ContentID;
             ws.Party._actorIDs[Slot] = InstanceID;
             ws.Party._actors[Slot] = ws.Actors.Find(InstanceID);
-            ws.Party.Modified?.Invoke(this);
+            ws.Party.Modified.Fire(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "PAR ").Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
     }
 
-    public event Action<OpLimitBreakChange>? LimitBreakChanged;
+    public Event<OpLimitBreakChange> LimitBreakChanged = new();
     public class OpLimitBreakChange : WorldState.Operation
     {
         public int Cur;
@@ -124,7 +120,7 @@ public class PartyState
         {
             ws.Party.LimitBreakCur = Cur;
             ws.Party.LimitBreakMax = Max;
-            ws.Party.LimitBreakChanged?.Invoke(this);
+            ws.Party.LimitBreakChanged.Fire(this);
         }
 
         public override void Write(ReplayRecorder.Output output) => WriteTag(output, "LB  ").Emit(Cur).Emit(Max);

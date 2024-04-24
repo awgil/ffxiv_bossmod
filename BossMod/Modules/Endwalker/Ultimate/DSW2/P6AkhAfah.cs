@@ -9,7 +9,7 @@ class P6HPCheck(BossModule module) : BossComponent(module)
     {
         if (_nidhogg != null && _hraesvelgr != null)
         {
-            var diff = (int)(_nidhogg.HP.Cur - _hraesvelgr.HP.Cur) * 100.0f / _nidhogg.HP.Max;
+            var diff = (int)(_nidhogg.HPMP.CurHP - _hraesvelgr.HPMP.CurHP) * 100.0f / _nidhogg.HPMP.MaxHP;
             hints.Add($"Nidhogg HP: {(diff > 0 ? "+" : "")}{diff:f1}%");
         }
     }

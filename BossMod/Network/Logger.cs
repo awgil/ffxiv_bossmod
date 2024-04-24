@@ -25,33 +25,18 @@ public sealed class Logger : IDisposable
 
     private readonly OpcodeMap _opcodeMap = new();
     private readonly PacketInterceptor _interceptor = new();
-    private readonly ReplayManagementConfig _config;
+    private readonly ConfigListener<ReplayManagementConfig> _config;
 
     public Logger(DirectoryInfo logDir)
     {
-        _config = Service.Config.Get<ReplayManagementConfig>();
-        _config.Modified += ApplyConfig;
+        _interceptor.ServerIPCReceived += ServerIPCReceived;
+        _config = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config => _interceptor.Active = config.DumpServerPackets);
     }
 
     public void Dispose()
     {
-        _config.Modified -= ApplyConfig;
-        _interceptor.ServerIPCReceived -= ServerIPCReceived;
+        _config.Dispose();
         _interceptor.Dispose();
-    }
-
-    private void ApplyConfig()
-    {
-        if (_config.DumpServerPackets && !_interceptor.Active)
-        {
-            _interceptor.ServerIPCReceived += ServerIPCReceived;
-            _interceptor.Active = true;
-        }
-        else if (!_config.DumpServerPackets && _interceptor.Active)
-        {
-            _interceptor.Active = false;
-            _interceptor.ServerIPCReceived -= ServerIPCReceived;
-        }
     }
 
     private unsafe void ServerIPCReceived(DateTime sendTimestamp, uint sourceServerActor, uint targetServerActor, ushort opcode, uint epoch, Span<byte> payload)

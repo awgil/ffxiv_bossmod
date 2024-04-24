@@ -22,14 +22,14 @@ public class ColumnActorHP : Timeline.ColumnGroup, IToggleableColumn
 
         var initial = actor.HPMPAt(enc.Time.Start);
         DateTime prevTime = enc.Time.Start;
-        ActorHP prevHP = initial.hp;
+        var prevHPMP = initial;
         foreach (var h in actor.HPMPHistory.SkipWhile(e => e.Key <= enc.Time.Start).TakeWhile(e => e.Key < enc.Time.End))
         {
-            AddRange(enc.Time.Start, prevTime, h.Key, initial.hp.Max, prevHP);
+            AddRange(enc.Time.Start, prevTime, h.Key, initial.MaxHP, prevHPMP);
             prevTime = h.Key;
-            prevHP = h.Value.hp;
+            prevHPMP = h.Value;
         }
-        AddRange(enc.Time.Start, prevTime, enc.Time.End, initial.hp.Max, actor.HPMPAt(enc.Time.End).hp);
+        AddRange(enc.Time.Start, prevTime, enc.Time.End, initial.MaxHP, actor.HPMPAt(enc.Time.End));
 
         foreach (var a in replay.EncounterActions(enc))
         {
@@ -59,21 +59,21 @@ public class ColumnActorHP : Timeline.ColumnGroup, IToggleableColumn
         }
     }
 
-    private void AddRange(DateTime encStart, DateTime rangeStart, DateTime rangeEnd, uint initialMax, ActorHP hp)
+    private void AddRange(DateTime encStart, DateTime rangeStart, DateTime rangeEnd, uint initialMax, ActorHPMP hpmp)
     {
-        if (hp.Cur == 0)
+        if (hpmp.CurHP == 0)
             return;
 
-        var pctFromInitial = (float)hp.Cur / initialMax;
-        var text = $"{hp.Cur}+{hp.Shield}/{hp.Max} ({pctFromInitial * 100:f2}%)";
+        var pctFromInitial = (float)hpmp.CurHP / initialMax;
+        var text = $"{hpmp.CurHP}+{hpmp.Shield}/{hpmp.MaxHP} ({pctFromInitial * 100:f2}%)";
         _hpBase.AddHistoryEntryRange(encStart, rangeStart, rangeEnd, text, 0x80808080, Math.Min(pctFromInitial, 1));
         if (pctFromInitial > 1)
         {
             _hpExtended.AddHistoryEntryRange(encStart, rangeStart, rangeEnd, text, 0x8080ff80, Math.Min(pctFromInitial - 1, 1));
         }
-        if (hp.Shield > 0)
+        if (hpmp.Shield > 0)
         {
-            _shield.AddHistoryEntryRange(encStart, rangeStart, rangeEnd, text, 0x80008080, Math.Min((float)hp.Shield / initialMax, 1));
+            _shield.AddHistoryEntryRange(encStart, rangeStart, rangeEnd, text, 0x80008080, Math.Min((float)hpmp.Shield / initialMax, 1));
         }
     }
 }
