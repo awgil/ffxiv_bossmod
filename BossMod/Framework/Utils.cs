@@ -54,6 +54,7 @@ public static partial class Utils
     public static unsafe bool GameObjectIsFriendly(GameObject obj) => GameObjectIsFriendlyFunc(GameObjectInternal(obj)) != 0;
     public static unsafe byte GameObjectEventState(GameObject obj) => ReadField<byte>(GameObjectInternal(obj), 0x70); // see actor control 106
     public static unsafe float GameObjectRadius(GameObject obj) => GameObjectInternal(obj)->GetRadius();
+    public static unsafe uint GameObjectFateID(GameObject obj) => GameObjectInternal(obj)->FateId;
     //public static unsafe Vector3 GameObjectNonInterpolatedPosition(GameObject obj) => ReadField<Vector3>(GameObjectInternal(obj), 0x10);
     //public static unsafe float GameObjectNonInterpolatedRotation(GameObject obj) => ReadField<float>(GameObjectInternal(obj), 0x20);
     public static unsafe byte CharacterShieldValue(Character chr) => ReadField<byte>(CharacterInternal(chr), 0x1A0 + 0x46); // CharacterInternal(chr)->ShieldValue; // % of max hp; see effect result

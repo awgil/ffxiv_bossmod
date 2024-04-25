@@ -322,6 +322,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLCD"u8)] = ParseCooldown,
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
+            [new("CLAF"u8)] = ParseClientActiveFate,
         };
     }
 
@@ -441,7 +442,8 @@ public sealed class ReplayParserLog : IDisposable
                 hpmp,
                 targetable,
                 ally,
-                owner
+                owner,
+                0
             );
         }
         else
@@ -461,7 +463,8 @@ public sealed class ReplayParserLog : IDisposable
                 new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false)),
                 _input.ReadBool(),
                 _input.ReadBool(),
-                _input.ReadActorID()
+                _input.ReadActorID(),
+                _version >= 14 ? _input.ReadUInt(false) : 0
             );
         }
     }
@@ -609,6 +612,8 @@ public sealed class ReplayParserLog : IDisposable
             contents.Add(((BozjaHolsterID)_input.ReadByte(false), _input.ReadByte(false)));
         return new(contents);
     }
+
+    private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat()));
 
     private ActorHPMP ReadActorHPMP()
     {

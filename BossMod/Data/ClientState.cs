@@ -32,12 +32,15 @@ public record struct Cooldown(float Elapsed, float Total)
 // this is generally not available for non-player party members, but we can try to guess
 public sealed class ClientState
 {
+    public readonly record struct Fate(uint ID, Vector3 Center, float Radius);
+
     public const int NumCooldownGroups = 82;
 
     public float? CountdownRemaining;
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
     public readonly ActionID[] DutyActions = new ActionID[2];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
+    public Fate ActiveFate;
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
@@ -163,5 +166,16 @@ public sealed class ClientState
             foreach (var e in Contents)
                 output.Emit((byte)e.entry).Emit(e.count);
         }
+    }
+
+    public Event<OpActiveFateChange> ActiveFateChanged = new();
+    public sealed record class OpActiveFateChange(Fate Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.ActiveFate = Value;
+            ws.Client.ActiveFateChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3");
     }
 }

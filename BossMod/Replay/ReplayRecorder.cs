@@ -157,7 +157,7 @@ public sealed class ReplayRecorder : IDisposable
     private readonly Output _logger;
     private readonly EventSubscription _subscription;
 
-    public const int Version = 13;
+    public const int Version = 14;
 
     public ReplayRecorder(WorldState ws, ReplayLogFormat format, bool logInitialState, DirectoryInfo targetDirectory, string logPrefix)
     {

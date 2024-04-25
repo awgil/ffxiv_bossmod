@@ -2,6 +2,7 @@
 using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace BossMod;
@@ -200,7 +201,7 @@ sealed class WorldStateGameSync : IDisposable
         if (act == null)
         {
             var type = (ActorType)(((int)obj.ObjectKind << 8) + obj.SubKind);
-            _ws.Execute(new ActorState.OpCreate(obj.ObjectId, obj.DataId, index, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj.OwnerId)));
+            _ws.Execute(new ActorState.OpCreate(obj.ObjectId, obj.DataId, index, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj.OwnerId), Utils.GameObjectFateID(obj)));
             act = _actorsByIndex[index] = _ws.Actors.Find(obj.ObjectId)!;
 
             // note: for now, we continue relying on network messages for tether changes, since sometimes multiple changes can happen in a single frame, and some components rely on seeing all of them...
@@ -364,7 +365,7 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new PartyState.OpModify(slot, contentID, instanceID));
     }
 
-    private void UpdateClient()
+    private unsafe void UpdateClient()
     {
         var countdown = Countdown.TimeRemaining();
         if (_ws.Client.CountdownRemaining != countdown)
@@ -388,6 +389,11 @@ sealed class WorldStateGameSync : IDisposable
         BozjaInterop.FetchHolster(bozjaHolster);
         if (!MemoryExtensions.SequenceEqual(_ws.Client.BozjaHolster.AsSpan(), bozjaHolster))
             _ws.Execute(new ClientState.OpBozjaHolsterChange(CalcBozjaHolster(bozjaHolster)));
+
+        var curFate = FateManager.Instance()->CurrentFate;
+        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius) : default;
+        if (_ws.Client.ActiveFate != activeFate)
+            _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
     }
 
     private ulong SanitizedObjectID(ulong raw) => raw != GameObject.InvalidGameObjectId ? raw : 0;
