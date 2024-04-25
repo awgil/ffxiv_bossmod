@@ -7,6 +7,7 @@ public enum OID : uint
     FireVoidzone = 0x1E8D9B,
     Helper = 0x233C,
 }
+
 public enum AID : uint
 {
     LawOfTheTorch = 18838, // Boss->self, 3,0s cast, range 34 20-degree cone

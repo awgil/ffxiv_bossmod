@@ -90,7 +90,7 @@ class FluidConvectionDynamic(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (shape != default)
-            yield return new(shape, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, _activation);
+            yield return new(shape, Module.PrimaryActor.Position, default, _activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
