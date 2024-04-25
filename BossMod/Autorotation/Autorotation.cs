@@ -90,7 +90,7 @@ sealed class Autorotation : IDisposable
             if (activeModule != null)
                 activeModule.CalculateAIHints(PartyState.PlayerSlot, player, playerAssignment, Hints);
             else
-                _autoHints.CalculateAIHints(Hints, player.Position);
+                _autoHints.CalculateAIHints(Hints, player);
         }
         Hints.Normalize();
         if (Hints.ForcedTarget != null && PrimaryTarget != Hints.ForcedTarget)

@@ -10,7 +10,7 @@ public class AIHints
         public const int PriorityForbidFully = -2; // attacking this enemy is forbidden both by ai or player (e.g. invulnerable, or attacking/killing might lead to a wipe)
 
         public Actor Actor = actor;
-        public int Priority = actor.InCombat ? 0 : PriorityForbidAI; // <0 means damaging is actually forbidden, 0 is default
+        public int Priority = actor.InCombat || actor.FateID != 0 ? 0 : PriorityForbidAI; // <0 means damaging is actually forbidden, 0 is default (TODO: revise default...)
         //public float TimeToKill;
         public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
         public WPos DesiredPosition = actor.Position; // tank AI will try to move enemy to this position
@@ -73,9 +73,11 @@ public class AIHints
     // fill list of potential targets from world state
     public void FillPotentialTargets(WorldState ws, bool playerIsDefaultTank)
     {
-        foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead))
+        bool playerInFate = ws.Client.ActiveFate.ID != 0 && ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
+        var allowedFateID = playerInFate ? ws.Client.ActiveFate.ID : 0;
+        foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && (a.FateID == 0 || a.FateID == allowedFateID)))
         {
-            PotentialTargets.Add(new(actor, playerIsDefaultTank));
+            PotentialTargets.Add(new(actor, playerIsDefaultTank && (actor.InCombat || actor.FateID != 0)));
         }
     }
 
