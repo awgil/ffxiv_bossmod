@@ -40,8 +40,6 @@ public sealed class WorldState
             Timestamp = ws.CurrentTime;
         }
 
-        protected ReplayRecorder.Output WriteTag(ReplayRecorder.Output output, string tag) => output.Entry(tag, Timestamp);
-
         protected abstract void Exec(WorldState ws);
         public abstract void Write(ReplayRecorder.Output output);
     }
@@ -81,7 +79,7 @@ public sealed class WorldState
             ws.Client.Tick(Frame.Duration);
             ws.FrameStarted.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "FRAM")
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FRAM"u8)
             .Emit(PrevUpdateTime.TotalMilliseconds, "f3")
             .Emit()
             .Emit(GaugePayload, "X16")
@@ -96,7 +94,7 @@ public sealed class WorldState
     public sealed record class OpUserMarker(string Text) : Operation
     {
         protected override void Exec(WorldState ws) => ws.UserMarkerAdded.Fire(this);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "UMRK").Emit(Text);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("UMRK"u8).Emit(Text);
     }
 
     public Event<OpRSVData> RSVDataReceived = new();
@@ -108,7 +106,7 @@ public sealed class WorldState
             ws.RSVEntries[Key] = Value;
             ws.RSVDataReceived.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "RSV ").Emit(Key).Emit(Value);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("RSV "u8).Emit(Key).Emit(Value);
     }
 
     public Event<OpZoneChange> CurrentZoneChanged = new();
@@ -120,7 +118,7 @@ public sealed class WorldState
             ws.CurrentCFCID = CFCID;
             ws.CurrentZoneChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ZONE").Emit(Zone).Emit(CFCID);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ZONE"u8).Emit(Zone).Emit(CFCID);
     }
 
     // global events
@@ -128,13 +126,13 @@ public sealed class WorldState
     public sealed record class OpDirectorUpdate(uint DirectorID, uint UpdateID, uint Param1, uint Param2, uint Param3, uint Param4) : Operation
     {
         protected override void Exec(WorldState ws) => ws.DirectorUpdate.Fire(this);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "DIRU").Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("DIRU"u8).Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
     }
 
     public Event<OpEnvControl> EnvControl = new();
     public sealed record class OpEnvControl(byte Index, uint State) : Operation
     {
         protected override void Exec(WorldState ws) => ws.EnvControl.Fire(this);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ENVC").Emit(Index, "X2").Emit(State, "X8");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ENVC"u8).Emit(Index, "X2").Emit(State, "X8");
     }
 }

@@ -15,9 +15,10 @@ public sealed class ReplayRecorder : IDisposable
         }
 
         protected abstract void Dispose(bool disposing);
-        public abstract Output Entry(string tag, DateTime t);
+        public abstract void StartEntry(DateTime t);
         public abstract Output Emit();
         public abstract Output Emit(string v);
+        public abstract Output Emit(FourCC v);
         public abstract Output Emit(float v, string format = "g9");
         public abstract Output Emit(double v, string format = "g17");
         public abstract Output Emit(Vector3 v);
@@ -40,27 +41,24 @@ public sealed class ReplayRecorder : IDisposable
         public abstract Output EmitActor(ulong instanceID);
         public abstract void EndEntry();
         public abstract void Flush();
+
+        public Output EmitFourCC(ReadOnlySpan<byte> v) => Emit(new FourCC(v));
     }
 
-    public class TextOutput(Stream dest, ActorState? actorLookup) : Output
+    public sealed class TextOutput(Stream dest, ActorState? actorLookup) : Output
     {
         private readonly StreamWriter _dest = new(dest);
         private DateTime _curEntry;
 
-        protected override void Dispose(bool disposing)
-        {
-            _dest.Dispose();
-        }
-
-        public override Output Entry(string tag, DateTime t)
+        protected override void Dispose(bool disposing) => _dest.Dispose();
+        public override void StartEntry(DateTime t)
         {
             _curEntry = t;
             _dest.Write(t.ToString("O"));
-            return WriteEntry(tag);
         }
-
         public override Output Emit() => WriteEntry("");
         public override Output Emit(string v) => WriteEntry(v);
+        public override Output Emit(FourCC v) => WriteEntry(v.ToString());
         public override Output Emit(float v, string format) => WriteEntry(v.ToString(format));
         public override Output Emit(double v, string format) => WriteEntry(v.ToString(format));
         public override Output Emit(Vector3 v) => WriteEntry($"{v.X:f3}/{v.Y:f3}/{v.Z:f3}");
@@ -112,24 +110,15 @@ public sealed class ReplayRecorder : IDisposable
         }
     }
 
-    public class BinaryOutput(Stream dest) : Output
+    public sealed class BinaryOutput(Stream dest) : Output
     {
         private readonly BinaryWriter _dest = new(dest);
 
-        protected override void Dispose(bool disposing)
-        {
-            _dest.Dispose();
-        }
-
-        public override Output Entry(string tag, DateTime t)
-        {
-            foreach (var c in tag)
-                _dest.Write((byte)c);
-            return this;
-        }
-
+        protected override void Dispose(bool disposing) => _dest.Dispose();
+        public override void StartEntry(DateTime t) { }
         public override Output Emit() => this;
         public override Output Emit(string v) { _dest.Write(v); return this; }
+        public override Output Emit(FourCC v) { _dest.Write(v.Value); return this; }
         public override Output Emit(float v, string format) { _dest.Write(v); return this; }
         public override Output Emit(double v, string format) { _dest.Write(v); return this; }
         public override Output Emit(Vector3 v) { _dest.Write(v.X); _dest.Write(v.Y); _dest.Write(v.Z); return this; }
@@ -178,12 +167,12 @@ public sealed class ReplayRecorder : IDisposable
         switch (format)
         {
             case ReplayLogFormat.BinaryCompressed:
-                WriteHeader(stream, "BLCB");// bossmod log compressed brotli
+                WriteHeader(stream, ReplayLogFormatMagic.CompressedBinary);
                 stream = new BrotliStream(stream, CompressionLevel.Optimal, false);
                 _logger = new BinaryOutput(stream);
                 break;
             case ReplayLogFormat.BinaryUncompressed:
-                WriteHeader(stream, "BLOG");// bossmod log
+                WriteHeader(stream, ReplayLogFormatMagic.RawBinary);
                 _logger = new BinaryOutput(stream);
                 break;
             case ReplayLogFormat.TextCondensed:
@@ -197,7 +186,8 @@ public sealed class ReplayRecorder : IDisposable
         }
 
         // log initial state
-        _logger.Entry("VER ", _ws.CurrentTime).Emit(Version).Emit(_ws.QPF).Emit(_ws.GameVersion);
+        _logger.StartEntry(_ws.CurrentTime);
+        _logger.EmitFourCC("VER "u8).Emit(Version).Emit(_ws.QPF).Emit(_ws.GameVersion);
         if (_logger is BinaryOutput)
             _logger.Emit(_ws.CurrentTime.Ticks);
         _logger.EndEntry();
@@ -220,14 +210,19 @@ public sealed class ReplayRecorder : IDisposable
         _logger.Dispose();
     }
 
-    private void WriteHeader(Stream stream, string header)
+    private unsafe void WriteHeader(Stream stream, FourCC magic)
     {
-        foreach (var c in header)
-            stream.WriteByte((byte)c);
+        Span<byte> buf = stackalloc byte[4];
+        fixed (byte* raw = &buf[0])
+        {
+            *(uint*)raw = magic.Value;
+            stream.Write(buf);
+        }
     }
 
     private void Log(WorldState.Operation op)
     {
+        _logger.StartEntry(op.Timestamp);
         op.Write(_logger);
         _logger.EndEntry();
     }

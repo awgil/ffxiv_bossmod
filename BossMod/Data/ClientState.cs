@@ -75,7 +75,7 @@ public sealed class ClientState
     public sealed record class OpActionRequest(ClientActionRequest Request) : WorldState.Operation
     {
         protected override void Exec(WorldState ws) => ws.Client.ActionRequested.Fire(this);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLAR")
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAR"u8)
             .Emit(Request.Action)
             .EmitActor(Request.TargetID)
             .Emit(Request.TargetPos)
@@ -89,7 +89,7 @@ public sealed class ClientState
     public sealed record class OpActionReject(ClientActionReject Value) : WorldState.Operation
     {
         protected override void Exec(WorldState ws) => ws.Client.ActionRejected.Fire(this);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLRJ")
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLRJ"u8)
             .Emit(Value.Action)
             .Emit(Value.SourceSequence)
             .EmitFloatPair(Value.RecastElapsed, Value.RecastTotal)
@@ -107,9 +107,9 @@ public sealed class ClientState
         public override void Write(ReplayRecorder.Output output)
         {
             if (Value != null)
-                WriteTag(output, "CDN+").Emit(Value.Value);
+                output.EmitFourCC("CDN+"u8).Emit(Value.Value);
             else
-                WriteTag(output, "CDN-");
+                output.EmitFourCC("CDN-"u8);
         }
     }
 
@@ -126,7 +126,7 @@ public sealed class ClientState
         }
         public override void Write(ReplayRecorder.Output output)
         {
-            WriteTag(output, "CLCD");
+            output.EmitFourCC("CLCD"u8);
             output.Emit(Reset);
             output.Emit((byte)Cooldowns.Count);
             foreach (var e in Cooldowns)
@@ -143,7 +143,7 @@ public sealed class ClientState
             ws.Client.DutyActions[1] = Slot1;
             ws.Client.DutyActionsChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLDA").Emit(Slot0).Emit(Slot1);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0).Emit(Slot1);
     }
 
     public Event<OpBozjaHolsterChange> BozjaHolsterChanged = new();
@@ -158,7 +158,7 @@ public sealed class ClientState
         }
         public override void Write(ReplayRecorder.Output output)
         {
-            WriteTag(output, "CLBH");
+            output.EmitFourCC("CLBH"u8);
             output.Emit((byte)Contents.Count);
             foreach (var e in Contents)
                 output.Emit((byte)e.entry).Emit(e.count);

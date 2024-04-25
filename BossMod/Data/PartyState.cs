@@ -102,7 +102,7 @@ public sealed class PartyState
             ws.Party._actors[Slot] = ws.Actors.Find(InstanceID);
             ws.Party.Modified.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "PAR ").Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PAR "u8).Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
     }
 
     public Event<OpLimitBreakChange> LimitBreakChanged = new();
@@ -114,6 +114,6 @@ public sealed class PartyState
             ws.Party.LimitBreakMax = Max;
             ws.Party.LimitBreakChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "LB  ").Emit(Cur).Emit(Max);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("LB  "u8).Emit(Cur).Emit(Max);
     }
 }

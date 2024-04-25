@@ -17,7 +17,7 @@ public sealed class ReplayParserLog : IDisposable
         }
 
         protected virtual void Dispose(bool disposing) { }
-        public abstract string NextEntry();
+        public abstract FourCC NextEntry();
         public abstract bool CanRead();
         public abstract void ReadVoid();
         public abstract string ReadString();
@@ -56,7 +56,7 @@ public sealed class ReplayParserLog : IDisposable
             base.Dispose(disposing);
         }
 
-        public override string NextEntry()
+        public override FourCC NextEntry()
         {
             while (_input.ReadLine() is var line && line != null)
             {
@@ -67,11 +67,16 @@ public sealed class ReplayParserLog : IDisposable
                 if (_line.Length < 2)
                     continue; // invalid string
 
+                var tag = _line[1];
+                if (tag.Length != 4)
+                    continue; // invalid tag
+
                 Timestamp = DateTime.Parse(_line[0]);
                 _nextPayload = 2;
-                return _line[1];
+                Span<byte> fourcc = [(byte)tag[0], (byte)tag[1], (byte)tag[2], (byte)tag[3]];
+                return new(fourcc);
             }
-            return "";
+            return default;
         }
 
         public override bool CanRead() => _nextPayload < _line.Length;
@@ -150,17 +155,15 @@ public sealed class ReplayParserLog : IDisposable
             base.Dispose(disposing);
         }
 
-        public override string NextEntry()
+        public override FourCC NextEntry()
         {
             try
             {
-                var headerRaw = _input.ReadUInt32();
-                var header = new byte[] { (byte)headerRaw, (byte)(headerRaw >> 8), (byte)(headerRaw >> 16), (byte)(headerRaw >> 24) };
-                return Encoding.UTF8.GetString(header);
+                return new(_input.ReadUInt32());
             }
             catch (EndOfStreamException)
             {
-                return "";
+                return default;
             }
         }
 
@@ -208,15 +211,16 @@ public sealed class ReplayParserLog : IDisposable
         {
             Input? input = null;
             Stream rawStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var header = new byte[4];
-            if (rawStream.Read(header, 0, header.Length) == header.Length)
+            Span<byte> header = stackalloc byte[4];
+            if (rawStream.Read(header) == header.Length)
             {
-                if (header[0] == 'B' && header[1] == 'L' && header[2] == 'C' && header[3] == 'B')
+                var headerMagic = new FourCC(header);
+                if (headerMagic == ReplayLogFormatMagic.CompressedBinary)
                 {
                     var decompressStream = new BrotliStream(rawStream, CompressionMode.Decompress, false);
                     input = new BinaryInput(decompressStream);
                 }
-                else if (header[0] == 'B' && header[1] == 'L' && header[2] == 'O' && header[3] == 'G')
+                else if (headerMagic == ReplayLogFormatMagic.RawBinary)
                 {
                     input = new BinaryInput(rawStream);
                 }
@@ -251,6 +255,7 @@ public sealed class ReplayParserLog : IDisposable
 
     private readonly Input _input;
     private readonly ReplayBuilder _builder;
+    private readonly Dictionary<FourCC, Func<WorldState.Operation?>> _dispatch;
     private int _version;
     private DateTime _tsStart;
     private ulong _qpcStart;
@@ -262,6 +267,62 @@ public sealed class ReplayParserLog : IDisposable
     {
         _input = input;
         _builder = builder;
+        _dispatch = new()
+        {
+            [new("VER "u8)] = ParseVersion,
+            [new("FRAM"u8)] = ParseFrameStart,
+            [new("UMRK"u8)] = ParseUserMarker,
+            [new("RSV "u8)] = ParseRSVData,
+            [new("ZONE"u8)] = ParseZoneChange,
+            [new("DIRU"u8)] = ParseDirectorUpdate,
+            [new("ENVC"u8)] = ParseEnvControl,
+            [new("WAY+"u8)] = () => ParseWaymarkChange(true),
+            [new("WAY-"u8)] = () => ParseWaymarkChange(false),
+            [new("ACT+"u8)] = ParseActorCreate,
+            [new("ACT-"u8)] = ParseActorDestroy,
+            [new("NAME"u8)] = ParseActorRename,
+            [new("CLSR"u8)] = ParseActorClassChange,
+            [new("MOVE"u8)] = ParseActorMove,
+            [new("ACSZ"u8)] = ParseActorSizeChange,
+            [new("HP  "u8)] = ParseActorHPMP,
+            [new("ATG+"u8)] = () => ParseActorTargetable(true),
+            [new("ATG-"u8)] = () => ParseActorTargetable(false),
+            [new("ALLY"u8)] = ParseActorAlly,
+            [new("DIE+"u8)] = () => ParseActorDead(true),
+            [new("DIE-"u8)] = () => ParseActorDead(false),
+            [new("COM+"u8)] = () => ParseActorCombat(true),
+            [new("COM-"u8)] = () => ParseActorCombat(false),
+            [new("MDLS"u8)] = ParseActorModelState,
+            [new("EVTS"u8)] = ParseActorEventState,
+            [new("TARG"u8)] = ParseActorTarget,
+            [new("TETH"u8)] = () => ParseActorTether(true),
+            [new("TET+"u8)] = () => ParseActorTether(true), // legacy (up to v4)
+            [new("TET-"u8)] = () => ParseActorTether(false), // legacy (up to v4)
+            [new("CST+"u8)] = () => ParseActorCastInfo(true),
+            [new("CST-"u8)] = () => ParseActorCastInfo(false),
+            [new("CST!"u8)] = ParseActorCastEvent,
+            [new("ER  "u8)] = ParseActorEffectResult,
+            [new("STA+"u8)] = () => ParseActorStatus(true),
+            [new("STA-"u8)] = () => ParseActorStatus(false),
+            [new("STA!"u8)] = () => ParseActorStatus(true),
+            [new("ICON"u8)] = ParseActorIcon,
+            [new("ESTA"u8)] = ParseActorEventObjectStateChange,
+            [new("EANM"u8)] = ParseActorEventObjectAnimation,
+            [new("PATE"u8)] = ParseActorPlayActionTimelineEvent,
+            [new("NYEL"u8)] = ParseActorEventNpcYell,
+            [new("PAR "u8)] = ParsePartyModify,
+            [new("PAR+"u8)] = ParsePartyModify, // legacy (up to v3)
+            [new("PAR-"u8)] = ParsePartyLeave, // legacy (up to v3)
+            [new("PAR!"u8)] = ParsePartyModify, // legacy (up to v3)
+            [new("LB  "u8)] = ParsePartyLimitBreak,
+            [new("CLAR"u8)] = ParseClientActionRequest,
+            [new("CLRJ"u8)] = ParseClientActionReject,
+            [new("CDN+"u8)] = () => ParseClientCountdown(true),
+            [new("CDN-"u8)] = () => ParseClientCountdown(false),
+            [new("CLCD"u8)] = ParseCooldown,
+            [new("CLDA"u8)] = ParseClientDutyActions,
+            [new("CLBH"u8)] = ParseClientBozjaHolster,
+        };
     }
 
     public void Dispose() => _input.Dispose();
@@ -269,8 +330,8 @@ public sealed class ReplayParserLog : IDisposable
     private bool ParseLine()
     {
         var tag = _input.NextEntry();
-        if (tag.Length < 4)
-            return false;
+        if (tag == default)
+            return false; // end of replay
 
         if (_version is > 0 and < 5 && _input is TextInput ti && _legacyPrevTS < ti.Timestamp)
         {
@@ -278,67 +339,17 @@ public sealed class ReplayParserLog : IDisposable
             _legacyPrevTS = ti.Timestamp;
         }
 
-        switch (tag)
-        {
-            case "VER ": ParseVersion(); break;
-            case "FRAM": ParseFrameStart(); break;
-            case "UMRK": ParseUserMarker(); break;
-            case "RSV ": ParseRSVData(); break;
-            case "ZONE": ParseZoneChange(); break;
-            case "DIRU": ParseDirectorUpdate(); break;
-            case "ENVC": ParseEnvControl(); break;
-            case "WAY+": ParseWaymarkChange(true); break;
-            case "WAY-": ParseWaymarkChange(false); break;
-            case "ACT+": ParseActorCreate(); break;
-            case "ACT-": ParseActorDestroy(); break;
-            case "NAME": ParseActorRename(); break;
-            case "CLSR": ParseActorClassChange(); break;
-            case "MOVE": ParseActorMove(); break;
-            case "ACSZ": ParseActorSizeChange(); break;
-            case "HP  ": ParseActorHPMP(); break;
-            case "ATG+": ParseActorTargetable(true); break;
-            case "ATG-": ParseActorTargetable(false); break;
-            case "ALLY": ParseActorAlly(); break;
-            case "DIE+": ParseActorDead(true); break;
-            case "DIE-": ParseActorDead(false); break;
-            case "COM+": ParseActorCombat(true); break;
-            case "COM-": ParseActorCombat(false); break;
-            case "MDLS": ParseActorModelState(); break;
-            case "EVTS": ParseActorEventState(); break;
-            case "TARG": ParseActorTarget(); break;
-            case "TETH": ParseActorTether(true); break;
-            case "TET+": ParseActorTether(true); break; // legacy (up to v4)
-            case "TET-": ParseActorTether(false); break; // legacy (up to v4)
-            case "CST+": ParseActorCastInfo(true); break;
-            case "CST-": ParseActorCastInfo(false); break;
-            case "CST!": ParseActorCastEvent(); break;
-            case "ER  ": ParseActorEffectResult(); break;
-            case "STA+": ParseActorStatus(true); break;
-            case "STA-": ParseActorStatus(false); break;
-            case "STA!": ParseActorStatus(true); break;
-            case "ICON": ParseActorIcon(); break;
-            case "ESTA": ParseActorEventObjectStateChange(); break;
-            case "EANM": ParseActorEventObjectAnimation(); break;
-            case "PATE": ParseActorPlayActionTimelineEvent(); break;
-            case "NYEL": ParseActorEventNpcYell(); break;
-            case "PAR ": ParsePartyModify(); break;
-            case "PAR+": ParsePartyModify(); break; // legacy (up to v3)
-            case "PAR-": ParsePartyLeave(); break; // legacy (up to v3)
-            case "PAR!": ParsePartyModify(); break; // legacy (up to v3)
-            case "LB  ": ParsePartyLimitBreak(); break;
-            case "CLAR": ParseClientActionRequest(); break;
-            case "CLRJ": ParseClientActionReject(); break;
-            case "CDN+": ParseClientCountdown(true); break;
-            case "CDN-": ParseClientCountdown(false); break;
-            case "CLCD": ParseCooldown(); break;
-            case "CLDA": ParseClientDutyActions(); break;
-            case "CLBH": ParseClientBozjaHolster(); break;
-        }
+        if (!_dispatch.TryGetValue(tag, out var parse))
+            throw new InvalidOperationException($"Replay contains unsupported tag {tag}");
+
+        var op = parse();
+        if (op != null)
+            _builder.AddOp(op);
 
         return true;
     }
 
-    private void ParseVersion()
+    private WorldState.Operation? ParseVersion()
     {
         _version = _input.ReadInt();
         if (_version < 2)
@@ -348,9 +359,10 @@ public sealed class ReplayParserLog : IDisposable
         _tsStart = _input is TextInput ti ? ti.Timestamp : new(_input.ReadLong());
         _invQPF = 1.0 / qpf;
         _builder.Start(qpf, gameVersion);
+        return null;
     }
 
-    private void ParseFrameStart()
+    private WorldState.OpFrameStart ParseFrameStart()
     {
         var frame = new FrameState();
         var prevUpdateTime = TimeSpan.FromMilliseconds(_input.ReadDouble());
@@ -382,30 +394,28 @@ public sealed class ReplayParserLog : IDisposable
             frame.TickSpeedMultiplier = 1;
             _legacyPrevTS = ti.Timestamp;
         }
-        _builder.AddOp(new WorldState.OpFrameStart(frame, prevUpdateTime, gauge));
+        return new(frame, prevUpdateTime, gauge);
     }
 
-    private void ParseUserMarker() => _builder.AddOp(new WorldState.OpUserMarker(_input.ReadString()));
-    private void ParseRSVData() => _builder.AddOp(new WorldState.OpRSVData(_input.ReadString(), _input.ReadString()));
-    private void ParseZoneChange() => _builder.AddOp(new WorldState.OpZoneChange(_input.ReadUShort(false), _version >= 13 ? _input.ReadUShort(false) : (ushort)0));
-    private void ParseDirectorUpdate() => _builder.AddOp(new WorldState.OpDirectorUpdate(
-        _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true)));
+    private WorldState.OpUserMarker ParseUserMarker() => new(_input.ReadString());
+    private WorldState.OpRSVData ParseRSVData() => new(_input.ReadString(), _input.ReadString());
+    private WorldState.OpZoneChange ParseZoneChange() => new(_input.ReadUShort(false), _version >= 13 ? _input.ReadUShort(false) : (ushort)0);
+    private WorldState.OpDirectorUpdate ParseDirectorUpdate()
+        => new(_input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true));
 
-    private void ParseEnvControl()
+    private WorldState.OpEnvControl ParseEnvControl()
     {
         // director id field is removed in v11
         if (_version < 11)
             _input.ReadUInt(true);
-        _builder.AddOp(new WorldState.OpEnvControl(_input.ReadByte(true), _input.ReadUInt(true)));
+        return new(_input.ReadByte(true), _input.ReadUInt(true));
     }
 
-    private void ParseWaymarkChange(bool set) => _builder.AddOp(new WaymarkState.OpWaymarkChange(
-        _version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false),
-        set ? _input.ReadVec3() : null));
+    private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
+        => new(_version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false), set ? _input.ReadVec3() : null);
 
-    private void ParseActorCreate()
+    private ActorState.OpCreate ParseActorCreate()
     {
-        ActorState.OpCreate op;
         if (_version < 10)
         {
             var parts = _input.ReadString().Split('/');
@@ -416,7 +426,7 @@ public sealed class ReplayParserLog : IDisposable
             var hpmp = _input.CanRead() ? ReadActorHPMP() : default;
             var ally = _input.CanRead() && _input.ReadBool();
             var spawnIndex = _input.CanRead() ? _input.ReadInt() : -1;
-            op = new
+            return new
             (
                 ulong.Parse(parts[0], NumberStyles.HexNumber),
                 uint.Parse(parts[1], NumberStyles.HexNumber),
@@ -436,7 +446,7 @@ public sealed class ReplayParserLog : IDisposable
         }
         else
         {
-            op = new
+            return new
             (
                 _input.ReadULong(true),
                 _input.ReadUInt(true),
@@ -454,61 +464,56 @@ public sealed class ReplayParserLog : IDisposable
                 _input.ReadActorID()
             );
         }
-        _builder.AddOp(op);
     }
 
-    private void ParseActorDestroy() => _builder.AddOp(new ActorState.OpDestroy(_input.ReadActorID()));
+    private ActorState.OpDestroy ParseActorDestroy() => new(_input.ReadActorID());
 
-    private void ParseActorRename()
+    private ActorState.OpRename ParseActorRename()
     {
-        ActorState.OpRename op;
         if (_version < 10)
         {
             var parts = _input.ReadString().Split('/');
-            op = new(ulong.Parse(parts[0], NumberStyles.HexNumber), parts[2], 0);
+            return new(ulong.Parse(parts[0], NumberStyles.HexNumber), parts[2], 0);
         }
         else
         {
-            op = new(_input.ReadULong(true), _input.ReadString(), _version >= 13 ? _input.ReadUInt(false) : 0);
+            return new(_input.ReadULong(true), _input.ReadString(), _version >= 13 ? _input.ReadUInt(false) : 0);
         }
-        _builder.AddOp(op);
     }
 
-    private void ParseActorClassChange()
+    private ActorState.OpClassChange ParseActorClassChange()
     {
         var instanceID = _input.ReadActorID();
         _input.ReadVoid();
-        _builder.AddOp(new ActorState.OpClassChange(instanceID, _input.ReadClass(), _version < 12 ? 0 : _input.ReadInt()));
+        return new(instanceID, _input.ReadClass(), _version < 12 ? 0 : _input.ReadInt());
     }
 
-    private void ParseActorMove()
+    private ActorState.OpMove ParseActorMove()
     {
-        ActorState.OpMove op;
         if (_version < 10)
         {
             var parts = _input.ReadString().Split('/');
-            op = new(ulong.Parse(parts[0], NumberStyles.HexNumber), new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad));
+            return new(ulong.Parse(parts[0], NumberStyles.HexNumber), new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad));
         }
         else
         {
-            op = new(_input.ReadULong(true), new(_input.ReadVec3(), _input.ReadAngle().Rad));
+            return new(_input.ReadULong(true), new(_input.ReadVec3(), _input.ReadAngle().Rad));
         }
-        _builder.AddOp(op);
     }
 
-    private void ParseActorSizeChange() => _builder.AddOp(new ActorState.OpSizeChange(_input.ReadActorID(), _input.ReadFloat()));
-    private void ParseActorHPMP() => _builder.AddOp(new ActorState.OpHPMP(_input.ReadActorID(), ReadActorHPMP()));
-    private void ParseActorTargetable(bool targetable) => _builder.AddOp(new ActorState.OpTargetable(_input.ReadActorID(), targetable));
-    private void ParseActorAlly() => _builder.AddOp(new ActorState.OpAlly(_input.ReadActorID(), _input.ReadBool()));
-    private void ParseActorDead(bool dead) => _builder.AddOp(new ActorState.OpDead(_input.ReadActorID(), dead));
-    private void ParseActorCombat(bool value) => _builder.AddOp(new ActorState.OpCombat(_input.ReadActorID(), value));
-    private void ParseActorModelState() => _builder.AddOp(new ActorState.OpModelState(_input.ReadActorID(),
-        new(_input.ReadByte(false), _input.CanRead() ? _input.ReadByte(false) : (byte)0, _input.CanRead() ? _input.ReadByte(false) : (byte)0)));
-    private void ParseActorEventState() => _builder.AddOp(new ActorState.OpEventState(_input.ReadActorID(), _input.ReadByte(false)));
-    private void ParseActorTarget() => _builder.AddOp(new ActorState.OpTarget(_input.ReadActorID(), _input.ReadActorID()));
-    private void ParseActorTether(bool tether) => _builder.AddOp(new ActorState.OpTether(_input.ReadActorID(), tether ? new(_input.ReadUInt(false), _input.ReadActorID()) : default));
+    private ActorState.OpSizeChange ParseActorSizeChange() => new(_input.ReadActorID(), _input.ReadFloat());
+    private ActorState.OpHPMP ParseActorHPMP() => new(_input.ReadActorID(), ReadActorHPMP());
+    private ActorState.OpTargetable ParseActorTargetable(bool targetable) => new(_input.ReadActorID(), targetable);
+    private ActorState.OpAlly ParseActorAlly() => new(_input.ReadActorID(), _input.ReadBool());
+    private ActorState.OpDead ParseActorDead(bool dead) => new(_input.ReadActorID(), dead);
+    private ActorState.OpCombat ParseActorCombat(bool value) => new(_input.ReadActorID(), value);
+    private ActorState.OpModelState ParseActorModelState()
+        => new(_input.ReadActorID(), new(_input.ReadByte(false), _input.CanRead() ? _input.ReadByte(false) : (byte)0, _input.CanRead() ? _input.ReadByte(false) : (byte)0));
+    private ActorState.OpEventState ParseActorEventState() => new(_input.ReadActorID(), _input.ReadByte(false));
+    private ActorState.OpTarget ParseActorTarget() => new(_input.ReadActorID(), _input.ReadActorID());
+    private ActorState.OpTether ParseActorTether(bool tether) => new(_input.ReadActorID(), tether ? new(_input.ReadUInt(false), _input.ReadActorID()) : default);
 
-    private void ParseActorCastInfo(bool start)
+    private ActorState.OpCastInfo ParseActorCastInfo(bool start)
     {
         var instanceID = _input.ReadActorID();
         ActorCastInfo? cast = null;
@@ -529,10 +534,10 @@ public sealed class ReplayParserLog : IDisposable
                 Rotation = _input.CanRead() ? _input.ReadAngle() : default,
             };
         }
-        _builder.AddOp(new ActorState.OpCastInfo(instanceID, cast));
+        return new(instanceID, cast);
     }
 
-    private void ParseActorCastEvent() => _builder.AddOp(new ActorState.OpCastEvent(_input.ReadActorID(), new()
+    private ActorState.OpCastEvent ParseActorCastEvent() => new(_input.ReadActorID(), new()
     {
         Action = _input.ReadAction(),
         MainTargetID = _input.ReadActorID(),
@@ -542,20 +547,20 @@ public sealed class ReplayParserLog : IDisposable
         GlobalSequence = _version >= 7 ? _input.ReadUInt(false) : 0,
         SourceSequence = _version >= 9 ? _input.ReadUInt(false) : 0,
         Targets = _input.ReadTargets()
-    }));
+    });
 
-    private void ParseActorEffectResult() => _builder.AddOp(new ActorState.OpEffectResult(_input.ReadActorID(), _input.ReadUInt(false), _input.ReadInt()));
-    private void ParseActorStatus(bool gainOrUpdate) => _builder.AddOp(new ActorState.OpStatus(_input.ReadActorID(), _input.ReadInt(), gainOrUpdate ? _input.ReadStatus() : default));
-    private void ParseActorIcon() => _builder.AddOp(new ActorState.OpIcon(_input.ReadActorID(), _input.ReadUInt(false)));
-    private void ParseActorEventObjectStateChange() => _builder.AddOp(new ActorState.OpEventObjectStateChange(_input.ReadActorID(), _input.ReadUShort(true)));
-    private void ParseActorEventObjectAnimation() => _builder.AddOp(new ActorState.OpEventObjectAnimation(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true)));
-    private void ParseActorPlayActionTimelineEvent() => _builder.AddOp(new ActorState.OpPlayActionTimelineEvent(_input.ReadActorID(), _input.ReadUShort(true)));
-    private void ParseActorEventNpcYell() => _builder.AddOp(new ActorState.OpEventNpcYell(_input.ReadActorID(), _input.ReadUShort(false)));
-    private void ParsePartyModify() => _builder.AddOp(new PartyState.OpModify(_input.ReadInt(), _input.ReadULong(true), _input.ReadULong(true)));
-    private void ParsePartyLeave() => _builder.AddOp(new PartyState.OpModify(_input.ReadInt(), 0, 0));
-    private void ParsePartyLimitBreak() => _builder.AddOp(new PartyState.OpLimitBreakChange(_input.ReadInt(), _input.ReadInt()));
+    private ActorState.OpEffectResult ParseActorEffectResult() => new(_input.ReadActorID(), _input.ReadUInt(false), _input.ReadInt());
+    private ActorState.OpStatus ParseActorStatus(bool gainOrUpdate) => new(_input.ReadActorID(), _input.ReadInt(), gainOrUpdate ? _input.ReadStatus() : default);
+    private ActorState.OpIcon ParseActorIcon() => new(_input.ReadActorID(), _input.ReadUInt(false));
+    private ActorState.OpEventObjectStateChange ParseActorEventObjectStateChange() => new(_input.ReadActorID(), _input.ReadUShort(true));
+    private ActorState.OpEventObjectAnimation ParseActorEventObjectAnimation() => new(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true));
+    private ActorState.OpPlayActionTimelineEvent ParseActorPlayActionTimelineEvent() => new(_input.ReadActorID(), _input.ReadUShort(true));
+    private ActorState.OpEventNpcYell ParseActorEventNpcYell() => new(_input.ReadActorID(), _input.ReadUShort(false));
+    private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), _input.ReadULong(true), _input.ReadULong(true));
+    private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), 0, 0);
+    private PartyState.OpLimitBreakChange ParsePartyLimitBreak() => new(_input.ReadInt(), _input.ReadInt());
 
-    private void ParseClientActionRequest()
+    private ClientState.OpActionRequest ParseClientActionRequest()
     {
         var req = new ClientActionRequest()
         {
@@ -567,10 +572,10 @@ public sealed class ReplayParserLog : IDisposable
         };
         (req.InitialCastTimeElapsed, req.InitialCastTimeTotal) = _input.ReadFloatPair();
         (req.InitialRecastElapsed, req.InitialRecastTotal) = _input.ReadFloatPair();
-        _builder.AddOp(new ClientState.OpActionRequest(req));
+        return new(req);
     }
 
-    private void ParseClientActionReject()
+    private ClientState.OpActionReject ParseClientActionReject()
     {
         var rej = new ClientActionReject()
         {
@@ -579,30 +584,30 @@ public sealed class ReplayParserLog : IDisposable
         };
         (rej.RecastElapsed, rej.RecastTotal) = _input.ReadFloatPair();
         rej.LogMessageID = _input.ReadUInt(false);
-        _builder.AddOp(new ClientState.OpActionReject(rej));
+        return new(rej);
     }
 
-    private void ParseClientCountdown(bool start) => _builder.AddOp(new ClientState.OpCountdownChange(start ? _input.ReadFloat() : null));
+    private ClientState.OpCountdownChange ParseClientCountdown(bool start) => new(start ? _input.ReadFloat() : null);
 
-    private void ParseCooldown()
+    private ClientState.OpCooldown ParseCooldown()
     {
         var reset = _input.ReadBool();
         List<(int, Cooldown)> cooldowns = [];
         cooldowns.Capacity = _input.ReadByte(false);
         for (int i = 0; i < cooldowns.Capacity; ++i)
             cooldowns.Add((_input.ReadByte(false), new(_input.ReadFloat(), _input.ReadFloat())));
-        _builder.AddOp(new ClientState.OpCooldown(reset, cooldowns));
+        return new(reset, cooldowns);
     }
 
-    private void ParseClientDutyActions() => _builder.AddOp(new ClientState.OpDutyActionsChange(_input.ReadAction(), _input.ReadAction()));
+    private ClientState.OpDutyActionsChange ParseClientDutyActions() => new(_input.ReadAction(), _input.ReadAction());
 
-    private void ParseClientBozjaHolster()
+    private ClientState.OpBozjaHolsterChange ParseClientBozjaHolster()
     {
         List<(BozjaHolsterID, byte)> contents = [];
         contents.Capacity = _input.ReadByte(false);
         for (int i = 0; i < contents.Capacity; ++i)
             contents.Add(((BozjaHolsterID)_input.ReadByte(false), _input.ReadByte(false)));
-        _builder.AddOp(new ClientState.OpBozjaHolsterChange(contents));
+        return new(contents);
     }
 
     private ActorHPMP ReadActorHPMP()

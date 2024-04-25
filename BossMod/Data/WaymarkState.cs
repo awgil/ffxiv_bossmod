@@ -45,9 +45,9 @@ public sealed class WaymarkState
         public override void Write(ReplayRecorder.Output output)
         {
             if (Pos != null)
-                WriteTag(output, "WAY+").Emit((byte)ID).Emit(Pos.Value);
+                output.EmitFourCC("WAY+"u8).Emit((byte)ID).Emit(Pos.Value);
             else
-                WriteTag(output, "WAY-").Emit((byte)ID);
+                output.EmitFourCC("WAY-"u8).Emit((byte)ID);
         }
     }
 }

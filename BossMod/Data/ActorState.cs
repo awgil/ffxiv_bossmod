@@ -56,7 +56,7 @@ public sealed class ActorState : IEnumerable<Actor>
             var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, Name, NameID, Type, Class, Level, PosRot, HitboxRadius, HPMP, IsTargetable, IsAlly, OwnerID);
             ws.Actors.Added.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ACT+")
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ACT+"u8)
             .Emit(InstanceID, "X8")
             .Emit(OID, "X")
             .Emit(SpawnIndex)
@@ -109,7 +109,7 @@ public sealed class ActorState : IEnumerable<Actor>
             ws.Actors.Removed.Fire(actor);
             ws.Actors._actors.Remove(InstanceID);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ACT-").Emit(InstanceID, "X8");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ACT-"u8).Emit(InstanceID, "X8");
     }
 
     public Event<Actor> Renamed = new();
@@ -121,7 +121,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.NameID = NameID;
             ws.Actors.Renamed.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "NAME").Emit(InstanceID, "X8").Emit(Name).Emit(NameID);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NAME"u8).Emit(InstanceID, "X8").Emit(Name).Emit(NameID);
     }
 
     public Event<Actor> ClassChanged = new();
@@ -133,7 +133,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.Level = Level;
             ws.Actors.ClassChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CLSR").EmitActor(InstanceID).Emit().Emit(Class).Emit(Level);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLSR"u8).EmitActor(InstanceID).Emit().Emit(Class).Emit(Level);
     }
 
     public Event<Actor> Moved = new();
@@ -144,7 +144,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.PosRot = PosRot;
             ws.Actors.Moved.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "MOVE").Emit(InstanceID, "X8").Emit(PosRot.XYZ()).Emit(PosRot.W.Radians());
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("MOVE"u8).Emit(InstanceID, "X8").Emit(PosRot.XYZ()).Emit(PosRot.W.Radians());
     }
 
     public Event<Actor> SizeChanged = new();
@@ -155,7 +155,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.HitboxRadius = HitboxRadius;
             ws.Actors.SizeChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ACSZ").EmitActor(InstanceID).Emit(HitboxRadius, "f3");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ACSZ"u8).EmitActor(InstanceID).Emit(HitboxRadius, "f3");
     }
 
     public Event<Actor> HPMPChanged = new();
@@ -166,7 +166,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.HPMP = HPMP;
             ws.Actors.HPMPChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "HP  ").EmitActor(InstanceID).Emit(HPMP.CurHP).Emit(HPMP.MaxHP).Emit(HPMP.Shield).Emit(HPMP.CurMP);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("HP  "u8).EmitActor(InstanceID).Emit(HPMP.CurHP).Emit(HPMP.MaxHP).Emit(HPMP.Shield).Emit(HPMP.CurMP);
     }
 
     public Event<Actor> IsTargetableChanged = new();
@@ -177,7 +177,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.IsTargetable = Value;
             ws.Actors.IsTargetableChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, Value ? "ATG+" : "ATG-").EmitActor(InstanceID);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC(Value ? "ATG+"u8 : "ATG-"u8).EmitActor(InstanceID);
     }
 
     public Event<Actor> IsAllyChanged = new();
@@ -188,7 +188,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.IsAlly = Value;
             ws.Actors.IsAllyChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ALLY").EmitActor(InstanceID).Emit(Value);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ALLY"u8).EmitActor(InstanceID).Emit(Value);
     }
 
     public Event<Actor> IsDeadChanged = new();
@@ -199,7 +199,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.IsDead = Value;
             ws.Actors.IsDeadChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, Value ? "DIE+" : "DIE-").EmitActor(InstanceID);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC(Value ? "DIE+"u8 : "DIE-"u8).EmitActor(InstanceID);
     }
 
     public Event<Actor> InCombatChanged = new();
@@ -210,7 +210,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.InCombat = Value;
             ws.Actors.InCombatChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, Value ? "COM+" : "COM-").EmitActor(InstanceID);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC(Value ? "COM+"u8 : "COM-"u8).EmitActor(InstanceID);
     }
 
     public Event<Actor> ModelStateChanged = new();
@@ -221,7 +221,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.ModelState = Value;
             ws.Actors.ModelStateChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "MDLS").EmitActor(InstanceID).Emit(Value.ModelState).Emit(Value.AnimState1).Emit(Value.AnimState2);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("MDLS"u8).EmitActor(InstanceID).Emit(Value.ModelState).Emit(Value.AnimState1).Emit(Value.AnimState2);
     }
 
     public Event<Actor> EventStateChanged = new();
@@ -232,7 +232,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.EventState = Value;
             ws.Actors.EventStateChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "EVTS").EmitActor(InstanceID).Emit(Value);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("EVTS"u8).EmitActor(InstanceID).Emit(Value);
     }
 
     public Event<Actor> TargetChanged = new();
@@ -243,7 +243,7 @@ public sealed class ActorState : IEnumerable<Actor>
             actor.TargetID = Value;
             ws.Actors.TargetChanged.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "TARG").EmitActor(InstanceID).EmitActor(Value);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("TARG"u8).EmitActor(InstanceID).EmitActor(Value);
     }
 
     // note: this is currently based on network events rather than per-frame state inspection
@@ -259,7 +259,7 @@ public sealed class ActorState : IEnumerable<Actor>
             if (Value.Target != 0)
                 ws.Actors.Tethered.Fire(actor);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "TETH").EmitActor(InstanceID).Emit(Value.ID).EmitActor(Value.Target);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("TETH"u8).EmitActor(InstanceID).Emit(Value.ID).EmitActor(Value.Target);
     }
 
     public Event<Actor> CastStarted = new();
@@ -277,9 +277,9 @@ public sealed class ActorState : IEnumerable<Actor>
         public override void Write(ReplayRecorder.Output output)
         {
             if (Value != null)
-                WriteTag(output, "CST+").EmitActor(InstanceID).Emit(Value.Action).EmitActor(Value.TargetID).Emit(Value.Location).EmitTimePair(Value.FinishAt, Value.TotalTime).Emit(Value.Interruptible).Emit(Value.Rotation);
+                output.EmitFourCC("CST+"u8).EmitActor(InstanceID).Emit(Value.Action).EmitActor(Value.TargetID).Emit(Value.Location).EmitTimePair(Value.FinishAt, Value.TotalTime).Emit(Value.Interruptible).Emit(Value.Rotation);
             else
-                WriteTag(output, "CST-").EmitActor(InstanceID);
+                output.EmitFourCC("CST-"u8).EmitActor(InstanceID);
         }
     }
 
@@ -293,7 +293,7 @@ public sealed class ActorState : IEnumerable<Actor>
                 actor.CastInfo.EventHappened = true;
             ws.Actors.CastEvent.Fire(actor, Value);
         }
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "CST!")
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CST!"u8)
             .EmitActor(InstanceID)
             .Emit(Value.Action)
             .EmitActor(Value.MainTargetID)
@@ -310,7 +310,7 @@ public sealed class ActorState : IEnumerable<Actor>
     public sealed record class OpEffectResult(ulong InstanceID, uint Seq, int TargetIndex) : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EffectResult.Fire(actor, Seq, TargetIndex);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ER  ").EmitActor(InstanceID).Emit(Seq).Emit(TargetIndex);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ER  "u8).EmitActor(InstanceID).Emit(Seq).Emit(TargetIndex);
     }
 
     public Event<Actor, int> StatusGain = new(); // called when status appears -or- when extra or expiration time is changed
@@ -329,9 +329,9 @@ public sealed class ActorState : IEnumerable<Actor>
         public override void Write(ReplayRecorder.Output output)
         {
             if (Value.ID != 0)
-                WriteTag(output, "STA+").EmitActor(InstanceID).Emit(Index).Emit(Value);
+                output.EmitFourCC("STA+"u8).EmitActor(InstanceID).Emit(Index).Emit(Value);
             else
-                WriteTag(output, "STA-").EmitActor(InstanceID).Emit(Index);
+                output.EmitFourCC("STA-"u8).EmitActor(InstanceID).Emit(Index);
         }
     }
 
@@ -340,7 +340,7 @@ public sealed class ActorState : IEnumerable<Actor>
     public sealed record class OpIcon(ulong InstanceID, uint IconID) : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.IconAppeared.Fire(actor, IconID);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ICON").EmitActor(InstanceID).Emit(IconID);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ICON"u8).EmitActor(InstanceID).Emit(IconID);
     }
 
     // TODO: this should be an actor field (?)
@@ -348,7 +348,7 @@ public sealed class ActorState : IEnumerable<Actor>
     public sealed record class OpEventObjectStateChange(ulong InstanceID, ushort State) : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventObjectStateChange.Fire(actor, State);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "ESTA").EmitActor(InstanceID).Emit(State, "X4");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ESTA"u8).EmitActor(InstanceID).Emit(State, "X4");
     }
 
     // TODO: this should be an actor field (?)
@@ -356,7 +356,7 @@ public sealed class ActorState : IEnumerable<Actor>
     public sealed record class OpEventObjectAnimation(ulong InstanceID, ushort Param1, ushort Param2) : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventObjectAnimation.Fire(actor, Param1, Param2);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "EANM").EmitActor(InstanceID).Emit(Param1, "X4").Emit(Param2, "X4");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("EANM"u8).EmitActor(InstanceID).Emit(Param1, "X4").Emit(Param2, "X4");
     }
 
     // TODO: this needs more reversing...
@@ -364,13 +364,13 @@ public sealed class ActorState : IEnumerable<Actor>
     public sealed record class OpPlayActionTimelineEvent(ulong InstanceID, ushort ActionTimelineID) : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.PlayActionTimelineEvent.Fire(actor, ActionTimelineID);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "PATE").EmitActor(InstanceID).Emit(ActionTimelineID, "X4");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PATE"u8).EmitActor(InstanceID).Emit(ActionTimelineID, "X4");
     }
 
     public Event<Actor, ushort> EventNpcYell = new();
     public sealed record class OpEventNpcYell(ulong InstanceID, ushort Message) : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventNpcYell.Fire(actor, Message);
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "NYEL").EmitActor(InstanceID).Emit(Message);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("NYEL"u8).EmitActor(InstanceID).Emit(Message);
     }
 }
