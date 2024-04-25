@@ -138,9 +138,9 @@ public abstract class BossModule : IDisposable
         // update cooldown plan if needed
         var cls = Raid.Player()?.Class ?? Class.None;
         var plan = PlanConfig?.SelectedPlan(cls);
-        if (PlanExecution?.Plan != plan)
+        if (PlanExecution == null || PlanExecution.Plan != plan)
         {
-            Service.Log($"[BM] Selected plan for '{GetType()}' ({PrimaryActor.InstanceID:X}) for {cls}: '{(plan?.Name ?? "<none>")}'");
+            Service.Log($"[BM] Selected plan for '{GetType()}' ({PrimaryActor.InstanceID:X}) for {cls}: '{plan?.Name ?? "<none>"}'");
             PlanExecution = new(StateMachine, plan);
         }
 
