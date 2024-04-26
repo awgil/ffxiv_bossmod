@@ -186,6 +186,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), color);
     public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), color);
     public void ZoneRect(WPos start, WPos end, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(start, end, halfWidth), color);
+    public void ZoneCross(WPos origin, float length, float halfWidth, Angle rotation, uint color) => Zone(Bounds.ClipAndTriangulateCross(origin, length, halfWidth, rotation), color);
 
     public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
     {

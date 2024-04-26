@@ -159,6 +159,38 @@ public abstract class ArenaBounds(WPos center, float halfSize)
         cache[(start, end, halfWidth)] = result;
         return result;
     }
+
+    public List<(WPos, WPos, WPos)> ClipAndTriangulateCross(WPos origin, float length, float halfWidth, Angle rotation)
+    {
+        if (cache.TryGetValue((origin, length, halfWidth, rotation), out var cachedResult))
+            return cachedResult;
+        var dx = rotation.ToDirection();
+        var dy = dx.OrthoL();
+        var dx1 = dx * length;
+        var dx2 = dx * halfWidth;
+        var dy1 = dy * length;
+        var dy2 = dy * halfWidth;
+
+        var points = new List<WPos>
+        {
+            origin + dx1 - dy2,
+            origin + dx2 - dy2,
+            origin + dx2 - dy1,
+            origin - dx2 - dy1,
+            origin - dx2 - dy2,
+            origin - dx1 - dy2,
+            origin - dx1 + dy2,
+            origin - dx2 + dy2,
+            origin - dx2 + dy1,
+            origin + dx2 + dy1,
+            origin + dx2 + dy2,
+            origin + dx1 + dy2,
+        };
+
+        var result = ClipAndTriangulate(points);
+        cache[(origin, length, halfWidth, rotation)] = result;
+        return result;
+    }
 }
 
 public class ArenaBoundsCircle(WPos center, float radius) : ArenaBounds(center, radius)

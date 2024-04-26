@@ -33,7 +33,7 @@ class FrigidStone2(BossModule module) : Components.LocationTargetedAOEs(module, 
 
 class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
-    private static readonly AOEShape[] _shapes = { new AOEShapeCircle(10), new AOEShapeDonut(10, 20) };
+    private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 20)];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
