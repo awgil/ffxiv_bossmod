@@ -48,7 +48,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     {
         if (from != to)
         {
-            arena.Actor(to, rot, ArenaColor.Danger);
+            arena.ActorProjected(from, to, rot, ArenaColor.Danger);
             if (arena.Config.ShowOutlinesAndShadows)
                 arena.AddLine(from, to, 0xFF000000, 2);
             arena.AddLine(from, to, ArenaColor.Danger);

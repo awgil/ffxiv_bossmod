@@ -32,10 +32,10 @@ public class GenericForcedMarch(BossModule module, float activationLimit = float
     {
         foreach (var m in ForcedMovements(pc))
         {
+            Arena.ActorProjected(m.from, m.to, m.dir, ArenaColor.Danger);
             if (Arena.Config.ShowOutlinesAndShadows)
                 Arena.AddLine(m.from, m.to, 0xFF000000, 2);
             Arena.AddLine(m.from, m.to, ArenaColor.Danger);
-            Arena.Actor(m.to, m.dir, ArenaColor.Danger);
         }
     }
 

@@ -220,21 +220,48 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     }
 
     // draw actor representation
-    public void Actor(WPos position, Angle rotation, uint color)
+    public void ActorInsideBounds(WPos position, Angle rotation, uint color)
     {
         var dir = rotation.ToDirection();
         var normal = dir.OrthoR();
+        if (Config.ShowOutlinesAndShadows)
+            AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, 0xFF000000, 2);
+        AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
+    }
+
+    public void ActorOutsideBounds(WPos position, Angle rotation, uint color)
+    {
+        var dir = rotation.ToDirection();
+        var normal = dir.OrthoR();
+        AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
+    }
+
+    public void ActorProjected(WPos from, WPos to, Angle rotation, uint color)
+    {
+        if (Bounds.Contains(to))
+        {
+            // projected position is inside bounds
+            ActorInsideBounds(to, rotation, color);
+            return;
+        }
+
+        var dir = to - from;
+        var l = dir.Length();
+        if (l == 0)
+            return; // can't determine projection direction
+
+        dir /= l;
+        var t = Bounds.IntersectRay(from, dir);
+        if (t < l)
+            ActorOutsideBounds(from + t * dir, rotation, color);
+    }
+
+    public void Actor(WPos position, Angle rotation, uint color)
+    {
         if (Bounds.Contains(position))
-        {
-            if (Config.ShowOutlinesAndShadows)
-                AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, 0xFF000000, 2);
-            AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
-        }
+            ActorInsideBounds(position, rotation, color);
         else
-        {
-            position = Bounds.ClampToBounds(position);
-            AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
-        }
+            ActorOutsideBounds(Bounds.ClampToBounds(position), rotation, color);
     }
 
     public void Actor(Actor? actor, uint color, bool allowDeadAndUntargetable = false)
