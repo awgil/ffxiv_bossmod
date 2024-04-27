@@ -203,8 +203,8 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
         foreach (var p in Bounds.ShapeSimplified.Parts)
         {
             AddPolygon(p.Exterior, color, 2);
-            for (int i = 0; i < p.HoleStarts.Count; ++i)
-                AddPolygon(p.Hole(i), color, 2);
+            foreach (var i in p.Holes)
+                AddPolygon(p.Interior(i), color, 2);
         }
     }
 

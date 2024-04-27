@@ -73,6 +73,7 @@ public static class CurveApprox
         yield return center - dx + dz;
         yield return center - dx - dz;
     }
+    public static IEnumerable<WPos> Rect(WPos center, WDir dirZ, float halfWidth, float halfHeight) => Rect(center, dirZ.OrthoL() * halfWidth, dirZ * halfHeight);
 
     // for angles, we use standard FF convention: 0 is 'south'/down/(0, -r), and then increases clockwise
     private static WPos PolarToCartesian(WPos center, float r, Angle phi)

@@ -4,8 +4,9 @@
 // union is min, intersection is max
 public static class ShapeDistance
 {
-    public static Func<WPos, float> Circle(WPos origin, float radius) => radius <= 0 ? (_ => float.MaxValue) : (p => (p - origin).Length() - radius);
+    public static Func<WPos, float> HalfPlane(WPos point, WDir normal) => p => normal.Dot(p - point);
 
+    public static Func<WPos, float> Circle(WPos origin, float radius) => radius <= 0 ? (_ => float.MaxValue) : (p => (p - origin).Length() - radius);
     public static Func<WPos, float> InvertedCircle(WPos origin, float radius) => radius <= 0 ? (_ => float.MinValue) : (p => radius - (p - origin).Length());
 
     public static Func<WPos, float> Donut(WPos origin, float innerRadius, float outerRadius)
@@ -75,6 +76,30 @@ public static class ShapeDistance
             return Math.Max(Math.Max(distOuter, distInner), coneFactor * Math.Max(distLeft, distRight));
         };
     }
+
+    public static Func<WPos, float> Tri(Triangle tri)
+    {
+        var ab = tri.B - tri.A;
+        var bc = tri.C - tri.B;
+        var ca = tri.A - tri.C;
+        var n1 = ab.OrthoL().Normalized();
+        var n2 = bc.OrthoL().Normalized();
+        var n3 = ca.OrthoL().Normalized();
+        if (ab.Cross(bc) < 0)
+        {
+            n1 = -n1;
+            n2 = -n2;
+            n3 = -n3;
+        }
+        return p =>
+        {
+            var d1 = n1.Dot(p - tri.A);
+            var d2 = n2.Dot(p - tri.B);
+            var d3 = n3.Dot(p - tri.C);
+            return Math.Max(Math.Max(d1, d2), d3);
+        };
+    }
+    public static Func<WPos, float> TriList(List<Triangle> tris) => Union([.. tris.Select(Tri)]);
 
     public static Func<WPos, float> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
@@ -148,31 +173,20 @@ public static class ShapeDistance
     }
 
     // positive offset increases area
-    public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
+    public static Func<WPos, float> ConvexPolygon(IEnumerable<(WPos, WPos)> edges, bool cw, float offset = 0)
     {
-        List<(WPos point, WDir normal)> edges = [];
-        void addEdge(WPos p1, WPos p2)
+        Func<WPos, float> edge((WPos p1, WPos p2) e)
         {
-            if (p1 != p2)
-            {
-                var dir = (p2 - p1).Normalized();
-                edges.Add((p1, cw ? dir.OrthoL() : dir.OrthoR()));
-            }
+            if (e.p1 == e.p2)
+                return _ => float.MinValue;
+            var dir = (e.p2 - e.p1).Normalized();
+            var normal = cw ? dir.OrthoL() : dir.OrthoR();
+            return p => normal.Dot(p - e.p1);
         }
-
-        var en = vertices.GetEnumerator();
-        if (!en.MoveNext())
-            return _ => float.MaxValue; // empty polygon
-        var prev = en.Current;
-        var first = prev;
-        while (en.MoveNext())
-        {
-            var cur = en.Current;
-            addEdge(prev, cur);
-            prev = cur;
-        }
-        addEdge(prev, first);
-
-        return p => edges.Max(e => e.normal.Dot(p - e.point)) - offset;
+        return Intersection([.. edges.Select(edge)], offset);
     }
+    public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw, offset);
+
+    private static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
+    private static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;
 }

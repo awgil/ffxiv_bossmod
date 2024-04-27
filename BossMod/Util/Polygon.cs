@@ -17,9 +17,16 @@ public record class PolygonWithHoles(List<WPos> Vertices, List<int> HoleStarts)
     public PolygonWithHoles(IEnumerable<WPos> simpleVertices) : this([.. simpleVertices], []) { }
 
     public ReadOnlySpan<WPos> AllVertices => Vertices.AsSpan();
-    public ReadOnlySpan<WPos> Exterior => HoleStarts.Count == 0 ? AllVertices : AllVertices[..HoleStarts[0]];
-    public ReadOnlySpan<WPos> Hole(int index) => AllVertices[HoleStarts[index]..HoleEnd(index)];
+    public ReadOnlySpan<WPos> Exterior => AllVertices[..ExteriorEnd];
+    public ReadOnlySpan<WPos> Interior(int index) => AllVertices[HoleStarts[index]..HoleEnd(index)];
+    public IEnumerable<int> Holes => Enumerable.Range(0, HoleStarts.Count);
+    public IEnumerable<(WPos, WPos)> ExteriorEdges => PolygonUtil.EnumerateEdges(Vertices.Take(ExteriorEnd));
+    public IEnumerable<(WPos, WPos)> InteriorEdges(int index) => PolygonUtil.EnumerateEdges(Vertices.Skip(HoleStarts[index]).Take(HoleEnd(index) - HoleStarts[index]));
 
+    public bool IsSimple => HoleStarts.Count == 0;
+    public bool IsConvex => IsSimple && PolygonUtil.IsConvex(Exterior);
+
+    private int ExteriorEnd => HoleStarts.Count > 0 ? HoleStarts[0] : Vertices.Count;
     private int HoleEnd(int index) => index + 1 < HoleStarts.Count ? HoleStarts[index + 1] : Vertices.Count;
 
     // add new hole; input is assumed to be a simple polygon
@@ -37,7 +44,7 @@ public record class PolygonWithHoles(List<WPos> Vertices, List<int> HoleStarts)
     // build a triangulation of the polygon
     public bool Triangulate(List<Triangle> result)
     {
-        List<double> pts = [];
+        var pts = new List<double>(Vertices.Count * 2);
         foreach (var p in Vertices)
         {
             pts.Add(p.X);
@@ -56,11 +63,25 @@ public record class PolygonWithHoles(List<WPos> Vertices, List<int> HoleStarts)
         Triangulate(result);
         return result;
     }
+
+    // point-in-polygon test
+    public bool Contains(WPos p)
+    {
+        if (!p.InSimplePolygon(ExteriorEdges))
+            return false;
+        foreach (var h in Holes)
+            if (p.InSimplePolygon(InteriorEdges(h)))
+                return false;
+        return true;
+    }
 }
 
 // generic 'simplified' complex polygon that consists of 0 or more non-intersecting polygons with holes (note however that some polygons could be fully inside other polygon's hole)
 public record class SimplifiedComplexPolygon(List<PolygonWithHoles> Parts)
 {
+    public bool IsSimple => Parts.Count == 1 && Parts[0].IsSimple;
+    public bool IsConvex => Parts.Count == 1 && Parts[0].IsConvex;
+
     public SimplifiedComplexPolygon() : this([]) { }
 
     // build a triangulation of the polygon
@@ -71,6 +92,9 @@ public record class SimplifiedComplexPolygon(List<PolygonWithHoles> Parts)
             p.Triangulate(result);
         return result;
     }
+
+    // point-in-polygon test
+    public bool Contains(WPos p) => Parts.Any(part => part.Contains(p));
 }
 
 // utility for simplifying and performing boolean operations on complex polygons
@@ -105,8 +129,8 @@ public class PolygonClipper
         public void AddPolygon(PolygonWithHoles polygon)
         {
             AddContour(polygon.Exterior);
-            for (var i = 0; i < polygon.HoleStarts.Count; ++i)
-                AddContour(polygon.Hole(i));
+            foreach (var i in polygon.Holes)
+                AddContour(polygon.Interior(i));
         }
 
         public void AddPolygon(SimplifiedComplexPolygon polygon) => polygon.Parts.ForEach(AddPolygon);
@@ -167,4 +191,35 @@ public class PolygonClipper
 
     private static Point64 ConvertPoint(WPos pt) => new(pt.X * _scale, pt.Z * _scale);
     private static WPos ConvertPoint(Point64 pt) => new(pt.X * _invScale, pt.Y * _invScale);
+}
+
+public static class PolygonUtil
+{
+    public static IEnumerable<(WPos, WPos)> EnumerateEdges(IEnumerable<WPos> contour) => contour.Pairwise();
+
+    public static bool IsConvex(ReadOnlySpan<WPos> contour)
+    {
+        // polygon is convex if cross-product of all successive edges has same sign
+        if (contour.Length < 3)
+            return false;
+
+        var prevEdge = contour[0] - contour[^1];
+        float cross = (contour[^1] - contour[^2]).Cross(prevEdge);
+        if (contour.Length > 3)
+        {
+            for (int i = 1; i < contour.Length; ++i)
+            {
+                var currEdge = contour[i] - contour[i - 1];
+                var curCross = prevEdge.Cross(currEdge);
+                prevEdge = currEdge;
+                if (curCross == 0)
+                    continue;
+                else if (cross == 0)
+                    cross = curCross;
+                else if ((cross < 0) != (curCross < 0))
+                    return false;
+            }
+        }
+        return cross != 0;
+    }
 }

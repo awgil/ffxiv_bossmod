@@ -3,8 +3,10 @@
 // radius is the largest horizontal/vertical dimension: radius for circle, max of width/height for rect
 // note: if arena bounds are changed, new instance is recreated
 // max approx error can change without recreating the instance
-public abstract record class ArenaBounds(WPos Center, float Radius)
+public abstract record class ArenaBounds(WPos Center, float Radius, Pathfinding.Map BaseMap)
 {
+    private readonly Pathfinding.Map BaseMap = BaseMap;
+
     // fields below are used for clipping
     public readonly PolygonClipper Clipper = new();
     public float MaxApproxError { get; private set; }
@@ -34,12 +36,14 @@ public abstract record class ArenaBounds(WPos Center, float Radius)
         }
     }
 
-    public abstract PolygonClipper.Operand BuildClipPoly();
-    public abstract Pathfinding.Map BuildMap(float resolution = 0.5f);
+    protected abstract PolygonClipper.Operand BuildClipPoly();
     public abstract bool Contains(WPos p);
     public abstract float IntersectRay(WPos origin, WDir dir);
-    public abstract WDir ClampToBounds(WDir offset, float scale = 1);
+    public abstract WDir ClampToBounds(WDir offset);
     public WPos ClampToBounds(WPos position) => Center + ClampToBounds(position - Center);
+
+    // get a copy of the base map that can be used for pathfinding
+    public Pathfinding.Map CloneMap() => BaseMap.Clone();
 
     // functions for clipping various shapes to bounds
     public List<Triangle> ClipAndTriangulateCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
@@ -100,133 +104,84 @@ public abstract record class ArenaBounds(WPos Center, float Radius)
     }
 }
 
-public record class ArenaBoundsCircle(WPos Center, float Radius) : ArenaBounds(Center, Radius)
+public record class ArenaBoundsCircle(WPos Center, float Radius, float MapResolution = 0.5f) : ArenaBounds(Center, Radius, BuildMap(Center, Radius, MapResolution))
 {
-    public override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Circle(Center, Radius, MaxApproxError));
-
-    public override Pathfinding.Map BuildMap(float resolution)
+    private static Pathfinding.Map BuildMap(WPos center, float radius, float resolution)
     {
-        var map = new Pathfinding.Map(resolution, Center, Radius, Radius, new());
-        map.BlockPixelsInside(ShapeDistance.InvertedCircle(Center, Radius), 0, 0);
+        var map = new Pathfinding.Map(resolution, center, radius, radius);
+        map.BlockPixelsInside(ShapeDistance.InvertedCircle(center, radius), 0, 0);
         return map;
     }
 
+    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Circle(Center, Radius, MaxApproxError));
     public override bool Contains(WPos p) => p.InCircle(Center, Radius);
     public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayCircle(origin, dir, Center, Radius);
 
-    public override WDir ClampToBounds(WDir offset, float scale)
+    public override WDir ClampToBounds(WDir offset)
     {
-        var r = Radius * scale;
-        if (offset.LengthSq() > r * r)
-            offset *= r / offset.Length();
+        if (offset.LengthSq() > Radius * Radius)
+            offset *= Radius / offset.Length();
         return offset;
     }
 }
 
-public record class ArenaBoundsSquare(WPos Center, float Radius) : ArenaBounds(Center, Radius)
+public record class ArenaBoundsSquare(WPos Center, float Radius, float MapResolution = 0.5f) : ArenaBounds(Center, Radius, new(MapResolution, Center, Radius, Radius))
 {
     public float HalfWidth => Radius;
 
-    public override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Center, new(Radius, 0), new(0, Radius)));
-    public override Pathfinding.Map BuildMap(float resolution) => new(resolution, Center, Radius, Radius);
+    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Center, new(Radius, 0), new(0, Radius)));
     public override bool Contains(WPos p) => WPos.AlmostEqual(p, Center, Radius);
     public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, new(0, 1), Radius, Radius);
 
-    public override WDir ClampToBounds(WDir offset, float scale)
+    public override WDir ClampToBounds(WDir offset)
     {
-        var wh = Radius * scale;
-        if (Math.Abs(offset.X) > wh)
-            offset *= wh / Math.Abs(offset.X);
-        if (Math.Abs(offset.Z) > wh)
-            offset *= wh / Math.Abs(offset.Z);
+        if (Math.Abs(offset.X) > Radius)
+            offset *= Radius / Math.Abs(offset.X);
+        if (Math.Abs(offset.Z) > Radius)
+            offset *= Radius / Math.Abs(offset.Z);
         return offset;
     }
 }
 
 // if rotation is 0, half-width is along X and half-height is along Z
-public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeight, Angle Rotation = default) : ArenaBounds(Center, MathF.Max(HalfWidth, HalfHeight))
+public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeight, Angle Rotation = default, float MapResolution = 0.5f) : ArenaBounds(Center, MathF.Max(HalfWidth, HalfHeight), new(MapResolution, Center, HalfWidth, HalfHeight, Rotation))
 {
-    public override PolygonClipper.Operand BuildClipPoly()
-    {
-        var n = Rotation.ToDirection(); // local 'z' axis
-        var dx = n.OrthoL() * HalfWidth;
-        var dz = n * HalfHeight;
-        return new(CurveApprox.Rect(Center, dx, dz));
-    }
-
-    public override Pathfinding.Map BuildMap(float resolution) => new(resolution, Center, HalfWidth, HalfHeight, Rotation);
+    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Center, Rotation.ToDirection(), HalfWidth, HalfHeight));
     public override bool Contains(WPos p) => p.InRect(Center, Rotation, HalfHeight, HalfHeight, HalfWidth);
     public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, Rotation.ToDirection(), HalfWidth, HalfHeight);
 
-    public override WDir ClampToBounds(WDir offset, float scale)
+    public override WDir ClampToBounds(WDir offset)
     {
         var n = Rotation.ToDirection();
         var dx = MathF.Abs(offset.Dot(n.OrthoL()));
-        if (dx > HalfWidth * scale)
-            offset *= HalfWidth * scale / dx;
+        if (dx > HalfWidth)
+            offset *= HalfWidth / dx;
         var dy = MathF.Abs(offset.Dot(n));
-        if (dy > HalfHeight * scale)
-            offset *= HalfHeight * scale / dy;
+        if (dy > HalfHeight)
+            offset *= HalfHeight / dy;
         return offset;
     }
 }
 
-// TODO: revise and reconsider, not convinced it needs to be here, and it's not well implemented
-// HalfSize is the radius of the circumscribed circle
-public record class ArenaBoundsTri(WPos Center, float SideLength) : ArenaBounds(Center, SideLength * Sqrt3 / 3)
+// custom complex polygon bounds
+public record class ArenaBoundsCustom(WPos Center, float Radius, SimplifiedComplexPolygon Poly, float MapResolution = 0.5f) : ArenaBounds(Center, Radius, BuildMap(Center, Radius, Poly, MapResolution))
 {
-    private const float Sqrt3 = 1.7320508075688772935274463415059f;
-
-    public override PolygonClipper.Operand BuildClipPoly()
+    private static Pathfinding.Map BuildMap(WPos center, float radius, SimplifiedComplexPolygon poly, float resolution)
     {
-        // Calculate the vertices of the equilateral triangle
-        var height = Radius * Sqrt3; // Height of the equilateral triangle
-        var halfSide = Radius;
-        return new([Center + new WDir(-halfSide, height / 3), Center + new WDir(halfSide, height / 3), Center + new WDir(0, -2 * height / 3)]);
+        var map = new Pathfinding.Map(resolution, center, radius, radius);
+        var tri = ShapeDistance.TriList(poly.Triangulate());
+        map.BlockPixelsInside(p => -tri(p), 0, 0);
+        return map;
     }
 
-    public override Pathfinding.Map BuildMap(float resolution = 0.5f)
+    protected override PolygonClipper.Operand BuildClipPoly() => new(Poly);
+    public override bool Contains(WPos p) => Poly.Contains(p);
+    public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayPolygon(origin, dir, Poly);
+    public override WDir ClampToBounds(WDir offset)
     {
-        // BuildMap implementation for equilateral triangle
-        // This is a simplified example and would need to be adapted based on specific pathfinding requirements
-        throw new NotImplementedException();
-    }
-
-    public override bool Contains(WPos p)
-    {
-        var a = Center + new WDir(-Radius, Radius * Sqrt3 / 3);
-        var b = Center + new WDir(Radius, Radius * Sqrt3 / 3);
-        var c = Center + new WDir(0, -2 * Radius * Sqrt3 / 3);
-
-        bool b1 = Sign(p, a, b) < 0;
-        bool b2 = Sign(p, b, c) < 0;
-        bool b3 = Sign(p, c, a) < 0;
-
-        return b1 == b2 && b2 == b3;
-    }
-
-    private float Sign(WPos p1, WPos p2, WPos p3)
-    {
-        return (p1.X - p3.X) * (p2.Z - p3.Z) - (p2.X - p3.X) * (p1.Z - p3.Z);
-    }
-
-    public override float IntersectRay(WPos origin, WDir dir)
-    {
-        // Define triangle vertices
-        //var a = Center + new WDir(-HalfSize, HalfSize * sqrt3 / 3);
-        //var b = Center + new WDir(HalfSize, HalfSize * sqrt3 / 3);
-        //var c = Center + new WDir(0, -2 * HalfSize * sqrt3 / 3);
-
-        // Ray-triangle intersection algorithm goes here
-        // This is a complex topic and requires a bit of math
-        // Placeholder for the actual intersection calculation
-        return float.NaN; // Return NaN to indicate that this method needs proper implementation
-    }
-
-    public override WDir ClampToBounds(WDir offset, float scale = 1)
-    {
-        // Clamping within a triangle is highly context-dependent
-        // This method needs a detailed implementation based on specific requirements
-        return new WDir(0, 0); // Placeholder to indicate that clamping logic is needed
+        var l = offset.Length();
+        var dir = offset / l;
+        var t = Intersect.RayPolygon(Center, offset, Poly);
+        return dir * Math.Min(t, l);
     }
 }

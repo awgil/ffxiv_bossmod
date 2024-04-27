@@ -20,6 +20,8 @@ public record struct WDir(float X, float Z)
     public readonly WDir OrthoR() => new(-Z, X); // CW, same length
     public static float Dot(WDir a, WDir b) => a.X * b.X + a.Z * b.Z;
     public readonly float Dot(WDir a) => X * a.X + Z * a.Z;
+    public static float Cross(WDir a, WDir b) => a.X * b.Z - a.Z * b.X;
+    public readonly float Cross(WDir b) => Cross(this, b);
     public readonly float LengthSq() => X * X + Z * Z;
     public readonly float Length() => MathF.Sqrt(LengthSq());
     public static WDir Normalize(WDir a) => a / a.Length();
@@ -75,6 +77,33 @@ public record struct WPos(float X, float Z)
     {
         var len = startToEnd.Length();
         return InRect(origin, startToEnd / len, len, 0, halfWidth);
+    }
+
+    public readonly bool InSimplePolygon(IEnumerable<WPos> contour) => InSimplePolygon(PolygonUtil.EnumerateEdges(contour));
+    public readonly bool InSimplePolygon(IEnumerable<(WPos, WPos)> edges)
+    {
+        // for simple polygons, it doesn't matter which rule (even-odd, non-zero, etc) we use
+        // so let's just use non-zero rule and calculate winding order
+        // we need to select arbitrary direction to count winding intersections - let's select unit X
+        int winding = 0;
+        foreach (var (a, b) in edges)
+        {
+            // see whether edge ab intersects our test ray - it has to intersect the infinite line on the correct side
+            var pa = a - this;
+            var pb = b - this;
+            // if pa.Z and pb.Z have same signs, the edge is fully above or below the test ray
+            if (pa.Z <= 0)
+            {
+                if (pb.Z > 0 && pa.Cross(pb) > 0)
+                    ++winding;
+            }
+            else
+            {
+                if (pb.Z <= 0 && pa.Cross(pb) < 0)
+                    --winding;
+            }
+        }
+        return winding != 0;
     }
 
     public readonly bool InCircle(WPos origin, float radius) => (this - origin).LengthSq() <= radius * radius;

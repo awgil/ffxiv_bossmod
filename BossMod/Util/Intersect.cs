@@ -32,6 +32,7 @@ public static class Intersect
         var u = lineDir.Dot(p - a);
         return u >= 0 && u <= lineDir.LengthSq() ? t : float.MaxValue;
     }
+    public static float RaySegments(WPos rayOrigin, WDir rayDir, IEnumerable<(WPos, WPos)> edges) => edges.Min(e => RaySegment(rayOrigin, rayDir, e.Item1, e.Item2));
 
     public static float RayQuad(WPos rayOrigin, WDir rayDir, WPos a, WPos b, WPos c, WPos d)
     {
@@ -48,4 +49,13 @@ public static class Intersect
         var w = hDir.OrthoL() * halfWidth;
         return RayQuad(rayOrigin, rayDir, rectCenter + h + w, rectCenter + h - w, rectCenter - h - w, rectCenter - h + w);
     }
+
+    public static float RayPolygon(WPos rayOrigin, WDir rayDir, PolygonWithHoles poly)
+    {
+        var dist = RaySegments(rayOrigin, rayDir, poly.ExteriorEdges);
+        foreach (var h in poly.Holes)
+            dist = Math.Min(dist, RaySegments(rayOrigin, rayDir, poly.InteriorEdges(h)));
+        return dist;
+    }
+    public static float RayPolygon(WPos rayOrigin, WDir rayDir, SimplifiedComplexPolygon poly) => poly.Parts.Min(part => RayPolygon(rayOrigin, rayDir, part));
 }
