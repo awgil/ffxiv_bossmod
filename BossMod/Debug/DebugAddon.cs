@@ -77,7 +77,7 @@ public unsafe sealed class DebugAddon : IDisposable
                 }
             }
         }
-        if (_newHook.Length > 0 && uint.TryParse(_newHook, out var agentId) && agentId > 0 && !_agentRcvs.ContainsKey(agentId) && AgentModule.Instance()->GetAgentByInternalID(agentId) is var agent && agent != null)
+        if (_newHook.Length > 0 && uint.TryParse(_newHook, out var agentId) && agentId > 0 && !_agentRcvs.ContainsKey(agentId) && AgentModule.Instance()->GetAgentByInternalId((AgentId)agentId) is var agent && agent != null)
         {
             ImGui.SameLine();
             if (ImGui.Button("Hook agent!"))

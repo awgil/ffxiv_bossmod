@@ -418,9 +418,9 @@ unsafe sealed class ActionManagerEx : IDisposable
         _processPacketActionEffectHook.Original(casterID, casterObj, targetPos, header, effects, targets);
         var currAnimLock = AnimationLock;
 
-        if (casterID != Service.ClientState.LocalPlayer?.ObjectId)
+        if (casterID != Service.ClientState.LocalPlayer?.ObjectId || header->SourceSequence == 0 && _lastReqSequence != 0)
         {
-            // non-player-initiated
+            // non-player-initiated; TODO: reconsider the condition for header->SourceSequence == 0 (e.g. autos) - could they happen while we wait for stuff like reholster?..
             if (currAnimLock != prevAnimLock)
                 Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {action} {prevAnimLock:f3} -> {currAnimLock:f3}");
             return;
