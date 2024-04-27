@@ -16,8 +16,8 @@ class DevouringBrand(BossModule module) : BossComponent(module)
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        Arena.ZoneRect(Module.Bounds.Center, new WDir(1, 0), Module.Bounds.HalfSize, Module.Bounds.HalfSize, _halfWidth, ArenaColor.AOE);
-        Arena.ZoneRect(Module.Bounds.Center, new WDir(0, +1), Module.Bounds.HalfSize, -_halfWidth, _halfWidth, ArenaColor.AOE);
-        Arena.ZoneRect(Module.Bounds.Center, new WDir(0, -1), Module.Bounds.HalfSize, -_halfWidth, _halfWidth, ArenaColor.AOE);
+        Arena.ZoneRect(Module.Bounds.Center, new WDir(1, 0), Module.Bounds.Radius, Module.Bounds.Radius, _halfWidth, ArenaColor.AOE);
+        Arena.ZoneRect(Module.Bounds.Center, new WDir(0, +1), Module.Bounds.Radius, -_halfWidth, _halfWidth, ArenaColor.AOE);
+        Arena.ZoneRect(Module.Bounds.Center, new WDir(0, -1), Module.Bounds.Radius, -_halfWidth, _halfWidth, ArenaColor.AOE);
     }
 }

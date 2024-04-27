@@ -123,7 +123,7 @@ class Miasma(BossModule module) : Components.GenericAOEs(module)
             return;
         int heightIndex = (OID)actor.OID is OID.MiasmaLowRect or OID.MiasmaLowCircle or OID.MiasmaLowDonut ? 0 : 1;
         int laneIndex = LaneIndex(actor.Position);
-        _laneStates[laneIndex, heightIndex] = new() { Shape = shape, Activation = WorldState.FutureTime(16.1f), NextOrigin = new(actor.Position.X, Module.Bounds.Center.Z - Module.Bounds.HalfSize + (shape == _shapeRect ? 0 : 5)) };
+        _laneStates[laneIndex, heightIndex] = new() { Shape = shape, Activation = WorldState.FutureTime(16.1f), NextOrigin = new(actor.Position.X, Module.Bounds.Center.Z - Module.Bounds.Radius + (shape == _shapeRect ? 0 : 5)) };
     }
 
     private int LaneIndex(WPos pos) => (pos.X - Module.Bounds.Center.X) switch

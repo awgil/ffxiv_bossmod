@@ -25,7 +25,7 @@ class Reproduce(BossModule module) : Components.Exaflare(module, 7)
             }
 
             AdvanceLine(Lines[index], caster.Position);
-            if (Lines[index].Next.X < Module.Bounds.Center.X - Module.Bounds.HalfSize)
+            if (Lines[index].Next.X < Module.Bounds.Center.X - Module.Bounds.Radius)
                 Lines.RemoveAt(index);
         }
     }

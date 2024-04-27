@@ -1,20 +1,20 @@
 ﻿namespace BossMod;
 
+// radius is the largest horizontal/vertical dimension: radius for circle, max of width/height for rect
 // note: if arena bounds are changed, new instance is recreated
 // max approx error can change without recreating the instance
-// you can use hash-code to cache clipping results - it will change whenever anything in the instance changes
-public abstract class ArenaBounds(WPos center, float halfSize)
+public abstract record class ArenaBounds(WPos Center, float Radius)
 {
-    public WPos Center { get; init; } = center;
-    public float HalfSize { get; init; } = halfSize; // largest horizontal/vertical dimension: radius for circle, max of width/height for rect
-
     // fields below are used for clipping
+    public readonly PolygonClipper Clipper = new();
     public float MaxApproxError { get; private set; }
+    public SimplifiedComplexPolygon ShapeSimplified { get; private set; } = new();
+    public List<Triangle> ShapeTriangulation { get; private set; } = [];
+    private readonly PolygonClipper.Operand _clipOperand = new();
 
-    private readonly Clip2D _clipper = new();
-    public IEnumerable<WPos> ClipPoly => _clipper.ClipPoly;
-    public List<(WPos, WPos, WPos)> ClipAndTriangulate(ClipperLib.PolyTree poly) => _clipper.ClipAndTriangulate(poly);
-    public List<(WPos, WPos, WPos)> ClipAndTriangulate(IEnumerable<WPos> poly) => _clipper.ClipAndTriangulate(poly);
+    public List<Triangle> ClipAndTriangulate(PolygonClipper.Operand poly) => Clipper.Intersect(poly, _clipOperand).Triangulate();
+    public List<Triangle> ClipAndTriangulate(IEnumerable<WPos> poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
+    public List<Triangle> ClipAndTriangulate(SimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
 
     private float _screenHalfSize;
     public float ScreenHalfSize
@@ -25,13 +25,16 @@ public abstract class ArenaBounds(WPos center, float halfSize)
             if (_screenHalfSize != value)
             {
                 _screenHalfSize = value;
-                MaxApproxError = CurveApprox.ScreenError / value * HalfSize;
-                _clipper.ClipPoly = BuildClipPoly();
+                MaxApproxError = CurveApprox.ScreenError / value * Radius;
+                ShapeSimplified = Clipper.Simplify(BuildClipPoly());
+                ShapeTriangulation = ShapeSimplified.Triangulate();
+                _clipOperand.Clear();
+                _clipOperand.AddPolygon(ShapeSimplified); // note: I assume using simplified shape as an operand is better than raw one
             }
         }
     }
 
-    public abstract IEnumerable<WPos> BuildClipPoly(float offset = 0); // positive offset increases area, negative decreases
+    public abstract PolygonClipper.Operand BuildClipPoly();
     public abstract Pathfinding.Map BuildMap(float resolution = 0.5f);
     public abstract bool Contains(WPos p);
     public abstract float IntersectRay(WPos origin, WDir dir);
@@ -39,7 +42,7 @@ public abstract class ArenaBounds(WPos center, float halfSize)
     public WPos ClampToBounds(WPos position) => Center + ClampToBounds(position - Center);
 
     // functions for clipping various shapes to bounds
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
+    public List<Triangle> ClipAndTriangulateCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
     {
         // TODO: think of a better way to do that (analytical clipping?)
         if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle.Rad <= 0)
@@ -57,28 +60,28 @@ public abstract class ArenaBounds(WPos center, float halfSize)
         return ClipAndTriangulate(points);
     }
 
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateCircle(WPos center, float radius)
+    public List<Triangle> ClipAndTriangulateCircle(WPos center, float radius)
         => ClipAndTriangulate(CurveApprox.Circle(center, radius, MaxApproxError));
 
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateDonut(WPos center, float innerRadius, float outerRadius)
+    public List<Triangle> ClipAndTriangulateDonut(WPos center, float innerRadius, float outerRadius)
         => innerRadius < outerRadius && innerRadius >= 0
             ? ClipAndTriangulate(CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError))
             : [];
 
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateTri(WPos a, WPos b, WPos c)
+    public List<Triangle> ClipAndTriangulateTri(WPos a, WPos b, WPos c)
         => ClipAndTriangulate([a, b, c]);
 
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateIsoscelesTri(WPos apex, WDir height, WDir halfBase)
+    public List<Triangle> ClipAndTriangulateIsoscelesTri(WPos apex, WDir height, WDir halfBase)
         => ClipAndTriangulateTri(apex, apex + height + halfBase, apex + height - halfBase);
 
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height)
+    public List<Triangle> ClipAndTriangulateIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height)
     {
         var dir = direction.ToDirection();
         var normal = dir.OrthoL();
         return ClipAndTriangulateIsoscelesTri(apex, height * dir, height * halfAngle.Tan() * normal);
     }
 
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth)
+    public List<Triangle> ClipAndTriangulateRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth)
     {
         var side = halfWidth * direction.OrthoR();
         var front = origin + lenFront * direction;
@@ -86,10 +89,10 @@ public abstract class ArenaBounds(WPos center, float halfSize)
         return ClipAndTriangulate([front + side, front - side, back - side, back + side]);
     }
 
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
+    public List<Triangle> ClipAndTriangulateRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
         => ClipAndTriangulateRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
 
-    public List<(WPos, WPos, WPos)> ClipAndTriangulateRect(WPos start, WPos end, float halfWidth)
+    public List<Triangle> ClipAndTriangulateRect(WPos start, WPos end, float halfWidth)
     {
         var dir = (end - start).Normalized();
         var side = halfWidth * dir.OrthoR();
@@ -97,47 +100,41 @@ public abstract class ArenaBounds(WPos center, float halfSize)
     }
 }
 
-public class ArenaBoundsCircle(WPos center, float radius) : ArenaBounds(center, radius)
+public record class ArenaBoundsCircle(WPos Center, float Radius) : ArenaBounds(Center, Radius)
 {
-    public override IEnumerable<WPos> BuildClipPoly(float offset) => CurveApprox.Circle(Center, HalfSize + offset, MaxApproxError);
+    public override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Circle(Center, Radius, MaxApproxError));
 
     public override Pathfinding.Map BuildMap(float resolution)
     {
-        var map = new Pathfinding.Map(resolution, Center, HalfSize, HalfSize, new());
-        map.BlockPixelsInside(ShapeDistance.InvertedCircle(Center, HalfSize), 0, 0);
+        var map = new Pathfinding.Map(resolution, Center, Radius, Radius, new());
+        map.BlockPixelsInside(ShapeDistance.InvertedCircle(Center, Radius), 0, 0);
         return map;
     }
 
-    public override bool Contains(WPos p) => p.InCircle(Center, HalfSize);
-    public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayCircle(origin, dir, Center, HalfSize);
+    public override bool Contains(WPos p) => p.InCircle(Center, Radius);
+    public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayCircle(origin, dir, Center, Radius);
 
     public override WDir ClampToBounds(WDir offset, float scale)
     {
-        var r = HalfSize * scale;
+        var r = Radius * scale;
         if (offset.LengthSq() > r * r)
             offset *= r / offset.Length();
         return offset;
     }
 }
 
-public class ArenaBoundsSquare(WPos center, float halfWidth) : ArenaBounds(center, halfWidth)
+public record class ArenaBoundsSquare(WPos Center, float Radius) : ArenaBounds(Center, Radius)
 {
-    public override IEnumerable<WPos> BuildClipPoly(float offset)
-    {
-        var s = HalfSize + offset;
-        yield return Center + new WDir(s, -s);
-        yield return Center + new WDir(s, s);
-        yield return Center + new WDir(-s, s);
-        yield return Center + new WDir(-s, -s);
-    }
+    public float HalfWidth => Radius;
 
-    public override Pathfinding.Map BuildMap(float resolution) => new(resolution, Center, HalfSize, HalfSize);
-    public override bool Contains(WPos p) => WPos.AlmostEqual(p, Center, HalfSize);
-    public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, new(0, 1), HalfSize, HalfSize);
+    public override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Center, new(Radius, 0), new(0, Radius)));
+    public override Pathfinding.Map BuildMap(float resolution) => new(resolution, Center, Radius, Radius);
+    public override bool Contains(WPos p) => WPos.AlmostEqual(p, Center, Radius);
+    public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, new(0, 1), Radius, Radius);
 
     public override WDir ClampToBounds(WDir offset, float scale)
     {
-        var wh = HalfSize * scale;
+        var wh = Radius * scale;
         if (Math.Abs(offset.X) > wh)
             offset *= wh / Math.Abs(offset.X);
         if (Math.Abs(offset.Z) > wh)
@@ -146,21 +143,15 @@ public class ArenaBoundsSquare(WPos center, float halfWidth) : ArenaBounds(cente
     }
 }
 
-public class ArenaBoundsRect(WPos center, float halfWidth, float halfHeight, Angle rotation = new()) : ArenaBounds(center, MathF.Max(halfWidth, halfHeight))
+// if rotation is 0, half-width is along X and half-height is along Z
+public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeight, Angle Rotation = default) : ArenaBounds(Center, MathF.Max(HalfWidth, HalfHeight))
 {
-    public float HalfWidth { get; init; } = halfWidth; // along X if rotation is 0
-    public float HalfHeight { get; init; } = halfHeight; // along Z if rotation is 0
-    public Angle Rotation { get; init; } = rotation;
-
-    public override IEnumerable<WPos> BuildClipPoly(float offset)
+    public override PolygonClipper.Operand BuildClipPoly()
     {
         var n = Rotation.ToDirection(); // local 'z' axis
-        var dx = n.OrthoL() * (HalfWidth + offset);
-        var dz = n * (HalfHeight + offset);
-        yield return Center + dx - dz;
-        yield return Center + dx + dz;
-        yield return Center - dx + dz;
-        yield return Center - dx - dz;
+        var dx = n.OrthoL() * HalfWidth;
+        var dz = n * HalfHeight;
+        return new(CurveApprox.Rect(Center, dx, dz));
     }
 
     public override Pathfinding.Map BuildMap(float resolution) => new(resolution, Center, HalfWidth, HalfHeight, Rotation);
@@ -182,18 +173,16 @@ public class ArenaBoundsRect(WPos center, float halfWidth, float halfHeight, Ang
 
 // TODO: revise and reconsider, not convinced it needs to be here, and it's not well implemented
 // HalfSize is the radius of the circumscribed circle
-public class ArenaBoundsTri(WPos center, float sideLength) : ArenaBounds(center, sideLength * sqrt3 / 3)
+public record class ArenaBoundsTri(WPos Center, float SideLength) : ArenaBounds(Center, SideLength * Sqrt3 / 3)
 {
-    private static readonly float sqrt3 = MathF.Sqrt(3);
+    private const float Sqrt3 = 1.7320508075688772935274463415059f;
 
-    public override IEnumerable<WPos> BuildClipPoly(float offset = 0)
+    public override PolygonClipper.Operand BuildClipPoly()
     {
         // Calculate the vertices of the equilateral triangle
-        var height = HalfSize * sqrt3; // Height of the equilateral triangle
-        var halfSide = HalfSize;
-        yield return Center + new WDir(-halfSide, height / 3);
-        yield return Center + new WDir(halfSide, height / 3);
-        yield return Center + new WDir(0, -2 * height / 3);
+        var height = Radius * Sqrt3; // Height of the equilateral triangle
+        var halfSide = Radius;
+        return new([Center + new WDir(-halfSide, height / 3), Center + new WDir(halfSide, height / 3), Center + new WDir(0, -2 * height / 3)]);
     }
 
     public override Pathfinding.Map BuildMap(float resolution = 0.5f)
@@ -205,9 +194,9 @@ public class ArenaBoundsTri(WPos center, float sideLength) : ArenaBounds(center,
 
     public override bool Contains(WPos p)
     {
-        var a = Center + new WDir(-HalfSize, HalfSize * sqrt3 / 3);
-        var b = Center + new WDir(HalfSize, HalfSize * sqrt3 / 3);
-        var c = Center + new WDir(0, -2 * HalfSize * sqrt3 / 3);
+        var a = Center + new WDir(-Radius, Radius * Sqrt3 / 3);
+        var b = Center + new WDir(Radius, Radius * Sqrt3 / 3);
+        var c = Center + new WDir(0, -2 * Radius * Sqrt3 / 3);
 
         bool b1 = Sign(p, a, b) < 0;
         bool b2 = Sign(p, b, c) < 0;

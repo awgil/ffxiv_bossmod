@@ -53,7 +53,7 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
 
     private IEnumerable<WPos> OutDanger()
     {
-        foreach (var p in RepeatFirst(CurveApprox.Circle(Module.Bounds.Center, Module.Bounds.HalfSize, Module.Bounds.MaxApproxError)))
+        foreach (var p in RepeatFirst(CurveApprox.Circle(Module.Bounds.Center, Module.Bounds.Radius, Module.Bounds.MaxApproxError)))
             yield return p;
         foreach (var p in RepeatFirst(RingBorder(0.Degrees(), _outerRingRadius, false)))
             yield return p;

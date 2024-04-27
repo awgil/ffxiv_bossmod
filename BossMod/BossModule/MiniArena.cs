@@ -44,9 +44,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
         ImGui.GetWindowDrawList().PushClipRect(Vector2.Max(cursor, wmin), Vector2.Min(cursor + fullSize, wmax));
         if (Config.OpaqueArenaBackground)
         {
-            foreach (var p in Bounds.ClipPoly)
-                PathLineTo(p);
-            PathFillConvex(ArenaColor.Background);
+            Zone(Bounds.ShapeTriangulation, ArenaColor.Background);
         }
     }
 
@@ -70,7 +68,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
 
     private Vector2 WorldOffsetToScreenOffset(WDir worldOffset)
     {
-        return ScreenHalfSize * RotatedCoords(worldOffset.ToVec2()) / Bounds.HalfSize;
+        return ScreenHalfSize * RotatedCoords(worldOffset.ToVec2()) / Bounds.Radius;
     }
 
     // unclipped primitive rendering that accept world-space positions; thin convenience wrappers around drawlist api
@@ -101,12 +99,12 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
 
     public void AddCircle(WPos center, float radius, uint color, float thickness = 1)
     {
-        ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, color, 0, thickness);
+        ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, color, 0, thickness);
     }
 
     public void AddCircleFilled(WPos center, float radius, uint color)
     {
-        ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, color);
+        ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, color);
     }
 
     public void AddCone(WPos center, float radius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
@@ -115,7 +113,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
         float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathLineTo(sCenter);
-        drawlist.PathArcTo(sCenter, radius / Bounds.HalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
+        drawlist.PathArcTo(sCenter, radius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
         drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
     }
 
@@ -124,9 +122,16 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
         var sCenter = WorldPositionToScreenPosition(center);
         float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
         var drawlist = ImGui.GetWindowDrawList();
-        drawlist.PathArcTo(sCenter, innerRadius / Bounds.HalfSize * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
-        drawlist.PathArcTo(sCenter, outerRadius / Bounds.HalfSize * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
+        drawlist.PathArcTo(sCenter, innerRadius / Bounds.Radius * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
+        drawlist.PathArcTo(sCenter, outerRadius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
         drawlist.PathStroke(color, ImDrawFlags.Closed, thickness);
+    }
+
+    public void AddPolygon(ReadOnlySpan<WPos> vertices, uint color, float thickness = 1)
+    {
+        foreach (var p in vertices)
+            PathLineTo(p);
+        PathStroke(true, color, thickness);
     }
 
     public void AddPolygon(IEnumerable<WPos> vertices, uint color, float thickness = 1)
@@ -145,7 +150,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     // adds a bunch of points corresponding to arc - if path is non empty, this adds an edge from last point to first arc point
     public void PathArcTo(WPos center, float radius, float amin, float amax)
     {
-        ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.HalfSize * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth, MathF.PI / 2 - amax + _cameraAzimuth);
+        ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth, MathF.PI / 2 - amax + _cameraAzimuth);
     }
 
     public void PathStroke(bool closed, uint color, float thickness = 1)
@@ -159,13 +164,13 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     }
 
     // draw clipped & triangulated zone
-    public void Zone(List<(WPos, WPos, WPos)> triangulation, uint color)
+    public void Zone(List<Triangle> triangulation, uint color)
     {
         var drawlist = ImGui.GetWindowDrawList();
         var restoreFlags = drawlist.Flags;
         drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
-        foreach (var (p1, p2, p3) in triangulation)
-            drawlist.AddTriangleFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), color);
+        foreach (var tri in triangulation)
+            drawlist.AddTriangleFilled(WorldPositionToScreenPosition(tri.A), WorldPositionToScreenPosition(tri.B), WorldPositionToScreenPosition(tri.C), color);
         drawlist.Flags = restoreFlags;
     }
 
@@ -195,9 +200,12 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     // draw arena border
     public void Border(uint color)
     {
-        foreach (var p in Bounds.ClipPoly)
-            PathLineTo(p);
-        PathStroke(true, color, 2);
+        foreach (var p in Bounds.ShapeSimplified.Parts)
+        {
+            AddPolygon(p.Exterior, color, 2);
+            for (int i = 0; i < p.HoleStarts.Count; ++i)
+                AddPolygon(p.Hole(i), color, 2);
+        }
     }
 
     public void CardinalNames()

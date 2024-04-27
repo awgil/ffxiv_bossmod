@@ -33,10 +33,10 @@ class SewageDeluge(BossModule module) : BossComponent(module)
         Arena.ZoneRect(Module.Bounds.Center, new WDir(0, +1), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
         Arena.ZoneRect(Module.Bounds.Center, new WDir(0, -1), _cornerOuter, -_connectOuter, _cornerInner, ArenaColor.AOE);
         // outer area
-        Arena.ZoneRect(Module.Bounds.Center, new WDir(+1, 0), Module.Bounds.HalfSize, -_cornerOuter, Module.Bounds.HalfSize, ArenaColor.AOE);
-        Arena.ZoneRect(Module.Bounds.Center, new WDir(-1, 0), Module.Bounds.HalfSize, -_cornerOuter, Module.Bounds.HalfSize, ArenaColor.AOE);
-        Arena.ZoneRect(Module.Bounds.Center, new WDir(0, +1), Module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, ArenaColor.AOE);
-        Arena.ZoneRect(Module.Bounds.Center, new WDir(0, -1), Module.Bounds.HalfSize, -_cornerOuter, _cornerOuter, ArenaColor.AOE);
+        Arena.ZoneRect(Module.Bounds.Center, new WDir(+1, 0), Module.Bounds.Radius, -_cornerOuter, Module.Bounds.Radius, ArenaColor.AOE);
+        Arena.ZoneRect(Module.Bounds.Center, new WDir(-1, 0), Module.Bounds.Radius, -_cornerOuter, Module.Bounds.Radius, ArenaColor.AOE);
+        Arena.ZoneRect(Module.Bounds.Center, new WDir(0, +1), Module.Bounds.Radius, -_cornerOuter, _cornerOuter, ArenaColor.AOE);
+        Arena.ZoneRect(Module.Bounds.Center, new WDir(0, -1), Module.Bounds.Radius, -_cornerOuter, _cornerOuter, ArenaColor.AOE);
 
         var corner = Module.Bounds.Center + _corners[(int)_blockedCorner] * _offsetCorner;
         Arena.ZoneRect(corner, new WDir(1, 0), _cornerHalfSize, _cornerHalfSize, _cornerHalfSize, ArenaColor.AOE);

@@ -53,7 +53,7 @@ class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var length = Module.Bounds.HalfSize * 2; // casters are at the border, orthogonal to borders
+        var length = Module.Bounds.Radius * 2; // casters are at the border, orthogonal to borders
         foreach (var c in Casters)
         {
             hints.AddForbiddenZone(ShapeDistance.Rect(c.Position, c.CastInfo!.Rotation, length, Distance - length, 6), c.CastInfo!.NPCFinishAt);

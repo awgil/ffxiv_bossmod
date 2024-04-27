@@ -65,6 +65,15 @@ public static class CurveApprox
             yield return v;
     }
 
+    // return polygon points for rectangle - it's not really a curve, but whatever...
+    public static IEnumerable<WPos> Rect(WPos center, WDir dx, WDir dz)
+    {
+        yield return center + dx - dz;
+        yield return center + dx + dz;
+        yield return center - dx + dz;
+        yield return center - dx - dz;
+    }
+
     // for angles, we use standard FF convention: 0 is 'south'/down/(0, -r), and then increases clockwise
     private static WPos PolarToCartesian(WPos center, float r, Angle phi)
     {

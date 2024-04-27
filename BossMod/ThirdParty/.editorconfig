@@ -1,5 +1,6 @@
-#root = true
+root = true
 
 [*.cs]
+generated_code = true # hack, but it works...
 dotnet_analyzer_diagnostic.severity = none # disable all code analysis for third-party
 dotnet_code_quality.CA1707.api_surface = none

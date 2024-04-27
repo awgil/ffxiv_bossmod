@@ -41,7 +41,7 @@ class AetherExplosion(BossModule module) : BossComponent(module)
         for (int i = 0; i < 4; ++i)
         {
             Arena.ZoneCone(Module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
-            Arena.ZoneCone(Module.Bounds.Center, P1S.InnerCircleRadius, Module.Bounds.HalfSize, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
+            Arena.ZoneCone(Module.Bounds.Center, P1S.InnerCircleRadius, Module.Bounds.Radius, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
             start += 90.Degrees();
         }
     }

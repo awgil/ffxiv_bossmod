@@ -32,7 +32,7 @@ abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = defaul
     }
 
     public WDir QuadrantDir(int q) => new((q & 1) != 0 ? +1 : -1, (q & 2) != 0 ? +1 : -1); // both coords are +-1
-    public WPos QuadrantCenter(int q) => Module.Bounds.Center + Module.Bounds.HalfSize * 0.5f * QuadrantDir(q);
+    public WPos QuadrantCenter(int q) => Module.Bounds.Center + Module.Bounds.Radius * 0.5f * QuadrantDir(q);
 
     public Waymark WaymarkForQuadrant(int q)
     {
@@ -63,14 +63,14 @@ abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = defaul
         switch (State)
         {
             case ArenaState.Cells:
-                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.HalfSize, 0), Module.Bounds.Center + new WDir(Module.Bounds.HalfSize, 0), ArenaColor.Border);
-                Arena.AddLine(Module.Bounds.Center - new WDir(0, Module.Bounds.HalfSize), Module.Bounds.Center + new WDir(0, Module.Bounds.HalfSize), ArenaColor.Border);
+                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.Radius, 0), Module.Bounds.Center + new WDir(Module.Bounds.Radius, 0), ArenaColor.Border);
+                Arena.AddLine(Module.Bounds.Center - new WDir(0, Module.Bounds.Radius), Module.Bounds.Center + new WDir(0, Module.Bounds.Radius), ArenaColor.Border);
                 break;
             case ArenaState.DiagNW:
-                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.HalfSize, Module.Bounds.HalfSize), Module.Bounds.Center + new WDir(Module.Bounds.HalfSize, Module.Bounds.HalfSize), ArenaColor.Border);
+                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.Radius, Module.Bounds.Radius), Module.Bounds.Center + new WDir(Module.Bounds.Radius, Module.Bounds.Radius), ArenaColor.Border);
                 break;
             case ArenaState.DiagNE:
-                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.HalfSize, -Module.Bounds.HalfSize), Module.Bounds.Center + new WDir(Module.Bounds.HalfSize, -Module.Bounds.HalfSize), ArenaColor.Border);
+                Arena.AddLine(Module.Bounds.Center - new WDir(Module.Bounds.Radius, -Module.Bounds.Radius), Module.Bounds.Center + new WDir(Module.Bounds.Radius, -Module.Bounds.Radius), ArenaColor.Border);
                 break;
         }
     }

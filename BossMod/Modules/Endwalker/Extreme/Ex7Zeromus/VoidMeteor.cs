@@ -10,7 +10,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         public int Order;
         public bool Stretched;
         public bool NonClipping;
-        public List<(WPos, WPos, WPos)>? DangerZone;
+        public List<Triangle>? DangerZone;
     }
 
     public int NumCasts { get; private set; }
@@ -44,7 +44,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         if (_drawShadows && SourceIfActive(pcSlot) is var source && source != null)
         {
             ref var state = ref _playerStates.AsSpan()[pcSlot];
-            state.DangerZone ??= Arena.Bounds.ClipAndTriangulate(new Clip2D().Union(_meteors.Select(m => BuildShadowPolygon(source.Position, m))));
+            state.DangerZone ??= BuildShadowZone(source.Position);
             Arena.Zone(state.DangerZone, ArenaColor.AOE);
         }
     }
@@ -126,6 +126,15 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
             yield return p;
         yield return source + 100 * (dirToMeteor + halfAngle).ToDirection();
         yield return source + 100 * (dirToMeteor - halfAngle).ToDirection();
+    }
+
+    private List<Triangle> BuildShadowZone(WPos source)
+    {
+        PolygonClipper.Operand set = new();
+        foreach (var m in _meteors)
+            set.AddContour(BuildShadowPolygon(source, m));
+        var simplified = Arena.Bounds.Clipper.Simplify(set, Clipper2Lib.FillRule.NonZero);
+        return Arena.Bounds.ClipAndTriangulate(simplified);
     }
 
     private bool IsClipped(WPos source, WPos target, WPos position) => position.InCircle(target, _radius) || position.InRect(source, target - source, _radius);

@@ -6,7 +6,7 @@ class EntrapmentAttract(BossModule module) : Components.Knockback(module, Action
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        yield return new(new(Module.Bounds.Center.X, Module.Bounds.Center.Z + Module.Bounds.HalfSize), 60, _activation, Kind: Kind.TowardsOrigin);
+        yield return new(new(Module.Bounds.Center.X, Module.Bounds.Center.Z + Module.Bounds.Radius), 60, _activation, Kind: Kind.TowardsOrigin);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

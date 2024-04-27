@@ -48,7 +48,7 @@ class ShiningBladeFlares(BossModule module) : Components.GenericAOEs(module, Act
 
         // add first flare at boss position; we can't determine direction yet
         var bossOffset = actor.Position - Module.Bounds.Center;
-        if (!Utils.AlmostEqual(bossOffset.LengthSq(), Module.Bounds.HalfSize * Module.Bounds.HalfSize, 1))
+        if (!Utils.AlmostEqual(bossOffset.LengthSq(), Module.Bounds.Radius * Module.Bounds.Radius, 1))
             ReportError("Unexpected boss position");
         _flares.Add(bossOffset);
     }

@@ -24,7 +24,7 @@ class P3Geocrush2(BossModule module) : Components.GenericAOEs(module, ActionID.M
         if (spell.Action == WatchedAction)
         {
             _caster = caster;
-            _shapeReduced = new(NumCasts == 0 ? 16 : 12, Module.Bounds.HalfSize); // TODO: verify second radius
+            _shapeReduced = new(NumCasts == 0 ? 16 : 12, Module.Bounds.Radius); // TODO: verify second radius
         }
     }
 

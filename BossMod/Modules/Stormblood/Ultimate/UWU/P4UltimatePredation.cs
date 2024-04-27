@@ -95,8 +95,8 @@ class P4UltimatePredation(BossModule module) : BossComponent(module)
         _second.ForbidInfiniteRect(titan.Position, titan.Rotation - 22.5f.Degrees(), 3);
         _second.ForbidInfiniteRect(titan.Position, titan.Rotation + 90.Degrees(), 3);
         _first.ForbidInfiniteRect(ifrit.Position, ifrit.Rotation, 9);
-        _second.ForbidInfiniteRect(Module.Bounds.Center - new WDir(Module.Bounds.HalfSize, 0), 90.Degrees(), 5);
-        _second.ForbidInfiniteRect(Module.Bounds.Center - new WDir(0, Module.Bounds.HalfSize), 0.Degrees(), 5);
+        _second.ForbidInfiniteRect(Module.Bounds.Center - new WDir(Module.Bounds.Radius, 0), 90.Degrees(), 5);
+        _second.ForbidInfiniteRect(Module.Bounds.Center - new WDir(0, Module.Bounds.Radius), 0.Degrees(), 5);
         _first.ForbidCircle(garuda.Position, 20);
         _second.ForbidCircle(garuda.Position, 20);
         _second.ForbidCircle(ultima.Position, 14);

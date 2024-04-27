@@ -130,7 +130,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
 
         if (Active)
         {
-            float diag = Module.Bounds.HalfSize / 1.414214f;
+            float diag = Module.Bounds.Radius / 1.414214f;
             Arena.AddLine(Module.Bounds.Center + new WDir(diag, diag), Module.Bounds.Center - new WDir(diag, diag), ArenaColor.Border);
             Arena.AddLine(Module.Bounds.Center + new WDir(diag, -diag), Module.Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
         }

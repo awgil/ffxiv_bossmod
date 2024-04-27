@@ -82,7 +82,7 @@ class Dartboard(BossModule module) : BossComponent(module)
         for (int i = 0; i < 4; ++i)
         {
             Arena.ZoneCone(Module.Bounds.Center, 0, 12, dirOut + 30.Degrees(), 15.Degrees(), zoneColor);
-            Arena.ZoneCone(Module.Bounds.Center, 12, Module.Bounds.HalfSize, dirOut, 15.Degrees(), zoneColor);
+            Arena.ZoneCone(Module.Bounds.Center, 12, Module.Bounds.Radius, dirOut, 15.Degrees(), zoneColor);
             dirOut += 90.Degrees();
         }
     }

@@ -66,12 +66,12 @@ class Paradeigma(BossModule module) : BossComponent(module)
             switch (state)
             {
                 case 0x00020001:
-                    _fireLine.Add(new(+Module.Bounds.HalfSize, -Module.Bounds.HalfSize));
-                    _fireLine.Add(new(-Module.Bounds.HalfSize, +Module.Bounds.HalfSize));
+                    _fireLine.Add(new(+Module.Bounds.Radius, -Module.Bounds.Radius));
+                    _fireLine.Add(new(-Module.Bounds.Radius, +Module.Bounds.Radius));
                     break;
                 case 0x00400020:
-                    _fireLine.Add(new(-Module.Bounds.HalfSize, -Module.Bounds.HalfSize));
-                    _fireLine.Add(new(+Module.Bounds.HalfSize, +Module.Bounds.HalfSize));
+                    _fireLine.Add(new(-Module.Bounds.Radius, -Module.Bounds.Radius));
+                    _fireLine.Add(new(+Module.Bounds.Radius, +Module.Bounds.Radius));
                     break;
             }
         }

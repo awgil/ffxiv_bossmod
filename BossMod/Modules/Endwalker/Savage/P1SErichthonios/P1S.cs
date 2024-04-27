@@ -10,10 +10,10 @@ public class P1S(WorldState ws, Actor primary) : BossModule(ws, primary, new Are
         if (Bounds is ArenaBoundsCircle)
         {
             // cells mode
-            float diag = Bounds.HalfSize / 1.414214f;
+            float diag = Bounds.Radius / 1.414214f;
             Arena.AddCircle(Bounds.Center, InnerCircleRadius, ArenaColor.Border);
-            Arena.AddLine(Bounds.Center + new WDir(Bounds.HalfSize, 0), Bounds.Center - new WDir(Bounds.HalfSize, 0), ArenaColor.Border);
-            Arena.AddLine(Bounds.Center + new WDir(0, Bounds.HalfSize), Bounds.Center - new WDir(0, Bounds.HalfSize), ArenaColor.Border);
+            Arena.AddLine(Bounds.Center + new WDir(Bounds.Radius, 0), Bounds.Center - new WDir(Bounds.Radius, 0), ArenaColor.Border);
+            Arena.AddLine(Bounds.Center + new WDir(0, Bounds.Radius), Bounds.Center - new WDir(0, Bounds.Radius), ArenaColor.Border);
             Arena.AddLine(Bounds.Center + new WDir(diag, +diag), Bounds.Center - new WDir(diag, +diag), ArenaColor.Border);
             Arena.AddLine(Bounds.Center + new WDir(diag, -diag), Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
         }

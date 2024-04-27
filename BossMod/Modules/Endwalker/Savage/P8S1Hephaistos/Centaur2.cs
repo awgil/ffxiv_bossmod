@@ -85,23 +85,23 @@ class BlazingFootfalls(BossModule module) : BossComponent(module)
         if (NumMechanicsDone == 0)
         {
             // draw first trailblaze
-            Arena.ZoneRect(Module.Bounds.Center, new WDir(0, 1), Module.Bounds.HalfSize, Module.Bounds.HalfSize, _trailblazeHalfWidth, ArenaColor.AOE);
+            Arena.ZoneRect(Module.Bounds.Center, new WDir(0, 1), Module.Bounds.Radius, Module.Bounds.Radius, _trailblazeHalfWidth, ArenaColor.AOE);
         }
         if (NumMechanicsDone == 2)
         {
             // draw second trailblaze
-            Arena.ZoneRect(Module.Bounds.Center, new WDir(1, 0), Module.Bounds.HalfSize, Module.Bounds.HalfSize, _trailblazeHalfWidth, ArenaColor.AOE);
+            Arena.ZoneRect(Module.Bounds.Center, new WDir(1, 0), Module.Bounds.Radius, Module.Bounds.Radius, _trailblazeHalfWidth, ArenaColor.AOE);
         }
 
         if (_firstCrush && NumMechanicsDone < 2)
         {
             // draw first crush
-            Arena.ZoneCircle(Module.Bounds.Center + Module.Bounds.HalfSize * new WDir(_firstSafeLeft ? 1 : -1, 0), _crushRadius, ArenaColor.AOE);
+            Arena.ZoneCircle(Module.Bounds.Center + Module.Bounds.Radius * new WDir(_firstSafeLeft ? 1 : -1, 0), _crushRadius, ArenaColor.AOE);
         }
         if (!_firstCrush && NumMechanicsDone is >= 2 and < 4)
         {
             // draw second crush
-            Arena.ZoneCircle(Module.Bounds.Center + Module.Bounds.HalfSize * new WDir(0, _secondSafeTop ? 1 : -1), _crushRadius, ArenaColor.AOE);
+            Arena.ZoneCircle(Module.Bounds.Center + Module.Bounds.Radius * new WDir(0, _secondSafeTop ? 1 : -1), _crushRadius, ArenaColor.AOE);
         }
     }
 
@@ -134,13 +134,13 @@ class BlazingFootfalls(BossModule module) : BossComponent(module)
         if (!_firstCrush && NumMechanicsDone == 1)
         {
             // draw knockback from first impact
-            var adjPos = Components.Knockback.AwayFromSource(pc.Position, Module.Bounds.Center + Module.Bounds.HalfSize * new WDir(_firstSafeLeft ? -1 : 1, 0), _impactKnockbackRadius);
+            var adjPos = Components.Knockback.AwayFromSource(pc.Position, Module.Bounds.Center + Module.Bounds.Radius * new WDir(_firstSafeLeft ? -1 : 1, 0), _impactKnockbackRadius);
             Components.Knockback.DrawKnockback(pc, adjPos, Arena);
         }
         if (_firstCrush && NumMechanicsDone == 3)
         {
             // draw knockback from second impact
-            var adjPos = Components.Knockback.AwayFromSource(pc.Position, Module.Bounds.Center + Module.Bounds.HalfSize * new WDir(0, _secondSafeTop ? -1 : 1), _impactKnockbackRadius);
+            var adjPos = Components.Knockback.AwayFromSource(pc.Position, Module.Bounds.Center + Module.Bounds.Radius * new WDir(0, _secondSafeTop ? -1 : 1), _impactKnockbackRadius);
             Components.Knockback.DrawKnockback(pc, adjPos, Arena);
         }
     }

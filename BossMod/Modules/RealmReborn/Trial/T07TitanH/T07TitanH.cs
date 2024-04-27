@@ -76,9 +76,9 @@ class Geocrush(BossModule module) : Components.GenericAOEs(module, ActionID.Make
                 1 => 23,
                 2 => 20,
                 3 => 15,
-                _ => Module.Bounds.HalfSize
+                _ => Module.Bounds.Radius
             };
-            _outer = new AOEShapeDonut(outerRadius, Module.Bounds.HalfSize);
+            _outer = new AOEShapeDonut(outerRadius, Module.Bounds.Radius);
             _inner = new AOEShapeCircle(outerRadius - 2); // TODO: check falloff...
             _innerFinish = spell.NPCFinishAt;
         }
