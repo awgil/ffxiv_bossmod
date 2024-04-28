@@ -78,7 +78,7 @@ class Explosion(BossModule module) : Components.GenericAOEs(module)
                 yield return new(circle, c.Position, default, _activation);
         if (_casters.Count > 0 && _snortingeffectends > WorldState.CurrentTime)
             foreach (var c in _casters)
-                yield return new(circle, c.Position + Math.Min(15, Module.Bounds.IntersectRay(c.Position, (c.Position - Module.PrimaryActor.Position).Normalized()) - c.HitboxRadius / 2) * (c.Position - Module.PrimaryActor.Position).Normalized(), Activation: _activation);
+                yield return new(circle, c.Position + Math.Min(15, Module.Arena.IntersectRayBounds(c.Position, (c.Position - Module.PrimaryActor.Position).Normalized()) - c.HitboxRadius / 2) * (c.Position - Module.PrimaryActor.Position).Normalized(), Activation: _activation);
     }
 
     public override void Update()

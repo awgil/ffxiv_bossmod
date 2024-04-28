@@ -24,6 +24,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
 
     public bool InBounds(WPos position) => Bounds.Contains(position - Center);
     public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
+    public float IntersectRayBounds(WPos rayOrigin, WDir rayDir) => Bounds.IntersectRay(rayOrigin - Center, rayDir);
 
     // prepare for drawing - set up internal state, clip rect etc.
     public void Begin(float cameraAzimuthRadians)
@@ -255,7 +256,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
             return; // can't determine projection direction
 
         dir /= l;
-        var t = Bounds.IntersectRay(from, dir);
+        var t = IntersectRayBounds(from, dir);
         if (t < l)
             ActorOutsideBounds(from + t * dir, rotation, color);
     }
