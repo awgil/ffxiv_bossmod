@@ -3,6 +3,7 @@
 // radius is the largest horizontal/vertical dimension: radius for circle, max of width/height for rect
 // note: if arena bounds are changed, new instance is recreated
 // max approx error can change without recreating the instance
+// TODO: consider changing this class to represent *relative* arena bounds (relative to arena center) - the reason being that in some cases effective center moves every frame, and bounds caches a lot (clip poly & base map for pathfinding)
 public abstract record class ArenaBounds(WPos Center, float Radius, float MapResolution)
 {
     // fields below are used for clipping & drawing borders
@@ -39,7 +40,6 @@ public abstract record class ArenaBounds(WPos Center, float Radius, float MapRes
     public abstract bool Contains(WPos p);
     public abstract float IntersectRay(WPos origin, WDir dir);
     public abstract WDir ClampToBounds(WDir offset);
-    public WPos ClampToBounds(WPos position) => Center + ClampToBounds(position - Center);
 
     // functions for clipping various shapes to bounds
     public List<Triangle> ClipAndTriangulateCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
@@ -146,18 +146,19 @@ public record class ArenaBoundsSquare(WPos Center, float Radius, float MapResolu
 // if rotation is 0, half-width is along X and half-height is along Z
 public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeight, Angle Rotation = default, float MapResolution = 0.5f) : ArenaBounds(Center, MathF.Max(HalfWidth, HalfHeight), MapResolution)
 {
-    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Center, Rotation.ToDirection(), HalfWidth, HalfHeight));
+    private WDir _orientation = Rotation.ToDirection();
+
+    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Center, _orientation, HalfWidth, HalfHeight));
     public override Pathfinding.Map PathfindMap() => new(MapResolution, Center, HalfWidth, HalfHeight, Rotation);
     public override bool Contains(WPos p) => p.InRect(Center, Rotation, HalfHeight, HalfHeight, HalfWidth);
-    public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, Rotation.ToDirection(), HalfWidth, HalfHeight);
+    public override float IntersectRay(WPos origin, WDir dir) => Intersect.RayRect(origin, dir, Center, _orientation, HalfWidth, HalfHeight);
 
     public override WDir ClampToBounds(WDir offset)
     {
-        var n = Rotation.ToDirection();
-        var dx = MathF.Abs(offset.Dot(n.OrthoL()));
+        var dx = MathF.Abs(offset.Dot(_orientation.OrthoL()));
         if (dx > HalfWidth)
             offset *= HalfWidth / dx;
-        var dy = MathF.Abs(offset.Dot(n));
+        var dy = MathF.Abs(offset.Dot(_orientation));
         if (dy > HalfHeight)
             offset *= HalfHeight / dy;
         return offset;

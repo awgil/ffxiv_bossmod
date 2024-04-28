@@ -116,7 +116,7 @@ sealed class AIBehaviour(AIController ctrl, Autorotation autorot) : IDisposable
             var desiredToTarget = targeting.Target.Actor.Position - targeting.Target.DesiredPosition;
             if (desiredToTarget.LengthSq() > 4 /*&& (_autorot.ClassActions?.GetState().GCD ?? 0) > 0.5f*/)
             {
-                var dest = autorot.Hints.Bounds.ClampToBounds(targeting.Target.DesiredPosition - adjRange * desiredToTarget.Normalized());
+                var dest = autorot.Hints.ClampToBounds(targeting.Target.DesiredPosition - adjRange * desiredToTarget.Normalized());
                 return NavigationDecision.Build(autorot.WorldState, autorot.Hints, player, dest, 0.5f, new(), Positional.Any);
             }
         }

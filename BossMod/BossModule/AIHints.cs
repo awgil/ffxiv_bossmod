@@ -27,6 +27,7 @@ public class AIHints
     public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
 
     public ArenaBounds Bounds = DefaultBounds;
+    public WPos Center => Bounds.Center;
 
     // list of potential targets
     public List<Enemy> PotentialTargets = [];
@@ -136,4 +137,6 @@ public class AIHints
     public int NumPriorityTargetsInAOECircle(WPos origin, float radius) => NumPriorityTargetsInAOE(a => a.Actor.Position.InCircle(origin, radius + a.Actor.HitboxRadius));
     public int NumPriorityTargetsInAOECone(WPos origin, float radius, WDir direction, Angle halfAngle) => NumPriorityTargetsInAOE(a => a.Actor.Position.InCircleCone(origin, radius + a.Actor.HitboxRadius, direction, halfAngle));
     public int NumPriorityTargetsInAOERect(WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => NumPriorityTargetsInAOE(a => a.Actor.Position.InRect(origin, direction, lenFront + a.Actor.HitboxRadius, lenBack, halfWidth));
+
+    public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
 }

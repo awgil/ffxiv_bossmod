@@ -104,5 +104,5 @@ class HyperdimensionalSlash(BossModule module) : BossComponent(module)
         }
     }
 
-    private WPos TearPosition(Actor target) => Module.Bounds.ClampToBounds(Module.Center + 50 * (target.Position - Module.Center).Normalized());
+    private WPos TearPosition(Actor target) => Module.Center + Module.Bounds.ClampToBounds(50 * (target.Position - Module.Center).Normalized());
 }

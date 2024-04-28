@@ -22,6 +22,8 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     private float _cameraSinAzimuth;
     private float _cameraCosAzimuth = 1;
 
+    public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
+
     // prepare for drawing - set up internal state, clip rect etc.
     public void Begin(float cameraAzimuthRadians)
     {
@@ -262,7 +264,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
         if (Bounds.Contains(position))
             ActorInsideBounds(position, rotation, color);
         else
-            ActorOutsideBounds(Bounds.ClampToBounds(position), rotation, color);
+            ActorOutsideBounds(ClampToBounds(position), rotation, color);
     }
 
     public void Actor(Actor? actor, uint color, bool allowDeadAndUntargetable = false)

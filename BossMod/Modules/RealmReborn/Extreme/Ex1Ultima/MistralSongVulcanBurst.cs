@@ -45,7 +45,7 @@ class MistralSongVulcanBurst(BossModule module) : Components.GenericAOEs(module,
     {
         base.DrawArenaForeground(pcSlot, pc);
 
-        var adjPos = _burstImminent ? Arena.Bounds.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, Module.PrimaryActor, 30)) : pc.Position;
+        var adjPos = _burstImminent ? Arena.ClampToBounds(Components.Knockback.AwayFromSource(pc.Position, Module.PrimaryActor, 30)) : pc.Position;
         Components.Knockback.DrawKnockback(pc, adjPos, Arena);
     }
 
