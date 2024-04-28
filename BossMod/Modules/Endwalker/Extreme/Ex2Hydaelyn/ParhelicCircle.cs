@@ -18,7 +18,7 @@ class ParhelicCircle(BossModule module) : Components.CastCounter(module, ActionI
             var tri = Module.Enemies(OID.RefulgenceTriangle).FirstOrDefault();
             if (hex != null && tri != null)
             {
-                var c = Module.Bounds.Center;
+                var c = Module.Center;
                 _positions.Add(c);
                 _positions.Add(c + _triRadius * (tri.Rotation + 60.Degrees()).ToDirection());
                 _positions.Add(c + _triRadius * (tri.Rotation + 180.Degrees()).ToDirection());

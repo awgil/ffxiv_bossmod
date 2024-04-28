@@ -29,7 +29,7 @@ class MiniArenaTest : TestWindow
         ImGui.DragFloat("Camera altitude", ref _altitude, 1, -90, +90);
         if (ImGui.Checkbox("Circle shape", ref _arenaIsCircle))
         {
-            _arena.Bounds = _arenaIsCircle ? new ArenaBoundsCircle(_arena.Bounds.Center, _arena.Bounds.Radius) : new ArenaBoundsSquare(_arena.Bounds.Center, _arena.Bounds.Radius);
+            _arena.Bounds = _arenaIsCircle ? new ArenaBoundsCircle(_arena.Center, _arena.Bounds.Radius) : new ArenaBoundsSquare(_arena.Center, _arena.Bounds.Radius);
         }
 
         _arena.Begin((float)(Math.PI * _azimuth / 180));
@@ -97,7 +97,7 @@ class MiniArenaTest : TestWindow
         int cnt = 256;
         float coeff = 2 * MathF.PI / cnt;
         WPos kbCenter = new(_kbCenter);
-        WDir centerOffset = kbCenter - _arena.Bounds.Center;
+        WDir centerOffset = kbCenter - _arena.Center;
         var c = centerOffset.LengthSq() - _arena.Bounds.Radius * _arena.Bounds.Radius;
         for (int i = 0; i < cnt; ++i)
         {

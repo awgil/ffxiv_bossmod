@@ -38,11 +38,11 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
                     _states[slotColor].ColorExpire = status.ExpireAt;
 
                     // update forbidden towers
-                    bool isLeft = actor.Position.X < Module.Bounds.Center.X;
+                    bool isLeft = actor.Position.X < Module.Center.X;
                     for (int i = 0; i < Towers.Count; ++i)
                     {
                         ref var tower = ref Towers.Ref(i);
-                        if ((tower.Position.X < Module.Bounds.Center.X) == isLeft)  // don't care about towers on other side, keep forbidden
+                        if ((tower.Position.X < Module.Center.X) == isLeft)  // don't care about towers on other side, keep forbidden
                         {
                             tower.ForbiddenSoakers[slotColor] = _states[slotColor].Color == _towerColors[i];
                         }
@@ -57,7 +57,7 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
         if ((AID)spell.Action.ID is AID.UmbralAdvent or AID.AstralAdvent)
         {
             bool isLight = (AID)spell.Action.ID == AID.UmbralAdvent;
-            bool isLeft = caster.Position.X < Module.Bounds.Center.X;
+            bool isLeft = caster.Position.X < Module.Center.X;
             bool isPrimary = caster.Position.Z > 90; // first tower at 91, second/third same color is 94, opposite is 88
             var towerColor = isLight ? Color.Light : Color.Dark;
 
@@ -114,7 +114,7 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
                 if (slot >= 0)
                 {
                     _states[slot].Color = Color.None;
-                    _states[slot].AssignedSide = caster.Position.X < Module.Bounds.Center.X ? -1 : 1; // ensure correct side is assigned
+                    _states[slot].AssignedSide = caster.Position.X < Module.Center.X ? -1 : 1; // ensure correct side is assigned
                     _states[slot].SoakedPrimary = caster.Position.Z > 90;
                 }
             }

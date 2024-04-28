@@ -21,7 +21,7 @@ class Fireplume(BossModule module) : BossComponent(module)
 
         if (_multiStartedCasts > _multiFinishedCasts)
         {
-            if (_multiFinishedCasts > 0 && actor.Position.InCircle(Module.Bounds.Center, _multiRadius) ||
+            if (_multiFinishedCasts > 0 && actor.Position.InCircle(Module.Center, _multiRadius) ||
                 _multiFinishedCasts < 8 && InPair(_multiStartingDirection + 45.Degrees(), actor) ||
                 _multiFinishedCasts < 6 && InPair(_multiStartingDirection - 90.Degrees(), actor) ||
                 _multiFinishedCasts < 4 && InPair(_multiStartingDirection - 45.Degrees(), actor) ||
@@ -42,7 +42,7 @@ class Fireplume(BossModule module) : BossComponent(module)
         if (_multiStartedCasts > _multiFinishedCasts)
         {
             if (_multiFinishedCasts > 0) // don't draw center aoe before first explosion, it's confusing - but start drawing it immediately after first explosion, to simplify positioning
-                Arena.ZoneCircle(Module.Bounds.Center, _multiRadius, _multiFinishedCasts >= 6 ? ArenaColor.Danger : ArenaColor.AOE);
+                Arena.ZoneCircle(Module.Center, _multiRadius, _multiFinishedCasts >= 6 ? ArenaColor.Danger : ArenaColor.AOE);
 
             // don't draw more than two next pairs
             if (_multiFinishedCasts < 8)
@@ -67,7 +67,7 @@ class Fireplume(BossModule module) : BossComponent(module)
             case AID.ExperimentalFireplumeMultiAOE:
             case AID.ExperimentalGloryplumeMultiAOE:
                 if (_multiStartedCasts++ == 0)
-                    _multiStartingDirection = Angle.FromDirection(caster.Position - Module.Bounds.Center);
+                    _multiStartingDirection = Angle.FromDirection(caster.Position - Module.Center);
                 break;
         }
     }
@@ -90,14 +90,14 @@ class Fireplume(BossModule module) : BossComponent(module)
     private bool InPair(Angle direction, Actor actor)
     {
         var offset = _multiPairOffset * direction.ToDirection();
-        return actor.Position.InCircle(Module.Bounds.Center - offset, _multiRadius)
-            || actor.Position.InCircle(Module.Bounds.Center + offset, _multiRadius);
+        return actor.Position.InCircle(Module.Center - offset, _multiRadius)
+            || actor.Position.InCircle(Module.Center + offset, _multiRadius);
     }
 
     private void DrawPair(Angle direction, bool imminent)
     {
         var offset = _multiPairOffset * direction.ToDirection();
-        Arena.ZoneCircle(Arena.Bounds.Center + offset, _multiRadius, imminent ? ArenaColor.Danger : ArenaColor.AOE);
-        Arena.ZoneCircle(Arena.Bounds.Center - offset, _multiRadius, imminent ? ArenaColor.Danger : ArenaColor.AOE);
+        Arena.ZoneCircle(Module.Center + offset, _multiRadius, imminent ? ArenaColor.Danger : ArenaColor.AOE);
+        Arena.ZoneCircle(Module.Center - offset, _multiRadius, imminent ? ArenaColor.Danger : ArenaColor.AOE);
     }
 }

@@ -38,7 +38,7 @@ class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FrigidNeedle)
-            AddSequence(Module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
+            AddSequence(Module.Center, spell.NPCFinishAt.AddSeconds(0.45f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -51,7 +51,7 @@ class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
                 AID.CircleOfIce2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, Module.Bounds.Center, WorldState.FutureTime(2));
+            AdvanceSequence(order, Module.Center, WorldState.FutureTime(2));
         }
     }
 }
@@ -63,7 +63,7 @@ class InOutAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.CircleOfIce)
-            AddSequence(Module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.45f));
+            AddSequence(Module.Center, spell.NPCFinishAt.AddSeconds(0.45f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -76,7 +76,7 @@ class InOutAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
                 AID.FrigidNeedle2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, Module.Bounds.Center, WorldState.FutureTime(2));
+            AdvanceSequence(order, Module.Center, WorldState.FutureTime(2));
         }
     }
 }

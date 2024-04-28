@@ -27,10 +27,10 @@ abstract class SpiralThrust(BossModule module, float predictionDelay) : Componen
         switch ((AID)spell.Action.ID)
         {
             case AID.KnightAppear:
-                if ((OID)caster.OID is OID.Vellguine or OID.Paulecrain or OID.Ignasse && (caster.Position - Module.Bounds.Center).LengthSq() > 25 * 25)
+                if ((OID)caster.OID is OID.Vellguine or OID.Paulecrain or OID.Ignasse && (caster.Position - Module.Center).LengthSq() > 25 * 25)
                 {
                     // prediction
-                    _aoes.Add(new(_shape, caster.Position, Angle.FromDirection(Module.Bounds.Center - caster.Position), WorldState.FutureTime(_predictionDelay), Risky: false));
+                    _aoes.Add(new(_shape, caster.Position, Angle.FromDirection(Module.Center - caster.Position), WorldState.FutureTime(_predictionDelay), Risky: false));
                 }
                 break;
             case AID.SpiralThrust:

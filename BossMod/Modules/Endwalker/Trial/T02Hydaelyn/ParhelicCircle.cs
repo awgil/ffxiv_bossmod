@@ -17,7 +17,7 @@ class ParhelicCircle(BossModule module) : Components.GenericAOEs(module)
             var tri = Module.Enemies(OID.RefulgenceTriangle).FirstOrDefault();
             if (hex != null && tri != null)
             {
-                var c = Module.Bounds.Center;
+                var c = Module.Center;
                 yield return new(_circle, c, Activation: _activation);
                 yield return new(_circle, c + _triRadius * (tri.Rotation + 60.Degrees()).ToDirection(), Activation: _activation);
                 yield return new(_circle, c + _triRadius * (tri.Rotation + 180.Degrees()).ToDirection(), Activation: _activation);

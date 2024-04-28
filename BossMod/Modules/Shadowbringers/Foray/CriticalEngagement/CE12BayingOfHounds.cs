@@ -54,8 +54,8 @@ class Hellpounce(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
         switch ((AID)spell.Action.ID)
         {
             case AID.Hellpounce:
-                var offset = spell.LocXZ - Module.Bounds.Center;
-                Activate(spell.LocXZ, Module.Bounds.Center - offset, WorldState.FutureTime(3.7f));
+                var offset = spell.LocXZ - Module.Center;
+                Activate(spell.LocXZ, Module.Center - offset, WorldState.FutureTime(3.7f));
                 break;
             case AID.HellpounceSecond:
                 _charge = null;

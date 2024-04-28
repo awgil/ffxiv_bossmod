@@ -12,10 +12,10 @@ class TrailOfCondemnation(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Module.PrimaryActor.Position == Module.Bounds.Center)
+        if (Module.PrimaryActor.Position == Module.Center)
             return;
 
-        var dir = (Module.Bounds.Center - Module.PrimaryActor.Position).Normalized();
+        var dir = (Module.Center - Module.PrimaryActor.Position).Normalized();
         if (_isCenter)
         {
             if (actor.Position.InRect(Module.PrimaryActor.Position, dir, 2 * Module.Bounds.Radius, 0, _halfWidth))
@@ -56,10 +56,10 @@ class TrailOfCondemnation(BossModule module) : BossComponent(module)
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        if (Module.PrimaryActor.Position == Module.Bounds.Center)
+        if (Module.PrimaryActor.Position == Module.Center)
             return;
 
-        var dir = (Module.Bounds.Center - Module.PrimaryActor.Position).Normalized();
+        var dir = (Module.Center - Module.PrimaryActor.Position).Normalized();
         if (_isCenter)
         {
             Arena.ZoneRect(Module.PrimaryActor.Position, dir, 2 * Module.Bounds.Radius, 0, _halfWidth, ArenaColor.AOE);

@@ -63,7 +63,7 @@ class TargetedLight(BossModule module) : Components.GenericGaze(module, default,
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
         if (Active)
-            yield return new(Module.Bounds.Center, _activation, _safeDir[slot]);
+            yield return new(Module.Center, _activation, _safeDir[slot]);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

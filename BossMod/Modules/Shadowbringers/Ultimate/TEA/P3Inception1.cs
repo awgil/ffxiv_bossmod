@@ -88,21 +88,21 @@ class P3Inception1(BossModule module) : Components.CastCounter(module, ActionID.
     {
         // alex is either at N or S cardinal; 2 spheres are E and 2 spheres are W
         // for tethered player, assign 45-degree spot on alex's side, as far away from source as possible
-        bool alexNorth = ((TEA)Module).AlexPrime()?.Position.Z < Module.Bounds.Center.Z;
-        var boxPos = Module.Bounds.Center + new WDir(0, alexNorth ? 13 : -13);
+        bool alexNorth = ((TEA)Module).AlexPrime()?.Position.Z < Module.Center.Z;
+        var boxPos = Module.Center + new WDir(0, alexNorth ? 13 : -13);
         for (int slot = 0; slot < _tetherSources.Length; ++slot)
         {
             var sphere = _tetherSources[slot];
             if (sphere != null)
             {
-                var sphereWest = sphere.Position.X < Module.Bounds.Center.X;
-                var sameSideSphere = _plasmaspheres.Find(o => o != sphere && (o.Position.X < Module.Bounds.Center.X) == sphereWest);
+                var sphereWest = sphere.Position.X < Module.Center.X;
+                var sameSideSphere = _plasmaspheres.Find(o => o != sphere && (o.Position.X < Module.Center.X) == sphereWest);
                 var sphereNorth = sphere.Position.Z < sameSideSphere?.Position.Z;
 
                 var spotDir = alexNorth ? (sphereNorth ? 90.Degrees() : 135.Degrees()) : (sphereNorth ? 45.Degrees() : 90.Degrees());
                 if (!sphereWest)
                     spotDir = -spotDir;
-                _assignedPositions[slot] = Module.Bounds.Center + 18 * spotDir.ToDirection();
+                _assignedPositions[slot] = Module.Center + 18 * spotDir.ToDirection();
             }
             else
             {

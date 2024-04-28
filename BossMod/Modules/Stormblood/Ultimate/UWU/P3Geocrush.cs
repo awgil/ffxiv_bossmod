@@ -16,7 +16,7 @@ class P3Geocrush2(BossModule module) : Components.GenericAOEs(module, ActionID.M
         if (_caster != null)
             yield return new(_shapeCrush, _caster.Position, _caster.CastInfo!.Rotation, _caster.CastInfo.NPCFinishAt);
         if (_shapeReduced != null)
-            yield return new(_shapeReduced, Module.Bounds.Center);
+            yield return new(_shapeReduced, Module.Center);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -45,9 +45,9 @@ class P3Geocrush2(BossModule module) : Components.GenericAOEs(module, ActionID.M
     //    if (_prevPredictedAngle == _caster.Rotation && ++_numFramesStill > 2)
     //    {
     //        var dir = _caster.Rotation.ToDirection();
-    //        _predictedPos = Module.Bounds.Center + _possibleOffsets.MinBy(o =>
+    //        _predictedPos = Module.Center + _possibleOffsets.MinBy(o =>
     //        {
-    //            var off = Module.Bounds.Center + o - _caster.Position;
+    //            var off = Module.Center + o - _caster.Position;
     //            var proj = off.Dot(dir);
     //            return proj > 0 ? (off - proj * dir).LengthSq() : float.MaxValue;
     //        });

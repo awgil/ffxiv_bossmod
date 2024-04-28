@@ -6,8 +6,8 @@ class SunforgeCenterHint(BossModule module) : Components.CastHint(module, Action
     {
         if (Active)
         {
-            Arena.ZoneRect(Module.Bounds.Center, new WDir(1, 0), 21, -7, 21, ArenaColor.SafeFromAOE);
-            Arena.ZoneRect(Module.Bounds.Center, new WDir(-1, 0), 21, -7, 21, ArenaColor.SafeFromAOE);
+            Arena.ZoneRect(Module.Center, new WDir(1, 0), 21, -7, 21, ArenaColor.SafeFromAOE);
+            Arena.ZoneRect(Module.Center, new WDir(-1, 0), 21, -7, 21, ArenaColor.SafeFromAOE);
         }
     }
 }
@@ -18,7 +18,7 @@ class SunforgeSidesHint(BossModule module) : Components.CastHint(module, ActionI
     {
         if (Active)
         {
-            Arena.ZoneRect(Module.Bounds.Center, new WDir(0, 1), 21, 21, 7, ArenaColor.SafeFromAOE);
+            Arena.ZoneRect(Module.Center, new WDir(0, 1), 21, 21, 7, ArenaColor.SafeFromAOE);
         }
     }
 }

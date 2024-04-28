@@ -35,7 +35,7 @@ class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
                 _ => -90.Degrees(), // assume groups go CW
             };
             var offset = 12 * (Module.PrimaryActor.Rotation + dir).ToDirection();
-            var pos = group == 1 ? Module.Bounds.Center + offset : Module.Bounds.Center - offset;
+            var pos = group == 1 ? Module.Center + offset : Module.Center - offset;
             Arena.AddCircle(pos, 1, ArenaColor.Safe);
         }
     }

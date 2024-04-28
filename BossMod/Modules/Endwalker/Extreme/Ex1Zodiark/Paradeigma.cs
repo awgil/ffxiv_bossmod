@@ -38,13 +38,13 @@ class Paradeigma(BossModule module) : BossComponent(module)
         foreach (var s in RotatedSnakes())
             _snakeAOE.Draw(Arena, s.Item1, s.Item2);
         foreach (var c in _fireLine)
-            Arena.ZoneTri(Module.Bounds.Center + c, RotatedPosition(c), Module.Bounds.Center, ArenaColor.AOE);
+            Arena.ZoneTri(Module.Center + c, RotatedPosition(c), Module.Center, ArenaColor.AOE);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_fireLine.Count == 2)
-            Arena.AddLine(Module.Bounds.Center + _fireLine[0], Module.Bounds.Center + _fireLine[1], ArenaColor.Danger);
+            Arena.AddLine(Module.Center + _fireLine[0], Module.Center + _fireLine[1], ArenaColor.Danger);
     }
 
     public override void OnEventEnvControl(byte index, uint state)
@@ -128,9 +128,9 @@ class Paradeigma(BossModule module) : BossComponent(module)
     {
         return _flow switch
         {
-            FlowDirection.CW => Module.Bounds.Center + offset.OrthoR(),
-            FlowDirection.CCW => Module.Bounds.Center + offset.OrthoL(),
-            _ => Module.Bounds.Center + offset
+            FlowDirection.CW => Module.Center + offset.OrthoR(),
+            FlowDirection.CCW => Module.Center + offset.OrthoL(),
+            _ => Module.Center + offset
         };
     }
 
@@ -138,9 +138,9 @@ class Paradeigma(BossModule module) : BossComponent(module)
     {
         return _flow switch
         {
-            FlowDirection.CW => (Module.Bounds.Center + posRot.Item1.OrthoR(), posRot.Item2 - 90.Degrees()),
-            FlowDirection.CCW => (Module.Bounds.Center + posRot.Item1.OrthoL(), posRot.Item2 + 90.Degrees()),
-            _ => (Module.Bounds.Center + posRot.Item1, posRot.Item2)
+            FlowDirection.CW => (Module.Center + posRot.Item1.OrthoR(), posRot.Item2 - 90.Degrees()),
+            FlowDirection.CCW => (Module.Center + posRot.Item1.OrthoL(), posRot.Item2 + 90.Degrees()),
+            _ => (Module.Center + posRot.Item1, posRot.Item2)
         };
     }
 
@@ -150,10 +150,10 @@ class Paradeigma(BossModule module) : BossComponent(module)
 
     private bool InFireAOE(WDir corner, WPos pos)
     {
-        var p1 = Module.Bounds.Center + corner;
+        var p1 = Module.Center + corner;
         var p2 = RotatedPosition(corner);
         var pMid = WPos.Lerp(p1, p2, 0.5f);
-        var dirMid = (pMid - Module.Bounds.Center).Normalized();
-        return pos.InCone(Module.Bounds.Center, dirMid, 45.Degrees());
+        var dirMid = (pMid - Module.Center).Normalized();
+        return pos.InCone(Module.Center, dirMid, 45.Degrees());
     }
 }

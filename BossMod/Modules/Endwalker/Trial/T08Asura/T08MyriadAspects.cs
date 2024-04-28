@@ -12,10 +12,10 @@ class MyriadAspects(BossModule module) : Components.GenericAOEs(module)
     {
         if (NumCasts < 6 && _spell1.Count > 0)
             foreach (var c in _spell1)
-                yield return new(cone, Module.Bounds.Center, c.Rotation, _activation1);
+                yield return new(cone, Module.Center, c.Rotation, _activation1);
         if (NumCasts >= 6 && _spell2.Count > 0)
             foreach (var c in _spell2)
-                yield return new(cone, Module.Bounds.Center, c.Rotation, _activation2);
+                yield return new(cone, Module.Center, c.Rotation, _activation2);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -141,8 +141,8 @@ class LevinstrikeSummoningShock(BossModule module) : Components.GenericAOEs(modu
             return;
         if (isBall)
         {
-            var dir = (actor.Position - Module.Bounds.Center).Normalized();
-            _explodeOrder[order] = Module.Bounds.Center - 16 * dir;
+            var dir = (actor.Position - Module.Center).Normalized();
+            _explodeOrder[order] = Module.Center - 16 * dir;
             _firstExplosion = WorldState.FutureTime(12.7f);
         }
         else

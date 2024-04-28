@@ -6,7 +6,7 @@ class PandaemonsHoly(BossModule module) : Components.SelfTargetedAOEs(module, Ac
 // note: origin seems to be weird?
 class CirclesOfPandaemonium(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CirclesOfPandaemonium), new AOEShapeDonut(12, 40))
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, new(Module.Bounds.Center.X, Border.MainPlatformCenterZ - Border.MainPlatformHalfSize.Z), c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, Color, Risky));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, new(Module.Center.X, Border.MainPlatformCenterZ - Border.MainPlatformHalfSize.Z), c.CastInfo!.Rotation, c.CastInfo.NPCFinishAt, Color, Risky));
 }
 
 class Imprisonment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ImprisonmentAOE), new AOEShapeCircle(4));

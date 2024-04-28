@@ -37,7 +37,7 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
         {
             if (NumCasts == 0)
             {
-                var offset = spell.TargetXZ - Module.Bounds.Center;
+                var offset = spell.TargetXZ - Module.Center;
                 // a bit of a hack: most strats (lpdu etc) select a half between W and NE inclusive to the 'first' group; ensure 'starting' direction is one of these
                 bool invert = Math.Abs(offset.Z) < 2 ? offset.X > 0 : offset.Z > 0;
                 if (invert)
@@ -74,8 +74,8 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
             case 3:
                 {
                     var dir = (_blasterStartingDirection - index * 45.Degrees()).ToDirection();
-                    yield return Module.Bounds.Center + _blasterOffset * dir;
-                    yield return Module.Bounds.Center - _blasterOffset * dir;
+                    yield return Module.Center + _blasterOffset * dir;
+                    yield return Module.Center - _blasterOffset * dir;
                 }
                 break;
             case 5:
@@ -84,13 +84,13 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
             case 8:
                 {
                     var dir = (_blasterStartingDirection - (index - 5) * 45.Degrees()).ToDirection();
-                    yield return Module.Bounds.Center + _blasterOffset * dir;
-                    yield return Module.Bounds.Center - _blasterOffset * dir;
+                    yield return Module.Center + _blasterOffset * dir;
+                    yield return Module.Center - _blasterOffset * dir;
                 }
                 break;
             case 4:
             case 9:
-                yield return Module.Bounds.Center;
+                yield return Module.Center;
                 break;
         }
     }
@@ -117,6 +117,6 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
 
         bool invert = strategy == TEAConfig.P2Intermission.FirstForOddPairs && (Module.FindComponent<LimitCut>()?.PlayerOrder[slot] is 3 or 4 or 7 or 8);
         var offset = _blasterOffset * _blasterStartingDirection.ToDirection();
-        return Module.Bounds.Center + (invert ? -offset : offset);
+        return Module.Center + (invert ? -offset : offset);
     }
 }

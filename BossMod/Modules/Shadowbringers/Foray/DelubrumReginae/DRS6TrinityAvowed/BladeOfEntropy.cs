@@ -14,7 +14,7 @@ class BladeOfEntropy(BossModule module) : TemperatureAOE(module)
         {
             for (int z = -2; z <= +2; ++z)
             {
-                var cellCenter = Module.Bounds.Center + 10 * new WDir(x, z);
+                var cellCenter = Module.Center + 10 * new WDir(x, z);
                 int temperature = 0;
                 int numClips = 0;
                 DateTime activation = new();

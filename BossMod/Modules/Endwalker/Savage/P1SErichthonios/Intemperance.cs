@@ -172,7 +172,7 @@ class Intemperance(BossModule module) : BossComponent(module)
 
     private int PositionFromCoords(WPos coords)
     {
-        return (coords - Module.Bounds.Center) switch
+        return (coords - Module.Center) switch
         {
             { X: < -7, Z: < -7 } => 0,
             { X: > +7, Z: < -7 } => 2,
@@ -193,7 +193,7 @@ class Intemperance(BossModule module) : BossComponent(module)
 
     private WPos PosCenter(int pos)
     {
-        return Module.Bounds.Center + 14 * _offsets[pos];
+        return Module.Center + 14 * _offsets[pos];
     }
 
     private int Position2(int pos1)

@@ -248,7 +248,7 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, ActionI
 
     private int TowerSpot(WPos pos)
     {
-        var towerOffset = pos - Module.Bounds.Center;
+        var towerOffset = pos - Module.Center;
         var toStack = DirectionForStack();
         var dotForward = DirectionForForwardArrow().Dot(towerOffset);
         return -toStack.Dot(towerOffset) > Math.Abs(dotForward) ? 2 : dotForward > 0 ? 3 : 1;
@@ -280,7 +280,7 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, ActionI
         var state = _playerStates[slot];
         if (state.JumpOrder == CurrentBaitOrder())
         {
-            var origin = Module.Bounds.Center;
+            var origin = Module.Center;
             if (state.JumpOrder == 2)
                 origin += DirectionForStack() * 0.8f; // TODO: the coefficient is arbitrary
 
@@ -293,7 +293,7 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, ActionI
         }
         else if (NumJumps < (state.JumpOrder == 3 ? 3 : 8))
         {
-            yield return Module.Bounds.Center + DirectionForStack();
+            yield return Module.Center + DirectionForStack();
         }
     }
 }

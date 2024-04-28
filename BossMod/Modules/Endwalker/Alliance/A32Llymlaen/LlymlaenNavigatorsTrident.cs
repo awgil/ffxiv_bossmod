@@ -37,8 +37,8 @@ class NavigatorsTridentKnockback(BossModule module) : Components.Knockback(modul
         {
             _sources.Clear();
             // knockback rect always happens through center, so create two sources with origin at center looking orthogonally
-            _sources.Add(new(Module.Bounds.Center, 20, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
-            _sources.Add(new(Module.Bounds.Center, 20, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(Module.Center, 20, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(Module.Center, 20, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
         }
     }
 

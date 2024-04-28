@@ -55,7 +55,7 @@ class Stormcall(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     {
         if ((SID)status.ID == SID.OrbMovement)
         {
-            var dest = Module.Bounds.Center + 29 * (actor.Position - Module.Bounds.Center).Normalized();
+            var dest = Module.Center + 29 * (actor.Position - Module.Center).Normalized();
             _sources.Add((actor, dest, WorldState.FutureTime(status.Extra == 0x1E ? 9.7f : 19.9f)));
             _sources.SortBy(e => e.activation);
         }

@@ -36,17 +36,17 @@ class RightArmRayBuffed(BossModule module) : Components.GenericAOEs(module)
             // show positioning hint: find a pair of nearby spheres with opposite rotations, such that CCW is to the left of midpoint (if facing center)
             foreach (var ccwSphere in _spheres.Where(s => s.RotIncrement.Rad > 0))
             {
-                var ccwOffset = ccwSphere.Sphere.Position - Module.Bounds.Center;
+                var ccwOffset = ccwSphere.Sphere.Position - Module.Center;
                 foreach (var cwSphere in _spheres.Where(s => s.RotIncrement.Rad < 0))
                 {
                     // nearby spheres have distance ~20
-                    var cwOffset = cwSphere.Sphere.Position - Module.Bounds.Center;
+                    var cwOffset = cwSphere.Sphere.Position - Module.Center;
                     if ((ccwOffset - cwOffset).LengthSq() < 500)
                     {
                         var midpointOffset = (ccwOffset + cwOffset) * 0.5f;
                         if (midpointOffset.OrthoL().Dot(ccwOffset) < 0)
                         {
-                            Arena.AddCircle(Module.Bounds.Center + midpointOffset, 1, ArenaColor.Safe);
+                            Arena.AddCircle(Module.Center + midpointOffset, 1, ArenaColor.Safe);
                         }
                     }
                 }

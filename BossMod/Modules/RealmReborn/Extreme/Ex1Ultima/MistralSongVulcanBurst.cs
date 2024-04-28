@@ -27,8 +27,8 @@ class MistralSongVulcanBurst(BossModule module) : Components.GenericAOEs(module,
         // we have custom shape before burst - we try to make it so that post-knockback position is safe
         if (_burstImminent)
         {
-            var p1 = Module.Bounds.Center + Module.Bounds.Radius * (_garuda!.Rotation + _shape.HalfAngle).ToDirection();
-            var p2 = Module.Bounds.Center + Module.Bounds.Radius * (_garuda!.Rotation - _shape.HalfAngle).ToDirection();
+            var p1 = Module.Center + Module.Bounds.Radius * (_garuda!.Rotation + _shape.HalfAngle).ToDirection();
+            var p2 = Module.Center + Module.Bounds.Radius * (_garuda!.Rotation - _shape.HalfAngle).ToDirection();
             var a1 = Angle.FromDirection(p1 - Module.PrimaryActor.Position);
             var a2 = Angle.FromDirection(p2 - Module.PrimaryActor.Position);
             if (a2.Rad > a1.Rad)

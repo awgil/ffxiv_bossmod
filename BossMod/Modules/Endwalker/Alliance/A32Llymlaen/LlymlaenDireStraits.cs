@@ -20,8 +20,8 @@ class DireStraits(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.DireStraitTelegraph1)
         {
-            _aoes.Add(new(rect, Module.Bounds.Center, spell.Rotation, spell.NPCFinishAt.AddSeconds(5)));
-            _aoes.Add(new(rect, Module.Bounds.Center, spell.Rotation + 180.Degrees(), spell.NPCFinishAt.AddSeconds(6.7f)));
+            _aoes.Add(new(rect, Module.Center, spell.Rotation, spell.NPCFinishAt.AddSeconds(5)));
+            _aoes.Add(new(rect, Module.Center, spell.Rotation + 180.Degrees(), spell.NPCFinishAt.AddSeconds(6.7f)));
         }
     }
 

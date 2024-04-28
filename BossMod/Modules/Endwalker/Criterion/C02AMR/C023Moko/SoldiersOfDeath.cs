@@ -22,7 +22,7 @@ class IronRainStorm(BossModule module) : Components.GenericAOEs(module)
             var offset = bait.DirOffsets[1].Rad > 0 ? 5 : -5;
             foreach (var dir in _safespotDirections)
             {
-                var safespot = Module.Bounds.Center + 19 * dir;
+                var safespot = Module.Center + 19 * dir;
                 if (!AOEs.Any(aoe => aoe.Check(safespot)))
                 {
                     Arena.AddCircle(safespot + offset * dir.OrthoR(), 1, ArenaColor.Safe);

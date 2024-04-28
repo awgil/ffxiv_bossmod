@@ -23,8 +23,8 @@ class DestructiveCharge(BossModule module) : Components.GenericAOEs(module)
         };
         if (dir != default)
         {
-            AOEs.Add(new(_shape, Module.Bounds.Center, dir, WorldState.FutureTime(16.1f)));
-            AOEs.Add(new(_shape, Module.Bounds.Center, dir + 180.Degrees(), WorldState.FutureTime(16.1f)));
+            AOEs.Add(new(_shape, Module.Center, dir, WorldState.FutureTime(16.1f)));
+            AOEs.Add(new(_shape, Module.Center, dir + 180.Degrees(), WorldState.FutureTime(16.1f)));
         }
     }
 

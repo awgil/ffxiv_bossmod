@@ -59,7 +59,7 @@ class DRS8States : StateMachineBuilder
         // right before cast start: ENVC 19.00200010, guards gain 2056 status with extra 0xE1 + PATE 1E43
         Cast(id, AID.QueensWill, delay, 5)
             .ActivateOnEnter<QueensWill>() // statuses appear ~0.7s after cast end
-            .OnEnter(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Bounds.Center, Module.Bounds.Radius)); // deathwall changes around cast start
+            .OnEnter(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Center, Module.Bounds.Radius)); // deathwall changes around cast start
         Cast(id + 0x10, AID.NorthswainsGlow, 3.2f, 3)
             .ActivateOnEnter<NorthswainsGlow>(); // aoe casts start ~0.8s after visual cast end
         Cast(id + 0x20, AID.BeckAndCallToArmsWillKW, 3.1f, 5);
@@ -71,14 +71,14 @@ class DRS8States : StateMachineBuilder
         CastEnd(id + 0x42, 3.9f);
         ComponentCondition<QueensWill>(id + 0x43, 4.3f, comp => comp.NumCasts >= 4, "Easy chess 2")
             .DeactivateOnExit<QueensWill>()
-            .OnExit(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Bounds.Center, Module.Bounds.Radius)); // deathwall changes ~4.7s after this
+            .OnExit(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Center, Module.Bounds.Radius)); // deathwall changes ~4.7s after this
     }
 
     private void QueensEdict(uint id, float delay)
     {
         Cast(id, AID.QueensEdict, delay, 5)
             .ActivateOnEnter<QueensEdict>() // safezone envcontrol, statuses on guards and players appear ~0.8s after cast end
-            .OnEnter(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Bounds.Center, Module.Bounds.Radius)); // deathwall changes around cast start
+            .OnEnter(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Center, Module.Bounds.Radius)); // deathwall changes around cast start
         Targetable(id + 0x10, false, 3.1f, "Disappear");
         Cast(id + 0x20, AID.BeckAndCallToArmsEdictKW, 0.1f, 16.3f);
 
@@ -96,7 +96,7 @@ class DRS8States : StateMachineBuilder
             .DeactivateOnExit<QueensEdict>();
 
         Targetable(id + 0x60, true, 3.1f, "Reappear")
-            .OnExit(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Bounds.Center, Module.Bounds.Radius)); // deathwall changes ~1.9s after this
+            .OnExit(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Center, Module.Bounds.Radius)); // deathwall changes ~1.9s after this
     }
 
     private void GodsSaveTheQueen(uint id, float delay)

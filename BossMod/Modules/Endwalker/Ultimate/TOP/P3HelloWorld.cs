@@ -313,38 +313,38 @@ class P3HelloWorld(BossModule module) : Components.GenericTowers(module)
         // find midpoint for defamation towers
         WDir defamationMid = default;
         foreach (int i in _defamationTowers.SetBits())
-            defamationMid += Towers[i].Position - Module.Bounds.Center;
+            defamationMid += Towers[i].Position - Module.Center;
         var defamationMidDir = Angle.FromDirection(defamationMid);
 
         switch (RoleForNextTowers(slot))
         {
             case PlayerRole.Defamation:
                 // max melee at defamation towers
-                yield return Module.Bounds.Center + 15.5f * (defamationMidDir - 45.Degrees()).ToDirection();
-                yield return Module.Bounds.Center + 15.5f * (defamationMidDir + 45.Degrees()).ToDirection();
+                yield return Module.Center + 15.5f * (defamationMidDir - 45.Degrees()).ToDirection();
+                yield return Module.Center + 15.5f * (defamationMidDir + 45.Degrees()).ToDirection();
                 break;
             case PlayerRole.RemoteTether:
                 // hitbox radius, between towers (r=7) => angle delta 2*asin(3.5/12.5f) = 33 degrees
-                yield return Module.Bounds.Center - 12.5f * (defamationMidDir - 12.Degrees()).ToDirection();
-                yield return Module.Bounds.Center - 12.5f * (defamationMidDir + 12.Degrees()).ToDirection();
+                yield return Module.Center - 12.5f * (defamationMidDir - 12.Degrees()).ToDirection();
+                yield return Module.Center - 12.5f * (defamationMidDir + 12.Degrees()).ToDirection();
                 break;
             case PlayerRole.Stack:
                 // hitbox radius, at the inner edge of the tower (r=5) => angle delta 2*asin(2.5/12.5f) = 23 degrees
-                yield return Module.Bounds.Center - 12.5f * (defamationMidDir - 25.Degrees()).ToDirection();
-                yield return Module.Bounds.Center - 12.5f * (defamationMidDir + 25.Degrees()).ToDirection();
+                yield return Module.Center - 12.5f * (defamationMidDir - 25.Degrees()).ToDirection();
+                yield return Module.Center - 12.5f * (defamationMidDir + 25.Degrees()).ToDirection();
                 break;
             case PlayerRole.LocalTether:
                 if (NumCasts < 12)
                 {
                     // max melee outside defamation towers (assuming 15.5f for both defamation and target and distance 7 between, angle between them is 2*asin(3.5/15.5) = 26 degrees
-                    yield return Module.Bounds.Center + 15.5f * (defamationMidDir - 75.Degrees()).ToDirection();
-                    yield return Module.Bounds.Center + 15.5f * (defamationMidDir + 75.Degrees()).ToDirection();
+                    yield return Module.Center + 15.5f * (defamationMidDir - 75.Degrees()).ToDirection();
+                    yield return Module.Center + 15.5f * (defamationMidDir + 75.Degrees()).ToDirection();
                 }
                 else
                 {
                     // same as tethers sharing stack
-                    yield return Module.Bounds.Center - 12.5f * (defamationMidDir - 12.Degrees()).ToDirection();
-                    yield return Module.Bounds.Center - 12.5f * (defamationMidDir + 12.Degrees()).ToDirection();
+                    yield return Module.Center - 12.5f * (defamationMidDir - 12.Degrees()).ToDirection();
+                    yield return Module.Center - 12.5f * (defamationMidDir + 12.Degrees()).ToDirection();
                 }
                 break;
         }

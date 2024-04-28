@@ -14,7 +14,7 @@ class BodySlamKB(BossModule module) : Components.Knockback(module, stopAtWall: t
         if (Module.PrimaryActor.Position.Z != LeviathanZ && Module.PrimaryActor.Position.Z != 0)
         {
             LeviathanZ = Module.PrimaryActor.Position.Z;
-            _knockback = new(Module.Bounds.Center, 25, WorldState.FutureTime(4.8f), Direction: Module.PrimaryActor.Position.Z <= 0 ? 180.Degrees() : 0.Degrees(), Kind: Kind.DirForward);
+            _knockback = new(Module.Center, 25, WorldState.FutureTime(4.8f), Direction: Module.PrimaryActor.Position.Z <= 0 ? 180.Degrees() : 0.Degrees(), Kind: Kind.DirForward);
         }
     }
 

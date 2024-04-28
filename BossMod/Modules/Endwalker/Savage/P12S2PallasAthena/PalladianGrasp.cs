@@ -50,5 +50,5 @@ class PalladianGrasp(BossModule module) : Components.CastCounter(module, default
     }
 
     private Actor? Target() => WorldState.Actors.Find(NumCasts == 0 ? _firstPrimaryTarget : Module.PrimaryActor.TargetID);
-    private WPos Origin(Actor target) => Module.Bounds.Center + new WDir(target.Position.X < Module.Bounds.Center.X ? -_shape.HalfWidth : +_shape.HalfWidth, 0);
+    private WPos Origin(Actor target) => Module.Center + new WDir(target.Position.X < Module.Center.X ? -_shape.HalfWidth : +_shape.HalfWidth, 0);
 }

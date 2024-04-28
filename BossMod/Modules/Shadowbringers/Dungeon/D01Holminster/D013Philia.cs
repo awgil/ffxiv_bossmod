@@ -182,7 +182,7 @@ class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Rect(Module.Bounds.Center, target.Position, 18));
+            hints.AddForbiddenZone(ShapeDistance.Rect(Module.Center, target.Position, 18));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -247,7 +247,7 @@ class CatONineTails(BossModule module) : Components.GenericRotatingAOE(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.FierceBeating1)
-            Sequences.Add(new(_shape, Module.Bounds.Center, spell.Rotation + 180.Degrees(), -45.Degrees(), spell.NPCFinishAt, 2, 8));
+            Sequences.Add(new(_shape, Module.Center, spell.Rotation + 180.Degrees(), -45.Degrees(), spell.NPCFinishAt, 2, 8));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -274,9 +274,9 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
         foreach (var (c, t, r) in ImminentAOEs())
             yield return new(Shape, c, r, t, ImminentColor);
         if (Lines.Count > 0 && linesstartedcount1 < 8)
-            yield return new(circle, CalculateCirclePosition(linesstartedcount1, Module.Bounds.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
+            yield return new(circle, CalculateCirclePosition(linesstartedcount1, Module.Center, _casters[0]), default, _activation.AddSeconds(linesstartedcount1 * 3.7f));
         if (Lines.Count > 1 && linesstartedcount2 < 8)
-            yield return new(circle, CalculateCirclePosition(linesstartedcount2, Module.Bounds.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
+            yield return new(circle, CalculateCirclePosition(linesstartedcount2, Module.Center, _casters[1]), default, _activation.AddSeconds(linesstartedcount2 * 3.7f));
     }
 
     private static WPos CalculateCirclePosition(int count, WPos origin, WPos caster)

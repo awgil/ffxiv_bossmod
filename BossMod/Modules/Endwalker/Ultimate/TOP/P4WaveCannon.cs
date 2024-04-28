@@ -55,25 +55,25 @@ class P4WaveCannonStack : BossComponent
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Imminent && Raid.WithSlot(true).IncludedInMask(_targets).WhereActor(p => _shape.Check(actor.Position, Module.Bounds.Center, Angle.FromDirection(p.Position - Module.Bounds.Center))).Count() is var clips && clips != 1)
+        if (Imminent && Raid.WithSlot(true).IncludedInMask(_targets).WhereActor(p => _shape.Check(actor.Position, Module.Center, Angle.FromDirection(p.Position - Module.Center))).Count() is var clips && clips != 1)
             hints.Add(clips == 0 ? "Share the stack!" : "GTFO from second stack!");
     }
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
         if (SafeDir(slot) is var safeDir && safeDir != default)
-            movementHints.Add(actor.Position, Module.Bounds.Center + 12 * safeDir.ToDirection(), ArenaColor.Safe);
+            movementHints.Add(actor.Position, Module.Center + 12 * safeDir.ToDirection(), ArenaColor.Safe);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Imminent)
             foreach (var (_, p) in Raid.WithSlot(true).IncludedInMask(_targets))
-                _shape.Outline(Arena, Module.Bounds.Center, Angle.FromDirection(p.Position - Module.Bounds.Center), ArenaColor.Safe);
+                _shape.Outline(Arena, Module.Center, Angle.FromDirection(p.Position - Module.Center), ArenaColor.Safe);
 
         var safeDir = SafeDir(pcSlot);
         if (safeDir != default)
-            Arena.AddCircle(Module.Bounds.Center + 12 * safeDir.ToDirection(), 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Center + 12 * safeDir.ToDirection(), 1, ArenaColor.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -7,8 +7,8 @@ class P6Touchdown(BossModule module) : Components.GenericAOEs(module, ActionID.M
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // TODO: activation
-        yield return new(_shape, Module.Bounds.Center);
-        yield return new(_shape, Module.Bounds.Center + new WDir(0, 25));
+        yield return new(_shape, Module.Center);
+        yield return new(_shape, Module.Center + new WDir(0, 25));
     }
 }
 
@@ -23,13 +23,13 @@ class P6TouchdownCauterize(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        bool nidhoggSide = actor.Position.X < Module.Bounds.Center.X; // note: assume nidhogg cleaves whole left side, hraes whole right side
+        bool nidhoggSide = actor.Position.X < Module.Center.X; // note: assume nidhogg cleaves whole left side, hraes whole right side
         var forbiddenMask = nidhoggSide ? _boiling : _freezing;
         if (forbiddenMask[slot])
             hints.Add("GTFO from wrong side!");
 
         // note: assume both dragons are always at north side
-        bool isClosest = Raid.WithoutSlot().Where(p => (p.Position.X < Module.Bounds.Center.X) == nidhoggSide).MinBy(p => p.PosRot.Z) == actor;
+        bool isClosest = Raid.WithoutSlot().Where(p => (p.Position.X < Module.Center.X) == nidhoggSide).MinBy(p => p.PosRot.Z) == actor;
         bool shouldBeClosest = actor.Role == Role.Tank;
         if (isClosest != shouldBeClosest)
             hints.Add(shouldBeClosest ? "Move closer to dragons!" : "Move away from dragons!");

@@ -177,21 +177,21 @@ class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackS
 
         if (actor == _ndw.NearWorld)
         {
-            yield return Module.Bounds.Center + 10 * (_boss.Rotation - _bossAngle).ToDirection();
+            yield return Module.Center + 10 * (_boss.Rotation - _bossAngle).ToDirection();
         }
         else if (actor == _ndw.DistantWorld)
         {
-            yield return Module.Bounds.Center + 10 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
+            yield return Module.Center + 10 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
         }
         else
         {
             // TODO: assignments...
-            yield return Module.Bounds.Center + 19 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection(); // '1' - first distant
-            yield return Module.Bounds.Center + 19 * (_boss.Rotation - 0.95f * _bossAngle).ToDirection(); // '2' - first near
-            yield return Module.Bounds.Center + 19 * (_boss.Rotation - 1.05f * _bossAngle).ToDirection(); // '3' - second near
-            yield return Module.Bounds.Center + 19 * (_boss.Rotation - 1.95f * _bossAngle).ToDirection(); // '4' - second distant
-            yield return Module.Bounds.Center + 15 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(); // first soaker
-            yield return Module.Bounds.Center + 15 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(); // second soaker
+            yield return Module.Center + 19 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection(); // '1' - first distant
+            yield return Module.Center + 19 * (_boss.Rotation - 0.95f * _bossAngle).ToDirection(); // '2' - first near
+            yield return Module.Center + 19 * (_boss.Rotation - 1.05f * _bossAngle).ToDirection(); // '3' - second near
+            yield return Module.Center + 19 * (_boss.Rotation - 1.95f * _bossAngle).ToDirection(); // '4' - second distant
+            yield return Module.Center + 15 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(); // first soaker
+            yield return Module.Center + 15 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(); // second soaker
         }
     }
 }
@@ -226,30 +226,30 @@ class P5OmegaBlaster : Components.BaitAwayTethers
         if (_ndw == null || CurrentBaits.Count == 0)
             yield break;
 
-        var toBoss = (CurrentBaits[0].Source.Position - Module.Bounds.Center).Normalized();
+        var toBoss = (CurrentBaits[0].Source.Position - Module.Center).Normalized();
         if (actor == _ndw.NearWorld)
         {
-            yield return Module.Bounds.Center - 10 * toBoss;
+            yield return Module.Center - 10 * toBoss;
         }
         else if (actor == _ndw.DistantWorld)
         {
             // TODO: select one of the spots...
-            yield return Module.Bounds.Center + 10 * toBoss.OrthoL();
-            yield return Module.Bounds.Center + 10 * toBoss.OrthoR();
+            yield return Module.Center + 10 * toBoss.OrthoL();
+            yield return Module.Center + 10 * toBoss.OrthoR();
         }
         else if (CurrentBaits.Any(b => b.Target == actor))
         {
-            var p = Module.Bounds.Center + 16 * toBoss;
+            var p = Module.Center + 16 * toBoss;
             yield return p + 10 * toBoss.OrthoL();
             yield return p + 10 * toBoss.OrthoR();
         }
         else
         {
             // TODO: assignments...
-            yield return Module.Bounds.Center + 19 * toBoss.OrthoL(); // '1' - first distant
-            yield return Module.Bounds.Center - 18 * toBoss + 5 * toBoss.OrthoL(); // '2' - first near
-            yield return Module.Bounds.Center - 18 * toBoss + 5 * toBoss.OrthoR(); // '3' - second near
-            yield return Module.Bounds.Center + 19 * toBoss.OrthoR(); // '4' - second distant
+            yield return Module.Center + 19 * toBoss.OrthoL(); // '1' - first distant
+            yield return Module.Center - 18 * toBoss + 5 * toBoss.OrthoL(); // '2' - first near
+            yield return Module.Center - 18 * toBoss + 5 * toBoss.OrthoR(); // '3' - second near
+            yield return Module.Center + 19 * toBoss.OrthoR(); // '4' - second distant
         }
     }
 }

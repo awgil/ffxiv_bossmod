@@ -10,7 +10,7 @@ class ForbiddenFruit8(BossModule module) : ForbiddenFruitCommon(module, ActionID
         if (slot < 0)
             return;
         var safe = ValidPlatformsMask & ~_noBirdsPlatforms;
-        safe.Clear(PlatformIDFromOffset(source.Position - Module.Bounds.Center));
+        safe.Clear(PlatformIDFromOffset(source.Position - Module.Center));
         SafePlatforms[slot] = safe;
     }
 
@@ -19,7 +19,7 @@ class ForbiddenFruit8(BossModule module) : ForbiddenFruitCommon(module, ActionID
         if ((OID)fruit.OID != OID.ForbiddenFruitBird)
             return null;
 
-        _noBirdsPlatforms.Clear(PlatformIDFromOffset(fruit.Position - Module.Bounds.Center));
+        _noBirdsPlatforms.Clear(PlatformIDFromOffset(fruit.Position - Module.Center));
         Array.Fill(SafePlatforms, _noBirdsPlatforms);
         return WorldState.FutureTime(12.5f);
     }

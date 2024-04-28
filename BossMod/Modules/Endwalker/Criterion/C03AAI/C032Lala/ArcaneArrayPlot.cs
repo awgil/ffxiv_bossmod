@@ -11,7 +11,7 @@ class ArcaneArrayPlot : Components.GenericAOEs
     {
         for (int z = -16; z <= 16; z += 8)
             for (int x = -16; x <= 16; x += 8)
-                SafeZoneCenters.Add(Module.Bounds.Center + new WDir(x, z));
+                SafeZoneCenters.Add(Module.Center + new WDir(x, z));
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;

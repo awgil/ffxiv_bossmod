@@ -33,7 +33,7 @@ class Lochos(BossModule module, float activationDelay) : Components.GenericAOEs(
             };
             if (offset != default)
             {
-                _aoes.Add(new(_shape, Module.Bounds.Center + offset, dir, WorldState.FutureTime(_activationDelay)));
+                _aoes.Add(new(_shape, Module.Center + offset, dir, WorldState.FutureTime(_activationDelay)));
             }
         }
     }

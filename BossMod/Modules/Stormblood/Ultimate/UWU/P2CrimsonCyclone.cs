@@ -48,8 +48,8 @@ class CrimsonCyclone(BossModule module, float predictionDelay) : Components.Gene
             _casters.Remove(caster);
             if (caster == ((UWU)Module).Ifrit() && caster.FindStatus(SID.Woken) != null)
             {
-                _predicted.Add((_shapeCross, Module.Bounds.Center - 19.5f * (spell.Rotation + 45.Degrees()).ToDirection(), spell.Rotation + 45.Degrees(), WorldState.FutureTime(2.2f)));
-                _predicted.Add((_shapeCross, Module.Bounds.Center - 19.5f * (spell.Rotation - 45.Degrees()).ToDirection(), spell.Rotation - 45.Degrees(), WorldState.FutureTime(2.2f)));
+                _predicted.Add((_shapeCross, Module.Center - 19.5f * (spell.Rotation + 45.Degrees()).ToDirection(), spell.Rotation + 45.Degrees(), WorldState.FutureTime(2.2f)));
+                _predicted.Add((_shapeCross, Module.Center - 19.5f * (spell.Rotation - 45.Degrees()).ToDirection(), spell.Rotation - 45.Degrees(), WorldState.FutureTime(2.2f)));
             }
         }
     }

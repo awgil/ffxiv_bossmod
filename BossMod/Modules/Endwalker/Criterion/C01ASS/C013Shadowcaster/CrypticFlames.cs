@@ -20,7 +20,7 @@ class CrypticFlames(BossModule module) : BossComponent(module)
         foreach (var l in _lasers)
         {
             var dir = l.laser.Rotation.ToDirection();
-            var extent = 2 * dir * dir.Dot(Module.Bounds.Center - l.laser.Position);
+            var extent = 2 * dir * dir.Dot(Module.Center - l.laser.Position);
             var color = l.order != _playerOrder[pcSlot] ? ArenaColor.Enemy : order == CurrentBreakOrder ? ArenaColor.Safe : ArenaColor.Danger;
             Arena.AddLine(l.laser.Position, l.laser.Position + extent, color, 2);
         }

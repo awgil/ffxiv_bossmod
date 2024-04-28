@@ -167,7 +167,7 @@ class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(mod
         Arena.Actor(_source, ArenaColor.Object, true);
         var pos = AssignedPosition(pcSlot);
         if (pos != default)
-            Arena.AddCircle(Module.Bounds.Center + pos, 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Center + pos, 1, ArenaColor.Safe);
     }
 
     private WDir AssignedPosition(int slot)
@@ -179,7 +179,7 @@ class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(mod
         if (ps.Order == 0 || ps.Group == 0)
             return new();
 
-        var eyeOffset = _source.Position - Module.Bounds.Center;
+        var eyeOffset = _source.Position - Module.Center;
         switch (_synergy.ActiveGlitch)
         {
             case P2PartySynergy.Glitch.Mid:
@@ -197,7 +197,7 @@ class P2PartySynergyDischarger(BossModule module) : Components.Knockback(module,
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        yield return new(Module.Bounds.Center, 13); // TODO: activation
+        yield return new(Module.Center, 13); // TODO: activation
     }
 }
 
@@ -238,7 +238,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
     {
         var pos = AssignedPosition(pcSlot);
         if (pos != default)
-            Arena.AddCircle(Module.Bounds.Center + pos, 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Center + pos, 1, ArenaColor.Safe);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -302,7 +302,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
             return new();
 
         // assumption: first source (F) is our relative north, G1 always goes to relative west, G2 goes to relative S/E depending on glitch
-        var relNorth = 1.4f * (_sources[0].Position - Module.Bounds.Center);
+        var relNorth = 1.4f * (_sources[0].Position - Module.Center);
         return _firstGroup[slot] ? relNorth.OrthoL() : _synergy.ActiveGlitch == P2PartySynergy.Glitch.Mid ? -relNorth : relNorth.OrthoR();
     }
 }

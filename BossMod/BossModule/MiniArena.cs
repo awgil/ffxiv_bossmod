@@ -11,6 +11,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
 {
     public BossModuleConfig Config { get; init; } = config;
     public ArenaBounds Bounds = bounds;
+    public WPos Center => Bounds.Center;
 
     public float ScreenHalfSize => 150 * Config.ArenaScale;
     public float ScreenMarginSize => 20 * Config.ArenaScale;
@@ -52,7 +53,7 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     // this helper allows converting world-space coords to screen-space ones
     public Vector2 WorldPositionToScreenPosition(WPos p)
     {
-        return ScreenCenter + WorldOffsetToScreenOffset(p - Bounds.Center);
+        return ScreenCenter + WorldOffsetToScreenOffset(p - Center);
         //var viewPos = SharpDX.Vector3.Transform(new SharpDX.Vector3(worldOffset.X, 0, worldOffset.Z), CameraView);
         //return ScreenHalfSize * new Vector2(viewPos.X / viewPos.Z, viewPos.Y / viewPos.Z);
         //return ScreenHalfSize * new Vector2(viewPos.X, viewPos.Y) / WorldHalfSize;

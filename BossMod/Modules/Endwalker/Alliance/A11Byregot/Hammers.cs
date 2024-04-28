@@ -31,14 +31,14 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
         if (!Active)
             return;
 
-        Arena.AddLine(Module.Bounds.Center + new WDir(-15, -25), Module.Bounds.Center + new WDir(-15, +25), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(-05, -25), Module.Bounds.Center + new WDir(-05, +25), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(+05, -25), Module.Bounds.Center + new WDir(+05, +25), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(+15, -25), Module.Bounds.Center + new WDir(+15, +25), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(-25, -15), Module.Bounds.Center + new WDir(+25, -15), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(-25, -05), Module.Bounds.Center + new WDir(+25, -05), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(-25, +05), Module.Bounds.Center + new WDir(+25, +05), ArenaColor.Border);
-        Arena.AddLine(Module.Bounds.Center + new WDir(-25, +15), Module.Bounds.Center + new WDir(+25, +15), ArenaColor.Border);
+        Arena.AddLine(Module.Center + new WDir(-15, -25), Module.Center + new WDir(-15, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Center + new WDir(-05, -25), Module.Center + new WDir(-05, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Center + new WDir(+05, -25), Module.Center + new WDir(+05, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Center + new WDir(+15, -25), Module.Center + new WDir(+15, +25), ArenaColor.Border);
+        Arena.AddLine(Module.Center + new WDir(-25, -15), Module.Center + new WDir(+25, -15), ArenaColor.Border);
+        Arena.AddLine(Module.Center + new WDir(-25, -05), Module.Center + new WDir(+25, -05), ArenaColor.Border);
+        Arena.AddLine(Module.Center + new WDir(-25, +05), Module.Center + new WDir(+25, +05), ArenaColor.Border);
+        Arena.AddLine(Module.Center + new WDir(-25, +15), Module.Center + new WDir(+25, +15), ArenaColor.Border);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -81,7 +81,7 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
         }
     }
 
-    private WPos CellCenter(int x, int z) => Module.Bounds.Center + 10 * new WDir(x, z);
+    private WPos CellCenter(int x, int z) => Module.Center + 10 * new WDir(x, z);
 
     private bool CellDangerous(int x, int z, bool future)
     {

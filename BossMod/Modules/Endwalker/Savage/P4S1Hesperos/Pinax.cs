@@ -41,7 +41,7 @@ class Pinax(BossModule module) : BossComponent(module)
             {
                 hints.Add("GTFO from water square!");
             }
-            if (!Module.Bounds.Contains(Components.Knockback.AwayFromSource(actor.Position, Module.Bounds.Center, _knockbackRadius)))
+            if (!Module.Bounds.Contains(Components.Knockback.AwayFromSource(actor.Position, Module.Center, _knockbackRadius)))
             {
                 hints.Add("About to be knocked into wall!");
             }
@@ -52,7 +52,7 @@ class Pinax(BossModule module) : BossComponent(module)
             {
                 hints.Add("GTFO from lighting square!");
             }
-            hints.Add("GTFO from center!", actor.Position.InRect(Module.Bounds.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
+            hints.Add("GTFO from center!", actor.Position.InRect(Module.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance));
         }
     }
 
@@ -88,7 +88,7 @@ class Pinax(BossModule module) : BossComponent(module)
         if (_lighting != null)
         {
             Arena.ZoneRect(_lighting.Position, new WDir(1, 0), 10, 10, 10, ArenaColor.AOE);
-            Arena.ZoneRect(Module.Bounds.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, ArenaColor.AOE);
+            Arena.ZoneRect(Module.Center, new WDir(1, 0), _lightingSafeDistance, _lightingSafeDistance, _lightingSafeDistance, ArenaColor.AOE);
         }
     }
 
@@ -117,7 +117,7 @@ class Pinax(BossModule module) : BossComponent(module)
         }
         if (_water != null)
         {
-            var adjPos = Components.Knockback.AwayFromSource(pc.Position, Module.Bounds.Center, _knockbackRadius);
+            var adjPos = Components.Knockback.AwayFromSource(pc.Position, Module.Center, _knockbackRadius);
             if (adjPos != pc.Position)
             {
                 Arena.AddLine(pc.Position, adjPos, ArenaColor.Danger);

@@ -13,12 +13,12 @@ class Hydrorythmos(BossModule module) : Components.GenericAOEs(module)
         if (NumCasts > 0)
         {
             var offset = ((NumCasts + 1) >> 1) * 5 * _dir.ToDirection().OrthoL();
-            yield return new(_shapeRest, Module.Bounds.Center + offset, _dir, _activation);
-            yield return new(_shapeRest, Module.Bounds.Center - offset, _dir, _activation);
+            yield return new(_shapeRest, Module.Center + offset, _dir, _activation);
+            yield return new(_shapeRest, Module.Center - offset, _dir, _activation);
         }
         else if (_activation != default)
         {
-            yield return new(_shapeFirst, Module.Bounds.Center, _dir, _activation);
+            yield return new(_shapeFirst, Module.Center, _dir, _activation);
         }
     }
 

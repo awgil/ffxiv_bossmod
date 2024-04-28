@@ -88,6 +88,6 @@ class DarkAndLight(BossModule module) : BossComponent(module)
             Role.Healer => isFar ? 0.Degrees() : 90.Degrees(),
             _ => Raid[_states[slot].PartnerSlot]?.Role == Role.Tank ? (isFar ? -45.Degrees() : -135.Degrees()) : (isFar ? 135.Degrees() : 45.Degrees())
         };
-        return Module.Bounds.Center + (isFar ? _farOffset : _nearOffset) * dir.ToDirection();
+        return Module.Center + (isFar ? _farOffset : _nearOffset) * dir.ToDirection();
     }
 }

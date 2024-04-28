@@ -142,6 +142,6 @@ class OrdealOfPurgation(BossModule module) : Components.GenericAOEs(module)
         index = TransformByMiddle(index);
         var shape = ShapeAtDirection(index);
         var dir = DirectionIndexToAngle(index);
-        return shape != null ? new(shape, Module.Bounds.Center + Module.Bounds.Radius * dir.ToDirection(), dir + 180.Degrees(), _activation) : null;
+        return shape != null ? new(shape, Module.Center + Module.Bounds.Radius * dir.ToDirection(), dir + 180.Degrees(), _activation) : null;
     }
 }

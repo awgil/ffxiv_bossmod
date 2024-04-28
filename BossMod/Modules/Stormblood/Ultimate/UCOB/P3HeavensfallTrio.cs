@@ -44,9 +44,9 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
         if (_nael == null || _twin == null || _baha == null)
             return;
 
-        var dirToNael = Angle.FromDirection(_nael.Position - Module.Bounds.Center);
-        var dirToTwin = Angle.FromDirection(_twin.Position - Module.Bounds.Center);
-        var dirToBaha = Angle.FromDirection(_baha.Position - Module.Bounds.Center);
+        var dirToNael = Angle.FromDirection(_nael.Position - Module.Center);
+        var dirToTwin = Angle.FromDirection(_twin.Position - Module.Center);
+        var dirToBaha = Angle.FromDirection(_baha.Position - Module.Center);
 
         var twinRel = (dirToTwin - dirToNael).Normalized();
         var bahaRel = (dirToBaha - dirToNael).Normalized();
@@ -60,7 +60,7 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
             int order = p.group & 3;
             var offset = offsets[order];
             var dir = dirSymmetry + (left ? offset : -offset);
-            _safeSpots[p.slot] = Module.Bounds.Center + 20 * dir.ToDirection();
+            _safeSpots[p.slot] = Module.Center + 20 * dir.ToDirection();
         }
     }
 }
@@ -76,8 +76,8 @@ class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, Act
             var nael = Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault();
             if (nael != null)
             {
-                var dirToNael = Angle.FromDirection(nael.Position - Module.Bounds.Center);
-                var orders = Towers.Select(t => TowerSortKey(Angle.FromDirection(t.Position - Module.Bounds.Center), dirToNael)).ToList();
+                var dirToNael = Angle.FromDirection(nael.Position - Module.Center);
+                var orders = Towers.Select(t => TowerSortKey(Angle.FromDirection(t.Position - Module.Center), dirToNael)).ToList();
                 MemoryExtensions.Sort(orders.AsSpan(), Towers.AsSpan());
                 foreach (var p in Service.Config.Get<UCOBConfig>().P3HeavensfallTrioTowers.Resolve(Raid))
                 {

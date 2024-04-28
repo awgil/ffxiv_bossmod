@@ -33,8 +33,8 @@ class P5WrathOfTheHeavensSkywardLeap(BossModule module) : Components.UniformStac
         var relNorth = Module.Enemies(OID.Vedrfolnir).FirstOrDefault();
         if (relNorth == null)
             return default;
-        var dirToNorth = Angle.FromDirection(relNorth.Position - Module.Bounds.Center);
-        return Module.Bounds.Center + 20 * (dirToNorth + 60.Degrees()).ToDirection();
+        var dirToNorth = Angle.FromDirection(relNorth.Position - Module.Center);
+        return Module.Center + 20 * (dirToNorth + 60.Degrees()).ToDirection();
     }
 }
 
@@ -61,10 +61,10 @@ class P5WrathOfTheHeavensSpiralPierce(BossModule module) : Components.BaitAwayTe
             return default;
         WDir toMidpoint = default;
         foreach (var b in CurrentBaits)
-            toMidpoint += b.Source.Position - Module.Bounds.Center;
+            toMidpoint += b.Source.Position - Module.Center;
         var relSouthDir = Angle.FromDirection(-toMidpoint);
-        var offset = toMidpoint.OrthoL().Dot(bait.Source.Position - Module.Bounds.Center) > 0 ? 20.Degrees() : -20.Degrees();
-        return Module.Bounds.Center + 20 * (relSouthDir + offset).ToDirection();
+        var offset = toMidpoint.OrthoL().Dot(bait.Source.Position - Module.Center) > 0 ? 20.Degrees() : -20.Degrees();
+        return Module.Center + 20 * (relSouthDir + offset).ToDirection();
     }
 }
 
@@ -160,7 +160,7 @@ class P5WrathOfTheHeavensCauterizeBait(BossModule module) : BossComponent(module
         var charibert = Module.Enemies(OID.SerCharibert).FirstOrDefault();
         if (charibert == null)
             return default;
-        return Module.Bounds.Center + 20 * (charibert.Position - Module.Bounds.Center).Normalized();
+        return Module.Center + 20 * (charibert.Position - Module.Center).Normalized();
     }
 }
 

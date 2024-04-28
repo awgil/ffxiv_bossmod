@@ -54,7 +54,7 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
             Arena.AddCircle(hint, 1, ArenaColor.Safe);
             //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
             //var adjPos = Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
-            //Arena.AddLine(Module.Bounds.Center, adjPos, ArenaColor.Safe);
+            //Arena.AddLine(Module.Center, adjPos, ArenaColor.Safe);
         }
 
         int partner = FindTetheredPartner(pcSlot);
@@ -126,21 +126,21 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
                     switch (icon)
                     {
                         case 1: // circle - both on DPS, show both E and W and let players adjust
-                            yield return Module.Bounds.Center + offset;
-                            yield return Module.Bounds.Center - offset;
+                            yield return Module.Center + offset;
+                            yield return Module.Center - offset;
                             break;
                         case 2: // triangle - healer SE, dps NW
                         case 3: // cross - healer S, tank N
                             if (Raid[slot]?.Role == Role.Healer)
-                                yield return Module.Bounds.Center + offset;
+                                yield return Module.Center + offset;
                             else
-                                yield return Module.Bounds.Center - offset;
+                                yield return Module.Center - offset;
                             break;
                         case 4: // square - tank NE, dps SW
                             if (Raid[slot]?.Role == Role.Tank)
-                                yield return Module.Bounds.Center - offset;
+                                yield return Module.Center - offset;
                             else
-                                yield return Module.Bounds.Center + offset;
+                                yield return Module.Center + offset;
                             break;
                     }
                 }

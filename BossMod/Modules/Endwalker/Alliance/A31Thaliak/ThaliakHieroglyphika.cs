@@ -31,7 +31,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module)
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         var _activation = WorldState.FutureTime(17);
-        var origin = Module.Bounds.Center;
+        var origin = Module.Center;
         if (iconID == (uint)IconID.ClockwiseHieroglyphika)
         {
             if (currentIndex == 0x17)

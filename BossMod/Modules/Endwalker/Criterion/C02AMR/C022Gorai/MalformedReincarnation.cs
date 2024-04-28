@@ -68,7 +68,7 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
             };
             if (offset != default)
             {
-                AddTower(Module.Bounds.Center + offset, blue);
+                AddTower(Module.Center + offset, blue);
             }
         }
     }

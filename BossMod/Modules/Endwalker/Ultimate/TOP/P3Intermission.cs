@@ -96,7 +96,7 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
         }
     }
 
-    private WPos SafeSpotAt(Angle dirIfStacksNorth) => Module.Bounds.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
+    private WPos SafeSpotAt(Angle dirIfStacksNorth) => Module.Center + 19 * (_config.P3IntermissionStacksNorth ? dirIfStacksNorth : 180.Degrees() - dirIfStacksNorth).ToDirection();
 }
 
 class P3WaveRepeater(BossModule module) : Components.ConcentricAOEs(module, _shapes)

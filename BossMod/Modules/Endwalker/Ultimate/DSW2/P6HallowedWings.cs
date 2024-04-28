@@ -134,9 +134,9 @@ class P6HallowedPlume1(BossModule module) : P6HallowedPlume(module)
         if (_wings?.AOE == null || _cauterize?.AOE == null)
             yield break;
 
-        var safeSpotCenter = Module.Bounds.Center;
-        safeSpotCenter.Z -= _wings.AOE.Value.Origin.Z - Module.Bounds.Center.Z;
-        safeSpotCenter.X -= _cauterize.AOE.Value.Origin.X - Module.Bounds.Center.X;
+        var safeSpotCenter = Module.Center;
+        safeSpotCenter.Z -= _wings.AOE.Value.Origin.Z - Module.Center.Z;
+        safeSpotCenter.X -= _cauterize.AOE.Value.Origin.X - Module.Center.X;
 
         bool shouldBait = actor.Role == Role.Tank;
         bool stayFar = shouldBait == _far;
@@ -169,8 +169,8 @@ class P6HallowedPlume2(BossModule module) : P6HallowedPlume(module)
             2 => 4.0f / 11,
             _ => 1
         };
-        var safeSpotCenter = Module.Bounds.Center;
-        safeSpotCenter.Z -= zCoeff * (_wings.AOE.Value.Origin.Z - Module.Bounds.Center.Z);
+        var safeSpotCenter = Module.Center;
+        safeSpotCenter.Z -= zCoeff * (_wings.AOE.Value.Origin.Z - Module.Center.Z);
 
         bool shouldBait = actor.Role == Role.Tank;
         bool stayFar = shouldBait == _far;

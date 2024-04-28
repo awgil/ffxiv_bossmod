@@ -109,7 +109,7 @@ class HighConceptCommon(BossModule module) : BossComponent(module)
             _ => (TowerColor.Unknown, new WDir())
         };
         if (secondColorHC2 != TowerColor.Unknown)
-            SecondTowersHC2.Add((Module.Bounds.Center + secondOffsetHC2, secondColorHC2));
+            SecondTowersHC2.Add((Module.Center + secondOffsetHC2, secondColorHC2));
     }
 
     protected void DrawExplosion(int slot, float radius, bool safe)
@@ -120,7 +120,7 @@ class HighConceptCommon(BossModule module) : BossComponent(module)
     }
 
     protected void DrawTower(WPos pos, bool assigned) => Arena.AddCircle(pos, TowerRadius, assigned ? ArenaColor.Safe : ArenaColor.Danger, 2);
-    protected void DrawTower(float offsetZ, bool assigned) => DrawTower(Module.Bounds.Center + new WDir(0, offsetZ), assigned);
+    protected void DrawTower(float offsetZ, bool assigned) => DrawTower(Module.Center + new WDir(0, offsetZ), assigned);
 
     protected void DrawTether(int slot1, int slot2, int pcSlot)
     {

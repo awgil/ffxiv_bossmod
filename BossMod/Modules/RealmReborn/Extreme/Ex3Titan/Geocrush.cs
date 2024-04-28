@@ -7,23 +7,23 @@ class Geocrush(BossModule module, float radius) : Components.CastCounter(module,
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (!actor.Position.InCircle(Module.Bounds.Center, _radius))
+        if (!actor.Position.InCircle(Module.Center, _radius))
             hints.Add("Move closer to center!");
-        else if (actor.Position.InCircle(Module.Bounds.Center, _radius - _ringWidth))
+        else if (actor.Position.InCircle(Module.Center, _radius - _ringWidth))
             hints.Add("Move closer to the edge!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var ring = ShapeDistance.Donut(Module.Bounds.Center, _radius - _ringWidth, _radius);
+        var ring = ShapeDistance.Donut(Module.Center, _radius - _ringWidth, _radius);
         hints.AddForbiddenZone(p => -ring(p));
         hints.PredictedDamage.Add((Raid.WithSlot().Mask(), new()));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        Arena.ZoneDonut(Module.Bounds.Center, _radius, 25, ArenaColor.AOE);
-        Arena.ZoneDonut(Module.Bounds.Center, _radius - _ringWidth, _radius, ArenaColor.SafeFromAOE);
+        Arena.ZoneDonut(Module.Center, _radius, 25, ArenaColor.AOE);
+        Arena.ZoneDonut(Module.Center, _radius - _ringWidth, _radius, ArenaColor.SafeFromAOE);
     }
 }
 

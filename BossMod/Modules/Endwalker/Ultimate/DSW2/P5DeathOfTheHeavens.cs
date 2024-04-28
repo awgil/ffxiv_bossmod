@@ -54,13 +54,13 @@ class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        yield return new(Module.Bounds.Center, _knockbackDistance);
+        yield return new(Module.Center, _knockbackDistance);
     }
 
     public override void Update()
     {
         foreach (var (slot, player) in Raid.WithSlot())
-            _playerAdjustedPositions[slot] = !KnockbackDone ? AwayFromSource(player.Position, Module.Bounds.Center, _knockbackDistance) : player.Position;
+            _playerAdjustedPositions[slot] = !KnockbackDone ? AwayFromSource(player.Position, Module.Center, _knockbackDistance) : player.Position;
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -113,7 +113,7 @@ class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(
         if ((AID)spell.Action.ID == AID.WingsOfSalvationAOE)
         {
             _cleanses.Add(spell.LocXZ);
-            _relSouth += spell.LocXZ - Module.Bounds.Center;
+            _relSouth += spell.LocXZ - Module.Center;
         }
     }
 
@@ -179,17 +179,17 @@ class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(
         switch (icon)
         {
             case 1: // circle - show two cleanses closest to E and W
-                yield return ClosestCleanse(Module.Bounds.Center + offset);
-                yield return ClosestCleanse(Module.Bounds.Center - offset);
+                yield return ClosestCleanse(Module.Center + offset);
+                yield return ClosestCleanse(Module.Center - offset);
                 break;
             case 2: // triangle/square - doom to closest cleanse to SE/SW, otherwise opposite
             case 4:
-                var cleanseSpot = ClosestCleanse(Module.Bounds.Center + offset);
-                yield return _dooms[slot] ? cleanseSpot : Module.Bounds.Center - (cleanseSpot - Module.Bounds.Center);
+                var cleanseSpot = ClosestCleanse(Module.Center + offset);
+                yield return _dooms[slot] ? cleanseSpot : Module.Center - (cleanseSpot - Module.Center);
                 break;
             case 3: // cross - show two spots to N and S
-                yield return Module.Bounds.Center + offset;
-                yield return Module.Bounds.Center - offset;
+                yield return Module.Center + offset;
+                yield return Module.Center - offset;
                 break;
         }
     }

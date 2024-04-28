@@ -9,14 +9,14 @@ class PteraIxou(BossModule module) : Components.CastCounter(module, ActionID.Mak
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (ForbiddenCenters(slot).Any(dir => _shape.Check(actor.Position, Module.Bounds.Center, dir)))
+        if (ForbiddenCenters(slot).Any(dir => _shape.Check(actor.Position, Module.Center, dir)))
             hints.Add("GTFO from aoe!");
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var dir in ForbiddenCenters(pcSlot))
-            _shape.Draw(Arena, Module.Bounds.Center, dir);
+            _shape.Draw(Arena, Module.Center, dir);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

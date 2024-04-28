@@ -23,7 +23,7 @@ class FaithUnmoving(BossModule module) : Components.Knockback(module, ActionID.M
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        yield return new(Module.Bounds.Center, 16);
+        yield return new(Module.Center, 16);
     }
 }
 

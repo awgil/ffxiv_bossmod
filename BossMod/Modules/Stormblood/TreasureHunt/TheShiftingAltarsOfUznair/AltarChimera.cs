@@ -70,7 +70,7 @@ class TheRamsKeeperBait(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Bounds.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

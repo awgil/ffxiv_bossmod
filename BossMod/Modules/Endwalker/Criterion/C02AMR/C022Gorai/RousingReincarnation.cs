@@ -76,7 +76,7 @@ class MalformedPrayer1(BossModule module) : Components.GenericTowers(module)
             BitMask forbidden = new(0xf);
             var soakerSlot = (index & 1) != 0 ? orangeSoaker : blueSoaker;
             forbidden.Clear(soakerSlot);
-            Towers.Add(new(Module.Bounds.Center + 11 * (180.Degrees() - index * 45.Degrees()).ToDirection(), 4, forbiddenSoakers: forbidden));
+            Towers.Add(new(Module.Center + 11 * (180.Degrees() - index * 45.Degrees()).ToDirection(), 4, forbiddenSoakers: forbidden));
         }
     }
 }

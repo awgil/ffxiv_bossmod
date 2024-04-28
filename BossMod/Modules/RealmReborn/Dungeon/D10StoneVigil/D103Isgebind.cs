@@ -31,7 +31,7 @@ class Touchdown(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     {
         // TODO: proper timings...
         if (!Module.PrimaryActor.IsTargetable && !Module.FindComponent<Cauterize>()!.ActiveCasters.Any())
-            yield return new(_shape, Module.Bounds.Center);
+            yield return new(_shape, Module.Center);
     }
 }
 

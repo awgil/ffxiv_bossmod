@@ -66,7 +66,7 @@ class WorldlyPursuitLast(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        yield return new(_shape, Module.Bounds.Center, Angle.FromDirection(Module.Bounds.Center - Module.PrimaryActor.Position), _activation);
+        yield return new(_shape, Module.Center, Angle.FromDirection(Module.Center - Module.PrimaryActor.Position), _activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

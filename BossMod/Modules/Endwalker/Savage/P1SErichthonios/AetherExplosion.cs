@@ -15,12 +15,12 @@ class AetherExplosion(BossModule module) : BossComponent(module)
     public override void Update()
     {
         if (_memberWithSOT != null)
-            _explodingCells = CellFromOffset(_memberWithSOT.Position - Module.Bounds.Center);
+            _explodingCells = CellFromOffset(_memberWithSOT.Position - Module.Center);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - Module.Bounds.Center))
+        if (actor != _memberWithSOT && _explodingCells != Cell.None && _explodingCells == CellFromOffset(actor.Position - Module.Center))
         {
             hints.Add("Hit by aether explosion!");
         }
@@ -40,8 +40,8 @@ class AetherExplosion(BossModule module) : BossComponent(module)
         var start = _explodingCells == Cell.Blue ? 0.Degrees() : 45.Degrees();
         for (int i = 0; i < 4; ++i)
         {
-            Arena.ZoneCone(Module.Bounds.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
-            Arena.ZoneCone(Module.Bounds.Center, P1S.InnerCircleRadius, Module.Bounds.Radius, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
+            Arena.ZoneCone(Module.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
+            Arena.ZoneCone(Module.Center, P1S.InnerCircleRadius, Module.Bounds.Radius, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
             start += 90.Degrees();
         }
     }

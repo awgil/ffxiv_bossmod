@@ -66,8 +66,8 @@ class GoldenSilverFlame(BossModule module) : BossComponent(module)
 
     private IEnumerable<WPos> SafeCenters(int debuff)
     {
-        var limit = Module.Bounds.Center + new WDir(Module.Bounds.Radius, Module.Bounds.Radius);
-        var first = Module.Bounds.Center - new WDir(Module.Bounds.Radius - _shape.HalfWidth, Module.Bounds.Radius - _shape.HalfWidth);
+        var limit = Module.Center + new WDir(Module.Bounds.Radius, Module.Bounds.Radius);
+        var first = Module.Center - new WDir(Module.Bounds.Radius - _shape.HalfWidth, Module.Bounds.Radius - _shape.HalfWidth);
         var advance = 2 * _shape.HalfWidth;
         for (float x = first.X; x < limit.X; x += advance)
             for (float z = first.Z; z < limit.Z; z += advance)

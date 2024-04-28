@@ -121,6 +121,6 @@ class FledglingFlight(BossModule module) : BossComponent(module)
             return null;
 
         var offset = rot.ToDirection() * _eyePlacementOffset;
-        return _playerDeathTollStacks[slot] > 0 ? Module.Bounds.Center - offset : Module.Bounds.Center + offset;
+        return _playerDeathTollStacks[slot] > 0 ? Module.Center - offset : Module.Center + offset;
     }
 }

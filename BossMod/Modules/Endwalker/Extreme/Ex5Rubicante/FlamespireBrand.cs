@@ -53,7 +53,7 @@ class Flamerake(BossModule module) : Components.GenericAOEs(module)
 
         if (NumCasts == 0)
         {
-            yield return new(_first, Module.Bounds.Center, _offset, _activation);
+            yield return new(_first, Module.Center, _offset, _activation);
         }
         else
         {
@@ -61,7 +61,7 @@ class Flamerake(BossModule module) : Components.GenericAOEs(module)
             for (int i = 0; i < 4; ++i)
             {
                 var dir = i * 90.Degrees() + _offset;
-                yield return new(_rest, Module.Bounds.Center + offset * dir.ToDirection(), dir, _activation);
+                yield return new(_rest, Module.Center + offset * dir.ToDirection(), dir, _activation);
             }
         }
     }

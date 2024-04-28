@@ -7,7 +7,7 @@ public abstract class SimpleBossModule(WorldState ws, Actor primary) : BossModul
     protected override void UpdateModule()
     {
         var pc = WorldState.Party.Player();
-        if (pc != null && Bounds.Center != pc.Position)
+        if (pc != null && Center != pc.Position)
             Arena.Bounds = new ArenaBoundsCircle(pc.Position, 30);
     }
 }

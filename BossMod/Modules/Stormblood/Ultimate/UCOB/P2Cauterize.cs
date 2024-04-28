@@ -38,7 +38,7 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
     {
         if ((OID)actor.OID is OID.Firehorn or OID.Iceclaw or OID.Thunderwing or OID.TailOfDarkness or OID.FangOfLight)
         {
-            var dir = 180.Degrees() - Angle.FromDirection(actor.Position - Module.Bounds.Center);
+            var dir = 180.Degrees() - Angle.FromDirection(actor.Position - Module.Center);
             var pos = (int)MathF.Round(dir.Deg / 45) & 7;
             _dragons.Add((actor, pos));
             if (_dragons.Count == 5)

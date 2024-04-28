@@ -60,6 +60,6 @@ class BrightenedFire(BossModule module) : Components.CastCounter(module, ActionI
         // TODO: consider how this can be improved...
         var markID = (int)Waymark.N1 + (order - 1) % 4;
         var wm = WorldState.Waymarks[markID];
-        return wm != null ? new(wm.Value.XZ()) : Module.Bounds.Center;
+        return wm != null ? new(wm.Value.XZ()) : Module.Center;
     }
 }

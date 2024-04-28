@@ -72,7 +72,7 @@ class PalladionArena(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         for (int i = 0; i < 8; ++i)
-            Arena.PathLineTo(Module.Bounds.Center + 14 * (i * 45).Degrees().ToDirection());
+            Arena.PathLineTo(Module.Center + 14 * (i * 45).Degrees().ToDirection());
         Arena.PathStroke(true, ArenaColor.Border, 2);
     }
 }
@@ -163,7 +163,7 @@ class PalladionClearCut(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_palladion != null && _palladion.NumBaitsDone < _palladion.NumBaitsAssigned && !_palladion.BaitOrder[_palladion.NumBaitsDone])
-            yield return new(_shape, Module.Bounds.Center);
+            yield return new(_shape, Module.Center);
     }
 }
 
@@ -185,7 +185,7 @@ class PalladionWhiteFlame : Components.GenericBaitAway
     {
         CurrentBaits.Clear();
         if (_palladion != null && _palladion.NumBaitsDone < _palladion.NumBaitsAssigned && _palladion.BaitOrder[_palladion.NumBaitsDone])
-            foreach (var t in Raid.WithoutSlot().SortedByRange(Module.Bounds.Center).Take(2))
+            foreach (var t in Raid.WithoutSlot().SortedByRange(Module.Center).Take(2))
                 CurrentBaits.Add(new(_fakeSource, t, _shape));
     }
 
@@ -199,7 +199,7 @@ class PalladionWhiteFlame : Components.GenericBaitAway
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (CurrentBaits.Count > 0)
-            Arena.Actor(Module.Bounds.Center, default, ArenaColor.Object);
+            Arena.Actor(Module.Center, default, ArenaColor.Object);
         base.DrawArenaForeground(pcSlot, pc);
     }
 
@@ -236,6 +236,6 @@ class PalladionDestroyPlatforms(BossModule module) : Components.GenericAOEs(modu
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        yield return new(_shape, Module.Bounds.Center);
+        yield return new(_shape, Module.Center);
     }
 }

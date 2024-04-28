@@ -9,7 +9,7 @@ class P2SanctityOfTheWard2Knockback(BossModule module) : Components.KnockbackFro
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Casters.Count > 0 && !actor.Position.InCircle(Module.Bounds.Center, 12))
+        if (Casters.Count > 0 && !actor.Position.InCircle(Module.Center, 12))
         {
             var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(WHM.AID.Surecast) : ActionID.MakeSpell(WAR.AID.ArmsLength);
             hints.PlannedActions.Add((action, actor, (float)((Casters.FirstOrDefault()?.CastInfo?.NPCFinishAt ?? WorldState.CurrentTime) - WorldState.CurrentTime).TotalSeconds, false));
@@ -131,8 +131,8 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
         if (Active)
         {
             float diag = Module.Bounds.Radius / 1.414214f;
-            Arena.AddLine(Module.Bounds.Center + new WDir(diag, diag), Module.Bounds.Center - new WDir(diag, diag), ArenaColor.Border);
-            Arena.AddLine(Module.Bounds.Center + new WDir(diag, -diag), Module.Bounds.Center - new WDir(diag, -diag), ArenaColor.Border);
+            Arena.AddLine(Module.Center + new WDir(diag, diag), Module.Center - new WDir(diag, diag), ArenaColor.Border);
+            Arena.AddLine(Module.Center + new WDir(diag, -diag), Module.Center - new WDir(diag, -diag), ArenaColor.Border);
         }
 
         // TODO: move to separate comet component...
@@ -180,7 +180,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
 
     public int ClassifyTower(WPos tower)
     {
-        var offset = tower - Module.Bounds.Center;
+        var offset = tower - Module.Center;
         var dir = Angle.FromDirection(offset);
         if (offset.LengthSq() < 7 * 7)
         {
@@ -520,7 +520,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
     private WPos StormPlacementPosition(int quadrant)
     {
         var dir = (180 - quadrant * 90).Degrees();
-        return Module.Bounds.Center + _stormPlacementOffset * dir.ToDirection();
+        return Module.Center + _stormPlacementOffset * dir.ToDirection();
     }
 
     private string QuadrantSwapHint(int quadrant)
@@ -594,7 +594,7 @@ class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(mod
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
-        if ((AID)spell.Action.ID == AID.Conviction2AOE && !spell.TargetXZ.InCircle(Module.Bounds.Center, 7))
+        if ((AID)spell.Action.ID == AID.Conviction2AOE && !spell.TargetXZ.InCircle(Module.Center, 7))
         {
             // we assign towers to prey role players according to the quadrant they were soaking their tower - this handles unexpected swaps on first towers gracefully
             foreach (var t in spell.Targets)
@@ -602,7 +602,7 @@ class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(mod
                 var slot = Raid.FindSlot(t.ID);
                 if (Raid[slot]?.Class.IsSupport() == _preyOnTH)
                 {
-                    var towerOffset = spell.TargetXZ - Module.Bounds.Center;
+                    var towerOffset = spell.TargetXZ - Module.Center;
                     var towerIndex = towerOffset.Z switch
                     {
                         < -10 => 0, // N tower
@@ -619,7 +619,7 @@ class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(mod
 
     private int ClassifyTower(WPos tower)
     {
-        var offset = tower - Module.Bounds.Center;
+        var offset = tower - Module.Center;
         var dir = Angle.FromDirection(offset);
         return (4 - (int)MathF.Round(dir.Rad / MathF.PI * 4)) % 8;
     }

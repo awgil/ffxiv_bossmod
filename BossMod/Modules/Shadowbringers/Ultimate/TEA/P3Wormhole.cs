@@ -22,7 +22,7 @@ class P3WormholeRepentance(BossModule module) : BossComponent(module)
         if (order == 0)
             return;
 
-        var dirToAlex = (alex.Position - Module.Bounds.Center).Normalized();
+        var dirToAlex = (alex.Position - Module.Center).Normalized();
         var dirToSide = SelectSide(order, dirToAlex);
         bool shouldSoak = ShouldSoakWormhole(order);
 
@@ -47,9 +47,9 @@ class P3WormholeRepentance(BossModule module) : BossComponent(module)
 
         if (!ShouldSoakWormhole(order) || !_chakramsDone)
         {
-            var dirToAlex = (alex.Position - Module.Bounds.Center).Normalized();
+            var dirToAlex = (alex.Position - Module.Center).Normalized();
             var dirToSide = SelectSide(order, dirToAlex);
-            movementHints.Add(actor.Position, Module.Bounds.Center + SafeSpotOffset(order, dirToAlex, dirToSide), ArenaColor.Safe);
+            movementHints.Add(actor.Position, Module.Center + SafeSpotOffset(order, dirToAlex, dirToSide), ArenaColor.Safe);
         }
     }
 
@@ -63,15 +63,15 @@ class P3WormholeRepentance(BossModule module) : BossComponent(module)
         if (pcOrder == 0)
             return;
 
-        var dirToAlex = (alex.Position - Module.Bounds.Center).Normalized();
+        var dirToAlex = (alex.Position - Module.Center).Normalized();
         var dirToSide = SelectSide(pcOrder, dirToAlex);
         var shouldSoak = ShouldSoakWormhole(pcOrder);
 
         foreach (var w in _wormholes)
-            Arena.AddCircle(w, _radiuses[NumSoaks], shouldSoak && dirToSide.Dot(w - Module.Bounds.Center) > 0 ? ArenaColor.Safe : ArenaColor.Danger);
+            Arena.AddCircle(w, _radiuses[NumSoaks], shouldSoak && dirToSide.Dot(w - Module.Center) > 0 ? ArenaColor.Safe : ArenaColor.Danger);
 
         if (!shouldSoak || !_chakramsDone)
-            Arena.AddCircle(Module.Bounds.Center + SafeSpotOffset(pcOrder, dirToAlex, dirToSide), 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Center + SafeSpotOffset(pcOrder, dirToAlex, dirToSide), 1, ArenaColor.Safe);
     }
 
     public override void OnActorCreated(Actor actor)

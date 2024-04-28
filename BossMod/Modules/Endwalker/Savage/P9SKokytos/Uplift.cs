@@ -11,7 +11,7 @@ class Uplift(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.M
             for (int i = 0; i < 4; ++i)
             {
                 var center = WallDirection.Value + i * 90.Degrees();
-                Arena.PathArcTo(Module.Bounds.Center, Module.Bounds.Radius - 0.5f, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);
+                Arena.PathArcTo(Module.Center, Module.Bounds.Radius - 0.5f, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);
                 Arena.PathStroke(false, ArenaColor.Border, 2);
             }
         }

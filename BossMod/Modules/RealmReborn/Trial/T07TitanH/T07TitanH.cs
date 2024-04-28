@@ -62,9 +62,9 @@ class Geocrush(BossModule module) : Components.GenericAOEs(module, ActionID.Make
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_outer != null)
-            yield return new(_outer, Module.Bounds.Center);
+            yield return new(_outer, Module.Center);
         if (_inner != null)
-            yield return new(_inner, Module.Bounds.Center, new(), _innerFinish);
+            yield return new(_inner, Module.Center, new(), _innerFinish);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

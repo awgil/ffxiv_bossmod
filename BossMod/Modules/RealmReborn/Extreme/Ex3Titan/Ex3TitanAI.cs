@@ -23,7 +23,7 @@ class Ex3TitanAI(BossModule module) : BossComponent(module)
                 case OID.TitansHeart:
                     e.Priority = 1;
                     e.AttackStrength = 0.25f;
-                    e.DesiredPosition = Module.Bounds.Center - new WDir(0, Arena.Bounds.Radius - 6);
+                    e.DesiredPosition = Module.Center - new WDir(0, Arena.Bounds.Radius - 6);
                     e.DesiredRotation = 180.Degrees();
                     e.TankDistance = 0;
                     if (actor.Role == Role.Tank)
@@ -40,11 +40,11 @@ class Ex3TitanAI(BossModule module) : BossComponent(module)
                     break;
                 case OID.GraniteGaoler:
                     e.Priority = 2;
-                    e.DesiredPosition = Module.Bounds.Center + (Module.Bounds.Radius - 4) * 30.Degrees().ToDirection(); // move them away from boss, healer gaol spots and upheaval knockback spots
+                    e.DesiredPosition = Module.Center + (Module.Bounds.Radius - 4) * 30.Degrees().ToDirection(); // move them away from boss, healer gaol spots and upheaval knockback spots
                     e.ShouldBeTanked = Module.PrimaryActor.TargetID != actor.InstanceID && actor.Role == Role.Tank;
                     break;
                 case OID.BombBoulder:
-                    e.Priority = KillNextBomb && e.Actor.Position.AlmostEqual(Module.Bounds.Center, 1) ? 3 : 0; // kill center bomb when needed
+                    e.Priority = KillNextBomb && e.Actor.Position.AlmostEqual(Module.Center, 1) ? 3 : 0; // kill center bomb when needed
                     e.ShouldBeTanked = false;
                     break;
                 case OID.GraniteGaol:
@@ -61,7 +61,7 @@ class Ex3TitanAI(BossModule module) : BossComponent(module)
             if (_rockThrow != null && _rockThrow.PendingFetters[slot])
             {
                 var pos = actor.Role == Role.Healer
-                    ? Module.Bounds.Center + Module.Bounds.Radius * (-30).Degrees().ToDirection() // healers should go to the back; 30 degrees will be safe if landslide is baited straight to south (which it should, since it will follow upheaval)
+                    ? Module.Center + Module.Bounds.Radius * (-30).Degrees().ToDirection() // healers should go to the back; 30 degrees will be safe if landslide is baited straight to south (which it should, since it will follow upheaval)
                     : Module.PrimaryActor.Position + new WDir(0, 1);
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 2), _rockThrow.ResolveAt);
             }

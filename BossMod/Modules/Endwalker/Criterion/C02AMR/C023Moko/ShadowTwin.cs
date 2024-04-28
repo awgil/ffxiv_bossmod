@@ -67,7 +67,7 @@ class AccursedEdge : Components.GenericBaitAway
             var baitDistance = stayClose ? 12 : 19;
             foreach (var dir in _safespotDirections)
             {
-                var potentialSafespot = Module.Bounds.Center + baitDistance * dir;
+                var potentialSafespot = Module.Center + baitDistance * dir;
                 if (!_clearout.AOEs.Any(aoe => aoe.Check(potentialSafespot)))
                     Arena.AddCircle(potentialSafespot, 1, ArenaColor.Safe);
             }

@@ -99,8 +99,8 @@ class P3TemporalStasis(BossModule module) : Components.GenericBaitAway(module, A
         // - 'far' E (th) / W (dd), whoever is closer to CC baits third aoe outside
         // - 'avoid' staying E/W, closer to BJ
         // BJ/CC are located at center +/- (6, 0)
-        var bjLeft = BJ()?.Position.X < Module.Bounds.Center.X;
-        return Module.Bounds.Center + _playerMechanics[slot] switch
+        var bjLeft = BJ()?.Position.X < Module.Center.X;
+        return Module.Center + _playerMechanics[slot] switch
         {
             Mechanic.AvoidDamage => new WDir(bjLeft ? -20 : +20, 0),
             Mechanic.StayClose => new WDir(6, actor.Class.IsSupport() ? -2 : +2),

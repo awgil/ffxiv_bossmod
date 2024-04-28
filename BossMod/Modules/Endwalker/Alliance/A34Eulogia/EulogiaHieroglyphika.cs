@@ -19,7 +19,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module)
     public override void OnEventIcon(Actor actor, uint iconID)
     {
         var _activation = WorldState.FutureTime(16);
-        var origin = Module.Bounds.Center;
+        var origin = Module.Center;
         if (iconID == (uint)IconID.ClockwiseHieroglyphika)
             foreach (var r in StartingCoords)
                 _aoes.Add(new(rect, RotateAroundOrigin(0, origin, r), 180.Degrees(), _activation));

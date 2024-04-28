@@ -73,7 +73,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
         }
         else
         {
-            var dir = (eye - Module.Bounds.Center).Normalized();
+            var dir = (eye - Module.Center).Normalized();
             return Arena.ScreenCenter + Arena.RotatedCoords(dir.ToVec2()) * (Arena.ScreenHalfSize + Arena.ScreenMarginSize / 2);
         }
     }

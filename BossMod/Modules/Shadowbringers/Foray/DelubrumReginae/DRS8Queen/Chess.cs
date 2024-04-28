@@ -139,10 +139,10 @@ class QueensEdict(BossModule module) : Chess(module)
                 yield break; // not ready yet...
 
             // initialize second safespot: select cells that are SecondEdict distance from safespot and not in columns clipped by second set of guards
-            int forbiddenCol1 = OffsetToCell(GuardStates[2].FinalPosition.X - Module.Bounds.Center.X);
-            int forbiddenCol2 = OffsetToCell(GuardStates[3].FinalPosition.X - Module.Bounds.Center.X);
-            int forbiddenRow1 = OffsetToCell(GuardStates[0].FinalPosition.Z - Module.Bounds.Center.Z);
-            int forbiddenRow2 = OffsetToCell(GuardStates[1].FinalPosition.Z - Module.Bounds.Center.Z);
+            int forbiddenCol1 = OffsetToCell(GuardStates[2].FinalPosition.X - Module.Center.X);
+            int forbiddenCol2 = OffsetToCell(GuardStates[3].FinalPosition.X - Module.Center.X);
+            int forbiddenRow1 = OffsetToCell(GuardStates[0].FinalPosition.Z - Module.Center.Z);
+            int forbiddenRow2 = OffsetToCell(GuardStates[1].FinalPosition.Z - Module.Center.Z);
             foreach (var s2 in CellsAtManhattanDistance((0, _safespotZOffset), state.SecondEdict).Where(s2 => s2.x != forbiddenCol1 && s2.x != forbiddenCol2))
             {
                 foreach (var s1 in CellsAtManhattanDistance(s2, state.FirstEdict).Where(s1 => s1.z != forbiddenRow1 && s1.z != forbiddenRow2))
@@ -178,7 +178,7 @@ class QueensEdict(BossModule module) : Chess(module)
         _ => 3
     };
 
-    private WPos CellCenter((int x, int z) cell) => Module.Bounds.Center + 10 * new WDir(cell.x, cell.z);
+    private WPos CellCenter((int x, int z) cell) => Module.Center + 10 * new WDir(cell.x, cell.z);
 
     private IEnumerable<(int x, int z)> CellsAtManhattanDistance((int x, int z) origin, int distance)
     {

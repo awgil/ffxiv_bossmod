@@ -10,7 +10,7 @@ class RubyGlow2(BossModule module) : RubyGlowCommon(module, ActionID.MakeSpell(A
         // TODO: correct explosion time
         var magic = NumCasts > 0 ? MagicStones.FirstOrDefault() : null;
         if (magic != null)
-            yield return new(ShapeHalf, Module.Bounds.Center, Angle.FromDirection(QuadrantDir(QuadrantForPosition(magic.Position))));
+            yield return new(ShapeHalf, Module.Center, Angle.FromDirection(QuadrantDir(QuadrantForPosition(magic.Position))));
         foreach (var p in ActivePoisonAOEs())
             yield return p;
     }

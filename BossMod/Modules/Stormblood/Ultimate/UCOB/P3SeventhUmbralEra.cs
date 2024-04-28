@@ -6,7 +6,7 @@ class P3SeventhUmbralEra(BossModule module) : Components.Knockback(module, Actio
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        yield return new(Module.Bounds.Center, 11, _activation);
+        yield return new(Module.Center, 11, _activation);
     }
 }
 

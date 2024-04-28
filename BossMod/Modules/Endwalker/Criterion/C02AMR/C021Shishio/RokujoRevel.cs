@@ -17,7 +17,7 @@ class RokujoRevel(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_pendingLines.Count > 1)
-            yield return new(_shapeLine, Module.Bounds.Center, _pendingLines[1].dir, _pendingLines[1].activation, Risky: false);
+            yield return new(_shapeLine, Module.Center, _pendingLines[1].dir, _pendingLines[1].activation, Risky: false);
         if (_pendingCircles.Count > 0 && ShapeCircle is var shapeCircle && shapeCircle != null)
         {
             var firstFutureActivation = _pendingCircles[0].activation.AddSeconds(1);
@@ -36,7 +36,7 @@ class RokujoRevel(BossModule module) : Components.GenericAOEs(module)
                 yield return new(shapeCircle, p.origin, default, p.activation, ArenaColor.Danger);
         }
         if (_pendingLines.Count > 0)
-            yield return new(_shapeLine, Module.Bounds.Center, _pendingLines[0].dir, _pendingLines[0].activation, ArenaColor.Danger);
+            yield return new(_shapeLine, Module.Center, _pendingLines[0].dir, _pendingLines[0].activation, ArenaColor.Danger);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

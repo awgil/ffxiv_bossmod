@@ -22,9 +22,9 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
         for (int i = 0; i < 8; ++i)
         {
             var centerAlcove = centerOffset + i * 45.Degrees();
-            foreach (var p in CurveApprox.CircleArc(Module.Bounds.Center, ringRadius + offsetMultiplier * (_ringHalfWidth + _alcoveDepth), centerAlcove - halfWidth, centerAlcove + halfWidth, Module.Bounds.MaxApproxError))
+            foreach (var p in CurveApprox.CircleArc(Module.Center, ringRadius + offsetMultiplier * (_ringHalfWidth + _alcoveDepth), centerAlcove - halfWidth, centerAlcove + halfWidth, Module.Bounds.MaxApproxError))
                 yield return p;
-            foreach (var p in CurveApprox.CircleArc(Module.Bounds.Center, ringRadius + offsetMultiplier * _ringHalfWidth, centerAlcove + halfWidth, centerAlcove + 45.Degrees() - halfWidth, Module.Bounds.MaxApproxError))
+            foreach (var p in CurveApprox.CircleArc(Module.Center, ringRadius + offsetMultiplier * _ringHalfWidth, centerAlcove + halfWidth, centerAlcove + 45.Degrees() - halfWidth, Module.Bounds.MaxApproxError))
                 yield return p;
         }
     }
@@ -53,7 +53,7 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
 
     private IEnumerable<WPos> OutDanger()
     {
-        foreach (var p in RepeatFirst(CurveApprox.Circle(Module.Bounds.Center, Module.Bounds.Radius, Module.Bounds.MaxApproxError)))
+        foreach (var p in RepeatFirst(CurveApprox.Circle(Module.Center, Module.Bounds.Radius, Module.Bounds.MaxApproxError)))
             yield return p;
         foreach (var p in RepeatFirst(RingBorder(0.Degrees(), _outerRingRadius, false)))
             yield return p;

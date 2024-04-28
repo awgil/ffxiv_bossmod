@@ -71,7 +71,7 @@ class Dartboard(BossModule module) : BossComponent(module)
 
     private Color PosToColor(WPos pos)
     {
-        var off = pos - Module.Bounds.Center;
+        var off = pos - Module.Center;
         return DirToColor(Angle.FromDirection(off), off.LengthSq() < 144);
     }
 
@@ -81,8 +81,8 @@ class Dartboard(BossModule module) : BossComponent(module)
         var dirOut = (15 + index * 30).Degrees();
         for (int i = 0; i < 4; ++i)
         {
-            Arena.ZoneCone(Module.Bounds.Center, 0, 12, dirOut + 30.Degrees(), 15.Degrees(), zoneColor);
-            Arena.ZoneCone(Module.Bounds.Center, 12, Module.Bounds.Radius, dirOut, 15.Degrees(), zoneColor);
+            Arena.ZoneCone(Module.Center, 0, 12, dirOut + 30.Degrees(), 15.Degrees(), zoneColor);
+            Arena.ZoneCone(Module.Center, 12, Module.Bounds.Radius, dirOut, 15.Degrees(), zoneColor);
             dirOut += 90.Degrees();
         }
     }

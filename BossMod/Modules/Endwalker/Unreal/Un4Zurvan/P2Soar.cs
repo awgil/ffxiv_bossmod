@@ -23,7 +23,7 @@ class P2SoarTwinSpirit(BossModule module) : Components.GenericAOEs(module)
             case AID.TwinSpiritFirst:
                 var index = _pending.FindIndex(p => p.caster == caster);
                 if (index >= 0)
-                    _pending[index] = (caster, new(_shape, spell.LocXZ, Angle.FromDirection(Module.Bounds.Center - spell.LocXZ), WorldState.FutureTime(9.2f)));
+                    _pending[index] = (caster, new(_shape, spell.LocXZ, Angle.FromDirection(Module.Center - spell.LocXZ), WorldState.FutureTime(9.2f)));
                 break;
             case AID.TwinSpiritSecond:
                 _pending.RemoveAll(p => p.caster == caster);

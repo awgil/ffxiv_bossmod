@@ -24,7 +24,7 @@ class LimitlessDesolation : Components.UniformStackSpread
         base.AddHints(slot, actor, hints);
 
         var towerIndex = _towerAssignments[slot];
-        if (towerIndex >= 0 && !actor.Position.InCircle(Module.Bounds.Center + _towerOffsets[towerIndex], _towerRadius))
+        if (towerIndex >= 0 && !actor.Position.InCircle(Module.Center + _towerOffsets[towerIndex], _towerRadius))
             hints.Add("Soak assigned tower!");
     }
 
@@ -34,7 +34,7 @@ class LimitlessDesolation : Components.UniformStackSpread
 
         var towerIndex = _towerAssignments[pcSlot];
         if (towerIndex >= 0)
-            Arena.AddCircle(Module.Bounds.Center + _towerOffsets[towerIndex], _towerRadius, ArenaColor.Safe, 2);
+            Arena.AddCircle(Module.Center + _towerOffsets[towerIndex], _towerRadius, ArenaColor.Safe, 2);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

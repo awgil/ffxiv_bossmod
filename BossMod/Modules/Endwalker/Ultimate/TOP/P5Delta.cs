@@ -49,7 +49,7 @@ class P5Delta(BossModule module) : BossComponent(module)
             Arena.AddLine(pc.Position, partner.Position, ArenaColor.Danger);
 
         foreach (var safeSpot in SafeSpotOffsets(pcSlot))
-            Arena.AddCircle(Module.Bounds.Center + safeSpot, 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Center + safeSpot, 1, ArenaColor.Safe);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -159,10 +159,10 @@ class P5Delta(BossModule module) : BossComponent(module)
             switch ((OID)actor.OID)
             {
                 case OID.BeetleHelper:
-                    _eyeDir = (actor.Position - Module.Bounds.Center).Normalized().OrthoR();
+                    _eyeDir = (actor.Position - Module.Center).Normalized().OrthoR();
                     break;
                 case OID.FinalHelper:
-                    _eyeDir = (actor.Position - Module.Bounds.Center).Normalized().OrthoL();
+                    _eyeDir = (actor.Position - Module.Center).Normalized().OrthoL();
                     break;
             }
         }
@@ -179,7 +179,7 @@ class P5Delta(BossModule module) : BossComponent(module)
                 _ => default
             };
             if (rotation != default)
-                ArmRotations[ArmIndex(actor.Position - Module.Bounds.Center)] = rotation;
+                ArmRotations[ArmIndex(actor.Position - Module.Center)] = rotation;
         }
     }
 
@@ -195,7 +195,7 @@ class P5Delta(BossModule module) : BossComponent(module)
     private void InitAssignments()
     {
         // 1. assign initial inner/outer
-        float slotToOffsetX(int slot) => _eyeDir.OrthoR().Dot((Raid[slot]?.Position ?? Module.Bounds.Center) - Module.Bounds.Center);
+        float slotToOffsetX(int slot) => _eyeDir.OrthoR().Dot((Raid[slot]?.Position ?? Module.Center) - Module.Center);
         float pairToOffsetX((int s1, int s2) slots) => MathF.Abs(slotToOffsetX(slots.s1) + slotToOffsetX(slots.s2));
         var outerLocal = _localTethers.MaxBy(pairToOffsetX);
         var outerRemote = _remoteTethers.MaxBy(pairToOffsetX);
@@ -411,7 +411,7 @@ class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
         {
             for (int i = 0; i < _delta.ArmRotations.Length; ++i)
             {
-                var pos = Module.Bounds.Center + _delta.ArmOffset(i);
+                var pos = Module.Center + _delta.ArmOffset(i);
                 if (Raid.WithoutSlot().Closest(pos) == actor)
                 {
                     var angle = Angle.FromDirection(actor.Position - pos);
@@ -428,7 +428,7 @@ class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.DeltaHyperPulseFirst && _delta != null)
         {
-            var rot = _delta.ArmRotations[_delta.ArmIndex(caster.Position - Module.Bounds.Center)];
+            var rot = _delta.ArmRotations[_delta.ArmIndex(caster.Position - Module.Center)];
             for (int i = 0; i < _numRepeats; ++i)
             {
                 _aoes.Add(new(_shape, caster.Position, (spell.Rotation + i * rot).Normalized(), spell.NPCFinishAt.AddSeconds(i * 0.6)));

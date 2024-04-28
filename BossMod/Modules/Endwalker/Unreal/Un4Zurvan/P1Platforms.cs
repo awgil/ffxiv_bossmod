@@ -21,7 +21,7 @@ class P1Platforms(BossModule module) : Components.GenericAOEs(module)
         switch (state)
         {
             case 0x00040008:
-                ForbiddenPlatforms.Add(new(new AOEShapeCone(20, 45.Degrees()), Module.Bounds.Center, dir, WorldState.FutureTime(5)));
+                ForbiddenPlatforms.Add(new(new AOEShapeCone(20, 45.Degrees()), Module.Center, dir, WorldState.FutureTime(5)));
                 break;
             case 0x00100020:
                 ++NumCasts;

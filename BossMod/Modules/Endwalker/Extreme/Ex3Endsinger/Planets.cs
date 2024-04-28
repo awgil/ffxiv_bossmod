@@ -100,7 +100,7 @@ class Planets(BossModule module) : BossComponent(module)
 
     private void AddPlanet(Actor caster, bool azure, bool firstOfPair)
     {
-        var origin = Module.Bounds.Center + _planetOffset * caster.Rotation.ToDirection();
+        var origin = Module.Center + _planetOffset * caster.Rotation.ToDirection();
         var planets = azure ? _planetsAzure : _planetsFiery;
         int index = firstOfPair ? 0 : planets.Count;
         planets.Insert(index, origin);

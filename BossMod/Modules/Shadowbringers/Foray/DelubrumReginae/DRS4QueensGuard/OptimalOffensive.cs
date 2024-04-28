@@ -9,7 +9,7 @@ class OptimalOffensiveShieldKnockback(BossModule module) : Components.KnockbackF
 
 class UnluckyLot(BossModule module) : Components.GenericAOEs(module)
 {
-    private AOEInstance? _aoe = new(new AOEShapeCircle(20), module.Bounds.Center, default, module.WorldState.FutureTime(7.6f));
+    private AOEInstance? _aoe = new(new AOEShapeCircle(20), module.Center, default, module.WorldState.FutureTime(7.6f));
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 

@@ -43,10 +43,10 @@ class Border(BossModule module) : BossComponent(module)
         hints.AddForbiddenZone(p =>
         {
             // union of platforms
-            var res = _platformCenters.Select(off => ShapeDistance.Circle(Module.Bounds.Center + off, _platformRadius)(p)).Min();
+            var res = _platformCenters.Select(off => ShapeDistance.Circle(Module.Center + off, _platformRadius)(p)).Min();
             // union of bridges
             for (int i = 1; i < 5; ++i)
-                res = Math.Min(res, ShapeDistance.Rect(Module.Bounds.Center + _platformCenters[i - 1], Module.Bounds.Center + _platformCenters[i], 3)(p));
+                res = Math.Min(res, ShapeDistance.Rect(Module.Center + _platformCenters[i - 1], Module.Center + _platformCenters[i], 3)(p));
             // invert
             return -res;
         });
@@ -58,7 +58,7 @@ class Border(BossModule module) : BossComponent(module)
     {
         // draw platforms
         foreach (var c in _platformCenters)
-            Arena.AddCircle(Module.Bounds.Center + c, _platformRadius, ArenaColor.Border);
+            Arena.AddCircle(Module.Center + c, _platformRadius, ArenaColor.Border);
 
         // draw bridges
         for (int i = 1; i < 5; ++i)
@@ -72,8 +72,8 @@ class Border(BossModule module) : BossComponent(module)
 
     private void DrawBridgeLine(Angle from, Angle to, Angle offset, float distance)
     {
-        var p1 = Module.Bounds.Center + distance * (from + offset).ToDirection();
-        var p2 = Module.Bounds.Center + distance * (to - offset).ToDirection();
+        var p1 = Module.Center + distance * (from + offset).ToDirection();
+        var p2 = Module.Center + distance * (to - offset).ToDirection();
         Arena.AddLine(p1, p2, ArenaColor.Border);
     }
 }

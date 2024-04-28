@@ -76,7 +76,7 @@ class AstralEclipse(BossModule module) : BossComponent(module)
             for (int z = -1; z <= 1; ++z)
                 for (int x = -1; x <= 1; ++x)
                     if ((pattern & (1 << ((z + 1) * 4 + (x + 1)))) != 0)
-                        yield return Module.Bounds.Center + _centerOffset * new WDir(x, z);
+                        yield return Module.Center + _centerOffset * new WDir(x, z);
     }
 
     private IEnumerable<(WPos, WPos)> EnumMovementHints(WPos startingPosition)

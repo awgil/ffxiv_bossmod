@@ -20,14 +20,14 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
         if ((OID)actor.OID == OID.BahamutPrime && id == 0x1E43)
         {
             _relNorth = actor;
-            var dirToNorth = Angle.FromDirection(actor.Position - Module.Bounds.Center);
+            var dirToNorth = Angle.FromDirection(actor.Position - Module.Center);
             foreach (var p in Service.Config.Get<UCOBConfig>().P3QuickmarchTrioAssignments.Resolve(Raid))
             {
                 bool left = p.group < 4;
                 int order = p.group & 3;
                 var offset = (60 + order * 20).Degrees();
                 var dir = dirToNorth + (left ? offset : -offset);
-                _safeSpots[p.slot] = Module.Bounds.Center + 20 * dir.ToDirection();
+                _safeSpots[p.slot] = Module.Center + 20 * dir.ToDirection();
             }
         }
     }

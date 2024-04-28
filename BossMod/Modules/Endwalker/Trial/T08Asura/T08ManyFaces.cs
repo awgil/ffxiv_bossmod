@@ -12,9 +12,9 @@ class ManyFaces(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (delight)
-            yield return new(cone, Module.Bounds.Center, _rotationDelight, _activation);
+            yield return new(cone, Module.Center, _rotationDelight, _activation);
         if (wrath)
-            yield return new(cone, Module.Bounds.Center, _rotationWrath, _activation);
+            yield return new(cone, Module.Center, _rotationWrath, _activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

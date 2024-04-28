@@ -31,7 +31,7 @@ class ComplexBoundsTest : TestWindow
         _arena.Border(ArenaColor.Border);
 
         var t1 = DateTime.Now;
-        _arena.ZoneCircle(_arena.Bounds.Center + _aoeOffset * _aoeRotDeg.Degrees().ToDirection(), _aoeRadius, ArenaColor.AOE);
+        _arena.ZoneCircle(_arena.Center + _aoeOffset * _aoeRotDeg.Degrees().ToDirection(), _aoeRadius, ArenaColor.AOE);
         var dt = DateTime.Now - t1;
 
         _arena.End();

@@ -19,7 +19,7 @@ class FlukeTyphoonBurst(BossModule module) : Components.GenericTowers(module)
                 _ => default
             };
             if (offset != default)
-                Towers.Add(new(Module.Bounds.Center + offset, 4));
+                Towers.Add(new(Module.Center + offset, 4));
         }
     }
 

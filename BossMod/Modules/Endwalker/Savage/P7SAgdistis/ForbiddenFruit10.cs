@@ -40,10 +40,10 @@ class ForbiddenFruit10(BossModule module) : ForbiddenFruitCommon(module, ActionI
         {
             case OID.ForbiddenFruitMinotaur:
                 // minotaurs spawn on bridges, minotaur platform is adjacent => their opposite platform is never minotaur one
-                _minotaurPlaforms.Clear(PlatformIDFromOffset(Module.Bounds.Center - fruit.Position));
+                _minotaurPlaforms.Clear(PlatformIDFromOffset(Module.Center - fruit.Position));
                 break;
             case OID.ForbiddenFruitBull:
-                _bullPlatforms.Set(PlatformIDFromOffset(fruit.Position - Module.Bounds.Center));
+                _bullPlatforms.Set(PlatformIDFromOffset(fruit.Position - Module.Center));
                 break;
         }
         return null;

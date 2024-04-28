@@ -50,7 +50,7 @@ class EarthQuaker(BossModule module) : Components.ConcentricAOEs(module, _shapes
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.EarthQuaker)
-            AddSequence(Module.Bounds.Center, spell.NPCFinishAt.AddSeconds(0.5f));
+            AddSequence(Module.Center, spell.NPCFinishAt.AddSeconds(0.5f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -63,7 +63,7 @@ class EarthQuaker(BossModule module) : Components.ConcentricAOEs(module, _shapes
                 AID.EarthQuaker2 => 1,
                 _ => -1
             };
-            AdvanceSequence(order, Module.Bounds.Center, WorldState.FutureTime(1.95f));
+            AdvanceSequence(order, Module.Center, WorldState.FutureTime(1.95f));
         }
     }
 }

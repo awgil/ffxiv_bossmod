@@ -6,7 +6,7 @@ class EntrapmentAttract(BossModule module) : Components.Knockback(module, Action
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        yield return new(new(Module.Bounds.Center.X, Module.Bounds.Center.Z + Module.Bounds.Radius), 60, _activation, Kind: Kind.TowardsOrigin);
+        yield return new(new(Module.Center.X, Module.Center.Z + Module.Bounds.Radius), 60, _activation, Kind: Kind.TowardsOrigin);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -58,7 +58,7 @@ class Entrapment : Components.CastCounter
         if (player != null)
             for (int z = 0; z < 7; ++z)
                 for (int x = 0; x < 7; ++x)
-                    if (player.Position.InCircle(Module.Bounds.Center + CellOffset(x, z), 10))
+                    if (player.Position.InCircle(Module.Center + CellOffset(x, z), 10))
                         _uncovered.Set(IndexFromCell(x, z));
 
         // remove all patterns that have difference with current state in uncovered areas
@@ -139,7 +139,7 @@ class Entrapment : Components.CastCounter
 
     private void AddTrap(ref BitMask mask, WPos position, bool exploded)
     {
-        var index = IndexFromOffset(position - Module.Bounds.Center);
+        var index = IndexFromOffset(position - Module.Center);
         //ReportError($"Trap @ {position} (dist={(position - Raid.Player()!.Position).Length()}) = {index}");
         mask.Set(index);
         _uncovered.Set(index);
@@ -167,7 +167,7 @@ class Entrapment : Components.CastCounter
         mask &= ~_exploded; // don't draw already exploded traps
         foreach (var index in mask.SetBits())
         {
-            var pos = Module.Bounds.Center + CellOffset(index);
+            var pos = Module.Center + CellOffset(index);
             if (background)
                 Arena.ZoneCircle(pos, 2.5f, safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
             else

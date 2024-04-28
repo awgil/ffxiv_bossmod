@@ -29,7 +29,7 @@ class P3DarkdragonDiveCounter(BossModule module) : Components.GenericTowers(modu
     // 0 = NW, then CW order
     private int ClassifyTower(WPos tower)
     {
-        var offset = tower - Module.Bounds.Center;
+        var offset = tower - Module.Center;
         return offset.Z > 0 ? (offset.X > 0 ? 2 : 3) : (offset.X > 0 ? 1 : 0);
     }
 

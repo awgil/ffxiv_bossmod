@@ -21,6 +21,7 @@ public abstract class BossModule : IDisposable
     public Event<BossModule, BossComponent?, string> Error = new();
 
     public PartyState Raid => WorldState.Party;
+    public WPos Center => Arena.Center;
     public ArenaBounds Bounds => Arena.Bounds;
 
     // per-oid enemy lists; filled on first request

@@ -40,7 +40,7 @@ class P6WrothFlames : Components.GenericAOEs
         if ((OID)actor.OID == OID.ScarletPrice)
         {
             if (_aoes.Count == 4)
-                _startingSpot.Z = actor.Position.Z < Module.Bounds.Center.Z ? 120 : 80;
+                _startingSpot.Z = actor.Position.Z < Module.Center.Z ? 120 : 80;
 
             var delay = _aoes.Count switch
             {
@@ -80,7 +80,7 @@ class P6AkhMornVoidzone(BossModule module) : Components.PersistentVoidzone(modul
 class P6SpreadingEntangledFlames(BossModule module) : Components.UniformStackSpread(module, 4, 5, 2, alwaysShowSpreads: true)
 {
     private readonly P6HotWingTail? _wingTail = module.FindComponent<P6HotWingTail>();
-    private readonly bool _voidzonesNorth = module.Enemies(OID.VoidzoneAhkMorn).Sum(z => z.Position.Z - module.Bounds.Center.Z) < 0;
+    private readonly bool _voidzonesNorth = module.Enemies(OID.VoidzoneAhkMorn).Sum(z => z.Position.Z - module.Center.Z) < 0;
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
@@ -129,18 +129,18 @@ class P6SpreadingEntangledFlames(BossModule module) : Components.UniformStackSpr
         if (_wingTail == null)
             yield break;
 
-        float z = Module.Bounds.Center.Z + (_wingTail.NumAOEs != 1 ? 0 : _voidzonesNorth ? 10 : -10);
+        float z = Module.Center.Z + (_wingTail.NumAOEs != 1 ? 0 : _voidzonesNorth ? 10 : -10);
         if (IsSpreadTarget(actor))
         {
-            yield return new WPos(Module.Bounds.Center.X - 18, z);
-            yield return new WPos(Module.Bounds.Center.X - 12, z);
-            yield return new WPos(Module.Bounds.Center.X - 6, z);
-            yield return new WPos(Module.Bounds.Center.X, z);
+            yield return new WPos(Module.Center.X - 18, z);
+            yield return new WPos(Module.Center.X - 12, z);
+            yield return new WPos(Module.Center.X - 6, z);
+            yield return new WPos(Module.Center.X, z);
         }
         else
         {
-            yield return new WPos(Module.Bounds.Center.X + 9, z);
-            yield return new WPos(Module.Bounds.Center.X + 18, z);
+            yield return new WPos(Module.Center.X + 9, z);
+            yield return new WPos(Module.Center.X + 18, z);
         }
     }
 }

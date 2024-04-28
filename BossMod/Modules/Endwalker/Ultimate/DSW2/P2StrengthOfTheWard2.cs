@@ -21,8 +21,8 @@ class P2StrengthOfTheWard2SpreadStack : Components.UniformStackSpread
             return;
         }
 
-        var offset1 = c1.Position - Module.Bounds.Center;
-        var offset2 = c2.Position - Module.Bounds.Center;
+        var offset1 = c1.Position - Module.Center;
+        var offset2 = c2.Position - Module.Center;
         var toStack = -(offset1 + offset2);
         (_leftCharge, _rightCharge) = toStack.OrthoL().Dot(offset1) > 0 ? (c1, c2) : (c2, c1);
         _dirToStackPos = Angle.FromDirection(toStack);
@@ -90,7 +90,7 @@ class P2StrengthOfTheWard2SpreadStack : Components.UniformStackSpread
         }
     }
 
-    private WPos SafeSpotAt(Angle dir) => Module.Bounds.Center + 20 * dir.ToDirection();
+    private WPos SafeSpotAt(Angle dir) => Module.Center + 20 * dir.ToDirection();
 }
 
 // growing voidzones

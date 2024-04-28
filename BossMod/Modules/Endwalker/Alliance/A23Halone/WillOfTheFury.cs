@@ -36,6 +36,6 @@ class WillOfTheFury(BossModule module) : Components.GenericAOEs(module)
             4 => new AOEShapeCircle(outerRadius),
             _ => null
         };
-        _aoe = shape != null ? new(shape, Module.Bounds.Center, default, activation) : null;
+        _aoe = shape != null ? new(shape, Module.Center, default, activation) : null;
     }
 }

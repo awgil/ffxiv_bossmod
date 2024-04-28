@@ -38,9 +38,9 @@ class DarkCurrent(BossModule module) : Components.GenericAOEs(module)
             {
                 var offset = 13 * (startingAngle + i * rotation).ToDirection();
                 var color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE;
-                _aoes.Add(new(_shape, Module.Bounds.Center, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
-                _aoes.Add(new(_shape, Module.Bounds.Center + offset, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
-                _aoes.Add(new(_shape, Module.Bounds.Center - offset, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
+                _aoes.Add(new(_shape, Module.Center, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
+                _aoes.Add(new(_shape, Module.Center + offset, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
+                _aoes.Add(new(_shape, Module.Center - offset, default, WorldState.FutureTime(7.1f + i * 1.1f), color));
             }
         }
     }

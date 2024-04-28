@@ -36,7 +36,7 @@ class KampeosHarma(BossModule module) : Components.CastCounter(module, ActionID.
     {
         if (iconID is >= 145 and <= 152)
         {
-            _startingOffset = Module.PrimaryActor.Position - Module.Bounds.Center;
+            _startingOffset = Module.PrimaryActor.Position - Module.Center;
 
             int slot = Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
@@ -49,13 +49,13 @@ class KampeosHarma(BossModule module) : Components.CastCounter(module, ActionID.
         switch (slot >= 0 ? _playerOrder[slot] : 0)
         {
             case 1: // sq 1 - opposite corner, hide after first charge
-                return Module.Bounds.Center + (NumCasts < 1 ? -1.2f : -1.4f) * _startingOffset;
+                return Module.Center + (NumCasts < 1 ? -1.2f : -1.4f) * _startingOffset;
             case 2: // sq 2 - same corner, hide after second charge
-                return Module.Bounds.Center + (NumCasts < 2 ? +1.2f : +1.4f) * _startingOffset;
+                return Module.Center + (NumCasts < 2 ? +1.2f : +1.4f) * _startingOffset;
             case 3: // sq 3 - opposite corner, hide before first charge
-                return Module.Bounds.Center + (NumCasts < 1 ? -1.4f : -1.2f) * _startingOffset;
+                return Module.Center + (NumCasts < 1 ? -1.4f : -1.2f) * _startingOffset;
             case 4: // sq 4 - same corner, hide before second charge
-                return Module.Bounds.Center + (NumCasts < 2 ? +1.4f : +1.2f) * _startingOffset;
+                return Module.Center + (NumCasts < 2 ? +1.4f : +1.2f) * _startingOffset;
             case 5: // tri 1 - waymark 1
                 var wm1 = WorldState.Waymarks[Waymark.N1];
                 return wm1 != null ? new(wm1.Value.XZ()) : null;

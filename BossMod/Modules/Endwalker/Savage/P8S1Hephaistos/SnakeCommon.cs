@@ -40,7 +40,7 @@ abstract class PetrifactionCommon(BossModule module) : Components.GenericGaze(mo
     {
         if ((AID)spell.Action.ID == AID.Petrifaction)
         {
-            var dir = Angle.FromDirection(caster.Position - Module.Bounds.Center);
+            var dir = Angle.FromDirection(caster.Position - Module.Center);
             var priority = (int)MathF.Round((180 - dir.Deg) / 45) % 8;
             ActiveGorgons.Add((caster, spell.NPCFinishAt.AddSeconds(1.1f), priority));
         }

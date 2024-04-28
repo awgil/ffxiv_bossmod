@@ -75,7 +75,7 @@ class P4UltimatePredation(BossModule module) : BossComponent(module)
 
     private void RecalculateHints()
     {
-        _first.Center = _second.Center = Module.Bounds.Center;
+        _first.Center = _second.Center = Module.Center;
         _first.Forbidden.Clear();
         _second.Forbidden.Clear();
         _hints.Clear();
@@ -95,8 +95,8 @@ class P4UltimatePredation(BossModule module) : BossComponent(module)
         _second.ForbidInfiniteRect(titan.Position, titan.Rotation - 22.5f.Degrees(), 3);
         _second.ForbidInfiniteRect(titan.Position, titan.Rotation + 90.Degrees(), 3);
         _first.ForbidInfiniteRect(ifrit.Position, ifrit.Rotation, 9);
-        _second.ForbidInfiniteRect(Module.Bounds.Center - new WDir(Module.Bounds.Radius, 0), 90.Degrees(), 5);
-        _second.ForbidInfiniteRect(Module.Bounds.Center - new WDir(0, Module.Bounds.Radius), 0.Degrees(), 5);
+        _second.ForbidInfiniteRect(Module.Center - new WDir(Module.Bounds.Radius, 0), 90.Degrees(), 5);
+        _second.ForbidInfiniteRect(Module.Center - new WDir(0, Module.Bounds.Radius), 0.Degrees(), 5);
         _first.ForbidCircle(garuda.Position, 20);
         _second.ForbidCircle(garuda.Position, 20);
         _second.ForbidCircle(ultima.Position, 14);
@@ -107,7 +107,7 @@ class P4UltimatePredation(BossModule module) : BossComponent(module)
         _hints.Add(GetSafePositionAtAngle(a2));
     }
 
-    private WPos GetSafePositionAtAngle(Angle angle) => Module.Bounds.Center + _dodgeRadius * angle.ToDirection();
+    private WPos GetSafePositionAtAngle(Angle angle) => Module.Center + _dodgeRadius * angle.ToDirection();
 
     private IEnumerable<(Angle, Angle)> EnumeratePotentialSafespots()
     {

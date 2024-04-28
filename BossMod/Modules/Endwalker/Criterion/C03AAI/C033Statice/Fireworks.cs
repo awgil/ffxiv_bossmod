@@ -116,7 +116,7 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
             var max = Math.Min(s.RemainingExplosions, _maxShownExplosions);
             for (int i = 1; i < max; ++i)
             {
-                yield return new(_shape, Module.Bounds.Center, rot, act);
+                yield return new(_shape, Module.Center, rot, act);
                 rot += _rotation;
                 act = act.AddSeconds(1.1f);
             }
@@ -127,7 +127,7 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
         {
             if (s.RemainingExplosions > 0)
             {
-                yield return new(_shape, Module.Bounds.Center, s.NextRotation, s.NextActivation, ArenaColor.Danger);
+                yield return new(_shape, Module.Center, s.NextRotation, s.NextActivation, ArenaColor.Danger);
             }
         }
     }
@@ -200,7 +200,7 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
         // staffs are always in cardinals at radius 8
         foreach (var b in _bombs.ActiveBombs)
         {
-            var offset = b.Position - Module.Bounds.Center;
+            var offset = b.Position - Module.Center;
             if (offset.Z < -14)
                 _pattern.Set(0); // N
             else if (offset.Z < -4)
@@ -280,7 +280,7 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
         }
     }
 
-    private void AddSafeSpot(List<WPos> list, Angle angle) => list.Add(Module.Bounds.Center + 19 * angle.ToDirection());
+    private void AddSafeSpot(List<WPos> list, Angle angle) => list.Add(Module.Center + 19 * angle.ToDirection());
 }
 
 // TODO: currently this assumes that DD always go rel-west, supports rel-east
@@ -305,12 +305,12 @@ class Fireworks2Hints(BossModule module) : BossComponent(module)
         if (_fireworks?.Spreads.Count > 0)
         {
             foreach (var dir in SafeSpots(pcSlot, pc))
-                Arena.AddCircle(Module.Bounds.Center + 19 * dir.ToDirection(), 1, ArenaColor.Safe);
+                Arena.AddCircle(Module.Center + 19 * dir.ToDirection(), 1, ArenaColor.Safe);
         }
         else if (_relNorth != null)
         {
             // show rel north before assignments are done
-            Arena.AddCircle(Module.Bounds.Center + 19 * _relNorth.Value.ToDirection(), 1, ArenaColor.Enemy);
+            Arena.AddCircle(Module.Center + 19 * _relNorth.Value.ToDirection(), 1, ArenaColor.Enemy);
         }
     }
 

@@ -40,7 +40,7 @@ abstract class P4ForcedMarchDebuffs(BossModule module) : BossComponent(module)
     {
         if (Done || Debuffs[slot] == Debuff.None)
             return;
-        movementHints.Add(actor.Position, Module.Bounds.Center + SafeSpotDirection(slot), ArenaColor.Safe);
+        movementHints.Add(actor.Position, Module.Center + SafeSpotDirection(slot), ArenaColor.Safe);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -66,7 +66,7 @@ abstract class P4ForcedMarchDebuffs(BossModule module) : BossComponent(module)
                 break;
         }
 
-        Arena.AddCircle(Module.Bounds.Center + SafeSpotDirection(pcSlot), 1, ArenaColor.Safe);
+        Arena.AddCircle(Module.Center + SafeSpotDirection(pcSlot), 1, ArenaColor.Safe);
     }
 
     protected abstract WDir SafeSpotDirection(int slot);

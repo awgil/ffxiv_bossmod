@@ -121,15 +121,15 @@ class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
             return;
 
         // at this point NextCasters should contain 5 drakes, order is not yet known
-        var dirToNael = Angle.FromDirection(_nael.Position - Module.Bounds.Center);
-        var dirToTwin = Angle.FromDirection(_twin.Position - Module.Bounds.Center);
-        var dirToBaha = Angle.FromDirection(_baha.Position - Module.Bounds.Center);
+        var dirToNael = Angle.FromDirection(_nael.Position - Module.Center);
+        var dirToTwin = Angle.FromDirection(_twin.Position - Module.Center);
+        var dirToBaha = Angle.FromDirection(_baha.Position - Module.Center);
 
         // bahamut on cardinal => CCW dive order
         // bahamut on intercardinal => CW dive order
         bool bahamutIntercardinal = ((int)MathF.Round(dirToBaha.Deg / 45) & 1) != 0;
         _diveOrder = bahamutIntercardinal ? -1 : +1;
-        var orders = Casters.Select(c => _diveOrder * CCWDirection(Angle.FromDirection(c.Position - Module.Bounds.Center), dirToBaha)).ToList();
+        var orders = Casters.Select(c => _diveOrder * CCWDirection(Angle.FromDirection(c.Position - Module.Center), dirToBaha)).ToList();
         MemoryExtensions.Sort(orders.AsSpan(), Casters.AsSpan());
         Casters.Insert(0, _nael);
         Casters.Add(_baha);
@@ -139,7 +139,7 @@ class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
         var dirToSafespot = dirToBaha + 180.Degrees();
         if (dirToSafespot.AlmostEqual(dirToNael, 0.1f))
             dirToSafespot += _diveOrder * 45.Degrees();
-        _initialSafespot = Module.Bounds.Center + 20 * dirToSafespot.ToDirection();
+        _initialSafespot = Module.Center + 20 * dirToSafespot.ToDirection();
     }
 
     private float CCWDirection(Angle direction, Angle reference)

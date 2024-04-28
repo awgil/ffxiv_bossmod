@@ -85,7 +85,7 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         if (_numPlayerAngles < 3 || _bossAngle == default)
             yield break;
 
-        WPos adjust(float x, float z) => Module.Bounds.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
+        WPos adjust(float x, float z) => Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
         if (IsMonitor(slot))
         {
             yield return (adjust(10, -11), _playerOrder[slot] == 1);

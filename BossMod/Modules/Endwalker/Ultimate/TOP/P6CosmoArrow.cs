@@ -30,7 +30,7 @@ class P6CosmoArrow(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.CosmoArrowFirst)
         {
-            var offset = caster.Position - Module.Bounds.Center;
+            var offset = caster.Position - Module.Center;
             var offsetAbs = offset.Abs();
             if (offsetAbs.X < 5)
             {

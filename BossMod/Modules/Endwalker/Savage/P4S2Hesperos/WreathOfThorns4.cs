@@ -19,7 +19,7 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
             // build order for dark explosion; TODO: this is quite hacky right now, and probably should be configurable
             // current logic assumes we break N or NW tether first, and then move clockwise
             _darkOrder = [];
-            var c = Module.Bounds.Center;
+            var c = Module.Center;
             AddAOETargetToOrder(_darkOrder, p => p.Z < c.Z && p.X <= c.X);
             AddAOETargetToOrder(_darkOrder, p => p.X > c.X && p.Z <= c.Z);
             AddAOETargetToOrder(_darkOrder, p => p.Z > c.Z && p.X >= c.X);
@@ -192,8 +192,8 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
 
     private WPos RotateCW(WPos pos, Angle angle, float radius)
     {
-        var dir = Angle.FromDirection(pos - Module.Bounds.Center) - angle;
-        return Module.Bounds.Center + radius * dir.ToDirection();
+        var dir = Angle.FromDirection(pos - Module.Center) - angle;
+        return Module.Center + radius * dir.ToDirection();
     }
 
     private WPos DetermineWaterSafeSpot(Actor source)

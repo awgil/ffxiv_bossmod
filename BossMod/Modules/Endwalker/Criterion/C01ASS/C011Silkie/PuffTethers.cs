@@ -54,7 +54,7 @@ class PuffTethers(BossModule module, bool originAtBoss) : BossComponent(module)
             C011Silkie.ShapeBlue.Draw(Arena, movePos, moveAngle, _hintColor);
         }
 
-        var bossOrigin = _originAtBoss ? Module.PrimaryActor.Position : Module.Bounds.Center;
+        var bossOrigin = _originAtBoss ? Module.PrimaryActor.Position : Module.Center;
         switch (_bossColor)
         {
             case SlipperySoap.Color.Green:

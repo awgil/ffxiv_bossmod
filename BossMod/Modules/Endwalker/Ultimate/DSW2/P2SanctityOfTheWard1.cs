@@ -120,19 +120,19 @@ class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(mod
             return default;
 
         // so far I've only seen both enemies starting at (+-5, 0)
-        if (!Utils.AlmostEqual(actor.Position.Z, Module.Bounds.Center.Z, 1))
+        if (!Utils.AlmostEqual(actor.Position.Z, Module.Center.Z, 1))
             return default;
-        if (!Utils.AlmostEqual(MathF.Abs(actor.Position.X - Module.Bounds.Center.X), 5, 1))
+        if (!Utils.AlmostEqual(MathF.Abs(actor.Position.X - Module.Center.X), 5, 1))
             return default;
 
-        bool right = actor.Position.X > Module.Bounds.Center.X;
+        bool right = actor.Position.X > Module.Center.X;
         bool facingSouth = Utils.AlmostEqual(actor.Rotation.Rad, 0, 0.1f);
         bool cw = right == facingSouth;
         var res = new ChargeInfo(actor);
         var firstPointDir = actor.Rotation;
         var angleBetweenPoints = (cw ? -1 : 1) * 112.5f.Degrees();
 
-        WPos posAt(Angle dir) => Module.Bounds.Center + 21 * dir.ToDirection();
+        WPos posAt(Angle dir) => Module.Center + 21 * dir.ToDirection();
         var p0 = actor.Position;
         var p1 = posAt(firstPointDir);
         var p2 = posAt(firstPointDir + angleBetweenPoints);
@@ -174,7 +174,7 @@ class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
         if (!_inited && _sever?.Source != null && _sever.Stacks.Count == 2 && _flares != null && _flares.ChargeAngle != default)
         {
             _inited = true;
-            _severStartDir = Angle.FromDirection(_sever.Source.Position - Module.Bounds.Center);
+            _severStartDir = Angle.FromDirection(_sever.Source.Position - Module.Center);
 
             var config = Service.Config.Get<DSW2Config>();
             _groupEast = config.P2SanctityGroups.BuildGroupMask(1, Raid);
@@ -234,7 +234,7 @@ class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
             var color = ArenaColor.Safe;
             foreach (var safespot in MovementHintOffsets(slot))
             {
-                var to = Module.Bounds.Center + safespot;
+                var to = Module.Center + safespot;
                 movementHints.Add(from, to, color);
                 from = to;
                 color = ArenaColor.Danger;
@@ -256,9 +256,9 @@ class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
     {
         foreach (var safespot in MovementHintOffsets(pcSlot).Take(1))
         {
-            Arena.AddCircle(Module.Bounds.Center + safespot, 1, ArenaColor.Safe);
+            Arena.AddCircle(Module.Center + safespot, 1, ArenaColor.Safe);
             if (_groupEast.None())
-                Arena.AddCircle(Module.Bounds.Center - safespot, 1, ArenaColor.Safe); // if there are no valid assignments, draw spots for both groups
+                Arena.AddCircle(Module.Center - safespot, 1, ArenaColor.Safe); // if there are no valid assignments, draw spots for both groups
         }
     }
 
