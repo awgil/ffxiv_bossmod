@@ -20,10 +20,11 @@ public static class Intersect
     // halfWidth is along X, halfHeight is along Z
     public static float RayAABB(WDir rayOriginOffset, WDir rayDir, float halfWidth, float halfHeight)
     {
+        // see https://tavianator.com/2022/ray_box_boundary.html
         // rayOriginOffset.i + t.i * rayDir.i = +- halfSize.i => t.i = (+-halfSize.i - rayOriginOffset.i) / rayDir.i
         var invX = 1.0f / rayDir.X; // could be +- inf
         var invZ = 1.0f / rayDir.Z;
-        float tmin = 0.0f;
+        float tmin = -float.Epsilon;
         float tmax = float.MaxValue;
 
         // if rayDir.i == 0, inv.i == +- inf
@@ -48,7 +49,7 @@ public static class Intersect
         // tx1 = NaN => tx2 = +-inf => tmin = min(tmin, tmin -or- +inf) = tmin, tmax = max(tmax, tmax -or- -inf) = tmax
         // tx2 = NaN => tx1 = +-inf => tmin = min(tmin -or- +inf, tmin) = tmin, tmax = min(tmax -or- +inf, tmax) = tmax
         // so NaN's don't change 'clipped' ray segment
-        return tmin <= tmax ? tmin : float.MaxValue; // note that tmin is always >= 0 due to starting value
+        return tmin > tmax ? float.MaxValue : tmin >= 0 ? tmin : tmax >= 0 ? tmax : float.MaxValue;
     }
     public static float RayAABB(WPos rayOrigin, WDir rayDir, WPos boxCenter, float halfWidth, float halfHeight) => RayAABB(rayOrigin - boxCenter, rayDir, halfWidth, halfHeight);
 
