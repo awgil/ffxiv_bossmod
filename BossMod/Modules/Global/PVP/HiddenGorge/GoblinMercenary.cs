@@ -134,7 +134,7 @@ class GoblinMercenaryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 599, NameID = 7906)]
-public class GoblinMercenary(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 0))
+public class GoblinMercenary(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(default, default))
 {
     protected override void UpdateModule()
     {
