@@ -133,7 +133,7 @@ class QuickMarchBow1(BossModule module) : QuickMarch(module)
 {
     private readonly FlamesOfBozja1? _flames = module.FindComponent<FlamesOfBozja1>();
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_flames?.AOE?.Shape.Check(pos, _flames.AOE.Value.Origin, _flames.AOE.Value.Rotation) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (_flames?.AOE?.Shape.Check(pos, _flames.AOE.Value.Origin, _flames.AOE.Value.Rotation) ?? false);
 }
 
 class ShimmeringShot1(BossModule module) : ShimmeringShot(module, 12.8f)
@@ -156,5 +156,5 @@ class QuickMarchBow2(BossModule module) : QuickMarch(module)
 {
     private readonly ShimmeringShot2? _shimmering = module.FindComponent<ShimmeringShot2>();
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_shimmering?.ActorUnsafeAt(actor, pos) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (_shimmering?.ActorUnsafeAt(actor, pos) ?? false);
 }

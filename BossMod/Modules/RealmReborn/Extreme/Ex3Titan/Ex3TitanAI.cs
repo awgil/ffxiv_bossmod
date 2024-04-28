@@ -78,10 +78,10 @@ class Ex3TitanAI(BossModule module) : BossComponent(module)
     {
         var boss = Module.PrimaryActor;
         var res = boss.Position + 3 * (boss.Rotation + 135.Degrees()).ToDirection();
-        if (Arena.Bounds.Contains(res))
+        if (Arena.InBounds(res))
             return res;
         res = boss.Position + 3 * (boss.Rotation - 135.Degrees()).ToDirection();
-        if (Arena.Bounds.Contains(res))
+        if (Arena.InBounds(res))
             return res;
         return null;
     }

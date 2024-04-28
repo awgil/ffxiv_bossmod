@@ -41,7 +41,7 @@ class Pinax(BossModule module) : BossComponent(module)
             {
                 hints.Add("GTFO from water square!");
             }
-            if (!Module.Bounds.Contains(Components.Knockback.AwayFromSource(actor.Position, Module.Center, _knockbackRadius)))
+            if (!Module.InBounds(Components.Knockback.AwayFromSource(actor.Position, Module.Center, _knockbackRadius)))
             {
                 hints.Add("About to be knocked into wall!");
             }

@@ -50,7 +50,7 @@ class ArcaneArray(BossModule module) : ArcaneArrayPlot(module)
                 Advance(ref pos, ref activation, offset);
             }
             pos -= offset;
-            pos += Module.Bounds.Contains(pos + offset.OrthoL()) ? offset.OrthoL() : offset.OrthoR();
+            pos += Module.InBounds(pos + offset.OrthoL()) ? offset.OrthoL() : offset.OrthoR();
             for (int i = 0; i < 5; ++i)
             {
                 Advance(ref pos, ref activation, -offset);
@@ -88,7 +88,7 @@ class ArcanePlot(BossModule module) : ArcaneArrayPlot(module)
         {
             Advance(ref pos, ref activation, offset);
         }
-        while (Module.Bounds.Contains(pos));
+        while (Module.InBounds(pos));
 
         AOEs.SortBy(aoe => aoe.Activation);
     }

@@ -36,7 +36,7 @@ class Knockback : BossComponent
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !Module.Bounds.Contains(_knockbackPos))
+        if (Module.PrimaryActor.CastInfo != null && actor == _knockbackTarget && !Module.InBounds(_knockbackPos))
         {
             hints.Add("About to be knocked into wall!");
         }

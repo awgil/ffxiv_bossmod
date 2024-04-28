@@ -8,7 +8,7 @@ class Dissociation(BossModule module) : BossComponent(module)
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var head = Module.Enemies(OID.DissociatedHead).FirstOrDefault();
-        if (_shape == null || head == null || Module.Bounds.Contains(head.Position))
+        if (_shape == null || head == null || Module.InBounds(head.Position))
             return; // inactive or head not teleported yet
 
         if (_shape.Check(actor.Position, head))
@@ -20,7 +20,7 @@ class Dissociation(BossModule module) : BossComponent(module)
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         var head = Module.Enemies(OID.DissociatedHead).FirstOrDefault();
-        if (_shape == null || head == null || Module.Bounds.Contains(head.Position))
+        if (_shape == null || head == null || Module.InBounds(head.Position))
             return; // inactive or head not teleported yet
 
         _shape.Draw(Arena, head);

@@ -72,7 +72,7 @@ class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(
             hints.Add("Cancel knockback immunity!");
 
         var actorAdjPos = _playerAdjustedPositions[slot];
-        if (!Module.Bounds.Contains(actorAdjPos))
+        if (!Module.InBounds(actorAdjPos))
             hints.Add("About to be knocked into wall!");
 
         if (Raid.WithSlot().Exclude(actor).WhereSlot(s => _playerAdjustedPositions[s].InCircle(actorAdjPos, _aoeRadius)).Any())

@@ -19,7 +19,7 @@ public class GenericForcedMarch(BossModule module, float activationLimit = float
     public float ActivationLimit = activationLimit; // do not show pending moves that activate later than this limit
 
     // called to determine whether we need to show hint
-    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos);
+    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

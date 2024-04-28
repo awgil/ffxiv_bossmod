@@ -97,7 +97,7 @@ class PortalsWave(BossModule module) : BossComponent(module)
         }
 
         var dest = Portals.DestinationForEAnim(actor, state);
-        if (dest == null || !Module.Bounds.Contains(dest.Value))
+        if (dest == null || !Module.InBounds(dest.Value))
             return;
 
         var n = actor.Position;

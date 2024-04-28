@@ -67,7 +67,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
 
     private Vector2 IndicatorScreenPos(WPos eye)
     {
-        if (Module.Bounds.Contains(eye))
+        if (Module.InBounds(eye))
         {
             return Arena.WorldPositionToScreenPosition(eye);
         }

@@ -60,7 +60,7 @@ class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module,
     {
         if (Module.FindComponent<VacuumBlade>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
             return true;
-        if (!Module.Bounds.Contains(pos))
+        if (!Module.InBounds(pos))
             return true;
         else
             return false;

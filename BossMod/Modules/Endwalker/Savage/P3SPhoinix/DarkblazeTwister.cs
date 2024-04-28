@@ -14,7 +14,7 @@ class DarkblazeTwister(BossModule module) : BossComponent(module)
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var adjPos = Components.Knockback.AwayFromSource(actor.Position, DarkTwister(), _knockbackRange);
-        if (actor.Position != adjPos && !Module.Bounds.Contains(adjPos))
+        if (actor.Position != adjPos && !Module.InBounds(adjPos))
         {
             hints.Add("About to be knocked back into wall!");
         }

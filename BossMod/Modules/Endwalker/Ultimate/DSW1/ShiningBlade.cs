@@ -11,7 +11,7 @@ class ShiningBladeKnockback(BossModule module) : Components.KnockbackFromCastTar
     {
         foreach (var e in CalculateMovements(slot, actor))
         {
-            if (!Module.Bounds.Contains(e.to))
+            if (!Module.InBounds(e.to))
                 hints.Add("About to be knocked into wall!");
             if (_tears.InRadius(e.to, _tearRadius).Any())
                 hints.Add("About to be knocked into tear!");

@@ -67,7 +67,7 @@ class Landslip(BossModule module) : Components.Knockback(module)
     {
         if (Module.FindComponent<Towerfall>() is var towerfall && towerfall != null && towerfall.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
             return true;
-        if (!Module.Bounds.Contains(pos))
+        if (!Module.InBounds(pos))
             return true;
         else
             return false;

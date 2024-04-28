@@ -51,7 +51,7 @@ class QuickMarchStaff1(BossModule module) : QuickMarch(module)
 {
     private readonly FreedomOfBozja1? _freedom = module.FindComponent<FreedomOfBozja1>();
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.Bounds.Contains(pos) || (_freedom?.ActorUnsafeAt(actor, pos) ?? false);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (_freedom?.ActorUnsafeAt(actor, pos) ?? false);
 }
 
 class FreedomOfBozja2(BossModule module) : FreedomOfBozja(module, true);
