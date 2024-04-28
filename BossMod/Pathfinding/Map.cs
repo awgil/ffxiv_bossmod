@@ -21,7 +21,7 @@ public class Map
     public int Height { get; private init; } // always even
     public Pixel[] Pixels;
 
-    public WPos Center { get; private init; } // position of map center in world units
+    public WPos Center { get; set; } // position of map center in world units
     public Angle Rotation { get; private init; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
     private WDir LocalZDivRes { get; init; }
 

@@ -9,6 +9,7 @@ public sealed class AutoHints : IDisposable
     private readonly WorldState _ws;
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
+    private ArenaBoundsCircle? _activeFateBounds;
 
     public AutoHints(WorldState ws)
     {
@@ -16,7 +17,8 @@ public sealed class AutoHints : IDisposable
         _subscriptions = new
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
-            ws.Actors.CastFinished.Subscribe(OnCastFinished)
+            ws.Actors.CastFinished.Subscribe(OnCastFinished),
+            ws.Client.ActiveFateChanged.Subscribe(_ => _activeFateBounds = null)
         );
     }
 
@@ -26,8 +28,8 @@ public sealed class AutoHints : IDisposable
     {
         var playerInFate = _ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
         hints.Bounds = playerInFate
-            ? new ArenaBoundsCircle(new(_ws.Client.ActiveFate.Center.XZ()), _ws.Client.ActiveFate.Radius)
-            : hints.Bounds = new ArenaBoundsSquare(player.Position, 30);
+            ? (_activeFateBounds ??= new ArenaBoundsCircle(new(_ws.Client.ActiveFate.Center.XZ()), _ws.Client.ActiveFate.Radius))
+            : new ArenaBoundsSquare(player.Position, 30);
 
         foreach (var aoe in _activeAOEs.Values)
         {
