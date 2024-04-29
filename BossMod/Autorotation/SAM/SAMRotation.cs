@@ -460,10 +460,8 @@ public static class Rotation
     private static bool ShouldUseBurst(State state, Strategy strategy, float deadline)
     {
         return state.RaidBuffsLeft > deadline
-            // fight will end before next window, use everything
-            || strategy.RaidBuffsIn > strategy.FightEndIn
-            // general combat, no module active. yolo
-            || strategy.RaidBuffsIn > 9000;
+            || strategy.RaidBuffsIn > strategy.FightEndIn // fight will end before next window, use everything
+            || strategy.RaidBuffsIn > 9000; // general combat, no module active. yolo
     }
 
     private static bool ShouldRefreshHiganbana(State state, Strategy strategy, uint gcdsInAdvance = 0)
