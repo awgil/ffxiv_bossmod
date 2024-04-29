@@ -497,14 +497,10 @@ public static class Rotation
         if (strategy.BrotherhoodUse == Strategy.OffensiveAbilityUse.Force)
             return true;
 
-        return !strategy.UseAOE
-            && state.CD(CDGroup.RiddleOfFire) > 0
-            && (
-                // opener timing mostly important as long as rof is used first, we just want to align with party buffs -
-                // the default opener is bhood after first bootshine
-                state.LeadenFistLeft == 0
-                // later uses can be asap
-                || strategy.CombatTimer > 30);
+        // opener timing mostly important as long as rof is used first, we just want to align with party buffs -
+        // the default opener is bhood after first bootshine
+        // later uses can be asap
+        return !strategy.UseAOE && state.CD(CDGroup.RiddleOfFire) > 0 && (state.LeadenFistLeft == 0 || strategy.CombatTimer > 30);
     }
 
     private static bool ShouldUsePB(State state, Strategy strategy, float deadline)

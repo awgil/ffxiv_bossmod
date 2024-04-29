@@ -41,8 +41,7 @@ class C020RaikoStates : StateMachineBuilder
             .ActivateOnEnter<SBarrelingSmash>(savage)
             .ActivateOnEnter<SHowl>(savage)
             .ActivateOnEnter<SMasterOfLevin>(savage)
-            // for yuki
-            .ActivateOnEnter<NRightSwipe>(!savage)
+            .ActivateOnEnter<NRightSwipe>(!savage) // for yuki
             .ActivateOnEnter<NLeftSwipe>(!savage)
             .ActivateOnEnter<SRightSwipe>(savage)
             .ActivateOnEnter<SLeftSwipe>(savage);

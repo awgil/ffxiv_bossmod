@@ -49,8 +49,8 @@ class D162DemonWallStates : StateMachineBuilder
 {
     public D162DemonWallStates(BossModule module) : base(module)
     {
+        // note: no component for Murder Hole - there's not enough space to spread properly, and this hits for small damage
         TrivialPhase()
-            //.ActivateOnEnter<MurderHole>() - note: no component here, there's not enough space to spread properly, and this hits for small damage
             .ActivateOnEnter<LiquefyCenter>()
             .ActivateOnEnter<LiquefySides>()
             .ActivateOnEnter<Repel>()

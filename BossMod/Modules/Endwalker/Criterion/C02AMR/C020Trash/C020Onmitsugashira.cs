@@ -29,8 +29,7 @@ class C020OnmitsugashiraStates : StateMachineBuilder
             .ActivateOnEnter<SHuton>(savage)
             .ActivateOnEnter<SJujiShuriken>(savage)
             .ActivateOnEnter<SJujiShurikenFast>(savage)
-            // for yamabiko
-            .ActivateOnEnter<NMountainBreeze>(!savage)
+            .ActivateOnEnter<NMountainBreeze>(!savage) // for yamabiko
             .ActivateOnEnter<SMountainBreeze>(savage);
     }
 }

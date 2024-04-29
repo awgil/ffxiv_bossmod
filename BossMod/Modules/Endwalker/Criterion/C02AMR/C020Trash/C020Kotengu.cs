@@ -54,8 +54,7 @@ class C020KotenguStates : StateMachineBuilder
             .ActivateOnEnter<NGazeOfTheTengu>(!savage)
             .ActivateOnEnter<SWrathOfTheTengu>(savage)
             .ActivateOnEnter<SGazeOfTheTengu>(savage)
-            // for yamabiko
-            .ActivateOnEnter<NMountainBreeze>(!savage)
+            .ActivateOnEnter<NMountainBreeze>(!savage) // for yamabiko
             .ActivateOnEnter<SMountainBreeze>(savage);
     }
 }

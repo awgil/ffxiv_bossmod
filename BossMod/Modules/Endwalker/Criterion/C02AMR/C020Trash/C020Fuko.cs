@@ -32,8 +32,7 @@ class C020FukoStates : StateMachineBuilder
             .ActivateOnEnter<SScytheTail>(savage)
             .ActivateOnEnter<STwister>(savage)
             .ActivateOnEnter<SCrosswind>(savage)
-            // for yuki
-            .ActivateOnEnter<NRightSwipe>(!savage)
+            .ActivateOnEnter<NRightSwipe>(!savage) // for yuki
             .ActivateOnEnter<NLeftSwipe>(!savage)
             .ActivateOnEnter<SRightSwipe>(savage)
             .ActivateOnEnter<SLeftSwipe>(savage);
