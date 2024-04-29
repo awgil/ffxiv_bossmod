@@ -46,7 +46,7 @@ public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, 
         var center = new WPos(-945, 948.5f);
         var hw = NormalBounds.Radius * 0.86602540378443864676372317075294f; // sqrt(3) / 2;
         var hh = NormalBounds.Radius * 0.5f;
-        ReadOnlySpan<WPos> verts = [
+        List<WPos> verts = [
             center + new WDir(-hw, hh),
             center + new WDir(+hw, hh),
             center + new WDir(0, -NormalBounds.Radius)

@@ -13,8 +13,6 @@ public record class PolygonWithHoles(List<WPos> Vertices, List<int> HoleStarts)
 {
     // constructor for simple polygon
     public PolygonWithHoles(List<WPos> simpleVertices) : this(simpleVertices, []) { }
-    public PolygonWithHoles(ReadOnlySpan<WPos> simpleVertices) : this([.. simpleVertices], []) { }
-    public PolygonWithHoles(IEnumerable<WPos> simpleVertices) : this([.. simpleVertices], []) { }
 
     public ReadOnlySpan<WPos> AllVertices => Vertices.AsSpan();
     public ReadOnlySpan<WPos> Exterior => AllVertices[..ExteriorEnd];
@@ -176,7 +174,7 @@ public class PolygonClipper
         for (var i = 0; i < parent.Count; ++i)
         {
             var exterior = parent[i];
-            PolygonWithHoles poly = new(exterior.Polygon?.Select(ConvertPoint) ?? throw new InvalidOperationException("Unexpected null polygon list"));
+            PolygonWithHoles poly = new([.. exterior.Polygon?.Select(ConvertPoint) ?? throw new InvalidOperationException("Unexpected null polygon list")]);
             result.Parts.Add(poly);
             for (var j = 0; j < exterior.Count; ++j)
             {

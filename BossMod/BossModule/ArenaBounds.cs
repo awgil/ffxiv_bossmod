@@ -13,7 +13,6 @@ public abstract record class ArenaBounds(WPos Center, float Radius, float MapRes
     public List<Triangle> ShapeTriangulation { get; private set; } = [];
     private readonly PolygonClipper.Operand _clipOperand = new();
 
-    public List<Triangle> ClipAndTriangulate(PolygonClipper.Operand poly) => Clipper.Intersect(poly, _clipOperand).Triangulate();
     public List<Triangle> ClipAndTriangulate(IEnumerable<WPos> poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
     public List<Triangle> ClipAndTriangulate(SimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
 
