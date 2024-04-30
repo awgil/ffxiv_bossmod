@@ -31,7 +31,7 @@ public abstract record class ArenaBounds(WPos Center, float Radius, float MapRes
     }
 
     protected abstract PolygonClipper.Operand BuildClipPoly();
-    public abstract Pathfinding.Map PathfindMap(); // if implementation caches a map, it should return a clone
+    public abstract Pathfinding.Map PathfindMap(WPos center); // if implementation caches a map, it should return a clone
     public abstract bool Contains(WDir offset);
     public abstract float IntersectRay(WDir originOffset, WDir dir);
     public abstract WDir ClampToBounds(WDir offset);
@@ -103,7 +103,7 @@ public record class ArenaBoundsCircle(WPos Center, float Radius, float MapResolu
     private Pathfinding.Map? _cachedMap;
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Circle(Radius, MaxApproxError));
-    public override Pathfinding.Map PathfindMap() => (_cachedMap ??= BuildMap()).Clone();
+    public override Pathfinding.Map PathfindMap(WPos center) => (_cachedMap ??= BuildMap()).Clone(center);
     public override bool Contains(WDir offset) => offset.LengthSq() <= Radius * Radius;
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayCircle(originOffset, dir, Radius);
 
@@ -116,8 +116,8 @@ public record class ArenaBoundsCircle(WPos Center, float Radius, float MapResolu
 
     private Pathfinding.Map BuildMap()
     {
-        var map = new Pathfinding.Map(MapResolution, Center, Radius, Radius);
-        map.BlockPixelsInside(ShapeDistance.InvertedCircle(Center, Radius), 0, 0);
+        var map = new Pathfinding.Map(MapResolution, default, Radius, Radius);
+        map.BlockPixelsInside(ShapeDistance.InvertedCircle(default, Radius), 0, 0);
         return map;
     }
 }
@@ -127,7 +127,7 @@ public record class ArenaBoundsSquare(WPos Center, float Radius, float MapResolu
     public float HalfWidth => Radius;
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(new(Radius, 0), new(0, Radius)));
-    public override Pathfinding.Map PathfindMap() => new(MapResolution, Center, Radius, Radius);
+    public override Pathfinding.Map PathfindMap(WPos center) => new(MapResolution, center, Radius, Radius);
     public override bool Contains(WDir offset) => offset.AlmostZero(Radius);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayAABB(originOffset, dir, Radius, Radius);
 
@@ -147,7 +147,7 @@ public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeig
     private WDir _orientation = Rotation.ToDirection();
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(_orientation, HalfWidth, HalfHeight));
-    public override Pathfinding.Map PathfindMap() => new(MapResolution, Center, HalfWidth, HalfHeight, Rotation);
+    public override Pathfinding.Map PathfindMap(WPos center) => new(MapResolution, center, HalfWidth, HalfHeight, Rotation);
     public override bool Contains(WDir offset) => offset.InRect(_orientation, HalfHeight, HalfHeight, HalfWidth);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayRect(originOffset, dir, _orientation, HalfWidth, HalfHeight);
 
@@ -169,7 +169,7 @@ public record class ArenaBoundsCustom(WPos Center, float Radius, RelSimplifiedCo
     private Pathfinding.Map? _cachedMap;
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(Poly);
-    public override Pathfinding.Map PathfindMap() => (_cachedMap ??= BuildMap()).Clone();
+    public override Pathfinding.Map PathfindMap(WPos center) => (_cachedMap ??= BuildMap()).Clone(center);
     public override bool Contains(WDir offset) => Poly.Contains(offset);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayPolygon(originOffset, dir, Poly);
     public override WDir ClampToBounds(WDir offset)
@@ -182,7 +182,7 @@ public record class ArenaBoundsCustom(WPos Center, float Radius, RelSimplifiedCo
 
     private Pathfinding.Map BuildMap()
     {
-        var map = new Pathfinding.Map(MapResolution, Center, Radius, Radius);
+        var map = new Pathfinding.Map(MapResolution, default, Radius, Radius);
         var tri = ShapeDistance.TriList(default, Poly.Triangulate());
         map.BlockPixelsInside(p => -tri(p), 0, 0);
         return map;
