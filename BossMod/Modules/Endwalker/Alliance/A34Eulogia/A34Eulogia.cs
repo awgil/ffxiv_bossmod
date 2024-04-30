@@ -19,4 +19,4 @@ class Sunbeam(BossModule module) : Components.BaitAwayCast(module, ActionID.Make
 class DestructiveBoltStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.DestructiveBoltStack), 6);
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301, SortOrder = 7)]
-public class A34Eulogia(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(945, -945), 35));
+public class A34Eulogia(WorldState ws, Actor primary) : BossModule(ws, primary, new(945, -945), new ArenaBoundsCircle(35));

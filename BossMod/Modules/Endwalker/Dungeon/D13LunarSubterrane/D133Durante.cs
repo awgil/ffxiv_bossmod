@@ -42,7 +42,7 @@ class Voidzone(BossModule module) : BossComponent(module)
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x0A)
-            Module.Arena.Bounds = new ArenaBoundsCircle(new(0, -422), 20);
+            Module.Arena.Bounds = new ArenaBoundsCircle(20);
     }
 }
 
@@ -154,4 +154,4 @@ class D133DuranteStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
-class D133Durante(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, -422), 23));
+class D133Durante(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -422), new ArenaBoundsCircle(23));

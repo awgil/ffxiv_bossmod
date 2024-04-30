@@ -26,10 +26,16 @@ public sealed class AutoHints : IDisposable
 
     public void CalculateAIHints(AIHints hints, Actor player)
     {
-        var playerInFate = _ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
-        hints.Bounds = playerInFate
-            ? (_activeFateBounds ??= new ArenaBoundsCircle(new(_ws.Client.ActiveFate.Center.XZ()), _ws.Client.ActiveFate.Radius))
-            : new ArenaBoundsSquare(player.Position, 30);
+        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
+        {
+            hints.Center = new(_ws.Client.ActiveFate.Center.XZ());
+            hints.Bounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));
+        }
+        else
+        {
+            hints.Center = player.Position;
+            // keep default bounds
+        }
 
         foreach (var aoe in _activeAOEs.Values)
         {

@@ -8,7 +8,7 @@ class ThunderVortex(BossModule module, AID aid) : Components.SelfTargetedAOEs(mo
 class NThunderVortex(BossModule module) : ThunderVortex(module, AID.NThunderVortex);
 class SThunderVortex(BossModule module) : ThunderVortex(module, AID.SThunderVortex);
 
-public abstract class C021Shishio(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(0, -100), 20));
+public abstract class C021Shishio(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -100), new ArenaBoundsSquare(20));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12428, SortOrder = 4)]
 public class C021NShishio(WorldState ws, Actor primary) : C021Shishio(ws, primary);

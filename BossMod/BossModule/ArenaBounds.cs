@@ -3,7 +3,7 @@
 // radius is the largest horizontal/vertical dimension: radius for circle, max of width/height for rect
 // note: this class to represent *relative* arena bounds (relative to arena center) - the reason being that in some cases effective center moves every frame, and bounds caches a lot (clip poly & base map for pathfinding)
 // note: if arena bounds are changed, new instance is recreated; max approx error can change without recreating the instance
-public abstract record class ArenaBounds(WPos Center, float Radius, float MapResolution)
+public abstract record class ArenaBounds(float Radius, float MapResolution)
 {
     // fields below are used for clipping & drawing borders
     public readonly PolygonClipper Clipper = new();
@@ -98,7 +98,7 @@ public abstract record class ArenaBounds(WPos Center, float Radius, float MapRes
     }
 }
 
-public record class ArenaBoundsCircle(WPos Center, float Radius, float MapResolution = 0.5f) : ArenaBounds(Center, Radius, MapResolution)
+public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) : ArenaBounds(Radius, MapResolution)
 {
     private Pathfinding.Map? _cachedMap;
 
@@ -122,7 +122,7 @@ public record class ArenaBoundsCircle(WPos Center, float Radius, float MapResolu
     }
 }
 
-public record class ArenaBoundsSquare(WPos Center, float Radius, float MapResolution = 0.5f) : ArenaBounds(Center, Radius, MapResolution)
+public record class ArenaBoundsSquare(float Radius, float MapResolution = 0.5f) : ArenaBounds(Radius, MapResolution)
 {
     public float HalfWidth => Radius;
 
@@ -142,7 +142,7 @@ public record class ArenaBoundsSquare(WPos Center, float Radius, float MapResolu
 }
 
 // if rotation is 0, half-width is along X and half-height is along Z
-public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeight, Angle Rotation = default, float MapResolution = 0.5f) : ArenaBounds(Center, MathF.Max(HalfWidth, HalfHeight), MapResolution)
+public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rotation = default, float MapResolution = 0.5f) : ArenaBounds(MathF.Max(HalfWidth, HalfHeight), MapResolution)
 {
     private WDir _orientation = Rotation.ToDirection();
 
@@ -164,7 +164,7 @@ public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeig
 }
 
 // custom complex polygon bounds
-public record class ArenaBoundsCustom(WPos Center, float Radius, RelSimplifiedComplexPolygon Poly, float MapResolution = 0.5f) : ArenaBounds(Center, Radius, MapResolution)
+public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon Poly, float MapResolution = 0.5f) : ArenaBounds(Radius, MapResolution)
 {
     private Pathfinding.Map? _cachedMap;
 

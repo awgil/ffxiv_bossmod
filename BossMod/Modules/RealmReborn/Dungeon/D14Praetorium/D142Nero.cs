@@ -52,7 +52,7 @@ class D142NeroStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2135)]
-public class D142Nero(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-164, 0), 20))
+public class D142Nero(WorldState ws, Actor primary) : BossModule(ws, primary, new(-164, 0), new ArenaBoundsCircle(20))
 {
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

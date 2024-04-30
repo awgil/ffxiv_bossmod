@@ -39,4 +39,4 @@ class D141ColossusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2134)]
-public class D141Colossus(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(192, 0), 15));
+public class D141Colossus(WorldState ws, Actor primary) : BossModule(ws, primary, new(192, 0), new ArenaBoundsCircle(15));

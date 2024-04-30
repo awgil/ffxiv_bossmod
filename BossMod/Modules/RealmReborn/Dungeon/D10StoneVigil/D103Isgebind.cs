@@ -50,4 +50,4 @@ class D103IsgebindStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1680)]
-public class D103Isgebind(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(0, -248), 20));
+public class D103Isgebind(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -248), new ArenaBoundsSquare(20));

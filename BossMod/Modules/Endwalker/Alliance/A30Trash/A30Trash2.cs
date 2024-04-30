@@ -37,7 +37,7 @@ public class A30Trash2Pack1States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", PrimaryActorOID = (uint)OID.AngelosPack1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481, SortOrder = 5)]
-public class A30Trash2Pack1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(800, 770), 15, 25))
+public class A30Trash2Pack1(WorldState ws, Actor primary) : BossModule(ws, primary, new(800, 770), new ArenaBoundsRect(15, 25))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
@@ -60,7 +60,7 @@ public class A30Trash2Pack2States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", PrimaryActorOID = (uint)OID.AngelosPack2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481, SortOrder = 6)]
-public class A30Trash2Pack2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(800, 910), 20))
+public class A30Trash2Pack2(WorldState ws, Actor primary) : BossModule(ws, primary, new(800, 910), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

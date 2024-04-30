@@ -168,7 +168,7 @@ public class CE41WithDiremiteAndMain : BossModule
     private readonly IReadOnlyList<Actor> _dimCrystals;
     private readonly IReadOnlyList<Actor> _corruptedCrystals;
 
-    public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-220, 530), 30))
+    public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new(-220, 530), new ArenaBoundsCircle(30))
     {
         _dimCrystals = Enemies(OID.DimCrystal);
         _corruptedCrystals = Enemies(OID.CorruptedCrystal);

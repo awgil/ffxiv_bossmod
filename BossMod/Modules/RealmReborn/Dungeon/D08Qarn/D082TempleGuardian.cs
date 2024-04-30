@@ -32,7 +32,7 @@ class D082TempleGuardianStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1569)]
-public class D082TempleGuardian(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(50, -10), 15))
+public class D082TempleGuardian(WorldState ws, Actor primary) : BossModule(ws, primary, new(50, -10), new ArenaBoundsCircle(15))
 {
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

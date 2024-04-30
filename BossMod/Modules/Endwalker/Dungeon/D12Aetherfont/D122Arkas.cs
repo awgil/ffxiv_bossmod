@@ -44,9 +44,9 @@ class Voidzone(BossModule module) : BossComponent(module)
         if (index == 0x00)
         {
             if (state == 0x00020001)
-                Module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 10);
+                Module.Arena.Bounds = new ArenaBoundsCircle(10);
             if (state == 0x00080004)
-                Module.Arena.Bounds = new ArenaBoundsCircle(new(425, -440), 14.5f);
+                Module.Arena.Bounds = new ArenaBoundsCircle(14.5f);
         }
     }
 }
@@ -147,4 +147,4 @@ class D122ArkasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12337)]
-public class D122Arkas(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(425, -440), 14.5f));
+public class D122Arkas(WorldState ws, Actor primary) : BossModule(ws, primary, new(425, -440), new ArenaBoundsCircle(14.5f));

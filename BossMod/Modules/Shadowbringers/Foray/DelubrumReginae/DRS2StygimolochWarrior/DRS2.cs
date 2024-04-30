@@ -5,4 +5,4 @@ class CrazedRampage(BossModule module) : Components.KnockbackFromCastTarget(modu
 class Coerce(BossModule module) : Components.StatusDrivenForcedMarch(module, 4, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9754)]
-public class DRS2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-160, 78), 17.5f));
+public class DRS2(WorldState ws, Actor primary) : BossModule(ws, primary, new(-160, 78), new ArenaBoundsSquare(17.5f));

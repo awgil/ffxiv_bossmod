@@ -144,7 +144,7 @@ class IseultalonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68695, NameID = 7895)]
-public class Iseultalon(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-289, -30), 25)) // note the arena is actually a 6 sided polygon
+public class Iseultalon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-289, -30), new ArenaBoundsCircle(25)) // note the arena is actually a 6 sided polygon
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

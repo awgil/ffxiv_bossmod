@@ -16,7 +16,7 @@ public class Ex3Titan : BossModule
     public IReadOnlyList<Actor> Gaols;
     public IReadOnlyList<Actor> Bombs;
 
-    public Ex3Titan(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 25))
+    public Ex3Titan(WorldState ws, Actor primary) : base(ws, primary, new(0, 0), new ArenaBoundsCircle(25))
     {
         _heart = Enemies(OID.TitansHeart);
         Gaolers = Enemies(OID.GraniteGaoler);

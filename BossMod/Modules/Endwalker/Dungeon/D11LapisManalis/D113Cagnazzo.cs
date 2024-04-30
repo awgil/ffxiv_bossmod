@@ -187,7 +187,7 @@ class D113CagnazzoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11995)]
-public class D113Cagnazzo(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-250, 130), 20))
+public class D113Cagnazzo(WorldState ws, Actor primary) : BossModule(ws, primary, new(-250, 130), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

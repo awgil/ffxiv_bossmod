@@ -89,7 +89,7 @@ class P12S2PallasAthenaStates : StateMachineBuilder
         Cast(id, AID.Gaiaochos, delay, 7, "Raidwide + small arena 1 start")
             .ActivateOnEnter<Gaiaochos>()
             .DeactivateOnExit<Gaiaochos>()
-            .OnExit(() => Module.Arena.Bounds = P12S2PallasAthena.SmallBounds)
+            .OnExit(() => (Module.Arena.Center, Module.Arena.Bounds) = (new(100, 90), P12S2PallasAthena.SmallBounds))
             .SetHint(StateMachine.StateHint.Raidwide);
         Cast(id + 0x10, AID.SummonDarkness, 8.2f, 3);
         ComponentCondition<MissingLink>(id + 0x20, 7.1f, comp => comp.TethersAssigned, "Tethers")
@@ -118,7 +118,7 @@ class P12S2PallasAthenaStates : StateMachineBuilder
         ComponentCondition<GaiaochosEnd>(id + 0x210, 2.2f, comp => comp.Finished, "Small arena 1 resolve")
             .ActivateOnEnter<GaiaochosEnd>()
             .DeactivateOnExit<GaiaochosEnd>()
-            .OnExit(() => Module.Arena.Bounds = P12S2PallasAthena.DefaultBounds);
+            .OnExit(() => (Module.Arena.Center, Module.Arena.Bounds) = (new(100, 95), P12S2PallasAthena.DefaultBounds));
     }
 
     private void Gaiaochos2(uint id, float delay)
@@ -126,7 +126,7 @@ class P12S2PallasAthenaStates : StateMachineBuilder
         Cast(id, AID.Gaiaochos, delay, 7, "Raidwide + small arena 2 start")
             .ActivateOnEnter<Gaiaochos>()
             .DeactivateOnExit<Gaiaochos>()
-            .OnExit(() => Module.Arena.Bounds = P12S2PallasAthena.SmallBounds)
+            .OnExit(() => (Module.Arena.Center, Module.Arena.Bounds) = (new(100, 90), P12S2PallasAthena.SmallBounds))
             .SetHint(StateMachine.StateHint.Raidwide);
         Cast(id + 0x10, AID.SummonDarkness, 8.2f, 3);
         Cast(id + 0x20, AID.DemiParhelion, 3.1f, 3)

@@ -9,4 +9,4 @@ public class Phlegethon(BossModule module) : Components.LocationTargetedAOEs(mod
 public class Ex1ZodiarkConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 803, NameID = 10456)]
-public class Ex1Zodiark(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(100, 100), 20));
+public class Ex1Zodiark(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

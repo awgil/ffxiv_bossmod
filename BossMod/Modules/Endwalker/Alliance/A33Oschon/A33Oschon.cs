@@ -32,7 +32,7 @@ class DownhillSmall(BossModule module) : Components.LocationTargetedAOEs(module,
 class DownhillBig(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DownhillBig), 8);
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", PrimaryActorOID = (uint)OID.OschonP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300, SortOrder = 4)]
-public class A33Oschon(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(0, 750), 25))
+public class A33Oschon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 750), new ArenaBoundsSquare(25))
 {
     private Actor? _oschonP1;
     private Actor? _oschonP2;

@@ -78,12 +78,12 @@ public abstract class BossModule : IDisposable
 
     public void ClearComponents(Predicate<BossComponent> condition) => _components.RemoveAll(condition);
 
-    protected BossModule(WorldState ws, Actor primary, ArenaBounds bounds)
+    protected BossModule(WorldState ws, Actor primary, WPos center, ArenaBounds bounds)
     {
         WorldState = ws;
         PrimaryActor = primary;
         WindowConfig = Service.Config.Get<BossModuleConfig>();
-        Arena = new(WindowConfig, bounds);
+        Arena = new(WindowConfig, center, bounds);
         Info = ModuleRegistry.FindByOID(primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
@@ -241,6 +241,7 @@ public abstract class BossModule : IDisposable
     // TODO: should not be virtual
     public virtual void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        hints.Center = Center;
         hints.Bounds = Bounds;
         foreach (var comp in _components)
             comp.AddAIHints(slot, actor, assignment, hints);

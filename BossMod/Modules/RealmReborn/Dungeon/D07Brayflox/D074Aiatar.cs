@@ -34,4 +34,4 @@ class D074AiatarStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1279)]
-public class D074Aiatar(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-25, -235), 20));
+public class D074Aiatar(WorldState ws, Actor primary) : BossModule(ws, primary, new(-25, -235), new ArenaBoundsCircle(20));

@@ -16,7 +16,7 @@ public class DRS7 : BossModule
     private readonly IReadOnlyList<Actor> _ballsEarth;
     private readonly IReadOnlyList<Actor> _ballsFire;
 
-    public DRS7(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-416, -184), 35))
+    public DRS7(WorldState ws, Actor primary) : base(ws, primary, new(-416, -184), new ArenaBoundsCircle(35))
     {
         _monks = Enemies(OID.StygimolochMonk);
         _ballsEarth = Enemies(OID.BallOfEarth);

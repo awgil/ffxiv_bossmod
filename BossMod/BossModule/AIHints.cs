@@ -26,8 +26,8 @@ public class AIHints
 
     public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
 
+    public WPos Center;
     public ArenaBounds Bounds = DefaultBounds;
-    public WPos Center => Bounds.Center;
 
     // list of potential targets
     public List<Enemy> PotentialTargets = [];
@@ -61,6 +61,7 @@ public class AIHints
     // clear all stored data
     public void Clear()
     {
+        Center = default;
         Bounds = DefaultBounds;
         PotentialTargets.Clear();
         ForcedTarget = null;

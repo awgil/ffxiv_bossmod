@@ -5,9 +5,15 @@ class Tetraktys(BossModule module) : BossComponent(module)
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00080004 && index == 0x04) // 02, 03, 04 always activate at the same time
+        {
+            Module.Arena.Center = new(-945, 945);
             Module.Arena.Bounds = A31Thaliak.NormalBounds;
+        }
         if (state == 0x00200010 && index == 0x04) // 02, 03, 04 always deactivate at the same time
+        {
+            Module.Arena.Center = new(-945, 948.5f);
             Module.Arena.Bounds = A31Thaliak.TriBounds;
+        }
     }
 }
 

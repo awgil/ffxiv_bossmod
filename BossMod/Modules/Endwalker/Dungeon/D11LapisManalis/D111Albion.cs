@@ -252,4 +252,4 @@ class D111AlbionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11992)]
-public class D111Albion(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(24, -744), 19.5f));
+public class D111Albion(WorldState ws, Actor primary) : BossModule(ws, primary, new(24, -744), new ArenaBoundsSquare(19.5f));

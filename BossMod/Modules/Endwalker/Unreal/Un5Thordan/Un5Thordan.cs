@@ -19,4 +19,4 @@ class AbsoluteConviction(BossModule module) : Components.CastCounter(module, Act
 public class Un5ThordanConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 963, NameID = 3632)]
-public class Un5Thordan(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 21));
+public class Un5Thordan(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(21));

@@ -104,7 +104,7 @@ class D163AnantabogaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1696)]
-public class D163Anantaboga(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(10, 0), 25))
+public class D163Anantaboga(WorldState ws, Actor primary) : BossModule(ws, primary, new(10, 0), new ArenaBoundsSquare(25))
 {
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

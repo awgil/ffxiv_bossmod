@@ -191,13 +191,13 @@ class Voidzone(BossModule module) : BossComponent(module)
     {
         if (state == 0x00040008)
         {
-            Module.Arena.Bounds = new ArenaBoundsRect(new(-240, 237), 15, 20);
+            Module.Arena.Bounds = new ArenaBoundsRect(15, 20);
             active = false;
         }
         if (state == 0x00010002)
         {
             active = true;
-            Module.Arena.Bounds = new ArenaBoundsCircle(new(-240, 237), 15);
+            Module.Arena.Bounds = new ArenaBoundsCircle(15);
         }
     }
 
@@ -231,7 +231,7 @@ class D055ForgivenObscenityStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
-public class D055ForgivenObscenity(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(-240, 237), 15, 20))
+public class D055ForgivenObscenity(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 237), new ArenaBoundsRect(15, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

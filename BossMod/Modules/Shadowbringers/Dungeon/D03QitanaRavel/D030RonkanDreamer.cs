@@ -166,15 +166,8 @@ class D030RonkanDreamerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8639)]
-public class D030RonkanDreamer(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 0))
+public class D030RonkanDreamer(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, primary.Position.Z > 550 ? 640 : 434), new ArenaBoundsRect(17.5f, 24))
 {
-    protected override void UpdateModule()
-    {
-        if (PrimaryActor.Position.AlmostEqual(new(0, 634), 1))
-            Arena.Bounds = new ArenaBoundsRect(new(0, 640), 17.5f, 24);
-        if (PrimaryActor.Position.AlmostEqual(new(0, 428), 1))
-            Arena.Bounds = new ArenaBoundsRect(new(0, 434), 17.5f, 24);
-    }
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

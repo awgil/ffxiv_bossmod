@@ -124,4 +124,4 @@ class CE13KillItWithFireStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 1)] // bnpcname=9391
-public class CE13KillItWithFire(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-90, 700), 25));
+public class CE13KillItWithFire(WorldState ws, Actor primary) : BossModule(ws, primary, new(-90, 700), new ArenaBoundsCircle(25));

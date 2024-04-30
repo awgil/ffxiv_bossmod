@@ -103,7 +103,7 @@ class T08ThornmarchHStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.WhiskerwallKupdiKoop, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 66, NameID = 725)]
-public class T08ThornmarchH(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 21))
+public class T08ThornmarchH(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(21))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

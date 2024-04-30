@@ -69,4 +69,4 @@ class Twister(BossModule module) : Components.Adds(module, (uint)OID.Twister)
     }
 }
 
-public abstract class C030Trash1(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(0, 100), 20, 30));
+public abstract class C030Trash1(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 100), new ArenaBoundsRect(20, 30));

@@ -19,4 +19,4 @@ class Touchdown(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 public class P10SPandaemoniumConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354)]
-public class P10SPandaemonium(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(100, 92.5f), 30, 22.5f));
+public class P10SPandaemonium(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 92.5f), new ArenaBoundsRect(30, 22.5f));

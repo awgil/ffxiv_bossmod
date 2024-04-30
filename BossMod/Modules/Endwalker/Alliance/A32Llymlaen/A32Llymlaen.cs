@@ -15,4 +15,4 @@ class HardWater2(BossModule module) : Components.StackWithCastTargets(module, Ac
 class Stormwinds(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.StormwindsSpread), 6);
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11299, SortOrder = 3)]
-public class A32Llymlaen(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(0, -900), 19, 29));
+public class A32Llymlaen(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -900), new ArenaBoundsRect(19, 29));

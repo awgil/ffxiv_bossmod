@@ -10,7 +10,8 @@ class SurgingWavesArenaChange(BossModule module) : BossComponent(module)
     {
         if (state is 0x00200001 or 0x02000001 && index == 0x49)
         {
-            Module.Arena.Bounds = new ArenaBoundsRect(new(0, -900), 19, 29);
+            Module.Arena.Center = new(0, -900);
+            Module.Arena.Bounds = new ArenaBoundsRect(19, 29);
             Shape = ArenaShape.Normal;
         }
         if (state == 0x00800040 && index == 0x49)
@@ -21,12 +22,14 @@ class SurgingWavesArenaChange(BossModule module) : BossComponent(module)
 
     public override void Update()
     {
-        if (Shockwave && Shape == ArenaShape.Normal)
+        if (Shape == ArenaShape.Normal)
             Shockwave = false;
-        if (Shockwave && Shape == ArenaShape.ExtendWest)
-            Module.Arena.Bounds = new ArenaBoundsRect(new(-40, -900), 40, 10);
-        if (Shockwave && Shape == ArenaShape.ExtendEast)
-            Module.Arena.Bounds = new ArenaBoundsRect(new(40, -900), 40, 10);
+
+        if (Shockwave)
+        {
+            Module.Arena.Center = new(Shape == ArenaShape.ExtendEast ? 40 : -40, -900);
+            Module.Arena.Bounds = new ArenaBoundsRect(40, 10);
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

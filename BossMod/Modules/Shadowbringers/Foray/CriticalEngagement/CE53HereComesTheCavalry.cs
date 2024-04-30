@@ -153,7 +153,7 @@ class CE53HereComesTheCavalryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 22)] // bnpcname=9929
-public class CE53HereComesTheCavalry(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-750, 790), 25))
+public class CE53HereComesTheCavalry(WorldState ws, Actor primary) : BossModule(ws, primary, new(-750, 790), new ArenaBoundsCircle(25))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat; // not targetable at start
 

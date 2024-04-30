@@ -75,4 +75,4 @@ class D012TesleentheForgivenStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8300)]
-public class D012TesleentheForgiven(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(78, -82), 19.5f));
+public class D012TesleentheForgiven(WorldState ws, Actor primary) : BossModule(ws, primary, new(78, -82), new ArenaBoundsCircle(19.5f));

@@ -30,4 +30,4 @@ class D110AlbusGriffinStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 12245)]
-public class D110AlbusGriffin(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(47, -570.5f), 8.5f, 11.5f));
+public class D110AlbusGriffin(WorldState ws, Actor primary) : BossModule(ws, primary, new(47, -570.5f), new ArenaBoundsRect(8.5f, 11.5f));

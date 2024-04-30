@@ -146,7 +146,7 @@ public class T05Twintania : BossModule
     public IReadOnlyList<Actor> ScourgeOfMeracydia;
     public IReadOnlyList<Actor> Neurolinks;
 
-    public T05Twintania(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-3, -6.5f), 31))
+    public T05Twintania(WorldState ws, Actor primary) : base(ws, primary, new(-3, -6.5f), new ArenaBoundsCircle(31))
     {
         ScourgeOfMeracydia = Enemies(OID.ScourgeOfMeracydia);
         Neurolinks = Enemies(OID.Neurolink);

@@ -41,16 +41,9 @@ class D052ForgivenApathyStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8267)]
-public class D052ForgivenApathy(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 0))
+public class D052ForgivenApathy(WorldState ws, Actor primary)
+    : BossModule(ws, primary, primary.Position.X < -100 ? new(5, -198.5f) : new(-187.5f, -118), primary.Position.X < -100 ? new ArenaBoundsRect(8, 17, 105.Degrees()) : new ArenaBoundsRect(12, 21, 120.Degrees()))
 {
-    protected override void UpdateModule()
-    {
-        if (PrimaryActor.Position.AlmostEqual(new(-11, -193), 1))
-            Arena.Bounds = new ArenaBoundsRect(new(5, -198.5f), 8, 17, 105.Degrees());
-        if (PrimaryActor.Position.AlmostEqual(new(-204, -106), 1))
-            Arena.Bounds = new ArenaBoundsRect(new(-187.5f, -118), 12, 21, 120.Degrees());
-    }
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

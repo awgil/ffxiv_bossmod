@@ -7,11 +7,11 @@ namespace BossMod;
 //                       rotation 0 corresponds to South, and increases counterclockwise (so East is +pi/2, North is pi, West is -pi/2)
 // - camera azimuth 0 correpsonds to camera looking North and increases counterclockwise
 // - screen coordinates - X points left to right, Y points top to bottom
-public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
+public class MiniArena(BossModuleConfig config, WPos center, ArenaBounds bounds)
 {
     public BossModuleConfig Config { get; init; } = config;
+    public WPos Center = center;
     public ArenaBounds Bounds = bounds;
-    public WPos Center => Bounds.Center;
 
     public float ScreenHalfSize => 150 * Config.ArenaScale;
     public float ScreenMarginSize => 20 * Config.ArenaScale;

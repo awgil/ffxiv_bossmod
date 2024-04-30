@@ -18,4 +18,4 @@ class QuasarProximity2(BossModule module) : Components.LocationTargetedAOEs(modu
 public class Un3SophiaConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 926, NameID = 5199)]
-public class Un3Sophia(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(0, 0), 20, 15));
+public class Un3Sophia(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsRect(20, 15));

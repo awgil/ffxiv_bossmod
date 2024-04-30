@@ -35,7 +35,7 @@ class D010SwitchStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Blue, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1204)]
 public class D010Switch : BossModule
 {
-    public D010Switch(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(primary.Position, 20))
+    public D010Switch(WorldState ws, Actor primary) : base(ws, primary, primary.Position, new ArenaBoundsSquare(20))
     {
         ActivateComponent<SwitchHint>();
     }
