@@ -24,7 +24,7 @@ public class AIHints
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
     }
 
-    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(30);
 
     public WPos Center;
     public ArenaBounds Bounds = DefaultBounds;
