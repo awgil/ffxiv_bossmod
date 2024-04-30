@@ -59,20 +59,19 @@ class ComplexBoundsTest : TestWindow
 
     private MiniArena RebuildArena()
     {
-        var center = new WPos(100, 100);
         var shape = new PolygonClipper.Operand();
-        AddPlatform(shape, center + _platformCenterOffset * 0.Degrees().ToDirection());
-        AddPlatform(shape, center + _platformCenterOffset * 120.Degrees().ToDirection());
-        AddPlatform(shape, center + _platformCenterOffset * 240.Degrees().ToDirection());
+        AddPlatform(shape, _platformCenterOffset * 0.Degrees().ToDirection());
+        AddPlatform(shape, _platformCenterOffset * 120.Degrees().ToDirection());
+        AddPlatform(shape, _platformCenterOffset * 240.Degrees().ToDirection());
         var bounds = new PolygonClipper().Simplify(shape, _evenOdd ? Clipper2Lib.FillRule.EvenOdd : Clipper2Lib.FillRule.NonZero);
-        return new(new(), new ArenaBoundsCustom(center, 40, bounds));
+        return new(new(), new ArenaBoundsCustom(new(100, 100), 40, bounds));
     }
 
-    private void AddPlatform(PolygonClipper.Operand poly, WPos center)
+    private void AddPlatform(PolygonClipper.Operand poly, WDir centerOffset)
     {
         if (_innerPlatformRadius > 0 && _innerPlatformRadius < _outerPlatformRadius)
-            poly.AddContour(CurveApprox.Donut(center, _innerPlatformRadius, _outerPlatformRadius, _boundsApproxError));
+            poly.AddContour(CurveApprox.Donut(_innerPlatformRadius, _outerPlatformRadius, _boundsApproxError).Select(p => p + centerOffset));
         else
-            poly.AddContour(CurveApprox.Circle(center, _outerPlatformRadius, _boundsApproxError));
+            poly.AddContour(CurveApprox.Circle(_outerPlatformRadius, _boundsApproxError).Select(p => p + centerOffset));
     }
 }

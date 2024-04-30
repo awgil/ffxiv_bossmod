@@ -78,26 +78,26 @@ public static class Intersect
     }
     public static float RayLine(WPos rayOrigin, WDir rayDir, WPos lineOrigin, WDir line) => RayLine(rayOrigin - lineOrigin, rayDir, line);
 
-    public static float RaySegment(WPos rayOrigin, WDir rayDir, WPos a, WPos b)
+    public static float RaySegment(WDir rayOriginOffset, WDir rayDir, WDir oa, WDir ob)
     {
-        var lineDir = b - a;
-        var t = RayLine(rayOrigin - a, rayDir, lineDir);
+        var lineDir = ob - oa;
+        var t = RayLine(rayOriginOffset - oa, rayDir, lineDir);
         if (t == float.MaxValue)
             return float.MaxValue;
 
         // check that intersection point is inside segment
-        var p = rayOrigin + t * rayDir;
-        var u = lineDir.Dot(p - a);
+        var p = rayOriginOffset + t * rayDir;
+        var u = lineDir.Dot(p - oa);
         return u >= 0 && u <= lineDir.LengthSq() ? t : float.MaxValue;
     }
-    public static float RaySegments(WPos rayOrigin, WDir rayDir, IEnumerable<(WPos, WPos)> edges) => edges.Min(e => RaySegment(rayOrigin, rayDir, e.Item1, e.Item2));
+    public static float RaySegments(WDir rayOriginOffset, WDir rayDir, IEnumerable<(WDir, WDir)> edges) => edges.Min(e => RaySegment(rayOriginOffset, rayDir, e.Item1, e.Item2));
 
-    public static float RayPolygon(WPos rayOrigin, WDir rayDir, PolygonWithHoles poly)
+    public static float RayPolygon(WDir rayOriginOffset, WDir rayDir, RelPolygonWithHoles poly)
     {
-        var dist = RaySegments(rayOrigin, rayDir, poly.ExteriorEdges);
+        var dist = RaySegments(rayOriginOffset, rayDir, poly.ExteriorEdges);
         foreach (var h in poly.Holes)
-            dist = Math.Min(dist, RaySegments(rayOrigin, rayDir, poly.InteriorEdges(h)));
+            dist = Math.Min(dist, RaySegments(rayOriginOffset, rayDir, poly.InteriorEdges(h)));
         return dist;
     }
-    public static float RayPolygon(WPos rayOrigin, WDir rayDir, SimplifiedComplexPolygon poly) => poly.Parts.Min(part => RayPolygon(rayOrigin, rayDir, part));
+    public static float RayPolygon(WDir rayOriginOffset, WDir rayDir, RelSimplifiedComplexPolygon poly) => poly.Parts.Min(part => RayPolygon(rayOriginOffset, rayDir, part));
 }

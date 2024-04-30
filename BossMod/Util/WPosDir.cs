@@ -79,33 +79,6 @@ public record struct WPos(float X, float Z)
         return InRect(origin, startToEnd / len, len, 0, halfWidth);
     }
 
-    public readonly bool InSimplePolygon(IEnumerable<WPos> contour) => InSimplePolygon(PolygonUtil.EnumerateEdges(contour));
-    public readonly bool InSimplePolygon(IEnumerable<(WPos, WPos)> edges)
-    {
-        // for simple polygons, it doesn't matter which rule (even-odd, non-zero, etc) we use
-        // so let's just use non-zero rule and calculate winding order
-        // we need to select arbitrary direction to count winding intersections - let's select unit X
-        int winding = 0;
-        foreach (var (a, b) in edges)
-        {
-            // see whether edge ab intersects our test ray - it has to intersect the infinite line on the correct side
-            var pa = a - this;
-            var pb = b - this;
-            // if pa.Z and pb.Z have same signs, the edge is fully above or below the test ray
-            if (pa.Z <= 0)
-            {
-                if (pb.Z > 0 && pa.Cross(pb) > 0)
-                    ++winding;
-            }
-            else
-            {
-                if (pb.Z <= 0 && pa.Cross(pb) < 0)
-                    --winding;
-            }
-        }
-        return winding != 0;
-    }
-
     public readonly bool InCircle(WPos origin, float radius) => (this - origin).LengthSq() <= radius * radius;
     public readonly bool InDonut(WPos origin, float innerRadius, float outerRadius) => InCircle(origin, outerRadius) && !InCircle(origin, innerRadius);
 

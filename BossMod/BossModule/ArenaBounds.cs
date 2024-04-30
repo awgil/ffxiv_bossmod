@@ -1,20 +1,16 @@
 ﻿namespace BossMod;
 
 // radius is the largest horizontal/vertical dimension: radius for circle, max of width/height for rect
-// note: if arena bounds are changed, new instance is recreated
-// max approx error can change without recreating the instance
-// TODO: consider changing this class to represent *relative* arena bounds (relative to arena center) - the reason being that in some cases effective center moves every frame, and bounds caches a lot (clip poly & base map for pathfinding)
+// note: this class to represent *relative* arena bounds (relative to arena center) - the reason being that in some cases effective center moves every frame, and bounds caches a lot (clip poly & base map for pathfinding)
+// note: if arena bounds are changed, new instance is recreated; max approx error can change without recreating the instance
 public abstract record class ArenaBounds(WPos Center, float Radius, float MapResolution)
 {
     // fields below are used for clipping & drawing borders
     public readonly PolygonClipper Clipper = new();
     public float MaxApproxError { get; private set; }
-    public SimplifiedComplexPolygon ShapeSimplified { get; private set; } = new();
-    public List<Triangle> ShapeTriangulation { get; private set; } = [];
+    public RelSimplifiedComplexPolygon ShapeSimplified { get; private set; } = new();
+    public List<RelTriangle> ShapeTriangulation { get; private set; } = [];
     private readonly PolygonClipper.Operand _clipOperand = new();
-
-    public List<Triangle> ClipAndTriangulate(IEnumerable<WPos> poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
-    public List<Triangle> ClipAndTriangulate(SimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
 
     private float _screenHalfSize;
     public float ScreenHalfSize
@@ -40,8 +36,11 @@ public abstract record class ArenaBounds(WPos Center, float Radius, float MapRes
     public abstract float IntersectRay(WDir originOffset, WDir dir);
     public abstract WDir ClampToBounds(WDir offset);
 
-    // functions for clipping various shapes to bounds
-    public List<Triangle> ClipAndTriangulateCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
+    // functions for clipping various shapes to bounds; all shapes are expected to be defined relative to bounds center
+    public List<RelTriangle> ClipAndTriangulate(IEnumerable<WDir> poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
+    public List<RelTriangle> ClipAndTriangulate(RelSimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
+
+    public List<RelTriangle> ClipAndTriangulateCone(WDir centerOffset, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
     {
         // TODO: think of a better way to do that (analytical clipping?)
         if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle.Rad <= 0)
@@ -51,51 +50,51 @@ public abstract record class ArenaBounds(WPos Center, float Radius, float MapRes
         bool donut = innerRadius > 0;
         var points = (donut, fullCircle) switch
         {
-            (false, false) => CurveApprox.CircleSector(center, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
-            (false, true) => CurveApprox.Circle(center, outerRadius, MaxApproxError),
-            (true, false) => CurveApprox.DonutSector(center, innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
-            (true, true) => CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError),
+            (false, false) => CurveApprox.CircleSector(outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
+            (false, true) => CurveApprox.Circle(outerRadius, MaxApproxError),
+            (true, false) => CurveApprox.DonutSector(innerRadius, outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
+            (true, true) => CurveApprox.Donut(innerRadius, outerRadius, MaxApproxError),
         };
-        return ClipAndTriangulate(points);
+        return ClipAndTriangulate(points.Select(p => p + centerOffset));
     }
 
-    public List<Triangle> ClipAndTriangulateCircle(WPos center, float radius)
-        => ClipAndTriangulate(CurveApprox.Circle(center, radius, MaxApproxError));
+    public List<RelTriangle> ClipAndTriangulateCircle(WDir centerOffset, float radius)
+        => ClipAndTriangulate(CurveApprox.Circle(radius, MaxApproxError).Select(p => p + centerOffset));
 
-    public List<Triangle> ClipAndTriangulateDonut(WPos center, float innerRadius, float outerRadius)
+    public List<RelTriangle> ClipAndTriangulateDonut(WDir centerOffset, float innerRadius, float outerRadius)
         => innerRadius < outerRadius && innerRadius >= 0
-            ? ClipAndTriangulate(CurveApprox.Donut(center, innerRadius, outerRadius, MaxApproxError))
+            ? ClipAndTriangulate(CurveApprox.Donut(innerRadius, outerRadius, MaxApproxError).Select(p => p + centerOffset))
             : [];
 
-    public List<Triangle> ClipAndTriangulateTri(WPos a, WPos b, WPos c)
-        => ClipAndTriangulate([a, b, c]);
+    public List<RelTriangle> ClipAndTriangulateTri(WDir oa, WDir ob, WDir oc)
+        => ClipAndTriangulate([oa, ob, oc]);
 
-    public List<Triangle> ClipAndTriangulateIsoscelesTri(WPos apex, WDir height, WDir halfBase)
-        => ClipAndTriangulateTri(apex, apex + height + halfBase, apex + height - halfBase);
+    public List<RelTriangle> ClipAndTriangulateIsoscelesTri(WDir apexOffset, WDir height, WDir halfBase)
+        => ClipAndTriangulateTri(apexOffset, apexOffset + height + halfBase, apexOffset + height - halfBase);
 
-    public List<Triangle> ClipAndTriangulateIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height)
+    public List<RelTriangle> ClipAndTriangulateIsoscelesTri(WDir apexOffset, Angle direction, Angle halfAngle, float height)
     {
         var dir = direction.ToDirection();
         var normal = dir.OrthoL();
-        return ClipAndTriangulateIsoscelesTri(apex, height * dir, height * halfAngle.Tan() * normal);
+        return ClipAndTriangulateIsoscelesTri(apexOffset, height * dir, height * halfAngle.Tan() * normal);
     }
 
-    public List<Triangle> ClipAndTriangulateRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth)
+    public List<RelTriangle> ClipAndTriangulateRect(WDir originOffset, WDir direction, float lenFront, float lenBack, float halfWidth)
     {
         var side = halfWidth * direction.OrthoR();
-        var front = origin + lenFront * direction;
-        var back = origin - lenBack * direction;
+        var front = originOffset + lenFront * direction;
+        var back = originOffset - lenBack * direction;
         return ClipAndTriangulate([front + side, front - side, back - side, back + side]);
     }
 
-    public List<Triangle> ClipAndTriangulateRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
-        => ClipAndTriangulateRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+    public List<RelTriangle> ClipAndTriangulateRect(WDir originOffset, Angle direction, float lenFront, float lenBack, float halfWidth)
+        => ClipAndTriangulateRect(originOffset, direction.ToDirection(), lenFront, lenBack, halfWidth);
 
-    public List<Triangle> ClipAndTriangulateRect(WPos start, WPos end, float halfWidth)
+    public List<RelTriangle> ClipAndTriangulateRect(WDir startOffset, WDir endOffset, float halfWidth)
     {
-        var dir = (end - start).Normalized();
+        var dir = (endOffset - startOffset).Normalized();
         var side = halfWidth * dir.OrthoR();
-        return ClipAndTriangulate([start + side, start - side, end - side, end + side]);
+        return ClipAndTriangulate([startOffset + side, startOffset - side, endOffset - side, endOffset + side]);
     }
 }
 
@@ -103,7 +102,7 @@ public record class ArenaBoundsCircle(WPos Center, float Radius, float MapResolu
 {
     private Pathfinding.Map? _cachedMap;
 
-    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Circle(Center, Radius, MaxApproxError));
+    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Circle(Radius, MaxApproxError));
     public override Pathfinding.Map PathfindMap() => (_cachedMap ??= BuildMap()).Clone();
     public override bool Contains(WDir offset) => offset.LengthSq() <= Radius * Radius;
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayCircle(originOffset, dir, Radius);
@@ -127,7 +126,7 @@ public record class ArenaBoundsSquare(WPos Center, float Radius, float MapResolu
 {
     public float HalfWidth => Radius;
 
-    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Center, new(Radius, 0), new(0, Radius)));
+    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(new(Radius, 0), new(0, Radius)));
     public override Pathfinding.Map PathfindMap() => new(MapResolution, Center, Radius, Radius);
     public override bool Contains(WDir offset) => offset.AlmostZero(Radius);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayAABB(originOffset, dir, Radius, Radius);
@@ -147,7 +146,7 @@ public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeig
 {
     private WDir _orientation = Rotation.ToDirection();
 
-    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Center, _orientation, HalfWidth, HalfHeight));
+    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(_orientation, HalfWidth, HalfHeight));
     public override Pathfinding.Map PathfindMap() => new(MapResolution, Center, HalfWidth, HalfHeight, Rotation);
     public override bool Contains(WDir offset) => offset.InRect(_orientation, HalfHeight, HalfHeight, HalfWidth);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayRect(originOffset, dir, _orientation, HalfWidth, HalfHeight);
@@ -165,26 +164,26 @@ public record class ArenaBoundsRect(WPos Center, float HalfWidth, float HalfHeig
 }
 
 // custom complex polygon bounds
-public record class ArenaBoundsCustom(WPos Center, float Radius, SimplifiedComplexPolygon Poly, float MapResolution = 0.5f) : ArenaBounds(Center, Radius, MapResolution)
+public record class ArenaBoundsCustom(WPos Center, float Radius, RelSimplifiedComplexPolygon Poly, float MapResolution = 0.5f) : ArenaBounds(Center, Radius, MapResolution)
 {
     private Pathfinding.Map? _cachedMap;
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(Poly);
     public override Pathfinding.Map PathfindMap() => (_cachedMap ??= BuildMap()).Clone();
-    public override bool Contains(WDir offset) => Poly.Contains(offset + Center);
-    public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayPolygon(originOffset + Center, dir, Poly);
+    public override bool Contains(WDir offset) => Poly.Contains(offset);
+    public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayPolygon(originOffset, dir, Poly);
     public override WDir ClampToBounds(WDir offset)
     {
         var l = offset.Length();
         var dir = offset / l;
-        var t = Intersect.RayPolygon(Center, offset, Poly);
+        var t = Intersect.RayPolygon(default, offset, Poly);
         return dir * Math.Min(t, l);
     }
 
     private Pathfinding.Map BuildMap()
     {
         var map = new Pathfinding.Map(MapResolution, Center, Radius, Radius);
-        var tri = ShapeDistance.TriList(Poly.Triangulate());
+        var tri = ShapeDistance.TriList(default, Poly.Triangulate());
         map.BlockPixelsInside(p => -tri(p), 0, 0);
         return map;
     }

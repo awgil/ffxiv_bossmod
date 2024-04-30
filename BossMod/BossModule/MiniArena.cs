@@ -169,26 +169,27 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     }
 
     // draw clipped & triangulated zone
-    public void Zone(List<Triangle> triangulation, uint color)
+    public void Zone(List<RelTriangle> triangulation, uint color)
     {
         var drawlist = ImGui.GetWindowDrawList();
         var restoreFlags = drawlist.Flags;
         drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
         foreach (var tri in triangulation)
-            drawlist.AddTriangleFilled(WorldPositionToScreenPosition(tri.A), WorldPositionToScreenPosition(tri.B), WorldPositionToScreenPosition(tri.C), color);
+            drawlist.AddTriangleFilled(ScreenCenter + WorldOffsetToScreenOffset(tri.A), ScreenCenter + WorldOffsetToScreenOffset(tri.B), ScreenCenter + WorldOffsetToScreenOffset(tri.C), color);
         drawlist.Flags = restoreFlags;
     }
 
     // draw zones - these are filled primitives clipped to various borders
-    public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color) => Zone(Bounds.ClipAndTriangulateCone(center, innerRadius, outerRadius, centerDirection, halfAngle), color);
-    public void ZoneCircle(WPos center, float radius, uint color) => Zone(Bounds.ClipAndTriangulateCircle(center, radius), color);
-    public void ZoneDonut(WPos center, float innerRadius, float outerRadius, uint color) => Zone(Bounds.ClipAndTriangulateDonut(center, innerRadius, outerRadius), color);
-    public void ZoneTri(WPos a, WPos b, WPos c, uint color) => Zone(Bounds.ClipAndTriangulateTri(a, b, c), color);
-    public void ZoneIsoscelesTri(WPos apex, WDir height, WDir halfBase, uint color) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex, height, halfBase), color);
-    public void ZoneIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height, uint color) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex, direction, halfAngle, height), color);
-    public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), color);
-    public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin, direction, lenFront, lenBack, halfWidth), color);
-    public void ZoneRect(WPos start, WPos end, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(start, end, halfWidth), color);
+    public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color) => Zone(Bounds.ClipAndTriangulateCone(center - Center, innerRadius, outerRadius, centerDirection, halfAngle), color);
+    public void ZoneCircle(WPos center, float radius, uint color) => Zone(Bounds.ClipAndTriangulateCircle(center - Center, radius), color);
+    public void ZoneDonut(WPos center, float innerRadius, float outerRadius, uint color) => Zone(Bounds.ClipAndTriangulateDonut(center - Center, innerRadius, outerRadius), color);
+    public void ZoneTri(WPos a, WPos b, WPos c, uint color) => Zone(Bounds.ClipAndTriangulateTri(a - Center, b - Center, c - Center), color);
+    public void ZoneIsoscelesTri(WPos apex, WDir height, WDir halfBase, uint color) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex - Center, height, halfBase), color);
+    public void ZoneIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height, uint color) => Zone(Bounds.ClipAndTriangulateIsoscelesTri(apex - Center, direction, halfAngle, height), color);
+    public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin - Center, direction, lenFront, lenBack, halfWidth), color);
+    public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(origin - Center, direction, lenFront, lenBack, halfWidth), color);
+    public void ZoneRect(WPos start, WPos end, float halfWidth, uint color) => Zone(Bounds.ClipAndTriangulateRect(start - Center, end - Center, halfWidth), color);
+    public void ZonePoly(IEnumerable<WPos> contour, uint color) => Zone(Bounds.ClipAndTriangulate(contour.Select(p => p - Center)), color);
 
     public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
     {
@@ -205,11 +206,19 @@ public class MiniArena(BossModuleConfig config, ArenaBounds bounds)
     // draw arena border
     public void Border(uint color)
     {
+        var dl = ImGui.GetWindowDrawList();
         foreach (var p in Bounds.ShapeSimplified.Parts)
         {
-            AddPolygon(p.Exterior, color, 2);
+            foreach (var off in p.Exterior)
+                dl.PathLineTo(ScreenCenter + WorldOffsetToScreenOffset(off));
+            dl.PathStroke(color, ImDrawFlags.Closed, 2);
+
             foreach (var i in p.Holes)
-                AddPolygon(p.Interior(i), color, 2);
+            {
+                foreach (var off in p.Interior(i))
+                    dl.PathLineTo(ScreenCenter + WorldOffsetToScreenOffset(off));
+                dl.PathStroke(color, ImDrawFlags.Closed, 2);
+            }
         }
     }
 

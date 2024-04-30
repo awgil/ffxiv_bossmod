@@ -77,7 +77,7 @@ public static class ShapeDistance
         };
     }
 
-    public static Func<WPos, float> Tri(Triangle tri)
+    public static Func<WPos, float> Tri(WPos origin, RelTriangle tri)
     {
         var ab = tri.B - tri.A;
         var bc = tri.C - tri.B;
@@ -91,15 +91,18 @@ public static class ShapeDistance
             n2 = -n2;
             n3 = -n3;
         }
+        var a = origin + tri.A;
+        var b = origin + tri.B;
+        var c = origin + tri.C;
         return p =>
         {
-            var d1 = n1.Dot(p - tri.A);
-            var d2 = n2.Dot(p - tri.B);
-            var d3 = n3.Dot(p - tri.C);
+            var d1 = n1.Dot(p - a);
+            var d2 = n2.Dot(p - b);
+            var d3 = n3.Dot(p - c);
             return Math.Max(Math.Max(d1, d2), d3);
         };
     }
-    public static Func<WPos, float> TriList(List<Triangle> tris) => Union([.. tris.Select(Tri)]);
+    public static Func<WPos, float> TriList(WPos origin, List<RelTriangle> tris) => Union([.. tris.Select(tri => Tri(origin, tri))]);
 
     public static Func<WPos, float> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
@@ -185,7 +188,7 @@ public static class ShapeDistance
         }
         return Intersection([.. edges.Select(edge)], offset);
     }
-    public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw, offset);
+    public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(vertices.Pairwise(), cw, offset);
 
     private static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
     private static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;

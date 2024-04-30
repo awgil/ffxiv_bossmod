@@ -43,14 +43,9 @@ public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, 
 
     private static ArenaBoundsCustom BuildTriBounds()
     {
-        var center = new WPos(-945, 948.5f);
         var hw = NormalBounds.Radius * 0.86602540378443864676372317075294f; // sqrt(3) / 2;
         var hh = NormalBounds.Radius * 0.5f;
-        List<WPos> verts = [
-            center + new WDir(-hw, hh),
-            center + new WDir(+hw, hh),
-            center + new WDir(0, -NormalBounds.Radius)
-        ];
-        return new(center, NormalBounds.Radius, new([new(verts)]));
+        List<WDir> verts = [new(-hw, hh), new(+hw, hh), new(0, -NormalBounds.Radius)];
+        return new(new(-945, 948.5f), NormalBounds.Radius, new([new(verts)]));
     }
 }

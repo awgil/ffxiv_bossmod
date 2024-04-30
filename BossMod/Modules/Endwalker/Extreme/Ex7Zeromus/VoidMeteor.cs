@@ -10,7 +10,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         public int Order;
         public bool Stretched;
         public bool NonClipping;
-        public List<Triangle>? DangerZone;
+        public List<RelTriangle>? DangerZone;
     }
 
     public int NumCasts { get; private set; }
@@ -44,7 +44,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         if (_drawShadows && SourceIfActive(pcSlot) is var source && source != null)
         {
             ref var state = ref _playerStates.AsSpan()[pcSlot];
-            state.DangerZone ??= BuildShadowZone(source.Position);
+            state.DangerZone ??= BuildShadowZone(source.Position - Module.Center);
             Arena.Zone(state.DangerZone, ArenaColor.AOE);
         }
     }
@@ -114,25 +114,25 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
         _ => null
     };
 
-    private IEnumerable<WPos> BuildShadowPolygon(WPos source, WPos meteor)
+    private IEnumerable<WDir> BuildShadowPolygon(WDir sourceOffset, WDir meteorOffset)
     {
-        var toMeteor = meteor - source;
+        var toMeteor = meteorOffset - sourceOffset;
         var dirToMeteor = Angle.FromDirection(toMeteor);
         var halfAngle = Angle.Asin(_radius * 2 / toMeteor.Length());
         // intersection point is at dirToMeteor -+ halfAngle relative to source; relative to meteor, it is (dirToMeteor + 180) +- (90 - halfAngle)
         var dirFromMeteor = dirToMeteor + 180.Degrees();
         var halfAngleFromMeteor = 90.Degrees() - halfAngle;
-        foreach (var p in CurveApprox.CircleArc(meteor, _radius * 2, dirFromMeteor + halfAngleFromMeteor, dirFromMeteor - halfAngleFromMeteor, 0.2f))
-            yield return p;
-        yield return source + 100 * (dirToMeteor + halfAngle).ToDirection();
-        yield return source + 100 * (dirToMeteor - halfAngle).ToDirection();
+        foreach (var off in CurveApprox.CircleArc(_radius * 2, dirFromMeteor + halfAngleFromMeteor, dirFromMeteor - halfAngleFromMeteor, 0.2f))
+            yield return meteorOffset + off;
+        yield return sourceOffset + 100 * (dirToMeteor + halfAngle).ToDirection();
+        yield return sourceOffset + 100 * (dirToMeteor - halfAngle).ToDirection();
     }
 
-    private List<Triangle> BuildShadowZone(WPos source)
+    private List<RelTriangle> BuildShadowZone(WDir sourceOffset)
     {
         PolygonClipper.Operand set = new();
         foreach (var m in _meteors)
-            set.AddContour(BuildShadowPolygon(source, m));
+            set.AddContour(BuildShadowPolygon(sourceOffset, m - Module.Center));
         var simplified = Arena.Bounds.Clipper.Simplify(set, Clipper2Lib.FillRule.NonZero);
         return Arena.Bounds.ClipAndTriangulate(simplified);
     }
