@@ -46,12 +46,12 @@ class TerminusEstRects(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.TerminusEstLocationHelper)
         {
-            _aoes.AddRange(new AOEInstance[]
-            {
+            _aoes.AddRange(
+            [
                 new(_shape, caster.Position, spell.Rotation, spell.NPCFinishAt),
                 new(_shape, caster.Position, spell.Rotation - 90.Degrees(), spell.NPCFinishAt),
                 new(_shape, caster.Position, spell.Rotation + 90.Degrees(), spell.NPCFinishAt)
-            });
+            ]);
         }
     }
 
