@@ -224,12 +224,15 @@ public struct NavigationDecision
                 else if (targetRadius > 3)
                 {
                     var minRange = map.WorldToGrid(targetPos + dir * 3);
-                    foreach (var p in map.EnumeratePixelsInLine(maxRange.x, maxRange.y, minRange.x, minRange.y))
+                    if (minRange != maxRange)
                     {
-                        if (suitable(p.x, p.y))
+                        foreach (var p in map.EnumeratePixelsInLine(maxRange.x, maxRange.y, minRange.x, minRange.y))
                         {
-                            adjPrio = map.AddGoal(p.x, p.y, 1);
-                            break;
+                            if (suitable(p.x, p.y))
+                            {
+                                adjPrio = map.AddGoal(p.x, p.y, 1);
+                                break;
+                            }
                         }
                     }
                 }
