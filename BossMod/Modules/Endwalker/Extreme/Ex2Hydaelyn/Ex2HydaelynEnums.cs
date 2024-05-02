@@ -54,6 +54,7 @@ public enum AID : uint
     RayOfLight = 26023, // Helper->self, no cast, range 15 width 16 rect, aoe inside lightwave
     LightOfTheCrystal = 26022, // Helper->self, 1,0s cast, range 40 circle, aoe when lightwave hits crystal
     TeleportToCenter = 26025, // Boss->location, no cast, single-target
+    TeleportToCenter2 = 28282, // Boss->location, no cast, single-target
     InfralateralArc = 26217, // Boss->self, 4,9s cast, single-target
     InfralateralArcAOE = 26026, // Boss->self, no cast, range 40 90-degree cone
     HerosGlory = 26024, // Boss->self, 5,0s cast, range 40 180-degree cone
@@ -69,10 +70,11 @@ public enum AID : uint
     CrystallizeChakramWater = 28373, // Boss->self, 4,0s cast, single-target, (5) water+red->red
     CrystallizeChakramIce = 26013, // Boss->self, 4,0s cast, single-target, (2) ice+red->green
     CrystallizeStaffEarth = 26011, // Boss->self, 4,0s cast, single-target, (3) earth+green->blue
-    Parhelion = 26032, // Boss->self
-    ParhelionNext = 26033, // Boss->self, no cast
-    BeaconParhelion = 26034, // Parhelion->location
-    BeaconSubparhelion = 26035, // Parhelion->self, no cast
+    Parhelion = 26032, // Boss->self, 5,0s cast, single-target
+    ParhelionNext = 26033, // Boss->self, no cast, single-target
+    BeaconParhelion = 26034, // Parhelion->location, 5,2s cast, width 6 rect charge
+    Subparhelion = 27734, // Boss->self, 5,0s cast, single-target
+    BeaconSubparhelion = 26035, // Parhelion->self, no cast, range 45 width 6 rect
     RadiantHalo = 26036, // Boss->self
     EchoesSword = 26037, // Boss->self
     EchoesStaff = 26038, // Boss->self
@@ -82,7 +84,7 @@ public enum AID : uint
     EchoesAOE = 26042, // Helper->target, no cast
     LightwaveStaff = 26260, // Boss->self
     LightwaveChakram = 26261, // Boss->self
-    Subparhelion = 27734, // Boss->self
+
     HerosRadianceEnrage = 24571, // Boss->self
 }
 
