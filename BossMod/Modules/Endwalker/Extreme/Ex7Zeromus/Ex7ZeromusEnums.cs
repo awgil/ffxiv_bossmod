@@ -114,6 +114,8 @@ public enum AID : uint
     ChasmicNailsVisual3 = 35625, // Helper->self, 4.0s cast, range 60 40-degree cone, visual (telegraph)
     ChasmicNailsVisual4 = 35626, // Helper->self, 5.0s cast, range 60 40-degree cone, visual (telegraph)
     ChasmicNailsVisual5 = 35627, // Helper->self, 6.0s cast, range 60 40-degree cone, visual (telegraph)
+
+    BigBangEnrage = 35870, // Boss->self, 10,0s cast, range 60 circle
 }
 
 public enum SID : uint
