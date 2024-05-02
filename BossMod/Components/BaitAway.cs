@@ -198,9 +198,17 @@ public class BaitAwayChargeCast(BossModule module, ActionID aid, float halfWidth
 
     public override void Update()
     {
-        foreach (var b in CurrentBaits)
+        foreach (ref var b in CurrentBaits.AsSpan())
+        {
             if (b.Shape is AOEShapeRect shape)
-                shape.LengthFront = (b.Target.Position - b.Source.Position).Length();
+            {
+                var length = (b.Target.Position - b.Source.Position).Length();
+                if (shape.LengthFront != length)
+                {
+                    b.Shape = shape with { LengthFront = length };
+                }
+            }
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

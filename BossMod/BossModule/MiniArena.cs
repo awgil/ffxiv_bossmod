@@ -102,6 +102,14 @@ public class MiniArena(BossModuleConfig config, WPos center, ArenaBounds bounds)
         ImGui.GetWindowDrawList().AddQuadFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), WorldPositionToScreenPosition(p4), color);
     }
 
+    public void AddRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color, float thickness = 1)
+    {
+        var side = halfWidth * direction.OrthoR();
+        var front = origin + lenFront * direction;
+        var back = origin - lenBack * direction;
+        AddQuad(front + side, front - side, back - side, back + side, color, thickness);
+    }
+
     public void AddCircle(WPos center, float radius, uint color, float thickness = 1)
     {
         ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, color, 0, thickness);

@@ -87,7 +87,10 @@ class PalladionShockwave(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_palladion != null && NumCasts < _palladion.JumpTargets.Length && _palladion.JumpTargets[NumCasts] is var target && target != null && actor != target && actor != _palladion.Partners[NumCasts])
-            yield return new(BuildShape(target.Position), _origin, default, _activation);
+        {
+            var toTarget = target.Position - _origin;
+            yield return new(new AOEShapeRect(toTarget.Length(), 2), _origin, Angle.FromDirection(toTarget), _activation);
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -100,7 +103,10 @@ class PalladionShockwave(BossModule module) : Components.GenericAOEs(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_palladion != null && NumCasts < _palladion.JumpTargets.Length && _palladion.JumpTargets[NumCasts] is var target && target != null && (pc == target || pc == _palladion.Partners[NumCasts]))
-            BuildShape(target.Position).Outline(Arena, _origin, default, ArenaColor.Safe);
+        {
+            var toTarget = target.Position - _origin;
+            Arena.AddRect(_origin, toTarget.Normalized(), toTarget.Length(), 0, 2, ArenaColor.Safe);
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -112,13 +118,6 @@ class PalladionShockwave(BossModule module) : Components.GenericAOEs(module)
             _activation = WorldState.FutureTime(3);
             ++NumCasts;
         }
-    }
-
-    private AOEShapeRect BuildShape(WPos target)
-    {
-        var shape = new AOEShapeRect(0, 2);
-        shape.SetEndPoint(target, _origin, default);
-        return shape;
     }
 }
 

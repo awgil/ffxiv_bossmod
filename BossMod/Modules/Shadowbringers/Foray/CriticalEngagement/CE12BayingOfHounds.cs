@@ -65,9 +65,8 @@ class Hellpounce(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
 
     private void Activate(WPos source, WPos target, DateTime activation)
     {
-        var shape = new AOEShapeRect(0, 5);
-        shape.SetEndPoint(target, source, new());
-        _charge = new(shape, source, default, activation);
+        var toTarget = target - source;
+        _charge = new(new AOEShapeRect(toTarget.Length(), 5), source, Angle.FromDirection(toTarget), activation);
     }
 }
 

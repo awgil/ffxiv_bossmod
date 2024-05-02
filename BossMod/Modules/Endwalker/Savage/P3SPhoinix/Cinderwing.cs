@@ -3,18 +3,20 @@
 // state related to cinderwing
 class Cinderwing : BossComponent
 {
-    private readonly AOEShapeCone _aoe = new(60, 90.Degrees());
+    private readonly AOEShapeCone _aoe;
 
     public Cinderwing(BossModule module) : base(module)
     {
-        _aoe.DirectionOffset = (AID)(Module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
+        var directionOffset = (AID)(Module.PrimaryActor.CastInfo?.Action.ID ?? 0) switch
         {
             AID.RightCinderwing => -90.Degrees(),
             AID.LeftCinderwing => 90.Degrees(),
-            _ => 0.Degrees()
+            _ => default
         };
-        if (_aoe.DirectionOffset.Rad == 0)
+        if (directionOffset == default)
             ReportError($"Failed to initialize cinderwing; unexpected boss cast {Module.PrimaryActor.CastInfo?.Action}");
+
+        _aoe = new(60, 90.Degrees(), directionOffset);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

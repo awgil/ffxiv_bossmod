@@ -91,8 +91,16 @@ class WitchHunt(BossModule module) : Components.GenericBaitAway(module)
 
     public override void Update()
     {
-        foreach (var b in CurrentBaits)
-            ((AOEShapeRect)b.Shape).LengthFront = (b.Target.Position - b.Source.Position).Length();
+        foreach (ref var b in CurrentBaits.AsSpan())
+        {
+            if (b.Shape is AOEShapeRect shape)
+            {
+                var len = (b.Target.Position - b.Source.Position).Length();
+                if (shape.LengthFront != len)
+                    b.Shape = shape with { LengthFront = len };
+            }
+        }
+
         if (CurrentBaits.Count > 0 && witchHunt1done) //updating WitchHunt2 target incase of sudden tank swap
         {
             var Target = CurrentBaits[0];
