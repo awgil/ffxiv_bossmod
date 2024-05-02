@@ -2,17 +2,17 @@
 
 class AddPhaseArena(BossModule module) : BossComponent(module)
 {
-    private readonly float _innerRingRadius = 14.5f;
-    private readonly float _outerRingRadius = 27.5f;
-    private readonly float _ringHalfWidth = 2.5f;
-    private readonly float _alcoveDepth = 1;
-    private readonly float _alcoveWidth = 2;
+    private const float _innerRingRadius = 14.5f;
+    private const float _outerRingRadius = 27.5f;
+    private const float _ringHalfWidth = 2.5f;
+    private const float _alcoveDepth = 1;
+    private const float _alcoveWidth = 2;
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        Arena.Zone(Module.Bounds.ClipAndTriangulate(InDanger()), ArenaColor.AOE);
-        Arena.Zone(Module.Bounds.ClipAndTriangulate(MidDanger()), ArenaColor.AOE);
-        Arena.Zone(Module.Bounds.ClipAndTriangulate(OutDanger()), ArenaColor.AOE);
+        Arena.ZoneRelPoly(HashCode.Combine(GetType(), 0), InDanger(), ArenaColor.AOE);
+        Arena.ZoneRelPoly(HashCode.Combine(GetType(), 1), MidDanger(), ArenaColor.AOE);
+        Arena.ZoneRelPoly(HashCode.Combine(GetType(), 2), OutDanger(), ArenaColor.AOE);
     }
 
     private IEnumerable<WDir> RingBorder(Angle centerOffset, float ringRadius, bool innerBorder)
