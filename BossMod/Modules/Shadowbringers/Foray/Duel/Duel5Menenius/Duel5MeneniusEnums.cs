@@ -1,5 +1,11 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
+public enum OID : uint
+{
+    Boss = 0x31C4,
+    Helper = 0x233C,
+}
+
 public enum AID : uint
 {
     AutoAttack = 6497,
