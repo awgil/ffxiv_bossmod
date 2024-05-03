@@ -46,7 +46,7 @@ class HeavenAndEarth(BossModule module) : Components.GenericRotatingAOE(module)
 
     private static readonly AOEShapeCone _shape = new(20, 15.Degrees());
 
-    private int _index = 0;
+    private int _index;
 
     private void UpdateIncrement(Angle increment)
     {
