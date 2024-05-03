@@ -6,7 +6,7 @@ namespace BossMod;
 
 public class ConfigRoot
 {
-    private const int _version = 7;
+    private const int _version = 8;
 
     public Event Modified = new();
     private readonly Dictionary<Type, ConfigNode> _nodes = [];
@@ -296,6 +296,17 @@ public class ConfigRoot
             amConfig["PreventMovingWhileCasting"] = autorotConfig?["PreventMovingWhileCasting"] ?? false;
             amConfig["RestoreRotation"] = autorotConfig?["RestoreRotation"] ?? false;
             amConfig["GTMode"] = autorotConfig?["GTMode"] ?? "Manual";
+        }
+        // v8: remove accidentally serializable Modified field
+        if (version < 8)
+        {
+            foreach (var (_, config) in payload)
+            {
+                if (config is JObject jconfig)
+                {
+                    jconfig.Remove("Modified");
+                }
+            }
         }
         return payload;
     }

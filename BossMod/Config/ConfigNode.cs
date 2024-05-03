@@ -46,6 +46,7 @@ public abstract class ConfigNode
 {
     // event fired when configuration node was modified; should be fired by anyone making any modifications
     // root subscribes to modification event to save updated configuration
+    [JsonIgnore]
     public Event Modified = new();
 
     // draw custom contents; override this for complex config nodes
