@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Quest.ASleepDisturbed;
+﻿namespace BossMod.Shadowbringers.Quest.ASleepDistubed;
 
 public enum OID : uint
 {
