@@ -24,10 +24,10 @@ public class AIHints
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
     }
 
-    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(30);
 
+    public WPos Center;
     public ArenaBounds Bounds = DefaultBounds;
-    public WPos Center => Bounds.Center;
 
     // list of potential targets
     public List<Enemy> PotentialTargets = [];
@@ -61,6 +61,7 @@ public class AIHints
     // clear all stored data
     public void Clear()
     {
+        Center = default;
         Bounds = DefaultBounds;
         PotentialTargets.Clear();
         ForcedTarget = null;

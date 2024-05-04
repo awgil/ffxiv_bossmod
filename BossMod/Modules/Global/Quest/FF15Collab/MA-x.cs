@@ -36,7 +36,7 @@ class MAxStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68694, NameID = 7898)] // also: fate 1409
-public class MAx(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(295, -22), 25))
+public class MAx(WorldState ws, Actor primary) : BossModule(ws, primary, new(295, -22), new ArenaBoundsCircle(25))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

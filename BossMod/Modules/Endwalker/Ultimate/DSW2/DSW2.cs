@@ -17,10 +17,10 @@ class P7Shockwave(BossModule module) : Components.CastCounter(module, ActionID.M
 class P7AlternativeEnd(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AlternativeEnd));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788)]
-public class DSW2(WorldState ws, Actor primary) : BossModule(ws, primary, BoundsCircle)
+public class DSW2(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), BoundsCircle)
 {
-    public static readonly ArenaBoundsCircle BoundsCircle = new(new(100, 100), 21); // p2, intermission
-    public static readonly ArenaBoundsSquare BoundsSquare = new(new(100, 100), 21); // p3, p4
+    public static readonly ArenaBoundsCircle BoundsCircle = new(21); // p2, intermission
+    public static readonly ArenaBoundsSquare BoundsSquare = new(21); // p3, p4
 
     private Actor? _bossP3;
     private Actor? _leftEyeP4;

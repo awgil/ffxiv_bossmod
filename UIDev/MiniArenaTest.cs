@@ -5,7 +5,7 @@ namespace UIDev;
 
 class MiniArenaTest : TestWindow
 {
-    private readonly MiniArena _arena = new(new(), new ArenaBoundsSquare(new(100, 100), 20));
+    private readonly MiniArena _arena = new(new(), new(100, 100), new ArenaBoundsSquare(20));
     private bool _arenaIsCircle;
     private float _azimuth = -72;
     private float _altitude = 90;
@@ -29,7 +29,7 @@ class MiniArenaTest : TestWindow
         ImGui.DragFloat("Camera altitude", ref _altitude, 1, -90, +90);
         if (ImGui.Checkbox("Circle shape", ref _arenaIsCircle))
         {
-            _arena.Bounds = _arenaIsCircle ? new ArenaBoundsCircle(_arena.Center, _arena.Bounds.Radius) : new ArenaBoundsSquare(_arena.Center, _arena.Bounds.Radius);
+            _arena.Bounds = _arenaIsCircle ? new ArenaBoundsCircle(_arena.Bounds.Radius) : new ArenaBoundsSquare(_arena.Bounds.Radius);
         }
 
         _arena.Begin((float)(Math.PI * _azimuth / 180));

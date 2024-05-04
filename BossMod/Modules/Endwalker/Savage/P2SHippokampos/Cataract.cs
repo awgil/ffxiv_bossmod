@@ -1,16 +1,10 @@
 ﻿namespace BossMod.Endwalker.Savage.P2SHippokampos;
 
 // state related to cataract mechanic
-class Cataract : BossComponent
+class Cataract(BossModule module) : BossComponent(module)
 {
     private readonly AOEShapeRect _aoeBoss = new(50, 7.5f, 50);
-    private readonly AOEShapeRect _aoeHead = new(50, 50);
-
-    public Cataract(BossModule module) : base(module)
-    {
-        if (Module.PrimaryActor.CastInfo?.IsSpell(AID.WingedCataract) ?? false)
-            _aoeHead.DirectionOffset = 180.Degrees();
-    }
+    private readonly AOEShapeRect _aoeHead = new(50, 50, 0, module.PrimaryActor.CastInfo?.IsSpell(AID.WingedCataract) ?? false ? 180.Degrees() : default);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

@@ -6,4 +6,4 @@ class BoltsFromTheBlue(BossModule module) : Components.CastCounter(module, Actio
 class DestructiveStrike(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.DestructiveStrike), new AOEShapeCone(13, 60.Degrees())); // TODO: verify angle
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11274, SortOrder = 2)]
-public class A10RhalgrEmissary(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(74, 516), 25));
+public class A10RhalgrEmissary(WorldState ws, Actor primary) : BossModule(ws, primary, new(74, 516), new ArenaBoundsCircle(25));

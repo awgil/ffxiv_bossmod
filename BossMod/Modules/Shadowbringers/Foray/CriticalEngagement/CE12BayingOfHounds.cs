@@ -65,9 +65,8 @@ class Hellpounce(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
 
     private void Activate(WPos source, WPos target, DateTime activation)
     {
-        var shape = new AOEShapeRect(0, 5);
-        shape.SetEndPoint(target, source, new());
-        _charge = new(shape, source, default, activation);
+        var toTarget = target - source;
+        _charge = new(new AOEShapeRect(toTarget.Length(), 5), source, Angle.FromDirection(toTarget), activation);
     }
 }
 
@@ -123,4 +122,4 @@ class CE12BayingOfHoundsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 2)] // bnpcname=9394
-public class CE12BayingOfHounds(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(154, 785), 25));
+public class CE12BayingOfHounds(WorldState ws, Actor primary) : BossModule(ws, primary, new(154, 785), new ArenaBoundsCircle(25));

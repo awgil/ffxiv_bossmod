@@ -17,7 +17,7 @@ class P2TyrfingFire(BossModule module) : Components.Cleave(module, ActionID.Make
 public class Un4ZurvanConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 951, NameID = 5567)]
-public class Un4Zurvan(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))
+public class Un4Zurvan(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
 {
     private Actor? _bossP2;
 

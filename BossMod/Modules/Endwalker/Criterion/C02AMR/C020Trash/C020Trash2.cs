@@ -45,4 +45,4 @@ class MountainBreeze(BossModule module, AID aid) : Components.SelfTargetedAOEs(m
 class NMountainBreeze(BossModule module) : MountainBreeze(module, AID.NMountainBreeze);
 class SMountainBreeze(BossModule module) : MountainBreeze(module, AID.SMountainBreeze);
 
-public abstract class C020Trash2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(300, 0), 20, 40));
+public abstract class C020Trash2(WorldState ws, Actor primary) : BossModule(ws, primary, new(300, 0), new ArenaBoundsRect(20, 40));

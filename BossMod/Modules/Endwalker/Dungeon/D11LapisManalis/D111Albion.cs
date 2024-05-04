@@ -225,8 +225,8 @@ class Icebreaker(BossModule module) : Components.GenericAOEs(module)
 
 class IcyThroes2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IcyThroes4), new AOEShapeCircle(6));
 class KnockOnIce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.KnockOnIce2), new AOEShapeCircle(5));
-class RightSlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightSlam), new AOEShapeRect(20, 80, directionOffset: -90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
-class LeftSlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftSlam), new AOEShapeRect(20, 80, directionOffset: 90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
+class RightSlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightSlam), new AOEShapeRect(20, 80, 0, -90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
+class LeftSlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftSlam), new AOEShapeRect(20, 80, 0, 90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
 class AlbionsEmbrace(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.AlbionsEmbrace));
 
 class RoarOfAlbion(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.RoarOfAlbion), 60, false)
@@ -252,4 +252,4 @@ class D111AlbionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11992)]
-public class D111Albion(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(24, -744), 19.5f));
+public class D111Albion(WorldState ws, Actor primary) : BossModule(ws, primary, new(24, -744), new ArenaBoundsSquare(19.5f));

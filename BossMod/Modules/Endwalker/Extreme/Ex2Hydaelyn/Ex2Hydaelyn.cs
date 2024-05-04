@@ -13,4 +13,4 @@ class Exodus(BossModule module) : Components.CastCounter(module, ActionID.MakeSp
 public class Ex2HydaelynConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 791, NameID = 10453)]
-public class Ex2Hydaelyn(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20));
+public class Ex2Hydaelyn(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));

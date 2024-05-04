@@ -13,7 +13,7 @@ class P3Ascension(BossModule module) : Components.CastCounter(module, ActionID.M
 class P3PillarOfSeverity(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PillarOfSeverityAOE));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 875, NameID = 4776)]
-public class Un2Sephirot(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 20))
+public class Un2Sephirot(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
 {
     public Actor? BossP1() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
 

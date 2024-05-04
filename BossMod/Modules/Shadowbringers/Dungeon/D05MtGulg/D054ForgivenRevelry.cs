@@ -59,4 +59,4 @@ class D054ForgivenRevelryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8270)]
-public class D054ForgivenRevelry(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-240, 176), 15));
+public class D054ForgivenRevelry(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 176), new ArenaBoundsSquare(15));

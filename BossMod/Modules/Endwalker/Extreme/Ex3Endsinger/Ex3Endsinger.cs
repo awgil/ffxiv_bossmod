@@ -17,4 +17,4 @@ class Eironeia(BossModule module) : Components.CastCounter(module, ActionID.Make
 public class Ex3EndsingerConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 846, NameID = 10448)]
-public class Ex3Endsinger(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20));
+public class Ex3Endsinger(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));

@@ -9,4 +9,4 @@ class DarkSphere(BossModule module) : Components.SpreadFromCastTargets(module, A
 public class P6SConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 881, NameID = 11381)]
-public class P6S(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(100, 100), 20));
+public class P6S(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

@@ -126,7 +126,7 @@ public class T07TitanH : BossModule
     private readonly IReadOnlyList<Actor> _heart;
     public IEnumerable<Actor> ActiveHeart => _heart.Where(h => h.IsTargetable && !h.IsDead);
 
-    public T07TitanH(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(0, 0), 25))
+    public T07TitanH(WorldState ws, Actor primary) : base(ws, primary, new(0, 0), new ArenaBoundsCircle(25))
     {
         _heart = Enemies(OID.TitansHeart);
     }

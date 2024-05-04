@@ -13,7 +13,7 @@ class PureFire(BossModule module, AID aid) : Components.LocationTargetedAOEs(mod
 class NPureFire(BossModule module) : PureFire(module, AID.NPureFireAOE);
 class SPureFire(BossModule module) : PureFire(module, AID.SPureFireAOE);
 
-public abstract class C013Shadowcaster(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(289, -105), 15, 20));
+public abstract class C013Shadowcaster(WorldState ws, Actor primary) : BossModule(ws, primary, new(289, -105), new ArenaBoundsRect(15, 20));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11393, SortOrder = 9)]
 public class C013NShadowcaster(WorldState ws, Actor primary) : C013Shadowcaster(ws, primary);

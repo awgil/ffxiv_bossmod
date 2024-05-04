@@ -163,7 +163,7 @@ class CE42FromBeyondTheGraveStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 20)] // bnpcname=9931
-public class CE42FromBeyondTheGrave(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-60, 800), 30))
+public class CE42FromBeyondTheGrave(WorldState ws, Actor primary) : BossModule(ws, primary, new(-60, 800), new ArenaBoundsCircle(30))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

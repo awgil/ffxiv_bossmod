@@ -96,7 +96,7 @@ class D081TeratotaurStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1567)]
-public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-70, -60), 20))
+public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(-70, -60), new ArenaBoundsSquare(20))
 {
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

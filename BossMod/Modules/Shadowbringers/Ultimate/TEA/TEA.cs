@@ -42,7 +42,7 @@ public class TEA : BossModule
     private Actor? _perfectAlex;
     public Actor? PerfectAlex() => _perfectAlex;
 
-    public TEA(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 22))
+    public TEA(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(22))
     {
         _liquidHand = Enemies(OID.LiquidHand);
         _trueHeart = Enemies(OID.TrueHeart);

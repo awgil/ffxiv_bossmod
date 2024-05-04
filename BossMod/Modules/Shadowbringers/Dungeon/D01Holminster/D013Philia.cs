@@ -366,4 +366,4 @@ class D013PhiliaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8301)]
-public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(134, -465), 19.5f));
+public class D013Philia(WorldState ws, Actor primary) : BossModule(ws, primary, new(134, -465), new ArenaBoundsCircle(19.5f));

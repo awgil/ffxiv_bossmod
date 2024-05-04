@@ -24,4 +24,4 @@ class Duel2LyonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 735, NameID = 8)] // bnpcname=9409
-public class Duel2Lyon(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(211, 380), 20));
+public class Duel2Lyon(WorldState ws, Actor primary) : BossModule(ws, primary, new(211, 380), new ArenaBoundsCircle(20));

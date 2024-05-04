@@ -64,7 +64,7 @@ class ComplexBoundsTest : TestWindow
         AddPlatform(shape, _platformCenterOffset * 120.Degrees().ToDirection());
         AddPlatform(shape, _platformCenterOffset * 240.Degrees().ToDirection());
         var bounds = new PolygonClipper().Simplify(shape, _evenOdd ? Clipper2Lib.FillRule.EvenOdd : Clipper2Lib.FillRule.NonZero);
-        return new(new(), new ArenaBoundsCustom(new(100, 100), 40, bounds));
+        return new(new(), new(100, 100), new ArenaBoundsCustom(40, bounds));
     }
 
     private void AddPlatform(PolygonClipper.Operand poly, WDir centerOffset)

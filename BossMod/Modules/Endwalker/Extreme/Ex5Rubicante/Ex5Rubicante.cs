@@ -8,4 +8,4 @@ class InfernoSpread(BossModule module) : Components.SpreadFromCastTargets(module
 public class Ex5RubicanteConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 924, NameID = 12057)]
-public class Ex5Rubicante(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20));
+public class Ex5Rubicante(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));

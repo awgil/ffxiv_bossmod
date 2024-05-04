@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-public abstract class AOEShape
+public abstract record class AOEShape
 {
     public abstract bool Check(WPos position, WPos origin, Angle rotation);
     public abstract void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE);
@@ -26,12 +26,8 @@ public abstract class AOEShape
     }
 }
 
-public class AOEShapeCone(float radius, Angle halfAngle, Angle directionOffset = default) : AOEShape
+public sealed record class AOEShapeCone(float Radius, Angle HalfAngle, Angle DirectionOffset = default) : AOEShape
 {
-    public float Radius = radius;
-    public Angle DirectionOffset = directionOffset;
-    public Angle HalfAngle = halfAngle;
-
     public override string ToString() => $"Cone: r={Radius:f3}, angle={HalfAngle * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InCircleCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneCone(origin, 0, Radius, rotation + DirectionOffset, HalfAngle, color);
@@ -45,10 +41,8 @@ public class AOEShapeCone(float radius, Angle halfAngle, Angle directionOffset =
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Cone(origin, Radius, rotation + DirectionOffset, HalfAngle);
 }
 
-public class AOEShapeCircle(float radius) : AOEShape
+public sealed record class AOEShapeCircle(float Radius) : AOEShape
 {
-    public float Radius = radius;
-
     public override string ToString() => $"Circle: r={Radius:f3}";
     public override bool Check(WPos position, WPos origin, Angle rotation = new()) => position.InCircle(origin, Radius);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation = new(), uint color = ArenaColor.AOE) => arena.ZoneCircle(origin, Radius, color);
@@ -60,11 +54,8 @@ public class AOEShapeCircle(float radius) : AOEShape
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Circle(origin, Radius);
 }
 
-public class AOEShapeDonut(float innerRadius, float outerRadius) : AOEShape
+public sealed record class AOEShapeDonut(float InnerRadius, float OuterRadius) : AOEShape
 {
-    public float InnerRadius = innerRadius;
-    public float OuterRadius = outerRadius;
-
     public override string ToString() => $"Donut: r={InnerRadius:f3}-{OuterRadius:f3}";
     public override bool Check(WPos position, WPos origin, Angle rotation = new()) => position.InDonut(origin, InnerRadius, OuterRadius);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation = new(), uint color = ArenaColor.AOE) => arena.ZoneDonut(origin, InnerRadius, OuterRadius, color);
@@ -81,13 +72,8 @@ public class AOEShapeDonut(float innerRadius, float outerRadius) : AOEShape
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Donut(origin, InnerRadius, OuterRadius);
 }
 
-public class AOEShapeDonutSector(float innerRadius, float outerRadius, Angle halfAngle, Angle directionOffset = default) : AOEShape
+public sealed record class AOEShapeDonutSector(float InnerRadius, float OuterRadius, Angle HalfAngle, Angle DirectionOffset = default) : AOEShape
 {
-    public float InnerRadius = innerRadius;
-    public float OuterRadius = outerRadius;
-    public Angle DirectionOffset = directionOffset;
-    public Angle HalfAngle = halfAngle;
-
     public override string ToString() => $"Donut sector: r={InnerRadius:f3}-{OuterRadius:f3}, angle={HalfAngle * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InDonutCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle, color);
@@ -101,24 +87,12 @@ public class AOEShapeDonutSector(float innerRadius, float outerRadius, Angle hal
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.DonutSector(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
 }
 
-public class AOEShapeRect(float lengthFront, float halfWidth, float lengthBack = 0, Angle directionOffset = default) : AOEShape
+public sealed record class AOEShapeRect(float LengthFront, float HalfWidth, float LengthBack = 0, Angle DirectionOffset = default) : AOEShape
 {
-    public float LengthFront = lengthFront;
-    public float LengthBack = lengthBack;
-    public float HalfWidth = halfWidth;
-    public Angle DirectionOffset = directionOffset;
-
     public override string ToString() => $"Rect: l={LengthFront:f3}+{LengthBack:f3}, w={HalfWidth * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZoneRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth, color);
-    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
-    {
-        var direction = (rotation + DirectionOffset).ToDirection();
-        var side = HalfWidth * direction.OrthoR();
-        var front = origin + LengthFront * direction;
-        var back = origin - LengthBack * direction;
-        arena.AddQuad(front + side, front - side, back - side, back + side, color);
-    }
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger) => arena.AddRect(origin, (rotation + DirectionOffset).ToDirection(), LengthFront, LengthBack, HalfWidth, color);
     public override IEnumerable<IEnumerable<WPos>> Contour(WPos origin, Angle rotation, float offset, float maxError)
     {
         var direction = (rotation + DirectionOffset).ToDirection();
@@ -128,31 +102,13 @@ public class AOEShapeRect(float lengthFront, float halfWidth, float lengthBack =
         yield return new[] { front + side, front - side, back - side, back + side };
     }
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Rect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
-
-    public void SetEndPoint(WPos endpoint, WPos origin, Angle rotation)
-    {
-        // this is a bit of a hack, but whatever...
-        var dir = endpoint - origin;
-        LengthFront = dir.Length();
-        DirectionOffset = Angle.FromDirection(dir) - rotation;
-    }
-
-    public void SetEndPointFromCastLocation(Actor caster)
-    {
-        if (caster.CastInfo != null)
-            SetEndPoint(caster.CastInfo.LocXZ, caster.Position, caster.Rotation);
-    }
 }
 
-public class AOEShapeCross(float length, float halfWidth, Angle directionOffset = default) : AOEShape
+public sealed record class AOEShapeCross(float Length, float HalfWidth, Angle DirectionOffset = default) : AOEShape
 {
-    public float Length = length;
-    public float HalfWidth = halfWidth;
-    public Angle DirectionOffset = directionOffset;
-
     public override string ToString() => $"Cross: l={Length:f3}, w={HalfWidth * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation + DirectionOffset, Length, Length, HalfWidth) || position.InRect(origin, rotation + DirectionOffset, HalfWidth, HalfWidth, Length);
-    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZonePoly(ContourPoints(origin, rotation), color);
+    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZonePoly(HashCode.Combine(GetType(), origin, rotation + DirectionOffset, Length, HalfWidth), ContourPoints(origin, rotation), color);
 
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
     {
@@ -192,11 +148,8 @@ public class AOEShapeCross(float length, float halfWidth, Angle directionOffset 
 }
 
 // TODO: revise and reconsider, not convinced it needs to be here, and it's not well implemented
-public class AOEShapeTriangle(float sideLength, Angle directionOffset = default) : AOEShape
+public sealed record class AOEShapeTriangle(float SideLength, Angle DirectionOffset = default) : AOEShape
 {
-    public float SideLength = sideLength;
-    public Angle DirectionOffset = directionOffset;
-
     public override bool Check(WPos position, WPos origin, Angle rotation)
     {
         var vertices = CalculateVertices(origin, rotation + DirectionOffset);

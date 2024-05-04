@@ -7,4 +7,4 @@ class SewageEruption(BossModule module) : Components.LocationTargetedAOEs(module
 public class P2SConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 811, NameID = 10348)]
-public class P2S(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(100, 100), 20));
+public class P2S(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

@@ -1,3 +1,5 @@
+using BossMod.PlanTarget;
+
 namespace BossMod.Global.PVP.HiddenGorge.GoblinMercenary;
 
 public enum OID : uint
@@ -133,14 +135,6 @@ class GoblinMercenaryStates : StateMachineBuilder
     }
 }
 
+// note: arena shapes don't seem to be perfect circle/square ?
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 599, NameID = 7906)]
-public class GoblinMercenary(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 0), 0))
-{
-    protected override void UpdateModule()
-    {
-        if (Enemies(OID.Boss).Any(e => e.Position.AlmostEqual(new(0, -125), 1)))
-            Arena.Bounds = new ArenaBoundsSquare(new(0, -124.5f), 16); //Note: the arena doesn't seem to be a perfect square, but it seems close enough
-        if (Enemies(OID.Boss).Any(e => e.Position.AlmostEqual(new(0, 144.5f), 1)))
-            Arena.Bounds = new ArenaBoundsCircle(new(0, 144.5f), 30); //Note: the arena doesn't seem to be a perfect circle, but this seems good enough
-    }
-}
+public class GoblinMercenary(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, primary.Position.Z < 0 ? -124.5f : 144.5f), primary.Position.Z < 0 ? new ArenaBoundsSquare(16) : new ArenaBoundsCircle(30));

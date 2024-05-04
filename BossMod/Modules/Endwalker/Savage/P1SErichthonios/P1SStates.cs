@@ -199,14 +199,14 @@ class P1SStates : StateMachineBuilder
     {
         var s = Cast(id, AID.ShiningCells, delay, 7, "Cells")
             .SetHint(StateMachine.StateHint.Raidwide);
-        s.Raw.Exit.Add(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Center, Module.Bounds.Radius));
+        s.Raw.Exit.Add(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Bounds.Radius));
     }
 
     private void SlamShut(uint id, float delay)
     {
         var s = Cast(id, AID.SlamShut, delay, 7, "SlamShut")
             .SetHint(StateMachine.StateHint.Raidwide);
-        s.Raw.Exit.Add(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Center, Module.Bounds.Radius));
+        s.Raw.Exit.Add(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Bounds.Radius));
     }
 
     private void Fork1(uint id)

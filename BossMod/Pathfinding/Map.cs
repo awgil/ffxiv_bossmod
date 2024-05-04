@@ -21,7 +21,7 @@ public class Map
     public int Height { get; private init; } // always even
     public Pixel[] Pixels;
 
-    public WPos Center { get; set; } // position of map center in world units
+    public WPos Center { get; private set; } // position of map center in world units
     public Angle Rotation { get; private init; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
     private WDir LocalZDivRes { get; init; }
 
@@ -44,11 +44,12 @@ public class Map
         LocalZDivRes = rotation.ToDirection() / Resolution;
     }
 
-    public Map Clone()
+    public Map Clone(WPos center)
     {
         var res = (Map)MemberwiseClone();
         res.Pixels = new Pixel[Pixels.Length];
         Array.Copy(Pixels, res.Pixels, Pixels.Length);
+        res.Center = center;
         return res;
     }
 

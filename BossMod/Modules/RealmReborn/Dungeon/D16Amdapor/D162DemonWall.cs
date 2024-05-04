@@ -59,4 +59,4 @@ class D162DemonWallStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1694)]
-public class D162DemonWall(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(200, -131), 10, 21));
+public class D162DemonWall(WorldState ws, Actor primary) : BossModule(ws, primary, new(200, -131), new ArenaBoundsRect(10, 21));

@@ -208,7 +208,7 @@ class D013MagusSistersStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10265)]
-class D013MagusSisters(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-27.5f, -49.5f), 20))
+class D013MagusSisters(WorldState ws, Actor primary) : BossModule(ws, primary, new(-27.5f, -49.5f), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

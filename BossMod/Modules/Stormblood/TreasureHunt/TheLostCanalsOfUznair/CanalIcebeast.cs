@@ -52,7 +52,7 @@ class IcebeastStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 268, NameID = 6650)]
-public class Icebeast(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, -420), 20))
+public class Icebeast(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -420), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

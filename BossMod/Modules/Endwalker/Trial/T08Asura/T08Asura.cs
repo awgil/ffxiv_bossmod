@@ -1,14 +1,6 @@
 namespace BossMod.Endwalker.Trial.T08Asura;
 
-class LowerRealm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LowerRealm))
-{
-    public override void Update() //deathwall appears after 1st cast
-    {
-        if (NumCasts > 0)
-            Module.Arena.Bounds = new ArenaBoundsCircle(new(100, 100), 19);
-    }
-}
-
+class LowerRealm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LowerRealm));
 class Ephemerality(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Ephemerality));
 class CuttingJewel(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.CuttingJewel), new AOEShapeCircle(4), true);
 class CuttingJewelHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CuttingJewel));
@@ -52,4 +44,4 @@ class T08AsuraStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 944, NameID = 12351)]
-public class T08Asura(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20));
+public class T08Asura(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(19));

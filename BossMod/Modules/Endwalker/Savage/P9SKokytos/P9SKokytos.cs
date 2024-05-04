@@ -8,4 +8,4 @@ class BeastlyFury(BossModule module) : Components.CastCounter(module, ActionID.M
 public class P9SKokytosConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 937, NameID = 12369)]
-public class P9SKokytos(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(100, 100), 20));
+public class P9SKokytos(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));

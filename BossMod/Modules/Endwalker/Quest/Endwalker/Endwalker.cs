@@ -78,7 +78,7 @@ public class Endwalker : BossModule
     public Actor? ZenosP1() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
     public Actor? ZenosP2() => _zenosP2.FirstOrDefault();
 
-    public Endwalker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
+    public Endwalker(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
     {
         _zenosP2 = Enemies(OID.ZenosP2);
     }

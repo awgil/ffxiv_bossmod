@@ -63,7 +63,7 @@ class Stage13Act2States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 623, NameID = 8107, SortOrder = 2)]
 public class Stage13Act2 : BossModule
 {
-    public Stage13Act2(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(100, 100), 16))
+    public Stage13Act2(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsCircle(16))
     {
         ActivateComponent<Hints>();
     }

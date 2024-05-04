@@ -40,7 +40,7 @@ class D053GraffiasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1, NameID = 444)]
-public class D053Graffias(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(215, -145), 20))
+public class D053Graffias(WorldState ws, Actor primary) : BossModule(ws, primary, new(215, -145), new ArenaBoundsCircle(20))
 {
     public override void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

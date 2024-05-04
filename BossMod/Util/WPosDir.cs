@@ -56,6 +56,9 @@ public record struct WPos(float X, float Z)
     public static WDir operator -(WPos a, WPos b) => new(a.X - b.X, a.Z - b.Z);
     public static bool AlmostEqual(WPos a, WPos b, float eps) => (a - b).AlmostZero(eps);
     public readonly bool AlmostEqual(WPos b, float eps) => (this - b).AlmostZero(eps);
+    public readonly WPos Scaled(float multiplier) => new(X * multiplier, Z * multiplier);
+    public readonly WPos Rounded() => new(MathF.Round(X), MathF.Round(Z));
+    public readonly WPos Rounded(float precision) => Scaled(1.0f / precision).Rounded().Scaled(precision);
     public static WPos Lerp(WPos from, WPos to, float progress) => new(from.ToVec2() * (1 - progress) + to.ToVec2() * progress);
 
     public override readonly string ToString() => $"[{X:f3}, {Z:f3}]";

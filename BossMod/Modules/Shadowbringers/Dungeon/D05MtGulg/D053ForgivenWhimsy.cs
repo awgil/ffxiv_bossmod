@@ -140,4 +140,4 @@ class D053ForgivenWhimsyStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8261)]
-public class D053ForgivenWhimsy(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-240, -50), 15));
+public class D053ForgivenWhimsy(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, -50), new ArenaBoundsSquare(15));

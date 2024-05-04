@@ -108,7 +108,7 @@ class D123OctomammothStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
 class D123Octomammoth : BossModule
 {
-    public D123Octomammoth(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsCircle(new(-370, -368), 33.3f))
+    public D123Octomammoth(WorldState ws, Actor primary) : base(ws, primary, new(-370, -368), new ArenaBoundsCircle(33.3f))
     {
         ActivateComponent<Border>();
     }

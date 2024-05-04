@@ -49,7 +49,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
 
     private MapVisualizer BuildZoneVisualizer(Func<WPos, float> shape)
     {
-        var map = hints.Bounds.PathfindMap();
+        var map = hints.Bounds.PathfindMap(hints.Center);
         map.BlockPixelsInside(shape, 0, NavigationDecision.DefaultForbiddenZoneCushion);
         return new MapVisualizer(map, 0, player.Position);
     }
@@ -61,7 +61,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, ulong
         _navi = BuildPathfind(targeting.enemy, targeting.range, targeting.pos, targeting.tank);
         if (_navi.Map == null)
         {
-            _navi.Map = hints.Bounds.PathfindMap();
+            _navi.Map = hints.Bounds.PathfindMap(hints.Center);
             var imm = NavigationDecision.ImminentExplosionTime(ws.CurrentTime);
             foreach (var (shape, activation) in hints.ForbiddenZones)
                 NavigationDecision.AddBlockerZone(_navi.Map, imm, activation, shape, NavigationDecision.DefaultForbiddenZoneCushion);

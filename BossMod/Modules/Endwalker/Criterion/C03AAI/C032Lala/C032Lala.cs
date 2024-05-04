@@ -4,7 +4,7 @@ class ArcaneBlight(BossModule module, AID aid) : Components.SelfTargetedAOEs(mod
 class NArcaneBlight(BossModule module) : ArcaneBlight(module, AID.NArcaneBlightAOE);
 class SArcaneBlight(BossModule module) : ArcaneBlight(module, AID.SArcaneBlightAOE);
 
-public abstract class C032Lala(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(200, 0), 20));
+public abstract class C032Lala(WorldState ws, Actor primary) : BossModule(ws, primary, new(200, 0), new ArenaBoundsSquare(20));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12639, SortOrder = 8)]
 public class C032NLala(WorldState ws, Actor primary) : C032Lala(ws, primary);

@@ -200,7 +200,7 @@ public class CE54NeverCryWolf : BossModule
 {
     private readonly IReadOnlyList<Actor> _adds;
 
-    public CE54NeverCryWolf(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(-830, 190), 24))
+    public CE54NeverCryWolf(WorldState ws, Actor primary) : base(ws, primary, new(-830, 190), new ArenaBoundsSquare(24))
     {
         _adds = Enemies(OID.Imaginifer);
     }

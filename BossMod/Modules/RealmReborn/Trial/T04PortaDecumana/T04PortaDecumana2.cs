@@ -133,7 +133,7 @@ class T04PortaDecumana2States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 2)]
-public class T04PortaDecumana2(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-704, 480), 20))
+public class T04PortaDecumana2(WorldState ws, Actor primary) : BossModule(ws, primary, new(-704, 480), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

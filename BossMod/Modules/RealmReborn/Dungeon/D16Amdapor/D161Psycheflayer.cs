@@ -54,7 +54,7 @@ class D161PsycheflayerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1689)]
-public class D161Psycheflayer(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-29, 0), 40))
+public class D161Psycheflayer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-29, 0), new ArenaBoundsCircle(40))
 {
     private Actor? _bossP2;
     public Actor MainBoss() => _bossP2 ?? PrimaryActor;

@@ -20,8 +20,8 @@ public enum AID : uint
     LozatlsFuryB = 15503, // 27AF->self, 4,0s cast, range 60 width 20 rect
 }
 
-class LozatlsFuryA(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryA), new AOEShapeRect(60, 20, directionOffset: 90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
-class LozatlsFuryB(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, directionOffset: -90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
+class LozatlsFuryA(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryA), new AOEShapeRect(60, 20, 0, 90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
+class LozatlsFuryB(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryB), new AOEShapeRect(60, 20, 0, -90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
 class Stonefist(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Stonefist));
 class LozatlsScorn(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LozatlsScorn));
 class SunToss(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SunToss), 5);
@@ -66,4 +66,4 @@ class D031LozatlStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8231)]
-public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 315), 20));
+public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 315), new ArenaBoundsCircle(20));

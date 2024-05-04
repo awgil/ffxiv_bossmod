@@ -27,6 +27,7 @@ class Ex7ZeromusStates : StateMachineBuilder
         VoidBioVisceralWhirl(id + 0xD0000, 3.9f);
         DarkMatter(id + 0xE0000, 7.1f);
         SparklingBrandingFlare(id + 0xF0000, 5.2f);
+        AbyssalNoxEchoesSableThread(id + 0x100000, 13.9f, true);
 
         SimpleState(id + 0xFF0000, 10, "???");
     }
@@ -41,6 +42,15 @@ class Ex7ZeromusStates : StateMachineBuilder
         FlowOfTheAbyss(id + 0x50000, 7.4f, true);
         FlowOfTheAbyss(id + 0x60000, 10.7f, true);
         DimensionalSurgeNostalgia(id + 0x70000, 7.7f);
+        // TODO: never seen stuff below...
+        FlowOfTheAbyss(id + 0x80000, 7.4f, true);
+        FlowOfTheAbyss(id + 0x90000, 10.7f, true);
+        DimensionalSurgeNostalgia(id + 0xA0000, 7.7f);
+        FlowOfTheAbyss(id + 0xB0000, 7.4f, true);
+        FlowOfTheAbyss(id + 0xC0000, 10.7f, true);
+        DimensionalSurgeNostalgia(id + 0xD0000, 7.7f);
+        FlowOfTheAbyss(id + 0xE0000, 7.4f, true);
+        FlowOfTheAbyss(id + 0xF0000, 10.7f, true);
 
         SimpleState(id + 0xFF0000, 10, "???");
     }
@@ -271,11 +281,11 @@ class Ex7ZeromusStates : StateMachineBuilder
     {
         CastStart(id, AID.FlowOfTheAbyss, delay)
             .ActivateOnEnter<NostalgiaDimensionalSurge>(withPuddles);
-        ComponentCondition<FlowOfTheAbyssSpreadStack>(id + 1, 3, comp => comp.Active)
+        ComponentCondition<FlowOfTheAbyssSpreadStack>(id + 1, 3.1f, comp => comp.Active)
             .ActivateOnEnter<FlowOfTheAbyssDimensionalSurge>()
             .ActivateOnEnter<FlowOfTheAbyssSpreadStack>()
             .DeactivateOnExit<NostalgiaDimensionalSurge>(withPuddles);
-        CastEnd(id + 2, 4);
+        CastEnd(id + 2, 3.9f);
         ComponentCondition<FlowOfTheAbyssSpreadStack>(id + 3, 1.1f, comp => !comp.Active, "Spread/stack/pairs")
             .ActivateOnEnter<FlowOfTheAbyssAkhRhai>()
             .DeactivateOnExit<FlowOfTheAbyssSpreadStack>();

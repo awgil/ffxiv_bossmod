@@ -7,6 +7,7 @@ class Coherence(BossModule module) : Components.CastCounter(module, ActionID.Mak
     private Actor? _tetherTarget;
     private Actor? _rayTarget;
     private readonly AOEShapeRect _rayShape = new(50, 3);
+    private Angle _rayDirection;
     private BitMask _inRay;
 
     private const float _aoeRadius = 10; // not sure about this - actual range is 60, but it has some sort of falloff? i have very few data points < 15
@@ -17,8 +18,8 @@ class Coherence(BossModule module) : Components.CastCounter(module, ActionID.Mak
         _rayTarget = Raid.WithoutSlot().Exclude(_tetherTarget).Closest(Module.PrimaryActor.Position);
         if (_rayTarget != null)
         {
-            _rayShape.DirectionOffset = Angle.FromDirection(_rayTarget.Position - Module.PrimaryActor.Position);
-            _inRay = Raid.WithSlot().InShape(_rayShape, Module.PrimaryActor.Position, 0.Degrees()).Mask();
+            _rayDirection = Angle.FromDirection(_rayTarget.Position - Module.PrimaryActor.Position);
+            _inRay = Raid.WithSlot().InShape(_rayShape, Module.PrimaryActor.Position, _rayDirection).Mask();
         }
     }
 
@@ -62,7 +63,7 @@ class Coherence(BossModule module) : Components.CastCounter(module, ActionID.Mak
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (_rayTarget != null)
-            _rayShape.Draw(Arena, Module.PrimaryActor.Position, 0.Degrees());
+            _rayShape.Draw(Arena, Module.PrimaryActor.Position, _rayDirection);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

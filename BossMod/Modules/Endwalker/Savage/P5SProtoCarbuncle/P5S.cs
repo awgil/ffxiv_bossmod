@@ -10,4 +10,4 @@ class DevourBait(BossModule module) : Components.CastCounter(module, ActionID.Ma
 public class P5SConfig() : CooldownPlanningConfigNode(90);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 873, NameID = 11440)]
-public class P5S(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(100, 100), 15));
+public class P5S(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(15));
