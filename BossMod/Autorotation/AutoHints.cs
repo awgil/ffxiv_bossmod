@@ -33,7 +33,7 @@ public sealed class AutoHints : IDisposable
         }
         else
         {
-            hints.Center = player.Position;
+            hints.Center = player.Position.Rounded(5);
             // keep default bounds
         }
 
