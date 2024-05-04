@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Quest;
+﻿namespace BossMod.Endwalker.Quest.VowsOfVirtueDeedsOfCruelty;
 
 public enum OID : uint
 {
