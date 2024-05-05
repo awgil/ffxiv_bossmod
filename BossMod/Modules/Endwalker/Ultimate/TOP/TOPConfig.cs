@@ -53,6 +53,10 @@ public class TOPConfig() : CooldownPlanningConfigNode(90)
     [GroupPreset("LPDU (HTMR)", [2, 3, 0, 1, 4, 5, 6, 7])]
     public GroupAssignmentUnique P3MonitorsAssignments = new() { Assignments = [2, 3, 0, 1, 4, 5, 6, 7] };
 
+    [PropertyDisplay("P3 Monitors: position for safe side monitor")]
+    [PropertyCombo("North (LPDU)", "South (Aether)")]
+    public bool P3LastMonitorSouth = false;
+
     [PropertyDisplay("P4 Wave Cannon: priority, from North to South (assuming south flex)")]
     [GroupDetails(["W1", "E1", "W2", "E2", "W3", "E3", "W4", "E4"])]
     [GroupPreset("LPDU (TRHM)", [0, 1, 4, 5, 6, 7, 2, 3])]
