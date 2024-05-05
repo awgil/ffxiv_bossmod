@@ -27,9 +27,9 @@ class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
         {
             var nesw = Service.Config.Get<TOPConfig>().P1PantokratorNESW;
             var flame1Dir = Casters[0].CastInfo!.Rotation - Module.PrimaryActor.Rotation;
+            // if ne/sw, set of safe cones is offset by 1 rotation
             if (nesw)
-                // if NE/SW, treat flamethrower as offset by 45 degrees, since NE/1 marker is pivot point instead of true north/A marker
-                flame1Dir += 45.Degrees();
+                flame1Dir += 60.Degrees();
 
             var dir = flame1Dir.Normalized().Deg switch
             {
@@ -40,8 +40,8 @@ class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
                 (> 135 and < 165) or (> -45 and < -15) => 60.Degrees(),
                 _ => -90.Degrees(), // assume groups go CW
             };
+            // undo direction adjustment to correct target safe spot
             if (nesw)
-                // if NE/SW, the set of correct safespots is offset from the N/S ones by 60 degrees, i.e. one flamethrower rotation
                 dir -= 60.Degrees();
             var offset = 12 * (Module.PrimaryActor.Rotation + dir).ToDirection();
             var pos = group == 1 ? Module.Center + offset : Module.Center - offset;
