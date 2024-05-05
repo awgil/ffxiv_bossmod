@@ -16,6 +16,10 @@ public class TOPConfig() : CooldownPlanningConfigNode(90)
     [GroupPreset("LPDU (light parties): flex T>M>R", [0, 4, 3, 7, 1, 5, 2, 6])]
     public GroupAssignmentUnique P1PantokratorAssignments = new() { Assignments = [0, 4, 3, 7, 1, 5, 2, 6] };
 
+    [PropertyDisplay("P1 Pantokrator: group positions")]
+    [PropertyCombo("North/South", "NE/SW")]
+    public bool P1PantokratorNESW = false;
+
     [PropertyDisplay("P1 Pantokrator: use global priority instead - consider G1 lower-numbered than G2 (so G1 more likely to flex)")]
     public bool P1PantokratorGlobalPriority = false;
 
@@ -26,6 +30,14 @@ public class TOPConfig() : CooldownPlanningConfigNode(90)
 
     [PropertyDisplay("P2 Party Synergy: use global priority instead - consider G1 lower-numbered than G2 (so G1 more likely to flex)")]
     public bool P2PartySynergyGlobalPriority = false;
+
+    [PropertyDisplay("P2 Party Synergy: G2 order for Remote Glitch (far tether)")]
+    [PropertyCombo("GPOB (only B and G swap)", "GOPB (reverse order)")]
+    public bool P2PartySynergyG2ReverseAll = true;
+
+    [PropertyDisplay("P2 Party Synergy: Swap priority if both stacks are in the same group")]
+    [PropertyCombo("Northernmost pair", "Southernmost pair")]
+    public bool P2PartySynergyStackSwapSouth = true;
 
     [PropertyDisplay("P3 Intermission: spread/stack spot assignments, from West to East")]
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
@@ -40,6 +52,10 @@ public class TOPConfig() : CooldownPlanningConfigNode(90)
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
     [GroupPreset("LPDU (HTMR)", [2, 3, 0, 1, 4, 5, 6, 7])]
     public GroupAssignmentUnique P3MonitorsAssignments = new() { Assignments = [2, 3, 0, 1, 4, 5, 6, 7] };
+
+    [PropertyDisplay("P3 Monitors: position for safe side monitor")]
+    [PropertyCombo("North (LPDU)", "South (Aether)")]
+    public bool P3LastMonitorSouth = false;
 
     [PropertyDisplay("P4 Wave Cannon: priority, from North to South (assuming south flex)")]
     [GroupDetails(["W1", "E1", "W2", "E2", "W3", "E3", "W4", "E4"])]

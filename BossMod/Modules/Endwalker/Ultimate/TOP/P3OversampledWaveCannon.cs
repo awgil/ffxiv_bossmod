@@ -85,20 +85,30 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         if (_numPlayerAngles < 3 || _bossAngle == default)
             yield break;
 
+        var m3South = Service.Config.Get<TOPConfig>().P3LastMonitorSouth;
+
         WPos adjust(float x, float z) => Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
         if (IsMonitor(slot))
         {
-            yield return (adjust(10, -11), _playerOrder[slot] == 1);
-            yield return (adjust(-11, -9), _playerOrder[slot] == 2);
-            yield return (adjust(-11, +9), _playerOrder[slot] == 3);
+            var nextSlot = 0;
+            if (!m3South)
+                yield return (adjust(10, -11), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(-11, -9), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(-11, +9), _playerOrder[slot] == ++nextSlot);
+            if (m3South)
+                yield return (adjust(10, 11), _playerOrder[slot] == ++nextSlot);
         }
         else
         {
-            yield return (adjust(1, -15), _playerOrder[slot] == 1);
-            yield return (adjust(15, -4), _playerOrder[slot] == 2);
-            yield return (adjust(15, +4), _playerOrder[slot] == 3);
-            yield return (adjust(10, 11), _playerOrder[slot] == 4);
-            yield return (adjust(1, 15), _playerOrder[slot] == 5);
+            var nextSlot = 0;
+            yield return (adjust(1, -15), _playerOrder[slot] == ++nextSlot);
+            if (m3South)
+                yield return (adjust(10, -11), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(15, -4), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(15, +4), _playerOrder[slot] == ++nextSlot);
+            if (!m3South)
+                yield return (adjust(10, 11), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(1, 15), _playerOrder[slot] == ++nextSlot);
         }
     }
 
