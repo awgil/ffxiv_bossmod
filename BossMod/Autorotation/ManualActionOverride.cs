@@ -11,11 +11,12 @@
 // - trying to queue an oGCD action while it is already queued (double tapping) activates 'emergency mode': all preceeding queued actions are removed and this action is returned even if it would delay GCD
 class ManualActionOverride(WorldState ws)
 {
-    public class Entry(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
+    public class Entry(ActionID action, Actor? target, Vector3 targetPos, Angle? facingAngle, ActionDefinition definition, Func<Actor?, bool>? condition, DateTime expireAt)
     {
         public ActionID Action = action;
         public Actor? Target = target;
         public Vector3 TargetPos = targetPos;
+        public Angle? FacingAngle = facingAngle;
         public ActionDefinition Definition = definition;
         public Func<Actor?, bool>? Condition = condition;
         public DateTime ExpireAt = expireAt;
@@ -49,7 +50,7 @@ class ManualActionOverride(WorldState ws)
         _queue.RemoveAll(CheckExpired);
     }
 
-    public void Push(ActionID action, Actor? target, Vector3 targetPos, ActionDefinition def, Func<Actor?, bool>? condition, bool simulated = false)
+    public void Push(ActionID action, Actor? target, Vector3 targetPos, Angle? facingAngle, ActionDefinition def, Func<Actor?, bool>? condition, bool simulated = false)
     {
         bool isGCD = def.CooldownGroup == CommonDefinitions.GCDGroup;
         float expire = isGCD ? 1.0f : 3.0f;
@@ -63,7 +64,7 @@ class ManualActionOverride(WorldState ws)
         if (index < 0)
         {
             Service.Log($"[MAO] Queueing {action} @ {target}");
-            _queue.Add(new(action, target, targetPos, def, condition, expireAt));
+            _queue.Add(new(action, target, targetPos, facingAngle, def, condition, expireAt));
             return;
         }
 
@@ -72,7 +73,7 @@ class ManualActionOverride(WorldState ws)
         {
             Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {target}");
             _queue.RemoveAt(index);
-            _queue.Add(new(action, target, targetPos, def, condition, expireAt));
+            _queue.Add(new(action, target, targetPos, facingAngle, def, condition, expireAt));
         }
         else if (isGCD)
         {
@@ -84,7 +85,7 @@ class ManualActionOverride(WorldState ws)
             Service.Log($"[MAO] Entering emergency mode for {e.Action}");
             // spamming oGCD - enter emergency mode
             _queue.Clear();
-            _queue.Add(new(action, target, targetPos, def, condition, expireAt));
+            _queue.Add(new(action, target, targetPos, facingAngle, def, condition, expireAt));
             _emergencyMode = true;
         }
     }

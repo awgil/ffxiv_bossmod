@@ -140,6 +140,15 @@ class Actions : CommonActions
 
         // smart targets
         SupportedSpell(AID.DragonSight).TransformTarget = config.SmartDragonSightTarget ? SmartTargetDragonSight : null;
+
+        // elusive jump aiming
+        SupportedSpell(AID.ElusiveJump).TransformAngle = config.ElusiveJump switch
+        {
+            DRGConfig.ElusiveJumpBehavior.CharacterForward => () => Player.Rotation + 180.Degrees(),
+            DRGConfig.ElusiveJumpBehavior.CameraBackward => () => Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees(),
+            DRGConfig.ElusiveJumpBehavior.CameraForward => () => Camera.Instance!.CameraAzimuth.Radians(),
+            _ => null
+        };
     }
 
     private bool WithoutDOT(Actor a) => Rotation.RefreshDOT(_state, StatusDetails(a, SID.ChaosThrust, Player.InstanceID).Left);

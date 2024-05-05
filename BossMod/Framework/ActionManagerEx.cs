@@ -333,6 +333,9 @@ unsafe sealed class ActionManagerEx : IDisposable
             var status = GetActionStatus(actionAdj, targetID);
             if (status == 0)
             {
+                if (AutoQueue.FacingAngle != null)
+                    FaceDirection(AutoQueue.FacingAngle.Value.ToDirection());
+
                 var res = AutoQueue.Action.Type switch
                 {
                     ActionType.Item => UseActionRaw(actionAdj, targetID, AutoQueue.TargetPos, 65535),

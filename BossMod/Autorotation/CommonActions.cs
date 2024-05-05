@@ -11,7 +11,7 @@ abstract class CommonActions : IDisposable
 
     public enum ActionSource { Automatic, Planned, Manual, Emergency }
 
-    public record struct NextAction(ActionID Action, Actor? Target, Vector3 TargetPos, ActionSource Source);
+    public record struct NextAction(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionSource Source);
     public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);
 
     public class SupportedAction(ActionDefinition definition, bool isGT)
@@ -22,6 +22,7 @@ abstract class CommonActions : IDisposable
         public int PlaceholderForAuto; // if set, attempting to execute this action would instead initiate auto-strategy
         public Func<ActionID>? TransformAction;
         public Func<Actor?, Actor?>? TransformTarget;
+        public Func<Angle?>? TransformAngle;
 
         public bool Allowed(Actor player, Actor target)
         {
@@ -199,7 +200,7 @@ abstract class CommonActions : IDisposable
         {
             if (forcedGTPos != null)
             {
-                _mq.Push(action, null, forcedGTPos.Value, supportedAction.Definition, supportedAction.Condition);
+                _mq.Push(action, null, forcedGTPos.Value, null, supportedAction.Definition, supportedAction.Condition);
                 return true;
             }
 
@@ -211,7 +212,7 @@ abstract class CommonActions : IDisposable
                 var pos = ActionManagerEx.Instance!.GetWorldPosUnderCursor();
                 if (pos == null)
                     return false; // same as manual...
-                _mq.Push(action, null, pos.Value, supportedAction.Definition, supportedAction.Condition);
+                _mq.Push(action, null, pos.Value, null, supportedAction.Definition, supportedAction.Condition);
                 return true;
             }
         }
@@ -220,7 +221,9 @@ abstract class CommonActions : IDisposable
         {
             target = supportedAction.TransformTarget(target);
         }
-        _mq.Push(action, target, new(), supportedAction.Definition, supportedAction.Condition);
+
+        Angle? angleOverride = supportedAction.TransformAngle?.Invoke();
+        _mq.Push(action, target, new(), angleOverride, supportedAction.Definition, supportedAction.Condition);
         return true;
     }
 
@@ -229,26 +232,26 @@ abstract class CommonActions : IDisposable
         // check emergency mode
         var mqEmergency = _mq.PeekEmergency();
         if (mqEmergency != null)
-            return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, ActionSource.Emergency);
+            return new(mqEmergency.Action, mqEmergency.Target, mqEmergency.TargetPos, mqEmergency.FacingAngle, ActionSource.Emergency);
 
         var effAnimLock = Autorot.EffAnimLock;
         var animLockDelay = Autorot.AnimLockDelay;
 
         // see if we have any GCD (queued or automatic)
         var mqGCD = _mq.PeekGCD();
-        var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
+        var nextGCD = mqGCD != null ? new NextAction(mqGCD.Action, mqGCD.Target, mqGCD.TargetPos, mqGCD.FacingAngle, ActionSource.Manual) : AutoAction != AutoActionNone ? CalculateAutomaticGCD() : new();
         float ogcdDeadline = nextGCD.Action ? Autorot.WorldState.Client.Cooldowns[CommonDefinitions.GCDGroup].Remaining : float.MaxValue;
         //Log($"{nextGCD.Action} = {ogcdDeadline}");
 
         // search for any oGCDs that we can execute without delaying GCD
         var mqOGCD = _mq.PeekOGCD(effAnimLock, animLockDelay, ogcdDeadline);
         if (mqOGCD != null)
-            return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, ActionSource.Manual);
+            return new(mqOGCD.Action, mqOGCD.Target, mqOGCD.TargetPos, mqOGCD.FacingAngle, ActionSource.Manual);
 
         // see if there is anything high-priority from cooldown plan to be executed
         var cpActionHigh = Autorot.Hints.PlannedActions.FirstOrDefault(x => !x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
         if (cpActionHigh.action)
-            return new(cpActionHigh.action, cpActionHigh.target, new(), ActionSource.Planned);
+            return new(cpActionHigh.action, cpActionHigh.target, new(), null, ActionSource.Planned);
 
         // note: we intentionally don't check that automatic oGCD really does not clip GCD - we provide utilities that allow module checking that, but also allow overriding if needed
         var nextOGCD = AutoAction != AutoActionNone ? CalculateAutomaticOGCD(ogcdDeadline) : new();
@@ -258,7 +261,7 @@ abstract class CommonActions : IDisposable
         // finally see whether there are any low-priority planned actions
         var cpActionLow = Autorot.Hints.PlannedActions.FirstOrDefault(x => x.lowPriority && CanExecutePlannedAction(x.action, x.target, effAnimLock, animLockDelay, ogcdDeadline));
         if (cpActionLow.action)
-            return new(cpActionLow.action, cpActionLow.target, new(), ActionSource.Planned);
+            return new(cpActionLow.action, cpActionLow.target, new(), null, ActionSource.Planned);
 
         // no ogcds, execute gcd instead
         return nextGCD;
@@ -296,7 +299,7 @@ abstract class CommonActions : IDisposable
             return new();
         if (data.Definition.Range == 0)
             target = Player; // override range-0 actions to always target player
-        return target != null && data.Allowed(Player, target) ? new(action, target, new(), ActionSource.Automatic) : new();
+        return target != null && data.Allowed(Player, target) ? new(action, target, new(), null, ActionSource.Automatic) : new();
     }
     protected NextAction MakeResult<AID>(AID aid, Actor? target) where AID : Enum => MakeResult(ActionID.MakeSpell(aid), target);
 
@@ -305,7 +308,7 @@ abstract class CommonActions : IDisposable
         if (enable)
         {
             var data = SupportedActions[action];
-            _mq.Push(action, target, new(), data.Definition, data.Condition, true);
+            _mq.Push(action, target, new(), null, data.Definition, data.Condition, true);
         }
         else
         {
