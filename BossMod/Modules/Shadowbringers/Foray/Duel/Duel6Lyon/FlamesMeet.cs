@@ -1,5 +1,5 @@
-﻿
-namespace BossMod.Shadowbringers.Foray.Duel.Duel6Lyon;
+﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel6Lyon;
+
 class FlamesMeet(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
