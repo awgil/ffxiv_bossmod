@@ -6,6 +6,7 @@ class P2PartySynergy(BossModule module) : CommonAssignments(module)
 
     public Glitch ActiveGlitch;
     public bool EnableDistanceHints;
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
 
     protected override (GroupAssignmentUnique assignment, bool global) Assignments()
     {
@@ -94,13 +95,11 @@ class P2PartySynergy(BossModule module) : CommonAssignments(module)
         if (st.Group == 1 || ActiveGlitch == Glitch.Mid)
             return st.Order;
 
-        var reverseAll = Service.Config.Get<TOPConfig>().P2PartySynergyG2ReverseAll;
-
         return st.Order switch
         {
             1 => 4,
-            2 => reverseAll ? 3 : 2,
-            3 => reverseAll ? 2 : 3,
+            2 => _config.P2PartySynergyG2ReverseAll ? 3 : 2,
+            3 => _config.P2PartySynergyG2ReverseAll ? 2 : 3,
             4 => 1,
             _ => 0
         };
@@ -294,13 +293,9 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
                     // need adjust
                     var s1Order = _synergy.GetNorthSouthOrder(s1);
                     var s2Order = _synergy.GetNorthSouthOrder(s2);
-                    int adjustOrder;
-                    if (_config.P2PartySynergyStackSwapSouth)
-                        // south = higher order will swap
-                        adjustOrder = s1Order > s2Order ? s1.Order : s2.Order;
-                    else
-                        // north = lower
-                        adjustOrder = s1Order > s2Order ? s2.Order : s1.Order;
+                    int adjustOrder = _config.P2PartySynergyStackSwapSouth
+                        ? s1Order > s2Order ? s1.Order : s2.Order // south = higher order will swap
+                        : s1Order > s2Order ? s2.Order : s1.Order; // north = lower
 
                     for (int s = 0; s < _synergy.PlayerStates.Length; ++s)
                     {
