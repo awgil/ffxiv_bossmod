@@ -14,7 +14,7 @@ class RedHiddenMines(BossModule module) : Components.GenericAOEs(module)
         {
             _mines.Add(new(_shapeTrigger, caster.Position, Color: ArenaColor.Trap));
         }
-        if ((AID)spell.Action.ID is AID.DetonateRedMine)
+        if ((AID)spell.Action.ID is AID.DetonateRedMine or AID.Explosion)
         {
             _mines.RemoveAll(t => t.Origin.AlmostEqual(caster.Position, 1));
         }
