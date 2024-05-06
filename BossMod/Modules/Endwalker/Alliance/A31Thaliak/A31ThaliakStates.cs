@@ -130,7 +130,7 @@ class A31ThaliakStates : StateMachineBuilder
         CastStart(id, AID.Tetraktys, delay)
             .ActivateOnEnter<TetraktysBorder>(); // telegraph appears ~0.1s before cast start
         CastEnd(id + 1, 6);
-        ComponentCondition<TetraktysBorder>(id + 2, 0.5f, comp => comp.Active, "Triangles start")
+        ComponentCondition<TetraktysBorder>(id + 2, 0.4f, comp => comp.Active, "Triangles start")
             .OnExit(() => Module.Arena.Bounds = A31Thaliak.TriBounds);
         ComponentCondition<Tetraktys>(id + 0x10, 3.6f, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<Tetraktys>();
@@ -146,9 +146,9 @@ class A31ThaliakStates : StateMachineBuilder
         CastEnd(id + 0x100, 3.7f);
         ComponentCondition<TetraktuosKosmos>(id + 0x110, 0.8f, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<TetraktuosKosmos>();
-        CastStart(id + 0x120, AID.TetraktuosKosmos, 6.4f);
-        ComponentCondition<TetraktuosKosmos>(id + 0x121, 1.6f, comp => comp.NumCasts >= 2, "Splitting tri 1+2");
-        CastEnd(id + 0x122, 2.4f);
+        CastStart(id + 0x120, AID.TetraktuosKosmos, 6.3f);
+        ComponentCondition<TetraktuosKosmos>(id + 0x121, 1.7f, comp => comp.NumCasts >= 2, "Splitting tri 1+2");
+        CastEnd(id + 0x122, 2.3f);
         ComponentCondition<TetraktuosKosmos>(id + 0x130, 0.8f, comp => comp.AOEs.Count > 0);
         ComponentCondition<TetraktuosKosmos>(id + 0x140, 8, comp => comp.NumCasts >= 4, "Splitting tri 3+4")
             .DeactivateOnExit<TetraktuosKosmos>();
