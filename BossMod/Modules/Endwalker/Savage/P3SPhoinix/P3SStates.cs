@@ -158,7 +158,7 @@ class P3SStates : StateMachineBuilder
         CastEnd(id + 0x2001, 3, "SearingBreeze");
         Cinderwing(id + 0x3000, 3.2f)
             .SetHint(StateMachine.StateHint.PositioningEnd)
-            .Raw.Enter.Add(Module.DeactivateComponent<DevouringBrand>); // TODO: stop showing brand when aoes finish...
+            .OnEnter(Module.DeactivateComponent<DevouringBrand>); // TODO: stop showing brand when aoes finish...
     }
 
     private void DarkenedFire(uint id, float delay)

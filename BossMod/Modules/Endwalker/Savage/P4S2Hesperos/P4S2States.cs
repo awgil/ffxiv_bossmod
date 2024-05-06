@@ -212,7 +212,7 @@ class P4S2States : StateMachineBuilder
             .ActivateOnEnter<WreathOfThorns4>();
         SearingStream(id + 0x3000, 3.2f)
             .SetHint(StateMachine.StateHint.PositioningStart)
-            .Raw.Exit.Add(() => Module.FindComponent<WreathOfThorns4>()!.ReadyToBreak = true);
+            .ExecOnExit<WreathOfThorns4>(comp => comp.ReadyToBreak = true);
         UltimateImpulse(id + 0x4000, 28.2f)
             .DeactivateOnExit<WreathOfThorns4>()
             .SetHint(StateMachine.StateHint.PositioningEnd);
@@ -275,12 +275,12 @@ class P4S2States : StateMachineBuilder
         // 86.3s: hell sting 4 sequence end
         // 95.4s: aoe start
         Cast(id, AID.AkanthaiCurtainCall, delay, 5, "Act6")
-            .Raw.Exit.Add(Module.ActivateComponent<CurtainCall>);
+            .OnExit(Module.ActivateComponent<CurtainCall>);
         HellSting(id + 0x1000, 10.2f);
         HellSting(id + 0x2000, 14.2f);
         UltimateImpulse(id + 0x3000, 9.2f)
             .DeactivateOnExit<CurtainCall>()
-            .Raw.Exit.Add(Module.ActivateComponent<CurtainCall>);
+            .OnExit(Module.ActivateComponent<CurtainCall>);
         HellSting(id + 0x4000, 7.2f);
         HellSting(id + 0x5000, 14.2f);
         UltimateImpulse(id + 0x6000, 9.2f)

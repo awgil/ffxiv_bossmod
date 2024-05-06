@@ -4,7 +4,7 @@ namespace BossMod;
 
 sealed class IPCProvider : IDisposable
 {
-    private readonly List<Action> _disposeActions = [];
+    private Action? _disposeActions;
 
     public IPCProvider(Autorotation autorotation)
     {
@@ -21,37 +21,33 @@ sealed class IPCProvider : IDisposable
         Register("SetAutorotationState", (bool state) => Service.Config.Get<AutorotationConfig>().Enabled = state);
     }
 
-    public void Dispose()
-    {
-        foreach (var a in _disposeActions)
-            a();
-    }
+    public void Dispose() => _disposeActions?.Invoke();
 
     private void Register<TRet>(string name, Func<TRet> func)
     {
         var p = Service.PluginInterface.GetIpcProvider<TRet>("BossMod." + name);
         p.RegisterFunc(func);
-        _disposeActions.Add(p.UnregisterFunc);
+        _disposeActions += p.UnregisterFunc;
     }
 
     private void Register<TRet, T1>(string name, Func<TRet, T1> func)
     {
         var p = Service.PluginInterface.GetIpcProvider<TRet, T1>("BossMod." + name);
         p.RegisterFunc(func);
-        _disposeActions.Add(p.UnregisterFunc);
+        _disposeActions += p.UnregisterFunc;
     }
 
     private void Register(string name, Action func)
     {
         var p = Service.PluginInterface.GetIpcProvider<object>("BossMod." + name);
         p.RegisterAction(func);
-        _disposeActions.Add(p.UnregisterAction);
+        _disposeActions += p.UnregisterAction;
     }
 
     //private void Register<T1>(string name, Action<T1> func)
     //{
     //    var p = Service.PluginInterface.GetIpcProvider<T1, object>("BossMod." + name);
     //    p.RegisterAction(func);
-    //    _disposeActions.Add(p.UnregisterAction);
+    //    _disposeActions += p.UnregisterAction;
     //}
 }

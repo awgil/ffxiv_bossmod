@@ -132,7 +132,7 @@ class P4S1States : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
         Cast(id + 0x1000, AID.SettingTheScene, 7.3f, 4, "Scene")
             .ActivateOnEnter<SettingTheScene>()
-            .Raw.Exit.Add(() => Module.FindComponent<ElementalBelone>()!.Visible = true);
+            .ExecOnExit<ElementalBelone>(comp => comp.Visible = true);
         Cast(id + 0x2000, AID.VengefulBelone, 8.2f, 4, "Roles") // acting X applied after cast end
             .ActivateOnEnter<VengefulBelone>();
         Cast(id + 0x3000, AID.ElementalBelone, 4.2f, 4); // 'elemental resistance down' applied after cast end

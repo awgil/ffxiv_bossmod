@@ -18,14 +18,14 @@ public class StateMachineBuilder(BossModule module)
         public Phase OnEnter(Action action, bool condition = true)
         {
             if (condition)
-                Raw.Enter.Add(action);
+                Raw.Enter += action;
             return this;
         }
 
         public Phase OnExit(Action action, bool condition = true)
         {
             if (condition)
-                Raw.Exit.Add(action);
+                Raw.Exit += action;
             return this;
         }
 
@@ -43,14 +43,14 @@ public class StateMachineBuilder(BossModule module)
         public State OnEnter(Action action, bool condition = true)
         {
             if (condition)
-                Raw.Enter.Add(action);
+                Raw.Enter += action;
             return this;
         }
 
         public State OnExit(Action action, bool condition = true)
         {
             if (condition)
-                Raw.Exit.Add(action);
+                Raw.Exit += action;
             return this;
         }
 
@@ -101,7 +101,7 @@ public class StateMachineBuilder(BossModule module)
         if (_curInitial == null)
             throw new InvalidOperationException($"Phase '{name}' has no states");
         var phase = new StateMachine.Phase(_curInitial, name, dur);
-        phase.Exit.Add(() => Module.ClearComponents(comp => !comp.KeepOnPhaseChange));
+        phase.Exit += () => Module.ClearComponents(comp => !comp.KeepOnPhaseChange);
         _phases.Add(phase);
         _curInitial = _lastState = null;
         return new(phase, Module);

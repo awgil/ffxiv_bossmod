@@ -122,8 +122,8 @@ class Ex1ZodiarkStates : StateMachineBuilder
     private void Paradeigma1(uint id, float delay)
     {
         ParadeigmaStart(id, delay, "Para1 (4 birds)");
-        var styx = Styx(id + 0x1000, 11.2f, 6);
-        styx.Raw.Enter.Add(Module.DeactivateComponent<Paradeigma>); // TODO: paradeigma should hide itself when done, then we can deactivate it on state exit...
+        Styx(id + 0x1000, 11.2f, 6)
+            .OnEnter(Module.DeactivateComponent<Paradeigma>); // TODO: paradeigma should hide itself when done, then we can deactivate it on state exit...
     }
 
     private void Exoterikos1(uint id, float delay)

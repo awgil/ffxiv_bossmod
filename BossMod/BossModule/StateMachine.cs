@@ -33,8 +33,8 @@ public class StateMachine(List<StateMachine.Phase> phases)
         public float Duration; // estimated state duration
         public string Name = ""; // if name is empty, state is "hidden" from UI
         public string Comment = "";
-        public List<Action> Enter = []; // callbacks executed when state is activated
-        public List<Action> Exit = []; // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset or phase change
+        public Action? Enter; // callbacks executed when state is activated
+        public Action? Exit; // callbacks executed when state is deactivated; note that this can happen unexpectedly, e.g. due to external reset or phase change
         public Func<float, int>? Update; // callback executed every frame when state is active; should return target state index for transition or -1 to remain in current state; argument = time since activation
         public State[]? NextStates; // potential successor states
         public StateHint EndHint = StateHint.None; // special flags for state end (used for visualization, autorotation, etc.)
@@ -45,8 +45,8 @@ public class StateMachine(List<StateMachine.Phase> phases)
         public State InitialState = initialState;
         public string Name = name;
         public float ExpectedDuration = expectedDuration; // if >= 0, this is 'expected' phase duration (for use by CD planner etc); <0 means 'calculate from state tree max time'
-        public List<Action> Enter = []; // callbacks executed when phase is activated
-        public List<Action> Exit = []; // callbacks executed when phase is deactivated; note that this can happen unexpectedly, e.g. due to external reset
+        public Action? Enter; // callbacks executed when phase is activated
+        public Action? Exit; // callbacks executed when phase is deactivated; note that this can happen unexpectedly, e.g. due to external reset
         public Func<bool>? Update; // callback executed every frame when phase is active; should return whether transition to next phase should happen
     }
 
@@ -190,34 +190,22 @@ public class StateMachine(List<StateMachine.Phase> phases)
     private void TransitionToPhase(int nextIndex)
     {
         if (ActivePhase != null)
-        {
             TransitionToState(null);
-            foreach (var cb in ActivePhase.Exit)
-                cb();
-        }
 
+        ActivePhase?.Exit?.Invoke();
         ActivePhaseIndex = nextIndex;
         _phaseEnter = _curTime;
+        ActivePhase?.Enter?.Invoke();
 
         if (ActivePhase != null)
-        {
-            foreach (var cb in ActivePhase.Enter)
-                cb();
             TransitionToState(ActivePhase.InitialState);
-        }
     }
 
     private void TransitionToState(State? nextState)
     {
-        if (ActiveState != null)
-            foreach (var cb in ActiveState.Exit)
-                cb();
-
+        ActiveState?.Exit?.Invoke();
         ActiveState = nextState;
         _lastTransition = _curTime;
-
-        if (ActiveState != null)
-            foreach (var cb in ActiveState.Enter)
-                cb();
+        ActiveState?.Enter?.Invoke();
     }
 }

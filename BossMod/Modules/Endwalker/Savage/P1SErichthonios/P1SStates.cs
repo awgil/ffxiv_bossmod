@@ -197,16 +197,16 @@ class P1SStates : StateMachineBuilder
 
     private void ShiningCells(uint id, float delay)
     {
-        var s = Cast(id, AID.ShiningCells, delay, 7, "Cells")
+        Cast(id, AID.ShiningCells, delay, 7, "Cells")
+            .OnExit(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Bounds.Radius))
             .SetHint(StateMachine.StateHint.Raidwide);
-        s.Raw.Exit.Add(() => Module.Arena.Bounds = new ArenaBoundsCircle(Module.Bounds.Radius));
     }
 
     private void SlamShut(uint id, float delay)
     {
-        var s = Cast(id, AID.SlamShut, delay, 7, "SlamShut")
+        Cast(id, AID.SlamShut, delay, 7, "SlamShut")
+            .OnExit(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Bounds.Radius))
             .SetHint(StateMachine.StateHint.Raidwide);
-        s.Raw.Exit.Add(() => Module.Arena.Bounds = new ArenaBoundsSquare(Module.Bounds.Radius));
     }
 
     private void Fork1(uint id)
