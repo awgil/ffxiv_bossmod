@@ -23,6 +23,8 @@ public record struct WDir(float X, float Z)
     public readonly float Dot(WDir a) => X * a.X + Z * a.Z;
     public static float Cross(WDir a, WDir b) => a.X * b.Z - a.Z * b.X;
     public readonly float Cross(WDir b) => Cross(this, b);
+    public readonly WDir Rotate(WDir dir) => new(Dot(dir.OrthoL()), Dot(dir));
+    public readonly WDir Rotate(Angle dir) => Rotate(dir.ToDirection());
     public readonly float LengthSq() => X * X + Z * Z;
     public readonly float Length() => MathF.Sqrt(LengthSq());
     public static WDir Normalize(WDir a) => a / a.Length();
