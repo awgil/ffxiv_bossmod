@@ -6,7 +6,7 @@ namespace BossMod;
 
 public class ConfigRoot
 {
-    private const int _version = 8;
+    private const int _version = 9;
 
     public Event Modified = new();
     private readonly Dictionary<Type, ConfigNode> _nodes = [];
@@ -298,7 +298,8 @@ public class ConfigRoot
             amConfig["GTMode"] = autorotConfig?["GTMode"] ?? "Manual";
         }
         // v8: remove accidentally serializable Modified field
-        if (version < 8)
+        // v9: and again the same thing...
+        if (version < 9)
         {
             foreach (var (_, config) in payload)
             {

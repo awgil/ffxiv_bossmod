@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Reflection;
 
 namespace BossMod;
 
@@ -153,7 +154,7 @@ public abstract class CooldownPlanningConfigNode : ConfigNode
     {
         var baseType = typeof(CooldownPlanningConfigNode);
         JObject res = [];
-        foreach (var f in GetType().GetFields().Where(f => f.DeclaringType != baseType))
+        foreach (var f in GetType().GetFields().Where(f => f.DeclaringType != baseType && f.GetCustomAttribute<JsonIgnoreAttribute>() == null))
         {
             var v = f.GetValue(this);
             if (v != null)
