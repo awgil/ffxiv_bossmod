@@ -144,19 +144,19 @@ public record class ArenaBoundsSquare(float Radius, float MapResolution = 0.5f) 
 // if rotation is 0, half-width is along X and half-height is along Z
 public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rotation = default, float MapResolution = 0.5f) : ArenaBounds(MathF.Max(HalfWidth, HalfHeight), MapResolution)
 {
-    private WDir _orientation = Rotation.ToDirection();
+    public readonly WDir Orientation = Rotation.ToDirection();
 
-    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(_orientation, HalfWidth, HalfHeight));
+    protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Orientation, HalfWidth, HalfHeight));
     public override Pathfinding.Map PathfindMap(WPos center) => new(MapResolution, center, HalfWidth, HalfHeight, Rotation);
-    public override bool Contains(WDir offset) => offset.InRect(_orientation, HalfHeight, HalfHeight, HalfWidth);
-    public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayRect(originOffset, dir, _orientation, HalfWidth, HalfHeight);
+    public override bool Contains(WDir offset) => offset.InRect(Orientation, HalfHeight, HalfHeight, HalfWidth);
+    public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayRect(originOffset, dir, Orientation, HalfWidth, HalfHeight);
 
     public override WDir ClampToBounds(WDir offset)
     {
-        var dx = MathF.Abs(offset.Dot(_orientation.OrthoL()));
+        var dx = MathF.Abs(offset.Dot(Orientation.OrthoL()));
         if (dx > HalfWidth)
             offset *= HalfWidth / dx;
-        var dy = MathF.Abs(offset.Dot(_orientation));
+        var dy = MathF.Abs(offset.Dot(Orientation));
         if (dy > HalfHeight)
             offset *= HalfHeight / dy;
         return offset;

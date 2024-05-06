@@ -220,7 +220,23 @@ public class PolygonClipper
 
 public static class PolygonUtil
 {
-    public static IEnumerable<(WDir, WDir)> EnumerateEdges(IEnumerable<WDir> contour) => contour.Pairwise();
+    public static IEnumerable<(T, T)> EnumerateEdges<T>(IEnumerable<T> contour) where T : struct, IEquatable<T>
+    {
+        using var e = contour.GetEnumerator();
+        if (!e.MoveNext())
+            yield break;
+
+        var prev = e.Current;
+        var first = prev;
+        while (e.MoveNext())
+        {
+            var curr = e.Current;
+            yield return (prev, curr);
+            prev = curr;
+        }
+        if (!first.Equals(prev))
+            yield return (prev, first);
+    }
 
     public static bool IsConvex(ReadOnlySpan<WDir> contour)
     {
