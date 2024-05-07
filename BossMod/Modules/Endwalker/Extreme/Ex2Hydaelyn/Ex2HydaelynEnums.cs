@@ -2,17 +2,17 @@
 
 public enum OID : uint
 {
-    Boss = 0x34ED,
-    Helper = 0x233C, // x31
-    MysticRefulgence2 = 0x34CA, // x1 spawn during parhelic circle, stays in center and does nothing interesting
-    Echo = 0x34EE, // big adds: x2 at start, after death they despawn, 2 more spawn and do nothing
-    CrystalOfLight = 0x34F0, // x12, spawn in intermission in pairs (normal/glowing versions??)
-    Parhelion = 0x34F2, // x15 ???
-    MysticRefulgence = 0x3504, // x10 spawn during parhelic circle, despawn soon after
-    LightwaveCrystal = 0x1EB24A, // eventobj
-    LightwaveWaveTarget = 0x1EB24B, // eventobj
-    RefulgenceHexagon = 0x1EB24C, // eventobj
-    RefulgenceTriangle = 0x1EB24D, // eventobj
+    Boss = 0x34ED, // R=5.04, x1
+    Helper = 0x233C, // R=0.5, x31
+    Parhelion = 0x34F2, // R=3.0, x15
+    Echo = 0x34EE, // R=5.04, big adds: x2 at start, after death they despawn, 2 more spawn and do nothing
+    CrystalOfLight = 0x34F0, // R=2.50, x12, spawn in intermission in pairs (normal/glowing versions??)
+    LightwaveWaveTarget = 0x1EB24B, // R=0.50, EventObj type
+    LightwaveCrystal = 0x1EB24A, // R=0.50, EventObj type
+    MysticRefulgence = 0x3504, // R=1.0, x10 spawn during parhelic circle, despawn soon after
+    RefulgenceHexagon = 0x1EB24C, // R=0.5, EventObj type
+    RefulgenceTriangle = 0x1EB24D, // R=0.5, EventObj type
+    MysticRefulgence2 = 0x34CA, // R=2.0, x1 spawn during parhelic circle, stays in center and does nothing interesting
 }
 
 public enum AID : uint
