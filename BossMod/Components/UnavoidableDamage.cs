@@ -115,7 +115,7 @@ public class SingleTargetCastDelay(BossModule module, ActionID actionVisual, Act
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == ActionVisual)
-            Targets.Add((Raid.FindSlot(spell.TargetID), spell.NPCFinishAt.AddSeconds(Delay)));
+            Targets.Add((Raid.FindSlot(caster.TargetID), spell.NPCFinishAt.AddSeconds(Delay)));
     }
 }
 
