@@ -75,17 +75,18 @@ public enum AID : uint
     BeaconParhelion = 26034, // Parhelion->location, 5,2s cast, width 6 rect charge
     Subparhelion = 27734, // Boss->self, 5,0s cast, single-target
     BeaconSubparhelion = 26035, // Parhelion->self, no cast, range 45 width 6 rect
-    RadiantHalo = 26036, // Boss->self
-    EchoesSword = 26037, // Boss->self
-    EchoesStaff = 26038, // Boss->self
-    EchoesChakram = 26039, // Boss->self
-    DichroicSpectrum = 26040, // Helper->mt
-    BrightSpectrum = 26041, // Helper->non-tank
-    EchoesAOE = 26042, // Helper->target, no cast
-    LightwaveStaff = 26260, // Boss->self
-    LightwaveChakram = 26261, // Boss->self
+    RadiantHalo = 26036, // Boss->self, 5,0s cast, range 40 circle
+    EchoesSword = 26037, // Boss->self, 5,0s cast, single-target
+    EchoesStaff = 26038, // Boss->self, 5,0s cast, single-target
+    EchoesChakram = 26039, // Boss->self, 5,0s cast, single-target
+    DichroicSpectrum = 26040, // Helper->players, 5,0s cast, range 5 circle, main tank
+    BrightSpectrum = 26041, // Helper->player, 5,0s cast, range 5 circle, non tank
+    EchoesAOE = 26042, // Helper->players, no cast, range 6 circle
+    LightwaveStaff = 26260, // Boss->self, 4,0s cast, single-target
+    LightwaveChakram = 26261, // Boss->self, 4,0s cast, single-target
 
-    HerosRadianceEnrage = 24571, // Boss->self
+    HerosRadianceEnrage = 24571, // Boss->self, 10,0s cast, range 40 circle
+
 }
 
 public enum SID : uint

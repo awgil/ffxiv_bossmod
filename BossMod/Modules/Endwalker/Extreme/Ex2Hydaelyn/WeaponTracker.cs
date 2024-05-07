@@ -30,7 +30,7 @@ class WeaponTracker(BossModule module) : Components.GenericAOEs(module)
     {
         if ((SID)status.ID == SID.HydaelynsWeapon)
         {
-            _aoe = new(new AOEShapeCross(40, 5), Module.PrimaryActor.Position, default, WorldState.FutureTime(6.9f));
+            _aoe = new(new AOEShapeCross(40, 5), Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, WorldState.FutureTime(6.9f));
             AOEImminent = true;
             CurStance = Stance.Sword;
         }
