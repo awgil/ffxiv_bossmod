@@ -8,10 +8,10 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
-    GobthunderIII = 17493, // Boss->player, 6,0s cast, range 20 circle, interruptible, applies Lightning Resistance Down II
-    GoblinPunch = 17488, // Boss->player, 3,0s cast, single-target
-    GobthunderII = 17492, // Boss->location, 4,0s cast, range 8 circle, applies Lightning Resistance Down II
-    Gobhaste = 17491, // Boss->self, 3,0s cast, single-target
+    GobthunderIII = 17493, // Boss->player, 6.0s cast, range 20 circle, interruptible, applies Lightning Resistance Down II
+    GoblinPunch = 17488, // Boss->player, 3.0s cast, single-target
+    GobthunderII = 17492, // Boss->location, 4.0s cast, range 8 circle, applies Lightning Resistance Down II
+    Gobhaste = 17491, // Boss->self, 3.0s cast, single-target
     GoblinSlash = 17489, // Boss->self, no cast, range 8 circle, sometimes boss uses Gobthunder II on itself, next attack after is this
 }
 

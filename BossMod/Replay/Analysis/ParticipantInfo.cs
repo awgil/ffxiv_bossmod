@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using System.Globalization;
 using System.Text;
 
 namespace BossMod.ReplayAnalysis;
@@ -147,7 +148,7 @@ class ParticipantInfo : CommonEnumInfo
     }
 
     private static bool IsIgnored(Replay.Participant p) => p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure;
-    private string RadiusString(ParticipantData d) => d.MinRadius != d.MaxRadius ? $"{d.MinRadius:f3}-{d.MaxRadius:f3}" : $"{d.MinRadius:f3}";
+    private string RadiusString(ParticipantData d) => d.MinRadius != d.MaxRadius ? string.Create(CultureInfo.InvariantCulture, $"{d.MinRadius:f3}-{d.MaxRadius:f3}") : string.Create(CultureInfo.InvariantCulture, $"{d.MinRadius:f3}");
     private string GuessName(uint oid, ParticipantData d) => Utils.StringToIdentifier(d.Names.Count > 0 ? d.Names[0].name : $"Actor{oid:X}");
 
     private string EnumMemberString(uint oid, ParticipantData data, string? forcedName = null)

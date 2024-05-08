@@ -6,28 +6,28 @@ public enum OID : uint
     BossAdd = 0x3026, //R=3.45
     BossHelper = 0x233C,
     WaterVoidzone = 0x1EA7D5,
-    SecretQueen = 0x3021, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretGarlic = 0x301F, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretQueen = 0x3021, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretGarlic = 0x301F, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretTomato = 0x3020, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretOnion = 0x301D, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretEgg = 0x301E, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
 }
 
 public enum AID : uint
 {
     AutoAttack = 870, // Boss/BossAdd->player, no cast, single-target
     AutoAttack2 = 872, // BonusAdds->player, no cast, single-target
-    Douse = 21701, // Boss->location, 3,0s cast, range 8 circle
-    Drench = 21700, // Boss->self, 3,0s cast, range 10+R 90-degree cone
-    FangsEnd = 21699, // Boss->player, 4,0s cast, single-target
-    Drench2 = 22771, // BossAdd->self, 3,0s cast, range 10+R 90-degree cone
-    ScaleRipple = 21702, // Boss->self, 2,5s cast, range 8 circle
+    Douse = 21701, // Boss->location, 3.0s cast, range 8 circle
+    Drench = 21700, // Boss->self, 3.0s cast, range 10+R 90-degree cone
+    FangsEnd = 21699, // Boss->player, 4.0s cast, single-target
+    Drench2 = 22771, // BossAdd->self, 3.0s cast, range 10+R 90-degree cone
+    ScaleRipple = 21702, // Boss->self, 2.5s cast, range 8 circle
 
-    Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
-    HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
-    PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
+    Pollen = 6452, // 2A0A->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // 2A06->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // 2A09->self, 3.5s cast, range 6+R circle
+    PluckAndPrune = 6449, // 2A07->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // 2A08->self, 3.5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

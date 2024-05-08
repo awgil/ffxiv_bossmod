@@ -12,15 +12,15 @@ public enum OID : uint
 public enum AID : uint
 {
     Attack = 872, // Boss->player, no cast, single-target
-    Thundercall = 32212, // Boss->location, 2,5s cast, range 3 circle
-    LightningBolt = 32214, // Boss->self, 3,0s cast, single-target
-    LightningBolt2 = 32215, // BossHelper->location, 3,0s cast, range 6 circle
-    ThunderIV = 32213, // BallOfLevin->self, 7,0s cast, range 18 circle
-    Spark = 32216, // Boss->self, 4,0s cast, range 14-30 donut
+    Thundercall = 32212, // Boss->location, 2.5s cast, range 3 circle
+    LightningBolt = 32214, // Boss->self, 3.0s cast, single-target
+    LightningBolt2 = 32215, // BossHelper->location, 3.0s cast, range 6 circle
+    ThunderIV = 32213, // BallOfLevin->self, 7.0s cast, range 18 circle
+    Spark = 32216, // Boss->self, 4.0s cast, range 14-30 donut
     AutoAttack2 = 870, // BossAdds->player, no cast, single-target
-    RockThrow = 32217, // BossAdds->location, 3,0s cast, range 6 circle
-    SweepingGouge = 32211, // Boss->player, 5,0s cast, single-target
-    HeavySmash = 32317, // BossAdd_Lyssa -> location 3,0s cast, range 6 circle
+    RockThrow = 32217, // BossAdds->location, 3.0s cast, range 6 circle
+    SweepingGouge = 32211, // Boss->player, 5.0s cast, single-target
+    HeavySmash = 32317, // BossAdd_Lyssa -> location 3.0s cast, range 6 circle
 }
 
 public enum IconID : uint

@@ -14,16 +14,16 @@ public enum AID : uint
     AutoAttack = 870, // Boss->player, no cast, single-target
     AutoAttack2 = 872, // BonusAddAbharamu/1F0E->player, no cast, single-target
     FrumiousJaws = 9556, // Boss->player, no cast, single-target
-    AbsoluteZero = 9558, // Boss->self, 5,0s cast, range 38+R 90-degree cone
-    Blizzard = 967, // 1F0F->player, 1,0s cast, single-target
-    Eyeshine = 9557, // Boss->self, 4,0s cast, range 38+R circle, gaze
-    Freezeover = 4486, // 1F0E->location, 3,0s cast, range 3 circle
-    PlainPound = 4487, // 1F0E->self, 3,0s cast, range 3+R circle
+    AbsoluteZero = 9558, // Boss->self, 5.0s cast, range 38+R 90-degree cone
+    Blizzard = 967, // 1F0F->player, 1.0s cast, single-target
+    Eyeshine = 9557, // Boss->self, 4.0s cast, range 38+R circle, gaze
+    Freezeover = 4486, // 1F0E->location, 3.0s cast, range 3 circle
+    PlainPound = 4487, // 1F0E->self, 3.0s cast, range 3+R circle
 
     unknown = 9636, // BonusAddAbharamu->self, no cast, single-target
     Spin = 8599, // BonusAddAbharamu->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAddAbharamu->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAddAbharamu->location, 3,0s cast, range 6 circle
+    RaucousScritch = 8598, // BonusAddAbharamu->self, 2.5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAbharamu->location, 3.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

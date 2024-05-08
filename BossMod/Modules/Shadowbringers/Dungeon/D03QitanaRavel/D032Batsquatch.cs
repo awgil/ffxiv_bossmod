@@ -9,14 +9,14 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // 27B0->player, no cast, single-target
-    RipperFang = 15505, // 27B0->player, 4,0s cast, single-target
-    Soundwave = 15506, // 27B0->self, 3,0s cast, range 40 circle
-    Subsonics = 15507, // 27B0->self, 6,0s cast, single-target
+    RipperFang = 15505, // 27B0->player, 4.0s cast, single-target
+    Soundwave = 15506, // 27B0->self, 3.0s cast, range 40 circle
+    Subsonics = 15507, // 27B0->self, 6.0s cast, single-target
     Subsonics2 = 15508, // 233C->self, no cast, range 40 circle
-    FallingRock = 15510, // 233C->self, 2,0s cast, range 3 circle
-    FallingRock2 = 15509, // 233C->self, 2,0s cast, range 2 circle
-    FallingBoulder = 15511, // 233C->self, 2,0s cast, range 4 circle
-    Towerfall = 15512, // 233C->self, 3,0s cast, range 15 30-degree cone
+    FallingRock = 15510, // 233C->self, 2.0s cast, range 3 circle
+    FallingRock2 = 15509, // 233C->self, 2.0s cast, range 2 circle
+    FallingBoulder = 15511, // 233C->self, 2.0s cast, range 4 circle
+    Towerfall = 15512, // 233C->self, 3.0s cast, range 15 30-degree cone
 }
 
 class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Towerfall), new AOEShapeCone(15, 15.Degrees()));

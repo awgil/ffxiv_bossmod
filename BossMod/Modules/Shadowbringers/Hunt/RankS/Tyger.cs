@@ -8,13 +8,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    TheLionsBreath = 16957, // Boss->self, 4,0s cast, range 30 120-degree cone
+    TheLionsBreath = 16957, // Boss->self, 4.0s cast, range 30 120-degree cone
     TheScorpionsSting = 16961, // Boss->self, no cast, range 18 90-degree cone, 2-4s after a voice attack, timing seems to vary, maybe depends if voice was interrupted and how fast?
-    TheDragonsBreath = 16959, // Boss->self, 4,0s cast, range 30 120-degree cone
-    TheRamsBreath = 16958, // Boss->self, 4,0s cast, range 30 120-degree cone
-    TheRamsEmbrace = 16960, // Boss->location, 3,0s cast, range 9 circle
-    TheDragonsVoice = 16963, // Boss->self, 4,0s cast, range 8-30 donut, interruptible raidwide donut
-    TheRamsVoice = 16962, // Boss->self, 4,0s cast, range 9 circle
+    TheDragonsBreath = 16959, // Boss->self, 4.0s cast, range 30 120-degree cone
+    TheRamsBreath = 16958, // Boss->self, 4.0s cast, range 30 120-degree cone
+    TheRamsEmbrace = 16960, // Boss->location, 3.0s cast, range 9 circle
+    TheDragonsVoice = 16963, // Boss->self, 4.0s cast, range 8-30 donut, interruptible raidwide donut
+    TheRamsVoice = 16962, // Boss->self, 4.0s cast, range 9 circle
 }
 
 class TheLionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheLionsBreath), new AOEShapeCone(30, 60.Degrees()));

@@ -8,13 +8,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    HeatBreath = 7924, // Boss->self, 3,0s cast, range 8+R 90-degree cone
-    RipperClaw = 7920, // Boss->self, 2,1s cast, range 5+R 90-degree cone
-    WildCharge = 7921, // Boss->location, 3,5s cast, width 8 rect charge
-    TailSmash = 7918, // Boss->self, 3,0s cast, range 12+R 90-degree cone
+    HeatBreath = 7924, // Boss->self, 3.0s cast, range 8+R 90-degree cone
+    RipperClaw = 7920, // Boss->self, 2.1s cast, range 5+R 90-degree cone
+    WildCharge = 7921, // Boss->location, 3.5s cast, width 8 rect charge
+    TailSmash = 7918, // Boss->self, 3.0s cast, range 12+R 90-degree cone
     VolcanicHowl = 7917, // Boss->self, no cast, range 50 circle, raidwide, applies Haste to self
-    TailSwing = 7919, // Boss->self, 2,1s cast, range 10 circle, knockback 20, away from source
-    HotCharge = 7922, // Boss->location, 2,5s cast, width 12 rect charge
+    TailSwing = 7919, // Boss->self, 2.1s cast, range 10 circle, knockback 20, away from source
+    HotCharge = 7922, // Boss->location, 2.5s cast, width 12 rect charge
     Haste = 7926, // Boss->self, no cast, single-target, boss applies Haste to self
     BoneShaker = 7925, // Boss->self, no cast, range 30+R circle, raidwide player stun
 }

@@ -8,7 +8,7 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
-    MarineMayhem = 27063, // Boss->self, 5,0s cast, range 40 circle, triple raidwide + damage up
+    MarineMayhem = 27063, // Boss->self, 5.0s cast, range 40 circle, triple raidwide + damage up
     MarineMayhemAOE1 = 27064, // Boss->self, no cast, range 40 circle, second raidwide hit
     MarineMayhemAOE2 = 27065, // Boss->self, no cast, range 40 circle, third raidwide hit
     Waterga = 27067, // Boss->players, 5.0s cast, range 6 circle, applies magic vulnerability up (2nd hit deadly even for tanks)

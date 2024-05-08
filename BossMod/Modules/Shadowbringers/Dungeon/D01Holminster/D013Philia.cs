@@ -16,25 +16,25 @@ public enum AID : uint
     Pendulum = 16777, // 278C->self, 5.0s cast, single-target, cast to jump
     PendulumAOE1 = 16790, // 278C->location, no cast, range 40 circle, jump to target
     PendulumAOE2 = 15833, // 278C->location, no cast, range 40 circle, jump back to center
-    PendulumAOE3 = 16778, // Helper->location, 4,5s cast, range 40 circle, damage fall off AOE visual
+    PendulumAOE3 = 16778, // Helper->location, 4.5s cast, range 40 circle, damage fall off AOE visual
     ChainDown = 17052, // 278C->self, 5.0s cast, single-target 
     Aethersup = 15848, // 278C->self, 15.0s cast, range 21 120-degree cone
     Aethersup2 = 15849, // Helper->self, no cast, range 24+R 120-degree cone
     RightKnout = 15846, // 278C->self, 5.0s cast, range 24 210-degree cone
     LeftKnout = 15847, // 278C->self, 5.0s cast, range 24 210-degree cone
     Taphephobia = 15842, // 278C->self, 4.5s cast, single-target
-    Taphephobia2 = 16769, // Helper->player, 5,0s cast, range 6 circle
+    Taphephobia2 = 16769, // Helper->player, 5.0s cast, range 6 circle
     IntoTheLight = 15844, // Helper->player, no cast, single-target, line stack
     IntoTheLight1 = 17232, // 278C->self, 5.0s cast, single-target
     IntoTheLight2 = 15845, // 278C->self, no cast, range 50 width 8 rect
     FierceBeating1 = 15834, // 278C->self, 5.0s cast, single-target
     FierceBeating2 = 15836, // 278C->self, no cast, single-target
     FierceBeating3 = 15835, // 278C->self, no cast, single-target
-    FierceBeating4 = 15837, // Helper->self, 5,0s cast, range 4 circle
+    FierceBeating4 = 15837, // Helper->self, 5.0s cast, range 4 circle
     FierceBeating5 = 15839, // Helper->location, no cast, range 4 circle
     FierceBeating6 = 15838, // Helper->self, no cast, range 4 circle
     CatONineTails = 15840, // 278C->self, no cast, single-target
-    CatONineTails2 = 15841, // Helper->self, 2,0s cast, range 25 120-degree cone
+    CatONineTails2 = 15841, // Helper->self, 2.0s cast, range 25 120-degree cone
 }
 
 public enum IconID : uint

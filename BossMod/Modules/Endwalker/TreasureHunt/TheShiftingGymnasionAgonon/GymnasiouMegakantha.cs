@@ -15,18 +15,18 @@ public enum AID : uint
     AutoAttack = 870, // BonusAddLyssa->player, no cast, single-target
     AutoAttack2 = 872, // Boss/BossAdd2/BossAdd1->player, no cast, single-target
     OdiousAtmosphereComboStart = 32199, // Boss->self, no cast, single-target
-    OdiousAtmosphere0 = 32241, // Boss->self, 4,0s cast, single-target
-    OdiousAtmosphere1 = 32242, // BossHelper->self, 5,3s cast, range 40 180-degree cone
-    OdiousAtmosphere2 = 33015, // BossHelper->self, 5,3s cast, range 40 180-degree cone
-    OdiousAtmosphere3 = 33016, // BossHelper->self, 3,0s cast, range 40 180-degree cone
-    SludgeBomb = 32239, // Boss->self, 3,0s cast, single-target
-    SludgeBomb2 = 32240, // BossHelper->location, 3,0s cast, range 8 circle
-    RustlingWind = 32244, // BossAdd2->self, 3,0s cast, range 15 width 4 rect
-    AcidMist = 32243, // BossAdd1->self, 2,5s cast, range 6 circle
-    VineWhip = 32238, // Boss->player, 5,0s cast, single-target
-    OdiousAir = 32237, // Boss->self, 3,0s cast, range 12 120-degree cone
+    OdiousAtmosphere0 = 32241, // Boss->self, 4.0s cast, single-target
+    OdiousAtmosphere1 = 32242, // BossHelper->self, 5.3s cast, range 40 180-degree cone
+    OdiousAtmosphere2 = 33015, // BossHelper->self, 5.3s cast, range 40 180-degree cone
+    OdiousAtmosphere3 = 33016, // BossHelper->self, 3.0s cast, range 40 180-degree cone
+    SludgeBomb = 32239, // Boss->self, 3.0s cast, single-target
+    SludgeBomb2 = 32240, // BossHelper->location, 3.0s cast, range 8 circle
+    RustlingWind = 32244, // BossAdd2->self, 3.0s cast, range 15 width 4 rect
+    AcidMist = 32243, // BossAdd1->self, 2.5s cast, range 6 circle
+    VineWhip = 32238, // Boss->player, 5.0s cast, single-target
+    OdiousAir = 32237, // Boss->self, 3.0s cast, range 12 120-degree cone
 
-    HeavySmash = 32317, // BossAdd->location, 3,0s cast, range 6 circle
+    HeavySmash = 32317, // BossAdd->location, 3.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 

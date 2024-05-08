@@ -11,13 +11,13 @@ public enum AID : uint
 {
     AutoAttack = 6499, // 2736->player, no cast, single-target
     AutoAttack2 = 6497, // 2737->player, no cast, single-target
-    CondensedLibra = 15319, // 2736->player, 5,0s cast, single-target
-    TripleHit = 15320, // 2736->players, 3,0s cast, single-target
-    Mechanogravity = 15322, // 2736->location, 3,0s cast, range 6 circle
-    Fire = 14266, // 2738->player, 1,0s cast, single-target
-    Starstorm = 15317, // 2738->location, 3,0s cast, range 5 circle
-    RagingAxe = 15316, // 2737->self, 3,0s cast, range 4+R 90-degree cone
-    Silence = 15321, // 2736->player, 5,0s cast, single-target
+    CondensedLibra = 15319, // 2736->player, 5.0s cast, single-target
+    TripleHit = 15320, // 2736->players, 3.0s cast, single-target
+    Mechanogravity = 15322, // 2736->location, 3.0s cast, range 6 circle
+    Fire = 14266, // 2738->player, 1.0s cast, single-target
+    Starstorm = 15317, // 2738->location, 3.0s cast, range 5 circle
+    RagingAxe = 15316, // 2737->self, 3.0s cast, range 4+R 90-degree cone
+    Silence = 15321, // 2736->player, 5.0s cast, single-target
 }
 
 class Starstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Starstorm), 5);

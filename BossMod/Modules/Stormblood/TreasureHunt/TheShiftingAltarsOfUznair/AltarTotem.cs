@@ -14,16 +14,16 @@ public enum AID : uint
     AutoAttack = 870, // Boss->player, no cast, single-target
     AutoAttack2 = 872, // Boss->player, no cast, single-target
     AutoAttack3 = 6499, // BossAdd->player, no cast, single-target
-    FlurryOfRage = 13451, // Boss->self, 3,0s cast, range 8+R 120-degree cone
-    WhorlOfFrenzy = 13453, // Boss->self, 3,0s cast, range 6+R circle
-    WaveOfMalice = 13454, // Boss->location, 2,5s cast, range 5 circle
-    TheWardensVerdict = 13739, // BossAdd->self, 3,0s cast, range 40+R width 4 rect
-    FlamesOfFury = 13452, // Boss->location, 4,0s cast, range 10 circle
+    FlurryOfRage = 13451, // Boss->self, 3.0s cast, range 8+R 120-degree cone
+    WhorlOfFrenzy = 13453, // Boss->self, 3.0s cast, range 6+R circle
+    WaveOfMalice = 13454, // Boss->location, 2.5s cast, range 5 circle
+    TheWardensVerdict = 13739, // BossAdd->self, 3.0s cast, range 40+R width 4 rect
+    FlamesOfFury = 13452, // Boss->location, 4.0s cast, range 10 circle
 
     unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
     Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2.5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

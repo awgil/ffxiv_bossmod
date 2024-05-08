@@ -10,10 +10,10 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    Water = 14271, // 25C5->player, 1,0s cast, single-target
-    Stone = 14270, // 25C3->player, 1,0s cast, single-target
-    Blizzard = 14267, // 25C1->player, 1,0s cast, single-target
-    GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5,0s cast, single-target
+    Water = 14271, // 25C5->player, 1.0s cast, single-target
+    Stone = 14270, // 25C3->player, 1.0s cast, single-target
+    Blizzard = 14267, // 25C1->player, 1.0s cast, single-target
+    GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5.0s cast, single-target
 }
 
 class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increases its magic damage.");

@@ -10,14 +10,14 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6497, // 2739->player, no cast, single-target
-    PageTear = 15324, // 2739->self, 3,5s cast, range 6+R 90-degree cone
-    MagicHammer = 15327, // 2739->location, 3,0s cast, range 8 circle
-    GaleCut = 15323, // 2739->self, 3,0s cast, single-target
-    HeadDown = 15325, // 2739->player, 5,0s cast, width 8 rect charge, knockback 10, source forward
-    VacuumBlade = 15328, // 273B->self, 3,0s cast, range 3 circle
-    BoneShaker = 15326, // 2739->self, 3,0s cast, range 50+R circle, raidwide + adds
-    Fire = 14266, // 273A->player, 1,0s cast, single-target
-    SelfDetonate = 15329, // 273A->player, 3,0s cast, single-target
+    PageTear = 15324, // 2739->self, 3.5s cast, range 6+R 90-degree cone
+    MagicHammer = 15327, // 2739->location, 3.0s cast, range 8 circle
+    GaleCut = 15323, // 2739->self, 3.0s cast, single-target
+    HeadDown = 15325, // 2739->player, 5.0s cast, width 8 rect charge, knockback 10, source forward
+    VacuumBlade = 15328, // 273B->self, 3.0s cast, range 3 circle
+    BoneShaker = 15326, // 2739->self, 3.0s cast, range 50+R circle, raidwide + adds
+    Fire = 14266, // 273A->player, 1.0s cast, single-target
+    SelfDetonate = 15329, // 273A->player, 3.0s cast, single-target
 }
 
 class MagicHammer(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagicHammer), 8);

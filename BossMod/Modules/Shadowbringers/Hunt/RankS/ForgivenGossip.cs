@@ -8,8 +8,8 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 18129, // Boss->player, no cast, single-target
-    Icefall = 17043, // Boss->location, 3,0s cast, range 5 circle, deadly if petrified by gaze
-    PetrifyingEye = 18041, // Boss->self, 3,0s cast, range 40 circle
+    Icefall = 17043, // Boss->location, 3.0s cast, range 5 circle, deadly if petrified by gaze
+    PetrifyingEye = 18041, // Boss->self, 3.0s cast, range 40 circle
 }
 
 class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Icefall), 5);

@@ -7,9 +7,9 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    Blizzard = 14267, // Boss->player, 1,0s cast, single-target
-    VoidBlizzard = 15063, // Boss->player, 6,0s cast, single-target
-    Icefall = 15064, // Boss->location, 2,5s cast, range 5 circle
+    Blizzard = 14267, // Boss->player, 1.0s cast, single-target
+    VoidBlizzard = 15063, // Boss->player, 6.0s cast, single-target
+    Icefall = 15064, // Boss->location, 2.5s cast, range 5 circle
 }
 
 class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Icefall), 5);

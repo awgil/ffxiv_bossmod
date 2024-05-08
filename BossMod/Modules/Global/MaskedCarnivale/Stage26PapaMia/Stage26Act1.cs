@@ -9,10 +9,10 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6498, // 2C84->player, no cast, single-target
-    AlternatePlumage = 18686, // 2C84->self, 3,0s cast, single-target, armor up, needs dispel
+    AlternatePlumage = 18686, // 2C84->self, 3.0s cast, single-target, armor up, needs dispel
     RuffledFeathers = 18685, // 2C84->player, no cast, single-target
-    Gust = 18687, // 2C84->location, 2,5s cast, range 3 circle
-    CaberToss = 18688, // 2C84->player, 5,0s cast, single-target, interrupt or wipe
+    Gust = 18687, // 2C84->location, 2.5s cast, range 3 circle
+    CaberToss = 18688, // 2C84->player, 5.0s cast, single-target, interrupt or wipe
 }
 
 public enum SID : uint

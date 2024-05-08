@@ -11,17 +11,17 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss/BonusAddKeeperOfKeys->player, no cast, single-target
-    BurningBright = 21667, // Boss->self, 3,0s cast, range 47 width 6 rect
-    Nicker = 21668, // Boss->self, 4,0s cast, range 12 circle
-    CloudCall = 21666, // Boss->self, 3,0s cast, single-target, calls clouds
+    BurningBright = 21667, // Boss->self, 3.0s cast, range 47 width 6 rect
+    Nicker = 21668, // Boss->self, 4.0s cast, range 12 circle
+    CloudCall = 21666, // Boss->self, 3.0s cast, single-target, calls clouds
     Gallop = 21665, // Boss->players, no cast, width 10 rect charge, seems to target random player 5-6s after CloudCall
-    LightningBolt = 21669, // Thunderhead->self, 3,0s cast, range 8 circle
+    LightningBolt = 21669, // Thunderhead->self, 3.0s cast, range 8 circle
 
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-    Mash = 21767, // 3034->self, 3,0s cast, range 13 width 4 rect
+    Mash = 21767, // 3034->self, 3.0s cast, range 13 width 4 rect
     Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
-    Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
-    Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
+    Spin = 21769, // 3034->self, 4.0s cast, range 11 circle
+    Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
 class BurningBright(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BurningBright), new AOEShapeRect(47, 3));

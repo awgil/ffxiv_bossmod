@@ -7,11 +7,11 @@ public enum OID : uint
     PixieDouble = 0x304C, //R=1.6
     PixieDouble2 = 0x304D, //R=1.6
     BossHelper = 0x233C,
-    SecretQueen = 0x3021, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretGarlic = 0x301F, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretQueen = 0x3021, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretGarlic = 0x301F, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretTomato = 0x3020, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretOnion = 0x301D, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretEgg = 0x301E, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     BonusAddKeeperOfKeys = 0x3034, // R3.230
     BonusAddFuathTrickster = 0x3033, // R0.750
 }
@@ -20,24 +20,24 @@ public enum AID : uint
 {
     AutoAttack = 23185, // Boss->player, no cast, single-target
     AutoAttack2 = 872, // Adds->player, no cast, single-target
-    WindRune = 21686, // Boss->self, 3,0s cast, range 40 width 8 rect
-    SongRune = 21684, // Boss->location, 3,0s cast, range 6 circle
-    StormRune = 21682, // Boss->self, 4,0s cast, range 40 circle
-    BushBash = 22779, // PixieDouble2->self, 7,0s cast, range 12 circle
-    BushBash2 = 21683, // Boss->self, 5,0s cast, range 12 circle
-    NatureCall = 22780, // PixieDouble->self, 7,0s cast, range 30 120-degree cone, turns player into a plant
-    NatureCall2 = 21685, // Boss->self, 5,0s cast, range 30 120-degree cone, turns player into a plant
+    WindRune = 21686, // Boss->self, 3.0s cast, range 40 width 8 rect
+    SongRune = 21684, // Boss->location, 3.0s cast, range 6 circle
+    StormRune = 21682, // Boss->self, 4.0s cast, range 40 circle
+    BushBash = 22779, // PixieDouble2->self, 7.0s cast, range 12 circle
+    BushBash2 = 21683, // Boss->self, 5.0s cast, range 12 circle
+    NatureCall = 22780, // PixieDouble->self, 7.0s cast, range 30 120-degree cone, turns player into a plant
+    NatureCall2 = 21685, // Boss->self, 5.0s cast, range 30 120-degree cone, turns player into a plant
 
-    Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
-    HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
-    PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
+    Pollen = 6452, // 2A0A->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // 2A06->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // 2A09->self, 3.5s cast, range 6+R circle
+    PluckAndPrune = 6449, // 2A07->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // 2A08->self, 3.5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-    Mash = 21767, // 3034->self, 3,0s cast, range 13 width 4 rect
+    Mash = 21767, // 3034->self, 3.0s cast, range 13 width 4 rect
     Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
-    Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
-    Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
+    Spin = 21769, // 3034->self, 4.0s cast, range 11 circle
+    Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
 class Windrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindRune), new AOEShapeRect(40, 4));

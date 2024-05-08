@@ -11,13 +11,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
-    PelagicCleaver = 32230, // Boss->self, 3,5s cast, range 40 60-degree cone
-    AquaticLance = 32231, // Boss->self, 4,0s cast, range 13 circle
-    FoulWaters = 32229, // Boss->location, 3,0s cast, range 3 circle, AOE + spawns bubble
-    Riptide = 32233, // Bubble->self, 1,0s cast, range 5 circle, pulls into bubble, dist 30 between centers
+    PelagicCleaver = 32230, // Boss->self, 3.5s cast, range 40 60-degree cone
+    AquaticLance = 32231, // Boss->self, 4.0s cast, range 13 circle
+    FoulWaters = 32229, // Boss->location, 3.0s cast, range 3 circle, AOE + spawns bubble
+    Riptide = 32233, // Bubble->self, 1.0s cast, range 5 circle, pulls into bubble, dist 30 between centers
     WateryGrave = 32234, // Bubble->self, no cast, range 2 circle, voidzone, imprisons player until status runs out
     NavalRam = 32232, // BossAdd->player, no cast, single-target
-    ProtolithicPuncture = 32228, // Boss->player, 5,0s cast, single-target
+    ProtolithicPuncture = 32228, // Boss->player, 5.0s cast, single-target
 }
 
 class PelagicCleaver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver), new AOEShapeCone(40, 30.Degrees()));

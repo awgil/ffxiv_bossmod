@@ -10,12 +10,12 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6497, // Boss->player, no cast, single-target
-    Blizzard = 14267, // Imp->player, 1,0s cast, single-target
-    VoidBlizzard = 15063, // Imp->player, 6,0s cast, single-target
-    Icefall = 15064, // Imp->location, 2,5s cast, range 5 circle
-    TheRamsVoice = 15079, // Boss->self, 4,0s cast, range 9 circle
-    TheDragonsVoice = 15080, // Boss->self, 4,0s cast, range 8-30 donut
-    TheRamsKeeper = 15081, // Boss->location, 6,0s cast, range 9 circle
+    Blizzard = 14267, // Imp->player, 1.0s cast, single-target
+    VoidBlizzard = 15063, // Imp->player, 6.0s cast, single-target
+    Icefall = 15064, // Imp->location, 2.5s cast, range 5 circle
+    TheRamsVoice = 15079, // Boss->self, 4.0s cast, range 9 circle
+    TheDragonsVoice = 15080, // Boss->self, 4.0s cast, range 8-30 donut
+    TheRamsKeeper = 15081, // Boss->location, 6.0s cast, range 9 circle
 
 }
 

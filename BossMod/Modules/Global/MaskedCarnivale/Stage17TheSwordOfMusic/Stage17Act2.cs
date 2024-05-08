@@ -11,12 +11,12 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6497, // 2721->player, no cast, single-target
-    GrandStrike = 15047, // 2721->self, 1,5s cast, range 75+R width 2 rect
-    MagitekField = 15049, // 2721->self, 5,0s cast, single-target, buffs defenses, interruptible
+    GrandStrike = 15047, // 2721->self, 1.5s cast, range 75+R width 2 rect
+    MagitekField = 15049, // 2721->self, 5.0s cast, single-target, buffs defenses, interruptible
     AutoAttack2 = 6499, // 2723/2722->player, no cast, single-target
-    TheHand = 14760, // 2722/2723->self, 3,0s cast, range 6+R 120-degree cone
-    Shred = 14759, // 2723/2722->self, 2,5s cast, range 4+R width 4 rect
-    MagitekRay = 15048, // 2721->location, 3,0s cast, range 6 circle, voidzone, interruptible
+    TheHand = 14760, // 2722/2723->self, 3.0s cast, range 6+R 120-degree cone
+    Shred = 14759, // 2723/2722->self, 2.5s cast, range 4+R width 4 rect
+    MagitekRay = 15048, // 2721->location, 3.0s cast, range 6 circle, voidzone, interruptible
 }
 
 class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(77.5f, 2));
@@ -24,7 +24,7 @@ class MagitekField(BossModule module) : Components.CastHint(module, ActionID.Mak
 class MagitekRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.MagitekRay), m => m.Enemies(OID.MagitekRayVoidzone), 0);
 class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees()));
 class Shred(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2));
-class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0,9s after snapshot
+class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0.9s after snapshot
 
 class Hints2(BossModule module) : BossComponent(module)
 {

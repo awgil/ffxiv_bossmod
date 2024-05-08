@@ -9,15 +9,15 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // 27AF->player, no cast, single-target
-    Stonefist = 15497, // 27AF->player, 4,0s cast, single-target
-    SunToss = 15498, // 27AF->location, 3,0s cast, range 5 circle
-    LozatlsScorn = 15499, // 27AF->self, 3,0s cast, range 40 circle
+    Stonefist = 15497, // 27AF->player, 4.0s cast, single-target
+    SunToss = 15498, // 27AF->location, 3.0s cast, range 5 circle
+    LozatlsScorn = 15499, // 27AF->self, 3.0s cast, range 40 circle
     RonkanLightRight = 15500, // 233C->self, no cast, range 60 width 20 rect
     RonkanLightLeft = 15725, // 233C->self, no cast, range 60 width 20 rect
-    HeatUp = 15502, // 27AF->self, 3,0s cast, single-target
-    HeatUp2 = 15501, // 27AF->self, 3,0s cast, single-target
-    LozatlsFuryA = 15504, // 27AF->self, 4,0s cast, range 60 width 20 rect
-    LozatlsFuryB = 15503, // 27AF->self, 4,0s cast, range 60 width 20 rect
+    HeatUp = 15502, // 27AF->self, 3.0s cast, single-target
+    HeatUp2 = 15501, // 27AF->self, 3.0s cast, single-target
+    LozatlsFuryA = 15504, // 27AF->self, 4.0s cast, range 60 width 20 rect
+    LozatlsFuryB = 15503, // 27AF->self, 4.0s cast, range 60 width 20 rect
 }
 
 class LozatlsFuryA(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LozatlsFuryA), new AOEShapeRect(60, 20, 0, 90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange

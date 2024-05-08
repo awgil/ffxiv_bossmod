@@ -8,10 +8,10 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    TearyTwirl = 14693, // 2700->self, 3,0s cast, range 6+R circle
-    DemonEye = 14691, // 25CD->self, 5,0s cast, range 50+R circle
+    TearyTwirl = 14693, // 2700->self, 3.0s cast, range 6+R circle
+    DemonEye = 14691, // 25CD->self, 5.0s cast, range 50+R circle
     Attack = 6499, // 2700/25CD->player, no cast, single-target
-    ColdStare = 14692, // 25CD->self, 2,5s cast, range 40+R 90-degree cone
+    ColdStare = 14692, // 25CD->self, 2.5s cast, range 40+R 90-degree cone
 }
 
 public enum SID : uint

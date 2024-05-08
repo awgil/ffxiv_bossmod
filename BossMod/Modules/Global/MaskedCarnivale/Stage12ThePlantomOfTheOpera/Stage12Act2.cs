@@ -8,11 +8,11 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    WildHorn = 14751, // 271B->self, 3,5s cast, range 10+R 120-degree cone
-    SporeSac = 14752, // 271B->self, 3,0s cast, range 50 circle
+    WildHorn = 14751, // 271B->self, 3.5s cast, range 10+R 120-degree cone
+    SporeSac = 14752, // 271B->self, 3.0s cast, range 50 circle
     Seedvolley = 14750, // 271C->player, no cast, single-target
-    Trounce = 14754, // 271B->self, 4,5s cast, range 40+R 60-degree cone
-    InflammableFumes = 14753, // 271B->self, 15,0s cast, range 50 circle
+    Trounce = 14754, // 271B->self, 4.5s cast, range 40+R 60-degree cone
+    InflammableFumes = 14753, // 271B->self, 15.0s cast, range 50 circle
 }
 
 class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(16.96f, 60.Degrees()));

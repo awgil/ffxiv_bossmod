@@ -5,27 +5,27 @@ public enum OID : uint
     Boss = 0x2542, //R=2.85
     BossAdd = 0x255C, //R=0.84
     BossHelper = 0x233C,
-    AltarQueen = 0x254A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarGarlic = 0x2548, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarQueen = 0x254A, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarGarlic = 0x2548, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarTomato = 0x2549, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarOnion = 0x2546, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarEgg = 0x2547, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
 }
 
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
     AutoAttack2 = 6499, // BossAdd->player, no cast, single-target
-    OpticalIntrusion = 13367, // Boss->player, 3,0s cast, single-target
-    LeafDagger = 13369, // Boss->location, 2,5s cast, range 3 circle
-    SaibaiMandragora = 13370, // Boss->self, 3,0s cast, single-target
-    Hypnotize = 13368, // Boss->self, 2,5s cast, range 20+R 90-degree cone, gaze, paralysis
+    OpticalIntrusion = 13367, // Boss->player, 3.0s cast, single-target
+    LeafDagger = 13369, // Boss->location, 2.5s cast, range 3 circle
+    SaibaiMandragora = 13370, // Boss->self, 3.0s cast, single-target
+    Hypnotize = 13368, // Boss->self, 2.5s cast, range 20+R 90-degree cone, gaze, paralysis
 
-    PluckAndPrune = 6449, // AltarEgg->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // AltarGarlic->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // AltarOnion->self, 3,5s cast, range 6+R circle
-    Pollen = 6452, // AltarQueen->self, 3,5s cast, range 6+R circle
-    HeirloomScream = 6451, // AltarTomato->self, 3,5s cast, range 6+R circle
+    PluckAndPrune = 6449, // AltarEgg->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // AltarGarlic->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // AltarOnion->self, 3.5s cast, range 6+R circle
+    Pollen = 6452, // AltarQueen->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // AltarTomato->self, 3.5s cast, range 6+R circle
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
 }
 

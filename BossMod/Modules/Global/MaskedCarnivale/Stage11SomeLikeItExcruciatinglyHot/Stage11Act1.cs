@@ -7,7 +7,7 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    Fulmination = 14583, // 2718->self, 23,0s cast, range 60 circle
+    Fulmination = 14583, // 2718->self, 23.0s cast, range 60 circle
 }
 
 class Hints(BossModule module) : BossComponent(module)

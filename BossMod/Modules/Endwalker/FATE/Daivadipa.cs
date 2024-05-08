@@ -15,30 +15,30 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
-    Drumbeat = 26510, // Boss->player, 5,0s cast, single-target
-    LeftwardTrisula = 26508, // Boss->self, 7,0s cast, range 65 180-degree cone
-    RightwardParasu = 26509, // Boss->self, 7,0s cast, range 65 180-degree cone
-    Lamplight = 26497, // Boss->self, 2,0s cast, single-target
-    LoyalFlame = 26499, // Boss->self, 5,0s cast, single-target, blue first
-    LoyalFlame2 = 26498, // Boss->self, 5,0s cast, single-target, red first
-    LitPath1 = 26501, // OrbOfImmolation->self, 1,0s cast, range 50 width 10 rect, blue orb
-    LitPath2 = 26500, // OrbOfImmolation2->self, 1,0s cast, range 50 width 10 rect, red orbs
-    CosmicWeave = 26513, // Boss->self, 4,0s cast, range 18 circle
+    Drumbeat = 26510, // Boss->player, 5.0s cast, single-target
+    LeftwardTrisula = 26508, // Boss->self, 7.0s cast, range 65 180-degree cone
+    RightwardParasu = 26509, // Boss->self, 7.0s cast, range 65 180-degree cone
+    Lamplight = 26497, // Boss->self, 2.0s cast, single-target
+    LoyalFlame = 26499, // Boss->self, 5.0s cast, single-target, blue first
+    LoyalFlame2 = 26498, // Boss->self, 5.0s cast, single-target, red first
+    LitPath1 = 26501, // OrbOfImmolation->self, 1.0s cast, range 50 width 10 rect, blue orb
+    LitPath2 = 26500, // OrbOfImmolation2->self, 1.0s cast, range 50 width 10 rect, red orbs
+    CosmicWeave = 26513, // Boss->self, 4.0s cast, range 18 circle
     YawningHells = 26511, // Boss->self, no cast, single-target
-    YawningHells2 = 26512, // Helper1->location, 3,0s cast, range 8 circle
-    ErrantAkasa = 26514, // Boss->self, 5,0s cast, range 60 90-degree cone
-    InfernalRedemption = 26517, // Boss->self, 5,0s cast, single-target
+    YawningHells2 = 26512, // Helper1->location, 3.0s cast, range 8 circle
+    ErrantAkasa = 26514, // Boss->self, 5.0s cast, range 60 90-degree cone
+    InfernalRedemption = 26517, // Boss->self, 5.0s cast, single-target
     InfernalRedemption2 = 26518, // Helper3->location, no cast, range 60 circle
-    IgnitingLights = 26503, // Boss->self, 2,0s cast, single-target
-    IgnitingLights2 = 26502, // Boss->self, 2,0s cast, single-target
-    Burn = 26507, // OrbOfConflagration->self, 1,0s cast, range 10 circle, blue orbs
-    Burn2 = 26506, // OrbOfConflagration2->self, 1,0s cast, range 10 circle, red orbs   
-    KarmicFlames = 26515, // Boss->self, 5,5s cast, single-target
-    KarmicFlames2 = 26516, // Helper2->location, 5,0s cast, range 50 circle, damage fall off, safe distance should be about 20
-    DivineCall = 27080, // Boss->self, 4,0s cast, range 65 circle, forced backwards march
-    DivineCall2 = 26520, // Boss->self, 4,0s cast, range 65 circle, forced right march
-    DivineCall3 = 27079, // Boss->self, 4,0s cast, range 65 circle, forced forward march
-    DivineCall4 = 26519, // Boss->self, 4,0s cast, range 65 circle, forced left march
+    IgnitingLights = 26503, // Boss->self, 2.0s cast, single-target
+    IgnitingLights2 = 26502, // Boss->self, 2.0s cast, single-target
+    Burn = 26507, // OrbOfConflagration->self, 1.0s cast, range 10 circle, blue orbs
+    Burn2 = 26506, // OrbOfConflagration2->self, 1.0s cast, range 10 circle, red orbs   
+    KarmicFlames = 26515, // Boss->self, 5.5s cast, single-target
+    KarmicFlames2 = 26516, // Helper2->location, 5.0s cast, range 50 circle, damage fall off, safe distance should be about 20
+    DivineCall = 27080, // Boss->self, 4.0s cast, range 65 circle, forced backwards march
+    DivineCall2 = 26520, // Boss->self, 4.0s cast, range 65 circle, forced right march
+    DivineCall3 = 27079, // Boss->self, 4.0s cast, range 65 circle, forced forward march
+    DivineCall4 = 26519, // Boss->self, 4.0s cast, range 65 circle, forced left march
 }
 
 public enum SID : uint

@@ -11,10 +11,10 @@ public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
     AutoAttack2 = 6499, // BossAdd->player, no cast, single-target
-    RecklessAbandon = 13311, // Boss->player, 3,0s cast, single-target
-    Tornado = 13309, // Boss->location, 3,0s cast, range 6 circle
-    VoidCall = 13312, // Boss->self, 3,5s cast, single-target
-    Chirp = 13310, // Boss->self, 3,5s cast, range 8+R circle
+    RecklessAbandon = 13311, // Boss->player, 3.0s cast, single-target
+    Tornado = 13309, // Boss->location, 3.0s cast, range 6 circle
+    VoidCall = 13312, // Boss->self, 3.5s cast, single-target
+    Chirp = 13310, // Boss->self, 3.5s cast, range 8+R circle
 }
 
 class Chirp(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Chirp), new AOEShapeCircle(12.48f));

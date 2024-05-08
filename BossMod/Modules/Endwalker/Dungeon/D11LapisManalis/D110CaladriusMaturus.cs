@@ -9,7 +9,7 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Caladrius/Boss->player, no cast, single-target
-    TransonicBlast = 32535, // Caladrius->self, 4,0s cast, range 9 90-degree cone
+    TransonicBlast = 32535, // Caladrius->self, 4.0s cast, range 9 90-degree cone
 }
 
 class TransonicBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TransonicBlast), new AOEShapeCone(9, 45.Degrees()));

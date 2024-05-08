@@ -9,12 +9,12 @@ public enum AID : uint
 {
     AutoAttack = 872, // 1AB1->player, no cast, single-target
     Hydrocannon = 7990, // 1AB1->self, no cast, range 22+R width 6 rect
-    ElectricSwipe = 7991, // 1AB1->self, 2,5s cast, range 17+R 60-degree cone, applies paralysis
-    BodySlam = 7993, // 1AB1->location, 4,0s cast, range 10 circle, knockback 20, away from source
-    ElectricWhorl = 7996, // 1AB1->self, 4,0s cast, range 8-60 donut
-    Expulsion = 7995, // 1AB1->self, 3,0s cast, range 6+R circle, knockback 30, away from source
-    Immersion = 7994, // 1AB1->self, 3,0s cast, range 60+R circle
-    RubyTide = 7992, // Boss->self, 2,0s cast, single-target, boss gives itself Dmg up buff
+    ElectricSwipe = 7991, // 1AB1->self, 2.5s cast, range 17+R 60-degree cone, applies paralysis
+    BodySlam = 7993, // 1AB1->location, 4.0s cast, range 10 circle, knockback 20, away from source
+    ElectricWhorl = 7996, // 1AB1->self, 4.0s cast, range 8-60 donut
+    Expulsion = 7995, // 1AB1->self, 3.0s cast, range 6+R circle, knockback 30, away from source
+    Immersion = 7994, // 1AB1->self, 3.0s cast, range 60+R circle
+    RubyTide = 7992, // Boss->self, 2.0s cast, single-target, boss gives itself Dmg up buff
 }
 
 class Hydrocannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrocannon), new AOEShapeRect(30, 3));

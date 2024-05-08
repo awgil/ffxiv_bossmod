@@ -8,8 +8,8 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    BlasphemousHowl = 17858, // Boss->players, 3,0s cast, range 8 circle, spread, applies terror
-    PetroEyes = 17856, // Boss->self, 3,0s cast, range 40 circle, gaze, inflicts petrification
+    BlasphemousHowl = 17858, // Boss->players, 3.0s cast, range 8 circle, spread, applies terror
+    PetroEyes = 17856, // Boss->self, 3.0s cast, range 40 circle, gaze, inflicts petrification
     Beakaxe = 17857, // Boss->player, no cast, single-target, instantlyy kills petrified players
 }
 

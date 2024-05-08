@@ -8,11 +8,11 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // 283A->player, no cast, single-target
-    ChestThump = 17859, // 283A->self, 4,0s cast, range 30 circle, one cast on 1st time, 5 hits on subsequent times, dmg buff on boss for each cast
+    ChestThump = 17859, // 283A->self, 4.0s cast, range 30 circle, one cast on 1st time, 5 hits on subsequent times, dmg buff on boss for each cast
     ChestThump2 = 17863, // 283A->self, no cast, range 30 circle
-    StoolPelt = 17861, // 283A->location, 3,0s cast, range 5 circle
-    Browbeat = 17860, // 283A->player, 4,0s cast, single-target
-    Streak = 17862, // 283A->location, 3,0s cast, width 6 rect charge, knockback 10, away from source
+    StoolPelt = 17861, // 283A->location, 3.0s cast, range 5 circle
+    Browbeat = 17860, // 283A->player, 4.0s cast, single-target
+    Streak = 17862, // 283A->location, 3.0s cast, width 6 rect charge, knockback 10, away from source
 }
 
 class ChestThump(BossModule module) : BossComponent(module)

@@ -12,19 +12,19 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss/BossAdd->player, no cast, single-target
-    Icicall = 32307, // Boss->self, 2,5s cast, single-target, spawns ice pillars
-    IcePillar = 32315, // IcePillars->self, 3,0s cast, range 6 circle
-    SkullDasher = 32306, // Boss->player, 5,0s cast, single-target
-    PillarPierce = 32316, // IcePillars->self, 3,0s cast, range 80 width 4 rect
-    HeavySmash = 32314, // Boss->players, 5,0s cast, range 6 circle
-    Howl = 32296, // Boss->self, 2,5s cast, single-target, calls adds
-    FrigidNeedle = 32310, // Boss->self, 3,5s cast, single-target --> combo start FrigidNeedle2 --> CircleofIce2 (out-->in)
-    FrigidNeedle2 = 32311, // BossHelper->self, 4,0s cast, range 10 circle
-    CircleOfIce = 32312, // Boss->self, 3,5s cast, single-target --> combo start CircleofIce2 --> FrigidNeedle2 (in-->out)
-    CircleOfIce2 = 32313, // BossHelper->self, 4,0s cast, range 10-20 donut
-    HeavySmash2 = 32317, // BossAdd->location, 3,0s cast, range 6 circle
-    FrigidStone = 32308, // Boss->self, 2,5s cast, single-target, activates helpers
-    FrigidStone2 = 32309, // BossHelper->location, 3,0s cast, range 5 circle
+    Icicall = 32307, // Boss->self, 2.5s cast, single-target, spawns ice pillars
+    IcePillar = 32315, // IcePillars->self, 3.0s cast, range 6 circle
+    SkullDasher = 32306, // Boss->player, 5.0s cast, single-target
+    PillarPierce = 32316, // IcePillars->self, 3.0s cast, range 80 width 4 rect
+    HeavySmash = 32314, // Boss->players, 5.0s cast, range 6 circle
+    Howl = 32296, // Boss->self, 2.5s cast, single-target, calls adds
+    FrigidNeedle = 32310, // Boss->self, 3.5s cast, single-target --> combo start FrigidNeedle2 --> CircleofIce2 (out-->in)
+    FrigidNeedle2 = 32311, // BossHelper->self, 4.0s cast, range 10 circle
+    CircleOfIce = 32312, // Boss->self, 3.5s cast, single-target --> combo start CircleofIce2 --> FrigidNeedle2 (in-->out)
+    CircleOfIce2 = 32313, // BossHelper->self, 4.0s cast, range 10-20 donut
+    HeavySmash2 = 32317, // BossAdd->location, 3.0s cast, range 6 circle
+    FrigidStone = 32308, // Boss->self, 2.5s cast, single-target, activates helpers
+    FrigidStone2 = 32309, // BossHelper->location, 3.0s cast, range 5 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 

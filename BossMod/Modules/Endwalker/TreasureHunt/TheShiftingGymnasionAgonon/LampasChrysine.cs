@@ -10,14 +10,14 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 32287, // Boss->player, no cast, single-target
-    AetherialLight = 32293, // Boss->self, 1,3s cast, single-target
-    AetherialLight2 = 32294, // BossHelper->self, 3,0s cast, range 40 60-degree cone
+    AetherialLight = 32293, // Boss->self, 1.3s cast, single-target
+    AetherialLight2 = 32294, // BossHelper->self, 3.0s cast, range 40 60-degree cone
     unknown = 32236, // Boss->self, no cast, single-target, seems to be connected to Aetherial Light
-    Lightburst = 32289, // Boss->self, 3,3s cast, single-target
-    Lightburst2 = 32290, // BossHelper->player, 5,0s cast, single-target
-    Shine = 32291, // Boss->self, 1,3s cast, single-target
-    Shine2 = 32292, // BossHelper->location, 3,0s cast, range 5 circle
-    Summon = 32288, // Boss->self, 1,3s cast, single-target, spawns bonus loot adds
+    Lightburst = 32289, // Boss->self, 3.3s cast, single-target
+    Lightburst2 = 32290, // BossHelper->player, 5.0s cast, single-target
+    Shine = 32291, // Boss->self, 1.3s cast, single-target
+    Shine2 = 32292, // BossHelper->location, 3.0s cast, range 5 circle
+    Summon = 32288, // Boss->self, 1.3s cast, single-target, spawns bonus loot adds
     Telega = 9630, // BonusAddLampas->self, no cast, single-target, bonus loot add despawn
 }
 

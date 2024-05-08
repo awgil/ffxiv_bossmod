@@ -8,11 +8,11 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    WildCharge = 15055, // 2725->players, 3,5s cast, width 8 rect charge
-    Explosion = 15054, // 2726->self, 2,0s cast, range 10 circle
-    Fireball = 15051, // 2725->location, 4,0s cast, range 6 circle
-    RipperClaw = 15050, // 2725->self, 4,0s cast, range 5+R 90-degree cone
-    TailSmash = 15052, // 2725->self, 4,0s cast, range 12+R 90-degree cone
+    WildCharge = 15055, // 2725->players, 3.5s cast, width 8 rect charge
+    Explosion = 15054, // 2726->self, 2.0s cast, range 10 circle
+    Fireball = 15051, // 2725->location, 4.0s cast, range 6 circle
+    RipperClaw = 15050, // 2725->self, 4.0s cast, range 5+R 90-degree cone
+    TailSmash = 15052, // 2725->self, 4.0s cast, range 12+R 90-degree cone
     BoneShaker = 15053, // 2725->self, no cast, range 50 circle, harmless raidwide
 }
 

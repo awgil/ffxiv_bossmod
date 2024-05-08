@@ -10,25 +10,25 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
-    Rend = 15513, // Boss->player, 4,0s cast, single-target, tankbuster
-    HoundOutOfHeaven = 15514, // Boss->self, 5,0s cast, single-target
+    Rend = 15513, // Boss->player, 4.0s cast, single-target, tankbuster
+    HoundOutOfHeaven = 15514, // Boss->self, 5.0s cast, single-target
     HoundOutOfHeavenTetherStretchSuccess = 17079, // Boss->player, no cast, single-target, tether break success
     HoundOutOfHeavenTetherStretchFail = 17080, // Boss->player, no cast, single-target, tether break fail
-    Glossolalia = 15515, // Boss->self, 3,0s cast, range 50 circle, raidwide
-    ViperPoison = 15516, // Boss->self, 6,0s cast, single-target
-    ViperPoisonPatterns = 15518, // Helper->location, 6,0s cast, range 6 circle
-    ViperPoisonBaitAway = 15517, // Helper->player, 6,0s cast, range 6 circle
+    Glossolalia = 15515, // Boss->self, 3.0s cast, range 50 circle, raidwide
+    ViperPoison = 15516, // Boss->self, 6.0s cast, single-target
+    ViperPoisonPatterns = 15518, // Helper->location, 6.0s cast, range 6 circle
+    ViperPoisonBaitAway = 15517, // Helper->player, 6.0s cast, range 6 circle
     Jump = 15519, // Boss->location, no cast, single-target, visual?
-    Inhale = 17168, // Boss->self, 4,0s cast, range 50 circle, attract 50 between centers
-    HeavingBreath = 15520, // Boss->self, 3,5s cast, range 50 circle, knockback 35 forward
-    HeavingBreath2 = 16923, // Helper->self, 3,5s cast, range 42 width 30 rect, visual?
-    ConfessionOfFaith = 15524, // Boss->self, 5,0s cast, single-target
-    ConfessionOfFaith2 = 15521, // Boss->self, 5,0s cast, single-target
-    ConfessionOfFaithLeft = 15526, // Helper->self, 5,5s cast, range 60 41-degree cone
-    ConfessionOfFaithRight = 15527, // Helper->self, 5,5s cast, range 60 41-degree cone
-    ConfessionOfFaithStack = 15525, // Helper->players, 5,8s cast, range 6 circle, stack
-    ConfessionOfFaithCenter = 15522, // Helper->self, 5,5s cast, range 60 40-degree cone
-    ConfessionOfFaithSpread = 15523, // Helper->player, 5,8s cast, range 5 circle, spread
+    Inhale = 17168, // Boss->self, 4.0s cast, range 50 circle, attract 50 between centers
+    HeavingBreath = 15520, // Boss->self, 3.5s cast, range 50 circle, knockback 35 forward
+    HeavingBreath2 = 16923, // Helper->self, 3.5s cast, range 42 width 30 rect, visual?
+    ConfessionOfFaith = 15524, // Boss->self, 5.0s cast, single-target
+    ConfessionOfFaith2 = 15521, // Boss->self, 5.0s cast, single-target
+    ConfessionOfFaithLeft = 15526, // Helper->self, 5.5s cast, range 60 41-degree cone
+    ConfessionOfFaithRight = 15527, // Helper->self, 5.5s cast, range 60 41-degree cone
+    ConfessionOfFaithStack = 15525, // Helper->players, 5.8s cast, range 6 circle, stack
+    ConfessionOfFaithCenter = 15522, // Helper->self, 5.5s cast, range 60 40-degree cone
+    ConfessionOfFaithSpread = 15523, // Helper->player, 5.8s cast, range 5 circle, spread
 }
 
 public enum IconID : uint

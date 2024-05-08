@@ -12,10 +12,10 @@ public enum AID : uint
 {
     AutoAttack = 16246, // Boss->player, no cast, single-target
     LeftPalm = 16249, // Boss->self, no cast, single-target
-    LeftPalm2 = 16250, // 233C->self, 4,5s cast, range 30 width 15 rect
-    LightShot = 16251, // Brightsphere->self, 4,0s cast, range 40 width 4 rect
+    LeftPalm2 = 16250, // 233C->self, 4.5s cast, range 30 width 15 rect
+    LightShot = 16251, // Brightsphere->self, 4.0s cast, range 40 width 4 rect
     RightPalm = 16247, // Boss->self, no cast, single-target
-    RightPalm2 = 16248, // 233C->self, 4,5s cast, range 30 width 15 rect
+    RightPalm2 = 16248, // 233C->self, 4.5s cast, range 30 width 15 rect
 }
 
 class PalmAttacks(BossModule module) : Components.GenericAOEs(module) //Palm Attacks have a wrong origin, so i made a custom solution

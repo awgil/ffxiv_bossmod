@@ -8,11 +8,11 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // 2854/2850->player, no cast, single-target
-    SewerWater = 17956, // 2854->self, 3,0s cast, range 12 180-degree cone
-    SewerWater2 = 17957, // 2854->self, 3,0s cast, range 12 180-degree cone
-    SewageWave = 17423, // 2854->self, 5,0s cast, range 30 180-degree cone
+    SewerWater = 17956, // 2854->self, 3.0s cast, range 12 180-degree cone
+    SewerWater2 = 17957, // 2854->self, 3.0s cast, range 12 180-degree cone
+    SewageWave = 17423, // 2854->self, 5.0s cast, range 30 180-degree cone
     SewageWave1 = 17422, // 2854->self, no cast, range 30 180-degree cone
-    SewageWave2 = 17424, // 2854->self, 5,0s cast, range 30 180-degree cone
+    SewageWave2 = 17424, // 2854->self, 5.0s cast, range 30 180-degree cone
     SewageWave3 = 17421, // 2854->self, no cast, range 30 180-degree cone
 }
 

@@ -10,13 +10,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // 302B/302C->player, no cast, single-target
-    ElectricWhorl = 21720, // 302B->self, 4,5s cast, range 8-60 donut
+    ElectricWhorl = 21720, // 302B->self, 4.5s cast, range 8-60 donut
     Hydrocannon = 21712, // 302B->self, no cast, single-target
-    Hydrocannon2 = 21766, // 233C->location, 3,0s cast, range 8 circle
-    Ceras = 21716, // 302B->player, 4,0s cast, single-target, applies poison
-    SeventhWave = 21719, // 302B->self, 4,5s cast, range 11 circle
-    BodySlam = 21718, // 302B->location, 4,0s cast, range 10 circle, knockback 20, away from source
-    PrevailingCurrent = 21717, // 302C->self, 3,0s cast, range 22+R width 6 rect
+    Hydrocannon2 = 21766, // 233C->location, 3.0s cast, range 8 circle
+    Ceras = 21716, // 302B->player, 4.0s cast, single-target, applies poison
+    SeventhWave = 21719, // 302B->self, 4.5s cast, range 11 circle
+    BodySlam = 21718, // 302B->location, 4.0s cast, range 10 circle, knockback 20, away from source
+    PrevailingCurrent = 21717, // 302C->self, 3.0s cast, range 22+R width 6 rect
 }
 
 class ElectricWhorl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SeventhWave), new AOEShapeCircle(11));

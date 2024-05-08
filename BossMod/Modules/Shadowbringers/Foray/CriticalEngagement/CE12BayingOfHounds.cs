@@ -21,9 +21,9 @@ public enum AID : uint
     HellpounceSecond = 20540, // Boss->location, 1.0s cast, width 10 rect charge, knockback away from source, dist 5 (consider showing?)
     LionsBreath = 20541, // Boss->self, 4.0s cast, single-target, visual (frontal cone)
     LionsBreathAOE = 20542, // Helper->self, 4.5s cast, range 60 45-degree cone aoe
-    DragonsBreath = 20543, // Boss->self, 4,0s cast, single-target, visual (side cones)
-    DragonsBreathAOER = 20544, // Helper->self, 4,5s cast, range 60 30-degree cone
-    DragonsBreathAOEL = 20545, // Helper->self, 4,5s cast, range 60 30-degree cone
+    DragonsBreath = 20543, // Boss->self, 4.0s cast, single-target, visual (side cones)
+    DragonsBreathAOER = 20544, // Helper->self, 4.5s cast, range 60 30-degree cone
+    DragonsBreathAOEL = 20545, // Helper->self, 4.5s cast, range 60 30-degree cone
     VoidTornado = 20546, // Boss->self, 4.0s cast, single-target, visual (set hp to 1)
     VoidTornadoAOE = 20547, // Helper->self, no cast, range 30 circle, set hp to 1
     VoidQuake = 20548, // Boss->self, 3.0s cast, single-target, visual (staggered circle/donuts)

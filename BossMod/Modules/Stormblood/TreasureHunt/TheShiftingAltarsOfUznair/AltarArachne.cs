@@ -14,17 +14,17 @@ public enum AID : uint
 {
     AutoAttack = 870, // Boss/2544->player, no cast, single-target
     AutoAttack2 = 872, // BonusAddAltarMatanga->player, no cast, single-target
-    DarkSpike = 13342, // Boss->player, 3,0s cast, single-target
-    SilkenSpray = 13455, // Boss->self, 2,5s cast, range 17+R 60-degree cone
-    FrondAffeared = 13784, // Boss->self, 3,0s cast, range 60 circle, gaze, applies hysteria
-    Implosion = 13343, // Boss->self, 4,0s cast, range 50+R circle
-    Earthquake1 = 13346, // 253C/2565->self, 3,5s cast, range 10+R circle
-    Earthquake2 = 13345, // 253C/2565->self, 3,5s cast, range 10-20 donut
-    Earthquake3 = 13344, // 253C/2565->self, 3,5s cast, range 20-30 donut
+    DarkSpike = 13342, // Boss->player, 3.0s cast, single-target
+    SilkenSpray = 13455, // Boss->self, 2.5s cast, range 17+R 60-degree cone
+    FrondAffeared = 13784, // Boss->self, 3.0s cast, range 60 circle, gaze, applies hysteria
+    Implosion = 13343, // Boss->self, 4.0s cast, range 50+R circle
+    Earthquake1 = 13346, // 253C/2565->self, 3.5s cast, range 10+R circle
+    Earthquake2 = 13345, // 253C/2565->self, 3.5s cast, range 10-20 donut
+    Earthquake3 = 13344, // 253C/2565->self, 3.5s cast, range 20-30 donut
     unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
     Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2.5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

@@ -15,9 +15,9 @@ public enum AID : uint
     AutoAttack = 870, // ForgivenExtortion/28F1->player, no cast, single-target
     AutoAttack2 = 872, // Boss->player, no cast, single-target
     RavenousBite = 16812, // ForgivenExtortion->player, no cast, single-target
-    SanctifiedAero = 16813, // 28F1->self, 5,0s cast, range 40 width 8 rect
-    PunitiveLight = 16815, // Boss->self, 5,0s cast, range 20 circle
-    Sanctification = 16814, // Boss->self, 5,0s cast, range 12 90-degree cone
+    SanctifiedAero = 16813, // 28F1->self, 5.0s cast, range 40 width 8 rect
+    PunitiveLight = 16815, // Boss->self, 5.0s cast, range 20 circle
+    Sanctification = 16814, // Boss->self, 5.0s cast, range 12 90-degree cone
 }
 
 class SanctifiedAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedAero), new AOEShapeRect(40, 4));

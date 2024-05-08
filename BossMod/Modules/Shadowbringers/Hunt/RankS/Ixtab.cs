@@ -8,18 +8,18 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 17850, // Boss->player, no cast, single-target
-    TartareanAbyss = 17848, // Boss->players, 4,0s cast, range 6 circle
-    TartareanFlare = 17846, // Boss->location, 4,5s cast, range 18 circle
-    TartareanBlizzard = 17845, // Boss->self, 3,0s cast, range 40 45-degree cone
-    TartareanFlame = 17999, // Boss->self, 5,0s cast, range 8-40 donut
+    TartareanAbyss = 17848, // Boss->players, 4.0s cast, range 6 circle
+    TartareanFlare = 17846, // Boss->location, 4.5s cast, range 18 circle
+    TartareanBlizzard = 17845, // Boss->self, 3.0s cast, range 40 45-degree cone
+    TartareanFlame = 17999, // Boss->self, 5.0s cast, range 8-40 donut
     TartareanFlame2 = 18074, // Boss->self, no cast, range 8-40 donut
-    TartareanThunder = 17843, // Boss->location, 5,0s cast, range 20 circle
+    TartareanThunder = 17843, // Boss->location, 5.0s cast, range 20 circle
     TartareanThunder2 = 18075, // Boss->location, no cast, range 20 circle
-    TartareanMeteor = 17844, // Boss->players, 5,0s cast, range 10 circle
-    ArchaicDualcast = 18077, // Boss->self, 3,0s cast, single-target, either out/in or in/out with Tartarean Flame and Tartarean Thunder
-    Cryptcall = 17847, // Boss->self/players, 3,0s cast, range 35+R 120-degree cone, sets hp to 1, applies heal to full doom with 25s duration
-    TartareanQuake = 17849, // Boss->self, 4,0s cast, range 40 circle
-    TartareanTwister = 18072, // Boss->self, 5,0s cast, range 55 circle, raidwide + windburn DoT, interruptible
+    TartareanMeteor = 17844, // Boss->players, 5.0s cast, range 10 circle
+    ArchaicDualcast = 18077, // Boss->self, 3.0s cast, single-target, either out/in or in/out with Tartarean Flame and Tartarean Thunder
+    Cryptcall = 17847, // Boss->self/players, 3.0s cast, range 35+R 120-degree cone, sets hp to 1, applies heal to full doom with 25s duration
+    TartareanQuake = 17849, // Boss->self, 4.0s cast, range 40 circle
+    TartareanTwister = 18072, // Boss->self, 5.0s cast, range 55 circle, raidwide + windburn DoT, interruptible
 }
 
 public enum SID : uint

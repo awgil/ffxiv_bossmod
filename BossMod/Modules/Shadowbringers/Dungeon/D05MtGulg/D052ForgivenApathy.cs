@@ -17,10 +17,10 @@ public enum AID : uint
     RavenousBite = 16812, // 28EF->player, no cast, single-target
     AetherialPull = 16242, // 28F0->self, no cast, single-target
     AetherialPull2 = 16243, // 233C->self, no cast, range 50 circle, pull 50 between hitboxes, can most likely be ignored
-    EarthShaker = 16244, // 28F0->self, 5,0s cast, single-target
-    EarthShaker2 = 16245, // 233C->self, 5,0s cast, range 60 60-degree cone
-    Sanctification = 16814, // 28F2->self, 5,0s cast, range 12 90-degree cone
-    PunitiveLight = 16815, // 28F2->self, 5,0s cast, range 20 circle
+    EarthShaker = 16244, // 28F0->self, 5.0s cast, single-target
+    EarthShaker2 = 16245, // 233C->self, 5.0s cast, range 60 60-degree cone
+    Sanctification = 16814, // 28F2->self, 5.0s cast, range 12 90-degree cone
+    PunitiveLight = 16815, // 28F2->self, 5.0s cast, range 20 circle
 }
 
 //Note: this attack is a r20 circle, not drawing it because it is too big and the damage not all that high even if interrupt/stun fails

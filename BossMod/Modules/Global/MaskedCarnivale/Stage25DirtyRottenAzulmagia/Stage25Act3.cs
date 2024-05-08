@@ -10,20 +10,20 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    RepellingSpray = 14768, // 2680->self, 2,0s cast, single-target, boss reflect magic attacks
-    IceSpikes = 14762, // 2680->self, 2,0s cast, single-target, boss reflects physical attacks
-    ApocalypticBolt = 14766, // 2680->self, 3,0s cast, range 50+R width 8 rect
-    TheRamsVoice = 14763, // 2680->self, 3,5s cast, range 8 circle
-    TheDragonsVoice = 14764, // 2680->self, 3,5s cast, range 6-30 donut
-    ApocalypticRoar = 14767, // 2680->self, 5,0s cast, range 35+R 120-degree cone
-    Charybdis = 14772, // 2680->self, 3,0s cast, single-target
-    Charybdis2 = 14773, // 233C->self, 4,0s cast, range 8 circle
-    Maelstrom = 14780, // 2681->self, 1,0s cast, range 8 circle
-    Web = 14770, // 2680->player, 3,0s cast, single-target
-    Meteor = 14771, // 2680->location, 7,0s cast, range 15 circle
-    Plaincracker = 14765, // 2680->self, 3,5s cast, range 6+R circle
-    TremblingEarth = 14774, // 233C->self, 3,5s cast, range 10-20 donut
-    TremblingEarth2 = 14775, // 233C->self, 3,5s cast, range 20-30 donut
+    RepellingSpray = 14768, // 2680->self, 2.0s cast, single-target, boss reflect magic attacks
+    IceSpikes = 14762, // 2680->self, 2.0s cast, single-target, boss reflects physical attacks
+    ApocalypticBolt = 14766, // 2680->self, 3.0s cast, range 50+R width 8 rect
+    TheRamsVoice = 14763, // 2680->self, 3.5s cast, range 8 circle
+    TheDragonsVoice = 14764, // 2680->self, 3.5s cast, range 6-30 donut
+    ApocalypticRoar = 14767, // 2680->self, 5.0s cast, range 35+R 120-degree cone
+    Charybdis = 14772, // 2680->self, 3.0s cast, single-target
+    Charybdis2 = 14773, // 233C->self, 4.0s cast, range 8 circle
+    Maelstrom = 14780, // 2681->self, 1.0s cast, range 8 circle
+    Web = 14770, // 2680->player, 3.0s cast, single-target
+    Meteor = 14771, // 2680->location, 7.0s cast, range 15 circle
+    Plaincracker = 14765, // 2680->self, 3.5s cast, range 6+R circle
+    TremblingEarth = 14774, // 233C->self, 3.5s cast, range 10-20 donut
+    TremblingEarth2 = 14775, // 233C->self, 3.5s cast, range 20-30 donut
 }
 
 public enum SID : uint

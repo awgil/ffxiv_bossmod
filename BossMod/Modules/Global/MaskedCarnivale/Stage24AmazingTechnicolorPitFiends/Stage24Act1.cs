@@ -9,10 +9,10 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6497, // ArenaViking->player, no cast, single-target
-    Fire = 14266, // Boss->player, 1,0s cast, single-target
-    Starstorm = 15317, // Boss->location, 3,0s cast, range 5 circle
-    RagingAxe = 15316, // ArenaViking->self, 3,0s cast, range 4+R 90-degree cone
-    LightningSpark = 15318, // Boss->player, 6,0s cast, single-target
+    Fire = 14266, // Boss->player, 1.0s cast, single-target
+    Starstorm = 15317, // Boss->location, 3.0s cast, range 5 circle
+    RagingAxe = 15316, // ArenaViking->self, 3.0s cast, range 4+R 90-degree cone
+    LightningSpark = 15318, // Boss->player, 6.0s cast, single-target
 }
 
 class Starstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Starstorm), 5);

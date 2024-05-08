@@ -11,25 +11,25 @@ public enum OID : uint
 public enum AID : uint
 {
     Attack = 872, // Boss->player, no cast, single-target
-    FetchingFulgence = 32332, // Boss->self, 4,0s cast, range 40 circle, Gaze, Vegetal Vapors
-    PotentPerfume = 32333, // BossHelper->location, 4,0s cast, range 8 circle, high damage, Vegetal Vapours
-    Lash = 32330, // Boss->player, 5,0s cast, single-target, tank buster
+    FetchingFulgence = 32332, // Boss->self, 4.0s cast, range 40 circle, Gaze, Vegetal Vapors
+    PotentPerfume = 32333, // BossHelper->location, 4.0s cast, range 8 circle, high damage, Vegetal Vapours
+    Lash = 32330, // Boss->player, 5.0s cast, single-target, tank buster
     SapShower = 32335, // Boss->self, no cast, single-target
-    SapShower2 = 32336, // BossHelper->location, 6,5s cast, range 8 circle, high damage, Vegetal Vapours
-    ExtensibleTendrils = 32339, // Boss->self, 5,0s cast, range 25 width 6 cross
+    SapShower2 = 32336, // BossHelper->location, 6.5s cast, range 8 circle, high damage, Vegetal Vapours
+    ExtensibleTendrils = 32339, // Boss->self, 5.0s cast, range 25 width 6 cross
     AutoAttack = 870, // 3D4E->player, no cast, single-target
-    RockHard = 32340, // BossHelper->player, 5,5s cast, range 6 circle
-    HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
-    BeguilingGas = 32331, // Boss->self, 5,0s cast, range 40 circle, Temporary Misdirection
-    Brainstorm = 32334, // Boss->self, 5,0s cast, range 40 circle, Forced March debuffs
-    PutridBreath = 32338, // Boss->self, 4,0s cast, range 25 90-degree cone
+    RockHard = 32340, // BossHelper->player, 5.5s cast, range 6 circle
+    HeavySmash = 32317, // 3D4E->location, 3.0s cast, range 6 circle
+    BeguilingGas = 32331, // Boss->self, 5.0s cast, range 40 circle, Temporary Misdirection
+    Brainstorm = 32334, // Boss->self, 5.0s cast, range 40 circle, Forced March debuffs
+    PutridBreath = 32338, // Boss->self, 4.0s cast, range 25 90-degree cone
 }
 
 public enum SID : uint
 {
     VegetalVapours = 3467, // Boss/BossHelper->player, extra=0x2162 (description: Overcome and quite unable to act.)
     TemporaryMisdirection = 1422, // Boss->player, extra=0x2D0
-    ForcedMarch = 1257, // Boss->player, extra=0x8/0x1/0x4,0x2
+    ForcedMarch = 1257, // Boss->player, extra=0x1/0x2/0x4/0x8
     RightFace = 1961, // Boss->player, extra=0x0
     ForwardMarch = 1958, // Boss->player, extra=0x0
     AboutFace = 1959, // Boss->player, extra=0x0

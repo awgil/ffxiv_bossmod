@@ -32,8 +32,8 @@ public enum AID : uint
     RawSteel = 23943, // Boss->player, 5.0s cast, width 4 rect charge cleaving tankbuster
     CloseQuarters = 23944, // Boss->self, 5.0s cast, single-target, visual
     CloseQuartersAOE = 23945, // Helper->self, 5.0s cast, range 15 circle
-    FarAfield = 23946, // Boss->self, 5,0s cast, single-target, visual
-    FarAfieldAOE = 23947, // Helper->self, 5,0s cast, range 10-30 donut
+    FarAfield = 23946, // Boss->self, 5.0s cast, single-target, visual
+    FarAfieldAOE = 23947, // Helper->self, 5.0s cast, range 10-30 donut
     CallControlledBurn = 23950, // Boss->self, 5.0s cast, single-target, visual (spread)
     CallControlledBurnAOE = 23951, // ImperialAssaultCraft->players, 5.0s cast, range 6 circle spread
     MagitekBlaster = 23952, // Boss->players, 5.0s cast, range 8 circle stack

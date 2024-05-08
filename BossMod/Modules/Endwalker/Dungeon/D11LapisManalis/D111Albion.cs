@@ -5,30 +5,30 @@ public enum OID : uint
     Boss = 0x3CFE, //R=4.6
     WildBeasts = 0x3D03, //R=0.5
     Helper = 0x233C,
-    WildBeasts1 = 0x3CFF, // R1,320
-    WildBeasts2 = 0x3D00, // R1,700
-    WildBeasts3 = 0x3D02, // R4,000
-    WildBeasts4 = 0x3D01, // R2,850
-    IcyCrystal = 0x3D04, // R2,000
+    WildBeasts1 = 0x3CFF, // R1.320
+    WildBeasts2 = 0x3D00, // R1.700
+    WildBeasts3 = 0x3D02, // R4.000
+    WildBeasts4 = 0x3D01, // R2.850
+    IcyCrystal = 0x3D04, // R2.000
 }
 
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
     Teleport = 32812, // Boss->location, no cast, single-target, boss teleports mid
-    CallOfTheMountain = 31356, // Boss->self, 3,0s cast, single-target, boss calls wild beasts
+    CallOfTheMountain = 31356, // Boss->self, 3.0s cast, single-target, boss calls wild beasts
     WildlifeCrossing = 31357, // WildBeasts->self, no cast, range 7 width 10 rect
-    AlbionsEmbrace = 31365, // Boss->player, 5,0s cast, single-target
-    RightSlam = 32813, // Boss->self, 5,0s cast, range 80 width 20 rect
-    LeftSlam = 32814, // Boss->self, 5,0s cast, range 80 width 20 rect
-    KnockOnIce = 31358, // Boss->self, 4,0s cast, single-target
-    KnockOnIce2 = 31359, // Helper->self, 6,0s cast, range 5 circle
-    Icebreaker = 31361, // Boss->3D04, 5,0s cast, range 17 circle
+    AlbionsEmbrace = 31365, // Boss->player, 5.0s cast, single-target
+    RightSlam = 32813, // Boss->self, 5.0s cast, range 80 width 20 rect
+    LeftSlam = 32814, // Boss->self, 5.0s cast, range 80 width 20 rect
+    KnockOnIce = 31358, // Boss->self, 4.0s cast, single-target
+    KnockOnIce2 = 31359, // Helper->self, 6.0s cast, range 5 circle
+    Icebreaker = 31361, // Boss->3D04, 5.0s cast, range 17 circle
     IcyThroes = 31362, // Boss->self, no cast, single-target
-    IcyThroes2 = 32783, // Helper->self, 5,0s cast, range 6 circle
-    IcyThroes3 = 31363, // Helper->player, 5,0s cast, range 6 circle
-    IcyThroes4 = 32697, // Helper->self, 5,0s cast, range 6 circle
-    RoarOfAlbion = 31364, // Boss->self, 7,0s cast, range 60 circle
+    IcyThroes2 = 32783, // Helper->self, 5.0s cast, range 6 circle
+    IcyThroes3 = 31363, // Helper->player, 5.0s cast, range 6 circle
+    IcyThroes4 = 32697, // Helper->self, 5.0s cast, range 6 circle
+    RoarOfAlbion = 31364, // Boss->self, 7.0s cast, range 60 circle
 }
 
 public enum IconID : uint
@@ -150,7 +150,7 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
                 ++stampede1.count;
             if (MathF.Abs(caster.Position.Z - stampede2.position.Z) < 1)
                 ++stampede2.count;
-            if (stampede1.count == 30) //sometimes stampedes only have 30 instead of 31 hits for some reason, so i take the lower value and add a 0,5s reset timer via update
+            if (stampede1.count == 30) //sometimes stampedes only have 30 instead of 31 hits for some reason, so i take the lower value and add a 0.5s reset timer via update
                 stampede1.reset = WorldState.FutureTime(0.5f);
             if (stampede2.count == 30)
                 stampede1.reset = WorldState.FutureTime(0.5f);

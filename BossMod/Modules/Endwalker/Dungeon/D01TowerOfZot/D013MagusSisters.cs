@@ -40,13 +40,13 @@ public enum AID : uint
     ManusyaThunder2 = 25289, // Minduruva->player, 2.0s cast, single-target
     PraptiSiddhi = 25275, // Sanduruva->self, 2.0s cast, range 40 width 4 rect
     Samsara = 25273, // Boss->self, 3.0s cast, range 40 circle
-    ManusyaBio = 25290, // Minduruva->player, 4,0s cast, single-target
-    ManusyaBerserk = 25276, // Sanduruva->self, 3,0s cast, single-target
-    ExplosiveForce = 25277, // Sanduruva->self, 2,0s cast, single-target
-    SphereShatter = 25279, // BerserkerSphere->self, 1,5s cast, range 15 circle
-    PrakamyaSiddhi = 25278, // Sanduruva->self, 4,0s cast, range 5 circle
-    ManusyaBlizzardIII = 25285, // Minduruva->self, 4,0s cast, single-target
-    ManusyaBlizzardIII2 = 25286, // Helper->self, 4,0s cast, range 40+R 20-degree cone
+    ManusyaBio = 25290, // Minduruva->player, 4.0s cast, single-target
+    ManusyaBerserk = 25276, // Sanduruva->self, 3.0s cast, single-target
+    ExplosiveForce = 25277, // Sanduruva->self, 2.0s cast, single-target
+    SphereShatter = 25279, // BerserkerSphere->self, 1.5s cast, range 15 circle
+    PrakamyaSiddhi = 25278, // Sanduruva->self, 4.0s cast, range 5 circle
+    ManusyaBlizzardIII = 25285, // Minduruva->self, 4.0s cast, single-target
+    ManusyaBlizzardIII2 = 25286, // Helper->self, 4.0s cast, range 40+R 20-degree cone
 }
 
 public enum SID : uint

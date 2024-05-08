@@ -9,13 +9,13 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    RepellingSpray = 14768, // Boss->self, 2,0s cast, single-target, boss reflectss magic attacks
-    ApocalypticBolt = 14766, // 267F->self, 3,0s cast, range 50+R width 8 rect
-    BlazingAngon = 14769, // 267F->location, 1,0s cast, single-target
-    Burn = 14776, // 2682->self, 6,0s cast, range 50+R circle
-    TheRamsVoice = 14763, // 267F->self, 3,5s cast, range 8 circle
-    TheDragonsVoice = 14764, // 267F->self, 3,5s cast, range 6-30 donut
-    ApocalypticRoar = 14767, // 267F->self, 5,0s cast, range 35+R 120-degree cone
+    RepellingSpray = 14768, // Boss->self, 2.0s cast, single-target, boss reflectss magic attacks
+    ApocalypticBolt = 14766, // 267F->self, 3.0s cast, range 50+R width 8 rect
+    BlazingAngon = 14769, // 267F->location, 1.0s cast, single-target
+    Burn = 14776, // 2682->self, 6.0s cast, range 50+R circle
+    TheRamsVoice = 14763, // 267F->self, 3.5s cast, range 8 circle
+    TheDragonsVoice = 14764, // 267F->self, 3.5s cast, range 6-30 donut
+    ApocalypticRoar = 14767, // 267F->self, 5.0s cast, range 35+R 120-degree cone
 }
 
 public enum SID : uint

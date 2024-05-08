@@ -6,11 +6,11 @@ public enum OID : uint
     BossAdd = 0x3D3C, //R=2.3
     VerdantPlume = 0x3D3D, //R=0.65
     BossHelper = 0x233C,
-    GymnasticGarlic = 0x3D51, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    GymnasticQueen = 0x3D53, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    GymnasticEggplant = 0x3D50, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-    GymnasticOnion = 0x3D4F, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    GymnasticTomato = 0x3D52, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticGarlic = 0x3D51, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticQueen = 0x3D53, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticEggplant = 0x3D50, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticOnion = 0x3D4F, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    GymnasticTomato = 0x3D52, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
     BonusAddLampas = 0x3D4D, //R=2.001, bonus loot adds
     BonusAddLyssa = 0x3D4E, //R=3.75, bonus loot adds
 }
@@ -19,24 +19,24 @@ public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
     AutoAttack2 = 872, // BossAdd->player, no cast, single-target
-    FeatherWind = 32267, // Boss->self, 4,0s cast, single-target, spawns Verdant Plumes
-    Explosion = 32273, // 3D3D->self, 5,0s cast, range 3-12 donut
-    Scratch = 32265, // Boss->player, 5,0s cast, single-target
-    AeroII = 32268, // Boss->self, 3,0s cast, single-target
-    AeroII2 = 32269, // BossHelper->location, 3,0s cast, range 4 circle
-    FervidPulse = 32272, // Boss->self, 5,0s cast, range 50 width 14 cross
+    FeatherWind = 32267, // Boss->self, 4.0s cast, single-target, spawns Verdant Plumes
+    Explosion = 32273, // 3D3D->self, 5.0s cast, range 3-12 donut
+    Scratch = 32265, // Boss->player, 5.0s cast, single-target
+    AeroII = 32268, // Boss->self, 3.0s cast, single-target
+    AeroII2 = 32269, // BossHelper->location, 3.0s cast, range 4 circle
+    FervidPulse = 32272, // Boss->self, 5.0s cast, range 50 width 14 cross
     Spreadmarkers = 32199, // Boss->self, no cast, single-target
-    FeatherRain = 32271, // BossHelper->player, 5,0s cast, range 6 circle
-    FrigidPulse = 32270, // Boss->self, 5,0s cast, range 12-60 donut
-    AlpineDraft = 32274, // BossAdd->self, 3,0s cast, range 45 width 5 rect
-    MoltingPlumage = 32266, // Boss->self, 5,0s cast, range 60 circle
-    PluckAndPrune = 32302, // GymnasticEggplant->self, 3,5s cast, range 7 circle
-    Pollen = 32305, // GymnasticQueen->self, 3,5s cast, range 7 circle
-    HeirloomScream = 32304, // GymnasticTomato->self, 3,5s cast, range 7 circle
-    PungentPirouette = 32303, // GymnasticGarlic->self, 3,5s cast, range 7 circle
-    TearyTwirl = 32301, // GymnasticOnion->self, 3,5s cast, range 7 circle
+    FeatherRain = 32271, // BossHelper->player, 5.0s cast, range 6 circle
+    FrigidPulse = 32270, // Boss->self, 5.0s cast, range 12-60 donut
+    AlpineDraft = 32274, // BossAdd->self, 3.0s cast, range 45 width 5 rect
+    MoltingPlumage = 32266, // Boss->self, 5.0s cast, range 60 circle
+    PluckAndPrune = 32302, // GymnasticEggplant->self, 3.5s cast, range 7 circle
+    Pollen = 32305, // GymnasticQueen->self, 3.5s cast, range 7 circle
+    HeirloomScream = 32304, // GymnasticTomato->self, 3.5s cast, range 7 circle
+    PungentPirouette = 32303, // GymnasticGarlic->self, 3.5s cast, range 7 circle
+    TearyTwirl = 32301, // GymnasticOnion->self, 3.5s cast, range 7 circle
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
-    HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
+    HeavySmash = 32317, // 3D4E->location, 3.0s cast, range 6 circle
 }
 
 class Scratch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Scratch));

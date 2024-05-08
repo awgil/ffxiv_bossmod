@@ -9,14 +9,14 @@ public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
     WakeUp = 18103, // Boss->self, no cast, single-target, visual for waking up from sleep
-    WildHorn = 18026, // Boss->self, 3,0s cast, range 17 120-degree cone
-    BafflementBulb = 18029, // Boss->self, 3,0s cast, range 40 circle, pull 50 between hitboxes, temporary misdirection
-    ForestFire = 18030, // Boss->self, 5,0s cast, range 40 circle, damage fall off AOE, hard to tell optimal distance because logs are polluted by vuln stacks, guessing about 15
-    MightySpin = 18028, // Boss->self, 3,0s cast, range 14 circle
+    WildHorn = 18026, // Boss->self, 3.0s cast, range 17 120-degree cone
+    BafflementBulb = 18029, // Boss->self, 3.0s cast, range 40 circle, pull 50 between hitboxes, temporary misdirection
+    ForestFire = 18030, // Boss->self, 5.0s cast, range 40 circle, damage fall off AOE, hard to tell optimal distance because logs are polluted by vuln stacks, guessing about 15
+    MightySpin = 18028, // Boss->self, 3.0s cast, range 14 circle
     MightySpin2 = 18093, // Boss->self, no cast, range 14 circle, after 1s after boss wakes up and 4s after every Groundstorm
-    Trounce = 18027, // Boss->self, 4,0s cast, range 40 60-degree cone
-    MetamorphicBlast = 18031, // Boss->self, 4,0s cast, range 40 circle
-    Groundstorm = 18023, // Boss->self, 5,0s cast, range 5-40 donut
+    Trounce = 18027, // Boss->self, 4.0s cast, range 40 60-degree cone
+    MetamorphicBlast = 18031, // Boss->self, 4.0s cast, range 40 circle
+    Groundstorm = 18023, // Boss->self, 5.0s cast, range 5-40 donut
 }
 
 class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildHorn), new AOEShapeCone(17, 60.Degrees()));

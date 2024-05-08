@@ -8,9 +8,9 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // 1AC0->player, no cast, single-target
-    ScytheTail = 8190, // 1AC0->self, 3,0s cast, range 4+R circle, knockback 10, away from source + stun
-    RockThrow = 8193, // 1AC0->location, 3,0s cast, range 6 circle
-    Butcher = 8191, // 1AC0->self, 3,0s cast, range 6+R 120-degree cone
+    ScytheTail = 8190, // 1AC0->self, 3.0s cast, range 4+R circle, knockback 10, away from source + stun
+    RockThrow = 8193, // 1AC0->location, 3.0s cast, range 6 circle
+    Butcher = 8191, // 1AC0->self, 3.0s cast, range 6+R 120-degree cone
     Rip = 8192, // 1AC0->self, no cast, range 6+R 120-degree cone, always happens directly after Butcher
 }
 

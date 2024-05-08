@@ -8,7 +8,7 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    LowVoltage = 14710, // 2706->self, 12,0s cast, range 30+R circle - can be line of sighted by barricade
+    LowVoltage = 14710, // 2706->self, 12.0s cast, range 30+R circle - can be line of sighted by barricade
     Detonation = 14696, // 2707->self, no cast, range 6+R circle
     Object130 = 14711, // 2706->self, no cast, range 30+R circle - instant kill if you do not line of sight the towers when they die
 }

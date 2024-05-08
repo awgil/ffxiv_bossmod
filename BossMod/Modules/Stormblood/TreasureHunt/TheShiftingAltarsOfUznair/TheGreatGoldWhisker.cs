@@ -10,9 +10,9 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss/BonusAddGoldWhisker->player, no cast, single-target
-    TripleTrident = 13364, // Boss->players, 3,0s cast, single-target
-    Tingle = 13365, // Boss->self, 4,0s cast, range 10+R circle
-    FishOutOfWater = 13366, // Boss->self, 3,0s cast, single-target
+    TripleTrident = 13364, // Boss->players, 3.0s cast, single-target
+    Tingle = 13365, // Boss->self, 4.0s cast, range 10+R circle
+    FishOutOfWater = 13366, // Boss->self, 3.0s cast, single-target
     Telega = 9630, // BonusAddGoldWhisker->self, no cast, single-target
 }
 

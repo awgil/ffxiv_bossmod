@@ -15,18 +15,18 @@ public enum AID : uint
     AutoAttack = 870, // Boss/2544->player, no cast, single-target
     AutoAttack2 = 872, // BonusAddAltarMatanga->player, no cast, single-target
     AutoAttack3 = 6497, // 256F->player, no cast, single-target
-    DeadlyHold = 13217, // Boss->player, 3,0s cast, single-target
-    HeatBreath = 13218, // Boss->self, 3,0s cast, range 8+R 90-degree cone
-    TailSmash = 13220, // Boss->self, 3,0s cast, range 20+R 90-degree cone
-    RagingInferno = 13283, // Boss->self, 3,0s cast, range 60 circle
-    Comet = 13835, // BossHelper->location, 3,0s cast, range 4 circle
-    HardStomp = 13743, // 256F->self, 3,0s cast, range 6+R circle
-    Fireball = 13219, // Boss->location, 3,0s cast, range 6 circle
+    DeadlyHold = 13217, // Boss->player, 3.0s cast, single-target
+    HeatBreath = 13218, // Boss->self, 3.0s cast, range 8+R 90-degree cone
+    TailSmash = 13220, // Boss->self, 3.0s cast, range 20+R 90-degree cone
+    RagingInferno = 13283, // Boss->self, 3.0s cast, range 60 circle
+    Comet = 13835, // BossHelper->location, 3.0s cast, range 4 circle
+    HardStomp = 13743, // 256F->self, 3.0s cast, range 6+R circle
+    Fireball = 13219, // Boss->location, 3.0s cast, range 6 circle
 
     unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
     Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2.5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

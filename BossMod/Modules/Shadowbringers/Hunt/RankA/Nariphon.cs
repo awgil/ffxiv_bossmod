@@ -9,9 +9,9 @@ public enum AID : uint
 {
     AutoAttack = 870, // 2890->player, no cast, single-target
     VineHammer = 16969, // 2890->player, no cast, single-target, attacks several random players in a row
-    AllergenInjection = 16972, // 2890->player, 5,0s cast, range 6 circle
-    RootsOfAtopy = 16971, // 2890->player, 5,0s cast, range 6 circle
-    OdiousMiasma = 16970, // 2890->self, 3,0s cast, range 12 120-degree cone
+    AllergenInjection = 16972, // 2890->player, 5.0s cast, range 6 circle
+    RootsOfAtopy = 16971, // 2890->player, 5.0s cast, range 6 circle
+    OdiousMiasma = 16970, // 2890->self, 3.0s cast, range 12 120-degree cone
 }
 
 public enum SID : uint

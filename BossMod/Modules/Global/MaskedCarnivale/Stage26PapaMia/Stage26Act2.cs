@@ -10,12 +10,12 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6499, // 2C58->player, no cast, single-target
-    RawInstinct = 18604, // 2C58->self, 3,0s cast, single-target
-    BodyBlow = 18601, // 2C58->player, 4,0s cast, single-target
-    VoidThunderII = 18602, // 2C58->location, 3,0s cast, range 4 circle
+    RawInstinct = 18604, // 2C58->self, 3.0s cast, single-target
+    BodyBlow = 18601, // 2C58->player, 4.0s cast, single-target
+    VoidThunderII = 18602, // 2C58->location, 3.0s cast, range 4 circle
     LightningBolt = 18606, // 2C59->self, no cast, range 8 circle
     DadJoke = 18605, // 2C58->self, no cast, range 25+R 120-degree cone, knockback 15, dir forward
-    VoidThunderIII = 18603, // 2C58->player, 4,0s cast, range 20 circle
+    VoidThunderIII = 18603, // 2C58->player, 4.0s cast, range 20 circle
 }
 
 public enum SID : uint

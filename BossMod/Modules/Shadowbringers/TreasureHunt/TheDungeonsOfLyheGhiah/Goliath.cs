@@ -5,35 +5,35 @@ public enum OID : uint
     Boss = 0x2BA5, //R=5.25
     BossAdd = 0x2BA6, //R=2.1
     BossHelper = 0x233C,
-    DungeonQueen = 0x2A0A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    DungeonGarlic = 0x2A08, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    DungeonTomato = 0x2A09, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    DungeonOnion = 0x2A06, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    DungeonEgg = 0x2A07, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    DungeonQueen = 0x2A0A, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    DungeonGarlic = 0x2A08, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    DungeonTomato = 0x2A09, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    DungeonOnion = 0x2A06, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    DungeonEgg = 0x2A07, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     BonusAddKeeperOfKeys = 0x2A05, // R3.230
 }
 
 public enum AID : uint
 {
     AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
-    MechanicalBlow = 17873, // Boss->player, 5,0s cast, single-target
-    Wellbore = 17874, // Boss->location, 7,0s cast, range 15 circle
-    Fount = 17875, // BossHelper->location, 3,0s cast, range 4 circle
-    Incinerate = 17876, // Boss->self, 5,0s cast, range 100 circle
-    Accelerate = 17877, // Boss->players, 5,0s cast, range 6 circle
-    Compress = 17879, // Boss->self, 2,5s cast, range 100 width 7 cross
-    Compress2 = 17878, // BossAdd->self, 2,5s cast, range 100+R width 7 rect
+    MechanicalBlow = 17873, // Boss->player, 5.0s cast, single-target
+    Wellbore = 17874, // Boss->location, 7.0s cast, range 15 circle
+    Fount = 17875, // BossHelper->location, 3.0s cast, range 4 circle
+    Incinerate = 17876, // Boss->self, 5.0s cast, range 100 circle
+    Accelerate = 17877, // Boss->players, 5.0s cast, range 6 circle
+    Compress = 17879, // Boss->self, 2.5s cast, range 100 width 7 cross
+    Compress2 = 17878, // BossAdd->self, 2.5s cast, range 100+R width 7 rect
 
-    Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
-    HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
-    PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
+    Pollen = 6452, // 2A0A->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // 2A06->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // 2A09->self, 3.5s cast, range 6+R circle
+    PluckAndPrune = 6449, // 2A07->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // 2A08->self, 3.5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-    Mash = 17852, // 2A05->self, 2,5s cast, range 12+R width 4 rect
-    Scoop = 17853, // 2A05->self, 4,0s cast, range 15 120-degree cone
+    Mash = 17852, // 2A05->self, 2.5s cast, range 12+R width 4 rect
+    Scoop = 17853, // 2A05->self, 4.0s cast, range 15 120-degree cone
     Inhale = 17855, // 2A05->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
-    Spin = 17854, // 2A05->self, 2,5s cast, range 11 circle
+    Spin = 17854, // 2A05->self, 2.5s cast, range 11 circle
 }
 
 class Wellbore(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wellbore), new AOEShapeCircle(15));

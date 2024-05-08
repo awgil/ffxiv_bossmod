@@ -5,11 +5,11 @@ public enum OID : uint
     Boss = 0x302D, //R=2.34
     BossAdd = 0x302E, //R=1.05
     BossHelper = 0x233C,
-    SecretQueen = 0x3021, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretGarlic = 0x301F, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretQueen = 0x3021, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretGarlic = 0x301F, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretTomato = 0x3020, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretOnion = 0x301D, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretEgg = 0x301E, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
 }
 
 public enum AID : uint
@@ -17,23 +17,23 @@ public enum AID : uint
     AutoAttack2 = 872, // Boss/BossAdd/SecretQueen->player, no cast, single-target
     unknown = 21698, // Boss->self, no cast, single-target
     HeavyStrike = 21723, // Boss->self, no cast, single-target
-    HeavyStrike1 = 21724, // BossHelper->self, 4,0s cast, range 6+R 270-degree cone, donut segment
-    HeavyStrike2 = 21725, // BossHelper->self, 4,0s cast, range 12+R 270-degree cone, donut segment
-    HeavyStrike3 = 21726, // BossHelper->self, 4,9s cast, range 18+R 270-degree cone, donut segment
-    PollenCorona = 21722, // Boss->self, 3,0s cast, range 8 circle
-    StraightPunch = 21721, // Boss->player, 4,0s cast, single-target
-    Leafcutter = 21732, // BossAdd->self, 3,0s cast, range 15 width 4 rect
-    EarthCrusher = 21727, // Boss->self, 3,0s cast, single-target
-    EarthCrusher2 = 21728, // BossHelper->self, 4,0s cast, range 10-20 donut
+    HeavyStrike1 = 21724, // BossHelper->self, 4.0s cast, range 6+R 270-degree cone, donut segment
+    HeavyStrike2 = 21725, // BossHelper->self, 4.0s cast, range 12+R 270-degree cone, donut segment
+    HeavyStrike3 = 21726, // BossHelper->self, 4.9s cast, range 18+R 270-degree cone, donut segment
+    PollenCorona = 21722, // Boss->self, 3.0s cast, range 8 circle
+    StraightPunch = 21721, // Boss->player, 4.0s cast, single-target
+    Leafcutter = 21732, // BossAdd->self, 3.0s cast, range 15 width 4 rect
+    EarthCrusher = 21727, // Boss->self, 3.0s cast, single-target
+    EarthCrusher2 = 21728, // BossHelper->self, 4.0s cast, range 10-20 donut
     SomersaultSlash = 21731, // BossAdd->player, no cast, single-target
-    Earthquake = 21729, // Boss->self, 4,0s cast, single-target
+    Earthquake = 21729, // Boss->self, 4.0s cast, single-target
     Earthquake2 = 21730, // BossHelper->self, no cast, range 20 circle
 
-    Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
-    HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
-    PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
+    Pollen = 6452, // 2A0A->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // 2A06->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // 2A09->self, 3.5s cast, range 6+R circle
+    PluckAndPrune = 6449, // 2A07->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // 2A08->self, 3.5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

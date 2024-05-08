@@ -10,19 +10,19 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // 3FE2->player, no cast, single-target
-    HexingStaves = 34777, // 3FE2->self, 3,0s cast, single-target
-    RuinousHex = 34783, // 3FE3->self, 5,0s cast, single-target
-    RuinousHex2 = 35254, // 3FE3->self, 5,0s cast, range 40 width 8 cross
-    RuinousHex3 = 34789, // 233C->self, 5,5s cast, range 40 width 8 cross
-    RuinousConfluence = 35205, // 3FE2->self, 5,0s cast, single-target
-    ShadowySigil = 34779, // 3FE2->self, 6,0s cast, single-target
-    ShadowySigil2 = 34780, // 3FE2->self, 6,0s cast, single-target
-    Explosion = 34787, // 233C->self, 6,5s cast, range 8 width 8 rect
-    SorcerousShroud = 34778, // 3FE2->self, 5,0s cast, single-target
-    VoidDarkII = 34781, // 3FE2->self, 2,5s cast, single-target
-    VoidDarkII2 = 34788, // 233C->player, 5,0s cast, range 6 circle
-    StaffSmite = 35204, // 3FE2->player, 5,0s cast, single-target
-    AbyssalOutburst = 34782, // 3FE2->self, 5,0s cast, range 60 circle
+    HexingStaves = 34777, // 3FE2->self, 3.0s cast, single-target
+    RuinousHex = 34783, // 3FE3->self, 5.0s cast, single-target
+    RuinousHex2 = 35254, // 3FE3->self, 5.0s cast, range 40 width 8 cross
+    RuinousHex3 = 34789, // 233C->self, 5.5s cast, range 40 width 8 cross
+    RuinousConfluence = 35205, // 3FE2->self, 5.0s cast, single-target
+    ShadowySigil = 34779, // 3FE2->self, 6.0s cast, single-target
+    ShadowySigil2 = 34780, // 3FE2->self, 6.0s cast, single-target
+    Explosion = 34787, // 233C->self, 6.5s cast, range 8 width 8 rect
+    SorcerousShroud = 34778, // 3FE2->self, 5.0s cast, single-target
+    VoidDarkII = 34781, // 3FE2->self, 2.5s cast, single-target
+    VoidDarkII2 = 34788, // 233C->player, 5.0s cast, range 6 circle
+    StaffSmite = 35204, // 3FE2->player, 5.0s cast, single-target
+    AbyssalOutburst = 34782, // 3FE2->self, 5.0s cast, range 60 circle
 }
 
 public enum SID : uint

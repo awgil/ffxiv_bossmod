@@ -8,13 +8,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    FourfoldSuffering = 16819, // Boss->self, 5,0s cast, range 5-50 donut
-    SeductiveSonata = 16824, // Boss->self, 3,0s cast, range 40 circle, applies Seduced for 6s (forced march towards boss at 1.7y/s)
-    DeathlyVerse = 17074, // Boss->self, 5,0s cast, range 6 circle (right after Seductive Sonata, instant kill), 6*1.7 = 10.2 + 6 = 16.2y minimum distance to survive
-    Tornado = 18040, // Boss->location, 3,0s cast, range 6 circle
-    AncientAero = 16823, // Boss->self, 3,0s cast, range 40+R width 6 rect
-    SongOfTorment = 16825, // Boss->self, 5,0s cast, range 50 circle, interruptible raidwide with bleed
-    AncientAeroIII = 18056, // Boss->self, 3,0s cast, range 30 circle, knockback 10, away from source
+    FourfoldSuffering = 16819, // Boss->self, 5.0s cast, range 5-50 donut
+    SeductiveSonata = 16824, // Boss->self, 3.0s cast, range 40 circle, applies Seduced for 6s (forced march towards boss at 1.7y/s)
+    DeathlyVerse = 17074, // Boss->self, 5.0s cast, range 6 circle (right after Seductive Sonata, instant kill), 6*1.7 = 10.2 + 6 = 16.2y minimum distance to survive
+    Tornado = 18040, // Boss->location, 3.0s cast, range 6 circle
+    AncientAero = 16823, // Boss->self, 3.0s cast, range 40+R width 6 rect
+    SongOfTorment = 16825, // Boss->self, 5.0s cast, range 50 circle, interruptible raidwide with bleed
+    AncientAeroIII = 18056, // Boss->self, 3.0s cast, range 30 circle, knockback 10, away from source
 }
 
 public enum SID : uint

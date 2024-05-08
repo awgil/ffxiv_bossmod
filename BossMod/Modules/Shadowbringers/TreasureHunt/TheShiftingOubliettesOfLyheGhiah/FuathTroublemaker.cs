@@ -11,13 +11,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 21733, // Boss->player, no cast, single-target
-    FrigidNeedle = 21739, // Boss->self, 3,0s cast, single-target
-    FrigidNeedle2 = 21740, // BossHelper->self, 3,0s cast, range 40 width 5 cross
+    FrigidNeedle = 21739, // Boss->self, 3.0s cast, single-target
+    FrigidNeedle2 = 21740, // BossHelper->self, 3.0s cast, range 40 width 5 cross
     Spittle = 21735, // Boss->self, no cast, single-target
-    Spittle2 = 21736, // BossHelper->location, 4,0s cast, range 8 circle
-    CroakingChorus = 21738, // Boss->self, 3,0s cast, single-target, calls adds
-    ToyHammer = 21734, // Boss->player, 4,0s cast, single-target
-    Hydrocannon = 21737, // Boss->players, 5,0s cast, range 6 circle
+    Spittle2 = 21736, // BossHelper->location, 4.0s cast, range 8 circle
+    CroakingChorus = 21738, // Boss->self, 3.0s cast, single-target, calls adds
+    ToyHammer = 21734, // Boss->player, 4.0s cast, single-target
+    Hydrocannon = 21737, // Boss->players, 5.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

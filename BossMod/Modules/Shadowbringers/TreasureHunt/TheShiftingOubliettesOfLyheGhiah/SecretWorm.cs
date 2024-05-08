@@ -5,28 +5,28 @@ public enum OID : uint
     Boss = 0x3029, //R=6.0
     Bubble = 0x302A, //R=1.5
     BossHelper = 0x233C,
-    SecretQueen = 0x3021, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretGarlic = 0x301F, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretTomato = 0x3020, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretOnion = 0x301D, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    SecretEgg = 0x301E, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretQueen = 0x3021, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretGarlic = 0x301F, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretTomato = 0x3020, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretOnion = 0x301D, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    SecretEgg = 0x301E, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
 }
 
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
     AutoAttack2 = 872, // BonusAdds->player, no cast, single-target
-    Hydroburst = 21714, // 302A->self, 1,0s cast, range 8 circle
-    Hydrocannon = 21713, // Boss->location, 3,0s cast, range 8 circle
-    AquaBurst = 21715, // 302A->self, 5,0s cast, range 50 circle, damage fall off AOE, optimal range seems to be 10
-    FreshwaterCannon = 21711, // Boss->self, 2,5s cast, range 46 width 4 rect
-    BrineBreath = 21710, // Boss->player, 4,0s cast, single-target
+    Hydroburst = 21714, // 302A->self, 1.0s cast, range 8 circle
+    Hydrocannon = 21713, // Boss->location, 3.0s cast, range 8 circle
+    AquaBurst = 21715, // 302A->self, 5.0s cast, range 50 circle, damage fall off AOE, optimal range seems to be 10
+    FreshwaterCannon = 21711, // Boss->self, 2.5s cast, range 46 width 4 rect
+    BrineBreath = 21710, // Boss->player, 4.0s cast, single-target
 
-    Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
-    HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
-    PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
+    Pollen = 6452, // 2A0A->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // 2A06->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // 2A09->self, 3.5s cast, range 6+R circle
+    PluckAndPrune = 6449, // 2A07->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // 2A08->self, 3.5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

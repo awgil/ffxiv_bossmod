@@ -9,13 +9,13 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    Reflect = 15073, // 2728->self, 3,0s cast, single-target, boss starts reflecting all melee attacks
+    Reflect = 15073, // 2728->self, 3.0s cast, single-target, boss starts reflecting all melee attacks
     AutoAttack = 6499, // 2728->player, no cast, single-target
-    VineProbe = 15075, // 2728->self, 2,5s cast, range 6+R width 8 rect
-    OffalBreath = 15076, // 2728->location, 3,5s cast, range 6 circle
-    Schizocarps = 15077, // 2728->self, 5,0s cast, single-target
-    ExplosiveDehiscence = 15078, // 2729->self, 6,0s cast, range 50 circle, gaze
-    BadBreath = 15074, // 2728->self, 3,5s cast, range 12+R 120-degree cone, interruptible, voidzone
+    VineProbe = 15075, // 2728->self, 2.5s cast, range 6+R width 8 rect
+    OffalBreath = 15076, // 2728->location, 3.5s cast, range 6 circle
+    Schizocarps = 15077, // 2728->self, 5.0s cast, single-target
+    ExplosiveDehiscence = 15078, // 2729->self, 6.0s cast, range 50 circle, gaze
+    BadBreath = 15074, // 2728->self, 3.5s cast, range 12+R 120-degree cone, interruptible, voidzone
 }
 
 public enum SID : uint

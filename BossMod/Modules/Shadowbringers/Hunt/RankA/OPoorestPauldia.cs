@@ -8,10 +8,10 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // 2820->player, no cast, single-target
-    RustingClaw = 16830, // 2820->self, 3,0s cast, range 8+R 120-degree cone
-    TailDrive = 16831, // 2820->self, 5,0s cast, range 30+R 90-degree cone
-    WordsOfWoe = 16832, // 2820->self, 3,0s cast, range 45+R width 6 rect
-    TheSpin = 16833, // 2820->self, 3,0s cast, range 40 circle
+    RustingClaw = 16830, // 2820->self, 3.0s cast, range 8+R 120-degree cone
+    TailDrive = 16831, // 2820->self, 5.0s cast, range 30+R 90-degree cone
+    WordsOfWoe = 16832, // 2820->self, 3.0s cast, range 45+R width 6 rect
+    TheSpin = 16833, // 2820->self, 3.0s cast, range 40 circle
 }
 
 class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustingClaw), new AOEShapeCone(12.025f, 60.Degrees()));

@@ -7,33 +7,33 @@ public enum OID : uint
     BossHelper = 0x233C,
     BonusAddAltarMatanga = 0x2545, // R3.420
     BonusAddGoldWhisker = 0x2544, // R0.540
-    AltarQueen = 0x254A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarGarlic = 0x2548, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarQueen = 0x254A, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarGarlic = 0x2548, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarTomato = 0x2549, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarOnion = 0x2546, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarEgg = 0x2547, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
 }
 
 public enum AID : uint
 {
     AutoAttack = 870, // 2544->player, no cast, single-target
     AutoAttack2 = 872, // Boss/BonusAddAltarMatanga->player, no cast, single-target
-    Torpedo = 13438, // Boss->player, 3,0s cast, single-target
-    Innocence = 13439, // Boss->location, 3,0s cast, range 5 circle
+    Torpedo = 13438, // Boss->player, 3.0s cast, single-target
+    Innocence = 13439, // Boss->location, 3.0s cast, range 5 circle
     Gallop = 13441, // Boss->location, no cast, ???, movement ability
-    RisingSeas = 13440, // Boss->self, 5,0s cast, range 50+R circle, knockback 20, away from source
-    BloodyPuddle = 13443, // Hydrosphere->self, 4,0s cast, range 10+R circle
-    HydroPush = 13442, // Boss->self, 6,0s cast, range 44+R width 44 rect, knockback 20, dir forward
+    RisingSeas = 13440, // Boss->self, 5.0s cast, range 50+R circle, knockback 20, away from source
+    BloodyPuddle = 13443, // Hydrosphere->self, 4.0s cast, range 10+R circle
+    HydroPush = 13442, // Boss->self, 6.0s cast, range 44+R width 44 rect, knockback 20, dir forward
 
     unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
     Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
-    PluckAndPrune = 6449, // AltarEgg->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // AltarGarlic->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // AltarOnion->self, 3,5s cast, range 6+R circle
-    Pollen = 6452, // AltarQueen->self, 3,5s cast, range 6+R circle
-    HeirloomScream = 6451, // AltarTomato->self, 3,5s cast, range 6+R circle
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2.5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3.0s cast, range 6 circle
+    PluckAndPrune = 6449, // AltarEgg->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // AltarGarlic->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // AltarOnion->self, 3.5s cast, range 6+R circle
+    Pollen = 6452, // AltarQueen->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // AltarTomato->self, 3.5s cast, range 6+R circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

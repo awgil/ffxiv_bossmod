@@ -9,12 +9,12 @@ public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
     WindsEnd = 17494, // Boss->player, no cast, single-target
-    WinterRain = 17497, // Boss->location, 4,0s cast, range 6 circle
+    WinterRain = 17497, // Boss->location, 4.0s cast, range 6 circle
     Windburst = 18042, // Boss->self, no cast, range 80 width 10 rect
-    SummerHeat = 17499, // Boss->self, 4,0s cast, range 40 circle
-    DawnsEdge = 17495, // Boss->self, 3,5s cast, range 15 width 10 rect
-    SpringBreeze = 17496, // Boss->self, 3,5s cast, range 80 width 10 rect
-    AutumnWreath = 17498, // Boss->self, 4,0s cast, range 10-20 donut
+    SummerHeat = 17499, // Boss->self, 4.0s cast, range 40 circle
+    DawnsEdge = 17495, // Boss->self, 3.5s cast, range 15 width 10 rect
+    SpringBreeze = 17496, // Boss->self, 3.5s cast, range 80 width 10 rect
+    AutumnWreath = 17498, // Boss->self, 4.0s cast, range 10-20 donut
 }
 
 class SpringBreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpringBreeze), new AOEShapeRect(40, 5, 40));

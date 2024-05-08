@@ -10,16 +10,16 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6497, // 26F4->player, no cast, single-target
-    TenTonzeSlash = 14871, // 26F4->self, 4,0s cast, range 40+R 60-degree cone
-    VoiceOfAuthority = 14874, // 26F4->self, 1,5s cast, single-target, spawns cyclops add
-    OneOneOneTonzeSwing = 14872, // 26F4->self, 4,5s cast, range 8+R circle, knockback dist 20
-    CryOfRage = 14875, // 26F4->self, 3,0s cast, range 50+R circle, gaze
-    TheBullsVoice = 14779, // 26F4->self, 1,5s cast, single-target, damage buff
+    TenTonzeSlash = 14871, // 26F4->self, 4.0s cast, range 40+R 60-degree cone
+    VoiceOfAuthority = 14874, // 26F4->self, 1.5s cast, single-target, spawns cyclops add
+    OneOneOneTonzeSwing = 14872, // 26F4->self, 4.5s cast, range 8+R circle, knockback dist 20
+    CryOfRage = 14875, // 26F4->self, 3.0s cast, range 50+R circle, gaze
+    TheBullsVoice = 14779, // 26F4->self, 1.5s cast, single-target, damage buff
     PredatorialInstinct = 14685, // 26F4->self, no cast, range 50+R circle, raidwide attract with dist 50
-    OneOneOneOneTonzeSwing = 14686, // 26F4->self, 9,0s cast, range 20+R circle, raidwide, needs diamondback to survive
-    ZoomIn = 14873, // 26F4->player, 4,0s cast, width 8 rect unavoidable charge, knockback dist 20
-    TenTonzeWave = 14876, // 26F4->self, 4,0s cast, range 40+R 60-degree cone
-    TenTonzeWave2 = 15268, // 233C->self, 4,6s cast, range 10-20 donut
+    OneOneOneOneTonzeSwing = 14686, // 26F4->self, 9.0s cast, range 20+R circle, raidwide, needs diamondback to survive
+    ZoomIn = 14873, // 26F4->player, 4.0s cast, width 8 rect unavoidable charge, knockback dist 20
+    TenTonzeWave = 14876, // 26F4->self, 4.0s cast, range 40+R 60-degree cone
+    TenTonzeWave2 = 15268, // 233C->self, 4.6s cast, range 10-20 donut
 }
 
 class OneOneOneOneTonzeSwing(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OneOneOneOneTonzeSwing), "Use Diamondback!");

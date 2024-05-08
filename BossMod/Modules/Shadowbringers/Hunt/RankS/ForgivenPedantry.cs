@@ -8,17 +8,17 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttackSanctifiedScathe = 17439, // 298A->player, no cast, single-target
-    LeftCheek = 17446, // 298A->self, 5,0s cast, range 60 180-degree cone
+    LeftCheek = 17446, // 298A->self, 5.0s cast, range 60 180-degree cone
     LeftCheek2 = 17447, // 298A->self, no cast, range 60 180-degree cone
-    RightCheek = 17448, // 298A->self, 5,0s cast, range 60 180-degree cone
+    RightCheek = 17448, // 298A->self, 5.0s cast, range 60 180-degree cone
     RightCheek2 = 17449, // 298A->self, no cast, range 60 180-degree cone
-    TerrifyingGlance = 17955, // 298A->self, 3,0s cast, range 50 circle, gaze
-    TheStake = 17443, // 298A->self, 4,0s cast, range 18 circle
-    SecondCircle = 17441, // 298A->self, 3,0s cast, range 40 width 8 rect
-    CleansingFire = 17442, // 298A->self, 4,0s cast, range 40 circle
-    FeveredFlagellation = 17440, // 298A->players, 4,0s cast, range 15 90-degree cone, tankbuster
+    TerrifyingGlance = 17955, // 298A->self, 3.0s cast, range 50 circle, gaze
+    TheStake = 17443, // 298A->self, 4.0s cast, range 18 circle
+    SecondCircle = 17441, // 298A->self, 3.0s cast, range 40 width 8 rect
+    CleansingFire = 17442, // 298A->self, 4.0s cast, range 40 circle
+    FeveredFlagellation = 17440, // 298A->players, 4.0s cast, range 15 90-degree cone, tankbuster
     SanctifiedShock = 17900, // 298A->player, no cast, single-target, stuns target before WitchHunt
-    WitchHunt = 17444, // 298A->players, 3,0s cast, width 10 rect charge
+    WitchHunt = 17444, // 298A->players, 3.0s cast, width 10 rect charge
     WitchHunt2 = 17445, // 298A->players, no cast, width 10 rect charge, targets main tank
 }
 

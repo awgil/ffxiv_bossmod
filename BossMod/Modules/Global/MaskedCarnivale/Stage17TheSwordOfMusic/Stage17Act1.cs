@@ -9,13 +9,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6499, // 2720/271F->player, no cast, single-target
-    TheHand = 14760, // 271F/2720->self, 3,0s cast, range 6+R 120-degree cone, knockback away from source, dist 10
-    Shred = 14759, // 2720/271F->self, 2,5s cast, range 4+R width 4 rect, stuns player
+    TheHand = 14760, // 271F/2720->self, 3.0s cast, range 6+R 120-degree cone, knockback away from source, dist 10
+    Shred = 14759, // 2720/271F->self, 2.5s cast, range 4+R width 4 rect, stuns player
 }
 
 class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheHand), new AOEShapeCone(8, 60.Degrees()));
 class Shred(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shred), new AOEShapeRect(6, 2));
-class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0,9s after snapshot
+class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TheHand), 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0.9s after snapshot
 
 class Hints2(BossModule module) : BossComponent(module)
 {

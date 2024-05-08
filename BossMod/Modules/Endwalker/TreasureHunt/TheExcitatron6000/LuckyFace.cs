@@ -2,52 +2,52 @@ namespace BossMod.Endwalker.TreasureHunt.Excitatron6000.LuckyFace;
 
 public enum OID : uint
 {
-    Boss = 0x377F, // R3,240
-    BossHelper = 0x233C, // R0,500
-    ExcitingQueen = 0x380C, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    ExcitingTomato = 0x380B, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    ExcitingGarlic = 0x380A, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    ExcitingEgg = 0x3809, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
-    ExcitingOnion = 0x3808, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    Boss = 0x377F, // R3.240
+    BossHelper = 0x233C, // R0.500
+    ExcitingQueen = 0x380C, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    ExcitingTomato = 0x380B, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    ExcitingGarlic = 0x380A, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    ExcitingEgg = 0x3809, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    ExcitingOnion = 0x3808, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
 }
 
 public enum AID : uint
 {
     AutoAttack = 27980, // Boss->player, no cast, single-target
-    FakeLeftInTheDark = 27989, // Boss->self, 4,0s cast, range 20 180-degree cone
-    LeftInTheDark = 27990, // BossHelper->self, 4,0s cast, range 20 180-degree cone
-    HeartOnFireII = 28001, // BossHelper->location, 3,0s cast, range 6 circle
-    FakeHeartOnFireII = 27988, // Boss->self, 3,0s cast, single-target
-    HeartOnFireIV = 27981, // Boss->player, 5,0s cast, single-target
-    FakeQuakeInYourBoots = 27997, // Boss->self, 4,0s cast, range 10 circle
-    QuakeInYourBoots = 27998, // BossHelper->self, 4,0s cast, range 10 circle
-    MerryGoRound1 = 27983, // Boss->self, 3,0s cast, single-target, boss animation
-    FakeLeftInTheDark2 = 27993, // Boss->self, 4,0s cast, range 20 180-degree cone
-    LeftInTheDark2 = 27994, // BossHelper->self, 4,0s cast, range 20 180-degree cone
+    FakeLeftInTheDark = 27989, // Boss->self, 4.0s cast, range 20 180-degree cone
+    LeftInTheDark = 27990, // BossHelper->self, 4.0s cast, range 20 180-degree cone
+    HeartOnFireII = 28001, // BossHelper->location, 3.0s cast, range 6 circle
+    FakeHeartOnFireII = 27988, // Boss->self, 3.0s cast, single-target
+    HeartOnFireIV = 27981, // Boss->player, 5.0s cast, single-target
+    FakeQuakeInYourBoots = 27997, // Boss->self, 4.0s cast, range 10 circle
+    QuakeInYourBoots = 27998, // BossHelper->self, 4.0s cast, range 10 circle
+    MerryGoRound1 = 27983, // Boss->self, 3.0s cast, single-target, boss animation
+    FakeLeftInTheDark2 = 27993, // Boss->self, 4.0s cast, range 20 180-degree cone
+    LeftInTheDark2 = 27994, // BossHelper->self, 4.0s cast, range 20 180-degree cone
     MerryGoRound2 = 27986, // Boss->self, no cast, single-target, boss animation
-    FakeQuakeMeAway = 27999, // Boss->self, 4,0s cast, range 10-20 donut
-    QuakeMeAway = 28000, // BossHelper->self, 4,0s cast, range 10-20 donut
-    MerryGoRound3 = 27984, // Boss->self, 3,0s cast, single-target
-    FakeRightInTheDark = 27991, // Boss->self, 4,0s cast, range 20 180-degree cone
-    RightInTheDark1 = 27992, // BossHelper->self, 4,0s cast, range 20 180-degree cone
+    FakeQuakeMeAway = 27999, // Boss->self, 4.0s cast, range 10-20 donut
+    QuakeMeAway = 28000, // BossHelper->self, 4.0s cast, range 10-20 donut
+    MerryGoRound3 = 27984, // Boss->self, 3.0s cast, single-target
+    FakeRightInTheDark = 27991, // Boss->self, 4.0s cast, range 20 180-degree cone
+    RightInTheDark1 = 27992, // BossHelper->self, 4.0s cast, range 20 180-degree cone
     MerryGoRound4 = 27985, // Boss->self, no cast, single-target, boss animation
     applyspreadmarkers = 28045, // Boss->self, no cast, single-target
-    FakeQuakeInYourBoots2 = 28090, // Boss->self, 4,0s cast, range 10 circle
-    QuakeInYourBoots2 = 28189, // BossHelper->self, 4,0s cast, range 10-20 donut
-    HeartOnFireIII = 28002, // BossHelper->player, 5,0s cast, range 6 circle
-    TempersFlare = 27982, // Boss->self, 5,0s cast, range 60 circle
-    FakeRightInTheDark2 = 27995, // Boss->self, 4,0s cast, range 20 180-degree cone
-    RightInTheDark2 = 27996, // BossHelper->self, 4,0s cast, range 20 180-degree cone
-    FakeQuakeMeAway2 = 28091, // Boss->self, 4,0s cast, range 10-20 donut
-    QuakeMeAway2 = 28190, // BossHelper->self, 4,0s cast, range 10 circle
+    FakeQuakeInYourBoots2 = 28090, // Boss->self, 4.0s cast, range 10 circle
+    QuakeInYourBoots2 = 28189, // BossHelper->self, 4.0s cast, range 10-20 donut
+    HeartOnFireIII = 28002, // BossHelper->player, 5.0s cast, range 6 circle
+    TempersFlare = 27982, // Boss->self, 5.0s cast, range 60 circle
+    FakeRightInTheDark2 = 27995, // Boss->self, 4.0s cast, range 20 180-degree cone
+    RightInTheDark2 = 27996, // BossHelper->self, 4.0s cast, range 20 180-degree cone
+    FakeQuakeMeAway2 = 28091, // Boss->self, 4.0s cast, range 10-20 donut
+    QuakeMeAway2 = 28190, // BossHelper->self, 4.0s cast, range 10 circle
     MerryGoRound5 = 27987, // Boss->self, no cast, single-target, boss animation
     unknown2 = 28145, // Boss->self, no cast, single-target, probably death animation since it was cast after death
-    PluckAndPrune = 6449, // 3809->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // 3808->self, 3,5s cast, range 6+R circle
+    PluckAndPrune = 6449, // 3809->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // 3808->self, 3.5s cast, range 6+R circle
     Telega = 9630, // 380C->self, no cast, single-target, bonus add disappear
-    HeirloomScream = 6451, // 380B->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // 380A->self, 3,5s cast, range 6+R circle
-    Pollen = 6452, // 380C->self, 3,5s cast, range 6+R circle
+    HeirloomScream = 6451, // 380B->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // 380A->self, 3.5s cast, range 6+R circle
+    Pollen = 6452, // 380C->self, 3.5s cast, range 6+R circle
 }
 
 public enum IconID : uint

@@ -11,7 +11,7 @@ public enum AID : uint
     AutoAttack = 6499, // 25BD->player, no cast, single-target
     FluidSpread = 14198, // 25BD->player, no cast, single-target
     AutoAttack2 = 6497, // 25BE->player, no cast, single-target
-    IronJustice = 14199, // 25BE->self, 2,5s cast, range 8+R 120-degree cone
+    IronJustice = 14199, // 25BE->self, 2.5s cast, range 8+R 120-degree cone
 }
 
 class IronJustice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IronJustice), new AOEShapeCone(9.5f, 60.Degrees()));

@@ -13,17 +13,17 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss/BonusAdd_Keeper->player, no cast, single-target
-    Buffet = 21680, // Boss->self, 3,0s cast, range 11 120-degree cone
-    HeavyScrapline = 21681, // Boss->self, 4,0s cast, range 11 circle
-    MoldyPhlegm = 21679, // Boss->location, 3,0s cast, range 6 circle
-    InhaleBoss = 21677, // Boss->self, 4,0s cast, range 20 120-degree cone
+    Buffet = 21680, // Boss->self, 3.0s cast, range 11 120-degree cone
+    HeavyScrapline = 21681, // Boss->self, 4.0s cast, range 11 circle
+    MoldyPhlegm = 21679, // Boss->location, 3.0s cast, range 6 circle
+    InhaleBoss = 21677, // Boss->self, 4.0s cast, range 20 120-degree cone
     MoldySneeze = 21678, // Boss->self, no cast, range 12 120-degree cone, heavy dmg, 20 knockback away from source
 
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-    Mash = 21767, // 3034->self, 3,0s cast, range 13 width 4 rect
+    Mash = 21767, // 3034->self, 3.0s cast, range 13 width 4 rect
     Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
-    Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
-    Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
+    Spin = 21769, // 3034->self, 4.0s cast, range 11 circle
+    Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
 class Buffet(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Buffet), new AOEShapeCone(11, 60.Degrees()));

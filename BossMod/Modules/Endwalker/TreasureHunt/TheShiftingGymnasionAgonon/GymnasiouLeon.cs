@@ -11,15 +11,15 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // 3D27/3D4E/3D28->player, no cast, single-target
-    InfernoBlast = 32204, // 3D27->self, 3,5s cast, range 46 width 20 rect
-    Roar = 32201, // 3D27->self, 3,0s cast, range 12 circle
-    Pounce = 32200, // 3D27->player, 5,0s cast, single-target
-    MagmaChamber = 32202, // 3D27->self, 3,0s cast, single-target
-    MagmaChamber2 = 32203, // 233C->location, 3,0s cast, range 8 circle
-    FlareStar = 32815, // 3D27->self, 3,0s cast, single-target
-    HeavySmash = 32317, // 3D4E->location, 3,0s cast, range 6 circle
-    FlareStar2 = 32816, // 233C->self, 7,0s cast, range 40 circle, AOE with dmg fall off, damage seems to stop falling after about range 10-12
-    MarkOfTheBeast = 32205, // 3D28->self, 3,0s cast, range 8 120-degree cone
+    InfernoBlast = 32204, // 3D27->self, 3.5s cast, range 46 width 20 rect
+    Roar = 32201, // 3D27->self, 3.0s cast, range 12 circle
+    Pounce = 32200, // 3D27->player, 5.0s cast, single-target
+    MagmaChamber = 32202, // 3D27->self, 3.0s cast, single-target
+    MagmaChamber2 = 32203, // 233C->location, 3.0s cast, range 8 circle
+    FlareStar = 32815, // 3D27->self, 3.0s cast, single-target
+    HeavySmash = 32317, // 3D4E->location, 3.0s cast, range 6 circle
+    FlareStar2 = 32816, // 233C->self, 7.0s cast, range 40 circle, AOE with dmg fall off, damage seems to stop falling after about range 10-12
+    MarkOfTheBeast = 32205, // 3D28->self, 3.0s cast, range 8 120-degree cone
 }
 
 class InfernoBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InfernoBlast), new AOEShapeRect(46, 20));

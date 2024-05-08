@@ -8,9 +8,9 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    WindsOfWinter = 32785, // Boss->self, 5,0s cast, range 40 circle
-    Freefall = 32786, // Boss->location, 3,5s cast, range 8 circle
-    GoldenTalons = 32787, // Boss->self, 4,5s cast, range 8 90-degree cone
+    WindsOfWinter = 32785, // Boss->self, 5.0s cast, range 40 circle
+    Freefall = 32786, // Boss->location, 3.5s cast, range 8 circle
+    GoldenTalons = 32787, // Boss->self, 4.5s cast, range 8 90-degree cone
 }
 
 class WindsOfWinter(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WindsOfWinter), "Stun Albus Griffin, Raidwide");

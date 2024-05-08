@@ -8,12 +8,12 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    WildCharge = 15055, // 2724->players, 3,5s cast, width 8 rect charge
-    Explosion = 15054, // 2726->self, 2,0s cast, range 10 circle
-    RipperClaw = 15050, // 2724->self, 4,0s cast, range 5+R 90-degree cone
-    Fireball = 15051, // 2724->location, 4,0s cast, range 6 circle
+    WildCharge = 15055, // 2724->players, 3.5s cast, width 8 rect charge
+    Explosion = 15054, // 2726->self, 2.0s cast, range 10 circle
+    RipperClaw = 15050, // 2724->self, 4.0s cast, range 5+R 90-degree cone
+    Fireball = 15051, // 2724->location, 4.0s cast, range 6 circle
     BoneShaker = 15053, // 2724->self, no cast, range 50 circle
-    TailSmash = 15052, // 2724->self, 4,0s cast, range 12+R 90-degree cone
+    TailSmash = 15052, // 2724->self, 4.0s cast, range 12+R 90-degree cone
 }
 
 class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(10));

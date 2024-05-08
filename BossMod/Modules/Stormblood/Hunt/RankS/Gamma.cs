@@ -9,10 +9,10 @@ public enum AID : uint
 {
     AutoAttack = 7351, // Boss->player, no cast, single-target
     MagitekCannon = 7912, // Boss->player, no cast, single-target
-    DiffractiveLaser = 7914, // Boss->location, 2,0s cast, range 5 circle
-    MagitekFlamehook = 7913, // Boss->self, 1,5s cast, range 30+R circle, raidwide + pyretic
-    LimitCut = 7916, // Boss->self, 2,0s cast, single-target, applies Haste to self
-    Launcher = 7915, // Boss->self, 1,5s cast, range 30+R circle, raidwide, does %HP dmg (10%, 20%, 30%, or 50%)
+    DiffractiveLaser = 7914, // Boss->location, 2.0s cast, range 5 circle
+    MagitekFlamehook = 7913, // Boss->self, 1.5s cast, range 30+R circle, raidwide + pyretic
+    LimitCut = 7916, // Boss->self, 2.0s cast, single-target, applies Haste to self
+    Launcher = 7915, // Boss->self, 1.5s cast, range 30+R circle, raidwide, does %HP dmg (10%, 20%, 30%, or 50%)
 }
 
 public enum SID : uint

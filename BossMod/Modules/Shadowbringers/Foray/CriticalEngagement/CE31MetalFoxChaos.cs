@@ -11,12 +11,12 @@ public enum AID : uint
 {
     Attack = 6497, // Boss->player, no cast, single-target
     MagitektBitTeleporting = 20192, // 2DB6->location, no cast, ???
-    DiffractiveLaser = 20138, // Boss->self, 7,0s cast, range 60 150-degree cone
+    DiffractiveLaser = 20138, // Boss->self, 7.0s cast, range 60 150-degree cone
     RefractedLaser = 20141, // 2DB6->self, no cast, range 100 width 6 rect
-    LaserShower = 20136, // Boss->self, 3,0s cast, single-target
-    LaserShower2 = 20140, // Helper->location, 5,0s cast, range 10 circle
-    Rush = 20139, // Boss->player, 3,0s cast, width 14 rect charge
-    SatelliteLaser = 20137, // Boss->self, 10,0s cast, range 100 circle
+    LaserShower = 20136, // Boss->self, 3.0s cast, single-target
+    LaserShower2 = 20140, // Helper->location, 5.0s cast, range 10 circle
+    Rush = 20139, // Boss->player, 3.0s cast, width 14 rect charge
+    SatelliteLaser = 20137, // Boss->self, 10.0s cast, range 100 circle
 }
 
 class MagitekBitLasers(BossModule module) : Components.GenericAOEs(module)

@@ -12,17 +12,17 @@ public enum AID : uint
 {
     AutoAttack = 23185, // Boss->player, no cast, single-target
     AutoAttack2 = 872, // BossAdd/BonusAddKeeperOfKeys->player, no cast, single-target
-    Gust = 21655, // Boss->location, 3,0s cast, range 6 circle
-    ChangelessWinds = 21657, // Boss->self, 3,0s cast, range 40 width 8 rect, knockback 10, source forward
-    WhirlingGaol = 21654, // Boss->self, 4,0s cast, range 40 circle, knockback 25 away from source
-    Whipwind = 21656, // Boss->self, 5,0s cast, range 55 width 40 rect, knockback 25, source forward
-    GentleBreeze = 21653, // BossAdd->self, 3,0s cast, range 15 width 4 rect
+    Gust = 21655, // Boss->location, 3.0s cast, range 6 circle
+    ChangelessWinds = 21657, // Boss->self, 3.0s cast, range 40 width 8 rect, knockback 10, source forward
+    WhirlingGaol = 21654, // Boss->self, 4.0s cast, range 40 circle, knockback 25 away from source
+    Whipwind = 21656, // Boss->self, 5.0s cast, range 55 width 40 rect, knockback 25, source forward
+    GentleBreeze = 21653, // BossAdd->self, 3.0s cast, range 15 width 4 rect
 
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-    Mash = 21767, // 3034->self, 3,0s cast, range 13 width 4 rect
+    Mash = 21767, // 3034->self, 3.0s cast, range 13 width 4 rect
     Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
-    Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
-    Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
+    Spin = 21769, // 3034->self, 4.0s cast, range 11 circle
+    Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
 class Gust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Gust), 6);

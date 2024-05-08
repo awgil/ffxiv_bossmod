@@ -10,12 +10,12 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6499, // Boss->player, no cast, single-target
-    Charybdis = 15258, // Boss->location, 3,0s cast, range 6 circle
-    Maelstrom = 15259, // Maelstrom->self, 1,0s cast, range 8 circle, pull dist 40 into center, vuln stack
-    Trounce = 15256, // Boss->self, 3,5s cast, range 50+R 60-degree cone
-    Comet = 15260, // Boss->self, 5,0s cast, single-target
-    Comet2 = 15261, // Helper->location, 4,0s cast, range 10 circle
-    EclipticMeteor = 15257, // Boss->location, 10,0s cast, range 50 circle
+    Charybdis = 15258, // Boss->location, 3.0s cast, range 6 circle
+    Maelstrom = 15259, // Maelstrom->self, 1.0s cast, range 8 circle, pull dist 40 into center, vuln stack
+    Trounce = 15256, // Boss->self, 3.5s cast, range 50+R 60-degree cone
+    Comet = 15260, // Boss->self, 5.0s cast, single-target
+    Comet2 = 15261, // Helper->location, 4.0s cast, range 10 circle
+    EclipticMeteor = 15257, // Boss->location, 10.0s cast, range 50 circle
 }
 
 class Charybdis(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Charybdis), 6);

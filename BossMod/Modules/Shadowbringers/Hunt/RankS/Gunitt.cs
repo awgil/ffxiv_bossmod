@@ -8,13 +8,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // 2852->player, no cast, single-target
-    TheDeepSeeks = 17356, // 2852->player, 4,0s cast, single-target
-    TheDeepReaches = 17357, // 2852->self, 4,0s cast, range 40 width 2 rect
-    TheDeepBeckons = 17358, // 2852->self, 4,0s cast, range 40 circle
+    TheDeepSeeks = 17356, // 2852->player, 4.0s cast, single-target
+    TheDeepReaches = 17357, // 2852->self, 4.0s cast, range 40 width 2 rect
+    TheDeepBeckons = 17358, // 2852->self, 4.0s cast, range 40 circle
     Abordage = 17359, // 2852->players, no cast, width 8 rect charge, seems to target random player before stack marker, no telegraph?
-    SwivelGun = 17361, // 2852->players, 5,0s cast, range 10 circle, stack marker, applies magic vuln up, 3 times in a row
-    CoinToss = 17360, // 2852->self, 4,0s cast, range 40 circle, gaze, applies Seduced (forced march to boss)
-    TheDeepRends = 17351, // 2852->self, 5,5s cast, range 20 60-degree cone
+    SwivelGun = 17361, // 2852->players, 5.0s cast, range 10 circle, stack marker, applies magic vuln up, 3 times in a row
+    CoinToss = 17360, // 2852->self, 4.0s cast, range 40 circle, gaze, applies Seduced (forced march to boss)
+    TheDeepRends = 17351, // 2852->self, 5.5s cast, range 20 60-degree cone
     TheDeepRends2 = 17352, // 2852->self, no cast, range 20 60-degree cone, seems to target 5 random players after first The Deep Rends, no telegraph?
 }
 

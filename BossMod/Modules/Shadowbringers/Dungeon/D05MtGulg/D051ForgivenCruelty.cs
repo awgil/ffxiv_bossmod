@@ -10,17 +10,17 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // 27CA->player, no cast, single-target
-    Rake = 15611, // 27CA->player, 3,0s cast, single-target
-    LumenInfinitum = 16818, // 27CA->self, 3,7s cast, range 40 width 5 rect
-    TyphoonWingA = 15615, // 27CA->self, 5,0s cast, single-target
-    TyphoonWingB = 15614, // 27CA->self, 5,0s cast, single-target
-    TyphoonWingC = 15617, // 27CA->self, 7,0s cast, single-target
-    TyphoonWingD = 15618, // 27CA->self, 7,0s cast, single-target
-    TyphoonWing = 15616, // 233C->self, 5,0s cast, range 25 60-degree cone
-    TyphoonWing2 = 17153, // 233C->self, 7,0s cast, range 25 60-degree cone
-    CycloneWing = 15612, // 27CA->self, 3,0s cast, single-target
-    CycloneWing2 = 15613, // 233C->self, 4,0s cast, range 40 circle
-    HurricaneWing = 15619, // 233C->self, 5,0s cast, range 10 circle
+    Rake = 15611, // 27CA->player, 3.0s cast, single-target
+    LumenInfinitum = 16818, // 27CA->self, 3.7s cast, range 40 width 5 rect
+    TyphoonWingA = 15615, // 27CA->self, 5.0s cast, single-target
+    TyphoonWingB = 15614, // 27CA->self, 5.0s cast, single-target
+    TyphoonWingC = 15617, // 27CA->self, 7.0s cast, single-target
+    TyphoonWingD = 15618, // 27CA->self, 7.0s cast, single-target
+    TyphoonWing = 15616, // 233C->self, 5.0s cast, range 25 60-degree cone
+    TyphoonWing2 = 17153, // 233C->self, 7.0s cast, range 25 60-degree cone
+    CycloneWing = 15612, // 27CA->self, 3.0s cast, single-target
+    CycloneWing2 = 15613, // 233C->self, 4.0s cast, range 40 circle
+    HurricaneWing = 15619, // 233C->self, 5.0s cast, range 10 circle
 }
 
 class Rake(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Rake));

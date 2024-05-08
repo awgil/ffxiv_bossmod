@@ -13,19 +13,19 @@ public enum AID : uint
 {
     AutoAttack = 23186, // Boss/3013->player, no cast, single-target
     AutoAttack2 = 872, // BonusAddKeeperOfKeys->player, no cast, single-target
-    Hydrowhirl = 21658, // Boss->self, 3,0s cast, range 8 circle
-    Hypnowave = 21659, // Boss->self, 3,0s cast, range 30 120-degree cone, causes sleep
-    Hydrotaph = 21661, // Boss->self, 4,0s cast, single-target
-    Hydrotaph2 = 21662, // BossHelper->self, 4,0s cast, range 40 circle
-    Hydrofan = 21663, // 3012->self, 5,0s cast, range 44 30-degree cone
-    Hydropins = 21660, // Boss->self, 2,5s cast, range 12 width 4 rect
-    AquaGlobe = 21664, // 3013->location, 3,0s cast, range 8 circle
+    Hydrowhirl = 21658, // Boss->self, 3.0s cast, range 8 circle
+    Hypnowave = 21659, // Boss->self, 3.0s cast, range 30 120-degree cone, causes sleep
+    Hydrotaph = 21661, // Boss->self, 4.0s cast, single-target
+    Hydrotaph2 = 21662, // BossHelper->self, 4.0s cast, range 40 circle
+    Hydrofan = 21663, // 3012->self, 5.0s cast, range 44 30-degree cone
+    Hydropins = 21660, // Boss->self, 2.5s cast, range 12 width 4 rect
+    AquaGlobe = 21664, // 3013->location, 3.0s cast, range 8 circle
 
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-    Mash = 21767, // 3034->self, 3,0s cast, range 13 width 4 rect
+    Mash = 21767, // 3034->self, 3.0s cast, range 13 width 4 rect
     Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
-    Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
-    Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
+    Spin = 21769, // 3034->self, 4.0s cast, range 11 circle
+    Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
 class Hydrofan(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrofan), new AOEShapeCone(44, 15.Degrees()));

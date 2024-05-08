@@ -11,14 +11,14 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 6499, // Boss->player, no cast, single-target
-    ScaldingScolding = 14903, // Boss->self, 4,0s cast, range 8+R 120-degree cone
-    Sap = 14906, // Boss->location, 3,0s cast, range 8 circle
-    Sap2 = 14907, // 233C->location, 7,0s cast, range 8 circle
-    BombshellDrop = 14905, // Boss->self, 2,0s cast, single-target
-    Ignition = 15040, // Boss->self, 4,0s cast, range 50 circle
+    ScaldingScolding = 14903, // Boss->self, 4.0s cast, range 8+R 120-degree cone
+    Sap = 14906, // Boss->location, 3.0s cast, range 8 circle
+    Sap2 = 14907, // 233C->location, 7.0s cast, range 8 circle
+    BombshellDrop = 14905, // Boss->self, 2.0s cast, single-target
+    Ignition = 15040, // Boss->self, 4.0s cast, range 50 circle
     Fulmination = 14901, // ArenaGrenade->self, no cast, range 50+R circle, wipe if failed to kill grenade in one hit or boss finishes casting Ignition when grenade is still alive
-    Flashthoom = 14902, // ArenaGasBomb->self, 6,0s cast, range 6+R circle
-    Burst = 14904, // Boss->self, 20,0s cast, range 50 circle
+    Flashthoom = 14902, // ArenaGasBomb->self, 6.0s cast, range 6+R circle
+    Burst = 14904, // Boss->self, 20.0s cast, range 50 circle
 }
 
 class Sap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Sap), 8);

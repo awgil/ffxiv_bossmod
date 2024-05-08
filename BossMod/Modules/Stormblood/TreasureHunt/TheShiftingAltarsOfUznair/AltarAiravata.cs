@@ -12,16 +12,16 @@ public enum AID : uint
 {
     AutoAttack = 870, // 2544->player, no cast, single-target
     AutoAttack2 = 872, // Boss,Matanaga->player, no cast, single-target
-    Huff = 13371, // Boss->player, 3,0s cast, single-target
-    HurlBoss = 13372, // Boss->location, 3,0s cast, range 6 circle
-    Buffet = 13374, // Boss->player, 3,0s cast, single-target, knockback 20 forward
-    SpinBoss = 13373, // Boss->self, 4,0s cast, range 30 120-degree cone
-    BarbarousScream = 13375, // Boss->self, 3,5s cast, range 14 circle
+    Huff = 13371, // Boss->player, 3.0s cast, single-target
+    HurlBoss = 13372, // Boss->location, 3.0s cast, range 6 circle
+    Buffet = 13374, // Boss->player, 3.0s cast, single-target, knockback 20 forward
+    SpinBoss = 13373, // Boss->self, 4.0s cast, range 30 120-degree cone
+    BarbarousScream = 13375, // Boss->self, 3.5s cast, range 14 circle
 
     unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
     Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2.5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

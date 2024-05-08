@@ -9,10 +9,10 @@ public enum AID : uint
 {
     AutoAttack = 7998, // Boss->player, no cast, single-target
     FlamingEpigraph = 7999, // Boss->location, no cast, range 10 circle, targets random player
-    TremblingEpigraph = 8000, // Boss->self, 5,0s cast, range 40 circle, usually raidwide x4
+    TremblingEpigraph = 8000, // Boss->self, 5.0s cast, range 40 circle, usually raidwide x4
     TremblingEpigraph2 = 8001, // Boss->self, no cast, range 40 circle
-    FlaringEpigraph = 8002, // Boss->self, 5,0s cast, range 40 circle
-    Epigraph = 7997, // Boss->self, 3,5s cast, range 50+R width 8 rect
+    FlaringEpigraph = 8002, // Boss->self, 5.0s cast, range 40 circle
+    Epigraph = 7997, // Boss->self, 3.5s cast, range 50+R width 8 rect
 }
 
 class TremblingEpigraph(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TremblingEpigraph), "Raidwide x4");

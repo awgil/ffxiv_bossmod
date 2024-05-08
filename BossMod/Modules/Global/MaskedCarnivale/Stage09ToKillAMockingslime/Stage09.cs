@@ -14,15 +14,15 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    DeathRay = 15056, // 242D->player, 1,0s cast, single-target
-    Dark = 15057, // 242D->location, 3,0s cast, range 5 circle, creates a voidzone with radius 4
-    GoldenTongue = 14265, // 242D/2713/2714/2715->self, 5,0s cast, single-target
-    Fire = 14266, // 2711->player, 1,0s cast, single-target
-    Blizzard = 14267, // 2712->player, 1,0s cast, single-target
-    Aero = 14269, // 2713->player, 1,0s cast, single-target
-    Stone = 14270, // 2714->player, 1,0s cast, single-target
-    Thunder = 14268, // 2715->player, 1,0s cast, single-target
-    Water = 14271, // 2716->player, 1,0s cast, single-target
+    DeathRay = 15056, // 242D->player, 1.0s cast, single-target
+    Dark = 15057, // 242D->location, 3.0s cast, range 5 circle, creates a voidzone with radius 4
+    GoldenTongue = 14265, // 242D/2713/2714/2715->self, 5.0s cast, single-target
+    Fire = 14266, // 2711->player, 1.0s cast, single-target
+    Blizzard = 14267, // 2712->player, 1.0s cast, single-target
+    Aero = 14269, // 2713->player, 1.0s cast, single-target
+    Stone = 14270, // 2714->player, 1.0s cast, single-target
+    Thunder = 14268, // 2715->player, 1.0s cast, single-target
+    Water = 14271, // 2716->player, 1.0s cast, single-target
 }
 
 class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increase its magic damage");

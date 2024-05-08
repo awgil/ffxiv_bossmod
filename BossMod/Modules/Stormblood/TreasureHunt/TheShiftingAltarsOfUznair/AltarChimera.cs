@@ -15,16 +15,16 @@ public enum AID : uint
     AutoAttack2 = 872, // BonusAddAltarMatanga->player, no cast, single-target
 
     AutoAttack3 = 6499, // 256A->player, no cast, single-target
-    TheScorpionsSting = 13393, // 2539->self, 3,5s cast, range 6+R 90-degree cone
-    TheRamsVoice = 13394, // 2539->self, 5,0s cast, range 4+R circle, interruptible, deep freeze + frostbite
-    TheLionsBreath = 13392, // 2539->self, 3,5s cast, range 6+R 120-degree cone, burn
-    LanguorousGaze = 13742, // 256A->self, 3,0s cast, range 6+R 90-degree cone
-    TheRamsKeeper = 13396, // 2539->location, 3,5s cast, range 6 circle, voidzone
-    TheDragonsVoice = 13395, // 2539->self, 5,0s cast, range 8-30 donut, interruptible, paralaysis
+    TheScorpionsSting = 13393, // 2539->self, 3.5s cast, range 6+R 90-degree cone
+    TheRamsVoice = 13394, // 2539->self, 5.0s cast, range 4+R circle, interruptible, deep freeze + frostbite
+    TheLionsBreath = 13392, // 2539->self, 3.5s cast, range 6+R 120-degree cone, burn
+    LanguorousGaze = 13742, // 256A->self, 3.0s cast, range 6+R 90-degree cone
+    TheRamsKeeper = 13396, // 2539->location, 3.5s cast, range 6 circle, voidzone
+    TheDragonsVoice = 13395, // 2539->self, 5.0s cast, range 8-30 donut, interruptible, paralaysis
     unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
     Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2.5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3.0s cast, range 6 circle
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
 }
 

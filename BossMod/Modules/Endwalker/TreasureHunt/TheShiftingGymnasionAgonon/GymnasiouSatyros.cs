@@ -14,18 +14,18 @@ public enum AID : uint
 {
     AutoAttack = 872, // Boss/BossAdd->player, no cast, single-target
     AutoAttack2 = 870, // BonusAddLyssa->player, no cast, single-target
-    StormWingA = 32220, // Boss->self, 5,0s cast, single-target
-    StormWingB = 32219, // Boss->self, 5,0s cast, single-target
-    StormWing2 = 32221, // BossHelper->self, 5,0s cast, range 40 90-degree cone
-    DreadDive = 32218, // Boss->player, 5,0s cast, single-target
-    FlashGale = 32222, // Boss->location, 3,0s cast, range 6 circle
+    StormWingA = 32220, // Boss->self, 5.0s cast, single-target
+    StormWingB = 32219, // Boss->self, 5.0s cast, single-target
+    StormWing2 = 32221, // BossHelper->self, 5.0s cast, range 40 90-degree cone
+    DreadDive = 32218, // Boss->player, 5.0s cast, single-target
+    FlashGale = 32222, // Boss->location, 3.0s cast, range 6 circle
     unknown = 32199, // 3D2F->self, no cast, single-target
     WindCutter = 32227, // 3D2F->self, no cast, range 4 circle
     BigHorn = 32226, // BossAdd->player, no cast, single-target
-    Wingblow = 32224, // Boss->self, 4,0s cast, single-target
-    Wingblow2 = 32225, // BossHelper->self, 4,0s cast, range 15 circle
+    Wingblow = 32224, // Boss->self, 4.0s cast, single-target
+    Wingblow2 = 32225, // BossHelper->self, 4.0s cast, range 15 circle
 
-    HeavySmash = 32317, // BossAdd->location, 3,0s cast, range 6 circle
+    HeavySmash = 32317, // BossAdd->location, 3.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 

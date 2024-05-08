@@ -8,10 +8,10 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast, single-target
-    FeculentFlood = 16828, // Boss->self, 3,0s cast, range 40 60-degree cone
-    RoyalFlush = 16826, // Boss->self, 3,0s cast, range 8 circle
-    BogBequest = 16827, // Boss->self, 5,0s cast, range 5-20 donut
-    GravityForce = 16829, // Boss->player, 5,0s cast, range 6 circle, interruptible, applies heavy
+    FeculentFlood = 16828, // Boss->self, 3.0s cast, range 40 60-degree cone
+    RoyalFlush = 16826, // Boss->self, 3.0s cast, range 8 circle
+    BogBequest = 16827, // Boss->self, 5.0s cast, range 5-20 donut
+    GravityForce = 16829, // Boss->player, 5.0s cast, range 6 circle, interruptible, applies heavy
 }
 
 public enum IconID : uint

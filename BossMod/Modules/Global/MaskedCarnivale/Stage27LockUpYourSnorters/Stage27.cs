@@ -13,9 +13,9 @@ public enum AID : uint
     BombsSpawn = 19260, // Boss->self, no cast, single-target
     Fungah = 19256, // Boss->self, no cast, range 8+R 90-degree cone, knockback 15 away from source
     Explosion = 19259, // 2CF9->self, no cast, range 8 circle, wipe if in range
-    Fireball = 19258, // Boss->location, 4,0s cast, range 8 circle
+    Fireball = 19258, // Boss->location, 4.0s cast, range 8 circle
     Fungahhh = 19257, // Boss->self, no cast, range 8+R 90-degree cone, knockback 15 away from source
-    Snort = 19266, // Boss->self, 10,0s cast, range 60+R circle, knockback 15 away from source
+    Snort = 19266, // Boss->self, 10.0s cast, range 60+R circle, knockback 15 away from source
     MassiveExplosion = 19261, // 2CEC->self, no cast, range 60 circle, wipe, failed to destroy Magitek Explosive in time
 }
 

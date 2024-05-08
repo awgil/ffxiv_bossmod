@@ -8,7 +8,7 @@ public enum OID : uint
 public enum AID : uint
 {
     Syrup = 14757, // 271E->player, no cast, range 4 circle, applies heavy to player
-    TheLastSong = 14756, // 271E->self, 6,0s cast, range 60 circle, heavy dmg, applies silence to player
+    TheLastSong = 14756, // 271E->self, 6.0s cast, range 60 circle, heavy dmg, applies silence to player
 }
 
 class LastSong(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.TheLastSong), 60, true); //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now

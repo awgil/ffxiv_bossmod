@@ -9,7 +9,7 @@ public enum OID : uint
 public enum AID : uint
 {
     Attack = 6497, // Boss/Vodoriga->player, no cast, single-target
-    Mow = 14879, // Boss->self, 3,0s cast, range 6+R 120-degree cone
+    Mow = 14879, // Boss->self, 3.0s cast, range 6+R 120-degree cone
 }
 
 class Mow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mow), new AOEShapeCone(7.4f, 60.Degrees()));

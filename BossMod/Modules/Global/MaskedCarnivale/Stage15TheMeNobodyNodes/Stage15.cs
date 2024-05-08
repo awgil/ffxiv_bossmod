@@ -10,20 +10,20 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    HighVoltage = 14890, // 26F9->self, 7,0s cast, range 50+R circle, paralysis + summon add
+    HighVoltage = 14890, // 26F9->self, 7.0s cast, range 50+R circle, paralysis + summon add
     Summon = 14897, // 26F9->self, no cast, range 50 circle
-    Ballast0 = 14893, // 26F9->self, 1,0s cast, single-target
+    Ballast0 = 14893, // 26F9->self, 1.0s cast, single-target
     Ballast1 = 14955, // 26F9->self, no cast, single-target
-    Ballast2 = 14894, // 233C->self, 3,0s cast, range 5+R 270-degree cone, knockback dist 15
-    Ballast3 = 14895, // 233C->self, 3,0s cast, range 10+R 270-degree cone, knockback dist 15
-    Ballast4 = 14896, // 233C->self, 3,0s cast, range 15+R 270-degree cone, knockback dist 15
-    PiercingLaser = 14891, // 26F9->self, 3,0s cast, range 30+R width 8 rect
+    Ballast2 = 14894, // 233C->self, 3.0s cast, range 5+R 270-degree cone, knockback dist 15
+    Ballast3 = 14895, // 233C->self, 3.0s cast, range 10+R 270-degree cone, knockback dist 15
+    Ballast4 = 14896, // 233C->self, 3.0s cast, range 15+R 270-degree cone, knockback dist 15
+    PiercingLaser = 14891, // 26F9->self, 3.0s cast, range 30+R width 8 rect
     AutoAttack = 6497, // 26FA/26FB->player, no cast, single-target
-    RepellingCannons = 14892, // 26F9->self, 3,0s cast, range 10+R circle
-    Spellsword = 14968, // 26FA->self, 3,5s cast, range 6+R 120-degree cone
-    Superstorm = 14971, // 26F9->self, 3,5s cast, single-target
-    Superstorm2 = 14970, // 233C->self, 3,5s cast, range 8-20 donut
-    Disseminate = 14899, // 26FB->self, 2,0s cast, range 6+R circle, casts on death of serpents
+    RepellingCannons = 14892, // 26F9->self, 3.0s cast, range 10+R circle
+    Spellsword = 14968, // 26FA->self, 3.5s cast, range 6+R 120-degree cone
+    Superstorm = 14971, // 26F9->self, 3.5s cast, single-target
+    Superstorm2 = 14970, // 233C->self, 3.5s cast, range 8-20 donut
+    Disseminate = 14899, // 26FB->self, 2.0s cast, range 6+R circle, casts on death of serpents
 }
 
 class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interrupt!");

@@ -5,11 +5,11 @@ public enum OID : uint
     Boss = 0x253D, //R=3.36
     Featherofthewinged = 0x253E, //R=0.5
     BossHelper = 0x233C,
-    AltarQueen = 0x254A, // R0,840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarGarlic = 0x2548, // R0,840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarTomato = 0x2549, // R0,840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarOnion = 0x2546, // R0,840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
-    AltarEgg = 0x2547, // R0,840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarQueen = 0x254A, // R0.840, icon 5, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarGarlic = 0x2548, // R0.840, icon 3, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarTomato = 0x2549, // R0.840, icon 4, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarOnion = 0x2546, // R0.840, icon 1, needs to be killed in order from 1 to 5 for maximum rewards
+    AltarEgg = 0x2547, // R0.840, icon 2, needs to be killed in order from 1 to 5 for maximum rewards
     BonusAddAltarMatanga = 0x2545, // R3.420
     BonusAddGoldWhisker = 0x2544, // R0.540
 }
@@ -18,22 +18,22 @@ public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
     AutoAttack2 = 872, // BonusAdds->player, no cast, single-target
-    Filoplumes = 13376, // Boss->self, 3,0s cast, range 8+R width 4 rect
-    Wingbeat = 13377, // Boss->self, 3,0s cast, range 40+R 60-degree cone, knockback 20 away from source
-    FeatherSquall = 13378, // Boss->self, 3,0s cast, single-target
-    FeatherSquall2 = 13379, // BossHelper->location, 3,0s cast, range 6 circle
-    Sideslip = 13380, // Boss->self, 3,5s cast, range 50+R circle
-    Pinion = 13381, // Featherofthewinged->self, 3,0s cast, range 40+R width 3 rect
+    Filoplumes = 13376, // Boss->self, 3.0s cast, range 8+R width 4 rect
+    Wingbeat = 13377, // Boss->self, 3.0s cast, range 40+R 60-degree cone, knockback 20 away from source
+    FeatherSquall = 13378, // Boss->self, 3.0s cast, single-target
+    FeatherSquall2 = 13379, // BossHelper->location, 3.0s cast, range 6 circle
+    Sideslip = 13380, // Boss->self, 3.5s cast, range 50+R circle
+    Pinion = 13381, // Featherofthewinged->self, 3.0s cast, range 40+R width 3 rect
 
-    Pollen = 6452, // 2A0A->self, 3,5s cast, range 6+R circle
-    TearyTwirl = 6448, // 2A06->self, 3,5s cast, range 6+R circle
-    HeirloomScream = 6451, // 2A09->self, 3,5s cast, range 6+R circle
-    PluckAndPrune = 6449, // 2A07->self, 3,5s cast, range 6+R circle
-    PungentPirouette = 6450, // 2A08->self, 3,5s cast, range 6+R circle
+    Pollen = 6452, // 2A0A->self, 3.5s cast, range 6+R circle
+    TearyTwirl = 6448, // 2A06->self, 3.5s cast, range 6+R circle
+    HeirloomScream = 6451, // 2A09->self, 3.5s cast, range 6+R circle
+    PluckAndPrune = 6449, // 2A07->self, 3.5s cast, range 6+R circle
+    PungentPirouette = 6450, // 2A08->self, 3.5s cast, range 6+R circle
     unknown = 9636, // BonusAddAltarMatanga->self, no cast, single-target
     Spin = 8599, // BonusAddAltarMatanga->self, no cast, range 6+R 120-degree cone
-    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2,5s cast, range 5+R 120-degree cone
-    Hurl = 5352, // BonusAddAltarMatanga->location, 3,0s cast, range 6 circle
+    RaucousScritch = 8598, // BonusAddAltarMatanga->self, 2.5s cast, range 5+R 120-degree cone
+    Hurl = 5352, // BonusAddAltarMatanga->location, 3.0s cast, range 6 circle
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 

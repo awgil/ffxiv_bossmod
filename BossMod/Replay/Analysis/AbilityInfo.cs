@@ -1,5 +1,6 @@
 ﻿using BossMod.Components;
 using ImGuiNET;
+using System.Globalization;
 using System.Text;
 
 namespace BossMod.ReplayAnalysis;
@@ -553,7 +554,7 @@ class AbilityInfo : CommonEnumInfo
                 yield return OIDString(oid);
     }
 
-    private string CastTimeString(ActionData data) => data.CastTime > 0 ? $"{data.CastTime:f1}s cast" : "no cast";
+    private string CastTimeString(ActionData data) => data.CastTime > 0 ? string.Create(CultureInfo.InvariantCulture, $"{data.CastTime:f1}s cast") : "no cast";
 
     private string EnumMemberString(ActionID aid, ActionData data)
     {

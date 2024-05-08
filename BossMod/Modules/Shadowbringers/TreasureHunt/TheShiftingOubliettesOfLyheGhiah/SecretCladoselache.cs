@@ -12,19 +12,19 @@ public enum AID : uint
 {
     AutoAttack = 870, // BossAdd->player, no cast, single-target
     AutoAttack2 = 872, // Boss->player, no cast, single-target
-    PelagicCleaver = 21705, // Boss->self, 3,5s cast, range 40 60-degree cone
-    TidalGuillotine = 21704, // Boss->self, 4,0s cast, range 13 circle
-    ProtolithicPuncture = 21703, // Boss->player, 4,0s cast, single-target
-    PelagicCleaverRotationStart = 21706, // Boss->self, 5,0s cast, range 40 60-degree cone
+    PelagicCleaver = 21705, // Boss->self, 3.5s cast, range 40 60-degree cone
+    TidalGuillotine = 21704, // Boss->self, 4.0s cast, range 13 circle
+    ProtolithicPuncture = 21703, // Boss->player, 4.0s cast, single-target
+    PelagicCleaverRotationStart = 21706, // Boss->self, 5.0s cast, range 40 60-degree cone
     PelagicCleaverDuringRotation = 21707, // Boss->self, no cast, range 40 60-degree cone
-    BiteAndRun = 21709, // BossAdd->player, 5,0s cast, width 5 rect charge
-    AquaticLance = 21708, // Boss->player, 5,0s cast, range 8 circle
+    BiteAndRun = 21709, // BossAdd->player, 5.0s cast, width 5 rect charge
+    AquaticLance = 21708, // Boss->player, 5.0s cast, range 8 circle
 
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
-    Mash = 21767, // 3034->self, 3,0s cast, range 13 width 4 rect
+    Mash = 21767, // 3034->self, 3.0s cast, range 13 width 4 rect
     Inhale = 21770, // 3034->self, no cast, range 20 120-degree cone, attract 25 between hitboxes, shortly before Spin
-    Spin = 21769, // 3034->self, 4,0s cast, range 11 circle
-    Scoop = 21768, // 3034->self, 4,0s cast, range 15 120-degree cone
+    Spin = 21769, // 3034->self, 4.0s cast, range 11 circle
+    Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
 public enum IconID : uint

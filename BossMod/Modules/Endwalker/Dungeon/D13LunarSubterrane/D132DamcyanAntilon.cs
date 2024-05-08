@@ -12,17 +12,17 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss, no cast, single-target
-    Sandblast = 34813, // Boss->self, 5,0s cast, range 60 circle
-    Landslip = 34818, // Boss->self, 7,0s cast, single-target
-    Landslip2 = 34819, // Helper->self, 7,7s cast, range 40 width 10 rect, knockback dir 20 forward
+    Sandblast = 34813, // Boss->self, 5.0s cast, range 60 circle
+    Landslip = 34818, // Boss->self, 7.0s cast, single-target
+    Landslip2 = 34819, // Helper->self, 7.7s cast, range 40 width 10 rect, knockback dir 20 forward
     Teleport = 34824, // Boss->location, no cast, single-target
-    AntilonMarchTelegraph = 35871, // Helper->location, 1,5s cast, width 8 rect charge
-    AntlionMarch = 34816, // Boss->self, 5,5s cast, single-target
+    AntilonMarchTelegraph = 35871, // Helper->location, 1.5s cast, width 8 rect charge
+    AntlionMarch = 34816, // Boss->self, 5.5s cast, single-target
     AntlionMarch2 = 34817, // Boss->location, no cast, width 8 rect charge
-    Towerfall = 34820, // StonePillar->self, 2,0s cast, range 40 width 10 rect
-    EarthenGeyser = 34821, // Boss->self, 4,0s cast, single-target
-    EarthenGeyser2 = 34822, // Helper->players, 5,0s cast, range 10 circle
-    PoundSand = 34443, // Boss->location, 6,0s cast, range 12 circle
+    Towerfall = 34820, // StonePillar->self, 2.0s cast, range 40 width 10 rect
+    EarthenGeyser = 34821, // Boss->self, 4.0s cast, single-target
+    EarthenGeyser2 = 34822, // Helper->players, 5.0s cast, range 10 circle
+    PoundSand = 34443, // Boss->location, 6.0s cast, range 12 circle
 }
 
 class Sandblast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Sandblast));

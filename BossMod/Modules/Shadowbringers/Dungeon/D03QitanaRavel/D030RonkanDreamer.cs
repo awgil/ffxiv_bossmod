@@ -12,15 +12,15 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    WrathOfTheRonka = 17223, // 2A40->self, 6,0s cast, single-target
+    WrathOfTheRonka = 17223, // 2A40->self, 6.0s cast, single-target
     WrathOfTheRonkaLong = 15918, // 28E8->self, no cast, range 35 width 8 rect
     WrathOfTheRonkaShort = 15916, // 28E8->self, no cast, range 12 width 8 rect
     WrathOfTheRonkaMedium = 15917, // 28E8->self, no cast, range 22 width 8 rect
-    RonkanFire = 17433, // 2A40->player, 1,0s cast, single-target
-    RonkanAbyss = 17387, // 2A40->location, 3,0s cast, range 6 circle
+    RonkanFire = 17433, // 2A40->player, 1.0s cast, single-target
+    RonkanAbyss = 17387, // 2A40->location, 3.0s cast, range 6 circle
     AutoAttack = 872, // 28DD/28DC->player, no cast, single-target
     AutoAttack2 = 17949, // 28E3->player, no cast, single-target
-    BurningBeam = 15923, // 28E3->self, 3,0s cast, range 15 width 4 rect
+    BurningBeam = 15923, // 28E3->self, 3.0s cast, range 15 width 4 rect
 }
 
 public enum TetherID : uint
