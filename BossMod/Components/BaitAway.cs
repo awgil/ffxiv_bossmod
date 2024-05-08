@@ -186,6 +186,7 @@ public class BaitAwayCast(BossModule module, ActionID aid, AOEShape shape, bool 
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
+        base.OnEventCast(caster, spell);
         if (spell.Action == WatchedAction && EndsOnCastEvent)
             CurrentBaits.RemoveAll(b => b.Source == caster);
     }

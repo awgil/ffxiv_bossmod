@@ -1,56 +1,37 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class DownhillP1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Downhill), 6);
-class SoaringMinuet1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoaringMinuet1), new AOEShapeCone(65, 135.Degrees()));
-class SoaringMinuet2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoaringMinuet2), new AOEShapeCone(65, 135.Degrees()));
-class SuddenDownpour(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SuddenDownpour2));
-class LoftyPeaks(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LoftyPeaks), "Raidwide x5 coming");
-class TrekShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrekShot), new AOEShapeCone(65, 60.Degrees()));
-class TrekShot2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrekShot2), new AOEShapeCone(65, 60.Degrees()));
+class P1SuddenDownpour(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.SuddenDownpourAOE));
+class P1TrekShotN(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrekShotNAOE), new AOEShapeCone(65, 60.Degrees()));
+class P1TrekShotS(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrekShotSAOE), new AOEShapeCone(65, 60.Degrees()));
+class P1SoaringMinuet1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoaringMinuet1), new AOEShapeCone(65, 135.Degrees()));
+class P1SoaringMinuet2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoaringMinuet2), new AOEShapeCone(65, 135.Degrees()));
+class P1Arrow(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.ArrowP1AOE), new AOEShapeCircle(6), true);
+class P1Downhill(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DownhillP1AOE), 6);
+class P2MovingMountains(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MovingMountains));
+class P2PeakPeril(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PeakPeril));
+class P2Shockwave(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Shockwave));
+class P2PitonPull(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PitonPullAOE), 22);
+class P2Altitude(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AltitudeAOE), 6);
+class P2Arrow(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.ArrowP2AOE), new AOEShapeCircle(10), true);
 
-class TheArrow(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.TheArrow), new AOEShapeCircle(6), true)
-{
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        if (CurrentBaits.Count > 0)
-            hints.Add("Tankbuster cleave");
-    }
-}
-
-class TheArrowP2(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.TheArrowP2), new AOEShapeCircle(10), true)
-{
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        if (CurrentBaits.Count > 0)
-            hints.Add("Tankbuster cleave");
-    }
-}
-
-class PitonPull(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PitonPull), 22);
-class Altitude(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Altitude), 6);
-class DownhillSmall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DownhillSmall), 6);
-class DownhillBig(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DownhillBig), 8);
-
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", PrimaryActorOID = (uint)OID.OschonP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300, SortOrder = 4)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11300, SortOrder = 4)]
 public class A33Oschon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 750), new ArenaBoundsSquare(25))
 {
-    private Actor? _oschonP1;
-    private Actor? _oschonP2;
+    private Actor? _bossP2;
 
-    public Actor? OschonP1() => PrimaryActor;
-    public Actor? OschonP2() => _oschonP2;
+    public Actor? BossP1() => PrimaryActor;
+    public Actor? BossP2() => _bossP2;
 
     protected override void UpdateModule()
     {
         // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...
         // the problem is that on wipe, any actor can be deleted and recreated in the same frame
-        _oschonP1 ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.OschonP1).FirstOrDefault() : null;
-        _oschonP2 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.OschonP2).FirstOrDefault() : null;
+        _bossP2 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.BossP2).FirstOrDefault() : null;
     }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        Arena.Actor(_oschonP1, ArenaColor.Enemy);
-        Arena.Actor(_oschonP2, ArenaColor.Enemy);
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        Arena.Actor(_bossP2, ArenaColor.Enemy);
     }
 }
