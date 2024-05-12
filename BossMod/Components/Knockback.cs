@@ -26,11 +26,9 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     );
 
     public record struct SafeWall(
-        // for line segments
-        WPos Vertex1 = default,
+        WPos Vertex1 = default, // for line segments
         WPos Vertex2 = default,
-        // for circle segments
-        WPos Center = default,
+        WPos Center = default, // for circle segments
         float Radius = default,
         Angle StartAngle = default,
         Angle EndAngle = default
