@@ -8,11 +8,11 @@ class Uplift(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.M
     {
         if (WallDirection != null)
         {
-            for (int i = 0; i < 4; ++i)
+            for (var i = 0; i < 4; ++i)
             {
                 var center = WallDirection.Value + i * 90.Degrees();
                 Arena.PathArcTo(Module.Center, Module.Bounds.Radius - 0.5f, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);
-                Arena.PathStroke(false, ArenaColor.Border, 2);
+                MiniArena.PathStroke(false, ArenaColor.Border, 2);
             }
         }
     }

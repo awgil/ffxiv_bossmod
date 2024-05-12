@@ -51,7 +51,7 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
         }
 
         var tess = Earcut.Tessellate(pts, HoleStarts);
-        for (int i = 0; i < tess.Count; i += 3)
+        for (var i = 0; i < tess.Count; i += 3)
             result.Add(new(Vertices[tess[i]], Vertices[tess[i + 1]], Vertices[tess[i + 2]]));
         return tess.Count > 0;
     }
@@ -79,13 +79,19 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
         // for simple polygons, it doesn't matter which rule (even-odd, non-zero, etc) we use
         // so let's just use non-zero rule and calculate winding order
         // we need to select arbitrary direction to count winding intersections - let's select unit X
-        int winding = 0;
+        var winding = 0;
+        const float epsilon = 1e-6f;
+
         foreach (var (a, b) in edges)
         {
             // see whether edge ab intersects our test ray - it has to intersect the infinite line on the correct side
             var pa = a - p;
             var pb = b - p;
-            // if pa.Z and pb.Z have same signs, the edge is fully above or below the test ray
+
+            if (PointOnLineSegment(p, a, b, epsilon))
+                return true;
+
+            // if pa.Z and pb.Z have the same signs, the edge is fully above or below the test ray
             if (pa.Z <= 0)
             {
                 if (pb.Z > 0 && pa.Cross(pb) > 0)
@@ -98,6 +104,20 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
             }
         }
         return winding != 0;
+    }
+
+    private static bool PointOnLineSegment(WDir point, WDir a, WDir b, float epsilon)
+    {
+        var crossProduct = (point.Z - a.Z) * (b.X - a.X) - (point.X - a.X) * (b.Z - a.Z);
+        if (MathF.Abs(crossProduct) > epsilon)
+            return false;
+
+        var dotProduct = (point.X - a.X) * (b.X - a.X) + (point.Z - a.Z) * (b.Z - a.Z);
+        if (dotProduct < 0)
+            return false;
+
+        var squaredLengthBA = (b.X - a.X) * (b.X - a.X) + (b.Z - a.Z) * (b.Z - a.Z);
+        return dotProduct <= squaredLengthBA;
     }
 }
 
@@ -245,7 +265,7 @@ public static class PolygonUtil
             return false;
 
         var prevEdge = contour[0] - contour[^1];
-        float cross = (contour[^1] - contour[^2]).Cross(prevEdge);
+        var cross = (contour[^1] - contour[^2]).Cross(prevEdge);
         if (contour.Length > 3)
         {
             for (int i = 1; i < contour.Length; ++i)

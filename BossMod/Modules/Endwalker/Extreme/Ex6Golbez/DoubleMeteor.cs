@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
-class DragonsDescent(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DragonsDescent))
+class DragonsDescent(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DragonsDescent), ignoreImmunes: true)
 {
     private Actor? _source;
     private DateTime _activation;

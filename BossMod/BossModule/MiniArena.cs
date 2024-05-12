@@ -160,7 +160,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     public void AddCone(WPos center, float radius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
     {
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
+        var sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathLineTo(sCenter);
         drawlist.PathArcTo(sCenter, radius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -170,7 +170,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     public void AddDonutCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color, float thickness = 1)
     {
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
+        var sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathArcTo(sCenter, innerRadius / Bounds.Radius * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
         drawlist.PathArcTo(sCenter, outerRadius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -203,12 +203,12 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth, MathF.PI / 2 - amax + _cameraAzimuth);
     }
 
-    public void PathStroke(bool closed, uint color, float thickness = 1)
+    public static void PathStroke(bool closed, uint color, float thickness = 1)
     {
         ImGui.GetWindowDrawList().PathStroke(color, closed ? ImDrawFlags.Closed : ImDrawFlags.None, thickness);
     }
 
-    public void PathFillConvex(uint color)
+    public static void PathFillConvex(uint color)
     {
         ImGui.GetWindowDrawList().PathFillConvex(color);
     }
@@ -347,7 +347,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
             Actor(a, color, allowDeadAndUntargetable);
     }
 
-    public void End()
+    public static void End()
     {
         ImGui.GetWindowDrawList().PopClipRect();
     }

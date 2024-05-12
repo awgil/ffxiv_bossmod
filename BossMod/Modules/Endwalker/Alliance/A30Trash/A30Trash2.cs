@@ -33,8 +33,13 @@ public class A30Trash2Pack1States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", PrimaryActorOID = (uint)OID.AngelosPack1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 12481, SortOrder = 5)]
-public class A30Trash2Pack1(WorldState ws, Actor primary) : BossModule(ws, primary, new(800, 770), new ArenaBoundsRect(15, 25))
+public class A30Trash2Pack1(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
 {
+    private static readonly List<Shape> union = [new Rectangle(new(800, 786), 21, 13.5f), new Rectangle(new(800, 767), 7, 10), new Rectangle(new(800, 758), 10, 4)];
+    private static readonly List<Shape> difference = [new Square(new(811.25f, 787), 1.5f), new Square(new(811.25f, 777.4f), 1.5f), new Square(new(788.75f, 787), 1.5f), new Square(new(788.75f, 777.4f), 1.5f),
+    new Polygon(new(793.25f, 762.65f), 1.3f, 6), new Polygon(new(806.5f, 762.65f), 1.3f, 6)];
+    private static readonly ArenaBounds arena = new ArenaBoundsComplex(union, difference);
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

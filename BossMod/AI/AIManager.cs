@@ -21,7 +21,7 @@ sealed class AIManager : IDisposable
         _config = Service.Config.Get<AIConfig>();
         _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
         Service.ChatGui.ChatMessage += OnChatMessage;
-        Service.CommandManager.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
+        Service.CommandManager.AddHandler("/bmrai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
     }
 
     public void Dispose()
@@ -29,7 +29,7 @@ sealed class AIManager : IDisposable
         SwitchToIdle();
         _ui.Dispose();
         Service.ChatGui.ChatMessage -= OnChatMessage;
-        Service.CommandManager.RemoveHandler("/vbmai");
+        Service.CommandManager.RemoveHandler("/bmrai");
     }
 
     public void Update()
@@ -108,7 +108,7 @@ sealed class AIManager : IDisposable
             return;
 
         var messagePrefix = message.Payloads.FirstOrDefault() as TextPayload;
-        if (messagePrefix?.Text == null || !messagePrefix.Text.StartsWith("vbmai ", StringComparison.Ordinal))
+        if (messagePrefix?.Text == null || !messagePrefix.Text.StartsWith("bmrai ", StringComparison.Ordinal))
             return;
 
         var messageData = messagePrefix.Text.Split(' ');

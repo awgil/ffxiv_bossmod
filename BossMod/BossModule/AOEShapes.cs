@@ -78,13 +78,13 @@ public sealed record class AOEShapeCross(float Length, float HalfWidth, Angle Di
 {
     public override string ToString() => $"Cross: l={Length:f3}, w={HalfWidth * 2}, off={DirectionOffset}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation + DirectionOffset, Length, Length, HalfWidth) || position.InRect(origin, rotation + DirectionOffset, HalfWidth, HalfWidth, Length);
-    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZonePoly((GetType(), origin, rotation + DirectionOffset, Length, HalfWidth), ContourPoints(origin, rotation), color);
+    public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.AOE) => arena.ZonePoly(HashCode.Combine(GetType(), origin, rotation + DirectionOffset, Length, HalfWidth), ContourPoints(origin, rotation), color);
 
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = ArenaColor.Danger)
     {
         foreach (var p in ContourPoints(origin, rotation))
             arena.PathLineTo(p);
-        arena.PathStroke(true, color);
+        MiniArena.PathStroke(true, color);
     }
 
     public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Cross(origin, rotation + DirectionOffset, Length, HalfWidth);

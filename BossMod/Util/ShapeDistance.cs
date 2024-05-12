@@ -25,6 +25,12 @@ public static class ShapeDistance
         };
     }
 
+    public static Func<WPos, float> InvertedDonut(WPos origin, float innerRadius, float outerRadius)
+    {
+        var donut = Donut(origin, innerRadius, outerRadius);
+        return p => -donut(p);
+    }
+
     public static Func<WPos, float> Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || radius <= 0)

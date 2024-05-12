@@ -38,7 +38,7 @@ This is still work-in-progress, in future it should allow creating cooldown plan
 # Install instructions:
 1. esc -> dalamud settings -> experimental -> custom plugin repositories, add https://puni.sh/api/repository/veyn
 2. esc -> dalamud plugins -> all plugins -> find "Boss Mod" and install
-3. settings are accessible either via esc menu or /vbm console command
+3. settings are accessible either via esc menu or /bmr console command
 
 # Getting help
 

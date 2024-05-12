@@ -12,6 +12,7 @@ public record struct WDir(float X, float Z)
     public static WDir operator +(WDir a, WDir b) => new(a.X + b.X, a.Z + b.Z);
     public static WDir operator -(WDir a, WDir b) => new(a.X - b.X, a.Z - b.Z);
     public static WDir operator -(WDir a) => new(-a.X, -a.Z);
+    public static WDir operator -(WDir a, WPos b) => new(a.X - b.X, a.Z - b.Z);
     public static WDir operator *(WDir a, float b) => new(a.X * b, a.Z * b);
     public static WDir operator *(float a, WDir b) => new(a * b.X, a * b.Z);
     public static WDir operator /(WDir a, float b) => new(a.X / b, a.Z / b);
@@ -53,6 +54,10 @@ public record struct WPos(float X, float Z)
     public readonly Vector2 ToVec2() => new(X, Z);
     public readonly WDir ToWDir() => new(X, Z);
 
+    public static WPos operator *(WPos a, float b) => new(a.X * b, a.Z * b);
+    public static WPos operator +(WPos a, float b) => new(a.X + b, a.Z + b);
+    public static WPos operator /(WPos a, int b) => new(a.X / b, a.Z / b);
+    public static WPos operator /(WPos a, float b) => new(a.X / b, a.Z / b);
     public static WPos operator +(WPos a, WDir b) => new(a.X + b.X, a.Z + b.Z);
     public static WPos operator +(WDir a, WPos b) => new(a.X + b.X, a.Z + b.Z);
     public static WPos operator -(WPos a, WDir b) => new(a.X - b.X, a.Z - b.Z);

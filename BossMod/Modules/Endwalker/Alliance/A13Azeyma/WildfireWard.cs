@@ -1,19 +1,22 @@
 ﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
-class WildfireWard(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.IlluminatingGlimpse), 15, false, 1, kind: Kind.DirLeft)
+class WildfireWard(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.IlluminatingGlimpse), 15, false, 1, kind: Kind.DirLeft);
+class ArenaBounds(BossModule module) : BossComponent(module)
 {
-    private static readonly WPos[] _tri = [new(-750, -762), new(-760.392f, -744), new(-739.608f, -744)];
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
+    public override void OnEventEnvControl(byte index, uint state)
     {
-        if (!actor.Position.InTri(_tri[0], _tri[1], _tri[2]))
-            hints.Add("Go to safe zone!");
-        if (CalculateMovements(slot, actor).Any(e => !e.to.InTri(_tri[0], _tri[1], _tri[2])))
-            hints.Add("About to be knocked into fire!");
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        Arena.ZoneTri(_tri[0], _tri[1], _tri[2], ArenaColor.SafeFromAOE);
+        if (index == 0x1C)
+        {
+            if (state == 0x00020001)
+            {
+                Arena.Bounds = A13Azeyma.TriangleBounds;
+                Arena.Center = A13Azeyma.TriangleCenter;
+            }
+            if (state == 0x00080004)
+            {
+                Arena.Bounds = A13Azeyma.NormalBounds;
+                Arena.Center = A13Azeyma.NormalCenter;
+            }
+        }
     }
 }

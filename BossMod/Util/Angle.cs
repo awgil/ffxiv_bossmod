@@ -18,6 +18,11 @@ public record struct Angle(float Rad)
     public static Angle operator *(Angle a, float b) => new(a.Rad * b);
     public static Angle operator *(float a, Angle b) => new(a * b.Rad);
     public static Angle operator /(Angle a, float b) => new(a.Rad / b);
+    public static bool operator >(Angle a, Angle b) => a.Rad > b.Rad;
+    public static bool operator <(Angle a, Angle b) => a.Rad < b.Rad;
+    public static bool operator >=(Angle a, Angle b) => a.Rad >= b.Rad;
+    public static bool operator <=(Angle a, Angle b) => a.Rad <= b.Rad;
+
     public readonly Angle Abs() => new(Math.Abs(Rad));
     public readonly float Sin() => MathF.Sin(Rad);
     public readonly float Cos() => MathF.Cos(Rad);

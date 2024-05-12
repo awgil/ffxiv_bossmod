@@ -92,7 +92,7 @@ public class ConfigRoot
         List<string> result = [];
         if (args.Count == 0)
         {
-            result.Add("Usage: /vbm cfg <config-type> <field> <value>");
+            result.Add("Usage: /bmr cfg <config-type> <field> <value>");
             result.Add("Both config-type and field can be shortened. Valid config-types:");
             foreach (var t in _nodes.Keys)
                 result.Add($"- {t.Name}");
@@ -117,7 +117,7 @@ public class ConfigRoot
             }
             else if (args.Count == 1)
             {
-                result.Add("Usage: /vbm cfg <config-type> <field> <value>");
+                result.Add("Usage: /bmr cfg <config-type> <field> <value>");
                 result.Add($"Valid fields for {matchingNodes[0].GetType().Name}:");
                 foreach (var f in matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null))
                     result.Add($"- {f.Name}");
@@ -142,7 +142,7 @@ public class ConfigRoot
                 }
                 else if (args.Count == 2)
                 {
-                    result.Add("Usage: /vbm cfg <config-type> <field> <value>");
+                    result.Add("Usage: /bmr cfg <config-type> <field> <value>");
                     result.Add($"Type of {matchingNodes[0].GetType().Name}.{matchingFields[0].Name} is {matchingFields[0].FieldType.Name}");
                 }
                 else

@@ -43,7 +43,7 @@ public sealed class Plugin : IDalamudPlugin
         dalamud.Create<Service>();
         Service.LogHandler = (string msg) => Service.Logger.Debug(msg);
         Service.LuminaGameData = Service.DataManager.GameData;
-        Service.WindowSystem = new("vbm");
+        Service.WindowSystem = new("bmr");
         //Service.Device = pluginInterface.UiBuilder.Device;
         Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
@@ -58,7 +58,7 @@ public sealed class Plugin : IDalamudPlugin
         ActionManagerEx.Instance = new(); // needs config
 
         CommandManager = commandManager;
-        CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
+        CommandManager.AddHandler("/bmr", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
         _network = new(dalamud.ConfigDirectory);
         _ws = new(Utils.FrameQPF(), dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
@@ -96,7 +96,7 @@ public sealed class Plugin : IDalamudPlugin
         _wsSync.Dispose();
         ActionManagerEx.Instance?.Dispose();
         BozjaInterop.Instance?.Dispose();
-        CommandManager.RemoveHandler("/vbm");
+        CommandManager.RemoveHandler("/bmr");
     }
 
     private void OnCommand(string cmd, string args)
