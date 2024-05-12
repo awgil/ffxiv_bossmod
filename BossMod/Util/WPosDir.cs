@@ -35,6 +35,7 @@ public record struct WDir(float X, float Z)
     public readonly bool AlmostEqual(WDir b, float eps) => AlmostZero(this - b, eps);
 
     public override readonly string ToString() => $"({X:f3}, {Z:f3})";
+    public override readonly int GetHashCode() => (X, Z).GetHashCode(); // TODO: this is a hack, the default should be good enough, but for whatever reason (X, -Z).GetHashCode() == (-X, Z).GetHashCode()...
 
     // area checks, assuming this is an offset from shape's center
     public readonly bool InRect(WDir direction, float lenFront, float lenBack, float halfWidth)
@@ -64,6 +65,7 @@ public record struct WPos(float X, float Z)
     public static WPos Lerp(WPos from, WPos to, float progress) => new(from.ToVec2() * (1 - progress) + to.ToVec2() * progress);
 
     public override readonly string ToString() => $"[{X:f3}, {Z:f3}]";
+    public override readonly int GetHashCode() => (X, Z).GetHashCode(); // TODO: this is a hack, the default should be good enough, but for whatever reason (X, -Z).GetHashCode() == (-X, Z).GetHashCode()...
 
     // area checks
     public readonly bool InTri(WPos v1, WPos v2, WPos v3)
