@@ -72,7 +72,8 @@ public class SingleTargetCast(BossModule module, ActionID aid, string hint = "Ta
         {
             if (c.CastInfo != null)
             {
-                hints.PredictedDamage.Add((new BitMask().WithBit(Raid.FindSlot(c.CastInfo.TargetID)), c.CastInfo.NPCFinishAt));
+                var target = c.CastInfo.TargetID != c.InstanceID ? c.CastInfo.TargetID : c.TargetID; // assume self-targeted casts actually hit main target
+                hints.PredictedDamage.Add((new BitMask().WithBit(Raid.FindSlot(target)), c.CastInfo.NPCFinishAt));
             }
         }
     }
@@ -115,7 +116,10 @@ public class SingleTargetCastDelay(BossModule module, ActionID actionVisual, Act
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == ActionVisual)
-            Targets.Add((Raid.FindSlot(spell.TargetID), spell.NPCFinishAt.AddSeconds(Delay)));
+        {
+            var target = spell.TargetID != caster.InstanceID ? spell.TargetID : caster.TargetID; // assume self-targeted casts actually hit main target
+            Targets.Add((Raid.FindSlot(target), spell.NPCFinishAt.AddSeconds(Delay)));
+        }
     }
 }
 
