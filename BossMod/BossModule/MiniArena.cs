@@ -53,6 +53,8 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
     public float IntersectRayBounds(WPos rayOrigin, WDir rayDir) => Bounds.IntersectRay(rayOrigin - Center, rayDir);
 
+    public string DrawCacheStats() => _triCache.Stats();
+
     // prepare for drawing - set up internal state, clip rect etc.
     public void Begin(float cameraAzimuthRadians)
     {
@@ -224,27 +226,27 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
 
     // draw zones - these are filled primitives clipped to arena border; note that triangulation is cached
     public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color)
-        => Zone(_triCache[HashCode.Combine(1, center, innerRadius, outerRadius, centerDirection, halfAngle)] ??= Bounds.ClipAndTriangulateCone(center - Center, innerRadius, outerRadius, centerDirection, halfAngle), color);
+        => Zone(_triCache[(1, center, innerRadius, outerRadius, centerDirection, halfAngle)] ??= Bounds.ClipAndTriangulateCone(center - Center, innerRadius, outerRadius, centerDirection, halfAngle), color);
     public void ZoneCircle(WPos center, float radius, uint color)
-        => Zone(_triCache[HashCode.Combine(2, center, radius)] ??= Bounds.ClipAndTriangulateCircle(center - Center, radius), color);
+        => Zone(_triCache[(2, center, radius)] ??= Bounds.ClipAndTriangulateCircle(center - Center, radius), color);
     public void ZoneDonut(WPos center, float innerRadius, float outerRadius, uint color)
-        => Zone(_triCache[HashCode.Combine(3, center, innerRadius, outerRadius)] ??= Bounds.ClipAndTriangulateDonut(center - Center, innerRadius, outerRadius), color);
+        => Zone(_triCache[(3, center, innerRadius, outerRadius)] ??= Bounds.ClipAndTriangulateDonut(center - Center, innerRadius, outerRadius), color);
     public void ZoneTri(WPos a, WPos b, WPos c, uint color)
-        => Zone(_triCache[HashCode.Combine(4, a, b, c)] ??= Bounds.ClipAndTriangulateTri(a - Center, b - Center, c - Center), color);
+        => Zone(_triCache[(4, a, b, c)] ??= Bounds.ClipAndTriangulateTri(a - Center, b - Center, c - Center), color);
     public void ZoneIsoscelesTri(WPos apex, WDir height, WDir halfBase, uint color)
-        => Zone(_triCache[HashCode.Combine(5, apex, height, halfBase)] ??= Bounds.ClipAndTriangulateIsoscelesTri(apex - Center, height, halfBase), color);
+        => Zone(_triCache[(5, apex, height, halfBase)] ??= Bounds.ClipAndTriangulateIsoscelesTri(apex - Center, height, halfBase), color);
     public void ZoneIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height, uint color)
-        => Zone(_triCache[HashCode.Combine(6, apex, direction, halfAngle, height)] ??= Bounds.ClipAndTriangulateIsoscelesTri(apex - Center, direction, halfAngle, height), color);
+        => Zone(_triCache[(6, apex, direction, halfAngle, height)] ??= Bounds.ClipAndTriangulateIsoscelesTri(apex - Center, direction, halfAngle, height), color);
     public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color)
-        => Zone(_triCache[HashCode.Combine(7, origin, direction, lenFront, lenBack, halfWidth)] ??= Bounds.ClipAndTriangulateRect(origin - Center, direction, lenFront, lenBack, halfWidth), color);
+        => Zone(_triCache[(7, origin, direction, lenFront, lenBack, halfWidth)] ??= Bounds.ClipAndTriangulateRect(origin - Center, direction, lenFront, lenBack, halfWidth), color);
     public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color)
-        => Zone(_triCache[HashCode.Combine(8, origin, direction, lenFront, lenBack, halfWidth)] ??= Bounds.ClipAndTriangulateRect(origin - Center, direction, lenFront, lenBack, halfWidth), color);
+        => Zone(_triCache[(8, origin, direction, lenFront, lenBack, halfWidth)] ??= Bounds.ClipAndTriangulateRect(origin - Center, direction, lenFront, lenBack, halfWidth), color);
     public void ZoneRect(WPos start, WPos end, float halfWidth, uint color)
-        => Zone(_triCache[HashCode.Combine(9, start, end, halfWidth)] ??= Bounds.ClipAndTriangulateRect(start - Center, end - Center, halfWidth), color);
-    public void ZonePoly(int hash, IEnumerable<WPos> contour, uint color)
-        => Zone(_triCache[HashCode.Combine(10, hash)] ??= Bounds.ClipAndTriangulate(contour.Select(p => p - Center)), color);
-    public void ZoneRelPoly(int hash, IEnumerable<WDir> relContour, uint color)
-        => Zone(_triCache[HashCode.Combine(11, hash)] ??= Bounds.ClipAndTriangulate(relContour), color);
+        => Zone(_triCache[(9, start, end, halfWidth)] ??= Bounds.ClipAndTriangulateRect(start - Center, end - Center, halfWidth), color);
+    public void ZonePoly(object key, IEnumerable<WPos> contour, uint color)
+        => Zone(_triCache[(10, key)] ??= Bounds.ClipAndTriangulate(contour.Select(p => p - Center)), color);
+    public void ZoneRelPoly(object key, IEnumerable<WDir> relContour, uint color)
+        => Zone(_triCache[(11, key)] ??= Bounds.ClipAndTriangulate(relContour), color);
 
     public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
     {

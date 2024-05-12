@@ -63,9 +63,14 @@ class ReplayDetailsWindow : UIWindow
             var drawTimerPost = DateTime.Now;
 
             var compList = string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name));
-            var playerOffset = (_mgr.WorldState.Party.Player()?.Position ?? _mgr.ActiveModule.Center) - _mgr.ActiveModule.Center;
-            var playerOffString = $"{playerOffset} [R={playerOffset.Length():f3}, dir={Angle.FromDirection(playerOffset)}]";
-            ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {compList}, Player offset: {playerOffString}");
+            var pov = _mgr.WorldState.Party[_povSlot];
+            var povOffsetString = "";
+            if (pov != null)
+            {
+                var povOffset = pov.Position - _mgr.ActiveModule.Center;
+                povOffsetString = $"{povOffset} [R={povOffset.Length():f3}, dir={Angle.FromDirection(povOffset)}]";
+            }
+            ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {compList}, Player offset: {povOffsetString}, Draw cache: {_mgr.ActiveModule.Arena.DrawCacheStats()}");
 
             if (ImGui.CollapsingHeader("Plan execution"))
             {

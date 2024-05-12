@@ -10,9 +10,9 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        Arena.ZoneRelPoly(HashCode.Combine(GetType(), 0), InDanger(), ArenaColor.AOE);
-        Arena.ZoneRelPoly(HashCode.Combine(GetType(), 1), MidDanger(), ArenaColor.AOE);
-        Arena.ZoneRelPoly(HashCode.Combine(GetType(), 2), OutDanger(), ArenaColor.AOE);
+        Arena.ZoneRelPoly((GetType(), 0), InDanger(), ArenaColor.AOE);
+        Arena.ZoneRelPoly((GetType(), 1), MidDanger(), ArenaColor.AOE);
+        Arena.ZoneRelPoly((GetType(), 2), OutDanger(), ArenaColor.AOE);
     }
 
     private IEnumerable<WDir> RingBorder(Angle centerOffset, float ringRadius, bool innerBorder)
