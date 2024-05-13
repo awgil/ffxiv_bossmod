@@ -22,8 +22,10 @@ public enum AID : uint
 }
 
 class WaterIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WaterIII), 8);
-class PelagicCleaver1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver1), new AOEShapeCone(40, 30.Degrees())); // note: it's interruptible, but that's not worth the hint
-class PelagicCleaver2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver2), new AOEShapeCone(40, 30.Degrees())); // note: it's interruptible, but that's not worth the hint
+class PelagicCleaver1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver1), new AOEShapeCone(40, 30.Degrees()));
+class PelagicCleaver2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver2), new AOEShapeCone(40, 30.Degrees()));
+class PelagicCleaver1InterruptHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.PelagicCleaver1));
+class PelagicCleaver2InterruptHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.PelagicCleaver2));
 class WaterFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WaterFlood), new AOEShapeCircle(6));
 class DivineFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineFlood), new AOEShapeCircle(6));
 
@@ -38,6 +40,8 @@ public class A30Trash1States : StateMachineBuilder
         TrivialPhase(1)
             .ActivateOnEnter<PelagicCleaver1>()
             .ActivateOnEnter<PelagicCleaver2>()
+            .ActivateOnEnter<PelagicCleaver1InterruptHint>()
+            .ActivateOnEnter<PelagicCleaver2InterruptHint>()
             .ActivateOnEnter<WaterFlood>()
             .ActivateOnEnter<DivineFlood>()
             .Raw.Update = () => module.Enemies(OID.Serpent).Count == 0 && module.Enemies(OID.Triton).All(e => e.IsDead) && module.Enemies(OID.DivineSprite).All(e => e.IsDead) && module.Enemies(OID.WaterSprite).All(e => e.IsDead);

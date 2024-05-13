@@ -171,6 +171,7 @@ class A23HaloneStates : StateMachineBuilder
     {
         ComponentCondition<GlacialSpearSmall>(id + 0x10, delay, comp => comp.ActiveActors.Any(), "Adds appear")
             .ActivateOnEnter<GlacialSpearSmall>()
+            .ActivateOnEnter<Octagons>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ComponentCondition<GlacialSpearLarge>(id + 0x20, 7.5f, comp => comp.ActiveActors.Any())
             .ActivateOnEnter<GlacialSpearLarge>();
@@ -182,6 +183,7 @@ class A23HaloneStates : StateMachineBuilder
             .DeactivateOnExit<Niphas>()
             .DeactivateOnExit<GlacialSpearSmall>()
             .DeactivateOnExit<GlacialSpearLarge>()
+            .DeactivateOnExit<Octagons>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ComponentCondition<FurysAegis>(id + 0x200, 8.7f, comp => comp.NumCasts > 0, "Raidwide", 10) // TODO: these timings differ a lot, depending on whether large is killed last?..

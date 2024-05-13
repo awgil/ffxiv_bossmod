@@ -136,19 +136,8 @@ public static class ShapeDistance
 
     public static Func<WPos, float> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
-        // dir points outside far side
-        var normal = dir.OrthoL(); // points outside left side
-        return p =>
-        {
-            var offset = p - origin;
-            var distParr = offset.Dot(dir);
-            var distOrtho = offset.Dot(normal);
-            var distFront = distParr - lenFront;
-            var distBack = -distParr - lenBack;
-            var distLeft = distOrtho - halfWidth;
-            var distRight = -distOrtho - halfWidth;
-            return -Math.Max(Math.Max(distFront, distBack), Math.Max(distLeft, distRight));
-        };
+        var rect = Rect(origin, dir, lenFront, lenBack, halfWidth);
+        return p => -rect(p);
     }
     public static Func<WPos, float> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
     public static Func<WPos, float> InvertedRect(WPos from, WPos to, float halfWidth)
@@ -195,6 +184,12 @@ public static class ShapeDistance
         return Intersection([.. edges.Select(edge)], offset);
     }
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw, offset);
+
+    public static Func<WPos, float> InvertedConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0)
+    {
+        var convexpolygon = ConvexPolygon(vertices, cw, offset);
+        return p => -convexpolygon(p);
+    }
 
     private static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
     private static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;

@@ -4,7 +4,8 @@ class A21NophicaStates : StateMachineBuilder
 {
     public A21NophicaStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase);
+        DeathPhase(0, SinglePhase)
+            .ActivateOnEnter<ArenaBounds>();
     }
 
     private void SinglePhase(uint id)

@@ -17,7 +17,7 @@ class TetraktysBorder(BossModule module) : Components.GenericAOEs(module)
             {
                 case 0x00200010: // telegraph - emulate by three rects from center of each side
                     var apex = Module.Center - new WDir(0, Module.Bounds.Radius);
-                    var height = Module.Bounds.Radius * 1.732050808f; // side * sqrt(3) / 2
+                    var height = Module.Bounds.Radius * Helpers.sqrt3;
                     var activation = WorldState.FutureTime(6.5f);
                     _aoes.Add(new(_shape, apex + new WDir(0, height), default, activation));
                     _aoes.Add(new(_shape, apex + 0.5f * new WDir(+Module.Bounds.Radius, height), 120.Degrees(), activation));
@@ -73,8 +73,8 @@ class Tetraktys(BossModule module) : Components.GenericAOEs(module)
             var dir = index is 7 or 10 or 12 ? 180.Degrees() : default;
 
             var halfSide = _triSmall.SideLength * 0.5f;
-            var height = halfSide * 1.732050808f; // sqrt(3)
-            var apex = new WPos(Module.Center.X + halfSide * xOffset, Module.Center.Z - Module.Bounds.Radius + height * zOffset);
+            var height = halfSide * Helpers.sqrt3;
+            var apex = new WPos(A31Thaliak.NormalCenter.X + halfSide * xOffset, A31Thaliak.NormalCenter.Z - A31Thaliak.NormalBounds.Radius + height * zOffset);
             AOEs.Add(new(shape, apex, dir, WorldState.FutureTime(3.9f)));
         }
     }
@@ -128,8 +128,8 @@ class TetraktuosKosmos(BossModule module) : Components.GenericAOEs(module)
             var dir = index is 18 or 20 or 21 ? 180.Degrees() : default;
 
             var halfSide = _shapeTri.SideLength * 0.5f;
-            var height = halfSide * 1.732050808f; // sqrt(3)
-            var apex = new WPos(Module.Center.X + halfSide * xOffset, Module.Center.Z - Module.Bounds.Radius + height * zOffset);
+            var height = halfSide * Helpers.sqrt3;
+            var apex = new WPos(A31Thaliak.NormalCenter.X + halfSide * xOffset, A31Thaliak.NormalCenter.Z - A31Thaliak.NormalBounds.Radius + height * zOffset);
             var resolve = WorldState.FutureTime(8);
             AOEs.Add(new(_shapeTri, apex, dir, resolve));
             AOEs.Add(new(_shapeRect, apex + height * dir.ToDirection(), dir, resolve));

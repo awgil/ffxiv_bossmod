@@ -102,4 +102,19 @@ public record struct WPos(float X, float Z)
 
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, WDir direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, Angle direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
+
+    public readonly bool InConvexPolygon(IEnumerable<WPos> vertices)
+    {
+        var verts = vertices.ToList();
+        var count = verts.Count;
+        var inside = false;
+        for (int i = 0, j = count - 1; i < count; j = i++)
+        {
+            if ((verts[i].Z > Z) != (verts[j].Z > Z) && X < (verts[j].X - verts[i].X) * (Z - verts[i].Z) / (verts[j].Z - verts[i].Z) + verts[i].X)
+            {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
 }

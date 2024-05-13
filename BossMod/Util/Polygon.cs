@@ -268,7 +268,7 @@ public static class PolygonUtil
         var cross = (contour[^1] - contour[^2]).Cross(prevEdge);
         if (contour.Length > 3)
         {
-            for (int i = 1; i < contour.Length; ++i)
+            for (var i = 1; i < contour.Length; ++i)
             {
                 var currEdge = contour[i] - contour[i - 1];
                 var curCross = prevEdge.Cross(currEdge);
