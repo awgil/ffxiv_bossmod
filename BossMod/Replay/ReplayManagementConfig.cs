@@ -16,11 +16,14 @@ public class ReplayManagementConfig : ConfigNode
     [PropertySlider(0, 1000)]
     public int MaxReplays = 0;
 
-    [PropertyDisplay("Store server packets in the replay")]
+    [PropertyDisplay("Record and store server packets in the replay")]
+    public bool RecordServerPackets = false;
+
+    [PropertyDisplay("Dump server packets into dalamud.log")]
     public bool DumpServerPackets = false;
 
-    [PropertyDisplay("Store client packets in the replay")]
-    public bool DumpClientPackets = false;
+    //[PropertyDisplay("Store client packets in the replay")]
+    //public bool DumpClientPackets = false;
 
     [PropertyDisplay("Format for recorded logs")]
     public ReplayLogFormat WorldLogFormat = ReplayLogFormat.BinaryCompressed;

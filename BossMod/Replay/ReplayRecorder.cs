@@ -32,6 +32,7 @@ public sealed class ReplayRecorder : IDisposable
         public abstract Output Emit(ushort v, string format = "d");
         public abstract Output Emit(uint v, string format = "d");
         public abstract Output Emit(ulong v, string format = "d");
+        public abstract Output Emit(byte[] v);
         public abstract Output Emit(ActionID v);
         public abstract Output Emit(Class v);
         public abstract Output Emit(ActorStatus v);
@@ -72,6 +73,13 @@ public sealed class ReplayRecorder : IDisposable
         public override Output Emit(ushort v, string format = "d") => WriteEntry(v.ToString(format));
         public override Output Emit(uint v, string format = "d") => WriteEntry(v.ToString(format));
         public override Output Emit(ulong v, string format = "d") => WriteEntry(v.ToString(format));
+        public override Output Emit(byte[] v)
+        {
+            _dest.Write('|');
+            foreach (var b in v)
+                _dest.Write($"{b:X2}");
+            return this;
+        }
         public override Output Emit(ActionID v) => WriteEntry(v.ToString());
         public override Output Emit(Class v) => WriteEntry(v.ToString());
         public override Output Emit(ActorStatus v) => WriteEntry(Utils.StatusString(v.ID)).WriteEntry(v.Extra.ToString("X4")).WriteEntry(Utils.StatusTimeString(v.ExpireAt, _curEntry)).EmitActor(v.SourceID);
@@ -132,6 +140,7 @@ public sealed class ReplayRecorder : IDisposable
         public override Output Emit(ushort v, string format = "d") { _dest.Write(v); return this; }
         public override Output Emit(uint v, string format = "d") { _dest.Write(v); return this; }
         public override Output Emit(ulong v, string format = "d") { _dest.Write(v); return this; }
+        public override Output Emit(byte[] v) { _dest.Write(v.Length); _dest.Write(v); return this; }
         public override Output Emit(ActionID v) { _dest.Write(v.Raw); return this; }
         public override Output Emit(Class v) { _dest.Write((byte)v); return this; }
         public override Output Emit(ActorStatus v) { _dest.Write(v.ID); _dest.Write(v.Extra); _dest.Write(v.ExpireAt.Ticks); _dest.Write(v.SourceID); return this; }

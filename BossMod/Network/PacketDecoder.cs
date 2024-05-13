@@ -1,14 +1,15 @@
 ﻿using BossMod.Network.ServerIPC;
 using Dalamud.Memory;
-using FFXIVClientStructs.Interop;
-using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BossMod.Network;
 
-public sealed class Logger : IDisposable
+public unsafe abstract class PacketDecoder
 {
-    class TextNode(string text)
+    protected DateTime Now;
+
+    public class TextNode(string text)
     {
         public string Text = text;
         public List<TextNode>? Children;
@@ -23,37 +24,20 @@ public sealed class Logger : IDisposable
         public TextNode AddChild(string text) => AddChild(new TextNode(text));
     }
 
-    private readonly OpcodeMap _opcodeMap = new();
-    private readonly PacketInterceptor _interceptor = new();
-    private readonly ConfigListener<ReplayManagementConfig> _config;
-
-    public Logger(DirectoryInfo logDir)
+    public TextNode Decode(NetworkState.ServerIPC ipc, DateTime now)
     {
-        _interceptor.ServerIPCReceived += ServerIPCReceived;
-        _config = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config => _interceptor.Active = config.DumpServerPackets);
-    }
-
-    public void Dispose()
-    {
-        _config.Dispose();
-        _interceptor.Dispose();
-    }
-
-    private unsafe void ServerIPCReceived(DateTime sendTimestamp, uint sourceServerActor, uint targetServerActor, ushort opcode, uint epoch, Span<byte> payload)
-    {
-        var id = _opcodeMap.ID(opcode);
-        // targetServerActor is always a player?..
-        var sb = new StringBuilder($"Server IPC {id} [0x{opcode:X4}]: {Utils.ObjectString(sourceServerActor)}, sent {(DateTime.Now - sendTimestamp).TotalMilliseconds:f3}ms ago, epoch={epoch}, data=");
-        foreach (byte b in payload)
+        Now = now;
+        var sb = new StringBuilder($"Server IPC {ipc.ID} [0x{ipc.Opcode:X4}]: {DecodeActor(ipc.SourceServerActor)}, sent {(now - ipc.SendTimestamp).TotalMilliseconds:f3}ms ago, epoch={ipc.Epoch}, data=");
+        foreach (byte b in ipc.Payload)
             sb.Append($"{b:X2}");
         var node = new TextNode(sb.ToString());
-        var child = DecodePacket(id, payload.GetPointer(0));
+        var child = DecodePacket(ipc.ID, (byte*)Unsafe.AsPointer(ref ipc.Payload[0]));
         if (child != null)
             node.AddChild(child);
-        LogNode(node, "");
+        return node;
     }
 
-    private void LogNode(TextNode n, string prefix)
+    public void LogNode(TextNode n, string prefix)
     {
         Service.Log($"[Network] {prefix}{n.Text}");
         if (n.Children == null)
@@ -63,11 +47,13 @@ public sealed class Logger : IDisposable
             LogNode(c, subPrefix);
     }
 
-    private unsafe TextNode? DecodePacket(PacketID id, byte* payload) => id switch
+    protected abstract string DecodeActor(ulong instanceID);
+
+    private TextNode? DecodePacket(PacketID id, byte* payload) => id switch
     {
         PacketID.RSVData when (RSVData*)payload is var p => new($"{MemoryHelper.ReadStringNullTerminated((nint)p->Key)} = {MemoryHelper.ReadString((nint)p->Value, p->ValueLength)} [{p->ValueLength}]"),
-        PacketID.Countdown when (ServerIPC.Countdown*)payload is var p => new($"{p->Time}s from {Utils.ObjectString(p->SenderID)}{(p->FailedInCombat != 0 ? " fail-in-combat" : "")} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u9:X2} {p->u10:X2}"),
-        PacketID.CountdownCancel when (CountdownCancel*)payload is var p => new($"from {Utils.ObjectString(p->SenderID)} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u6:X4}"),
+        PacketID.Countdown when (ServerIPC.Countdown*)payload is var p => new($"{p->Time}s from {DecodeActor(p->SenderID)}{(p->FailedInCombat != 0 ? " fail-in-combat" : "")} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u9:X2} {p->u10:X2}"),
+        PacketID.CountdownCancel when (CountdownCancel*)payload is var p => new($"from {DecodeActor(p->SenderID)} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u6:X4}"),
         PacketID.StatusEffectList when (StatusEffectList*)payload is var p => DecodeStatusEffectList(p),
         PacketID.StatusEffectListEureka when (StatusEffectListEureka*)payload is var p => DecodeStatusEffectList(&p->Data, $", rank={p->Rank}/{p->Element}/{p->u2}, pad={p->pad3:X2}"),
         PacketID.StatusEffectListBozja when (StatusEffectListBozja*)payload is var p => DecodeStatusEffectList(&p->Data, $", rank={p->Rank}, pad={p->pad1:X2}{p->pad2:X4}"),
@@ -111,45 +97,45 @@ public sealed class Logger : IDisposable
         PacketID.EventPlay128 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 128)),
         PacketID.EventPlay255 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 255)),
         PacketID.EnvControl when (EnvControl*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
-        PacketID.NpcYell when (NpcYell*)payload is var p => new($"{Utils.ObjectString(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
+        PacketID.NpcYell when (NpcYell*)payload is var p => new($"{DecodeActor(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.GeneratedSheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
         PacketID.WaymarkPreset when (WaymarkPreset*)payload is var p => DecodeWaymarkPreset(p),
         PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),
         PacketID.ActorGauge when (ActorGauge*)payload is var p => new($"{p->ClassJobID} = {p->Payload:X16}"),
         _ => null
     };
 
-    private unsafe TextNode DecodeStatusEffectList(StatusEffectList* p, string extra = "")
+    private TextNode DecodeStatusEffectList(StatusEffectList* p, string extra = "")
     {
         var res = new TextNode($"L{p->Level} {p->ClassID}, hp={p->CurHP}/{p->MaxHP}, mp={p->CurMP}/{p->MaxMP}, shield={p->ShieldValue}%{extra}, u={p->u2:X2} {p->u3:X2} {p->u12:X4} {p->u17C:X8}");
         AddStatuses(res, (Status*)p->Statuses, 30);
         return res;
     }
 
-    private unsafe TextNode DecodeStatusEffectListDouble(StatusEffectListDouble* p)
+    private TextNode DecodeStatusEffectListDouble(StatusEffectListDouble* p)
     {
         var res = DecodeStatusEffectList(&p->Data);
         AddStatuses(res, (Status*)p->SecondSet, 30, 30);
         return res;
     }
 
-    private unsafe TextNode DecodeStatusEffectListPlayer(StatusEffectListPlayer* p)
+    private TextNode DecodeStatusEffectListPlayer(StatusEffectListPlayer* p)
     {
         var res = new TextNode("");
         AddStatuses(res, (Status*)p->Statuses, 30);
         return res;
     }
 
-    private unsafe void AddStatuses(TextNode res, Status* list, int count, int offset = 0)
+    private void AddStatuses(TextNode res, Status* list, int count, int offset = 0)
     {
         for (int i = 0; i < count; ++i)
         {
             var s = list + i;
             if (s->ID != 0)
-                res.AddChild($"[{i + offset}] {Utils.StatusString(s->ID)} {s->Extra:X4} {s->RemainingTime:f3}s left, from {Utils.ObjectString(s->SourceID)}");
+                res.AddChild($"[{i + offset}] {Utils.StatusString(s->ID)} {s->Extra:X4} {s->RemainingTime:f3}s left, from {DecodeActor(s->SourceID)}");
         }
     }
 
-    private unsafe TextNode DecodeUpdateRecastTimes(UpdateRecastTimes* p)
+    private TextNode DecodeUpdateRecastTimes(UpdateRecastTimes* p)
     {
         var res = new TextNode("");
         for (int i = 0; i < 80; ++i)
@@ -157,36 +143,36 @@ public sealed class Logger : IDisposable
         return res;
     }
 
-    private unsafe TextNode DecodeEffectResult(EffectResultEntry* entries, int count)
+    private TextNode DecodeEffectResult(EffectResultEntry* entries, int count)
     {
         var res = new TextNode($"{count} entries, u={*(uint*)(entries + count):X8}");
         for (int i = 0; i < count; ++i)
         {
             var e = entries + i;
-            var resEntry = res.AddChild($"[{i}] seq={e->RelatedActionSequence}/{e->RelatedTargetIndex}, actor={Utils.ObjectString(e->ActorID)}, class={e->ClassID}, hp={e->CurHP}/{e->MaxHP}, mp={e->CurMP}, shield={e->ShieldValue}, u={e->u16:X4}");
+            var resEntry = res.AddChild($"[{i}] seq={e->RelatedActionSequence}/{e->RelatedTargetIndex}, actor={DecodeActor(e->ActorID)}, class={e->ClassID}, hp={e->CurHP}/{e->MaxHP}, mp={e->CurMP}, shield={e->ShieldValue}, u={e->u16:X4}");
             var cnt = Math.Min(4, (int)e->EffectCount);
             var eff = (EffectResultEffect*)e->Effects;
             for (int j = 0; j < cnt; ++j)
             {
-                resEntry.AddChild($"#{eff->EffectIndex}: id={Utils.StatusString(eff->StatusID)}, extra={eff->Extra:X2}, dur={eff->Duration:f3}s, src={Utils.ObjectString(eff->SourceID)}, pad={eff->pad1:X2} {eff->pad2:X4}");
+                resEntry.AddChild($"#{eff->EffectIndex}: id={Utils.StatusString(eff->StatusID)}, extra={eff->Extra:X2}, dur={eff->Duration:f3}s, src={DecodeActor(eff->SourceID)}, pad={eff->pad1:X2} {eff->pad2:X4}");
                 ++eff;
             }
         }
         return res;
     }
 
-    private unsafe TextNode DecodeEffectResultBasic(EffectResultBasicEntry* entries, int count)
+    private TextNode DecodeEffectResultBasic(EffectResultBasicEntry* entries, int count)
     {
         var res = new TextNode($"{count} entries, u={*(uint*)(entries + count):X8}");
         for (int i = 0; i < count; ++i)
         {
             var e = entries + i;
-            res.AddChild($"[{i}] seq={e->RelatedActionSequence}/{e->RelatedTargetIndex}, actor={Utils.ObjectString(e->ActorID)}, hp={e->CurHP}, u={e->uD:X2} {e->uE:X4}");
+            res.AddChild($"[{i}] seq={e->RelatedActionSequence}/{e->RelatedTargetIndex}, actor={DecodeActor(e->ActorID)}, hp={e->CurHP}, u={e->uD:X2} {e->uE:X4}");
         }
         return res;
     }
 
-    private unsafe TextNode DecodeActorControl(ActorControlCategory category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID)
+    private TextNode DecodeActorControl(ActorControlCategory category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID)
     {
         var details = category switch
         {
@@ -194,12 +180,12 @@ public sealed class Logger : IDisposable
             ActorControlCategory.RecastDetails => $"group {p1}: {p2 * 0.01f:f2}/{p3 * 0.01f:f2}s",
             ActorControlCategory.Cooldown => $"group {p1}: action={new ActionID(ActionType.Spell, p2)}, time={p3 * 0.01f:f2}s",
             ActorControlCategory.GainEffect => $"{Utils.StatusString(p1)}: extra={p2:X4}",
-            ActorControlCategory.LoseEffect => $"{Utils.StatusString(p1)}: extra={p2:X4}, source={Utils.ObjectString(p3)}, unk-update={p4 != 0}",
+            ActorControlCategory.LoseEffect => $"{Utils.StatusString(p1)}: extra={p2:X4}, source={DecodeActor(p3)}, unk-update={p4 != 0}",
             ActorControlCategory.UpdateEffect => $"#{p1} {Utils.StatusString(p2)}: extra={p3:X4}",
             ActorControlCategory.TargetIcon => $"{p1 - IDScramble.Delta} ({p1}-{IDScramble.Delta})",
-            ActorControlCategory.Tether => $"#{p1}: {p2} -> {Utils.ObjectString(p3)} progress={p4}%",
+            ActorControlCategory.Tether => $"#{p1}: {p2} -> {DecodeActor(p3)} progress={p4}%",
             ActorControlCategory.TetherCancel => $"#{p1}: {p2}",
-            ActorControlCategory.SetTarget => $"{Utils.ObjectString(targetID)}",
+            ActorControlCategory.SetTarget => $"{DecodeActor(targetID)}",
             ActorControlCategory.SetAnimationState => $"#{p1} = {p2}",
             ActorControlCategory.SetModelState => $"{p1}",
             ActorControlCategory.ForcedMovement => $"dest={Utils.Vec3String(IntToFloatCoords((ushort)p1, (ushort)p2, (ushort)p3))}, rot={IntToFloatAngle((ushort)p4)}deg over {p5 * 0.0001:f4}s, type={p6}",
@@ -211,21 +197,21 @@ public sealed class Logger : IDisposable
             ActorControlCategory.IncrementRecast => $"group {p1}: dt=dt={p2 * 0.01f:f2}s",
             _ => ""
         };
-        return new TextNode($"{category} {details} ({p1:X8} {p2:X8} {p3:X8} {p4:X8} {p5:X8} {p6:X8} {Utils.ObjectString(targetID)})");
+        return new TextNode($"{category} {details} ({p1:X8} {p2:X8} {p3:X8} {p4:X8} {p5:X8} {p6:X8} {DecodeActor(targetID)})");
     }
 
-    private unsafe TextNode DecodeActionEffect(ActionEffectHeader* data, ActionEffect* effects, ulong* targetIDs, uint maxTargets, Vector3 targetPos)
+    private TextNode DecodeActionEffect(ActionEffectHeader* data, ActionEffect* effects, ulong* targetIDs, uint maxTargets, Vector3 targetPos)
     {
         var rot = IntToFloatAngle(data->rotation);
         var aid = data->actionId - IDScramble.Delta;
-        var res = new TextNode($"#{data->globalEffectCounter} ({data->SourceSequence}) {new ActionID(data->actionType, aid)} ({data->actionId}/{data->actionAnimationId}), animTarget={Utils.ObjectString(data->animationTargetId)}, animLock={data->animationLockTime:f3}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={Utils.ObjectString(data->SomeTargetID)}, flags={data->Flags:X2} pad={data->padding21:X4}");
+        var res = new TextNode($"#{data->globalEffectCounter} ({data->SourceSequence}) {new ActionID(data->actionType, aid)} ({data->actionId}/{data->actionAnimationId}), animTarget={DecodeActor(data->animationTargetId)}, animLock={data->animationLockTime:f3}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, someTarget={DecodeActor(data->SomeTargetID)}, flags={data->Flags:X2} pad={data->padding21:X4}");
         var targets = Math.Min(data->NumTargets, maxTargets);
         for (int i = 0; i < targets; ++i)
         {
             ulong targetId = targetIDs[i];
             if (targetId == 0)
                 continue;
-            var resTarget = res.AddChild($"target {i} == {Utils.ObjectString(targetId)}");
+            var resTarget = res.AddChild($"target {i} == {DecodeActor(targetId)}");
             for (int j = 0; j < 8; ++j)
             {
                 var eff = effects + i * 8 + j;
@@ -237,31 +223,31 @@ public sealed class Logger : IDisposable
         return res;
     }
 
-    private unsafe TextNode DecodeActorCast(ActorCast* p)
+    private TextNode DecodeActorCast(ActorCast* p)
     {
         uint aid = p->ActionID - IDScramble.Delta;
-        return new($"{new ActionID(p->ActionType, aid)} ({new ActionID(ActionType.Spell, p->SpellID)}) @ {Utils.ObjectString(p->TargetID)}, time={p->CastTime:f3} ({p->BaseCastTime100ms * 0.1f:f1}), rot={IntToFloatAngle(p->Rotation)}, targetpos={Utils.Vec3String(IntToFloatCoords(p->PosX, p->PosY, p->PosZ))}, interruptible={p->Interruptible}, u1={p->u1:X2}, u2={Utils.ObjectString(p->u2_objID)}, u3={p->u3:X4}");
+        return new($"{new ActionID(p->ActionType, aid)} ({new ActionID(ActionType.Spell, p->SpellID)}) @ {DecodeActor(p->TargetID)}, time={p->CastTime:f3} ({p->BaseCastTime100ms * 0.1f:f1}), rot={IntToFloatAngle(p->Rotation)}, targetpos={Utils.Vec3String(IntToFloatCoords(p->PosX, p->PosY, p->PosZ))}, interruptible={p->Interruptible}, u1={p->u1:X2}, u2={DecodeActor(p->u2_objID)}, u3={p->u3:X4}");
     }
 
-    private unsafe TextNode DecodeUpdateHate(UpdateHate* p)
+    private TextNode DecodeUpdateHate(UpdateHate* p)
     {
         var res = new TextNode($"{p->NumEntries} entries, pad={p->pad1:X2} {p->pad2:X4} {p->pad3:X8}");
         var e = (UpdateHateEntry*)p->Entries;
         for (int i = 0, cnt = Math.Min((int)p->NumEntries, 8); i < cnt; ++i, ++e)
-            res.AddChild($"{Utils.ObjectString(e->ObjectID)} = {e->Enmity}%");
+            res.AddChild($"{DecodeActor(e->ObjectID)} = {e->Enmity}%");
         return res;
     }
 
-    private unsafe TextNode DecodeUpdateHater(UpdateHater* p)
+    private TextNode DecodeUpdateHater(UpdateHater* p)
     {
         var res = new TextNode($"{p->NumEntries} entries, pad={p->pad1:X2} {p->pad2:X4} {p->pad3:X8}");
         var e = (UpdateHateEntry*)p->Entries;
         for (int i = 0, cnt = Math.Min((int)p->NumEntries, 32); i < cnt; ++i, ++e)
-            res.AddChild($"{Utils.ObjectString(e->ObjectID)} = {e->Enmity}%");
+            res.AddChild($"{DecodeActor(e->ObjectID)} = {e->Enmity}%");
         return res;
     }
 
-    private unsafe TextNode DecodeSpawnObject(SpawnObject* p)
+    private TextNode DecodeSpawnObject(SpawnObject* p)
     {
         var res = new TextNode($"#{p->Index} {p->DataID:X} <{p->InstanceID:X}>");
         res.AddChild($"Kind={p->Kind}, u2={p->u2_state}, u3={p->u3}, u20={p->u20}, tail={p->u3C:X2} {p->u3E:X2}");
@@ -271,11 +257,11 @@ public sealed class Logger : IDisposable
         return res;
     }
 
-    private unsafe TextNode DecodeUpdateClassInfo(UpdateClassInfo* p, string extra = "") => new($"L{p->CurLevel}/{p->ClassLevel}/{p->SyncedLevel} {p->ClassID}, exp={p->CurExp}+{p->RestedExp}{extra}");
+    private TextNode DecodeUpdateClassInfo(UpdateClassInfo* p, string extra = "") => new($"L{p->CurLevel}/{p->ClassLevel}/{p->SyncedLevel} {p->ClassID}, exp={p->CurExp}+{p->RestedExp}{extra}");
 
-    private unsafe TextNode DecodeEventPlay(EventPlayN* p, int payloadLength)
+    private TextNode DecodeEventPlay(EventPlayN* p, int payloadLength)
     {
-        var sb = new StringBuilder($"target={Utils.ObjectString(p->TargetID)}, handler={p->EventHandler:X8}, fC={p->uC:X4}, f10={p->u10:X16}, pad={p->pad1:X4} {p->pad2:X2} {p->pad3:X4}, payload=[{payloadLength}]");
+        var sb = new StringBuilder($"target={DecodeActor(p->TargetID)}, handler={p->EventHandler:X8}, fC={p->uC:X4}, f10={p->u10:X16}, pad={p->pad1:X4} {p->pad2:X2} {p->pad3:X4}, payload=[{payloadLength}]");
         for (int i = 0; i < payloadLength; ++i)
             sb.Append($" {p->Payload[i]:X8}");
         var res = new TextNode(sb.ToString());
@@ -322,14 +308,14 @@ public sealed class Logger : IDisposable
         return res;
     }
 
-    private unsafe TextNode DecodeWaymarkPreset(WaymarkPreset* p)
+    private TextNode DecodeWaymarkPreset(WaymarkPreset* p)
     {
         var res = new TextNode($"pad={p->pad1:X2} {p->pad2:X4}");
         for (int i = 0; i < 8; ++i)
             res.AddChild($"{(Waymark)i}: {(p->Mask & (1 << i)) != 0} at {Utils.Vec3String(new(p->PosX[i] * 0.001f, p->PosY[i] * 0.001f, p->PosZ[i] * 0.001f))}");
         return res;
     }
-    private unsafe TextNode DecodeWaymark(ServerIPC.Waymark* p) => new($"{p->ID}: {p->Active != 0} at {Utils.Vec3String(new(p->PosX * 0.001f, p->PosY * 0.001f, p->PosZ * 0.001f))}, pad={p->pad2:X4}");
+    private TextNode DecodeWaymark(ServerIPC.Waymark* p) => new($"{p->ID}: {p->Active != 0} at {Utils.Vec3String(new(p->PosX * 0.001f, p->PosY * 0.001f, p->PosZ * 0.001f))}, pad={p->pad2:X4}");
 
     private static Vector3 IntToFloatCoords(ushort x, ushort y, ushort z)
     {
@@ -343,4 +329,9 @@ public sealed class Logger : IDisposable
     {
         return (rot / 65535.0f * (2 * MathF.PI) - MathF.PI).Radians();
     }
+}
+
+public sealed class PacketDecoderGame : PacketDecoder
+{
+    protected override string DecodeActor(ulong instanceID) => Utils.ObjectString(instanceID);
 }

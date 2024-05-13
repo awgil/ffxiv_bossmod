@@ -4,18 +4,25 @@ namespace BossMod.ReplayVisualization;
 
 class EventList(Replay r, Action<DateTime> scrollTo)
 {
+    record struct Lists(OpList? Ops, IPCList? IPCs);
+
     private readonly UITree _tree = new();
-    private OpList? _opListRaw;
-    private readonly Dictionary<Replay.Encounter, OpList> _opListsFiltered = [];
+    private Lists _listsRaw;
+    private readonly Dictionary<Replay.Encounter, Lists> _listsFiltered = [];
 
     public void Draw()
     {
         foreach (var n in _tree.Node("Full data"))
         {
-            foreach (var no in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_opListRaw)))
+            foreach (var no in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_listsRaw.Ops)))
             {
-                _opListRaw ??= new(r, null, r.Ops, scrollTo);
-                _opListRaw.Draw(_tree, r.Ops[0].Timestamp);
+                _listsRaw.Ops ??= new(r, null, r.Ops, scrollTo);
+                _listsRaw.Ops.Draw(_tree, r.Ops[0].Timestamp);
+            }
+            foreach (var no in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(_listsRaw.IPCs)))
+            {
+                _listsRaw.IPCs ??= new(r, r.Ops, scrollTo);
+                _listsRaw.IPCs.Draw(_tree, r.Ops[0].Timestamp);
             }
 
             DrawContents(null, null);
@@ -24,11 +31,16 @@ class EventList(Replay r, Action<DateTime> scrollTo)
         foreach (var e in _tree.Nodes(r.Encounters, e => new($"{ModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}, countdown on pull={e.CountdownOnPull:f3}")))
         {
             var moduleInfo = ModuleRegistry.FindByOID(e.OID);
-            foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_opListsFiltered.GetValueOrDefault(e))))
+            var lists = _listsFiltered.GetOrAdd(e);
+            foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(lists.Ops)))
             {
-                if (!_opListsFiltered.ContainsKey(e))
-                    _opListsFiltered[e] = new(r, moduleInfo, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
-                _opListsFiltered[e].Draw(_tree, e.Time.Start);
+                lists.Ops ??= new(r, moduleInfo, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
+                lists.Ops.Draw(_tree, e.Time.Start);
+            }
+            foreach (var n in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(lists.IPCs)))
+            {
+                lists.IPCs ??= new(r, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
+                lists.IPCs.Draw(_tree, e.Time.Start);
             }
 
             DrawContents(e, moduleInfo);
@@ -243,6 +255,14 @@ class EventList(Replay r, Action<DateTime> scrollTo)
         if (list != null && ImGui.MenuItem("Show actor-size events", "", list.ShowActorSizeEvents, true))
         {
             list.ShowActorSizeEvents = !list.ShowActorSizeEvents;
+        }
+    }
+
+    private void IPCListContextMenu(IPCList? list)
+    {
+        if (ImGui.MenuItem("Clear filters"))
+        {
+            list?.ClearFilters();
         }
     }
 }

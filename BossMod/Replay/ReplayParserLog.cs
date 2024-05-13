@@ -34,6 +34,7 @@ public sealed class ReplayParserLog : IDisposable
         public abstract ushort ReadUShort(bool hex);
         public abstract uint ReadUInt(bool hex);
         public abstract ulong ReadULong(bool hex);
+        public abstract byte[] ReadBytes();
         public abstract ActionID ReadAction();
         public abstract Class ReadClass();
         public abstract ActorStatus ReadStatus();
@@ -99,6 +100,14 @@ public sealed class ReplayParserLog : IDisposable
         public override ushort ReadUShort(bool hex) => ushort.Parse(ReadString(), hex ? NumberStyles.HexNumber : NumberStyles.Number);
         public override uint ReadUInt(bool hex) => uint.Parse(ReadString(), hex ? NumberStyles.HexNumber : NumberStyles.Number);
         public override ulong ReadULong(bool hex) => ulong.Parse(ReadString(), hex ? NumberStyles.HexNumber : NumberStyles.Number);
+        public override byte[] ReadBytes()
+        {
+            var str = ReadString();
+            var res = new byte[str.Length >> 1];
+            for (int i = 0; i < res.Length; ++i)
+                res[i] = byte.Parse(str.AsSpan()[(2 * i)..(2 * i + 2)], NumberStyles.HexNumber);
+            return res;
+        }
         public override ActionID ReadAction()
         {
             var parts = ReadString().Split(' ');
@@ -183,6 +192,7 @@ public sealed class ReplayParserLog : IDisposable
         public override ushort ReadUShort(bool hex) => _input.ReadUInt16();
         public override uint ReadUInt(bool hex) => _input.ReadUInt32();
         public override ulong ReadULong(bool hex) => _input.ReadUInt64();
+        public override byte[] ReadBytes() => _input.ReadBytes(_input.ReadInt32());
         public override ActionID ReadAction() => new(_input.ReadUInt32());
         public override Class ReadClass() => (Class)_input.ReadByte();
         public override ActorStatus ReadStatus() => new(_input.ReadUInt32(), _input.ReadUInt16(), new(_input.ReadInt64()), _input.ReadUInt64());
@@ -323,6 +333,8 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,
             [new("CLAF"u8)] = ParseClientActiveFate,
+            [new("IPCI"u8)] = ParseNetworkIDScramble,
+            [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
     }
 
@@ -614,6 +626,9 @@ public sealed class ReplayParserLog : IDisposable
     }
 
     private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat()));
+
+    private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
+    private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));
 
     private ActorHPMP ReadActorHPMP()
     {

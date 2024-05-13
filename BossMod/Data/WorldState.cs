@@ -16,6 +16,7 @@ public sealed class WorldState
     public readonly ActorState Actors = new();
     public readonly PartyState Party;
     public readonly ClientState Client = new();
+    public readonly NetworkState Network = new();
     public readonly PendingEffects PendingEffects = new();
 
     public DateTime CurrentTime => Frame.Timestamp;
@@ -66,6 +67,8 @@ public sealed class WorldState
         foreach (var o in Party.CompareToInitial())
             yield return o;
         foreach (var o in Client.CompareToInitial())
+            yield return o;
+        foreach (var o in Network.CompareToInitial())
             yield return o;
     }
 

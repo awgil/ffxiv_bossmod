@@ -118,6 +118,7 @@ class OpList(Replay replay, ModuleRegistry.Info? moduleInfo, IEnumerable<WorldSt
             ClientState.OpActionRequest => false,
             //ClientState.OpActionReject => false,
             ClientState.OpCooldown => false,
+            NetworkState.OpServerIPC => false,
             _ => true
         };
     }

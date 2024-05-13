@@ -14,7 +14,6 @@ public sealed class Plugin : IDalamudPlugin
 
     private ICommandManager CommandManager { get; init; }
 
-    private readonly Network.Logger _network;
     private readonly WorldState _ws;
     private readonly WorldStateGameSync _wsSync;
     private readonly BossModuleManager _bossmod;
@@ -60,7 +59,6 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager = commandManager;
         CommandManager.AddHandler("/vbm", new CommandInfo(OnCommand) { HelpMessage = "Show boss mod config UI" });
 
-        _network = new(dalamud.ConfigDirectory);
         _ws = new(Utils.FrameQPF(), dalamudStartInfo?.GameVersion?.ToString() ?? "unknown");
         _wsSync = new(_ws);
         _bossmod = new(_ws);
@@ -90,7 +88,6 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmod.Dispose();
         _ipc.Dispose();
         _bossmod.Dispose();
-        _network.Dispose();
         _ai.Dispose();
         _autorotation.Dispose();
         _wsSync.Dispose();
