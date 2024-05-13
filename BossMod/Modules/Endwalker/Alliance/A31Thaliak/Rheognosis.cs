@@ -22,8 +22,10 @@ class RheognosisKnockback(BossModule module) : Components.Knockback(module)
     }
 }
 
-public class RheognosisCrash(BossModule module) : Components.Exaflare(module, new AOEShapeRect(24.01f, 12), ActionID.MakeSpell(AID.RheognosisCrash))
+public class RheognosisCrash : Components.Exaflare
 {
+    public RheognosisCrash(BossModule module) : base(module, new AOEShapeRect(10, 12.05f), ActionID.MakeSpell(AID.RheognosisCrash)) => ImminentColor = ArenaColor.AOE;
+
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (index <= 1 && state is 0x01000001 or 0x02000001)

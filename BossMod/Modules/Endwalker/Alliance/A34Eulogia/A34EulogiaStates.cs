@@ -89,7 +89,8 @@ class A34EulogiaStates : StateMachineBuilder
 
     private void Whorl(uint id, float delay)
     {
-        Cast(id, AID.Whorl, delay, 7, "Raidwide") // note: deathwall appears at the end of the cast
+        Cast(id, AID.Whorl, delay, 7, "Raidwide")
+            .OnExit(() => Module.Arena.Bounds = A34Eulogia.SmallerBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
@@ -154,7 +155,7 @@ class A34EulogiaStates : StateMachineBuilder
             .ActivateOnEnter<HandOfTheDestroyerWrath>()
             .ActivateOnEnter<HandOfTheDestroyerJudgment>()
             .DeactivateOnExit<Hieroglyphika>()
-            .OnExit(() => Module.Arena.Bounds = A34Eulogia.DefaultBounds);
+            .OnExit(() => Module.Arena.Bounds = A34Eulogia.SmallerBounds);
         CastEnd(id + 0x32, 4.7f);
         Condition(id + 0x33, 0.5f, () => Module.FindComponent<HandOfTheDestroyerWrath>()?.NumCasts > 0 || Module.FindComponent<HandOfTheDestroyerJudgment>()?.NumCasts > 0, "Half-arena cleave")
             .DeactivateOnExit<HandOfTheDestroyerWrath>()
@@ -222,9 +223,10 @@ class A34EulogiaStates : StateMachineBuilder
     private void EudaimonEorzea(uint id, float delay)
     {
         Cast(id, AID.EudaimonEorzea, delay, 22.2f);
-        ComponentCondition<EudaimonEorzea>(id + 0x10, 2.7f, comp => comp.NumCasts > 0, "Raidwide x13") // note: deathwall disappears at the end of the cast
+        ComponentCondition<EudaimonEorzea>(id + 0x10, 2.7f, comp => comp.NumCasts > 0, "Raidwide x13")
             .ActivateOnEnter<EudaimonEorzea>()
             .DeactivateOnExit<EudaimonEorzea>()
+            .OnExit(() => Module.Arena.Bounds = A34Eulogia.DefaultBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 }
