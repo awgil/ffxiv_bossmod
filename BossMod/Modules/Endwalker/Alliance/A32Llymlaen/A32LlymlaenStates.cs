@@ -107,8 +107,7 @@ class A32LlymlaenStates : StateMachineBuilder
         CastStartMulti(id + 0x30, [AID.LeftStrait, AID.RightStrait], 7.8f);
         ComponentCondition<SurgingWaveFrothingSea>(id + 0x40, 3.9f, comp => comp.NumCasts > 12)
             .ActivateOnEnter<LeftStrait>()
-            .ActivateOnEnter<RightStrait>()
-            .DeactivateOnExit<SurgingWaveFrothingSea>();
+            .ActivateOnEnter<RightStrait>();
         ComponentCondition<SurgingWaveCorridor>(id + 0x50, 0.5f, comp => comp.CorridorDir == default)
             .DeactivateOnExit<SurgingWaveSeaFoam>()
             .DeactivateOnExit<SurgingWaveCorridor>()
@@ -134,9 +133,8 @@ class A32LlymlaenStates : StateMachineBuilder
             .ActivateOnEnter<TorrentialTridentLanding>();
         ComponentCondition<TorrentialTridentLanding>(id + 0x20, 5, comp => comp.NumCasts > 5, "Raidwide x6")
             .DeactivateOnExit<TorrentialTridentLanding>();
-
         ComponentCondition<TorrentialTridentAOE>(id + 0x30, longDelay ? 4.1f : 2.1f, comp => comp.AOEs.Count > 0);
-        ComponentCondition<TorrentialTridentAOE>(id + 0x40, 6, comp => comp.NumCasts > 0, "Explosions start");
+        ComponentCondition<TorrentialTridentAOE>(id + 0x40, longDelay ? 10 : 8, comp => comp.NumCasts > 0, "Explosions start");
         ComponentCondition<TorrentialTridentAOE>(id + 0x50, 5, comp => comp.NumCasts > 5, "Explosions end")
             .DeactivateOnExit<TorrentialTridentAOE>();
     }
