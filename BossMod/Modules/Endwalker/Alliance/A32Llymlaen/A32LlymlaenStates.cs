@@ -111,7 +111,7 @@ class A32LlymlaenStates : StateMachineBuilder
         ComponentCondition<SurgingWaveCorridor>(id + 0x50, 0.5f, comp => comp.CorridorDir == default)
             .DeactivateOnExit<SurgingWaveSeaFoam>()
             .DeactivateOnExit<SurgingWaveCorridor>()
-            .DeactivateOnExit<SurgingWaveFrothingSea>() // note: last cast happens ~0.5s later, but for whatever reason first cast is skipped sometimes, making counting hard
+            .DeactivateOnExit<SurgingWaveFrothingSea>()
             .OnExit(() => (Module.Arena.Center, Module.Arena.Bounds) = (A32Llymlaen.DefaultCenter, A32Llymlaen.DefaultBounds));
         CastEnd(id + 0x60, 1.6f, "Side")
             .DeactivateOnExit<LeftStrait>()
@@ -228,12 +228,11 @@ class A32LlymlaenStates : StateMachineBuilder
         ComponentCondition<ToTheLast>(id + 0x50, 2.0f, comp => comp.NumCasts > 2, "Side 3")
             .DeactivateOnExit<ToTheLast>();
         CastStartMulti(id + 0x60, [AID.LeftStrait, AID.RightStrait], 1.4f);
-
         ComponentCondition<SurgingWaveCorridor>(id + 0x70, 4.0f, comp => comp.CorridorDir == default)
             .ActivateOnEnter<LeftStrait>()
             .ActivateOnEnter<RightStrait>()
             .DeactivateOnExit<SurgingWaveCorridor>()
-            .DeactivateOnExit<SurgingWaveFrothingSea>() // note: last cast happens ~0.5s later, but for whatever reason first cast is skipped sometimes, making counting hard
+            .DeactivateOnExit<SurgingWaveFrothingSea>()
             .OnExit(() => (Module.Arena.Center, Module.Arena.Bounds) = (A32Llymlaen.DefaultCenter, A32Llymlaen.DefaultBounds));
         CastEnd(id + 0x80, 2.0f, "Side")
             .DeactivateOnExit<LeftStrait>()

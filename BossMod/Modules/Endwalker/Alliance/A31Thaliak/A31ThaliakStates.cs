@@ -113,14 +113,15 @@ class A31ThaliakStates : StateMachineBuilder
 
         Cast(id + 0x100, AID.TetraktuosKosmos, 1.7f, 4);
         ComponentCondition<TetraktuosKosmos>(id + 0x110, 0.8f, comp => comp.AOEs.Count > 0)
+            .ActivateOnEnter<TetraktuosKosmosCounter>()
             .ActivateOnEnter<TetraktuosKosmos>();
         CastStart(id + 0x120, AID.TetraktuosKosmos, 6.3f);
         ComponentCondition<TetraktuosKosmos>(id + 0x121, 1.7f, comp => comp.NumCasts >= 1, "Splitting tri 1");
         CastEnd(id + 0x122, 2.3f);
         ComponentCondition<TetraktuosKosmos>(id + 0x130, 0.8f, comp => comp.AOEs.Count > 0);
         ComponentCondition<TetraktuosKosmos>(id + 0x140, 8, comp => comp.NumCasts >= 3, "Splitting tri 2+3")
+            .DeactivateOnExit<TetraktuosKosmosCounter>()
             .DeactivateOnExit<TetraktuosKosmos>();
-
         ComponentCondition<TetraktysBorder>(id + 0x200, 4.2f, comp => !comp.Active, "Triangles resolve")
             .DeactivateOnExit<TetraktysBorder>()
             .OnExit(() => Module.Arena.Bounds = A31Thaliak.NormalBounds)
